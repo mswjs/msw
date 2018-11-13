@@ -1,0 +1,31 @@
+{
+  "name": "msw",
+  "version": "0.1.0",
+  "description": "API mocking without a dedicated server, nor a single change to the codebase.",
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development webpack --watch",
+    "build": "cross-env NODE_ENV=production webpack",
+    "test": "jest",
+    "example": "node example/server"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.5",
+    "@babel/preset-env": "^7.1.5",
+    "@types/ramda": "^0.25.41",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.0.4",
+    "babel-plugin-ramda": "^1.6.3",
+    "cross-env": "^5.2.0",
+    "express": "^4.16.4",
+    "jest": "^23.6.0",
+    "typescript": "^3.1.6",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
+  }
+}

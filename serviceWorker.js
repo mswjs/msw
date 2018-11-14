@@ -24,6 +24,34 @@ self.addEventListener('message', function (event) {
   }
 })
 
+/**
+ * Matches the given route against the mask and returns the result
+ * whether the route matches the mask, and which url parameters it contains.
+ * @param {string} mask A mask to match against the given route.
+ * @param {string} route
+ */
+function parseRoute(mask, route) {
+  let paramsList = []
+  const replacedMask = mask.replace(/:(\w+)/g, (_, paramName) => {
+    paramsList.push(paramName)
+    return '(\\w+)'
+  })
+
+  const match = new RegExp(replacedMask).exec(route)
+  const params = match && match
+    .slice(1, match.length)
+    .reduce((acc, paramValue, index) => {
+      const paramName = paramsList[index]
+      return Object.assign(acc, { [paramName]: paramValue })
+    }, {})
+
+  return {
+    url: route,
+    matches: !!match,
+    params,
+  }
+}
+
 self.addEventListener('fetch', function (event) {
   const routes = self.__routes
   if (!routes) {
@@ -34,12 +62,12 @@ self.addEventListener('fetch', function (event) {
   const relevantRoutes = routes[req.method.toLowerCase()] || {}
 
   Object.keys(relevantRoutes).forEach((routeUrl) => {
-    /** @todo Support complex syntax (i.e. with params) */
-    const reqMatches = routeUrl === req.url
+    const parsedRoute = parseRoute(routeUrl, req.url)
 
-    if (reqMatches) {
+    if (parsedRoute.matches) {
       const handler = relevantRoutes[routeUrl]
-      const res = new Response(JSON.stringify(handler(req)))
+      const resBody = JSON.stringify(handler(Object.assign(parsedRoute, req)))
+      const res = new Response(resBody)
       return event.respondWith(res)
     }
   })

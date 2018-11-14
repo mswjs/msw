@@ -52,20 +52,35 @@ function parseRoute(mask, route) {
   }
 }
 
+const headers = new Headers()
+headers.set('Mocked', 'true')
+
 const createRes = () => ({
-  headers: new Headers(),
+  headers,
   body: null,
   statusCode: 200,
   statusText: 'OK',
-  json(body) {
-    this.body = JSON.stringify(body)
+  set(name, value) {
+    if (typeof name === 'object') {
+      Object.keys(name).forEach((headerName) => {
+        this.headers.set(headerName, name[headerName])
+      })
+      return this
+    }
+
+    this.headers.set(name, value)
     return this
   },
   status(statusCode, statusText) {
     this.statusCode = statusCode
     this.statusText = statusText
     return this
-  }
+  },
+  json(body) {
+    this.body = JSON.stringify(body)
+    this.headers.set('Content-Type', 'application/json')
+    return this
+  },
 })
 
 self.addEventListener('fetch', function (event) {

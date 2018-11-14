@@ -10,11 +10,13 @@ msw.get('https://github.com/user/:username', (req, res) => {
   })
 })
 
-msw.get('https://github.com/repo/:repoName', (req, res) => {
-  res.json({
-    repository: req.params.repoName,
-    message: 'This repo is amazing'
-  })
+msw.post('https://github.com/repo/:repoName', (req, res) => {
+  res
+    .set('Custom-Header', 'value')
+    .json({
+      repository: req.params.repoName,
+      message: 'This repo is amazing'
+    })
 })
 
 document.getElementById('btn').addEventListener('click', () => {
@@ -22,7 +24,7 @@ document.getElementById('btn').addEventListener('click', () => {
 })
 
 document.getElementById('btn-02').addEventListener('click', () => {
-  fetch('https://github.com/repo/msw')
+  fetch('https://github.com/repo/msw', { method: 'POST' })
 })
 
 msw.start()

@@ -1,15 +1,28 @@
 const { MSW } = MockServiceWorker
 
 const msw = new MSW()
-window.msw = msw
 
-msw.get('https://github.com/user/:username', (req) => {
-  return {
+msw.get('https://github.com/user/:username', (req, res) => {
+  res.status(402, 'Custom status text').json({
     ...req.params,
-    hey: `This is mocked. This is not the GitHub API.`
-  }
+    message: `This is not a GitHub API, but it may be.`,
+    param: 'value'
+  })
+})
+
+msw.get('https://github.com/repo/:repoName', (req, res) => {
+  res.json({
+    repository: req.params.repoName,
+    message: 'This repo is amazing'
+  })
 })
 
 document.getElementById('btn').addEventListener('click', () => {
   fetch('https://github.com/user/kettanaito')
 })
+
+document.getElementById('btn-02').addEventListener('click', () => {
+  fetch('https://github.com/repo/msw')
+})
+
+msw.start()

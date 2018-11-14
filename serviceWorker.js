@@ -52,6 +52,22 @@ function parseRoute(mask, route) {
   }
 }
 
+const createRes = () => ({
+  headers: new Headers(),
+  body: null,
+  statusCode: 200,
+  statusText: 'OK',
+  json(body) {
+    this.body = JSON.stringify(body)
+    return this
+  },
+  status(statusCode, statusText) {
+    this.statusCode = statusCode
+    this.statusText = statusText
+    return this
+  }
+})
+
 self.addEventListener('fetch', function (event) {
   const routes = self.__routes
   if (!routes) {
@@ -65,10 +81,17 @@ self.addEventListener('fetch', function (event) {
     const parsedRoute = parseRoute(routeUrl, req.url)
 
     if (parsedRoute.matches) {
+      const res = createRes()
       const handler = relevantRoutes[routeUrl]
-      const resBody = JSON.stringify(handler(Object.assign(parsedRoute, req)))
-      const res = new Response(resBody)
-      return event.respondWith(res)
+
+      handler(Object.assign(parsedRoute, req), res)
+      const response = new Response(res.body, {
+        headers: res.headers,
+        status: res.statusCode,
+        statusText: res.statusText,
+      })
+
+      return event.respondWith(response)
     }
   })
 })

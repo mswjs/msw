@@ -60,6 +60,7 @@ const createRes = () => ({
   body: null,
   statusCode: 200,
   statusText: 'OK',
+  timeout: 0,
   set(name, value) {
     if (typeof name === 'object') {
       Object.keys(name).forEach((headerName) => {
@@ -81,6 +82,10 @@ const createRes = () => ({
     this.headers.set('Content-Type', 'application/json')
     return this
   },
+  delay(duration) {
+    this.timeout = duration
+    return this
+  }
 })
 
 self.addEventListener('fetch', function (event) {
@@ -99,14 +104,18 @@ self.addEventListener('fetch', function (event) {
       const res = createRes()
       const handler = relevantRoutes[routeUrl]
 
-      handler(Object.assign(parsedRoute, req), res)
+      handler(Object.assign({}, parsedRoute, req), res)
       const response = new Response(res.body, {
         headers: res.headers,
         status: res.statusCode,
         statusText: res.statusText,
       })
 
-      return event.respondWith(response)
+      return event.respondWith(new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(response)
+        }, res.timeout);
+      }))
     }
   })
 })

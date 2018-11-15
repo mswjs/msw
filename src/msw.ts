@@ -14,7 +14,7 @@ export default class MockServiceWorker {
   instance: ServiceWorkerRegistration
   routes: Routes
 
-  async start(): Promise<ServiceWorkerRegistration | void> {
+  start(): Promise<ServiceWorkerRegistration | void> {
     return navigator.serviceWorker.register(this.serviceWorkerPath, { scope: '/' })
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
@@ -31,7 +31,7 @@ export default class MockServiceWorker {
       .catch(console.error)
   }
 
-  async stop() {
+  stop() {
     if (!this.instance) {
       return console.warn('No active instane of Service Worker is active.')
     }

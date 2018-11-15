@@ -19,12 +19,20 @@ msw.post('https://github.com/repo/:repoName', (req, res) => {
     })
 })
 
+msw.get('https://api.website.com', (req, res) => {
+  res
+    .delay(2000)
+    .json({
+      message: 'Delayed response'
+    })
+})
+
 document.getElementById('btn').addEventListener('click', () => {
   fetch('https://github.com/user/kettanaito')
 })
 
 document.getElementById('btn-02').addEventListener('click', () => {
-  fetch('https://github.com/repo/msw', { method: 'POST' })
+  fetch('https://api.website.com')
 })
 
 msw.start()

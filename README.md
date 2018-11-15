@@ -2,8 +2,8 @@
 
 **Problems of traditional mocking:**
 
-* Often relies a mocking server which you need to run and maintain;
-* Doesn't really mock the requests, rather **replaces** the requests so they go to the mocking server, instead of the production server;
+* Often relies on a mocking server which you need to run and maintain;
+* Doesn't really mock the requests, rather **replaces** the requests, so they go to the mocking server, instead of the production server;
 * Brings extra dependencies to your application, instead of being a dependency-free development tool;
 
 # Getting started

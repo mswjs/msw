@@ -1,8 +1,18 @@
+# Motivation
+
+**Problems of traditional mocking:**
+
+* Often relies a mocking server which you need to run and maintain;
+* Doesn't really mock the requests, rather **replaces** the requests so they go to the mocking server, instead of the production server;
+* Brings extra dependencies to your application, instead of being a dependency-free development tool;
+
 # Getting started
 
 ## Install
 
+```bash
 –
+```
 
 ## Configure routes
 
@@ -36,4 +46,4 @@ msw.start()
 
 # How does this work?
 
-We use a Service Worker that analyzes the outgoing requests and matches them against the specified mocking routes. Whenever a request matches a route, the handler function is executed, and the mock is being sent as a response to that request.
+MSW uses a Service Worker that analyzes the outgoing requests and matches them against the specified mocking routes. Whenever a request matches a route, the handler function is executed, and the mock is being sent as a response to that request.

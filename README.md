@@ -1,23 +1,23 @@
-# Motivation
+## Motivation
 
-**Problems of traditional mocking:**
+### Problems of traditional mocking:
 
 * Often relies on a mocking server which you need to run and maintain;
-* Doesn't really mock the requests, rather **replaces** the requests, so they go to the mocking server, instead of the production server;
+* Doesn't really mock requests, rather **replaces** requests' urls, so they go to the mocking server, instead of the production server;
 * Brings extra dependencies to your application, instead of being a dependency-free development tool;
 
-# Getting started
+## Getting started
 
-## Install
+### Install
 
 ```bash
 –
 ```
 
-## Configure routes
+### Configure routes
 
 ```js
-import { MSW } from '-'
+import { MSW } from 'not-published-yet'
 
 /* Create a new instance of MockServiceWorker */
 const msw = new MSW()
@@ -44,6 +44,6 @@ msw.get('https://api.github.com/repo/:repoName', (req, res) => {
 msw.start()
 ```
 
-# How does this work?
+## How does this work?
 
-MSW uses a Service Worker that analyzes the outgoing requests and matches them against the specified mocking routes. Whenever a request matches a route, the handler function is executed, and the mock is being sent as a response to that request.
+The library spawns a ServiceWorker that broadcasts any outgoing request on a page to the application. The listener then matches the request against the schema of mocking routes, and resolves with the mocked response whenever present.

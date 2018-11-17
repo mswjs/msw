@@ -50,9 +50,21 @@ self.addEventListener('fetch', async (event) => {
       return resolve(defaultResponse())
     }
 
+    const reqHeaders = {}
+    req.headers.forEach((value, name) => {
+      reqHeaders[name] = value
+    })
+
     const clientResponse = await sendMessageToClient(client, {
       url: req.url,
-      method: req.method
+      method: req.method,
+      headers: reqHeaders,
+      cache: req.cache,
+      mode: req.mode,
+      credentials: req.credentials,
+      redirect: req.redirect,
+      referrer: req.referrer,
+      referrerPolicy: req.referrerPolicy
     })
 
     if (clientResponse === 'not-found') {
@@ -61,9 +73,6 @@ self.addEventListener('fetch', async (event) => {
 
     const res = JSON.parse(clientResponse)
     const { body, timeout, headers, statusCode, statusText } = res
-
-    console.log({ headers })
-  
     const mockedResponse = new Response(body, {
       headers,
       status: statusCode,

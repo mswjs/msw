@@ -1,46 +1,20 @@
 import * as R from 'ramda'
 import parseRoute from './utils/parseRoutes'
+import createRes, { ResponseMock } from './createRes'
 
-type Method = 'get' | 'post' | 'put' | 'delete'
-type Handler = (req: Request, res: {}) => any
+enum RESTMethod {
+  get = 'get',
+  post = 'post',
+  put = 'put',
+  delete = 'delete',
+}
+
+type Handler = (req: Request, res: ResponseMock) => void
 interface Routes {
   [method: string] : {
     [route: string]: Handler
   }
 }
-
-const createRes = () => ({
-  headers: {
-    Mocked: true,
-  },
-  body: null,
-  statusCode: 200,
-  statusText: 'OK',
-  timeout: 0,
-  set(name, value) {
-    if (typeof name === 'object') {
-      this.headers = R.mergeDeepRight(this.headers, name)
-      return this
-    }
-
-    this.headers = R.assoc(name, value, this.headers)
-    return this
-  },
-  status(statusCode, statusText) {
-    this.statusCode = statusCode
-    this.statusText = statusText
-    return this
-  },
-  json(body) {
-    this.body = JSON.stringify(body)
-    this.set('Content-Type', 'application/json')
-    return this
-  },
-  delay(duration) {
-    this.timeout = duration
-    return this
-  }
-})
 
 const serviceWorkerPath = '/mockServiceWorker.js'
 
@@ -71,30 +45,36 @@ export default class MockServiceWorker {
   interceptRequest = (event) => {
     const req = JSON.parse(event.data)
     const { method, url } = req
-    const relevantRoutes = this.routes[method.toLowerCase()]
-
-    const relevantRoute = Object.keys(relevantRoutes).reduce((acc, mask) => {
-      const parsedRoute = parseRoute(mask, url)
-
-      if (parsedRoute.matches) {
-        return {
-          handler: relevantRoutes[mask],
-          parsedRoute,
-        }
-      }
-
-      return acc
-    }, null)
+    const relevantRoutes = this.routes[method.toLowerCase()] || {}
+    const relevantRoute = Object.keys(relevantRoutes)
+      .reduce((acc, mask) => {
+        const parsedRoute = parseRoute(mask, url)
+        return parsedRoute.matches
+          ? {
+            handler: relevantRoutes[mask],
+            parsedRoute,
+          }
+          : acc
+      },
+      null
+    )
 
     if (relevantRoute === null) {
-      return event.ports[0].postMessage('not-found')
+      return this.postMessage(event, 'not-found')
     }
 
-    const { handler, params } = relevantRoute
+    const { handler, parsedRoute } = relevantRoute
     const res = createRes()
-    handler({ ...req, params }, res)
+    handler({ ...req, params: parsedRoute.params }, res)
 
-    return event.ports[0].postMessage(JSON.stringify(res))
+    return this.postMessage(event, JSON.stringify(res))
+  }
+
+  /**
+   * Posts a message to the active ServiceWorker.
+   */
+  postMessage(event, message: any) {
+    event.ports[0].postMessage(message)
   }
 
   start(): Promise<ServiceWorkerRegistration | void> {
@@ -102,7 +82,12 @@ export default class MockServiceWorker {
       return this.serviceWorkerRegistration.update()
     }
 
-    return navigator.serviceWorker.register(serviceWorkerPath, { scope: '/' })
+    if (!('serviceWorker' in navigator)) {
+      console.error('Failed to start MockServiceWorker: Your current browser does not support Service Workers.')
+      return void(null)
+    }
+
+    navigator.serviceWorker.register(serviceWorkerPath, { scope: '/' })
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
@@ -120,26 +105,19 @@ export default class MockServiceWorker {
       return console.warn('No active instane of Service Worker is active.')
     }
 
-    return this.serviceWorkerRegistration.unregister().then(() => {
+    this.serviceWorkerRegistration.unregister().then(() => {
       this.worker = null
       this.serviceWorkerRegistration = null
     })
   }
 
-  addRoute = R.curry((method: Method, route:string, handler: Handler) => {
+  addRoute = R.curry((method: RESTMethod, route:string, handler: Handler) => {
     this.routes = R.assocPath([method, route], handler, this.routes)
     return this
   })
 
-  /**
-   * Route declaration aliases.
-   * @example
-   * msw.get('https://backend.dev/user/:username', (req, res) => {
-   *  return res.status(200).json({ username: req.params.username })
-   * })
-   */
-  get = this.addRoute('get')
-  post = this.addRoute('post')
-  put = this.addRoute('put')
-  delete = this.addRoute('delete')
+  get = this.addRoute(RESTMethod.get)
+  post = this.addRoute(RESTMethod.post)
+  put = this.addRoute(RESTMethod.put)
+  delete = this.addRoute(RESTMethod.delete)
 }

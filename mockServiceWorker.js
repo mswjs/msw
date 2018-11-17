@@ -1,5 +1,3 @@
-self.__clientPresent = false
-
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting())
 })

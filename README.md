@@ -47,3 +47,9 @@ msw.start()
 ## How does this work?
 
 The library spawns a ServiceWorker that broadcasts any outgoing request on a page to the application. The listener then matches the request against the schema of mocking routes, and resolves with the mocked response whenever present.
+
+## Browser support
+
+Please note that this library is meant to be used for **development only**. It doesn't require nor encourage you to install any ServiceWorker on the production environment.
+
+[**See browser support for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)

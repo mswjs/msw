@@ -1,5 +1,4 @@
 import * as R from 'ramda'
-import serialize from './utils/serialize'
 import parseRoute from './utils/parseRoutes'
 
 type Method = 'get' | 'post' | 'put' | 'delete'
@@ -10,24 +9,21 @@ interface Routes {
   }
 }
 
-const headers = new Headers()
-headers.set('Mocked', 'true')
-
 const createRes = () => ({
-  headers,
+  headers: {
+    Mocked: true,
+  },
   body: null,
   statusCode: 200,
   statusText: 'OK',
   timeout: 0,
   set(name, value) {
     if (typeof name === 'object') {
-      Object.keys(name).forEach((headerName) => {
-        this.headers.set(headerName, name[headerName])
-      })
+      this.headers = R.mergeDeepRight(this.headers, name)
       return this
     }
 
-    this.headers.set(name, value)
+    this.headers = R.assoc(name, value, this.headers)
     return this
   },
   status(statusCode, statusText) {
@@ -37,7 +33,7 @@ const createRes = () => ({
   },
   json(body) {
     this.body = JSON.stringify(body)
-    this.headers.set('Content-Type', 'application/json')
+    this.set('Content-Type', 'application/json')
     return this
   },
   delay(duration) {
@@ -45,7 +41,6 @@ const createRes = () => ({
     return this
   }
 })
-//
 
 const serviceWorkerPath = '/mockServiceWorker.js'
 
@@ -125,7 +120,10 @@ export default class MockServiceWorker {
       return console.warn('No active instane of Service Worker is active.')
     }
 
-    return this.serviceWorkerRegistration.unregister()
+    return this.serviceWorkerRegistration.unregister().then(() => {
+      this.worker = null
+      this.serviceWorkerRegistration = null
+    })
   }
 
   addRoute = R.curry((method: Method, route:string, handler: Handler) => {

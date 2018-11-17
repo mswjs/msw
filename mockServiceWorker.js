@@ -60,12 +60,14 @@ self.addEventListener('fetch', async (event) => {
     }
 
     const res = JSON.parse(clientResponse)
-    const { body, timeout } = res
+    const { body, timeout, headers, statusCode, statusText } = res
+
+    console.log({ headers })
   
     const mockedResponse = new Response(body, {
-      headers: res.headers,
-      status: res.statusCode,
-      statusText: res.statusText,
+      headers,
+      status: statusCode,
+      statusText,
     })
 
     setTimeout(resolve.bind(this, mockedResponse), timeout)

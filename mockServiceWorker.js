@@ -9,20 +9,14 @@ self.addEventListener('activate', (event) => {
   console.log('%cMockServiceWorker is activated!', 'color:green;font-weight:bold;')
 })
 
-self.addEventListener('statechange', (event) => {
-  console.log('STATE CHANGE', event)
-})
-
 self.addEventListener('message', (event) => {
   switch (event.data) {
     case 'mock-activate': {
-      console.warn('Client has become present!')
       self.__mockActive = true
       break;
     }
-    
+
     case 'mock-deactivate': {
-      console.warn('Client has deactivated!')
       self.__mockActive = false
       break;
     }
@@ -75,8 +69,6 @@ self.addEventListener('fetch', async (event) => {
       status: res.statusCode,
       statusText: res.statusText,
     })
-
-    console.log({res})
 
     setTimeout(resolve.bind(this, mockedResponse), timeout)
   }).catch(console.error))

@@ -65,7 +65,9 @@ export default class MockServiceWorker {
        * the mock. Since client hasn't been downloaded and run yet, it won't be
        * able to reply pack when worker prompts to receive the mock.
        */
-      this.worker && this.worker.postMessage('mock-deactivate')
+      if (this.worker && this.worker.state !== 'redundant') {
+        this.worker.postMessage('mock-deactivate')
+      }
     })
 
     return this

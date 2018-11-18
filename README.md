@@ -2,9 +2,9 @@
 
 ### Problems of traditional mocking:
 
-* Often relies on a mocking server which you need to run and maintain;
-* Doesn't really mock requests, rather **replaces** requests' urls, so they go to the mocking server, instead of the production server;
-* Brings extra dependencies to your application, instead of being a dependency-free development tool;
+- Often relies on a mocking server which you need to run and maintain;
+- Doesn't really mock requests, rather **replaces** requests' urls, so they go to the mocking server, instead of the production server;
+- Brings extra dependencies to your application, instead of being a dependency-free development tool;
 
 ## Getting started
 
@@ -23,22 +23,20 @@ import { MSW } from 'not-published-yet'
 const msw = new MSW()
 
 /* Configure mocking routes */
-msw.get('https://api.github.com/repo/:repoName', (req, res) => {
-  /* Access request's params */
-  const { repoName } = req.params
+msw.get(
+  'https://api.github.com/repo/:repoName',
+  (req, res, { status, set, delay, json }) => {
+    const { repoName } = req.params // acces request's params
 
-  res
-    /* Set custom response status */
-    .status(403)
-    /* Set headers */
-    .set({ 'Custom-Header': 'foo' })
-    /* Delay the response */
-    .delay(1000)
-    /* Mock the body */
-    .json({
-      errorMessage: `Repository "${repoName}" not found`
-    })
-})
+    return res(
+      status(403), // set custom response status
+      set({ 'Custom-Header': 'foo' }), // set headers
+      delay(1000), // delay the response
+      json({
+        errorMessage: `Repository "${repoName}" not found`,
+      }),
+    )
+)
 
 /* Start the Service Worker */
 msw.start()

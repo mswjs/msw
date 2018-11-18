@@ -2,34 +2,35 @@ const { MSW } = MockServiceWorker
 
 const msw = new MSW()
 
-msw.get('https://github.com/user/:username', (req, res) => {
-  console.log({req})
-  res
-    .status(301, 'Custom status text')
-    .set({
-      'Header-One': 'first',
-      'Header-Two': 'second',
-    })
-    .json({
-      ...req.params,
-      message: `This is not a GitHub API, but it may be.`,
-      param: 'value'
-    })
-})
+msw.get(
+  'https://github.com/user/:username',
+  (req, res, { status, set, json }) => {
+    return res(
+      status(301, 'Custom status text'),
+      set({
+        'Header-One': 'foo',
+        'Header-Two': 'bar',
+      }),
+      json({
+        message: 'This is not a GitHub API',
+        username: req.params.username,
+      }),
+    )
+  },
+)
 
-msw.post('https://github.com/repo/:repoName', (req, res) => {
-  res
-    .set('Custom-Header', 'value')
-    .json({
+msw.post('https://github.com/repo/:repoName', (req, res, { set, json }) => {
+  return res(
+    set('Custom-Header', 'value'),
+    json({
       repository: req.params.repoName,
-      message: 'This repo is amazing'
-    })
+      message: 'This repo is amazing',
+    }),
+  )
 })
 
-msw.post('https://api.website.com', (req, res) => {
-  res
-    .delay(2000)
-    .json({ message: 'Delayed response' })
+msw.post('https://api.website.com', (req, res, { json, delay }) => {
+  return res(delay(2000), json({ message: 'Delayed response message' }))
 })
 
 msw.start()
@@ -39,10 +40,10 @@ msw.start()
 document.getElementById('btn').addEventListener('click', () => {
   fetch('https://github.com/user/kettanaito', {
     mode: 'no-cors',
-    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: "same-origin", // include, *same-origin, omit
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
     headers: {
-        "Content-Type": "application/json; charset=utf-8",
+      'Content-Type': 'application/json; charset=utf-8',
     },
   })
 })

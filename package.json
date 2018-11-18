@@ -24,6 +24,7 @@
     "cross-env": "^5.2.0",
     "express": "^4.16.4",
     "jest": "^23.6.0",
+    "prettier": "^1.15.2",
     "typescript": "^3.1.6",
     "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2"

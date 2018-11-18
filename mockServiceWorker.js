@@ -4,19 +4,22 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim())
-  console.log('%cMockServiceWorker is activated!', 'color:green;font-weight:bold;')
+  console.log(
+    '%cMockServiceWorker is activated!',
+    'color:green;font-weight:bold;',
+  )
 })
 
 self.addEventListener('message', (event) => {
   switch (event.data) {
     case 'mock-activate': {
       self.__mockActive = true
-      break;
+      break
     }
 
     case 'mock-deactivate': {
       self.__mockActive = false
-      break;
+      break
     }
   }
 })
@@ -40,45 +43,40 @@ const sendMessageToClient = (client, message) => {
 self.addEventListener('fetch', async (event) => {
   const { clientId, request: req } = event
 
-  const defaultResponse = () => {
-    return fetch(req)
-  }
+  const defaultResponse = () => fetch(req)
 
-  return event.respondWith(new Promise(async (resolve, reject) => {
-    const client = await event.target.clients.get(clientId)
-    if (!client || !self.__mockActive) {
-      return resolve(defaultResponse())
-    }
+  event.respondWith(
+    new Promise(async (resolve, reject) => {
+      const client = await event.target.clients.get(clientId)
+      if (!client || !self.__mockActive) {
+        return resolve(defaultResponse())
+      }
 
-    const reqHeaders = {}
-    req.headers.forEach((value, name) => {
-      reqHeaders[name] = value
-    })
+      const reqHeaders = {}
+      req.headers.forEach((value, name) => {
+        reqHeaders[name] = value
+      })
 
-    const clientResponse = await sendMessageToClient(client, {
-      url: req.url,
-      method: req.method,
-      headers: reqHeaders,
-      cache: req.cache,
-      mode: req.mode,
-      credentials: req.credentials,
-      redirect: req.redirect,
-      referrer: req.referrer,
-      referrerPolicy: req.referrerPolicy
-    })
+      const clientResponse = await sendMessageToClient(client, {
+        url: req.url,
+        method: req.method,
+        headers: reqHeaders,
+        cache: req.cache,
+        mode: req.mode,
+        credentials: req.credentials,
+        redirect: req.redirect,
+        referrer: req.referrer,
+        referrerPolicy: req.referrerPolicy,
+      })
 
-    if (clientResponse === 'not-found') {
-      return resolve(defaultResponse())
-    }
+      if (clientResponse === 'not-found') {
+        return resolve(defaultResponse())
+      }
 
-    const res = JSON.parse(clientResponse)
-    const { body, timeout, headers, statusCode, statusText } = res
-    const mockedResponse = new Response(body, {
-      headers,
-      status: statusCode,
-      statusText,
-    })
+      const res = JSON.parse(clientResponse)
+      const mockedResponse = new Response(res.body, res)
 
-    setTimeout(resolve.bind(this, mockedResponse), timeout)
-  }).catch(console.error))
+      setTimeout(resolve.bind(this, mockedResponse), res.delay)
+    }).catch(console.error),
+  )
 })

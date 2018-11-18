@@ -1,6 +1,7 @@
 import * as R from 'ramda'
 import parseRoute from './utils/parseRoutes'
-import createRes, { ResponseMock } from './createRes'
+import res, { MockedResponse } from './response'
+import * as context from './context'
 
 enum RESTMethod {
   get = 'get',
@@ -9,9 +10,9 @@ enum RESTMethod {
   delete = 'delete',
 }
 
-type Handler = (req: Request, res: ResponseMock) => void
+type Handler = (req: Request, res: MockedResponse) => void
 interface Routes {
-  [method: string] : {
+  [method: string]: {
     [route: string]: Handler
   }
 }
@@ -46,28 +47,32 @@ export default class MockServiceWorker {
     const req = JSON.parse(event.data)
     const { method, url } = req
     const relevantRoutes = this.routes[method.toLowerCase()] || {}
-    const relevantRoute = Object.keys(relevantRoutes)
-      .reduce((acc, mask) => {
-        const parsedRoute = parseRoute(mask, url)
-        return parsedRoute.matches
-          ? {
+    const relevantRoute = Object.keys(relevantRoutes).reduce((acc, mask) => {
+      const parsedRoute = parseRoute(mask, url)
+      return parsedRoute.matches
+        ? {
             handler: relevantRoutes[mask],
             parsedRoute,
           }
-          : acc
-      },
-      null
-    )
+        : acc
+    }, null)
 
     if (relevantRoute === null) {
       return this.postMessage(event, 'not-found')
     }
 
     const { handler, parsedRoute } = relevantRoute
-    const res = createRes()
-    handler({ ...req, params: parsedRoute.params }, res)
+    const resolvedResponse =
+      handler({ ...req, params: parsedRoute.params }, res, context) || {}
 
-    return this.postMessage(event, JSON.stringify(res))
+    if (!resolvedResponse) {
+      console.warn(
+        'Expected a mocking handler function to return an Object, but got: %s. ',
+        resolvedResponse,
+      )
+    }
+
+    return this.postMessage(event, JSON.stringify(resolvedResponse))
   }
 
   /**
@@ -83,11 +88,14 @@ export default class MockServiceWorker {
     }
 
     if (!('serviceWorker' in navigator)) {
-      console.error('Failed to start MockServiceWorker: Your current browser does not support Service Workers.')
-      return void(null)
+      console.error(
+        'Failed to start MockServiceWorker: Your current browser does not support Service Workers.',
+      )
+      return void null
     }
 
-    navigator.serviceWorker.register(serviceWorkerPath, { scope: '/' })
+    navigator.serviceWorker
+      .register(serviceWorkerPath, { scope: '/' })
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
@@ -111,7 +119,7 @@ export default class MockServiceWorker {
     })
   }
 
-  addRoute = R.curry((method: RESTMethod, route:string, handler: Handler) => {
+  addRoute = R.curry((method: RESTMethod, route: string, handler: Handler) => {
     this.routes = R.assocPath([method, route], handler, this.routes)
     return this
   })

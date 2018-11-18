@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Serverless client-side API mocking without a single change to the codebase.",
   "main": "lib/index.js",
   "scripts": {

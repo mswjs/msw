@@ -1,13 +1,14 @@
 {
   "name": "msw",
   "version": "0.1.0",
-  "description": "API mocking without a dedicated server, nor a single change to the codebase.",
+  "description": "Serverless client-side API mocking without a single change to the codebase.",
   "main": "lib/index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
     "test": "jest",
-    "example": "node example/server"
+    "example": "node example/server",
+    "prepublish": "NODE_ENV=production npm run build"
   },
   "author": "",
   "license": "MIT",

@@ -17,7 +17,7 @@
 ### Configure routes
 
 ```js
-import { MSW } from 'not-published-yet'
+import { MSW } from 'msw'
 
 /* Create a new instance of MockServiceWorker */
 const msw = new MSW()

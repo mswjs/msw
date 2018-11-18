@@ -1,0 +1,8 @@
+__*
+.vscode
+example
+tsconfig.json
+webpack.*
+.gitignore
+.prettierrc
+babel.*

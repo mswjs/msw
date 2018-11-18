@@ -9,7 +9,7 @@ module.exports = {
     path: path.resolve(__dirname, 'lib'),
     library: 'MockServiceWorker',
     libraryTarget: 'umd',
-    umdNamedDefine: true
+    umdNamedDefine: true,
   },
   module: {
     rules: [
@@ -19,17 +19,18 @@ module.exports = {
         use: [
           {
             loader: 'babel-loader',
-          }, {
-            loader: 'awesome-typescript-loader'
-          }
-        ]
-      }
-    ]
+          },
+          {
+            loader: 'awesome-typescript-loader',
+          },
+        ],
+      },
+    ],
   },
   optimization: {
-    minimize: false
+    minimize: false,
   },
   resolve: {
-    extensions: ['.ts', '.js']
-  }
+    extensions: ['.ts', '.js'],
+  },
 }

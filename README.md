@@ -17,10 +17,7 @@
 ### Configure routes
 
 ```js
-import { MSW } from 'msw'
-
-/* Create a new instance of MockServiceWorker */
-const msw = new MSW()
+import { msw } from 'msw'
 
 /* Configure mocking routes */
 msw.get(

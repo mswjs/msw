@@ -11,22 +11,23 @@
 ### Install
 
 ```bash
-–
+npm install msw --save-dev
 ```
 
-### Configure routes
+### Use
 
 ```js
+// app/mocks.js
 import { msw } from 'msw'
 
 /* Configure mocking routes */
 msw.get(
   'https://api.github.com/repo/:repoName',
   (req, res, { status, set, delay, json }) => {
-    const { repoName } = req.params // acces request's params
+    const { repoName } = req.params // access request's params
 
     return res(
-      status(403), // set custom response status
+      status(403), // set custom status
       set({ 'Custom-Header': 'foo' }), // set headers
       delay(1000), // delay the response
       json({ errorMessage: `Repository "${repoName}" not found` }),
@@ -37,9 +38,16 @@ msw.get(
 msw.start()
 ```
 
+Import your `mocks.js` module anywhere in your application to enable the mocking:
+
+```js
+// app/index.js
+import './mocks.js'
+```
+
 ## How does this work?
 
-The library spawns a ServiceWorker that broadcasts any outgoing request on a page to the application. The listener then matches the request against the schema of mocking routes, and resolves with the mocked response whenever present.
+The library spawns a ServiceWorker that notifies the library about any outgoing requests from your application. A request is than matched against the mocking routes you have defined, and is mocked with the first match.
 
 ## Browser support
 

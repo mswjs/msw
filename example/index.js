@@ -1,6 +1,4 @@
-const { MSW } = MockServiceWorker
-
-const msw = new MSW()
+const { msw } = MockServiceWorker
 
 msw.get(
   'https://github.com/user/:username',

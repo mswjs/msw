@@ -32,9 +32,7 @@ msw.get(
       status(403), // set custom response status
       set({ 'Custom-Header': 'foo' }), // set headers
       delay(1000), // delay the response
-      json({
-        errorMessage: `Repository "${repoName}" not found`,
-      }),
+      json({ errorMessage: `Repository "${repoName}" not found` }),
     )
 )
 

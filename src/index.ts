@@ -1,1 +1,3 @@
-export { default as MSW } from './msw'
+import MSW from './msw'
+
+export const msw = new MSW()

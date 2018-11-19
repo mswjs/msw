@@ -1,4 +1,5 @@
 import * as R from 'ramda'
+import context from './context'
 
 export interface MockedResponse {
   body: any

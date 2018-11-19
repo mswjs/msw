@@ -3,8 +3,14 @@
 ### Problems of traditional mocking:
 
 - Often relies on a mocking server which you need to run and maintain;
-- Doesn't really mock requests, rather **replaces** requests' urls, so they go to the mocking server, instead of the production server;
+- Doesn't really mock requests, rather **replaces** their urls to point to a mocking server, instead of a production server;
 - Brings extra dependencies to your application, instead of being a dependency-free development tool;
+
+### Benefits of `msw`:
+
+- **Serverless**. Doesn't establish any mocking servers whatsoever;
+- **Deviation-free**. Request the same resources as you would in production, let the library handle response mocking of those that match your defined routes;
+- **A tool**. Mocking is a development process, thus enable/disable it at any point, change the routes without any rebuilds, control the lifecycle from your browser's DevTools;
 
 ## Getting started
 

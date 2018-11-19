@@ -27,6 +27,10 @@ msw.post('https://github.com/repo/:repoName', (req, res, { set, json }) => {
   )
 })
 
+msw.get(/api.website/, (req, res, { json }) => {
+  return res(json({ message: 'Mocked using RegExp!' }))
+})
+
 msw.post('https://api.website.com', (req, res, { json, delay }) => {
   return res(delay(2000), json({ message: 'Delayed response message' }))
 })
@@ -48,4 +52,8 @@ document.getElementById('btn').addEventListener('click', () => {
 
 document.getElementById('btn-02').addEventListener('click', () => {
   fetch('https://api.website.com', { method: 'POST' })
+})
+
+document.getElementById('btn-03').addEventListener('click', () => {
+  fetch('https://api.website.com')
 })

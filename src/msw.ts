@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import parseRoute, { ParsedRoute } from './utils/parseRoutes'
+import assertUrl, { Mask, ParsedUrl } from './utils/assertUrl'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
 
@@ -52,9 +52,9 @@ export default class MockServiceWorker {
     const req = JSON.parse(event.data)
     const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
 
-    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedRoute>(
+    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
       (acc, mask) => {
-        const parsedRoute = parseRoute(mask, req.url)
+        const parsedRoute = assertUrl(mask, req.url)
         return parsedRoute.matches ? parsedRoute : acc
       },
       null,
@@ -64,7 +64,7 @@ export default class MockServiceWorker {
       return this.postMessage(event, 'not-found')
     }
 
-    const handler = relevantRoutes[parsedRoute.mask]
+    const handler = relevantRoutes[parsedRoute.mask as string]
     const resolvedResponse =
       handler({ ...req, params: parsedRoute.params }, res, context) || {}
 
@@ -113,7 +113,7 @@ export default class MockServiceWorker {
 
   stop() {
     if (!this.workerRegistration) {
-      return console.warn('No active instane of Service Worker is active.')
+      return console.warn('No active instance of Service Worker is running.')
     }
 
     this.workerRegistration.unregister().then(() => {
@@ -122,8 +122,8 @@ export default class MockServiceWorker {
     })
   }
 
-  addRoute = R.curry((method: RESTMethod, route: string, handler: Handler) => {
-    this.routes = R.assocPath([method, route], handler, this.routes)
+  addRoute = R.curry((method: RESTMethod, mask: Mask, handler: Handler) => {
+    this.routes = R.assocPath([method, mask as string], handler, this.routes)
     return this
   })
 

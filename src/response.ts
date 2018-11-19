@@ -30,16 +30,18 @@ const defaultResponse: MockedResponse = {
 }
 
 const response: ResponseComposition = (...transformers) => {
-  const list =
-    transformers && transformers.length > 0
-      ? transformers
-      : [() => defaultResponse]
+  if (transformers && transformers.length > 0) {
+    /**
+     * Ignore the arity annotation from Ramda.
+     * Apparently, TypeScript assumes "transformers" may be modified
+     * before they get into pipe as arguments, thus screams at
+     * potentially empty array.
+     */
+    // @ts-ignore
+    return R.pipe(...transformers)(defaultResponse)
+  }
 
-  return R.pipe(...list)(defaultResponse)
+  return defaultResponse
 }
-// transformers && transformers.length > 0
-//? /* tslint:disable-next-line */
-// R.pipe(...(transformers || [R.always(defaultResponse)]))(defaultResponse)
-// : defaultResponse
 
 export default response

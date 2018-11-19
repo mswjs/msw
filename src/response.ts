@@ -8,7 +8,15 @@ export interface MockedResponse {
   delay: number
 }
 
-type ResponseTransformer = (res: MockedResponse) => MockedResponse
+/**
+ * @todo Use proper function signature.
+ * (res: MockedResponse) => MockedResponse is the correct one, but
+ * it doesn't seem to work properly with Radma's annotations.
+ */
+export type ResponseTransformer = (res: MockedResponse) => any
+export type ResponseComposition = (
+  ...transformers: ResponseTransformer[]
+) => MockedResponse
 
 const defaultResponse: MockedResponse = {
   status: 200,
@@ -20,6 +28,17 @@ const defaultResponse: MockedResponse = {
   },
 }
 
-export default function response(...transformers: ResponseTransformer[]) {
-  return R.pipe(...transformers)(defaultResponse)
+const response: ResponseComposition = (...transformers) => {
+  const list =
+    transformers && transformers.length > 0
+      ? transformers
+      : [() => defaultResponse]
+
+  return R.pipe(...list)(defaultResponse)
 }
+// transformers && transformers.length > 0
+//? /* tslint:disable-next-line */
+// R.pipe(...(transformers || [R.always(defaultResponse)]))(defaultResponse)
+// : defaultResponse
+
+export default response

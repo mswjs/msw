@@ -8,9 +8,12 @@
     "build": "cross-env NODE_ENV=production webpack",
     "test": "jest",
     "example": "node example/server",
-    "prepublish": "NODE_ENV=production npm run build"
+    "prepublishOnly": "NODE_ENV=production npm run build"
   },
-  "author": "",
+  "author": {
+    "name": "Artem Zakharchenko",
+    "url": "https://github.com/kettanaito"
+  },
   "license": "MIT",
   "dependencies": {
     "ramda": "^0.25.0"

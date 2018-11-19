@@ -1,6 +1,7 @@
-interface ParsedRoute {
-  url: string,
-  matches: boolean,
+export interface ParsedRoute {
+  url: string
+  mask: string
+  matches: boolean
   params?: {
     [paramName: string]: any
   }
@@ -14,9 +15,9 @@ export default function parseRoute(mask: string, route: string): ParsedRoute {
   })
 
   const match = new RegExp(replacedMask).exec(route)
-  const params = match && match
-    .slice(1, match.length)
-    .reduce((acc, paramValue, index) => {
+  const params =
+    match &&
+    match.slice(1, match.length).reduce((acc, paramValue, index) => {
       const paramName = paramsList[index]
       return {
         ...acc,
@@ -26,6 +27,7 @@ export default function parseRoute(mask: string, route: string): ParsedRoute {
 
   return {
     url: route,
+    mask,
     matches: !!match,
     params,
   }

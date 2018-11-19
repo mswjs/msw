@@ -1,7 +1,7 @@
 import * as R from 'ramda'
-import parseRoute from './utils/parseRoutes'
-import res, { MockedResponse } from './response'
-import * as context from './context'
+import parseRoute, { ParsedRoute } from './utils/parseRoutes'
+import res, { MockedResponse, ResponseComposition } from './response'
+import context, { MockedContext } from './context'
 
 enum RESTMethod {
   get = 'get',
@@ -10,7 +10,12 @@ enum RESTMethod {
   delete = 'delete',
 }
 
-type Handler = (req: Request, res: MockedResponse) => void
+type Handler = (
+  req: Request,
+  res: ResponseComposition,
+  context: MockedContext,
+) => MockedResponse
+
 interface Routes {
   [method: string]: {
     [route: string]: Handler
@@ -21,11 +26,11 @@ const serviceWorkerPath = '/mockServiceWorker.js'
 
 export default class MockServiceWorker {
   worker: ServiceWorker
-  serviceWorkerRegistration: ServiceWorkerRegistration
+  workerRegistration: ServiceWorkerRegistration
   routes: Routes
 
   constructor() {
-    /** @todo Consider removing event listeners upon destruction? */
+    /** @todo Consider removing event listeners upon destruction */
     navigator.serviceWorker.addEventListener('message', this.interceptRequest)
     window.addEventListener('beforeunload', () => {
       /**
@@ -45,23 +50,21 @@ export default class MockServiceWorker {
 
   interceptRequest = (event) => {
     const req = JSON.parse(event.data)
-    const { method, url } = req
-    const relevantRoutes = this.routes[method.toLowerCase()] || {}
-    const relevantRoute = Object.keys(relevantRoutes).reduce((acc, mask) => {
-      const parsedRoute = parseRoute(mask, url)
-      return parsedRoute.matches
-        ? {
-            handler: relevantRoutes[mask],
-            parsedRoute,
-          }
-        : acc
-    }, null)
+    const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
 
-    if (relevantRoute === null) {
+    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedRoute>(
+      (acc, mask) => {
+        const parsedRoute = parseRoute(mask, req.url)
+        return parsedRoute.matches ? parsedRoute : acc
+      },
+      null,
+    )
+
+    if (parsedRoute === null) {
       return this.postMessage(event, 'not-found')
     }
 
-    const { handler, parsedRoute } = relevantRoute
+    const handler = relevantRoutes[parsedRoute.mask]
     const resolvedResponse =
       handler({ ...req, params: parsedRoute.params }, res, context) || {}
 
@@ -83,8 +86,8 @@ export default class MockServiceWorker {
   }
 
   start(): Promise<ServiceWorkerRegistration | void> {
-    if (this.serviceWorkerRegistration) {
-      return this.serviceWorkerRegistration.update()
+    if (this.workerRegistration) {
+      return this.workerRegistration.update()
     }
 
     if (!('serviceWorker' in navigator)) {
@@ -101,7 +104,7 @@ export default class MockServiceWorker {
 
         workerInstance.postMessage('mock-activate')
         this.worker = workerInstance
-        this.serviceWorkerRegistration = reg
+        this.workerRegistration = reg
 
         return reg
       })
@@ -109,13 +112,13 @@ export default class MockServiceWorker {
   }
 
   stop() {
-    if (!this.serviceWorkerRegistration) {
+    if (!this.workerRegistration) {
       return console.warn('No active instane of Service Worker is active.')
     }
 
-    this.serviceWorkerRegistration.unregister().then(() => {
+    this.workerRegistration.unregister().then(() => {
       this.worker = null
-      this.serviceWorkerRegistration = null
+      this.workerRegistration = null
     })
   }
 

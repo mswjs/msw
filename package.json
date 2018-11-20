@@ -8,7 +8,7 @@
     "build": "cross-env NODE_ENV=production webpack",
     "test": "jest",
     "example": "node example/server",
-    "prepublishOnly": "NODE_ENV=production npm run build"
+    "prepublishOnly": "npm test && npm run build"
   },
   "author": {
     "name": "Artem Zakharchenko",
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@babel/core": "^7.1.5",
     "@babel/preset-env": "^7.1.5",
+    "@types/jest": "^23.3.9",
     "@types/ramda": "^0.25.41",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "^8.0.4",
@@ -29,6 +30,7 @@
     "express": "^4.16.4",
     "jest": "^23.6.0",
     "prettier": "^1.15.2",
+    "ts-jest": "^23.10.4",
     "typescript": "^3.1.6",
     "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2"

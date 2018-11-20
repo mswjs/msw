@@ -5,23 +5,27 @@ export interface ParsedUrl {
   mask: Mask
   matches: boolean
   params?: {
-    [paramName: string]: any
+    [paramName: string]: string
   }
 }
 
 export default function assertUrl(mask: Mask, url: string): ParsedUrl {
   let paramsList = []
-  const replacedMask = mask
-    /**
-     * Allows to set "mask" as RegExp, which will be stringified upon the usage
-     * as a key in the routes Object. This effectively convert a potential
-     * stringified RegExp into its pattern.
-     */
-    .replace(/(^\/|\/$)/g, '')
-    .replace(/:(\w+)/g, (_, paramName) => {
-      paramsList.push(paramName)
-      return '(\\w+)'
-    })
+  const replacedMask =
+    '^' +
+    mask
+      /**
+       * Allows to set "mask" as RegExp, which will be stringified upon the usage
+       * as a key in the routes Object. This effectively convert a potential
+       * stringified RegExp into its pattern.
+       */
+      .replace(/(^\/|\/$)/g, '')
+      .replace('*', '(.+)')
+      .replace(/:(\w+)/g, (_, paramName) => {
+        paramsList.push(paramName)
+        return '(\\w+)'
+      })
+      .concat('$')
 
   const match = new RegExp(replacedMask).exec(url)
   const params =

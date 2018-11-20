@@ -26,12 +26,19 @@ interface Routes {
 
 const serviceWorkerPath = '/mockServiceWorker.js'
 
-export default class MockServiceWorker {
+export class MockServiceWorker {
   worker: ServiceWorker
   workerRegistration: ServiceWorkerRegistration
   routes: Routes
 
   constructor() {
+    if (!('serviceWorker' in navigator)) {
+      console.error(
+        'Failed to instantiate MockServiceWorker: Your current environment does not support Service Workers.',
+      )
+      return null
+    }
+
     /** @todo Consider removing event listeners upon destruction */
     navigator.serviceWorker.addEventListener('message', this.interceptRequest)
     window.addEventListener('beforeunload', () => {
@@ -92,13 +99,6 @@ export default class MockServiceWorker {
       return this.workerRegistration.update()
     }
 
-    if (!('serviceWorker' in navigator)) {
-      console.error(
-        'Failed to start MockServiceWorker: Your current browser does not support Service Workers.',
-      )
-      return void null
-    }
-
     navigator.serviceWorker
       .register(serviceWorkerPath, { scope: '/' })
       .then((reg) => {
@@ -136,3 +136,5 @@ export default class MockServiceWorker {
   options = this.addRoute(RESTMethod.options)
   delete = this.addRoute(RESTMethod.delete)
 }
+
+export default new MockServiceWorker()

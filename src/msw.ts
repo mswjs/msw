@@ -7,6 +7,8 @@ enum RESTMethod {
   get = 'get',
   post = 'post',
   put = 'put',
+  patch = 'patch',
+  options = 'options',
   delete = 'delete',
 }
 
@@ -130,5 +132,7 @@ export default class MockServiceWorker {
   get = this.addRoute(RESTMethod.get)
   post = this.addRoute(RESTMethod.post)
   put = this.addRoute(RESTMethod.put)
+  patch = this.addRoute(RESTMethod.patch)
+  options = this.addRoute(RESTMethod.options)
   delete = this.addRoute(RESTMethod.delete)
 }

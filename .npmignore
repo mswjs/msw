@@ -1,8 +1,7 @@
 __*
 .vscode
-example
-tsconfig.json
-webpack.*
 .gitignore
 .prettierrc
-babel.*
+example
+tsconfig.*
+*.config.js

@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import { MockedResponse, ResponseTransformer } from './response'
+import { ResponseTransformer } from './response'
 
 export interface MockedContext {
   /**

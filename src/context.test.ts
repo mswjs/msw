@@ -1,5 +1,5 @@
 import context from './context'
-import res, { defaultResponse } from './response'
+import res from './response'
 
 test('set', () => {
   expect(res(context.set('Content-Type', 'image/*')).headers).toHaveProperty(

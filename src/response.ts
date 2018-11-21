@@ -19,7 +19,7 @@ export type ResponseComposition = (
   ...transformers: ResponseTransformer[]
 ) => MockedResponse
 
-const defaultResponse: MockedResponse = {
+export const defaultResponse: MockedResponse = {
   status: 200,
   statusText: 'OK',
   body: null,

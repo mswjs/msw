@@ -3,13 +3,13 @@ import assertUrl, { Mask, ParsedUrl } from './utils/assertUrl'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
 
-enum RESTMethod {
-  get = 'get',
-  post = 'post',
-  put = 'put',
-  patch = 'patch',
-  options = 'options',
-  delete = 'delete',
+export enum RESTMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  OPTIONS = 'OPTIONS',
+  DELETE = 'DELETE',
 }
 
 type Handler = (
@@ -18,11 +18,7 @@ type Handler = (
   context: MockedContext,
 ) => MockedResponse
 
-interface Routes {
-  [method: string]: {
-    [route: string]: Handler
-  }
-}
+type Routes = Record<RESTMethod, { [route: string]: Handler }>
 
 const serviceWorkerPath = '/mockServiceWorker.js'
 
@@ -93,6 +89,7 @@ export class MockServiceWorker {
 
   /**
    * Posts a message to the active ServiceWorker.
+   * Uses a port of the message channel created in the ServiceWorker.
    */
   postMessage(event, message: any) {
     event.ports[0].postMessage(message)
@@ -129,16 +126,20 @@ export class MockServiceWorker {
   }
 
   addRoute = R.curry((method: RESTMethod, mask: Mask, handler: Handler) => {
-    this.routes = R.assocPath([method, mask as string], handler, this.routes)
+    this.routes = R.assocPath(
+      [method.toLowerCase(), mask as string],
+      handler,
+      this.routes,
+    )
     return this
   })
 
-  get = this.addRoute(RESTMethod.get)
-  post = this.addRoute(RESTMethod.post)
-  put = this.addRoute(RESTMethod.put)
-  patch = this.addRoute(RESTMethod.patch)
-  options = this.addRoute(RESTMethod.options)
-  delete = this.addRoute(RESTMethod.delete)
+  get = this.addRoute(RESTMethod.GET)
+  post = this.addRoute(RESTMethod.POST)
+  put = this.addRoute(RESTMethod.PUT)
+  patch = this.addRoute(RESTMethod.PATCH)
+  options = this.addRoute(RESTMethod.OPTIONS)
+  delete = this.addRoute(RESTMethod.DELETE)
 }
 
 export default new MockServiceWorker()

@@ -54,6 +54,10 @@ export class MockServiceWorker {
       }
     })
 
+    if (typeof window !== 'undefined') {
+      ;(window as any).msw = this
+    }
+
     return this
   }
 
@@ -84,7 +88,7 @@ export class MockServiceWorker {
       )
     }
 
-    return this.postMessage(event, JSON.stringify(resolvedResponse))
+    this.postMessage(event, JSON.stringify(resolvedResponse))
   }
 
   /**

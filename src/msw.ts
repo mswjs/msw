@@ -60,7 +60,6 @@ export class MockServiceWorker {
   interceptRequest = (event) => {
     const req = JSON.parse(event.data)
     const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
-
     const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
       (acc, mask) => {
         const parsedRoute = assertUrl(mask, req.url)
@@ -76,6 +75,10 @@ export class MockServiceWorker {
     const handler = relevantRoutes[parsedRoute.mask as string]
     const resolvedResponse =
       handler({ ...req, params: parsedRoute.params }, res, context) || {}
+
+    resolvedResponse.headers = R.fromPairs(
+      Array.from(resolvedResponse.headers.entries()),
+    )
 
     if (!resolvedResponse) {
       console.warn(
@@ -126,8 +129,11 @@ export class MockServiceWorker {
   }
 
   addRoute = R.curry((method: RESTMethod, mask: Mask, handler: Handler) => {
+    const resolvedMask =
+      (mask as any) instanceof RegExp ? `__REGEXP__${mask}` : mask
+
     this.routes = R.assocPath(
-      [method.toLowerCase(), mask as string],
+      [method.toLowerCase(), resolvedMask],
       handler,
       this.routes,
     )

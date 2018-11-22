@@ -54,12 +54,19 @@ export interface MockedContext {
   delay(duration: number): ResponseTransformer
 }
 
-const set = (name, value) =>
-  R.ifElse(
-    R.always(R.is(Object, name)),
-    R.mergeDeepLeft({ headers: name }),
-    R.assocPath(['headers', name as string], value),
-  )
+const set = (name, value) => {
+  return (res) => {
+    if (typeof name === 'object') {
+      Object.keys(name).forEach((headerName) => {
+        res.headers.append(headerName, name[headerName])
+      })
+    } else {
+      res.headers.append(name, value)
+    }
+
+    return res
+  }
+}
 
 const status = (statusCode, statusText) =>
   R.compose(

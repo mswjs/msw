@@ -1,11 +1,10 @@
 import * as R from 'ramda'
-import context from './context'
 
 export interface MockedResponse {
   body: any
   status: number
   statusText: string
-  headers: Object
+  headers?: Headers
   delay: number
 }
 
@@ -24,24 +23,28 @@ export const defaultResponse: MockedResponse = {
   statusText: 'OK',
   body: null,
   delay: 0,
-  headers: {
-    Mocked: true,
-  },
 }
 
 const response: ResponseComposition = (...transformers) => {
+  const headers = new Headers()
+  headers.set('Mocked', 'true')
+
+  const initialResponse = {
+    ...defaultResponse,
+    headers,
+  }
+
   if (transformers && transformers.length > 0) {
     /**
      * Ignore the arity annotation from Ramda.
-     * Apparently, TypeScript assumes "transformers" may be modified
-     * before they get into pipe as arguments, thus screams at
-     * potentially empty array.
+     * Apparently, TypeScript assumes "transformers" may be modified before
+     * they get into pipe as arguments, thus screams at potentially empty array.
      */
     // @ts-ignore
-    return R.pipe(...transformers)(defaultResponse)
+    return R.pipe(...transformers)(initialResponse)
   }
 
-  return defaultResponse
+  return initialResponse
 }
 
 export default response

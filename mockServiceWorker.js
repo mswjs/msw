@@ -52,6 +52,7 @@ self.addEventListener('fetch', async (event) => {
         return resolve(defaultResponse())
       }
 
+      /* Converts "Headres" to the plain Object to be stringified */
       const reqHeaders = {}
       req.headers.forEach((value, name) => {
         reqHeaders[name] = value
@@ -73,7 +74,15 @@ self.addEventListener('fetch', async (event) => {
         return resolve(defaultResponse())
       }
 
-      const res = JSON.parse(clientResponse)
+      const res = JSON.parse(clientResponse, (key, value) => {
+        return key === 'headers'
+          ? value.reduce((acc, [headerName, headerValue]) => {
+              acc.append(headerName, headerValue)
+              return acc
+            }, new Headers())
+          : value
+      })
+
       const mockedResponse = new Response(res.body, res)
 
       setTimeout(resolve.bind(this, mockedResponse), res.delay)

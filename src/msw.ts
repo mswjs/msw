@@ -76,9 +76,7 @@ export class MockServiceWorker {
     const resolvedResponse =
       handler({ ...req, params: parsedRoute.params }, res, context) || {}
 
-    resolvedResponse.headers = R.fromPairs(
-      Array.from(resolvedResponse.headers.entries()),
-    )
+    resolvedResponse.headers = Array.from(resolvedResponse.headers.entries())
 
     if (!resolvedResponse) {
       console.warn(

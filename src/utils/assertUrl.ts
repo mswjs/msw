@@ -11,11 +11,11 @@ export interface ParsedUrl {
   }
 }
 
-const getUrlParamNames = (url: string): string[] => {
+const getParamNames = (mask: Mask): string[] => {
   const params = []
-  url.replace(/:(\w+)/g, (chunk, paramName) => {
+  mask.replace(/:(\w+)/g, (captureGroup, paramName) => {
     params.push(paramName)
-    return chunk
+    return captureGroup
   })
   return params
 }
@@ -26,11 +26,12 @@ const getUrlParamNames = (url: string): string[] => {
 const normalizeMask = R.ifElse(
   R.startsWith('__REGEXP__'),
   R.compose(
-    R.replace(/(^\/|\/$)/g, ''),
+    R.replace(/^(\/|\/)$/g, ''),
     R.replace('__REGEXP__', ''),
   ),
   R.compose(
     R.join(''),
+    R.prepend('^'),
     R.append('\\/?$'),
     R.replace('*', '.+'),
     R.replace(/:(\w+)/g, '(\\w+)'),
@@ -38,7 +39,7 @@ const normalizeMask = R.ifElse(
 )
 
 export default function assertUrl(mask: Mask, url: string): ParsedUrl {
-  const paramNames = getUrlParamNames(url)
+  const paramNames = getParamNames(mask)
   const normalizedMask = normalizeMask(mask)
   const match = new RegExp(normalizedMask).exec(url)
   const params =
@@ -50,6 +51,8 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
         [paramName]: paramValue,
       }
     }, {})
+
+  console.log({ normalizedMask })
 
   return {
     url,

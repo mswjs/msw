@@ -1,6 +1,7 @@
 import * as R from 'ramda'
+import stringifyMask from './stringifyMask'
 
-export type Mask = string
+export type Mask = string | RegExp
 
 export interface ParsedUrl {
   url: string
@@ -11,7 +12,7 @@ export interface ParsedUrl {
   }
 }
 
-const getParamNames = (mask: Mask): string[] => {
+const getParamNames = (mask: string): string[] => {
   const params = []
   mask.replace(/:(\w+)/g, (captureGroup, paramName) => {
     params.push(paramName)
@@ -39,8 +40,9 @@ const normalizeMask = R.ifElse(
 )
 
 export default function assertUrl(mask: Mask, url: string): ParsedUrl {
-  const paramNames = getParamNames(mask)
-  const normalizedMask = normalizeMask(mask)
+  const stringifiedMask = stringifyMask(mask)
+  const paramNames = getParamNames(stringifiedMask)
+  const normalizedMask = normalizeMask(stringifiedMask)
   const match = new RegExp(normalizedMask).exec(url)
   const params =
     match &&
@@ -51,8 +53,6 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
         [paramName]: paramValue,
       }
     }, {})
-
-  console.log({ normalizedMask })
 
   return {
     url,

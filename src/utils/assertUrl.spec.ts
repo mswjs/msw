@@ -30,6 +30,29 @@ test('Resolves urls that match the mask', () => {
   ).toHaveProperty('matches', true)
 })
 
+test('Supports "*" for any match', () => {
+  expect(
+    assertUrl('https://*/user', 'https://api.github.com/user'),
+  ).toHaveProperty('matches', true)
+  expect(
+    assertUrl('https://*/user', 'https://facebook.com/user'),
+  ).toHaveProperty('matches', true)
+  expect(assertUrl('https://*/user', 'https://user.com/api')).toHaveProperty(
+    'matches',
+    false,
+  )
+})
+
+test('Supports RegExp as mask', () => {
+  expect(
+    assertUrl(/api.github.com/, 'https://api.github.com/users'),
+  ).toHaveProperty('matches', true)
+
+  expect(
+    assertUrl(/api.github.com/, 'https://random.website/github/api'),
+  ).toHaveProperty('matches', false)
+})
+
 test('Rejects urls that do not match the mask', () => {
   expect(
     assertUrl('https://api.com/user/:username', 'https://random.url'),

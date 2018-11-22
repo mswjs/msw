@@ -1,5 +1,6 @@
 import * as R from 'ramda'
 import assertUrl, { Mask, ParsedUrl } from './utils/assertUrl'
+import stringifyMask from './utils/stringifyMask'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
 
@@ -127,8 +128,7 @@ export class MockServiceWorker {
   }
 
   addRoute = R.curry((method: RESTMethod, mask: Mask, handler: Handler) => {
-    const resolvedMask =
-      (mask as any) instanceof RegExp ? `__REGEXP__${mask}` : mask
+    const resolvedMask = stringifyMask(mask)
 
     this.routes = R.assocPath(
       [method.toLowerCase(), resolvedMask],

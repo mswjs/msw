@@ -13,13 +13,13 @@ export enum RESTMethod {
   DELETE = 'DELETE',
 }
 
-type Handler = (
+type Resolver = (
   req: Request,
   res: ResponseComposition,
   context: MockedContext,
 ) => MockedResponse
 
-type Routes = Record<RESTMethod, { [route: string]: Handler }>
+type Routes = Record<RESTMethod, { [route: string]: Resolver }>
 
 const serviceWorkerPath = '/mockServiceWorker.js'
 
@@ -58,45 +58,6 @@ export class MockServiceWorker {
     return this
   }
 
-  interceptRequest = (event) => {
-    const req = JSON.parse(event.data)
-    const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
-    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
-      (acc, mask) => {
-        const parsedRoute = assertUrl(mask, req.url)
-        return parsedRoute.matches ? parsedRoute : acc
-      },
-      null,
-    )
-
-    if (parsedRoute === null) {
-      return this.postMessage(event, 'not-found')
-    }
-
-    const handler = relevantRoutes[parsedRoute.mask as string]
-    const resolvedResponse =
-      handler({ ...req, params: parsedRoute.params }, res, context) || {}
-
-    resolvedResponse.headers = Array.from(resolvedResponse.headers.entries())
-
-    if (!resolvedResponse) {
-      console.warn(
-        'Expected a mocking handler function to return an Object, but got: %s. ',
-        resolvedResponse,
-      )
-    }
-
-    this.postMessage(event, JSON.stringify(resolvedResponse))
-  }
-
-  /**
-   * Posts a message to the active ServiceWorker.
-   * Uses a port of the message channel created in the ServiceWorker.
-   */
-  postMessage(event, message: any) {
-    event.ports[0].postMessage(message)
-  }
-
   start(): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
       return this.workerRegistration.update()
@@ -110,6 +71,8 @@ export class MockServiceWorker {
         workerInstance.postMessage('mock-activate')
         this.worker = workerInstance
         this.workerRegistration = reg
+
+        const foo = setInterval(() => this.workerRegistration.update(), 1000)
 
         return reg
       })
@@ -127,12 +90,12 @@ export class MockServiceWorker {
     })
   }
 
-  addRoute = R.curry((method: RESTMethod, mask: Mask, handler: Handler) => {
+  addRoute = R.curry((method: RESTMethod, mask: Mask, resolver: Resolver) => {
     const resolvedMask = stringifyMask(mask)
 
     this.routes = R.assocPath(
       [method.toLowerCase(), resolvedMask],
-      handler,
+      resolver,
       this.routes,
     )
     return this
@@ -144,6 +107,45 @@ export class MockServiceWorker {
   patch = this.addRoute(RESTMethod.PATCH)
   options = this.addRoute(RESTMethod.OPTIONS)
   delete = this.addRoute(RESTMethod.DELETE)
+
+  interceptRequest = (event) => {
+    const req = JSON.parse(event.data)
+    const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
+    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
+      (acc, mask) => {
+        const parsedRoute = assertUrl(mask, req.url)
+        return parsedRoute.matches ? parsedRoute : acc
+      },
+      null,
+    )
+
+    if (parsedRoute === null) {
+      return this.postMessage(event, 'not-found')
+    }
+
+    const resolver = relevantRoutes[parsedRoute.mask as string]
+    const resolvedResponse =
+      resolver({ ...req, params: parsedRoute.params }, res, context) || {}
+
+    resolvedResponse.headers = Array.from(resolvedResponse.headers.entries())
+
+    if (!resolvedResponse) {
+      console.warn(
+        'Expected a mocking resolver function to return an Object, but got: %s. ',
+        resolvedResponse,
+      )
+    }
+
+    this.postMessage(event, JSON.stringify(resolvedResponse))
+  }
+
+  /**
+   * Posts a message to the active ServiceWorker.
+   * Uses a port of the message channel created in the ServiceWorker.
+   */
+  postMessage(event, message: any) {
+    event.ports[0].postMessage(message)
+  }
 }
 
 export default new MockServiceWorker()

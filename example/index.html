@@ -14,8 +14,7 @@
     <script src="./example/index.js"></script>
     <script>
       document.getElementById('btn').addEventListener('click', () => {
-        fetch('https://github.com/user/kettanaito', {
-          mode: 'no-cors',
+        fetch('https://api.github.com/users/kettanaito', {
           cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
           credentials: 'same-origin', // include, *same-origin, omit
           headers: {

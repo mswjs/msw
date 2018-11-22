@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import stringifyMask from './stringifyMask'
+import stringifyMask, { regExpPrefix } from './stringifyMask'
 
 export type Mask = string | RegExp
 
@@ -25,10 +25,10 @@ const getParamNames = (mask: string): string[] => {
  * Normalizes the given mask string to be suitable as a RegExp.
  */
 const normalizeMask = R.ifElse(
-  R.startsWith('__REGEXP__'),
+  R.startsWith(regExpPrefix),
   R.compose(
-    R.replace(/^(\/|\/)$/g, ''),
-    R.replace('__REGEXP__', ''),
+    R.replace(/(^\/|\/$)/g, ''),
+    R.replace(regExpPrefix, ''),
   ),
   R.compose(
     R.join(''),
@@ -53,6 +53,11 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
         [paramName]: paramValue,
       }
     }, {})
+
+  console.log({ mask, url })
+  console.log({ stringifiedMask })
+  console.log({ normalizedMask })
+  console.log({ match })
 
   return {
     url,

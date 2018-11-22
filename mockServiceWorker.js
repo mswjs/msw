@@ -1,13 +1,13 @@
 self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting())
+  return self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
   console.log(
     '%cMockServiceWorker is activated!',
     'color:green;font-weight:bold;',
   )
+  return self.clients.claim()
 })
 
 self.addEventListener('message', (event) => {

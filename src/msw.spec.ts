@@ -6,13 +6,13 @@ test('Supports declaring a new route using REST methods', () => {
   const methods = ['get', 'post', 'put', 'patch', 'options', 'delete']
 
   methods.forEach((methodName) => {
-    const handler = (req, res, { text }) =>
+    const resolver = (req, res, { text }) =>
       res(text(`response ${methodName} text`))
-    msw[methodName](mask, handler)
+    msw[methodName](mask, resolver)
 
     expect(R.path([methodName, mask], msw.routes)).not.toBeUndefined()
     expect(R.path([methodName, mask], msw.routes).toString()).toEqual(
-      handler.toString(),
+      resolver.toString(),
     )
   })
 })

@@ -1,7 +1,7 @@
 const { msw } = MockServiceWorker
 
 msw.get(
-  'https://github.com/user/:username',
+  'https://api.github.com/users/:username',
   (req, res, { status, set, json }) => {
     return res(
       status(301, 'Custom status text'),
@@ -12,6 +12,7 @@ msw.get(
       json({
         message: 'This is not a GitHub API',
         username: req.params.username,
+        req,
       }),
     )
   },

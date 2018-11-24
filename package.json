@@ -8,7 +8,7 @@
     "build": "cross-env NODE_ENV=production webpack",
     "test": "jest",
     "example": "node example/server",
-    "prepublishOnly": "npm test && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "author": {
     "name": "Artem Zakharchenko",

@@ -54,11 +54,6 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
       }
     }, {})
 
-  console.log({ mask, url })
-  console.log({ stringifiedMask })
-  console.log({ normalizedMask })
-  console.log({ match })
-
   return {
     url,
     mask,

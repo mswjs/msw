@@ -13,6 +13,7 @@ msw.get(
         message: 'This is not a GitHub API',
         username: req.params.username,
         req,
+        headers: Array.from(req.headers.entries()),
       }),
     )
   },
@@ -36,4 +37,4 @@ msw.post('https://api.website.com', (req, res, { json, delay }) => {
   return res(delay(2000), json({ message: 'Delayed response message' }))
 })
 
-msw.start()
+msw.start('../mockServiceWorker.js')

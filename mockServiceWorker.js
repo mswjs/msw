@@ -13,12 +13,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   switch (event.data) {
     case 'mock-activate': {
-      self.__mockActive = true
+      self.__mswEnabled = true
       break
     }
 
     case 'mock-deactivate': {
-      self.__mockActive = false
+      self.__mswEnabled = false
       break
     }
   }
@@ -48,11 +48,14 @@ self.addEventListener('fetch', async (event) => {
   event.respondWith(
     new Promise(async (resolve, reject) => {
       const client = await event.target.clients.get(clientId)
-      if (!client || !self.__mockActive) {
+      if (!client || !self.__mswEnabled) {
         return resolve(defaultResponse())
       }
 
-      /* Converts "Headres" to the plain Object to be stringified */
+      /**
+       * Converts "Headres" to the plain Object to be stringified.
+       * @todo See how this handles multipe headers with the same name.
+       */
       const reqHeaders = {}
       req.headers.forEach((value, name) => {
         reqHeaders[name] = value
@@ -74,18 +77,14 @@ self.addEventListener('fetch', async (event) => {
         return resolve(defaultResponse())
       }
 
-      const res = JSON.parse(clientResponse, (key, value) => {
-        return key === 'headers'
-          ? value.reduce((acc, [headerName, headerValue]) => {
-              acc.append(headerName, headerValue)
-              return acc
-            }, new Headers())
-          : value
+      const mockedResponse = JSON.parse(clientResponse, (key, value) => {
+        return key === 'headers' ? new Headers(value) : value
       })
 
-      const mockedResponse = new Response(res.body, res)
-
-      setTimeout(resolve.bind(this, mockedResponse), res.delay)
+      setTimeout(
+        resolve.bind(this, new Response(mockedResponse.body, mockedResponse)),
+        mockedResponse.delay,
+      )
     }).catch(console.error),
   )
 })

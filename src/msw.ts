@@ -13,15 +13,22 @@ export enum RESTMethod {
   DELETE = 'DELETE',
 }
 
-type Resolver = (
+type ResponseResolver = (
   req: Request,
   res: ResponseComposition,
   context: MockedContext,
 ) => MockedResponse
 
-type Routes = Record<RESTMethod, { [route: string]: Resolver }>
+type Routes = Record<RESTMethod, { [route: string]: ResponseResolver }>
 
-const serviceWorkerPath = '/mockServiceWorker.js'
+interface Options {
+  scope: string
+}
+
+const serviceWorkerPath = './mockServiceWorker.js'
+const defaultOptions: Options = {
+  scope: '/',
+}
 
 export class MockServiceWorker {
   worker: ServiceWorker
@@ -31,7 +38,8 @@ export class MockServiceWorker {
   constructor() {
     if (!('serviceWorker' in navigator)) {
       console.error(
-        'Failed to instantiate MockServiceWorker: Your current environment does not support Service Workers.',
+        'Failed to instantiate MockServiceWorker: Your current environment does not support Service Workers. ' +
+          'See more details on https://caniuse.com/serviceworkers',
       )
       return null
     }
@@ -44,7 +52,7 @@ export class MockServiceWorker {
        * to intercept the outgoing requests. When the page loads, the resources
        * fetched (including the client JavaScript) are going to undergo through
        * the mock. Since client hasn't been downloaded and run yet, it won't be
-       * able to reply pack when worker prompts to receive the mock.
+       * able to reply back when worker prompts to receive the mock.
        */
       if (this.worker && this.worker.state !== 'redundant') {
         this.worker.postMessage('mock-deactivate')
@@ -58,21 +66,21 @@ export class MockServiceWorker {
     return this
   }
 
-  start(): Promise<ServiceWorkerRegistration | void> {
+  start(options: Options): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
       return this.workerRegistration.update()
     }
 
+    const resolvedOptions = Object.assign({}, defaultOptions, options)
+
     navigator.serviceWorker
-      .register(serviceWorkerPath, { scope: '/' })
+      .register(serviceWorkerPath, resolvedOptions)
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
         workerInstance.postMessage('mock-activate')
         this.worker = workerInstance
         this.workerRegistration = reg
-
-        const foo = setInterval(() => this.workerRegistration.update(), 1000)
 
         return reg
       })
@@ -81,35 +89,49 @@ export class MockServiceWorker {
 
   stop() {
     if (!this.workerRegistration) {
-      return console.warn('No active instance of Service Worker is running.')
+      return console.warn('No active instance of MockServiceWorker is running.')
     }
 
-    this.workerRegistration.unregister().then(() => {
-      this.worker = null
-      this.workerRegistration = null
-    })
+    this.workerRegistration
+      .unregister()
+      .then(() => {
+        this.worker = null
+        this.workerRegistration = null
+      })
+      .catch((error) => {
+        console.error('Failed to unregister MockServiceWorker. %s', error)
+      })
   }
 
-  addRoute = R.curry((method: RESTMethod, mask: Mask, resolver: Resolver) => {
-    const resolvedMask = stringifyMask(mask)
+  mockRoute = R.curry(
+    (method: RESTMethod, mask: Mask, resolver: ResponseResolver) => {
+      this.routes = R.assocPath(
+        [method.toLowerCase(), stringifyMask(mask)],
+        resolver,
+        this.routes,
+      )
 
-    this.routes = R.assocPath(
-      [method.toLowerCase(), resolvedMask],
-      resolver,
-      this.routes,
-    )
-    return this
-  })
+      return this
+    },
+  )
 
-  get = this.addRoute(RESTMethod.GET)
-  post = this.addRoute(RESTMethod.POST)
-  put = this.addRoute(RESTMethod.PUT)
-  patch = this.addRoute(RESTMethod.PATCH)
-  options = this.addRoute(RESTMethod.OPTIONS)
-  delete = this.addRoute(RESTMethod.DELETE)
+  get = this.mockRoute(RESTMethod.GET)
+  post = this.mockRoute(RESTMethod.POST)
+  put = this.mockRoute(RESTMethod.PUT)
+  patch = this.mockRoute(RESTMethod.PATCH)
+  options = this.mockRoute(RESTMethod.OPTIONS)
+  delete = this.mockRoute(RESTMethod.DELETE)
 
-  interceptRequest = (event) => {
-    const req = JSON.parse(event.data)
+  /**
+   * Intercepts a fetch event from the ServiceWorker.
+   * Received event contains request information, that is parsed
+   * and matched against the defined routes. Any relevant mocked response
+   * is communicated back to the ServiceWorker via the message channel.
+   */
+  interceptRequest = (event: MessageEvent): void => {
+    const req = JSON.parse(event.data, (key, value) => {
+      return key === 'headers' ? new Headers(value) : value
+    })
     const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
     const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
       (acc, mask) => {
@@ -123,10 +145,14 @@ export class MockServiceWorker {
       return this.postMessage(event, 'not-found')
     }
 
-    const resolver = relevantRoutes[parsedRoute.mask as string]
+    const resolver = relevantRoutes[parsedRoute.mask.toString()]
     const resolvedResponse =
       resolver({ ...req, params: parsedRoute.params }, res, context) || {}
 
+    /**
+     * Transform Headers into a list to be stringified preserving multiple
+     * header keys. Stringified list is then parsed inside the ServiceWorker.
+     */
     resolvedResponse.headers = Array.from(resolvedResponse.headers.entries())
 
     if (!resolvedResponse) {
@@ -141,10 +167,11 @@ export class MockServiceWorker {
 
   /**
    * Posts a message to the active ServiceWorker.
-   * Uses a port of the message channel created in the ServiceWorker.
+   * Uses a port of the message channel established in the ServiceWorker.
    */
-  postMessage(event, message: any) {
-    event.ports[0].postMessage(message)
+  postMessage(event: MessageEvent, message: string) {
+    const port = event.ports[0]
+    port && port.postMessage(message)
   }
 }
 

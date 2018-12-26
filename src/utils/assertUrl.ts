@@ -43,10 +43,10 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
   const stringifiedMask = stringifyMask(mask)
   const paramNames = getParamNames(stringifiedMask)
   const normalizedMask = normalizeMask(stringifiedMask)
-  const match = new RegExp(normalizedMask).exec(url)
+  const matches = new RegExp(normalizedMask).exec(url)
   const params =
-    match &&
-    match.slice(1, match.length).reduce((acc, paramValue, index) => {
+    matches &&
+    matches.slice(1, matches.length).reduce((acc, paramValue, index) => {
       const paramName = paramNames[index]
       return {
         ...acc,
@@ -57,7 +57,7 @@ export default function assertUrl(mask: Mask, url: string): ParsedUrl {
   return {
     url,
     mask,
-    matches: !!match,
+    matches: !!matches,
     params,
   }
 }

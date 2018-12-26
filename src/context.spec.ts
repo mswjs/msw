@@ -1,11 +1,24 @@
 import context from './context'
 import res from './response'
 
+const assertHeader = (
+  headers: any,
+  expectedName: string,
+  expectedValue: string,
+) => {
+  const entries = Array.from(headers.entries())
+  const matchedHeader = entries.filter(([name, value]) => {
+    return (
+      name.toLowerCase() === expectedName.toLowerCase() &&
+      value === expectedValue
+    )
+  })
+  expect(matchedHeader.length).toBeGreaterThan(0)
+}
+
 test('set', () => {
-  expect(res(context.set('Content-Type', 'image/*')).headers).toHaveProperty(
-    'Content-Type',
-    'image/*',
-  )
+  const { headers } = res(context.set('Content-Type', 'image/*'))
+  assertHeader(headers, 'Content-Type', 'image/*')
 })
 
 test('status', () => {
@@ -27,30 +40,21 @@ test('body', () => {
 })
 
 test('text', () => {
-  expect(res(context.text('Response text'))).toMatchObject({
-    body: 'Response text',
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-  })
+  const { body, headers } = res(context.text('Response text'))
+  expect(body).toBe('Response text')
+  assertHeader(headers, 'Content-Type', 'text/plain')
 })
 
 test('xml', () => {
-  expect(res(context.xml('<message>Response text</message>'))).toMatchObject({
-    body: '<message>Response text</message>',
-    headers: {
-      'Content-Type': 'text/xml',
-    },
-  })
+  const { body, headers } = res(context.xml('<message>Response text</message>'))
+  expect(body).toEqual('<message>Response text</message>')
+  assertHeader(headers, 'Content-Type', 'text/xml')
 })
 
 test('json', () => {
-  expect(res(context.json({ message: 'Response message' }))).toMatchObject({
-    body: JSON.stringify({ message: 'Response message' }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+  const { body, headers } = res(context.json({ message: 'Response message' }))
+  expect(body).toEqual(JSON.stringify({ message: 'Response message' }))
+  assertHeader(headers, 'Content-Type', 'application/json')
 })
 
 test('delay', () => {

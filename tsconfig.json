@@ -6,7 +6,7 @@
     "target": "es6",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "lib": ["dom", "es2015", "webworker"]
+    "lib": ["dom", "es2017", "webworker"]
   },
   "files": ["src/index.ts"],
   "exclude": ["node_modules"]

@@ -29,6 +29,7 @@
     "cross-env": "^5.2.0",
     "express": "^4.16.4",
     "jest": "^23.6.0",
+    "node-fetch": "^2.3.0",
     "prettier": "^1.15.2",
     "ts-jest": "^23.10.4",
     "typescript": "^3.1.6",

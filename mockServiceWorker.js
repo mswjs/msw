@@ -12,13 +12,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   switch (event.data) {
-    case 'mock-activate': {
-      self.__mswEnabled = true
+    case 'MOCK_ACTIVATE': {
+      self.__shouldMockResponses = true
       break
     }
 
-    case 'mock-deactivate': {
-      self.__mswEnabled = false
+    case 'MOCK_DEACTIVATE': {
+      self.__shouldMockResponses = false
       break
     }
   }
@@ -43,13 +43,19 @@ const sendMessageToClient = (client, message) => {
 self.addEventListener('fetch', async (event) => {
   const { clientId, request: req } = event
 
-  const defaultResponse = () => fetch(req)
+  /**
+   * Original response getter for the requests that
+   * do not match any mocking routes. Performs no
+   * data fetching prior to being called.
+   */
+  const getOriginalResponse = () => fetch(req)
 
   event.respondWith(
     new Promise(async (resolve, reject) => {
       const client = await event.target.clients.get(clientId)
-      if (!client || !self.__mswEnabled) {
-        return resolve(defaultResponse())
+
+      if (!client || !self.__shouldMockResponses) {
+        return resolve(getOriginalResponse())
       }
 
       /**
@@ -73,8 +79,8 @@ self.addEventListener('fetch', async (event) => {
         referrerPolicy: req.referrerPolicy,
       })
 
-      if (clientResponse === 'not-found') {
-        return resolve(defaultResponse())
+      if (clientResponse === 'MOCK_NOT_FOUND') {
+        return resolve(getOriginalResponse())
       }
 
       const mockedResponse = JSON.parse(clientResponse, (key, value) => {
@@ -85,6 +91,13 @@ self.addEventListener('fetch', async (event) => {
         resolve.bind(this, new Response(mockedResponse.body, mockedResponse)),
         mockedResponse.delay,
       )
-    }).catch(console.error),
+    }).catch((error) => {
+      console.error(
+        'MSW: Failed to mock a "%s" request to "%s". %s',
+        req.method,
+        req.url,
+        error,
+      )
+    }),
   )
 })

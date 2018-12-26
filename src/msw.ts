@@ -48,14 +48,16 @@ export class MockServiceWorker {
     navigator.serviceWorker.addEventListener('message', this.interceptRequest)
     window.addEventListener('beforeunload', () => {
       /**
-       * Post a message before window unloads to prevent the active worker
-       * to intercept the outgoing requests. When the page loads, the resources
-       * fetched (including the client JavaScript) are going to undergo through
-       * the mock. Since client hasn't been downloaded and run yet, it won't be
-       * able to reply back when worker prompts to receive the mock.
+       * Deactivate requests interception before page unload.
+       * Initial page load requests client resources such as HTML, CSS, JS,
+       * which will go through the MSW in favor to be intercepted.
+       * Such interception must never happen to ensure proper page load.
+       *
+       * When the client-side JavaScript initializes, it will call to "msw.start()"
+       * which will signal active ServiceWorker to resume requests interception.
        */
       if (this.worker && this.worker.state !== 'redundant') {
-        this.worker.postMessage('mock-deactivate')
+        this.worker.postMessage('MOCK_DEACTIVATE')
       }
     })
 
@@ -66,6 +68,9 @@ export class MockServiceWorker {
     return this
   }
 
+  /**
+   * Registers a new instance of ServiceWorker.
+   */
   start(options: Options): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
       return this.workerRegistration.update()
@@ -78,7 +83,7 @@ export class MockServiceWorker {
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
-        workerInstance.postMessage('mock-activate')
+        workerInstance.postMessage('MOCK_ACTIVATE')
         this.worker = workerInstance
         this.workerRegistration = reg
 
@@ -87,9 +92,13 @@ export class MockServiceWorker {
       .catch(console.error)
   }
 
+  /**
+   * Stops a running instance of ServiceWorker.
+   */
   stop() {
     if (!this.workerRegistration) {
-      return console.warn('No active instance of MockServiceWorker is running.')
+      console.warn('No active instance of MockServiceWorker is running.')
+      return
     }
 
     this.workerRegistration
@@ -142,7 +151,7 @@ export class MockServiceWorker {
     )
 
     if (parsedRoute === null) {
-      return this.postMessage(event, 'not-found')
+      return this.postMessage(event, 'MOCK_NOT_FOUND')
     }
 
     const resolver = relevantRoutes[parsedRoute.mask.toString()]

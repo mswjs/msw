@@ -27,7 +27,7 @@ export const defaultResponse: MockedResponse = {
 
 const response: ResponseComposition = (...transformers) => {
   const headers = new Headers()
-  headers.set('Mocked', 'true')
+  headers.set('X-Powered-By', 'msw')
 
   const initialResponse = {
     ...defaultResponse,

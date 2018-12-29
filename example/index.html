@@ -10,8 +10,8 @@
     <button id="btn">Mock GET</button> <button id="btn-02">Mock POST</button>
     <button id="btn-03">Mock using RegExp</button>
 
-    <script src="./lib/index.js"></script>
-    <script src="./example/index.js"></script>
+    <script src="./node_modules/msw/index.js"></script>
+    <script src="./index.js"></script>
     <script>
       document.getElementById('btn').addEventListener('click', () => {
         fetch('https://api.github.com/users/kettanaito', {

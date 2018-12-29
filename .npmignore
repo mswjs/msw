@@ -1,7 +1,13 @@
-__*
+# Source
+src
+
+# Config
 .vscode
 .gitignore
 .prettierrc
 example
 tsconfig.*
 *.config.js
+
+# Internals
+__*

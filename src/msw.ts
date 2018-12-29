@@ -3,6 +3,7 @@ import assertUrl, { Mask, ParsedUrl } from './utils/assertUrl'
 import stringifyMask from './utils/stringifyMask'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
+import invariant from './utils/invariant'
 
 export enum RESTMethod {
   GET = 'GET',
@@ -21,26 +22,20 @@ type ResponseResolver = (
 
 type Routes = Record<RESTMethod, { [route: string]: ResponseResolver }>
 
-interface Options {
-  scope: string
-}
-
-const serviceWorkerPath = './mockServiceWorker.js'
-const defaultOptions: Options = {
-  scope: '/',
-}
-
 export class MockServiceWorker {
   worker: ServiceWorker
   workerRegistration: ServiceWorkerRegistration
   routes: Routes
 
   constructor() {
-    if (!('serviceWorker' in navigator)) {
-      console.error(
-        'Failed to instantiate MockServiceWorker: Your current environment does not support Service Workers. ' +
-          'See more details on https://caniuse.com/serviceworkers',
-      )
+    const isServiceWorkerSupported = 'serviceWorker' in navigator
+    invariant(
+      isServiceWorkerSupported,
+      '[MSW] Failed to instantiate MockServiceWorker: Your current environment does not support Service Workers. ' +
+        'See more details on https://caniuse.com/serviceworkers',
+    )
+
+    if (!isServiceWorkerSupported) {
       return null
     }
 
@@ -71,15 +66,20 @@ export class MockServiceWorker {
   /**
    * Registers a new instance of ServiceWorker.
    */
-  start(options: Options): Promise<ServiceWorkerRegistration | void> {
+  start(
+    registration: Promise<ServiceWorkerRegistration>,
+  ): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
       return this.workerRegistration.update()
     }
 
-    const resolvedOptions = Object.assign({}, defaultOptions, options)
+    invariant(
+      registration instanceof Promise,
+      '[MSW] Failed to start Service Worker: expected "msw.start()" to accept a Service Worker registration Promise, but got: %s.',
+      registration,
+    )
 
-    navigator.serviceWorker
-      .register(serviceWorkerPath, resolvedOptions)
+    registration
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
@@ -89,7 +89,9 @@ export class MockServiceWorker {
 
         return reg
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error(`[MSW] Failed to register MockServiceWokrer. ${error}`)
+      })
   }
 
   /**
@@ -97,7 +99,7 @@ export class MockServiceWorker {
    */
   stop() {
     if (!this.workerRegistration) {
-      console.warn('No active instance of MockServiceWorker is running.')
+      console.warn('[MSW] No active instance of MockServiceWorker is running.')
       return
     }
 
@@ -108,7 +110,7 @@ export class MockServiceWorker {
         this.workerRegistration = null
       })
       .catch((error) => {
-        console.error('Failed to unregister MockServiceWorker. %s', error)
+        console.error('[MSW] Failed to unregister MockServiceWorker. %s', error)
       })
   }
 
@@ -166,7 +168,7 @@ export class MockServiceWorker {
 
     if (!resolvedResponse) {
       console.warn(
-        'Expected a mocking resolver function to return an Object, but got: %s. ',
+        '[MSW] Expected a mocking resolver function to return an Object, but got: %s. ',
         resolvedResponse,
       )
     }

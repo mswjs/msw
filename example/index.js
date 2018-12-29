@@ -37,4 +37,5 @@ msw.post('https://api.website.com', (req, res, { json, delay }) => {
   return res(delay(2000), json({ message: 'Delayed response message' }))
 })
 
-msw.start('../mockServiceWorker.js')
+/* Start msw */
+msw.start(navigator.serviceWorker.register('./mockServiceWorker.js'))

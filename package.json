@@ -3,6 +3,9 @@
   "version": "0.1.2",
   "description": "Serverless client-side API mocking without a single change to the codebase.",
   "main": "lib/index.js",
+  "bin": {
+    "msw": "cli/msw.js"
+  },
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
@@ -26,11 +29,13 @@
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "^8.0.4",
     "babel-plugin-ramda": "^1.6.3",
+    "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
     "express": "^4.16.4",
     "jest": "^23.6.0",
     "node-fetch": "^2.3.0",
     "prettier": "^1.15.2",
+    "prompt": "^1.0.0",
     "ts-jest": "^23.10.4",
     "typescript": "^3.1.6",
     "webpack": "^4.25.1",

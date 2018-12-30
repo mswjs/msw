@@ -1,3 +1,9 @@
+/**
+ * Mock Service Worker.
+ * @see https://github.com/kettanaito/msw
+ * @note This Service Worker is meant for development usage only.
+ * Make sure not to include it on production.
+ */
 self.addEventListener('install', (event) => {
   return self.skipWaiting()
 })
@@ -13,18 +19,18 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   switch (event.data) {
     case 'MOCK_ACTIVATE': {
-      self.__shouldMockResponses = true
+      self.__isMswEnabled = true
       break
     }
 
     case 'MOCK_DEACTIVATE': {
-      self.__shouldMockResponses = false
+      self.__isMswEnabled = false
       break
     }
   }
 })
 
-const sendMessageToClient = (client, message) => {
+const messageClient = (client, message) => {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -42,24 +48,18 @@ const sendMessageToClient = (client, message) => {
 
 self.addEventListener('fetch', async (event) => {
   const { clientId, request: req } = event
-
-  /**
-   * Original response getter for the requests that
-   * do not match any mocking routes. Performs no
-   * data fetching prior to being called.
-   */
   const getOriginalResponse = () => fetch(req)
 
   event.respondWith(
-    new Promise(async (resolve, reject) => {
+    new Promise(async (resolve) => {
       const client = await event.target.clients.get(clientId)
 
-      if (!client || !self.__shouldMockResponses) {
+      if (!client || !self.__isMswEnabled) {
         return resolve(getOriginalResponse())
       }
 
       /**
-       * Converts "Headres" to the plain Object to be stringified.
+       * Converts "Headers" to the plain Object to be stringified.
        * @todo See how this handles multipe headers with the same name.
        */
       const reqHeaders = {}
@@ -67,7 +67,7 @@ self.addEventListener('fetch', async (event) => {
         reqHeaders[name] = value
       })
 
-      const clientResponse = await sendMessageToClient(client, {
+      const clientResponse = await messageClient(client, {
         url: req.url,
         method: req.method,
         headers: reqHeaders,

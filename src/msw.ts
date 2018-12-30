@@ -67,19 +67,15 @@ export class MockServiceWorker {
    * Registers a new instance of ServiceWorker.
    */
   start(
-    registration: Promise<ServiceWorkerRegistration>,
+    scriptUrl: string,
+    options?: RegistrationOptions,
   ): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
       return this.workerRegistration.update()
     }
 
-    invariant(
-      registration instanceof Promise,
-      '[MSW] Failed to start Service Worker: expected "msw.start()" to accept a Service Worker registration Promise, but got: %s.',
-      registration,
-    )
-
-    registration
+    navigator.serviceWorker
+      .register(scriptUrl, options)
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 

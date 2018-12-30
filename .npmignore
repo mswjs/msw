@@ -1,13 +1,15 @@
 # Source
 src
+media
 
 # Config
 .vscode
 .gitignore
 .prettierrc
-example
 tsconfig.*
 *.config.js
+*.setup.js
 
 # Internals
 __*
+example

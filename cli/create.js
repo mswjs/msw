@@ -31,9 +31,7 @@ ${chalk.green('Service Worker successfully created!')}
 Now include the following script in your application's code:
 
   ${chalk.cyan(
-    `${chalk.bold(
-      'msw.start(',
-    )}navigator.serviceWorker.register(./${swFilename})${chalk.bold(')')}`,
+    `${chalk.bold("msw.start('")}./${swFilename}${chalk.bold("')")}`,
   )}
 `)
   })

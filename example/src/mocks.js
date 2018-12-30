@@ -13,4 +13,4 @@ msw.get('https://api.github.com/users/:username', (req, res, { json }) => {
   )
 })
 
-msw.start(navigator.serviceWorker.register('./mockServiceWorker.js'))
+msw.start('./mockServiceWorker.js')

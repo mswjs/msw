@@ -63,7 +63,7 @@ msw.get(
  * Start and register.
  * Provide a relative URL to the Mock Service Worker on your server.
  */
-msw.start(navigator.serviceWorker.register('./mockServiceWorker.js'))
+msw.start('./mockServiceWorker.js')
 ```
 
 Import your `mocks.js` module anywhere in the root of your application to enable the mocking:

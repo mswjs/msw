@@ -9,10 +9,7 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  console.log(
-    '%c[MSW] Service Worker is activated!',
-    'color:green;font-weight:bold;',
-  )
+  console.log('%c[MSW] Activated!', 'color:green;font-weight:bold;')
   return self.clients.claim()
 })
 

@@ -100,4 +100,4 @@ This library is meant to be used for **development only**. It doesn't require, n
 
 ## Contribute
 
-Have an idea? Found a bug? Please communicate it through using the [issues](/issues) tab of this repositories. [Pull requests](/pulls) are welcome as well!
+Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/kettanaito/msw/issues) tab of this repositories. [Pull requests](https://github.com/kettanaito/msw/pulls) are welcome as well!

@@ -13,4 +13,4 @@ msw.get('https://api.github.com/users/:username', (req, res, { json }) => {
   )
 })
 
-msw.start('./mockServiceWorker.js')
+msw.start()

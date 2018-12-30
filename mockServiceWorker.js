@@ -1,7 +1,7 @@
 /**
  * Mock Service Worker.
  * @see https://github.com/kettanaito/msw
- * @note This Service Worker is meant for development usage only.
+ * This Service Worker is meant for development usage only.
  * Make sure not to include it on production.
  */
 self.addEventListener('install', (event) => {

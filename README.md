@@ -59,11 +59,8 @@ msw.get(
     )
 )
 
-/**
- * Start and register.
- * Provide a relative URL to the Mock Service Worker on your server.
- */
-msw.start('./mockServiceWorker.js')
+/* Start the Mock Service Worker */
+msw.start()
 ```
 
 Import your `mocks.js` module anywhere in the root of your application to enable the mocking:
@@ -72,6 +69,16 @@ Import your `mocks.js` module anywhere in the root of your application to enable
 // app/index.js
 import './mocks.js'
 ```
+
+## Update on reload
+
+Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached, which may result into out-of-date logic during development.
+
+It's highly recommend to **enable "Update on reload"** option in the "Application" tab of Chrome's DevTools (under "Service Workers" section). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
+
+![Service Workers: Update on reload](./media/sw-update-on-reload.png)
+
+> Read more on [The Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle).
 
 ## How does it work?
 

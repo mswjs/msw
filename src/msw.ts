@@ -64,10 +64,11 @@ export class MockServiceWorker {
   }
 
   /**
-   * Registers a new instance of ServiceWorker.
+   * Registers a new instance of ServiceWorker,
+   * or update already registered instance.
    */
   start(
-    scriptUrl: string,
+    scriptUrl: string = './mockServiceWorker.js',
     options?: RegistrationOptions,
   ): Promise<ServiceWorkerRegistration | void> {
     if (this.workerRegistration) {
@@ -86,6 +87,7 @@ export class MockServiceWorker {
         return reg
       })
       .catch((error) => {
+        console.log(error)
         console.error(`[MSW] Failed to register MockServiceWokrer. ${error}`)
       })
   }

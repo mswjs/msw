@@ -36,10 +36,14 @@ msw create <rootDir>
 ```
 
 > Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`).
+>
+> In case you can't execute `msw` directly, try `node_modules/.bin/msw` as a local alternative.
 
 This is going to copy the Mock Service Worker to the specified directory, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
 
 ### 3. Use
+
+It's up to you where your mocks will reside. It's recommended, however, to isolate them into a separate module, which you can import on demand.
 
 ```js
 // app/mocks.js
@@ -59,7 +63,7 @@ msw.get(
     )
 )
 
-/* Start the Mock Service Worker */
+/* Start the Service Worker */
 msw.start()
 ```
 
@@ -93,3 +97,7 @@ MSW uses Service Worker API with its primary ability to intercept requests, only
 This library is meant to be used for **development only**. It doesn't require, nor encourage to install any Service Worker on the production environment.
 
 > [**See browser support for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)
+
+## Contribute
+
+Have an idea? Found a bug? Please communicate it through using the [issues](/issues) tab of this repositories. [Pull requests](/pulls) are welcome as well!

@@ -1,12 +1,13 @@
 <h1 align="center">MSW</h1>
 
-<p align="center">Serverless offline-first API mocking for your client applications.</p>
+<p align="center">Serverless offline client-side API mocking for your applications.</p>
 
 ## Features
 
 - **Serverless**. Doesn't establish any servers, lives entirely in a browser;
-- **Deviation-free**. Request the same resources you would in production, and let MSW handle the mocking of the relative responses;
-- **Mocking as a tool**. Enable/disable/change mocking logic on runtime without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools.
+- **Deviation-free**. Request the same resources you would in production, and let MSW handle the mocking of the respective responses;
+- **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools.
+- **Essentials**. Emulate status codes, headers, cookies, delays, and more.
 
 ## Motivation
 
@@ -14,19 +15,31 @@ There are several points that I find annoying when conducting API mocking with a
 
 - Often relies on a mocking server which you need to run and maintain;
 - Doesn't really mock requests, rather _replaces_ their urls to point to a mocking server, instead of a real server;
-- Brings extra dependencies to your application, instead of being a dependency-free development tool.
+- Brings extra dependencies to your application, instead of being a simple dependency-free development tool.
 
-To eliminate those, and make client-side development easier, I've created this library.
+This library aims to eradicate those problems, as it takes an entirely different approach to the client-side API mocking.
 
 ## Getting started
 
-### Install
+### 1. Install
 
 ```bash
 npm install msw --dev
 ```
 
-### Use
+### 2. Configure
+
+Run the following command in your project's root directory:
+
+```bash
+msw create <rootDir>
+```
+
+> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`).
+
+This is going to copy the Mock Service Worker to the specified directory, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
+
+### 3. Use
 
 ```js
 // app/mocks.js
@@ -46,8 +59,11 @@ msw.get(
     )
 )
 
-/* Start the Service Worker */
-msw.start()
+/**
+ * Start and register.
+ * Provide a relative URL to the Mock Service Worker on your server.
+ */
+msw.start(navigator.serviceWorker.register('./mockServiceWorker.js'))
 ```
 
 Import your `mocks.js` module anywhere in the root of your application to enable the mocking:

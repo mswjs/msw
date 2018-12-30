@@ -9,11 +9,15 @@ npm install
 ## Configure MSW
 
 ```bash
-msw create
+msw create public
 ```
+
+> We are using "public" as the `rootDir` because CRA serves files from the "public" directory.
 
 ## Run
 
 ```bash
 npm start
 ```
+
+Edit the `src/mocks.js` and see the mocking in action.

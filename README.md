@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://www.npmjs.com/package/msw">
+    <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version">
+  </a>
+</p>
+
 <h1 align="center">MSW</h1>
 
 <p align="center">Serverless offline client-side API mocking for your applications.</p>
@@ -80,7 +86,7 @@ Service Workers are designed as a caching tool. However, we don't want our mocki
 
 It's highly recommend to **enable "Update on reload"** option in the "Application" tab of Chrome's DevTools (under "Service Workers" section). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
 
-![Service Workers: Update on reload](./media/sw-update-on-reload.png)
+![Service Workers: Update on reload](https://raw.githubusercontent.com/kettanaito/msw/master/media/sw-update-on-reload.png)
 
 > Read more on [The Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle).
 

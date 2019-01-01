@@ -28,11 +28,9 @@ module.exports = function(args) {
 
     console.log(`
 ${chalk.green('Service Worker successfully created!')}
-Now include the following script in your application's code:
+Continue by creating a mocking module and starting the Service Worker:
 
-  ${chalk.cyan(
-    `${chalk.bold("msw.start('")}./${swFilename}${chalk.bold("')")}`,
-  )}
+  ${chalk.cyan.bold('msw.start()')}
 `)
   })
 }

@@ -10,7 +10,6 @@
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
     "test": "jest",
-    "example": "node example/server",
     "prepublishOnly": "npm run build"
   },
   "author": {
@@ -19,7 +18,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "ramda": "^0.25.0"
+    "ramda": "^0.25.0",
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.1.5",
@@ -31,7 +31,6 @@
     "babel-plugin-ramda": "^1.6.3",
     "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
-    "express": "^4.16.4",
     "jest": "^23.6.0",
     "node-fetch": "^2.3.0",
     "prettier": "^1.15.2",

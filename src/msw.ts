@@ -1,9 +1,10 @@
 import * as R from 'ramda'
-import assertUrl, { Mask, ParsedUrl } from './utils/assertUrl'
-import stringifyMask from './utils/stringifyMask'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
 import invariant from './utils/invariant'
+import matchPath from './utils/matchPath'
+
+type Mask = RegExp | string
 
 export enum RESTMethod {
   GET = 'GET',
@@ -87,7 +88,6 @@ export class MockServiceWorker {
         return reg
       })
       .catch((error) => {
-        console.log(error)
         console.error(`[MSW] Failed to register MockServiceWokrer. ${error}`)
       })
   }
@@ -114,11 +114,12 @@ export class MockServiceWorker {
 
   mockRoute = R.curry(
     (method: RESTMethod, mask: Mask, resolver: ResponseResolver) => {
-      this.routes = R.assocPath(
-        [method.toLowerCase(), stringifyMask(mask)],
-        resolver,
-        this.routes,
-      )
+      const prevRoutes = this.routes || {}
+      const lowercaseMethod = method.toLowerCase()
+      const prevMethodRoutes = prevRoutes[lowercaseMethod] || []
+      const nextMethodRoutes = prevMethodRoutes.concat({ mask, resolver })
+
+      this.routes = R.assoc(lowercaseMethod, nextMethodRoutes, prevRoutes)
 
       return this
     },
@@ -141,22 +142,32 @@ export class MockServiceWorker {
     const req = JSON.parse(event.data, (key, value) => {
       return key === 'headers' ? new Headers(value) : value
     })
-    const relevantRoutes = this.routes[req.method.toLowerCase()] || {}
-    const parsedRoute = Object.keys(relevantRoutes).reduce<ParsedUrl>(
-      (acc, mask) => {
-        const parsedRoute = assertUrl(mask, req.url)
-        return parsedRoute.matches ? parsedRoute : acc
-      },
-      null,
-    )
+    const routesByMethod = this.routes[req.method.toLowerCase()] || []
+    const relevantRoute = routesByMethod.reduce((acc, route) => {
+      if (!!acc) {
+        return acc
+      }
 
-    if (parsedRoute === null) {
+      const match = matchPath(req.url, { path: route.mask })
+
+      return match ? { match, resolver: route.resolver } : acc
+    }, null)
+
+    if (relevantRoute === null) {
       return this.postMessage(event, 'MOCK_NOT_FOUND')
     }
 
-    const resolver = relevantRoutes[parsedRoute.mask.toString()]
+    const { match, resolver } = relevantRoute
+
     const resolvedResponse =
-      resolver({ ...req, params: parsedRoute.params }, res, context) || {}
+      resolver(
+        {
+          ...req,
+          params: match.params,
+        },
+        res,
+        context,
+      ) || {}
 
     /**
      * Transform Headers into a list to be stringified preserving multiple
@@ -166,7 +177,7 @@ export class MockServiceWorker {
 
     if (!resolvedResponse) {
       console.warn(
-        '[MSW] Expected a mocking resolver function to return an Object, but got: %s. ',
+        '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. ',
         resolvedResponse,
       )
     }

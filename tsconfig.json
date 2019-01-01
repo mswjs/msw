@@ -2,7 +2,7 @@
   "compileOnSave": true,
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "module": "commonjs",
+    "module": "es2015",
     "target": "es6",
     "moduleResolution": "node",
     "resolveJsonModule": true,

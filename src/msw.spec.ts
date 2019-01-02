@@ -1,4 +1,5 @@
 import * as R from 'ramda'
+import formatPath from './utils/formatPath'
 import msw from './msw'
 
 test('Supports declaring a new route using REST methods', () => {
@@ -9,10 +10,12 @@ test('Supports declaring a new route using REST methods', () => {
     const resolver = (req, res, { text }) =>
       res(text(`response ${methodName} text`))
     msw[methodName](mask, resolver)
-
-    expect(R.path([methodName, mask], msw.routes)).not.toBeUndefined()
-    expect(R.path([methodName, mask], msw.routes).toString()).toEqual(
-      resolver.toString(),
+    const storedRoute = R.find(
+      R.propEq('mask', formatPath(mask, [])),
+      msw.routes[methodName],
     )
+
+    expect(storedRoute).not.toBeUndefined()
+    expect(storedRoute.resolver.toString()).toEqual(resolver.toString())
   })
 })

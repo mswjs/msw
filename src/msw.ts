@@ -2,9 +2,10 @@ import * as R from 'ramda'
 import res, { MockedResponse, ResponseComposition } from './response'
 import context, { MockedContext } from './context'
 import invariant from './utils/invariant'
+import formatPath from './utils/formatPath'
 import matchPath from './utils/matchPath'
 
-type Mask = RegExp | string
+export type Mask = RegExp | string
 
 export enum RESTMethod {
   GET = 'GET',
@@ -117,7 +118,10 @@ export class MockServiceWorker {
       const prevRoutes = this.routes || {}
       const lowercaseMethod = method.toLowerCase()
       const prevMethodRoutes = prevRoutes[lowercaseMethod] || []
-      const nextMethodRoutes = prevMethodRoutes.concat({ mask, resolver })
+      const nextMethodRoutes = prevMethodRoutes.concat({
+        mask: formatPath(mask, []),
+        resolver,
+      })
 
       this.routes = R.assoc(lowercaseMethod, nextMethodRoutes, prevRoutes)
 

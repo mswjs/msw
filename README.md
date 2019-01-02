@@ -42,14 +42,13 @@ msw create <rootDir>
 ```
 
 > Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`).
->
 > In case you can't execute `msw` directly, try `node_modules/.bin/msw` as a local alternative.
 
 This is going to copy the Mock Service Worker to the specified directory, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
 
 ### 3. Use
 
-It's up to you where your mocks will reside. It's recommended, however, to isolate them into a separate module, which you can import on demand.
+Location of the mocks declaration doesn't matter. It's recommended, however, to place them into a separate module, which you can import on demand.
 
 ```js
 // app/mocks.js
@@ -92,7 +91,7 @@ It's highly recommend to **enable "Update on reload"** option in the "Applicatio
 
 ## How does it work?
 
-MSW uses Service Worker API with its primary ability to intercept requests, only instead of caching their responses it immitates them. In a nutshell, it works as follows:
+MSW (stands for "Mock Service Worker") uses Service Worker API with its primary ability to intercept requests, only instead of caching responses it immitates them. In a nutshell, it works as follows:
 
 1. MSW spawns a dedicated Service Worker and creates a communication channel between the worker and the client.
 1. Service Worker then signals any outgoing requests on the page to the MSW, which attempts to match them against the defined mocking routes.

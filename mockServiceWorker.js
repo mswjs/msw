@@ -64,6 +64,13 @@ self.addEventListener('fetch', async (event) => {
         reqHeaders[name] = value
       })
 
+      /**
+       * If the body cannot be resolved (either as JSON or to text/string),
+       * the default value will be undefined.
+       */
+      const json = await req.json().catch(() => void 0)
+      const text = await req.text().catch(() => void 0)
+
       const clientResponse = await messageClient(client, {
         url: req.url,
         method: req.method,
@@ -74,6 +81,7 @@ self.addEventListener('fetch', async (event) => {
         redirect: req.redirect,
         referrer: req.referrer,
         referrerPolicy: req.referrerPolicy,
+        body: json || text,
       })
 
       if (clientResponse === 'MOCK_NOT_FOUND') {

@@ -1,0 +1,39 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: cypress/browsers:chrome67
+        environment:
+          TERM: xterm
+
+    working_directory: ~/root
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+            - yarn-packages
+
+      - run:
+          name: 'Checking node version'
+          command: |
+            node --version
+            yarn --version
+
+      - run:
+          name: Installing dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Saving package cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+      - run:
+          name: Building MSW
+          command: yarn run build
+
+      - run:
+          name: Unit tests
+          command: yarn run test:unit

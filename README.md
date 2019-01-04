@@ -1,6 +1,9 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/msw">
-    <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version">
+    <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version" />
+  </a>
+  <a href="https://circleci.com/gh/kettanaito/msw)">
+    <img src="https://img.shields.io/circleci/project/github/kettanaito/msw/master.svg" alt="Build status" />
   </a>
 </p>
 
@@ -72,7 +75,7 @@ msw.get(
 msw.start()
 ```
 
-Import your `mocks.js` module anywhere in the root of your application to enable the mocking:
+Import your `mocks.js` module anywhere in your application (root, preferably) to enable the mocking:
 
 ```js
 // app/index.js
@@ -105,4 +108,4 @@ This library is meant to be used for **development only**. It doesn't require, n
 
 ## Contribute
 
-Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/kettanaito/msw/issues) tab of this repositories. [Pull requests](https://github.com/kettanaito/msw/pulls) are welcome as well!
+Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/kettanaito/msw/issues) tab of this repository. [Pull requests](https://github.com/kettanaito/msw/pulls) are welcome as well!

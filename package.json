@@ -9,8 +9,9 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
-    "test": "jest",
-    "prepublishOnly": "npm test && npm run build"
+    "test:unit": "jest",
+    "test": "yarn run test:unit",
+    "prepublishOnly": "yarn test && yarn run build"
   },
   "author": {
     "name": "Artem Zakharchenko",

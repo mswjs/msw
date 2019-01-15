@@ -16,7 +16,7 @@
 - **Serverless**. Doesn't establish any servers, lives entirely in a browser;
 - **Deviation-free**. Request the same resources you would in production, and let MSW handle the mocking of the respective responses;
 - **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools.
-- **Essentials**. Emulate status codes, headers, cookies, delays, and more.
+- **Essentials**. Emulate status codes, headers, delays, and more.
 
 ## Motivation
 
@@ -32,8 +32,10 @@ This library aims to eradicate those problems, as it takes an entirely different
 
 ### 1. Install
 
+First, install `msw` with any package manager (npm, yarn, etc.).
+
 ```bash
-npm install msw --dev
+yarn install msw --dev
 ```
 
 ### 2. Configure
@@ -44,14 +46,13 @@ Run the following command in your project's root directory:
 msw create <rootDir>
 ```
 
-> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`).
-> In case you can't execute `msw` directly, try `node_modules/.bin/msw` as a local alternative.
+> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`). In case you can't execute `msw` directly, try `node_modules/.bin/msw` as a local alternative.
 
-This is going to copy the Mock Service Worker to the specified directory, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
+This is going to copy the Mock Service Worker to the specified `rootDir`, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
 
 ### 3. Use
 
-Location of the mocks declaration doesn't matter. It's recommended, however, to place them into a separate module, which you can import on demand.
+Location of the mocks declaration doesn't matter. It's recommended, however, to place them into a separate module, which you would import on demand.
 
 ```js
 // app/mocks.js
@@ -75,7 +76,7 @@ msw.get(
 msw.start()
 ```
 
-Import your `mocks.js` module anywhere in your application (root, preferably) to enable the mocking:
+Include your `mocks.js` module anywhere in your application (root, preferably) to enable the mocking:
 
 ```js
 // app/index.js

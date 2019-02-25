@@ -14,9 +14,9 @@
 ## Features
 
 - **Serverless**. Doesn't establish any servers, lives entirely in a browser;
-- **Deviation-free**. Request the same resources you would in production, and let MSW handle the mocking of the respective responses;
+- **Deviation-free**. Request the very same resources (urls) you would in production, and let MSW handle the mocking of the respective responses;
 - **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools.
-- **Essentials**. Emulate status codes, headers, delays, and more.
+- **Essentials**. Emulate status codes, headers, delays, and create custom response mocking functions.
 
 ## Motivation
 
@@ -26,7 +26,7 @@ There are several points that I find annoying when conducting API mocking with a
 - Doesn't really mock requests, rather _replaces_ their urls to point to a mocking server, instead of a real server;
 - Brings extra dependencies to your application, instead of being a simple dependency-free development tool.
 
-This library aims to eradicate those problems, as it takes an entirely different approach to the client-side API mocking.
+This library aims to annihilate those problems, as it takes an entirely different approach to the client-side API mocking.
 
 ## Getting started
 
@@ -46,13 +46,17 @@ Run the following command in your project's root directory:
 msw create <rootDir>
 ```
 
-> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`). In case you can't execute `msw` directly, try `node_modules/.bin/msw` as a local alternative.
+> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`). When installed MSW locally, execute `node_modules/.bin/msw` command instead.
 
-This is going to copy the Mock Service Worker to the specified `rootDir`, so it could be served as a static file from your server. This makes it possible to be registered from the client application.
+This is going to copy the Mock Service Worker file to the specified `rootDir` location, so it's served as a static file by your server. This makes it possible for the browser to register the referenced service worker.
 
-### 3. Use
+#### Where is my "root" directory?
 
-Location of the mocks declaration doesn't matter. It's recommended, however, to place them into a separate module, which you would import on demand.
+This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often *committed to Git*, so should be the Mock Service Worker. Otherwise you could integrate service worker generation as a part of your build step.
+
+### 3. Define mocks
+
+First, create a mocking definition file:
 
 ```js
 // app/mocks.js
@@ -76,16 +80,46 @@ msw.get(
 msw.start()
 ```
 
-Include your `mocks.js` module anywhere in your application (root, preferably) to enable the mocking:
+> You can modularize your mock files, but be sure to call `msw.start()` **only once!**
+
+### 4. Integrate
+
+Mocking is a **development-only** procedure. We highly recommend to include your mocking module (`app/mocks.js`) into your application's entry during the build. Please see examples of how this can be done below.
+
+#### Using webpack
+
+```js
+// ./webpack.config.js
+const __DEV__ = process.env.NODE_ENV === 'development'
+
+module.exports = {
+  entry: [
+    /* Include mocks when in development */
+    __DEV__ && 'app/mocks.js',
+    
+    /* Include your application's entry */
+    'app/index.js'
+  ].filter(Boolean),
+  
+  /* Rest of your config here */
+}
+```
+
+#### Client-side import
+
+Alternatively, you can import mocking file(s) conditionally in your client bundle.
 
 ```js
 // app/index.js
-import './mocks.js'
+
+if (__DEV__) {
+  require('./mocks.js')
+}
 ```
 
 ## Update on reload
 
-Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached, which may result into out-of-date logic during development.
+Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached, which would result into out-of-date logic during development.
 
 It's highly recommend to **enable "Update on reload"** option in the "Application" tab of Chrome's DevTools (under "Service Workers" section). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
 

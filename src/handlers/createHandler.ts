@@ -1,5 +1,5 @@
-import R from 'ramda'
-import { Mask } from '../composeMsw'
+import * as R from 'ramda'
+import { Mask } from '../composeMocks'
 import { MockedContext } from '../context'
 import { ResponseComposition, MockedResponse } from '../response'
 import matchPath, { FullMatch, MatchPathOptions } from '../utils/matchPath'
@@ -40,9 +40,13 @@ export interface SchemaEntryBody {
 }
 
 const createHandler = R.curry(
-  (method: RESTMethods, mask: Mask, resolver: ResponseResolver) => {
+  (
+    method: RESTMethods,
+    mask: Mask,
+    resolver: ResponseResolver,
+  ): SchemaEntryGetter => {
     return () => [
-      method.toLowerCase(),
+      method.toLowerCase() as RESTMethods,
       {
         mask,
         match: function(url: string, matchOptions: MatchPathOptions = {}) {

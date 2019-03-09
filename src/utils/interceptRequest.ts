@@ -1,6 +1,6 @@
 import res, { MockedResponse } from '../response'
 import context from '../context'
-import { MockingSchema } from '../composeMsw'
+import { MockingSchema } from '../composeMocks'
 import { SchemaEntryBody } from '../handlers/createHandler'
 import { FullMatch } from './matchPath'
 

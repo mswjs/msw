@@ -1,6 +1,8 @@
-import { composeMsw, rest } from 'msw'
+import { composeMocks, rest } from 'msw'
+import userMocks from './user'
 
-const { start } = composeMsw(
+const { start } = composeMocks(
+  ...userMocks,
   rest.get('https://api.github.com/users/:username', (req, res, { json }) => {
     const { username } = req.params
 

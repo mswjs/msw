@@ -4,8 +4,8 @@ const yargs = require('yargs')
 yargs
   .usage('$0 <cmd> [args]')
   .command(
-    'create <rootDir>',
-    'Creates Mock Service Worker at the specified directory',
+    'init <rootDir>',
+    'Initializes Mock Service Worker at the specified directory',
     (yargs) => {
       yargs.positional('rootDir', {
         type: 'string',
@@ -13,6 +13,6 @@ yargs
         normalize: true,
       })
     },
-    require('./create'),
+    require('./init'),
   )
   .help().argv

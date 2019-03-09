@@ -3,12 +3,13 @@
  * @see https://github.com/ReactTraining/react-router
  */
 import pathToRegexp, { RegExpOptions } from 'path-to-regexp'
+import { RequestParams } from '../handlers/createHandler'
 
 const cache = {}
 const cacheLimit = 10000
 let cacheCount = 0
 
-interface MatchPathOptions {
+export interface MatchPathOptions {
   path?: string
   exact?: boolean
   strict?: boolean
@@ -43,23 +44,27 @@ function compilePath(path: string, options: RegExpOptions): CompilePathResult {
   return result
 }
 
+export type FullMatch = {
+  matches: boolean
+  path?: string
+  url?: string
+  isExact?: boolean
+  params?: RequestParams
+}
+
 /**
  * Public API for matching a URL pathname to a path.
  */
 export default function matchPath(
   pathname: string,
   options: MatchPathOptions = {},
-) {
-  if (typeof options === 'string') {
-    options = { path: options }
-  }
-
+): FullMatch {
   const { path, exact = false, strict = false, sensitive = false } = options
-  const paths = [].concat(path)
+  const paths: string[] = [].concat(path)
 
-  return paths.reduce((matched, path) => {
-    if (matched) {
-      return matched
+  return paths.reduce<FullMatch>((fullMatch, path) => {
+    if (fullMatch && fullMatch.matches) {
+      return fullMatch
     }
 
     const { regexp, keys } = compilePath(path, {
@@ -67,29 +72,32 @@ export default function matchPath(
       strict,
       sensitive,
     })
+
     const match = regexp.exec(pathname)
 
     if (!match) {
-      return null
+      return { matches: false }
     }
 
     const [url, ...values] = match
     const isExact = pathname === url
 
     if (exact && !isExact) {
-      return null
+      return { matches: false }
     }
 
     return {
+      matches: true,
       path, // the path used to match
       url: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
       isExact, // whether or not we matched exactly
-      params: keys.reduce((acc, key, index) => {
-        return {
+      params: keys.reduce(
+        (acc, key, index) => ({
           ...acc,
           [key.name]: values[index],
-        }
-      }, {}),
+        }),
+        {},
+      ),
     }
   }, null)
 }

@@ -2,7 +2,9 @@
  * Match path util from "react-router".
  * @see https://github.com/ReactTraining/react-router
  */
-import pathToRegexp, { RegExpOptions } from 'path-to-regexp'
+// @ts-ignore
+const pathToRegexp = require('path-to-regexp')
+import { RegExpOptions } from 'path-to-regexp'
 import { RequestParams } from '../handlers/createHandler'
 
 const cache = {}
@@ -10,7 +12,7 @@ const cacheLimit = 10000
 let cacheCount = 0
 
 export interface MatchPathOptions {
-  path?: string
+  path?: RegExp | string
   exact?: boolean
   strict?: boolean
   sensitive?: boolean
@@ -18,7 +20,9 @@ export interface MatchPathOptions {
 
 interface CompilePathResult {
   regexp: RegExp
-  keys: any[]
+  keys: Array<{
+    name: string
+  }>
 }
 
 function compilePath(path: string, options: RegExpOptions): CompilePathResult {
@@ -46,14 +50,14 @@ function compilePath(path: string, options: RegExpOptions): CompilePathResult {
 
 export type FullMatch = {
   matches: boolean
-  path?: string
-  url?: string
+  // path: RegExp | string
+  // match: string
   isExact?: boolean
   params?: RequestParams
 }
 
 /**
- * Public API for matching a URL pathname to a path.
+ * Matches a given pathname string against the path.
  */
 export default function matchPath(
   pathname: string,
@@ -88,8 +92,8 @@ export default function matchPath(
 
     return {
       matches: true,
-      path, // the path used to match
-      url: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
+      // path, // the path used to match
+      // match: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
       isExact, // whether or not we matched exactly
       params: keys.reduce(
         (acc, key, index) => ({

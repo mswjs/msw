@@ -43,16 +43,16 @@ yarn install msw --dev
 Run the following command in your project's root directory:
 
 ```bash
-msw create <rootDir>
+node_modiles/.bin/msw init <rootDir>
 ```
 
-> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw create public`). When installed MSW locally, execute `node_modules/.bin/msw` command instead.
+> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw init public`).
 
 This is going to copy the Mock Service Worker file to the specified `rootDir` location, so it's served as a static file by your server. This makes it possible for the browser to register the referenced service worker.
 
 #### Where is my "root" directory?
 
-This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often *committed to Git*, so should be the Mock Service Worker. Otherwise you could integrate service worker generation as a part of your build step.
+This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often _committed to Git_, so should be the Mock Service Worker. Otherwise you could integrate service worker generation as a part of your build step.
 
 ### 3. Define mocks
 
@@ -60,11 +60,11 @@ First, create a mocking definition file:
 
 ```js
 // app/mocks.js
-import { msw } from 'msw'
+import { composeMocks, post } from 'msw'
 
 /* Configure mocking routes */
-msw.get(
-  'https://api.github.com/repo/:repoName',
+const { start } = composeMocks(
+  post.get('https://api.github.com/repo/:repoName',
   (req, res, { status, set, delay, json }) => {
     const { repoName } = req.params // access request's params
 
@@ -74,10 +74,11 @@ msw.get(
       delay(1000), // delay the response
       json({ errorMessage: `Repository "${repoName}" not found` }),
     )
+  )
 )
 
 /* Start the Service Worker */
-msw.start()
+start()
 ```
 
 > You can modularize your mock files, but be sure to call `msw.start()` **only once!**
@@ -96,11 +97,11 @@ module.exports = {
   entry: [
     /* Include mocks when in development */
     __DEV__ && 'app/mocks.js',
-    
+
     /* Include your application's entry */
-    'app/index.js'
+    'app/index.js',
   ].filter(Boolean),
-  
+
   /* Rest of your config here */
 }
 ```

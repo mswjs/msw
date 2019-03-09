@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import {
   SchemaEntryGetter,
   SchemaEntry,
@@ -82,7 +82,7 @@ const stop = (
     })
 }
 
-export default function composeMsw(...handlers: SchemaEntryGetter[]): any {
+export default function composeMocks(...handlers: SchemaEntryGetter[]): any {
   let worker: ServiceWorker
   let workerRegistration: ServiceWorkerRegistration
 
@@ -102,5 +102,6 @@ export default function composeMsw(...handlers: SchemaEntryGetter[]): any {
   return {
     start: start(worker, workerRegistration),
     stop: stop(worker, workerRegistration),
+    schema,
   }
 }

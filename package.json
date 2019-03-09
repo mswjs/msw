@@ -9,7 +9,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
-    "test:unit": "jest",
+    "test:unit": "cross-env BABEL_ENV=test jest",
     "test": "yarn run test:unit",
     "prepublishOnly": "yarn test && yarn run build"
   },

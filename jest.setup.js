@@ -8,3 +8,10 @@ Object.defineProperty(window, 'Headers', {
   writable: true,
   value: fetch.Headers,
 })
+
+Object.defineProperty(navigator, 'serviceWorker', {
+  writable: false,
+  value: {
+    addEventListener: () => null,
+  },
+})

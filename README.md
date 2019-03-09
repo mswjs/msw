@@ -60,11 +60,11 @@ First, create a mocking definition file:
 
 ```js
 // app/mocks.js
-import { composeMocks, post } from 'msw'
+import { composeMocks, rest } from 'msw'
 
 /* Configure mocking routes */
 const { start } = composeMocks(
-  post.get('https://api.github.com/repo/:repoName',
+  rest.get('https://api.github.com/repo/:repoName',
   (req, res, { status, set, delay, json }) => {
     const { repoName } = req.params // access request's params
 

@@ -6,6 +6,8 @@
     "target": "es6",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "declaration": true,
+    "declarationDir": "./lib",
     "lib": ["dom", "es2017", "webworker"]
   },
   "files": ["src/index.ts"],

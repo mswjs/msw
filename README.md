@@ -43,16 +43,16 @@ yarn install msw --dev
 Run the following command in your project's root directory:
 
 ```bash
-node_modiles/.bin/msw init <rootDir>
+node_modiles/.bin/msw init <publicDir>
 ```
 
-> Replace `rootDir` with the relative path to your server's root directory (i.e. `msw init public`).
+> Replace `publicDir` with the relative path to your server's public directory (i.e. `msw init public`).
 
-This is going to copy the Mock Service Worker file to the specified `rootDir` location, so it's served as a static file by your server. This makes it possible for the browser to register the referenced service worker.
+This is going to copy the Mock Service Worker file to the specified `publicDir` location, so it's served as a static file. This makes it possible for a browser to access and register the referenced service worker.
 
-#### Where is my "root" directory?
+#### Where is my "public" directory?
 
-This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often _committed to Git_, so should be the Mock Service Worker. Otherwise you could integrate service worker generation as a part of your build step.
+This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often _committed to Git_, so should be the Mock Service Worker. You can also integrate service worker generation as a part of your build step.
 
 ### 3. Define mocks
 
@@ -81,7 +81,7 @@ const { start } = composeMocks(
 start()
 ```
 
-> You can modularize your mock files, but be sure to call `msw.start()` **only once!**
+> You can modularize your mocking files, but be sure to call `start()` **only once!**
 
 ### 4. Integrate
 

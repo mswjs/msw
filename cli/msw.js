@@ -4,12 +4,13 @@ const yargs = require('yargs')
 yargs
   .usage('$0 <cmd> [args]')
   .command(
-    'init <rootDir>',
+    'init <publicDir>',
     'Initializes Mock Service Worker at the specified directory',
     (yargs) => {
-      yargs.positional('rootDir', {
+      yargs.positional('publicDir', {
         type: 'string',
-        description: 'Server root path (relative to current working directory)',
+        description: 'Relative path to server public directory',
+        required: true,
         normalize: true,
       })
     },

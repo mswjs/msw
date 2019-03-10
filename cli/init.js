@@ -5,9 +5,9 @@ const invariant = require('./invariant')
 const cwd = process.cwd()
 
 module.exports = function(args) {
-  const { rootDir } = args
-  const resolvedRootDir = path.resolve(cwd, rootDir)
-  const dirExists = fs.existsSync(resolvedRootDir)
+  const { publicDir } = args
+  const resolvedPublicDir = path.resolve(cwd, publicDir)
+  const dirExists = fs.existsSync(resolvedPublicDir)
 
   invariant(
     dirExists,
@@ -17,12 +17,12 @@ module.exports = function(args) {
 
   console.log(
     chalk.gray('Creating Mock Service Worker at "%s"...'),
-    resolvedRootDir,
+    resolvedPublicDir,
   )
 
   const swSrcFilepath = path.resolve(__dirname, '../mockServiceWorker.js')
   const swFilename = path.basename(swSrcFilepath)
-  const swDestFilepath = path.resolve(resolvedRootDir, swFilename)
+  const swDestFilepath = path.resolve(resolvedPublicDir, swFilename)
   fs.copyFile(swSrcFilepath, swDestFilepath, (error) => {
     invariant(typeof error !== null, 'Failed to copy Service Worker. %s', error)
 

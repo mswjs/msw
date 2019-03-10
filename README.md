@@ -112,8 +112,7 @@ Alternatively, you can import mocking file(s) conditionally in your client bundl
 
 ```js
 // app/index.js
-
-if (__DEV__) {
+if (process.env.NODE_ENV === 'development') {
   require('./mocks.js')
 }
 ```

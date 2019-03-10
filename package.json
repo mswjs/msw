@@ -3,6 +3,7 @@
   "version": "0.3.0",
   "description": "Serverless client-side API mocking without a single change to the codebase.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "bin": {
     "msw": "cli/msw.js"
   },

@@ -9,7 +9,7 @@
 
 <h1 align="center">MSW</h1>
 
-<p align="center">Serverless offline client-side API mocking for your applications.</p>
+<p align="center">Serverless runtime client-side API mocking for your applications.</p>
 
 ## Features
 
@@ -22,7 +22,7 @@
 
 There are several points that I find annoying when conducting API mocking with any solution I've found:
 
-- Often relies on a mocking server which you need to run and maintain;
+- Often relies on a separate mocking server which you need to run and maintain;
 - Doesn't really mock requests, rather _replaces_ their urls to point to a mocking server, instead of a real server;
 - Brings extra dependencies to your application, instead of being a simple dependency-free development tool.
 
@@ -32,15 +32,13 @@ This library aims to annihilate those problems, as it takes an entirely differen
 
 ### 1. Install
 
-First, install `msw` with any package manager (npm, yarn, etc.).
-
 ```bash
-yarn install msw --dev
+npm install msw -D
 ```
 
 ### 2. Configure
 
-Run the following command in your project's root directory:
+Run the following command in your project's public directory:
 
 ```bash
 node_modiles/.bin/msw init <publicDir>
@@ -48,7 +46,7 @@ node_modiles/.bin/msw init <publicDir>
 
 > Replace `publicDir` with the relative path to your server's public directory (i.e. `msw init public`).
 
-This is going to copy the Mock Service Worker file to the specified `publicDir` location, so it's served as a static file. This makes it possible for a browser to access and register the referenced service worker.
+This is going to copy the Mock Service Worker file to the specified `publicDir`, so it's served as a static file. This is required for a browser to access and register the mock service worker module.
 
 #### Where is my "public" directory?
 
@@ -85,7 +83,7 @@ start()
 
 ### 4. Integrate
 
-Mocking is a **development-only** procedure. We highly recommend to include your mocking module (`app/mocks.js`) into your application's entry during the build. Please see examples of how this can be done below.
+Mocking is a **development-only** procedure. It's highly recommended to include your mocking module (`app/mocks.js`) into your application's entry during the build. See the examples below.
 
 #### Using webpack
 
@@ -103,12 +101,13 @@ module.exports = {
   ].filter(Boolean),
 
   /* Rest of your config here */
+  ...webpackConfig,
 }
 ```
 
-#### Client-side import
+#### Using conditional require
 
-Alternatively, you can import mocking file(s) conditionally in your client bundle.
+Alternatively, you can require mocking file(s) conditionally in your client bundle.
 
 ```js
 // app/index.js
@@ -121,7 +120,7 @@ if (process.env.NODE_ENV === 'development') {
 
 Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached, which would result into out-of-date logic during development.
 
-It's highly recommend to **enable "Update on reload"** option in the "Application" tab of Chrome's DevTools (under "Service Workers" section). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
+It's highly recommend to **enable "Update on reload"** option in your browser (DevTools > Application > Service Workers, in Chrome). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
 
 ![Service Workers: Update on reload](https://raw.githubusercontent.com/kettanaito/msw/master/media/sw-update-on-reload.png)
 
@@ -129,7 +128,7 @@ It's highly recommend to **enable "Update on reload"** option in the "Applicatio
 
 ## How does it work?
 
-MSW (stands for "Mock Service Worker") uses Service Worker API with its primary ability to intercept requests, only instead of caching responses it immitates them. In a nutshell, it works as follows:
+MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it immitates them according to mocks definitions. In a nutshell, it works as follows:
 
 1. MSW spawns a dedicated Service Worker and creates a communication channel between the worker and the client.
 1. Service Worker then signals any outgoing requests on the page to the MSW, which attempts to match them against the defined mocking routes.
@@ -137,7 +136,7 @@ MSW (stands for "Mock Service Worker") uses Service Worker API with its primary 
 
 ## Browser support
 
-This library is meant to be used for **development only**. It doesn't require, nor encourage to install any Service Worker on the production environment.
+This library is meant to be used for **development only**. It doesn't require, nor encourage you to install any Service Worker on production environment.
 
 > [**See browser support for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)
 

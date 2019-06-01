@@ -2,14 +2,14 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version" />
   </a>
-  <a href="https://circleci.com/gh/kettanaito/msw)" target="_blank">
-    <img src="https://img.shields.io/circleci/project/github/kettanaito/msw/master.svg" alt="Build status" />
+  <a href="https://circleci.com/gh/open-draft/msw)" target="_blank">
+    <img src="https://img.shields.io/circleci/project/github/open-draft/msw/master.svg" alt="Build status" />
   </a>
-  <a href="https://david-dm.org/kettanaito/msw" target="_blank">
-    <img src="https://img.shields.io/david/kettanaito/msw.svg" alt="Dependencies status" />
+  <a href="https://david-dm.org/open-draft/msw" target="_blank">
+    <img src="https://img.shields.io/david/open-draft/msw.svg" alt="Dependencies status" />
   </a>
-  <a href="https://david-dm.org/kettanaito/msw?type=dev" target="_blank">
-    <img src="https://img.shields.io/david/dev/kettanaito/msw.svg" alt="Dev dependencies status" />
+  <a href="https://david-dm.org/open-draft/msw?type=dev" target="_blank">
+    <img src="https://img.shields.io/david/dev/open-draft/msw.svg" alt="Dev dependencies status" />
   </a>
 </p>
 

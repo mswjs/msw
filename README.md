@@ -21,7 +21,7 @@
 
 - **Serverless**. Doesn't establish any servers, lives entirely in a browser;
 - **Deviation-free**. Request the very same resources (urls) you would in production, and let MSW handle the mocking of the respective responses;
-- **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools.
+- **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
 - **Essentials**. Emulate status codes, headers, delays, and create custom response mocking functions.
 
 ## Motivation
@@ -32,14 +32,14 @@ There are several points that I find annoying when conducting API mocking with a
 - Doesn't really mock requests, rather _replaces_ their urls to point to a mocking server, instead of a real server;
 - Brings extra dependencies to your application, instead of being a simple dependency-free development tool.
 
-This library aims to annihilate those problems, as it takes an entirely different approach to the client-side API mocking.
+This library annihilates those problems, as it takes an entirely different approach to the client-side API mocking.
 
 ## Getting started
 
 ### 1. Install
 
 ```bash
-npm install msw -D
+npm install msw --save
 ```
 
 ### 2. Configure
@@ -52,11 +52,11 @@ node_modiles/.bin/msw init <publicDir>
 
 > Replace `publicDir` with the relative path to your server's public directory (i.e. `msw init public`).
 
-This is going to copy the Mock Service Worker file to the specified `publicDir`, so it's served as a static file. This is required for a browser to access and register the mock service worker module.
+This copies the Mock Service Worker file to the specified `publicDir`, so it's served as a static asset by your server. This way browser can access and register the mock service worker module.
 
 #### Where is my "public" directory?
 
-This is usually the build directory of your application (`build/`, `public/` or `dest/`). This directory is often _committed to Git_, so should be the Mock Service Worker. You can also integrate service worker generation as a part of your build step.
+This is usually a build directory of your application (`build/`, `public/` or `dest/`). This directory is often _committed to Git_, so should be the Mock Service Worker. You can also integrate service worker generation as a part of your build step.
 
 ### 3. Define mocks
 
@@ -66,16 +66,21 @@ First, create a mocking definition file:
 // app/mocks.js
 import { composeMocks, rest } from 'msw'
 
-/* Configure mocking routes */
+// Configure mocking routes
 const { start } = composeMocks(
   rest.get('https://api.github.com/repo/:repoName',
   (req, res, { status, set, delay, json }) => {
-    const { repoName } = req.params // access request's params
+    // access request's params
+    const { repoName } = req.params
 
     return res(
-      status(403), // set custom status
-      set({ 'Custom-Header': 'foo' }), // set headers
-      delay(1000), // delay the response
+      // set custom status
+      status(403),
+      // set headers
+      set({ 'Custom-Header': 'foo' }),
+      // delay the response
+      delay(1000),
+      // send JSON response body
       json({ errorMessage: `Repository "${repoName}" not found` }),
     )
   )
@@ -85,13 +90,13 @@ const { start } = composeMocks(
 start()
 ```
 
-> You can modularize your mocking files, but be sure to call `start()` **only once!**
+> Mocks structure if up to you, but be sure to call `start()` **only once!**
 
 ### 4. Integrate
 
-Mocking is a **development-only** procedure. It's highly recommended to include your mocking module (`app/mocks.js`) into your application's entry during the build. See the examples below.
+Mocking is a **development-only** procedure. It's highly recommended to include your mocking module (i.e. `app/mocks.js`) into your application's entry during the build. See the examples below.
 
-#### Using webpack
+#### Use webpack
 
 ```js
 // ./webpack.config.js
@@ -99,19 +104,19 @@ const __DEV__ = process.env.NODE_ENV === 'development'
 
 module.exports = {
   entry: [
-    /* Include mocks when in development */
+    // Include mocks when in development
     __DEV__ && 'app/mocks.js',
 
-    /* Include your application's entry */
+    // Include your application's entry
     'app/index.js',
   ].filter(Boolean),
 
-  /* Rest of your config here */
+  // Rest of your config here
   ...webpackConfig,
 }
 ```
 
-#### Using conditional require
+#### Use conditional require
 
 Alternatively, you can require mocking file(s) conditionally in your client bundle.
 
@@ -124,17 +129,17 @@ if (process.env.NODE_ENV === 'development') {
 
 ## Update on reload
 
-Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached, which would result into out-of-date logic during development.
+Service Workers are designed as a caching tool. However, we don't want our mocking definitions to be cached since that would result into out-of-date logic during development.
 
 It's highly recommend to **enable "Update on reload"** option in your browser (DevTools > Application > Service Workers, in Chrome). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
 
 ![Service Workers: Update on reload](https://raw.githubusercontent.com/kettanaito/msw/master/media/sw-update-on-reload.png)
 
-> Read more on [The Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle).
+> Read more about the [Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle).
 
 ## How does it work?
 
-MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it immitates them according to mocks definitions. In a nutshell, it works as follows:
+MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it immitates them according to the provided mock definitions. Here's a simplified internal flow:
 
 1. MSW spawns a dedicated Service Worker and creates a communication channel between the worker and the client.
 1. Service Worker then signals any outgoing requests on the page to the MSW, which attempts to match them against the defined mocking routes.

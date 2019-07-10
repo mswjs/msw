@@ -22,26 +22,26 @@
   "dependencies": {
     "path-to-regexp": "3.0.0",
     "ramda": "0.26.1",
-    "yargs": "13.2.2"
+    "yargs": "^13.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.1.5",
-    "@babel/preset-env": "^7.1.5",
-    "@types/jest": "24.0.12",
-    "@types/ramda": "0.26.8",
+    "@babel/core": "^7.5.4",
+    "@babel/preset-env": "^7.5.4",
+    "@types/jest": "^24.0.15",
+    "@types/ramda": "^0.26.15",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
     "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "jest": "24.8.0",
-    "node-fetch": "^2.3.0",
-    "prettier": "^1.15.2",
+    "node-fetch": "^2.6.0",
+    "prettier": "^1.18.2",
     "regenerator-runtime": "^0.13.2",
     "ts-jest": "24.0.2",
-    "typescript": "^3.1.6",
-    "webpack": "^4.25.1",
-    "webpack-cli": "^3.1.2"
+    "typescript": "^3.5.3",
+    "webpack": "^4.35.3",
+    "webpack-cli": "^3.3.5"
   }
 }

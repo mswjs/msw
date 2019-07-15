@@ -42,4 +42,6 @@ Before(async function() {
   this.browser = browser
   this.page = page
   this.gotoScenario = gotoScenario
+
+  this.app.get('/', (_, res) => res.send('Reseting the page...'))
 })

@@ -30,16 +30,15 @@ const start = (
   }
 
   window.addEventListener('beforeunload', () => {
-    /**
-     * Deactivate requests interception before page unload.
-     * Initial page load requests client resources such as HTML, CSS, JS,
-     * which will go through the MSW in favor to be intercepted.
-     * Such interception must never happen to ensure proper page load.
-     *
-     * When the client-side JavaScript initializes, it will call to "msw.start()"
-     * which will signal active ServiceWorker to resume requests interception.
-     */
+    // Deactivate requests interception before page unload.
+    // Initial page load requests client resources such as HTML, CSS, JS,
+    // which will go through the MSW in favor to be intercepted.
+    // Such interception must never happen to ensure proper page load.
+    //
+    // When the client-side JavaScript initializes, it will call to "msw.start()"
+    // which will signal active ServiceWorker to resume requests interception.
     if (worker && worker.state !== 'redundant') {
+      this.isRunning = false
       worker.postMessage('MOCK_DEACTIVATE')
     }
   })
@@ -57,7 +56,7 @@ const start = (
     })
     .catch((error) => {
       console.error(
-        '[MSW] Failed to register MockServiceWorker (%s). %o',
+        '[MSW] Failed to register MockServiceWorker (%s).\n%o',
         swUrl,
         error,
       )
@@ -84,7 +83,7 @@ const stop = (
       workerRegistration = null
     })
     .catch((error) => {
-      console.error('[MSW] Failed to unregister MockServiceWorker. %o', error)
+      console.error('[MSW] Failed to unregister MockServiceWorker.\n%o', error)
     })
 }
 

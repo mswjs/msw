@@ -41,6 +41,7 @@
     "jest": "24.9.0",
     "node-fetch": "^2.6.0",
     "prettier": "^1.18.2",
+    "puppeteer": "^1.18.1",
     "regenerator-runtime": "0.13.3",
     "ts-jest": "24.0.2",
     "typescript": "^3.5.3",

@@ -10,7 +10,7 @@ const { composeMocks, rest } = ${LIBRARY_NAME};
 const { start } = composeMocks(
   rest.${method.toLowerCase()}(${JSON.stringify(route, null, 2)}, ${mockFunc})
 );
-start()
+start();
 `
 
 class World {
@@ -24,9 +24,15 @@ class World {
 
     // Override the HTML served by the test server
     // to include scenario-relevant mock definition.
+    /**
+     * @todo Express serves the same HTML between scenarios.
+     * This results into failed preparation (assertion of mock def).
+     */
     servePage(this.app, {
       mockDef,
     })
+
+    console.log('Should be serving relevant HTML now...')
 
     // Go to the scenario page
     await this.gotoScenario()
@@ -36,7 +42,7 @@ class World {
     // the MSW is enabled with the relevant definition.
     await this.page.reload()
 
-    // Assert HTML from the server includes mock definition
+    // Assert that page HTML includes the mock definition
     const html = await this.page.content()
     assert.include(html, route)
 

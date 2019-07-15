@@ -1,120 +1,179 @@
 import matchPath from './matchPath'
 
-describe('Determines matching paths', () => {
-  test('when matching against complete string (exact)', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://api.github.com/users/admin',
-        exact: true,
-      }),
-    ).toEqual({
-      matches: true,
-      isExact: true,
-      params: {},
+const expectVerbose = (real, expected) => {
+  Object.keys(expected).forEach((key) => {
+    const value = expected[key]
+    it(`returns "${key}" as "${JSON.stringify(value)}"`, () => {
+      expect(real).toHaveProperty(key, value)
+    })
+  })
+}
+
+describe('matchPath', () => {
+  describe('when matching against a string', () => {
+    // Exact mode
+    describe('with { exact: true }', () => {
+      describe('given matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/admin',
+          'https://api.github.com/users/admin',
+        )
+
+        expectVerbose(result, {
+          matches: true,
+          exactMatch: true,
+          params: {},
+        })
+      })
+
+      describe('given partially matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users',
+          'https://api.github.com/users/admin',
+        )
+
+        expectVerbose(result, {
+          matches: false,
+        })
+      })
+
+      describe('given non-matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users',
+          'https://random.string',
+        )
+
+        expectVerbose(result, {
+          matches: false,
+        })
+      })
+    })
+
+    // Non-exact mode
+    describe('with { exact: false }', () => {
+      describe('given matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/admin',
+          'https://api.github.com/users/admin',
+        )
+
+        expectVerbose(result, {
+          matches: true,
+          exactMatch: true,
+          params: {},
+        })
+      })
+
+      describe('given partially matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users',
+          'https://api.github.com/users/admin',
+        )
+
+        expectVerbose(result, {
+          matches: true,
+          exactMatch: false,
+          params: {},
+        })
+      })
+
+      describe('given non-matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/admin',
+          'https://random.string',
+        )
+
+        expectVerbose(result, {
+          matches: false,
+        })
+      })
     })
   })
 
-  test('when matching against incomplete string (non-exact)', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://api.github.com/users',
-      }),
-    ).toEqual({
-      matches: true,
-      isExact: false,
-      params: {},
+  describe('when matching against a mask', () => {
+    describe('with { exact: true }', () => {
+      describe('given exact match', () => {
+        const result = matchPath(
+          'https://api.github.com/users/:username',
+          'https://api.github.com/users/admin',
+          {
+            exact: true,
+          },
+        )
+
+        expectVerbose(result, {
+          matches: true,
+          exactMatch: true,
+          params: {
+            username: 'admin',
+          },
+        })
+      })
+
+      describe('given partially matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/:username',
+          'https://api.github.com/users',
+          {
+            exact: true,
+          },
+        )
+
+        expectVerbose(result, {
+          matches: false,
+        })
+      })
+
+      describe('given non-matching string', () => {
+        const result = matchPath(
+          'https://api.github/com/users/:username',
+          'http://random.string',
+          {
+            exact: true,
+          },
+        )
+
+        expectVerbose(result, {
+          matches: false,
+        })
+      })
+    })
+
+    describe('with { exact: false }', () => {
+      describe('given matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/:username',
+          'https://api.github.com/users/admin',
+        )
+
+        expectVerbose(result, {
+          matches: true,
+          exact: true,
+          params: {
+            username: 'admin',
+          },
+        })
+      })
+
+      describe('given partially matching string', () => {
+        const result = matchPath(
+          'https://api.github.com/users/:username',
+          'https://api.github.com/users',
+        )
+
+        expectVerbose(result, {
+          matches: false,
+          exact: false,
+          params: {
+            username: undefined,
+          },
+        })
+      })
     })
   })
 
-  test('when matching against case-different string (insensitive)', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://API.github.COM/uSeRs',
-      }),
-    ).toEqual({
-      matches: true,
-      isExact: false,
-      params: {},
-    })
-  })
-
-  test('when matching against mask', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://api.github.com/users/:username',
-      }),
-    ).toEqual({
-      matches: true,
-      isExact: true,
-      params: {
-        username: 'admin',
-      },
-    })
-  })
-
-  test('when matching against RegExp', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: /api.github.com/,
-      }),
-    ).toEqual({
-      matches: true,
-      isExact: false,
-      params: {},
-    })
-  })
-})
-
-describe('Determines non-matching paths', () => {
-  test('when matching against incomplete string (exact)', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://api.github.com/users',
-        exact: true,
-      }),
-    ).toEqual({
-      matches: false,
-    })
-  })
-
-  test('when matching against different string', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://backend.com/foo',
-      }),
-    ).toEqual({
-      matches: false,
-    })
-  })
-
-  test('when matching against case-different string (senstive)', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://API.github.COM/uSeRs/admin',
-        sensitive: true,
-      }),
-    ).toEqual({
-      matches: false,
-    })
-  })
-
-  test('when matching against mask', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: 'https://api.github.com/users/:username/:messageId',
-      }),
-    ).toEqual({
-      matches: false,
-    })
-  })
-
-  test('when matching against RegExp', () => {
-    expect(
-      matchPath('https://api.github.com/users/admin', {
-        path: /api.github.com\/users\/\w+\/\d+/,
-      }),
-    ).toEqual({
-      matches: false,
-    })
+  describe('when matching against a RegExp', () => {
+    describe('with { exact: true }', () => {})
+    describe('with { exact: false }', () => {})
   })
 })

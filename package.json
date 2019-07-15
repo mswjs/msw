@@ -12,6 +12,7 @@
     "build": "cross-env NODE_ENV=production webpack",
     "test:unit": "cross-env BABEL_ENV=test jest",
     "test": "yarn run test:unit",
+    "test:features": "node_modules/.bin/cucumber-js ./spec/features -r ./spec/support -r ./spec/steps",
     "prepublishOnly": "yarn test && yarn run build"
   },
   "author": {
@@ -32,8 +33,10 @@
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
+    "chai": "^4.2.0",
     "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
+    "cucumber": "^5.1.0",
     "express": "^4.17.1",
     "jest": "24.9.0",
     "node-fetch": "^2.6.0",

@@ -2,42 +2,41 @@ import composeMocks from './composeMocks'
 import rest from './handlers/rest'
 
 test('Generates schema based on provided handlers', () => {
-  const simpleResolver = (req, res, { json }) => res(json({ a: 2 }))
-  const match = () => null
+  const jsonResolver = (req, res, { json }) => res(json({ a: 2 }))
 
-  const payload = composeMocks(
-    rest.get('https://api.github.com/users/:username', simpleResolver),
-    rest.get('foo', simpleResolver),
-    rest.post(/footer/, simpleResolver),
+  const mocks = composeMocks(
+    rest.get('https://api.github.com/users/:username', jsonResolver),
+    rest.get('foo', jsonResolver),
+    rest.post(/footer/, jsonResolver),
   )
 
-  expect(payload).toHaveProperty('start')
-  expect(payload.start).toBeInstanceOf(Function)
-  expect(payload).toHaveProperty('stop')
-  expect(payload.stop).toBeInstanceOf(Function)
+  expect(mocks).toHaveProperty('start')
+  expect(mocks.start).toBeInstanceOf(Function)
+  expect(mocks).toHaveProperty('stop')
+  expect(mocks.stop).toBeInstanceOf(Function)
 
-  expect(payload.schema).not.toBeUndefined()
+  expect(mocks.schema).not.toBeUndefined()
 
-  expect(payload.schema).toHaveProperty('get')
-  expect(payload.schema.get).toHaveLength(2)
-  expect(payload.schema.get[0]).toHaveProperty(
+  expect(mocks.schema).toHaveProperty('get')
+  expect(mocks.schema.get).toHaveLength(2)
+  expect(mocks.schema.get[0]).toHaveProperty(
     'mask',
     'https://api.github.com/users/:username',
   )
-  expect(payload.schema.get[0]).toHaveProperty('match')
-  expect(payload.schema.get[0].match).toBeInstanceOf(Function)
-  expect(payload.schema.get[0]).toHaveProperty('resolver')
-  expect(payload.schema.get[0].resolver).toBeInstanceOf(Function)
-  expect(payload.schema.get[1]).toHaveProperty('mask', 'foo')
-  expect(payload.schema.get[1]).toHaveProperty('match')
-  expect(payload.schema.get[1].match).toBeInstanceOf(Function)
-  expect(payload.schema.get[1]).toHaveProperty('resolver')
-  expect(payload.schema.get[1].resolver).toBeInstanceOf(Function)
+  expect(mocks.schema.get[0]).toHaveProperty('match')
+  expect(mocks.schema.get[0].match).toBeInstanceOf(Function)
+  expect(mocks.schema.get[0]).toHaveProperty('resolver')
+  expect(mocks.schema.get[0].resolver).toBeInstanceOf(Function)
+  expect(mocks.schema.get[1]).toHaveProperty('mask', 'foo')
+  expect(mocks.schema.get[1]).toHaveProperty('match')
+  expect(mocks.schema.get[1].match).toBeInstanceOf(Function)
+  expect(mocks.schema.get[1]).toHaveProperty('resolver')
+  expect(mocks.schema.get[1].resolver).toBeInstanceOf(Function)
 
-  expect(payload.schema.post).toHaveLength(1)
-  expect(payload.schema.post[0]).toHaveProperty('mask', /footer/)
-  expect(payload.schema.post[0]).toHaveProperty('match')
-  expect(payload.schema.post[0].match).toBeInstanceOf(Function)
-  expect(payload.schema.post[0]).toHaveProperty('resolver')
-  expect(payload.schema.post[0].resolver).toBeInstanceOf(Function)
+  expect(mocks.schema.post).toHaveLength(1)
+  expect(mocks.schema.post[0]).toHaveProperty('mask', /footer/)
+  expect(mocks.schema.post[0]).toHaveProperty('match')
+  expect(mocks.schema.post[0].match).toBeInstanceOf(Function)
+  expect(mocks.schema.post[0]).toHaveProperty('resolver')
+  expect(mocks.schema.post[0].resolver).toBeInstanceOf(Function)
 })

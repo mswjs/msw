@@ -1,5 +1,9 @@
-export default function invariant(predicate: boolean, ...logArgs: any[]): void {
+export default function invariant(
+  predicate: boolean,
+  message: string,
+  ...messageArgs: any[]
+): void {
   if (!predicate) {
-    console.error(...logArgs)
+    console.error(message, ...messageArgs)
   }
 }

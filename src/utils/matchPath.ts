@@ -12,7 +12,6 @@ const cacheLimit = 10000
 let cacheCount = 0
 
 export interface MatchPathOptions {
-  path?: RegExp | string
   exact?: boolean
   strict?: boolean
   sensitive?: boolean
@@ -25,6 +24,7 @@ interface CompilePathResult {
   }>
 }
 
+// TODO Replace this with a simpler memoization
 function compilePath(path: string, options: RegExpOptions): CompilePathResult {
   const cacheKey = `${options.end}${options.strict}${options.sensitive}`
   const pathCache = cache[cacheKey] || (cache[cacheKey] = {})
@@ -50,9 +50,7 @@ function compilePath(path: string, options: RegExpOptions): CompilePathResult {
 
 export type FullMatch = {
   matches: boolean
-  // path: RegExp | string
-  // match: string
-  isExact?: boolean
+  exact?: boolean
   params?: RequestParams
 }
 
@@ -60,48 +58,55 @@ export type FullMatch = {
  * Matches a given pathname string against the path.
  */
 export default function matchPath(
-  pathname: string,
+  path: string,
+  expected: RegExp | string,
   options: MatchPathOptions = {},
 ): FullMatch {
-  const { path, exact = false, strict = false, sensitive = false } = options
-  const paths: string[] = [].concat(path)
+  const { exact = false, strict = false, sensitive = false } = options
+  const paths: string[] = [].concat(expected)
 
-  return paths.reduce<FullMatch>((fullMatch, path) => {
+  return paths.reduce<FullMatch>((fullMatch, expectedPath) => {
     if (fullMatch && fullMatch.matches) {
       return fullMatch
     }
 
-    const { regexp, keys } = compilePath(path, {
+    const { regexp, keys } = compilePath(expectedPath, {
       end: exact,
       strict,
       sensitive,
     })
 
-    const match = regexp.exec(pathname)
+    const match = regexp.exec(path)
 
     if (!match) {
-      return { matches: false }
+      return {
+        matches: false,
+      }
     }
 
     const [url, ...values] = match
-    const isExact = pathname === url
+    const exactMatch = path === url
 
-    if (exact && !isExact) {
-      return { matches: false }
+    if (exact && !exactMatch) {
+      return {
+        matches: false,
+      }
     }
+
+    const params = keys.reduce(
+      (acc, key, index) => ({
+        ...acc,
+        [key.name]: values[index],
+      }),
+      {},
+    )
 
     return {
       matches: true,
       // path, // the path used to match
       // match: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
-      isExact, // whether or not we matched exactly
-      params: keys.reduce(
-        (acc, key, index) => ({
-          ...acc,
-          [key.name]: values[index],
-        }),
-        {},
-      ),
+      exactMatch, // whether or not we matched exactly
+      params,
     }
   }, null)
 }

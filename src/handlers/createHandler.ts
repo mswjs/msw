@@ -13,9 +13,7 @@ export enum RESTMethods {
   DELETE = 'DELETE',
 }
 
-export type RequestParams = {
-  [paramName: string]: any
-}
+export type RequestParams = Record<string, any>
 
 export type ResponseResolver = (
   req: Request & RequestParams,
@@ -35,7 +33,7 @@ export type SchemaEntry<Body> = Record<RESTMethods, Body>
 
 export interface SchemaEntryBody {
   mask: Mask
-  match: (url: string) => FullMatch
+  match: (url: string, matchOptions: MatchPathOptions) => FullMatch
   resolver: ResponseResolver
 }
 
@@ -49,8 +47,8 @@ const createHandler = R.curry(
       method.toLowerCase() as RESTMethods,
       {
         mask,
-        match: function(url: string, matchOptions: MatchPathOptions = {}) {
-          return matchPath(url, { ...matchOptions, path: this.mask })
+        match: function(url, matchOptions) {
+          return matchPath(this.mask, url, matchOptions)
         },
         resolver,
       },

@@ -4,9 +4,12 @@ import { MockingSchema } from '../composeMocks'
 import { SchemaEntryBody } from '../handlers/createHandler'
 import { FullMatch } from './matchPath'
 
-const postMessageToWorker = (event: MessageEvent, message: string) => {
+const messageWorker = (event: MessageEvent, message: string) => {
   const port = event.ports[0]
-  port && port.postMessage(message)
+
+  if (port) {
+    port.postMessage(message)
+  }
 }
 
 const interceptRequest = (schema: MockingSchema) => (
@@ -32,7 +35,7 @@ const interceptRequest = (schema: MockingSchema) => (
   )
 
   if (exactMatch === null) {
-    return postMessageToWorker(event, 'MOCK_NOT_FOUND')
+    return messageWorker(event, 'MOCK_NOT_FOUND')
   }
 
   const [route, fullMatch] = exactMatch
@@ -64,7 +67,7 @@ const interceptRequest = (schema: MockingSchema) => (
     headers: Array.from(mockedResponse.headers.entries()),
   }
 
-  postMessageToWorker(event, JSON.stringify(responseWithHeaders))
+  messageWorker(event, JSON.stringify(responseWithHeaders))
 }
 
 export default interceptRequest

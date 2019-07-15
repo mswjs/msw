@@ -10,10 +10,10 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
+    "test": "yarn test:unit && yarn test:features",
     "test:unit": "cross-env BABEL_ENV=test jest",
-    "test": "yarn run test:unit",
     "test:features": "node_modules/.bin/cucumber-js ./spec/features -r ./spec/support -r ./spec/steps",
-    "prepublishOnly": "yarn test && yarn run build"
+    "prepublishOnly": "yarn test && yarn build"
   },
   "author": {
     "name": "Artem Zakharchenko",

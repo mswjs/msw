@@ -33,7 +33,7 @@ export type SchemaEntry<Body> = Record<RESTMethods, Body>
 
 export interface SchemaEntryBody {
   mask: Mask
-  match: (url: string, matchOptions: MatchPathOptions) => FullMatch
+  match: (url: string, matchOptions?: MatchPathOptions) => FullMatch
   resolver: ResponseResolver
 }
 

@@ -1,42 +1,99 @@
 import composeMocks from './composeMocks'
 import rest from './handlers/rest'
 
-test('Generates schema based on provided handlers', () => {
-  const jsonResolver = (req, res, { json }) => res(json({ a: 2 }))
+describe('composeMocks', () => {
+  let mocks = null
 
-  const mocks = composeMocks(
-    rest.get('https://api.github.com/users/:username', jsonResolver),
-    rest.get('foo', jsonResolver),
-    rest.post(/footer/, jsonResolver),
-  )
+  beforeAll(() => {
+    const responseResolver = (req, res, { json }) => {
+      return res(json({ a: 2 }))
+    }
 
-  expect(mocks).toHaveProperty('start')
-  expect(mocks.start).toBeInstanceOf(Function)
-  expect(mocks).toHaveProperty('stop')
-  expect(mocks.stop).toBeInstanceOf(Function)
+    mocks = composeMocks(
+      rest.get('foo', responseResolver),
+      rest.get('https://api.github.com/users/:username', responseResolver),
+      rest.post(/footer/, responseResolver),
+    )
+  })
 
-  expect(mocks.schema).not.toBeUndefined()
+  describe('Public API', () => {
+    const publicProps = { start: Function, stop: Function }
 
-  expect(mocks.schema).toHaveProperty('get')
-  expect(mocks.schema.get).toHaveLength(2)
-  expect(mocks.schema.get[0]).toHaveProperty(
-    'mask',
-    'https://api.github.com/users/:username',
-  )
-  expect(mocks.schema.get[0]).toHaveProperty('match')
-  expect(mocks.schema.get[0].match).toBeInstanceOf(Function)
-  expect(mocks.schema.get[0]).toHaveProperty('resolver')
-  expect(mocks.schema.get[0].resolver).toBeInstanceOf(Function)
-  expect(mocks.schema.get[1]).toHaveProperty('mask', 'foo')
-  expect(mocks.schema.get[1]).toHaveProperty('match')
-  expect(mocks.schema.get[1].match).toBeInstanceOf(Function)
-  expect(mocks.schema.get[1]).toHaveProperty('resolver')
-  expect(mocks.schema.get[1].resolver).toBeInstanceOf(Function)
+    Object.keys(publicProps).forEach((propName) => {
+      test(`should contain "${propName}"`, () => {
+        expect(mocks).toHaveProperty(propName)
+        expect(mocks[propName]).toBeInstanceOf(publicProps[propName])
+      })
+    })
+  })
 
-  expect(mocks.schema.post).toHaveLength(1)
-  expect(mocks.schema.post[0]).toHaveProperty('mask', /footer/)
-  expect(mocks.schema.post[0]).toHaveProperty('match')
-  expect(mocks.schema.post[0].match).toBeInstanceOf(Function)
-  expect(mocks.schema.post[0]).toHaveProperty('resolver')
-  expect(mocks.schema.post[0].resolver).toBeInstanceOf(Function)
+  describe('Schema', () => {
+    test('should return a schema', () => {
+      expect(mocks).toHaveProperty('schema')
+      expect(mocks.schema).not.toBeUndefined()
+    })
+
+    describe('get', () => {
+      test('should contain 2 mocks', () => {
+        expect(mocks.schema.get).toHaveLength(2)
+      })
+
+      describe('plain string mask', () => {
+        test('should have a string mask value', () => {
+          expect(mocks.schema.get[0]).toHaveProperty('mask', 'foo')
+        })
+
+        test('should have "match" method', () => {
+          expect(mocks.schema.get[0]).toHaveProperty('match')
+          expect(mocks.schema.get[0].match).toBeInstanceOf(Function)
+        })
+
+        test('should have a resolver', () => {
+          expect(mocks.schema.get[0]).toHaveProperty('resolver')
+          expect(mocks.schema.get[0].resolver).toBeInstanceOf(Function)
+        })
+      })
+
+      describe('path string mask', () => {
+        test('should have a path mask value', () => {
+          expect(mocks.schema.get[1]).toHaveProperty(
+            'mask',
+            'https://api.github.com/users/:username',
+          )
+        })
+
+        test('should have a "match" method', () => {
+          expect(mocks.schema.get[1]).toHaveProperty('match')
+          expect(mocks.schema.get[1].match).toBeInstanceOf(Function)
+        })
+
+        test('should have a resolver', () => {
+          expect(mocks.schema.get[1]).toHaveProperty('resolver')
+          expect(mocks.schema.get[1].resolver).toBeInstanceOf(Function)
+        })
+      })
+    })
+
+    describe('post', () => {
+      test('should contain 1 mock', () => {
+        expect(mocks.schema.post).toHaveLength(1)
+      })
+
+      describe('RegExp mask', () => {
+        test('should have a RegExp mask value', () => {
+          expect(mocks.schema.post[0]).toHaveProperty('mask', /footer/)
+        })
+
+        test('should have a "match" method', () => {
+          expect(mocks.schema.post[0]).toHaveProperty('match')
+          expect(mocks.schema.post[0].match).toBeInstanceOf(Function)
+        })
+
+        test('should have a resolver', () => {
+          expect(mocks.schema.post[0]).toHaveProperty('resolver')
+          expect(mocks.schema.post[0].resolver).toBeInstanceOf(Function)
+        })
+      })
+    })
+  })
 })

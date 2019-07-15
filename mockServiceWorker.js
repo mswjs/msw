@@ -1,14 +1,14 @@
 /**
  * Mock Service Worker.
- * @see https://github.com/kettanaito/msw
+ * @see https://github.com/open-draft/msw
  * This Service Worker is meant for development usage only.
- * Make sure not to include it on production.
+ * Please make sure not to include it on production.
  */
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   return self.skipWaiting()
 })
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', () => {
   console.log('%c[MSW] Activated!', 'color:green;font-weight:bold;')
   return self.clients.claim()
 })
@@ -44,48 +44,50 @@ const messageClient = (client, message) => {
 }
 
 self.addEventListener('fetch', async (event) => {
-  const { clientId, request: req } = event
-  const getOriginalResponse = () => fetch(req)
+  const { clientId, request } = event
+  const withOriginalResponse = () => fetch(request)
 
   event.respondWith(
     new Promise(async (resolve) => {
       const client = await event.target.clients.get(clientId)
 
+      // Bypass mocking when no client registered,
+      // or when MSW is disabled (i.e. initial page load).
       if (!client || !self.__isMswEnabled) {
-        return resolve(getOriginalResponse())
+        return resolve(withOriginalResponse())
       }
 
       /**
        * Converts "Headers" to the plain Object to be stringified.
        * @todo See how this handles multipe headers with the same name.
        */
-      const reqHeaders = {}
-      req.headers.forEach((value, name) => {
-        reqHeaders[name] = value
+      const requestHeaders = {}
+      request.headers.forEach((value, name) => {
+        requestHeaders[name] = value
       })
 
-      /**
-       * If the body cannot be resolved (either as JSON or to text/string),
-       * the default value will be undefined.
-       */
-      const json = await req.json().catch(() => void 0)
-      const text = await req.text().catch(() => void 0)
+      // If the body cannot be resolved (either as JSON or to text/string),
+      // the default value will be undefined.
+      const requestBody = await request
+        .json()
+        .catch(() => request.text())
+        .catch(() => void 0)
 
       const clientResponse = await messageClient(client, {
-        url: req.url,
-        method: req.method,
-        headers: reqHeaders,
-        cache: req.cache,
-        mode: req.mode,
-        credentials: req.credentials,
-        redirect: req.redirect,
-        referrer: req.referrer,
-        referrerPolicy: req.referrerPolicy,
-        body: json || text,
+        url: request.url,
+        method: request.method,
+        headers: requestHeaders,
+        cache: request.cache,
+        mode: request.mode,
+        credentials: request.credentials,
+        redirect: request.redirect,
+        referrer: request.referrer,
+        referrerPolicy: request.referrerPolicy,
+        body: requestBody,
       })
 
       if (clientResponse === 'MOCK_NOT_FOUND') {
-        return resolve(getOriginalResponse())
+        return resolve(withOriginalResponse())
       }
 
       const mockedResponse = JSON.parse(clientResponse, (key, value) => {
@@ -98,9 +100,9 @@ self.addEventListener('fetch', async (event) => {
       )
     }).catch((error) => {
       console.error(
-        '[MSW] Failed to mock a "%s" request to "%s": %s',
-        req.method,
-        req.url,
+        '[MSW] Failed to mock (%s) "%s":\n%o',
+        request.method,
+        request.url,
         error,
       )
     }),

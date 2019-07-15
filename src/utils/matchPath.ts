@@ -106,9 +106,7 @@ export default function matchPath(
 
     return {
       matches: true,
-      // path, // the path used to match
-      // match: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
-      exact: exactMatch, // whether or not we matched exactly
+      exact: exactMatch,
       params,
     }
   }, null)

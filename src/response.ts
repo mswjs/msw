@@ -35,11 +35,9 @@ const response: ResponseComposition = (...transformers) => {
   }
 
   if (transformers && transformers.length > 0) {
-    /**
-     * Ignore the arity annotation from Ramda.
-     * Apparently, TypeScript assumes "transformers" may be modified before
-     * they get into pipe as arguments, thus screams at potentially empty array.
-     */
+    // Ignore the arity annotation from Ramda.
+    // Apparently, TypeScript assumes "transformers" may be modified before
+    // they get into pipe as arguments, thus screams at potentially empty array.
     // @ts-ignore
     return R.pipe(...transformers)(initialResponse)
   }

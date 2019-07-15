@@ -1,9 +1,7 @@
 const fetch = require('node-fetch')
 
-/**
- * Provide "Headers" to be accessible in test cases
- * since they are not, by default.
- */
+// Provide "Headers" to be accessible in test cases
+// since they are not, by default.
 Object.defineProperty(window, 'Headers', {
   writable: true,
   value: fetch.Headers,

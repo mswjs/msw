@@ -1,14 +1,380 @@
 import matchPath from './matchPath'
 
-const expectVerbose = (real, expected) => {
-  Object.keys(expected).forEach((key) => {
-    const value = expected[key]
-    it(`returns "${key}" as "${JSON.stringify(value)}"`, () => {
-      expect(real).toHaveProperty(key, value)
+describe('matchPath', () => {
+  describe('when expected a string', () => {
+    const expected = 'https://api.github.com/users/admin'
+
+    describe('given an exact string', () => {
+      const actual = 'https://api.github.com/users/admin'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have empty parameters', () => {
+          expect(result).toHaveProperty('params', {})
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have empty parameters', () => {
+          expect(result).toHaveProperty('params', {})
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have empty parameters', () => {
+          expect(result).toHaveProperty('params', {})
+        })
+      })
+    })
+
+    describe('given a partially matching string', () => {
+      const actual = 'https://api.github.com/users'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+    })
+
+    describe('given a non-matching string', () => {
+      const actual = 'https://google.com'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
     })
   })
-}
 
+  describe('when expected a mask', () => {
+    const expected = 'https://api.github.com/users/:username'
+
+    describe('given an exact string', () => {
+      const actual = 'https://api.github.com/users/admin'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have "username" parameter equal "admin"', () => {
+          expect(result).toHaveProperty('params', { username: 'admin' })
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have "username" parameter equal "admin"', () => {
+          expect(result).toHaveProperty('params', { username: 'admin' })
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have "username" parameter equal "admin"', () => {
+          expect(result).toHaveProperty('params', { username: 'admin' })
+        })
+      })
+    })
+
+    describe('given a partially matching string', () => {
+      const actual = 'https://api.github.com/users/admin/repo'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should not match exactly', () => {
+          expect(result).toHaveProperty('exact', false)
+        })
+
+        it('should have "username" parameter equal "admin"', () => {
+          expect(result).toHaveProperty('params', { username: 'admin' })
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should not match exactly', () => {
+          expect(result).toHaveProperty('exact', false)
+        })
+
+        it('should have "username" parameter equal "admin"', () => {
+          expect(result).toHaveProperty('params', { username: 'admin' })
+        })
+      })
+    })
+  })
+
+  describe('when expected an expression', () => {
+    const expected = /(\w+).github.com/
+
+    describe('given an exact string', () => {
+      const actual = 'api.github.com'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have parameters as Array', () => {
+          expect(result.params).toBeInstanceOf(Array)
+        })
+
+        it('should have first parameter equal "api"', () => {
+          expect(result.params).toEqual(['api'])
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have parameters as Array', () => {
+          expect(result.params).toBeInstanceOf(Array)
+        })
+
+        it('should have first parameter equal "api"', () => {
+          expect(result.params).toEqual(['api'])
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should match exactly', () => {
+          expect(result).toHaveProperty('exact', true)
+        })
+
+        it('should have parameters as Array', () => {
+          expect(result.params).toBeInstanceOf(Array)
+        })
+
+        it('should have first parameter equal "api"', () => {
+          expect(result.params).toEqual(['api'])
+        })
+      })
+    })
+
+    describe('given a partially matching string', () => {
+      const actual = 'https://api.github.com/users/admin'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should not match exactly', () => {
+          expect(result).toHaveProperty('exact', false)
+        })
+
+        it('should have parameters as Array', () => {
+          expect(result.params).toBeInstanceOf(Array)
+        })
+
+        it('should have first parameter equal "api"', () => {
+          expect(result.params).toEqual(['api'])
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should match', () => {
+          expect(result).toHaveProperty('matches', true)
+        })
+
+        it('should not match exactly', () => {
+          expect(result).toHaveProperty('exact', false)
+        })
+
+        it('should have parameters as Array', () => {
+          expect(result.params).toBeInstanceOf(Array)
+        })
+
+        it('should have first parameter equal "api"', () => {
+          expect(result.params).toEqual(['api'])
+        })
+      })
+    })
+
+    describe('given a non-matching string', () => {
+      const actual = 'https://github.com/users'
+
+      describe('using default mode', () => {
+        const result = matchPath(expected, actual)
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+
+      describe('using exact mode', () => {
+        const result = matchPath(expected, actual, { exact: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+
+      describe('using strict mode', () => {
+        const result = matchPath(expected, actual, { strict: true })
+
+        it('should not match', () => {
+          expect(result).toHaveProperty('matches', false)
+        })
+
+        it('should not have parameters', () => {
+          expect(result).not.toHaveProperty('params')
+        })
+      })
+    })
+  })
+})
+
+/*
 describe('matchPath', () => {
   describe('when matching against a string', () => {
     // Exact mode
@@ -19,9 +385,9 @@ describe('matchPath', () => {
           'https://api.github.com/users/admin',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: true,
-          exactMatch: true,
+          exact: true,
           params: {},
         })
       })
@@ -32,7 +398,7 @@ describe('matchPath', () => {
           'https://api.github.com/users/admin',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
         })
       })
@@ -43,7 +409,7 @@ describe('matchPath', () => {
           'https://random.string',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
         })
       })
@@ -57,9 +423,9 @@ describe('matchPath', () => {
           'https://api.github.com/users/admin',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: true,
-          exactMatch: true,
+          exact: true,
           params: {},
         })
       })
@@ -70,9 +436,9 @@ describe('matchPath', () => {
           'https://api.github.com/users/admin',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: true,
-          exactMatch: false,
+          exact: false,
           params: {},
         })
       })
@@ -83,7 +449,7 @@ describe('matchPath', () => {
           'https://random.string',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
         })
       })
@@ -101,9 +467,9 @@ describe('matchPath', () => {
           },
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: true,
-          exactMatch: true,
+          exact: true,
           params: {
             username: 'admin',
           },
@@ -119,7 +485,7 @@ describe('matchPath', () => {
           },
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
         })
       })
@@ -133,7 +499,7 @@ describe('matchPath', () => {
           },
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
         })
       })
@@ -146,7 +512,7 @@ describe('matchPath', () => {
           'https://api.github.com/users/admin',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: true,
           exact: true,
           params: {
@@ -161,7 +527,7 @@ describe('matchPath', () => {
           'https://api.github.com/users',
         )
 
-        expectVerbose(result, {
+        expect(result).toEqual({
           matches: false,
           exact: false,
           params: {
@@ -177,3 +543,4 @@ describe('matchPath', () => {
     describe('with { exact: false }', () => {})
   })
 })
+*/

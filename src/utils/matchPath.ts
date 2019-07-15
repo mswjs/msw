@@ -55,15 +55,15 @@ export type FullMatch = {
 }
 
 /**
- * Matches a given pathname string against the path.
+ * Tells if a given path string matches a mask.
  */
 export default function matchPath(
+  mask: RegExp | string,
   path: string,
-  expected: RegExp | string,
   options: MatchPathOptions = {},
 ): FullMatch {
   const { exact = false, strict = false, sensitive = false } = options
-  const paths: string[] = [].concat(expected)
+  const paths: string[] = [].concat(mask)
 
   return paths.reduce<FullMatch>((fullMatch, expectedPath) => {
     if (fullMatch && fullMatch.matches) {
@@ -93,19 +93,22 @@ export default function matchPath(
       }
     }
 
-    const params = keys.reduce(
-      (acc, key, index) => ({
-        ...acc,
-        [key.name]: values[index],
-      }),
-      {},
-    )
+    const params =
+      mask instanceof RegExp
+        ? values
+        : keys.reduce(
+            (acc, key, index) => ({
+              ...acc,
+              [key.name]: values[index],
+            }),
+            {},
+          )
 
     return {
       matches: true,
       // path, // the path used to match
       // match: path === '/' && url === '' ? '/' : url, // the matched portion of the URL
-      exactMatch, // whether or not we matched exactly
+      exact: exactMatch, // whether or not we matched exactly
       params,
     }
   }, null)

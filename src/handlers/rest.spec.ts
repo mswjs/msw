@@ -1,13 +1,13 @@
 import rest from './rest'
 
-test('Exports all REST API methods', () => {
-  expect(rest).not.toBeUndefined()
-  expect(Object.keys(rest)).toEqual([
-    'get',
-    'post',
-    'put',
-    'delete',
-    'patch',
-    'options',
-  ])
+const restMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+
+describe('Handlers: REST', () => {
+  describe('exports all REST API methods', () => {
+    restMethods.forEach((methodName) => {
+      it(methodName, () => {
+        expect(rest).toHaveProperty(methodName.toLowerCase())
+      })
+    })
+  })
 })

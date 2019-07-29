@@ -4,10 +4,10 @@ Feature: Mask route
     Given you mocked "POST" request using "https://api.github.com/users/:username" route
     And the mocking function was:
       """
-      (req, res, ({ json }) => {
+      (req, res, { json }) => {
       const { username } = req.params
       return res(json({ username }))
-      })
+      }
       """
     And MockServiceWorker was running
 

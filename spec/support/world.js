@@ -1,6 +1,5 @@
 const { assert } = require('chai')
 const { setWorldConstructor } = require('cucumber')
-const servePage = require('../utils/servePage')
 const webpackConfig = require('../../webpack.config')
 
 const LIBRARY_NAME = webpackConfig.output.library
@@ -14,40 +13,31 @@ start();
 `
 
 class World {
-  async prepare() {
-    const { expectedMethod, route, mockFunc } = this
-    const mockDef = createMockDef({
+  async prepare(mockFunc) {
+    const { expectedMethod, route } = this
+    this.mockFunc = mockFunc
+
+    this.mockDef = createMockDef({
       method: expectedMethod,
       route,
       mockFunc,
     })
 
-    // Override the HTML served by the test server
-    // to include scenario-relevant mock definition.
-    /**
-     * @todo Express serves the same HTML between scenarios.
-     * This results into failed preparation (assertion of mock def).
-     */
-    servePage(this.app, {
-      mockDef,
-    })
-
-    console.log('Should be serving relevant HTML now...')
-
-    // Go to the scenario page
-    await this.gotoScenario()
-
     // Browser refresh disables the MSW
     // and when next mocking definition is found,
     // the MSW is enabled with the relevant definition.
-    await this.page.reload()
+    await this.loadScenario()
 
     // Assert that page HTML includes the mock definition
     const html = await this.page.content()
     assert.include(html, route)
+  }
 
-    // TODO: Assert MSW is running
-    // throw new Error('MSW is not confirmed to be running')
+  async ensureMswRunning() {
+    /**
+     * @todo Await MSW "start" promise to be resolved.
+     */
+    return true
   }
 
   async request(method, url) {
@@ -73,7 +63,7 @@ class World {
       url,
     )
 
-    // Save response in the context to assert in step defs
+    // Store response for further assertions
     this.response = response
   }
 }

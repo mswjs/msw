@@ -9,12 +9,12 @@ Given('you mocked {string} request using {string} route', function(
   this.route = route
 })
 
-Given('the mocking function was:', function(mockFunc) {
-  this.mockFunc = mockFunc
+Given('the mocking function was:', async function(mockFunc) {
+  await this.prepare(mockFunc)
 })
 
 Given('MockServiceWorker was running', async function() {
-  await this.prepare()
+  await this.ensureMswRunning()
 })
 
 //

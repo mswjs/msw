@@ -1,47 +1,54 @@
 const express = require('express')
 const puppeteer = require('puppeteer')
-const { BeforeAll, Before, AfterAll } = require('cucumber')
+const { Before, After } = require('cucumber')
+const getHtml = require('../utils/getHtml')
+const packageJson = require('../../package.json')
 
-let server
-let app
-let browser
-let page
-let gotoScenario
+const HOST = '127.0.0.1'
+const PORT = 8090
 
-BeforeAll(async function() {
-  // Create a testing server
-  app = express()
-  app.use(express.static(process.cwd()))
-
-  const HOST = '127.0.0.1'
-  const PORT = 8090
-
-  return new Promise((resolve) => {
-    server = app.listen(PORT, HOST, async () => {
-      // Launch Chromium and navigate to the test server
-      browser = await puppeteer.launch({
-        headless: false,
+const spawnServer = (app, port, host) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const server = app.listen(port, host, () => {
+        resolve(server)
       })
-      page = await browser.newPage()
-      gotoScenario = () => page.goto(`http://${HOST}:${PORT}`)
-
-      // Indicate that server and browser are ready
-      return resolve()
-    })
+    } catch (error) {
+      reject(error)
+    }
   })
-})
-
-AfterAll(async function() {
-  server.close()
-  await browser.close()
-})
+}
 
 Before(async function() {
-  this.server = server
+  // Prepare server
+  const app = express()
+  app.use(express.static(process.cwd()))
+  app.get('/', (_, res) => {
+    res.send(
+      getHtml({
+        libPath: packageJson.main,
+        mockDef: this.mockDef,
+      }),
+    )
+  })
+
+  const server = await spawnServer(app, PORT, HOST)
+
+  // Prepare client
+  const browser = await puppeteer.launch({
+    headless: false,
+  })
+  const page = await browser.newPage()
+  this.loadScenario = () => page.goto(`http://${HOST}:${PORT}`)
+
+  // References
   this.app = app
+  this.server = server
   this.browser = browser
   this.page = page
-  this.gotoScenario = gotoScenario
+})
 
-  this.app.get('/', (_, res) => res.send('Reseting the page...'))
+After(async function() {
+  await this.browser.close()
+  this.server.close()
 })

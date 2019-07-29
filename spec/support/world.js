@@ -10,7 +10,7 @@ const { start } = composeMocks(
   rest.${method.toLowerCase()}(${JSON.stringify(route, null, 2)}, ${mockFunc})
 );
 // Delegated start of MSW. Don't do this at home, kids.
-window.__MSW_PENDING__ = start;
+window.__MSW_START__ = start;
 `
 
 class World {
@@ -33,11 +33,11 @@ class World {
     const html = await this.page.content()
     expect(html, 'Page does not contain mock definition').to.include(this.route)
 
-    const state = await this.page.evaluate(async () => {
-      return window.__MSW_PENDING__()
+    const workerState = await this.page.evaluate(async () => {
+      return window.__MSW_START__()
     })
 
-    expect(['installing', 'active', 'waiting']).to.include(state)
+    expect(workerState).to.equal('activated')
   }
 
   async request(method, url) {

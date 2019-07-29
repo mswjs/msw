@@ -39,7 +39,10 @@ Before(async function() {
     headless: false,
   })
   const page = await browser.newPage()
-  this.gotoPage = () => page.goto(`http://${HOST}:${PORT}`)
+  this.gotoPage = () =>
+    page.goto(`http://${HOST}:${PORT}`, {
+      waitUntil: 'networkidle0',
+    })
 
   // References
   this.app = app

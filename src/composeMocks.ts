@@ -52,9 +52,16 @@ const start = (
       worker = workerInstance
       workerRegistration = reg
 
-      // Return the state because the entire registration Object
-      // is lost when passed between testing and execution environments.
-      return worker.state
+      // Await for the worker to be come activated.
+      // Otherwise attempts to communicate with it may be malfunctioning.
+      // This also helps automated tests to know when the worker is ready.
+      return new Promise((resolve) => {
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'activated') {
+            resolve(worker.state)
+          }
+        })
+      })
     })
     .catch((error) => {
       console.error(

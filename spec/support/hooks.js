@@ -39,7 +39,7 @@ Before(async function() {
     headless: false,
   })
   const page = await browser.newPage()
-  this.loadScenario = () => page.goto(`http://${HOST}:${PORT}`)
+  this.gotoPage = () => page.goto(`http://${HOST}:${PORT}`)
 
   // References
   this.app = app
@@ -49,6 +49,13 @@ Before(async function() {
 })
 
 After(async function() {
+  // await sleep()
   await this.browser.close()
   this.server.close()
 })
+
+const sleep = (duration = 9999999) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, duration)
+  })
+}

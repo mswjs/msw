@@ -43,7 +43,7 @@ const start = (
     }
   })
 
-  navigator.serviceWorker
+  return navigator.serviceWorker
     .register(swUrl, options)
     .then((reg) => {
       const workerInstance = reg.active || reg.installing || reg.waiting
@@ -52,7 +52,9 @@ const start = (
       worker = workerInstance
       workerRegistration = reg
 
-      return reg
+      // Return the state because the entire registration Object
+      // is lost when passed between testing and execution environments.
+      return worker.state
     })
     .catch((error) => {
       console.error(
@@ -76,7 +78,7 @@ const stop = (
     )
   }
 
-  workerRegistration
+  return workerRegistration
     .unregister()
     .then(() => {
       worker = null

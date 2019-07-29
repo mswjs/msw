@@ -1,4 +1,4 @@
-const { assert } = require('chai')
+const { expect } = require('chai')
 const { setWorldConstructor } = require('cucumber')
 const webpackConfig = require('../../webpack.config')
 
@@ -9,35 +9,35 @@ const { composeMocks, rest } = ${LIBRARY_NAME};
 const { start } = composeMocks(
   rest.${method.toLowerCase()}(${JSON.stringify(route, null, 2)}, ${mockFunc})
 );
-start();
+// Delegated start of MSW. Don't do this at home, kids.
+window.__MSW_PENDING__ = start;
 `
 
 class World {
   async prepare(mockFunc) {
     const { expectedMethod, route } = this
-    this.mockFunc = mockFunc
 
+    // Assign mocking definition to be embedded by Express
+    // and served within the returned HTML.
     this.mockDef = createMockDef({
       method: expectedMethod,
       route,
       mockFunc,
     })
 
-    // Browser refresh disables the MSW
-    // and when next mocking definition is found,
-    // the MSW is enabled with the relevant definition.
-    await this.loadScenario()
-
-    // Assert that page HTML includes the mock definition
-    const html = await this.page.content()
-    assert.include(html, route)
+    // Open the scenario page
+    await this.gotoPage()
   }
 
   async ensureMswRunning() {
-    /**
-     * @todo Await MSW "start" promise to be resolved.
-     */
-    return true
+    const html = await this.page.content()
+    expect(html, 'Page does not contain mock definition').to.include(this.route)
+
+    const state = await this.page.evaluate(async () => {
+      return window.__MSW_PENDING__()
+    })
+
+    expect(['installing', 'active', 'waiting']).to.include(state)
   }
 
   async request(method, url) {

@@ -7,9 +7,10 @@ module.exports = ({ libPath, mockDef }) => `
     <title>Test scenario</title>
   </head>
   <body>
-    <script src="${libPath}"></script>
+    <h1>MockServiceWorker</h1>
+    <p>A test is currently in progress, please remain patient.</p>
 
-    <!-- Mocking definition --> 
+    <script src="${libPath}"></script>
     <script>${mockDef}</script>
   </body>
 </html>

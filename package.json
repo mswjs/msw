@@ -25,23 +25,23 @@
     "yargs": "^13.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.4",
-    "@babel/preset-env": "^7.5.4",
-    "@types/jest": "^24.0.15",
-    "@types/ramda": "^0.26.15",
+    "@babel/core": "7.5.5",
+    "@babel/preset-env": "7.5.5",
+    "@types/jest": "24.0.18",
+    "@types/ramda": "0.26.19",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
     "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
     "express": "^4.17.1",
-    "jest": "24.8.0",
+    "jest": "24.9.0",
     "node-fetch": "^2.6.0",
     "prettier": "^1.18.2",
-    "regenerator-runtime": "^0.13.2",
+    "regenerator-runtime": "0.13.3",
     "ts-jest": "24.0.2",
     "typescript": "^3.5.3",
-    "webpack": "^4.35.3",
-    "webpack-cli": "^3.3.5"
+    "webpack": "4.39.2",
+    "webpack-cli": "3.3.7"
   }
 }

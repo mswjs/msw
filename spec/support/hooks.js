@@ -36,7 +36,7 @@ Before(async function() {
 
   // Prepare client
   const browser = await puppeteer.launch({
-    headless: false,
+    // headless: false,
   })
   const page = await browser.newPage()
   this.gotoPage = () =>

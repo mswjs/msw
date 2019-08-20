@@ -1,7 +1,7 @@
 const { assert } = require('chai')
 const { Given, When, Then } = require('cucumber')
 
-Given('you mocked {string} request using {string} route', function(
+Given('I mocked a {string} request using {string} route', function(
   method,
   route,
 ) {
@@ -19,13 +19,13 @@ Given('MockServiceWorker was running', async function() {
 
 //
 
-When('performed {string} request to {string}', async function(method, url) {
+When('performed a {string} request to {string}', async function(method, url) {
   await this.request(method, url)
 })
 
 //
 
-Then(/^the response MUST( NOT)? be mocked$/, function(isNegative) {
+Then(/^the response is( NOT)? mocked$/, function(isNegative) {
   const mswHeader = this.response.headers['x-powered-by']
   const expectedValue = 'msw'
   const equal = isNegative ? assert.notEqual : assert.equal
@@ -37,10 +37,10 @@ Then(/^the response MUST( NOT)? be mocked$/, function(isNegative) {
   )
 })
 
-Then('the response field {string} MUST equal:', function(
-  propName,
-  expectedValue,
-) {
+function assertResponseProp(propName, expectedValue) {
   const expectedJson = JSON.parse(expectedValue)
   assert.deepEqual(this.response[propName], expectedJson)
-})
+}
+
+Then('the response field {string} equals:', assertResponseProp)
+Then('the response field {string} equals {string}', assertResponseProp)

@@ -47,7 +47,7 @@ npm install msw --save
 Run the following command in your project's public directory:
 
 ```bash
-node_modiles/.bin/msw init <publicDir>
+node_modules/.bin/msw init <publicDir>
 ```
 
 > Replace `publicDir` with the relative path to your server's public directory (i.e. `msw init public`).
@@ -139,7 +139,7 @@ It's highly recommend to **enable "Update on reload"** option in your browser (D
 
 ## How does it work?
 
-MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it immitates them according to the provided mock definitions. Here's a simplified internal flow:
+MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it imitates them according to the provided mock definitions. Here's a simplified internal flow:
 
 1. MSW spawns a dedicated Service Worker and creates a communication channel between the worker and the client.
 1. Service Worker then signals any outgoing requests on the page to the MSW, which attempts to match them against the defined mocking routes.

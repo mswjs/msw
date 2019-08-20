@@ -22,7 +22,7 @@
   "dependencies": {
     "path-to-regexp": "3.0.0",
     "ramda": "0.26.1",
-    "yargs": "^13.2.4"
+    "yargs": "14.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.5.5",

@@ -133,7 +133,7 @@ Service Workers are designed as a caching tool. However, we don't want our mocki
 
 It's highly recommend to **enable "Update on reload"** option in your browser (DevTools > Application > Service Workers, in Chrome). This will force Service Worker to update on each page reload, ensuring the latest logic is applied.
 
-![Service Workers: Update on reload](https://raw.githubusercontent.com/kettanaito/msw/master/media/sw-update-on-reload.png)
+![Service Workers: Update on reload](https://raw.githubusercontent.com/open-draft/msw/master/media/sw-update-on-reload.png)
 
 > Read more about the [Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle).
 
@@ -153,4 +153,4 @@ This library is meant to be used for **development only**. It doesn't require, n
 
 ## Contribute
 
-Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/kettanaito/msw/issues) tab of this repository. [Pull requests](https://github.com/kettanaito/msw/pulls) are welcome as well!
+Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/open-draft/msw/issues) tab of this repository. [Pull requests](https://github.com/open-draft/msw/pulls) are welcome as well!

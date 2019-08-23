@@ -9,6 +9,12 @@ import interceptRequest from './utils/interceptRequest'
 export type Mask = RegExp | string
 export type MockingSchema = SchemaEntry<SchemaEntryBody[]>
 
+interface PublicAPI {
+  schema: MockingSchema
+  start(serviceWorkerURL: string, options?: RegistrationOptions): void
+  stop(): void
+}
+
 /**
  * Starts MockServiceWorker.
  */
@@ -82,7 +88,9 @@ const stop = (
     })
 }
 
-export default function composeMocks(...handlers: SchemaEntryGetter[]): any {
+export default function composeMocks(
+  ...handlers: SchemaEntryGetter[]
+): PublicAPI {
   let worker: ServiceWorker
   let workerRegistration: ServiceWorkerRegistration
 

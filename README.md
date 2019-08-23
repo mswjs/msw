@@ -56,7 +56,7 @@ This copies the [`mockServiceWorker.js`](./mockServiceWorker.js) file to the spe
 
 #### Where is my "public" directory?
 
-A public directory is usually a build directory of your application (`./build`, `./public` or `./dest`). It's the root directory served by your server. This directory is often _committed to Git_, so **should be the Mock Service Worker**.
+A public directory is usually a build directory of your application (`./build`, `./public` or `./dest`). It's the root directory served by your server. This directory is often committed to Git, so **should be the Mock Service Worker**.
 
 > You may also generate the Mock Service Worker as a part of your build.
 
@@ -78,10 +78,13 @@ const { start } = composeMocks(
     return res(
       // set custom status
       status(403),
+
       // set headers
       set({ 'Custom-Header': 'foo' }),
+
       // delay the response
       delay(1000),
+
       // send JSON response body
       json({ errorMessage: `Repository "${repoName}" not found` }),
     )
@@ -152,6 +155,25 @@ MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to 
 This library is meant to be used for **development only**. It doesn't require, nor encourage you to install any Service Worker on production environment.
 
 > [**See browser support for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)
+
+## API
+
+### `composeMocks(...MockDef): PublicAPI`
+
+Composes given mocking definitions into a single schema.
+
+#### Example
+
+```ts
+import { composeMocks, rest } from 'msw'
+
+const { start } = composeMocks(
+  rest.get('https://api.github.com/users/:username', resolver),
+  rest.post(/api.backend.dev/, resolver),
+)
+```
+
+> Mock definitions exposed under the `rest` namespace contain high-order function convenient for mocking a REST API.
 
 ## Contribute
 

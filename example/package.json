@@ -21,5 +21,8 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "resolutions": {
+    "eslint-utils": "1.4.2"
+  }
 }

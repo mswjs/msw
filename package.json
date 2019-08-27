@@ -28,7 +28,7 @@
     "@babel/core": "7.5.5",
     "@babel/preset-env": "7.5.5",
     "@types/jest": "24.0.18",
-    "@types/ramda": "0.26.19",
+    "@types/ramda": "^0.26.21",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",

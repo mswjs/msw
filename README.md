@@ -15,14 +15,14 @@
 
 <h1 align="center">MSW</h1>
 
-<p align="center">Serverless runtime client-side API mocking for your applications.</p>
+<p align="center">MSW (<i>Mock Service Worker</i>) is a library for mocking requests to actual production URI.</p>
 
 ## Features
 
-- **Serverless**. Doesn't establish any servers, lives entirely in a browser;
+- **Server-less**. Doesn't establish any servers, operates entirely in a browser;
 - **Deviation-free**. Request the very same resources (urls) you would in production, and let MSW _intercept_ them and mock their responses;
 - **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
-- **Essentials**. Emulate status codes, headers, delays, and create custom response mocking functions.
+- **Essentials**. Mock status codes, headers, delay responses, and create custom response mocking functions.
 
 ## Motivation
 
@@ -33,6 +33,30 @@ There are several points that I find annoying when conducting API mocking with a
 - Brings extra dependencies to your application, instead of being a simple dependency-free development tool.
 
 This library annihilates those problems, as it takes an entirely different approach to the client-side API mocking.
+
+## Explanation
+
+MSW uses a [Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) with its ability to intercept requests for the purpose of caching. Only, instead of caching MSW matches a dispatched request against a mocking schema, and returns a pre-defined mocked response upon match.
+
+<br />
+
+<p align="center">
+  <img src="media/msw-diagram.png" alt="Workflow diagram" width="500" />
+</p>
+
+<br />
+
+The primary benefit of using Service Workers for mocking is the ability to request the very same resources a client would in production. Since MSW performs "request-response" matching, there is no need for you to define conditional request URLs for the sake of mocking. It's enough to enable/disable the MSW to control if the mocking should happen.
+
+A mocking function contains information about the request, so you can _perform a real request_ and then patch it with the mocked data, if needed.
+
+<br />
+
+<p align="center">
+  <img src="media/msw-diagram-mixed.png" alt="Workflow diagram" width="750" />
+</p>
+
+<br />
 
 ## Getting started
 
@@ -154,7 +178,7 @@ MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to 
 
 This library is meant to be used for **development only**. It doesn't require, nor encourage you to install any Service Worker on production environment.
 
-> [**See browser support for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)
+> [**See browser support table for ServiceWorkers**](https://caniuse.com/#feat=serviceworkers)
 
 ## API
 

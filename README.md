@@ -2,7 +2,7 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version" />
   </a>
-  <a href="https://circleci.com/gh/open-draft/msw)" target="_blank">
+  <a href="https://circleci.com/gh/open-draft/msw" target="_blank">
     <img src="https://img.shields.io/circleci/project/github/open-draft/msw/master.svg" alt="Build status" />
   </a>
   <a href="https://david-dm.org/open-draft/msw" target="_blank">

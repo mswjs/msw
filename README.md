@@ -58,6 +58,8 @@ A mocking function contains information about the request, so you can _perform a
 
 <br />
 
+MSW uses conventional path definitions (as Express), making it ease to filter which outgoing traffic you want to mock. Requests not matching any mocking definition are bypassed and performed as if it was production.
+
 ## Getting started
 
 ### 1. Install

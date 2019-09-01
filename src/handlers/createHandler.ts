@@ -46,7 +46,7 @@ const createHandler = R.curry(
     resolver: ResponseResolver,
   ): SchemaEntryGetter => {
     return () => [
-      method.toLowerCase() as RESTMethods,
+      method,
       {
         mask,
         match: function(url: string, matchOptions: MatchPathOptions = {}) {

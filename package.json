@@ -26,8 +26,8 @@
     "yargs": "14.0.0"
   },
   "devDependencies": {
-    "@babel/core": "7.5.5",
-    "@babel/preset-env": "7.5.5",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
     "@types/jest": "24.0.18",
     "@types/ramda": "^0.26.21",
     "awesome-typescript-loader": "^5.2.1",
@@ -39,9 +39,9 @@
     "node-fetch": "^2.6.0",
     "prettier": "^1.18.2",
     "regenerator-runtime": "0.13.3",
-    "ts-jest": "24.0.2",
+    "ts-jest": "^24.1.0",
     "typescript": "^3.5.3",
-    "webpack": "4.39.2",
-    "webpack-cli": "3.3.7"
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.8"
   }
 }

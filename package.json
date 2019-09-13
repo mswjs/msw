@@ -20,6 +20,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "chalk": "^2.4.2",
     "path-to-regexp": "3.0.0",
     "ramda": "0.26.1",
     "yargs": "14.0.0"
@@ -32,7 +33,6 @@
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
-    "chalk": "^2.4.1",
     "cross-env": "^5.2.0",
     "express": "^4.17.1",
     "jest": "24.9.0",

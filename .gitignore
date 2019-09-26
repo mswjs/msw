@@ -2,3 +2,4 @@ __*
 .DS_*
 node_modules
 lib
+*-error.log

@@ -1,7 +1,7 @@
 {
   "name": "msw",
   "version": "0.3.3",
-  "description": "Serverless client-side API mocking without a single change to the codebase.",
+  "description": "Deviation-less client-side runtime API mocking using Service Workers.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": {
@@ -21,19 +21,19 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^2.4.2",
-    "path-to-regexp": "3.0.0",
+    "path-to-regexp": "^3.1.0",
     "ramda": "0.26.1",
     "yargs": "14.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/preset-env": "^7.6.0",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
     "@types/jest": "24.0.18",
     "@types/ramda": "^0.26.21",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
-    "cross-env": "^5.2.0",
+    "cross-env": "^6.0.0",
     "express": "^4.17.1",
     "jest": "24.9.0",
     "node-fetch": "^2.6.0",
@@ -41,7 +41,7 @@
     "regenerator-runtime": "0.13.3",
     "ts-jest": "^24.1.0",
     "typescript": "^3.5.3",
-    "webpack": "^4.40.2",
-    "webpack-cli": "^3.3.8"
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
   }
 }

@@ -98,25 +98,31 @@ import { composeMocks, rest } from 'msw'
 
 // Configure mocking routes
 const { start } = composeMocks(
-  rest.get('https://api.github.com/repo/:repoName',
-  (req, res, { status, set, delay, json }) => {
-    // access request's params
-    const { repoName } = req.params
+  rest.get(
+    'https://api.github.com/repos/:owner/:repo',
+    (req, res, { status, set, delay, json }) => {
+      // access request's params
+      const { owner, repo } = req.params
 
-    return res(
-      // set custom status
-      status(403),
+      return res(
+        // set custom status
+        status(200),
 
-      // set headers
-      set({ 'Custom-Header': 'foo' }),
+        // set headers
+        set({ 'X-Header': 'Mocked value' }),
 
-      // delay the response
-      delay(1000),
+        // delay the response
+        delay(1000),
 
-      // send JSON response body
-      json({ errorMessage: `Repository "${repoName}" not found` }),
-    )
-  )
+        // send JSON response body
+        json({
+          name: 'mocked-name',
+          owner,
+          repo,
+        }),
+      )
+    },
+  ),
 )
 
 /* Start the Service Worker */

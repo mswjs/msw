@@ -19,28 +19,35 @@
     "url": "https://github.com/kettanaito"
   },
   "license": "MIT",
+  "files": [
+    "cli",
+    "lib",
+    "mockServiceWorker.js",
+    "LICENSE.md",
+    "README.md"
+  ],
   "dependencies": {
-    "chalk": "^2.4.2",
-    "path-to-regexp": "^3.1.0",
+    "chalk": "^3.0.0",
+    "path-to-regexp": "3.1.0",
     "ramda": "0.26.1",
     "yargs": "14.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/preset-env": "^7.6.2",
+    "@babel/core": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
     "@types/jest": "24.0.18",
     "@types/ramda": "^0.26.21",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "8.0.6",
     "babel-plugin-ramda": "2.0.0",
-    "cross-env": "^6.0.0",
+    "cross-env": "^7.0.0",
     "express": "^4.17.1",
-    "jest": "24.9.0",
+    "jest": "^25.1.0",
     "node-fetch": "^2.6.0",
-    "prettier": "^1.18.2",
+    "prettier": "^1.19.1",
     "regenerator-runtime": "0.13.3",
-    "ts-jest": "^24.1.0",
-    "typescript": "^3.5.3",
+    "ts-jest": "^25.0.0",
+    "typescript": "^3.7.5",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9"
   }

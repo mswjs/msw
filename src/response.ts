@@ -25,7 +25,7 @@ export const defaultResponse: MockedResponse = {
   delay: 0,
 }
 
-const response: ResponseComposition = (...transformers) => {
+export const response: ResponseComposition = (...transformers) => {
   const headers = new Headers()
   headers.set('X-Powered-By', 'msw')
 
@@ -46,5 +46,3 @@ const response: ResponseComposition = (...transformers) => {
 
   return initialResponse
 }
-
-export default response

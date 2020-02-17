@@ -1,6 +1,14 @@
-export { default as composeMocks } from './composeMocks'
-export { default as res } from './response'
-export { default as context } from './context'
+/* Types */
+export {
+  RequestHandler,
+  RequestParams,
+  ResponseResolver,
+  RESTMethods,
+} from './handlers/requestHandler'
+
+export { composeMocks } from './composeMocks'
+export { response } from './response'
+export { context } from './context'
 
 /* Response handlers */
 export { default as rest } from './handlers/rest'

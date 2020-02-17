@@ -99,7 +99,7 @@ const json = (content) =>
 
 const delay = (duration) => R.assoc('delay', duration)
 
-const context: MockedContext = {
+export const context: MockedContext = {
   set,
   status,
   body,
@@ -108,5 +108,3 @@ const context: MockedContext = {
   json,
   delay,
 }
-
-export default context

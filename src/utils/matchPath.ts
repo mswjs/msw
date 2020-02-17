@@ -5,7 +5,7 @@
 // @ts-ignore
 const pathToRegexp = require('path-to-regexp')
 import { RegExpOptions } from 'path-to-regexp'
-import { RequestParams } from '../handlers/createHandler'
+import { RequestParams } from '../handlers/requestHandler'
 
 const cache = {}
 const cacheLimit = 10000

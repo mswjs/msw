@@ -178,9 +178,9 @@ It's highly recommend to **enable "Update on reload"** option in your browser (D
 
 ## API
 
-### `composeMocks(...MockDef): PublicAPI`
+### `composeMocks(...args: RequestHandler[]): PublicAPI`
 
-Composes given mocking definitions into a single schema.
+Composes given mocking request handlers into a single schema.
 
 #### Example
 
@@ -194,6 +194,29 @@ const { start } = composeMocks(
 ```
 
 > Mock definitions exposed under the `rest` namespace contain high-order function convenient for mocking a REST API.
+
+## Recipes
+
+### Custom request handler
+
+```js
+import { composeMocks } from 'msw'
+
+const hasHeader = (headerName, resolver) => ({
+  predicate(req) {
+    return req.headers[headerName]
+  },
+  resolver,
+})
+
+const { start } = composeMocks(
+  hasHeader('X-Mock-Response', (req, res, { json }) => {
+    return res(json({ mocked: true }))
+  }),
+)
+
+start()
+```
 
 ## How does it work?
 

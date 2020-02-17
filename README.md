@@ -218,6 +218,21 @@ const { start } = composeMocks(
 start()
 ```
 
+### Get original response
+
+```js
+composeMocks(
+  rest.get('/user/:userId', (req, res, { json }) => {
+    if (req.params.userId === 1) {
+      return res(json({ firstName: 'John' }))
+    }
+
+    // Return the original response otherwise
+    return fetch(req)
+  }),
+)
+```
+
 ## How does it work?
 
 MSW (_Mock Service Worker_) uses Service Worker API with its primary ability to intercept requests, but instead of caching responses it imitates them according to the provided mock definitions. Here's a simplified internal flow:

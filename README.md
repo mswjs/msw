@@ -48,7 +48,7 @@ MSW uses a [Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Ser
 
 The primary benefit of using Service Workers for mocking is the ability to request the very same resources a client would in production. Since MSW performs "request-response" matching, there is no need for you to define conditional request URLs for the sake of mocking. It's enough to enable/disable the MSW to control if the mocking should happen.
 
-> **Note:** Service Workers is a browser API, which makes MSW usable only on the client-side. You won't be able to use this mock when hitting your website via Postman, for example.
+> **Note:** Service Workers is a browser API, which makes MSW usable only on the client-side. You won't be able to use this mock when hitting your website via `curl`, for example.
 
 A mocking function contains information about the request, so you can _perform the actual request_ and then patch it with the mocked data, if needed.
 
@@ -58,16 +58,33 @@ A mocking function contains information about the request, so you can _perform t
   <img src="media/msw-diagram-mixed.png" alt="Workflow diagram" width="750" />
 </p>
 
-<br />
+```js
+// This is an example of how to get the original response
+// and patch it with the mocked data.
+import { composeMocks, rest } from 'msw'
 
-MSW uses conventional path definitions (like the ones in [ExpressJS](https://expressjs.com/)), making it easer to target outgoing traffic for mocking. Requests not matching any mocking definition are bypassed and performed as usual.
+const { start } = composeMocks(
+  rest.post('/user', async (req, res) => {
+    // Get the original response
+    const originalResponse = await fetch(req)
+
+    return {
+      firstName: originalResponse.firstName,
+      // Append mocked properties
+      lastName: 'Mockovich',
+    }
+  }),
+)
+```
+
+MSW uses conventional path definitions (like the ones in [ExpressJS](https://expressjs.com/)), supporting wildcards, parameters, and regular expressions, making it easer to target outgoing page traffic. Requests that don't match any mocking definition are bypassed and performed as usual.
 
 ## Getting started
 
 ### 1. Install
 
 ```bash
-npm install msw --save
+npm install msw --save-dev
 ```
 
 ### 2. Configure

@@ -1,23 +1,25 @@
-This repository is an example of MSW usage based on create-react-app.
+# create-react-app
 
-## Install dependencies
+This is an example repository of how to integrate MSW into a [`create-react-app`](https://create-react-app.dev/) application.
 
-```bash
-npm install
-```
-
-## Configure MSW
+## Install
 
 ```bash
-msw create public
+npm install msw --save-dev
 ```
 
-> We are using "public" as the `rootDir` because CRA serves files from the "public" directory.
+## Initiate
 
-## Run
+```bash
+msw init public
+```
+
+> We are using "public" as the `rootDir` because `create-react-app` serves files from the "public" directory.
+
+## Run the applcation
 
 ```bash
 npm start
 ```
 
-Edit the `src/mocks.js` and see the mocking in action.
+Edit the `src/mocks.js` file and see the mocking in action.

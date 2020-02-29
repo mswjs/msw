@@ -1,6 +1,6 @@
 import { RESTMethods, RequestHandler, ResponseResolver } from './requestHandler'
 import { Mask } from '../composeMocks'
-import matchPath from '../utils/matchPath'
+import { matchPath } from '../utils/matchPath'
 
 const createRESTHandler = (method: RESTMethods) => {
   return (mask: Mask, resolver: ResponseResolver): RequestHandler => {

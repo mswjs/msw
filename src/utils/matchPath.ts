@@ -59,10 +59,10 @@ export type FullMatch = {
 /**
  * Matches a given pathname string against the path.
  */
-export default function matchPath(
+export const matchPath = (
   pathname: string,
   options: MatchPathOptions = {},
-): FullMatch {
+): FullMatch => {
   const { path, exact = false, strict = false, sensitive = false } = options
   const paths: string[] = [].concat(path)
 

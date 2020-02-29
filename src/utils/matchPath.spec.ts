@@ -1,4 +1,4 @@
-import matchPath from './matchPath'
+import { matchPath } from './matchPath'
 
 describe('Determines matching paths', () => {
   test('when matching against complete string (exact)', () => {

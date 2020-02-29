@@ -10,5 +10,8 @@ export { composeMocks } from './composeMocks'
 export { response } from './response'
 export { context } from './context'
 
-/* Response handlers */
+/* Request handlers */
 export { default as rest } from './handlers/rest'
+
+/* Utils */
+export { matchPath, FullMatch } from './utils/matchPath'

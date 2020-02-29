@@ -1,4 +1,4 @@
-import matchPath from './utils/matchPath'
+import { matchPath } from './utils/matchPath'
 import { MockedResponse, response } from './response'
 import { context } from './context'
 import { RequestHandler } from './handlers/requestHandler'

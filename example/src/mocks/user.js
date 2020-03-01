@@ -6,7 +6,7 @@ import { rest } from 'msw'
  */
 export default [
   rest.get('https://api.backend.com/user/:username', (req, res, { json }) => {
-    return res(json({ username: req.params.username }))
+    return res(json({ username: req.params.params.username }))
   }),
   rest.post(/user\/create/, (req, res, { json }) => {
     return res(json({ message: 'User has been created!' }))

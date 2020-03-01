@@ -4,7 +4,7 @@ import userMocks from './user'
 const { start } = composeMocks(
   ...userMocks,
   rest.get('https://api.github.com/users/:username', (req, res, { json }) => {
-    const { username } = req.params
+    const { username } = req.params.params
 
     return res(
       json({

@@ -1,15 +1,14 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
     "module": "es2015",
     "target": "es6",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "declaration": true,
     "declarationDir": "./lib",
-    "lib": ["dom", "es2017", "webworker"]
+    "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
   },
-  "files": ["src/index.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

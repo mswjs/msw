@@ -1,5 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
 
 module.exports = {
   mode: process.env.NODE_ENV,
@@ -13,6 +12,11 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+      },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -31,6 +35,15 @@ module.exports = {
     minimize: false,
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: [
+      '*',
+      '.mjs',
+      '.ts',
+      '.js',
+      '.vue',
+      '.json',
+      '.gql',
+      '.graphql',
+    ],
   },
 }

@@ -1,6 +1,15 @@
 import { match } from 'node-match-path'
-import { RESTMethods, RequestHandler, ResponseResolver } from './requestHandler'
+import { RequestHandler, ResponseResolver } from './requestHandler'
 import { Mask } from '../composeMocks'
+
+export enum RESTMethods {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  OPTIONS = 'OPTIONS',
+  DELETE = 'DELETE',
+}
 
 const createRESTHandler = (method: RESTMethods) => {
   return (mask: Mask, resolver: ResponseResolver): RequestHandler => {

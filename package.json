@@ -30,6 +30,7 @@
   ],
   "dependencies": {
     "chalk": "^3.0.0",
+    "graphql": "^14.6.0",
     "node-match-path": "^0.2.2",
     "ramda": "^0.27.0",
     "yargs": "^15.1.0"

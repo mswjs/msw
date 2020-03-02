@@ -1,7 +1,7 @@
 import { match } from 'node-match-path'
 import { MockedResponse, response } from './response'
 import { context } from './context'
-import { RequestHandler } from './handlers/requestHandler'
+import { MockedRequest, RequestHandler } from './handlers/requestHandler'
 
 const sendToWorker = (event: MessageEvent, message: string) => {
   const port = event.ports[0]
@@ -14,8 +14,8 @@ const sendToWorker = (event: MessageEvent, message: string) => {
 export const createIncomingRequestHandler = (
   requestHandlers: RequestHandler[],
 ) => {
-  return (event: MessageEvent): void => {
-    const req: Request = JSON.parse(event.data, (key, value) => {
+  return (event: MessageEvent) => {
+    const req: MockedRequest = JSON.parse(event.data, (key, value) => {
       return key === 'headers' ? new Headers(value) : value
     })
 
@@ -32,7 +32,7 @@ export const createIncomingRequestHandler = (
       ? match(relevantRequestHandler.mask, req.url).params
       : {}
 
-    const requestWithParams = {
+    const requestWithParams: MockedRequest = {
       ...req,
       params,
     }

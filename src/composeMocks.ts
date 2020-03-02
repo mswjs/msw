@@ -4,7 +4,7 @@ import { createIncomingRequestHandler } from './handleIncomingRequest'
 export type Mask = RegExp | string
 
 interface PublicAPI {
-  start(serviceWorkerURL: string, options?: RegistrationOptions): void
+  start(serviceWorkerURL?: string, options?: RegistrationOptions): void
   stop(): void
 }
 
@@ -16,7 +16,7 @@ const createStart = (
    * Starts MockServiceWorker.
    */
   return (
-    swUrl: string = './mockServiceWorker.js',
+    serviceWorkerUrl: string = './mockServiceWorker.js',
     options?: RegistrationOptions,
   ) => {
     if (workerRegistration) {
@@ -34,7 +34,7 @@ const createStart = (
     })
 
     navigator.serviceWorker
-      .register(swUrl, options)
+      .register(serviceWorkerUrl, options)
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
@@ -47,7 +47,7 @@ const createStart = (
       .catch((error) => {
         console.error(
           '[MSW] Failed to register MockServiceWorker (%s). %o',
-          swUrl,
+          serviceWorkerUrl,
           error,
         )
       })

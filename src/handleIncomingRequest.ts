@@ -1,4 +1,4 @@
-import { matchPath } from './utils/matchPath'
+import { match } from 'node-match-path'
 import { MockedResponse, response } from './response'
 import { context } from './context'
 import { RequestHandler } from './handlers/requestHandler'
@@ -28,13 +28,13 @@ export const createIncomingRequestHandler = (
     }
 
     // Retrieve request URL parameters based on the provided mask
-    const match = relevantRequestHandler.mask
-      ? matchPath(req.url, { path: relevantRequestHandler.mask })
+    const urlMatch = relevantRequestHandler.mask
+      ? match(relevantRequestHandler.mask, req.url)
       : { params: {} }
 
     const requestWithParams = {
       ...req,
-      params: match.params,
+      params: urlMatch.params,
     }
 
     const mockedResponse:

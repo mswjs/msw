@@ -1,15 +1,16 @@
+import { match } from 'node-match-path'
 import { RESTMethods, RequestHandler, ResponseResolver } from './requestHandler'
 import { Mask } from '../composeMocks'
-import { matchPath } from '../utils/matchPath'
 
 const createRESTHandler = (method: RESTMethods) => {
   return (mask: Mask, resolver: ResponseResolver): RequestHandler => {
     return {
       mask,
       predicate(req) {
-        return (
-          method === req.method && matchPath(req.url, { path: mask }).matches
-        )
+        const hasSameMethod = method === req.method
+        const urlMatch = match(mask, req.url)
+
+        return hasSameMethod && urlMatch.matches
       },
       resolver,
     }

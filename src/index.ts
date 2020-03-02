@@ -12,6 +12,3 @@ export { context } from './context'
 
 /* Request handlers */
 export { default as rest } from './handlers/rest'
-
-/* Utils */
-export { matchPath, FullMatch } from './utils/matchPath'

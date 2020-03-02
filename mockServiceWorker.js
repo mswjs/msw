@@ -45,7 +45,8 @@ const messageClient = (client, message) => {
 
 self.addEventListener('fetch', async (event) => {
   const { clientId, request: req } = event
-  const getOriginalResponse = () => fetch(req)
+  const requestClone = req.clone()
+  const getOriginalResponse = () => fetch(requestClone)
 
   event.respondWith(
     new Promise(async (resolve) => {

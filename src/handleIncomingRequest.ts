@@ -47,9 +47,11 @@ export const createIncomingRequestHandler = (
 
     if (!mockedResponse) {
       console.warn(
-        '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s.',
+        '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
         mockedResponse,
       )
+
+      return sendToWorker(event, 'MOCK_NOT_FOUND')
     }
 
     // Transform Headers into a list to be stringified preserving multiple

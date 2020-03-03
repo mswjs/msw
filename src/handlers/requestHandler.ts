@@ -1,5 +1,4 @@
 import { Mask } from '../composeMocks'
-import { MockedContext } from '../context'
 import { ResponseComposition, MockedResponse } from '../response'
 
 export interface MockedRequest {
@@ -19,19 +18,20 @@ export type RequestParams = {
   [paramName: string]: any
 }
 
-export type ResponseResolver = (
+export type ResponseResolver<ContextType = any> = (
   req: MockedRequest,
   res: ResponseComposition,
-  context: MockedContext,
+  context: ContextType,
 ) => MockedResponse
 
-export interface RequestHandler {
+export interface RequestHandler<ContextType = any> {
   mask?: Mask
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
   predicate: (req: MockedRequest) => boolean
-  resolver: ResponseResolver
+  defineContext: (req: MockedRequest) => ContextType
+  resolver: ResponseResolver<ContextType>
 }
 
 export default null

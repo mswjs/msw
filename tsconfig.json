@@ -4,6 +4,7 @@
     "module": "es2015",
     "target": "es6",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "declaration": true,
     "declarationDir": "./lib",

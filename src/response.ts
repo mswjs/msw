@@ -13,7 +13,7 @@ export interface MockedResponse {
  * (res: MockedResponse) => MockedResponse is the correct one, but
  * it doesn't seem to work properly with Radma's annotations.
  */
-export type ResponseTransformer = (res: MockedResponse) => any
+export type ResponseTransformer = (res: MockedResponse) => MockedResponse
 export type ResponseComposition = (
   ...transformers: ResponseTransformer[]
 ) => MockedResponse

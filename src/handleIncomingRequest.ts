@@ -1,6 +1,5 @@
 import { match } from 'node-match-path'
 import { MockedResponse, response } from './response'
-import { context } from './context'
 import { MockedRequest, RequestHandler } from './handlers/requestHandler'
 
 const sendToWorker = (event: MessageEvent, message: string) => {
@@ -36,6 +35,8 @@ export const createIncomingRequestHandler = (
       ...req,
       params,
     }
+
+    const context = relevantRequestHandler.defineContext(requestWithParams)
 
     const mockedResponse:
       | MockedResponse

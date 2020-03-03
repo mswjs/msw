@@ -1,42 +1,46 @@
-import { parse } from 'graphql'
 import { RequestHandler, MockedRequest } from './requestHandler'
 import { MockedResponse, ResponseComposition } from '../response'
-import { MockedContext } from '../context'
+import { set } from '../context/set'
+import { status } from '../context/status'
+import { delay } from '../context/delay'
+import { data, DataContext } from '../context/data'
 
 interface GraphQLRequestHandlerSelector {
   operation: string
 }
 
-type GraphQLMockedRequest = MockedRequest & {
-  variables: Record<string, any>
+type GraphQLMockedRequest<
+  VariablesType = Record<string, any>
+> = MockedRequest & {
+  variables: VariablesType
 }
 
-type GraphQLResponseResolver = (
-  req: GraphQLMockedRequest,
+// GraphQL related context should contain utility functions
+// useful for GraphQL. Functions like `xml()` bear no value
+// in the GraphQL universe.
+interface GraphQLMockedContext<QueryType> {
+  set: typeof set
+  status: typeof status
+  delay: typeof delay
+  data: DataContext<QueryType>
+}
+
+type GraphQLResponseResolver<QueryType, VariablesType> = (
+  req: GraphQLMockedRequest<VariablesType>,
   res: ResponseComposition,
-  context: MockedContext,
+  context: GraphQLMockedContext<QueryType>,
 ) => MockedResponse
 
-interface GraphQLRequestPayload {
+interface GraphQLRequestPayload<VariablesType> {
   operationName: string
   query: string
-  variables?: Record<string, any>
+  variables?: VariablesType
 }
 
-const getQueryName = (query: string) => {
-  const ast = parse(query)
-  console.log({ ast })
-
-  const operationNode =
-    ast.definitions[0].kind === 'OperationDefinition' && ast.definitions[0]
-
-  return ''
-}
-
-const graphQLQueryHandler = (
+const graphQLQueryHandler = <QueryType, VariablesType>(
   selector: GraphQLRequestHandlerSelector,
-  resolver: GraphQLResponseResolver,
-): RequestHandler => {
+  resolver: GraphQLResponseResolver<QueryType, VariablesType>,
+): RequestHandler<GraphQLMockedContext<QueryType>> => {
   return {
     predicate(req) {
       if (
@@ -46,16 +50,9 @@ const graphQLQueryHandler = (
         return false
       }
 
-      console.log('predicte', { req })
-
-      const {
-        operationName,
-        query,
-        variables,
-      } = req.body as GraphQLRequestPayload
-
-      console.log({ operationName, query })
-      const queryName = getQueryName(query)
+      const { operationName, variables } = req.body as GraphQLRequestPayload<
+        VariablesType
+      >
 
       const isMatchingOperation = selector.operation === operationName
 
@@ -66,12 +63,18 @@ const graphQLQueryHandler = (
 
       return isMatchingOperation
     },
+    defineContext() {
+      return {
+        set,
+        status,
+        delay,
+        data,
+      }
+    },
     resolver,
   }
 }
 
-const graphQLHandlers = {
+export default {
   query: graphQLQueryHandler,
 }
-
-export default graphQLHandlers

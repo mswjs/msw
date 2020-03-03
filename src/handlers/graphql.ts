@@ -7,7 +7,7 @@ import { data, DataContext } from '../context/data'
 import { errors } from '../context/errors'
 
 interface GraphQLRequestHandlerSelector {
-  operation: string
+  operation: RegExp | string
 }
 
 type GraphQLMockedRequest<
@@ -56,7 +56,10 @@ const graphQLQueryHandler = <QueryType, VariablesType>(
         VariablesType
       >
 
-      const isMatchingOperation = selector.operation === operationName
+      const isMatchingOperation =
+        selector.operation instanceof RegExp
+          ? selector.operation.test(operationName)
+          : selector.operation === operationName
 
       if (isMatchingOperation) {
         // Set the parsed variables on the request object

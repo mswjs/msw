@@ -4,6 +4,7 @@ import { set } from '../context/set'
 import { status } from '../context/status'
 import { delay } from '../context/delay'
 import { data, DataContext } from '../context/data'
+import { errors } from '../context/errors'
 
 interface GraphQLRequestHandlerSelector {
   operation: string
@@ -23,6 +24,7 @@ interface GraphQLMockedContext<QueryType> {
   status: typeof status
   delay: typeof delay
   data: DataContext<QueryType>
+  errors: typeof errors
 }
 
 type GraphQLResponseResolver<QueryType, VariablesType> = (
@@ -56,10 +58,12 @@ const graphQLQueryHandler = <QueryType, VariablesType>(
 
       const isMatchingOperation = selector.operation === operationName
 
-      // Set the parsed variables on the request object
-      // so they could be accessed in the response resolver.
-      // @ts-ignore
-      req.variables = variables
+      if (isMatchingOperation) {
+        // Set the parsed variables on the request object
+        // so they could be accessed in the response resolver.
+        // @ts-ignore
+        req.variables = variables
+      }
 
       return isMatchingOperation
     },
@@ -69,6 +73,7 @@ const graphQLQueryHandler = <QueryType, VariablesType>(
         status,
         delay,
         data,
+        errors,
       }
     },
     resolver,

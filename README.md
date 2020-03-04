@@ -24,6 +24,10 @@
 - **Mocking as a tool**. Enable/change/disable mocking on runtime _instantly_ without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
 - **Essentials**. Use [Express](https://github.com/expressjs/express/)-like syntax to define which requests to mock. Respond with custom status codes, headers, delays, or create custom response resolvers.
 
+> "This is awesome."
+>
+> – [Kent C. Dodds](https://twitter.com/kentcdodds/status/1233899811608219648)
+
 ## Documentation
 
 - [Documentation](https://redd.gitbook.io/msw)

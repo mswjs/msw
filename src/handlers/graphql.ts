@@ -63,51 +63,55 @@ const parseQuery = (
   }
 }
 
-const graphQLQueryHandler = <QueryType, VariablesType>(
-  selector: GraphQLRequestHandlerSelector,
-  resolver: GraphQLResponseResolver<QueryType, VariablesType>,
-): RequestHandler<GraphQLMockedContext<QueryType>> => {
-  return {
-    predicate(req) {
-      if (
-        req.headers.get('Content-Type') !== 'application/json' ||
-        typeof req.body === 'string'
-      ) {
-        return false
-      }
+const createGraphQLHandler = (operationType: OperationTypeNode) => {
+  return <QueryType, VariablesType>(
+    selector: GraphQLRequestHandlerSelector,
+    resolver: GraphQLResponseResolver<QueryType, VariablesType>,
+  ): RequestHandler<GraphQLMockedContext<QueryType>> => {
+    return {
+      predicate(req) {
+        if (
+          req.headers.get('Content-Type') !== 'application/json' ||
+          typeof req.body === 'string'
+        ) {
+          return false
+        }
 
-      const { query, variables } = req.body as GraphQLRequestPayload<
-        VariablesType
-      >
-      const { operationName } = parseQuery(query)
+        const { operation: expectedOperation } = selector
+        const { query, variables } = req.body as GraphQLRequestPayload<
+          VariablesType
+        >
+        const { operationName } = parseQuery(query, operationType)
 
-      const isMatchingOperation =
-        selector.operation instanceof RegExp
-          ? selector.operation.test(operationName)
-          : selector.operation === operationName
+        const isMatchingOperation =
+          expectedOperation instanceof RegExp
+            ? expectedOperation.test(operationName)
+            : expectedOperation === operationName
 
-      if (isMatchingOperation) {
-        // Set the parsed variables on the request object
-        // so they could be accessed in the response resolver.
-        // @ts-ignore
-        req.variables = variables
-      }
+        if (isMatchingOperation) {
+          // Set the parsed variables on the request object
+          // so they could be accessed in the response resolver.
+          // @ts-ignore
+          req.variables = variables
+        }
 
-      return isMatchingOperation
-    },
-    defineContext() {
-      return {
-        set,
-        status,
-        delay,
-        data,
-        errors,
-      }
-    },
-    resolver,
+        return isMatchingOperation
+      },
+      defineContext() {
+        return {
+          set,
+          status,
+          delay,
+          data,
+          errors,
+        }
+      },
+      resolver,
+    }
   }
 }
 
 export default {
-  query: graphQLQueryHandler,
+  query: createGraphQLHandler('query'),
+  mutation: createGraphQLHandler('mutation'),
 }

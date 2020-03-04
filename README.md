@@ -69,7 +69,7 @@ import './mocks'
 
 Once enabled, any requests matching the defined paths will be intercepted by Service Worker, which would respond with mocked responses.
 
-![](https://github.com/open-draft/msw/tree/master/media/msw-quick-look-network.png)
+![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
 
 > Notice the `403 Made up status (from ServiceWorker)` status in the response.
 

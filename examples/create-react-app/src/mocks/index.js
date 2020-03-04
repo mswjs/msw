@@ -4,16 +4,6 @@ import userMocks from './user'
 const { start } = composeMocks(
   ...userMocks,
 
-  rest.get('https://github.com/octocat', (req, res, ctx) => {
-    return res(
-      ctx.delay(1500),
-      ctx.status(403, 'Made up status'),
-      ctx.json({
-        message: 'This is a mocked error',
-      }),
-    )
-  }),
-
   rest.get('https://api.github.com/users/:username', (req, res, { json }) => {
     const { username } = req.params
 

@@ -17,12 +17,10 @@ class App extends Component {
 
     this.setState({ isLoading: true })
 
-    fetch('https://github.com/octocat')
-
-    // fetch(`https://api.github.com/users/${username}`)
-    //   .then((res) => res.json())
-    //   .then((data) => this.setState({ data }))
-    //   .then(() => this.setState({ isLoading: false }))
+    fetch(`https://api.github.com/users/${username}`)
+      .then((res) => res.json())
+      .then((data) => this.setState({ data }))
+      .then(() => this.setState({ isLoading: false }))
   }
 
   render() {

@@ -36,6 +36,14 @@
 $ npm install msw --save-dev
 ```
 
+Now we have to put the `mockServiceWorker.js` file in your **public directory**. That is usually a directory being served by your server (i.e. `public/` or `dist/`). The placing of the file is done by running the following command from your project's root directory:
+
+```bash
+$ npx msw init <PUBLIC_DIR>
+```
+
+> For example, in a Create React App you would have to run: `npx msw init public/`.
+
 MSW workflow consist of three phases:
 
 ```js

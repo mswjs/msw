@@ -69,7 +69,7 @@ import './mocks'
 
 Once enabled, any requests matching the defined paths will be intercepted by Service Worker, which would respond with mocked responses.
 
-![](./media/msw-quick-look-network.png)
+![](https://github.com/open-draft/msw/tree/master/media/msw-quick-look-network.png)
 
 > Notice the `403 Made up status (from ServiceWorker)` status in the response.
 
@@ -81,4 +81,4 @@ There is a set of step-by-step tutorials to get you started with mocking the API
 
 ## Examples
 
-- [Using MSW with **Create React App**](./examples/create-react-app)
+- [Using MSW with **Create React App**](https://github.com/open-draft/msw/tree/master/examples/create-react-app)

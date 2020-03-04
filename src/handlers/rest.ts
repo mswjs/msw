@@ -8,7 +8,17 @@ const createRESTHandler = (method: RESTMethods) => {
       mask,
       predicate(req) {
         const hasSameMethod = method === req.method
-        const urlMatch = match(mask, req.url)
+
+        // Prepends a host origin to the routes that start
+        // with the slash ("/"). This way such routes will match
+        // the respective hostname's routes, while bypassing
+        // the routes from different hosts.
+        const resolvedMask =
+          typeof mask === 'string' && mask.startsWith('/')
+            ? `${location.origin}${mask}`
+            : mask
+
+        const urlMatch = match(resolvedMask, req.url)
 
         return hasSameMethod && urlMatch.matches
       },

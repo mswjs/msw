@@ -1,3 +1,4 @@
+import { parse, OperationDefinitionNode, OperationTypeNode } from 'graphql'
 import { RequestHandler, MockedRequest } from './requestHandler'
 import { MockedResponse, ResponseComposition } from '../response'
 import { set } from '../context/set'
@@ -34,9 +35,32 @@ type GraphQLResponseResolver<QueryType, VariablesType> = (
 ) => MockedResponse
 
 interface GraphQLRequestPayload<VariablesType> {
-  operationName: string
   query: string
   variables?: VariablesType
+}
+
+interface ParsedQueryPayload {
+  operationName: string
+}
+
+const parseQuery = (
+  query: string,
+  /**
+   * @todo Use this to parametrize AST lookup (query/mutation/subscription).
+   */
+  definitionOperation: OperationTypeNode = 'query',
+): ParsedQueryPayload => {
+  const ast = parse(query)
+
+  const operationDef = ast.definitions.find(
+    (def) =>
+      def.kind === 'OperationDefinition' &&
+      def.operation === definitionOperation,
+  ) as OperationDefinitionNode
+
+  return {
+    operationName: operationDef?.name?.value,
+  }
 }
 
 const graphQLQueryHandler = <QueryType, VariablesType>(
@@ -52,9 +76,10 @@ const graphQLQueryHandler = <QueryType, VariablesType>(
         return false
       }
 
-      const { operationName, variables } = req.body as GraphQLRequestPayload<
+      const { query, variables } = req.body as GraphQLRequestPayload<
         VariablesType
       >
+      const { operationName } = parseQuery(query)
 
       const isMatchingOperation =
         selector.operation instanceof RegExp

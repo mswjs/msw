@@ -15,14 +15,14 @@
 
 <h1 align="center">MSW</h1>
 
-<p align="center">MSW (Mock Service Worker) is an API mocking library that operates by intercepting outgoing requests.</p>
+<p align="center">Mock Service Worker (MSW) is a client-side API mocking library that operates by intercepting outgoing requests using Service Workers.</p>
 
 ## Features
 
-- **Server-less**. Doesn't establish any servers, operates entirely in a browser;
-- **Deviation-free**. Intercepts production URI requests from your page and mocks their responses;
-- **Mocking as a tool**. Enable/disable/change mocking logic on runtime instantly without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
-- **Essentials**. Mock status codes, headers, delay responses, and create custom response mocking functions.
+- **Server-less**. Doesn't establish any servers, operating entirely in a browser;
+- **Deviation-free**. Intercepts production URI requests from your page and mocks their responses, without having to deal with mocked URI.
+- **Mocking as a tool**. Enable/change/disable mocking on runtime _instantly_ without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
+- **Essentials**. Use [Express](https://github.com/expressjs/express/)-like syntax to define which requests to mock. Respond with custom status codes, headers, delays, or create custom response resolvers.
 
 ## Documentation
 
@@ -30,6 +30,55 @@
 - [**Getting started**](https://redd.gitbook.io/msw/getting-started)
 - [Recipes](https://redd.gitbook.io/msw/recipes)
 
-## Contribute
+## Quick look
 
-Have an idea? Found a bug? Please communicate it through using the [issues](https://github.com/open-draft/msw/issues) tab of this repository. [Pull requests](https://github.com/open-draft/msw/pulls) are welcome as well!
+```bash
+$ npm install msw --save-dev
+```
+
+MSW workflow consist of three phases:
+
+```js
+// src/mocks.js
+// 1. Import mocking utils
+import { composeMocks, rest } from 'msw'
+
+// 2. Define request handlers and response resolvers
+const { start } = composeMocks(
+  rest.get('https://github.com/octocat', (req, res, ctx) => {
+    return res(
+      ctx.delay(1500),
+      ctx.status(403, 'Made up status'),
+      ctx.json({
+        message: 'This is a mocked error',
+      }),
+    )
+  }),
+)
+
+// 3. Start the Service Worker
+start()
+```
+
+Import the `mocks.js` module into your application to enable the mocking.
+
+```js
+// src/index.js
+import './mocks'
+```
+
+Once enabled, any requests matching the defined paths will be intercepted by Service Worker, which would respond with mocked responses.
+
+![](./media/msw-quick-look-network.png)
+
+> Notice the `403 Made up status (from ServiceWorker)` status in the response.
+
+There is a set of step-by-step tutorials to get you started with mocking the API type you need. Please refer to those tutorials below for more detailed instructions.
+
+## Tutorials
+
+- [Mocking REST API](https://redd.gitbook.io/msw/tutorials/mocking-rest-api)
+
+## Examples
+
+- [Using MSW with **Create React App**](./examples/create-react-app)

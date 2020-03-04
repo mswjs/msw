@@ -56,7 +56,7 @@ const { start } = composeMocks(
   rest.get('https://github.com/octocat', (req, res, ctx) => {
     return res(
       ctx.delay(1500),
-      ctx.status(403, 'Made up status'),
+      ctx.status(202, 'Mocked status'),
       ctx.json({
         message: 'This is a mocked error',
       }),
@@ -79,7 +79,7 @@ Once enabled, any requests matching the defined paths will be intercepted by Ser
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
 
-> Notice the `403 Made up status (from ServiceWorker)` status in the response.
+> Notice the `202 Mocked status (from ServiceWorker)` status in the response.
 
 There is a set of step-by-step tutorials to get you started with mocking the API type you need. Please refer to those tutorials below for more detailed instructions.
 

@@ -28,13 +28,13 @@ export const createIncomingRequestHandler = (
     }
 
     // Retrieve request URL parameters based on the provided mask
-    const urlMatch = relevantRequestHandler.mask
-      ? match(relevantRequestHandler.mask, req.url)
-      : { params: {} }
+    const params = relevantRequestHandler.mask
+      ? match(relevantRequestHandler.mask, req.url).params
+      : {}
 
     const requestWithParams = {
       ...req,
-      params: urlMatch.params,
+      params,
     }
 
     const mockedResponse:

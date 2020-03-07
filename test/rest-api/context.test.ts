@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
 describe('REST: Context utilities', () => {
   let api: TestAPI

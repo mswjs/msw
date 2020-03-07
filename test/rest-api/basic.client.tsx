@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './basic.mocks'
 
-const Basic = () => {
+export default () => {
   const [data, setData] = useState()
 
   const handleButtonClick = () => {
@@ -17,5 +17,3 @@ const Basic = () => {
     </div>
   )
 }
-
-export default Basic

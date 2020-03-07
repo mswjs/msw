@@ -7,7 +7,7 @@
     "declaration": false,
     "baseUrl": ".",
     "paths": {
-      "msw": ["../../"]
+      "msw": [".."]
     },
     "types": ["node", "jest"]
   },

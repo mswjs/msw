@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/prism-themes@1.3.0/themes/prism-material-oceanic.css"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        padding: 0 5rem;
+      }
+      pre {
+        border-radius: 4px;
+      }
+    </style>
+  </head>
   <body>
-    <div id="root"></div>
+    <h2>Test suite</h2>
+    <p>This test suite is created with the following mock definitions:</p>
+    <pre><code class="language-js"><%= mockDefs %></code></pre>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/plugins/autoloader/prism-autoloader.min.js"></script>
   </body>
 </html>

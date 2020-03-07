@@ -5,7 +5,7 @@ describe('REST: Request matching (URI)', () => {
   let api: BootstrapApi
 
   beforeAll(async () => {
-    api = await bootstrap(path.resolve(__dirname, 'uri.client'))
+    api = await bootstrap(path.resolve(__dirname, 'uri.mocks.ts'))
   })
 
   afterAll(() => {
@@ -15,14 +15,12 @@ describe('REST: Request matching (URI)', () => {
   describe('given exact string for request URI', () => {
     it('should match a request with the exact URI', async () => {
       const REQUEST_URL = 'https://api.github.com/made-up'
-
       api.page.evaluate((url) => fetch(url), REQUEST_URL)
       const res = await api.page.waitForResponse(REQUEST_URL)
+      const body = await res.json()
 
       expect(res.status()).toBe(200)
-
-      const responseBody = await res.json()
-      expect(responseBody).toEqual({
+      expect(body).toEqual({
         mocked: true,
       })
     })
@@ -39,14 +37,12 @@ describe('REST: Request matching (URI)', () => {
   describe('given mask for request URI', () => {
     it('should match a request that matches the mask', async () => {
       const REQUEST_URL = 'https://test.msw.io/messages/abc-123'
-
       api.page.evaluate((url) => fetch(url), REQUEST_URL)
       const res = await api.page.waitForResponse(REQUEST_URL)
+      const body = await res.json()
 
       expect(res.status()).toBe(200)
-
-      const responseBody = await res.json()
-      expect(responseBody).toEqual({
+      expect(body).toEqual({
         messageId: 'abc-123',
       })
     })
@@ -65,11 +61,10 @@ describe('REST: Request matching (URI)', () => {
       const REQUEST_URL = 'https://msw.google.com/path'
       api.page.evaluate((url) => fetch(url), REQUEST_URL)
       const res = await api.page.waitForResponse(REQUEST_URL)
+      const body = await res.json()
 
       expect(res.status()).toBe(200)
-
-      const responseBody = await res.json()
-      expect(responseBody).toEqual({
+      expect(body).toEqual({
         mocked: true,
       })
     })

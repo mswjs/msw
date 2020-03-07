@@ -5,7 +5,7 @@ describe('REST: Context utilities', () => {
   let api: BootstrapApi
 
   beforeAll(async () => {
-    api = await bootstrap(path.resolve(__dirname, 'context.client.tsx'))
+    api = await bootstrap(path.resolve(__dirname, 'context.mocks.ts'))
   })
 
   afterAll(() => {
@@ -13,19 +13,17 @@ describe('REST: Context utilities', () => {
   })
 
   it('should receive mocked response', async () => {
-    await api.page.click('button')
-    const res = await api.page.waitForResponse('https://test.msw.io/')
+    const REQUEST_URL = 'https://test.msw.io/'
+    api.page.evaluate((url) => fetch(url), REQUEST_URL)
+    const res = await api.page.waitForResponse(REQUEST_URL)
+    const headers = res.headers()
+    const body = await res.json()
 
-    expect(res.fromServiceWorker()).toBe(true)
     expect(res.status()).toEqual(305)
     expect(res.statusText()).toEqual('Yahoo!')
-
-    const headers = res.headers()
     expect(headers).toHaveProperty('content-type', 'application/json')
     expect(headers).toHaveProperty('accept', 'foo/bar')
     expect(headers).toHaveProperty('custom-header', 'arbitrary-value')
-
-    const body = await res.json()
     expect(body).toEqual({
       mocked: true,
     })

@@ -13,7 +13,7 @@
     "test:unit": "cross-env BABEL_ENV=test jest",
     "test": "yarn run test:unit",
     "test:integration": "jest --config=test/jest.config.js",
-    "test:focused": "node_modules/.bin/ts-node --project=test/support/tsconfig.json test/focusedTest.ts",
+    "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn test && yarn run build"
   },
   "author": {

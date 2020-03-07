@@ -1,11 +1,11 @@
 import * as path from 'path'
-import { bootstrap, BootstrapApi } from '../../support/bootstrap'
+import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
 
 describe('REST: Request matching (method)', () => {
-  let api: BootstrapApi
+  let api: TestAPI
 
   beforeAll(async () => {
-    api = await bootstrap(path.resolve(__dirname, 'method.mocks.ts'))
+    api = await runBrowserWith(path.resolve(__dirname, 'method.mocks.ts'))
   })
 
   afterAll(() => {

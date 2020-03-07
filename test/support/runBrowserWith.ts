@@ -2,16 +2,16 @@ import * as puppeteer from 'puppeteer'
 import { spawnServer } from './spawnServer'
 import WebpackDevServer from 'webpack-dev-server'
 
-export interface BootstrapApi {
+export interface TestAPI {
   server: WebpackDevServer
   browser: puppeteer.Browser
   page: puppeteer.Page
   cleanup: () => Promise<unknown>
 }
 
-export const bootstrap = async (
+export const runBrowserWith = async (
   mockDefinitionPath: string,
-): Promise<BootstrapApi> => {
+): Promise<TestAPI> => {
   const { server, origin } = await spawnServer(mockDefinitionPath)
 
   const browser = await puppeteer.launch({

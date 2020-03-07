@@ -18,6 +18,7 @@ export const bootstrap = async (
 
   // Open the temporary server page in Puppeteer
   const browser = await puppeteer.launch({
+    headless: true,
     args: ['--no-sandbox'],
   })
   const page = await browser.newPage()

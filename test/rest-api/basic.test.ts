@@ -1,10 +1,6 @@
 import * as path from 'path'
 import { BootstrapApi, bootstrap } from '../support/bootstrap'
 
-// Increase the test timeout to allow webpack build
-// and Puppeteer bootstrapping to take place.
-jest.setTimeout(9999999)
-
 describe('REST: Basic example', () => {
   let api: BootstrapApi
 

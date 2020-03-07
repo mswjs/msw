@@ -1,3 +1,4 @@
+import * as chalk from 'chalk'
 import * as puppeteer from 'puppeteer'
 import { spawnServer } from './spawnServer'
 import WebpackDevServer from 'webpack-dev-server'
@@ -13,7 +14,7 @@ export const bootstrap = async (
   testComponentPath: string,
 ): Promise<BootstrapApi> => {
   const { server, origin } = await spawnServer(testComponentPath)
-  console.log('Server established at %s', origin)
+  console.log('Server established at %s', chalk.cyan(origin))
 
   // Open the temporary server page in Puppeteer
   const browser = await puppeteer.launch({

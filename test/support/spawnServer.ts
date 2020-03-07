@@ -15,8 +15,16 @@ export const spawnServer = (componentPath: string): Promise<Payload> => {
   const absoluteComponentPath = path.resolve(process.cwd(), componentPath)
   const mswModulePath = path.resolve(__dirname, '../..', packageJson.main)
 
-  console.log('Loading component from: %s', chalk.cyan(absoluteComponentPath))
-  console.log('Resolving "msw" module from: %s', chalk.cyan(mswModulePath))
+  console.log(
+    `
+Loaded test suite:
+%s
+
+Resolved "msw" module to:
+%s`,
+    chalk.magenta(absoluteComponentPath),
+    chalk.magenta(mswModulePath),
+  )
 
   const compiler = webpack({
     mode: 'development',

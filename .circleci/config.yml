@@ -5,7 +5,6 @@ jobs:
       - image: cypress/browsers:node12.0.0-chrome75
         environment:
           TERM: xterm
-
     working_directory: ~/root
 
     steps:
@@ -16,9 +15,10 @@ jobs:
             - yarn-packages
 
       - run:
-          name: 'Checking node version'
+          name: Environment
           command: |
             node --version
+            npm --version
             yarn --version
 
       - run:
@@ -31,9 +31,13 @@ jobs:
             - ~/.cache/yarn
 
       - run:
-          name: Building MSW
-          command: yarn run build
+          name: Building the module
+          command: yarn build
 
       - run:
           name: Unit tests
-          command: yarn run test:unit
+          command: yarn test:unit
+
+      - run:
+          name: Integration tests
+          command: yarn test:integration

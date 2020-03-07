@@ -16,7 +16,9 @@ export const bootstrap = async (
   console.log('Server established at %s', origin)
 
   // Open the temporary server page in Puppeteer
-  const browser = await puppeteer.launch({ headless: false })
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+  })
   const page = await browser.newPage()
   await page.goto(origin, {
     waitUntil: 'networkidle0',

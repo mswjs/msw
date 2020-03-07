@@ -3,3 +3,4 @@ __*
 node_modules
 lib
 *-error.log
+./package-lock.json

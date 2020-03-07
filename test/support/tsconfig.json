@@ -5,12 +5,11 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "declaration": false,
-    "jsx": "react",
     "baseUrl": ".",
     "paths": {
       "msw": ["../../"]
     },
     "types": ["node", "jest"]
   },
-  "include": ["global.d.ts", "**/*.ts", "**/*.tsx"]
+  "include": ["**/*.ts"]
 }

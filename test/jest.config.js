@@ -6,7 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '^msw$': '<rootDir>/../lib/index.js',
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },

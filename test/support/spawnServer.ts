@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { AddressInfo } from 'net'
+import * as fs from 'fs'
 import * as chalk from 'chalk'
 import * as webpack from 'webpack'
 import * as WebpackDevServer from 'webpack-dev-server'
@@ -11,37 +12,33 @@ interface Payload {
   origin: string
 }
 
-export const spawnServer = (componentPath: string): Promise<Payload> => {
-  const absoluteComponentPath = path.resolve(process.cwd(), componentPath)
+export const spawnServer = (mockDefs: string): Promise<Payload> => {
+  const absoluteMockPath = path.resolve(process.cwd(), mockDefs)
   const mswModulePath = path.resolve(__dirname, '../..', packageJson.main)
 
   console.log(
     `
-Loaded test suite:
+Loaded mock definition:
 %s
 
 Resolved "msw" module to:
 %s`,
-    chalk.magenta(absoluteComponentPath),
+    chalk.magenta(absoluteMockPath),
     chalk.magenta(mswModulePath),
   )
+
+  const mockDefsContent = fs.readFileSync(absoluteMockPath).toString()
 
   const compiler = webpack({
     mode: 'development',
     target: 'web',
-    entry: path.resolve(__dirname, 'renderer'),
+    entry: [absoluteMockPath],
     module: {
       rules: [
         {
           test: /\.tsx?$/,
           exclude: /node_modules/,
           loaders: [
-            {
-              loader: 'babel-loader',
-              options: {
-                presets: ['@babel/preset-env', '@babel/preset-react'],
-              },
-            },
             {
               loader: 'awesome-typescript-loader',
               options: {
@@ -55,16 +52,16 @@ Resolved "msw" module to:
     plugins: [
       new HtmlWebpackPlugin({
         template: 'test/support/index.html',
-      }),
-      new webpack.DefinePlugin({
-        TEST_COMPONENT_PATH: JSON.stringify(absoluteComponentPath),
+        templateParameters: () => ({
+          mockDefs: `// ${mockDefs}\n${mockDefsContent}`,
+        }),
       }),
     ],
     resolve: {
       alias: {
         msw: mswModulePath,
       },
-      extensions: ['.tsx', '.ts', '.jsx', '.js'],
+      extensions: ['.ts', '.js'],
     },
   })
 
@@ -83,7 +80,16 @@ Resolved "msw" module to:
       }
 
       const { port } = server.address() as AddressInfo
-      resolve({ server: wds, origin: `http://localhost:${port}` })
+      const origin = `http://localhost:${port}`
+
+      console.log(
+        `
+Server established at %s
+`,
+        chalk.cyan(origin),
+      )
+
+      resolve({ server: wds, origin })
     })
   })
 }

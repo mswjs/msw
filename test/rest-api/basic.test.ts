@@ -5,7 +5,7 @@ describe('REST: Basic example', () => {
   let api: BootstrapApi
 
   beforeAll(async () => {
-    api = await bootstrap(path.resolve(__dirname, 'basic.client.tsx'))
+    api = await bootstrap(path.resolve(__dirname, 'basic.mocks.ts'))
   })
 
   afterAll(() => {
@@ -13,13 +13,12 @@ describe('REST: Basic example', () => {
   })
 
   it('should receive mocked response', async () => {
-    await api.page.click('button')
-    const res = await api.page.waitForResponse(
-      'https://api.github.com/users/octocat',
-    )
-    expect(res.fromServiceWorker()).toBe(true)
-
+    const REQUEST_URL = 'https://api.github.com/users/octocat'
+    api.page.evaluate((url) => fetch(url), REQUEST_URL)
+    const res = await api.page.waitForResponse(REQUEST_URL)
     const body = await res.json()
+
+    expect(res.status()).toBe(200)
     expect(body).toEqual({
       name: 'John Maverick',
       originalUsername: 'octocat',

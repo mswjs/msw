@@ -32,7 +32,7 @@ Resolved "msw" module to:
   const compiler = webpack({
     mode: 'development',
     target: 'web',
-    entry: [absoluteMockPath],
+    entry: [path.resolve(__dirname, 'utils'), absoluteMockPath],
     module: {
       rules: [
         {

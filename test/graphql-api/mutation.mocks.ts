@@ -1,7 +1,7 @@
 import { composeMocks, graphql } from 'msw'
 
 const { start } = composeMocks(
-  graphql.mutation({ operation: 'Logout' }, (req, res, ctx) => {
+  graphql.mutation('Logout', (req, res, ctx) => {
     return res(
       ctx.data({
         logout: {

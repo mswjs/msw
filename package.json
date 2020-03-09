@@ -11,8 +11,8 @@
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
     "test:unit": "cross-env BABEL_ENV=test jest",
-    "test": "yarn run test:unit",
-    "test:integration": "jest --config=test/jest.config.js",
+    "test": "yarn run test:unit --runInBand",
+    "test:integration": "jest --config=test/jest.config.js --runInBand",
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn test && yarn run build"
   },

@@ -1,7 +1,7 @@
 import { composeMocks, graphql } from 'msw'
 
 const { start } = composeMocks(
-  graphql.query({ operation: 'Login' }, (req, res, ctx) => {
+  graphql.query('Login', (req, res, ctx) => {
     return res(
       ctx.errors([
         {

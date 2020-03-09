@@ -1,7 +1,7 @@
 import { composeMocks, graphql } from 'msw'
 
 const { start } = composeMocks(
-  graphql.query({ operation: 'GetGithubUser' }, (req, res, ctx) => {
+  graphql.query('GetGithubUser', (req, res, ctx) => {
     const { username } = req.variables
 
     return res(
@@ -14,7 +14,7 @@ const { start } = composeMocks(
     )
   }),
 
-  graphql.mutation({ operation: 'DeletePost' }, (req, res, ctx) => {
+  graphql.mutation('DeletePost', (req, res, ctx) => {
     const { postId } = req.variables
 
     return res(
@@ -26,7 +26,7 @@ const { start } = composeMocks(
     )
   }),
 
-  graphql.query({ operation: 'GetActiveUser' }, (req, res, ctx) => {
+  graphql.query('GetActiveUser', (req, res, ctx) => {
     // Intentionally unused variable
     const { foo } = req.variables
 

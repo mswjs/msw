@@ -64,7 +64,7 @@ const parseQuery = (
 }
 
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
-  return <QueryType, VariablesType>(
+  return <QueryType, VariablesType = Record<string, any>>(
     selector: GraphQLRequestHandlerSelector,
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<GraphQLMockedContext<QueryType>> => {
@@ -92,7 +92,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           // Set the parsed variables on the request object
           // so they could be accessed in the response resolver.
           // @ts-ignore
-          req.variables = variables
+          req.variables = variables || {}
         }
 
         return isMatchingOperation

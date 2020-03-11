@@ -14,7 +14,7 @@
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
     "test:integration": "jest --config=test/jest.config.js --runInBand",
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
-    "prepublishOnly": "yarn test && yarn build"
+    "prepublishOnly": "yarn test:unit && yarn build && yarn test:integration"
   },
   "author": {
     "name": "Artem Zakharchenko",

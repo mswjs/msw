@@ -5092,10 +5092,10 @@ node-libs-browser@^2.2.1:
     util "^0.11.0"
     vm-browserify "^1.0.1"
 
-node-match-path@^0.2.2:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/node-match-path/-/node-match-path-0.2.3.tgz#d237b87fdc8c925c21986634c0776dbd8c8a551a"
-  integrity sha512-V9oxXIngpP9Su5kfTDp7CbeWs7Pt1PPTWenZSTUR1+5pyk6WzYjI9YQBAfKR0CVEJylNX5YGhWKz1MAXcqilLg==
+node-match-path@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/node-match-path/-/node-match-path-0.3.0.tgz#aa191cc1195b6f343f6e3b0faba1724c6f59edb1"
+  integrity sha512-pB29+sa+Nk5sHSLZ/dMXmH5sWCCrBCdwajF8Bz4SyYsBSBwpppJCWkvb64wqQm9tfNTYsCjiHo+rWYIqRTzzMA==
 
 node-modules-regexp@^1.0.0:
   version "1.0.0"

@@ -30,7 +30,7 @@ module.exports = function(args) {
 ${chalk.green('Service Worker successfully created!')}
 Continue by creating a mocking module and starting the Service Worker:
 
-  ${chalk.cyan.bold('msw.start()')}
+  ${chalk.cyan.bold('https://redd.gitbook.io/msw/getting-started#define-mocks')}
 `)
   })
 }

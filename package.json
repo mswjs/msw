@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "Deviation-less client-side runtime API mocking using Service Workers.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -10,11 +10,11 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack --watch",
     "build": "cross-env NODE_ENV=production webpack",
-    "test:unit": "cross-env BABEL_ENV=test jest",
-    "test": "yarn run test:unit --runInBand",
+    "test": "yarn test:unit && yarn test:integration",
+    "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
     "test:integration": "jest --config=test/jest.config.js --runInBand",
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
-    "prepublishOnly": "yarn test && yarn run build"
+    "prepublishOnly": "yarn test:unit && yarn build && yarn test:integration"
   },
   "author": {
     "name": "Artem Zakharchenko",
@@ -31,7 +31,7 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "graphql": "^14.6.0",
-    "node-match-path": "^0.2.2",
+    "node-match-path": "^0.3.0",
     "ramda": "^0.27.0",
     "yargs": "^15.1.0"
   },

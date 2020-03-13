@@ -90,6 +90,7 @@ There is a set of step-by-step tutorials to get you started with mocking the API
 ## Tutorials
 
 - [Mocking REST API](https://redd.gitbook.io/msw/tutorials/mocking-rest-api)
+- [Mocking GraphQL API](https://redd.gitbook.io/msw/tutorials/mocking-graphql-api)
 
 ## Examples
 

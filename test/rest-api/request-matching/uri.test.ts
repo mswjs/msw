@@ -13,24 +13,48 @@ describe('REST: Request matching (URI)', () => {
   })
 
   describe('given exact string for request URI', () => {
-    it('should match a request with the exact URI', async () => {
-      const REQUEST_URL = 'https://api.github.com/made-up'
-      api.page.evaluate((url) => fetch(url), REQUEST_URL)
-      const res = await api.page.waitForResponse(REQUEST_URL)
-      const body = await res.json()
+    describe('given the actual URI with trailing slash', () => {
+      it('should match a request with the exact URI', async () => {
+        const REQUEST_URL = 'https://api.github.com/made-up/'
+        api.page.evaluate((url) => fetch(url), REQUEST_URL)
+        const res = await api.page.waitForResponse(REQUEST_URL)
+        const body = await res.json()
 
-      expect(res.status()).toBe(200)
-      expect(body).toEqual({
-        mocked: true,
+        expect(res.status()).toBe(200)
+        expect(body).toEqual({
+          mocked: true,
+        })
+      })
+
+      it('should not match a request with different URI', async () => {
+        const res = await api.page.evaluate(() =>
+          fetch('https://api.github.com/other/'),
+        )
+
+        expect(res.status).not.toBe(200)
       })
     })
 
-    it('should not match a request with different URI', async () => {
-      const res = await api.page.evaluate(() =>
-        fetch('https://api.github.com/other'),
-      )
+    describe('given the actual URL without a trailing slash', () => {
+      it('should match a request with the exact URI', async () => {
+        const REQUEST_URL = 'https://api.github.com/made-up'
+        api.page.evaluate((url) => fetch(url), REQUEST_URL)
+        const res = await api.page.waitForResponse(REQUEST_URL)
+        const body = await res.json()
 
-      expect(res.status).not.toBe(200)
+        expect(res.status()).toBe(200)
+        expect(body).toEqual({
+          mocked: true,
+        })
+      })
+
+      it('should not match a request with different URI', async () => {
+        const res = await api.page.evaluate(() =>
+          fetch('https://api.github.com/other'),
+        )
+
+        expect(res.status).not.toBe(200)
+      })
     })
   })
 

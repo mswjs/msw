@@ -7,9 +7,7 @@ import { delay } from '../context/delay'
 import { data, DataContext } from '../context/data'
 import { errors } from '../context/errors'
 
-interface GraphQLRequestHandlerSelector {
-  operation: RegExp | string
-}
+type GraphQLRequestHandlerSelector = RegExp | string
 
 type GraphQLMockedRequest<
   VariablesType = Record<string, any>
@@ -65,7 +63,7 @@ const parseQuery = (
 
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
   return <QueryType, VariablesType = Record<string, any>>(
-    selector: GraphQLRequestHandlerSelector,
+    expectedOperation: GraphQLRequestHandlerSelector,
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<GraphQLMockedContext<QueryType>> => {
     return {
@@ -77,7 +75,6 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           return false
         }
 
-        const { operation: expectedOperation } = selector
         const { query, variables } = req.body as GraphQLRequestPayload<
           VariablesType
         >

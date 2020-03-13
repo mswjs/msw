@@ -4,6 +4,7 @@ import WebpackDevServer from 'webpack-dev-server'
 
 export interface TestAPI {
   server: WebpackDevServer
+  origin: string
   browser: puppeteer.Browser
   page: puppeteer.Page
   cleanup: () => Promise<unknown>
@@ -35,6 +36,7 @@ export const runBrowserWith = async (
 
   return {
     server,
+    origin,
     browser,
     page,
     cleanup,

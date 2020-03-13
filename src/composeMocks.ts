@@ -1,43 +1,42 @@
 import { RequestHandler } from './handlers/requestHandler'
 import { createIncomingRequestHandler } from './handleIncomingRequest'
+import { reject } from 'ramda'
 
 export type Mask = RegExp | string
 
 interface PublicAPI {
-  start(serviceWorkerURL?: string, options?: RegistrationOptions): void
-  stop(): void
+  start(
+    serviceWorkerURL?: string,
+    options?: RegistrationOptions,
+  ): Promise<ServiceWorkerRegistration>
+  stop(): Promise<void>
 }
 
 const createStart = (
   worker: ServiceWorker,
   workerRegistration: ServiceWorkerRegistration,
-) => {
+): PublicAPI['start'] => {
   /**
    * Starts MockServiceWorker.
    */
-  return (
-    serviceWorkerUrl: string = './mockServiceWorker.js',
-    options?: RegistrationOptions,
-  ) => {
+  return (serviceWorkerUrl = './mockServiceWorker.js', options) => {
     if (workerRegistration) {
-      return workerRegistration.update()
+      return workerRegistration.update().then(() => workerRegistration)
     }
 
     window.addEventListener('beforeunload', () => {
-      // Deactivate requests interception before page unload.
-      // Initial page load requests client assets (HTML, CSS, JS),
-      // which, if passed through the interception handler, may result
-      // into a broken page.
+      // Prevent Service Worker from serving page assets on initial load
       if (worker && worker.state !== 'redundant') {
         worker.postMessage('MOCK_DEACTIVATE')
       }
     })
 
-    navigator.serviceWorker
+    return navigator.serviceWorker
       .register(serviceWorkerUrl, options)
       .then((reg) => {
         const workerInstance = reg.active || reg.installing || reg.waiting
 
+        // Signal Service Worker to enable interception of requests
         workerInstance.postMessage('MOCK_ACTIVATE')
         worker = workerInstance
         workerRegistration = reg
@@ -50,6 +49,8 @@ const createStart = (
           serviceWorkerUrl,
           error,
         )
+
+        return null
       })
   }
 }
@@ -57,18 +58,17 @@ const createStart = (
 const createStop = (
   worker: ServiceWorker,
   workerRegistration: ServiceWorkerRegistration,
-) => {
+): PublicAPI['stop'] => {
   /**
    * Stops active running instance of MockServiceWorker.
    */
   return () => {
     if (!workerRegistration) {
-      return console.warn(
-        '[MSW] No active instance of MockServiceWorker is running.',
-      )
+      console.warn('[MSW] No active instance of MockServiceWorker is running.')
+      return null
     }
 
-    workerRegistration
+    return workerRegistration
       .unregister()
       .then(() => {
         worker = null

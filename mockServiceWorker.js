@@ -52,18 +52,32 @@ self.addEventListener('fetch', async (event) => {
     new Promise(async (resolve) => {
       const client = await event.target.clients.get(clientId)
 
+      // Bypass requests while MSW is not enabled
       if (!client || !self.__isMswEnabled) {
         return resolve(getOriginalResponse())
+      }
+
+      // Bypass requests with the explicit bypass header
+      if (req.headers.get('x-msw-bypass') === 'true') {
+        const modifiedHeaders = serializeHeaders(req.headers)
+        // Remove the bypass header to comply with the CORS preflight check
+        delete modifiedHeaders['x-msw-bypass']
+
+        return resolve(
+          fetch(
+            new Request(req.url, {
+              ...req,
+              headers: new Headers(modifiedHeaders),
+            }),
+          ),
+        )
       }
 
       /**
        * Converts "Headers" to the plain Object to be stringified.
        * @todo See how this handles multipe headers with the same name.
        */
-      const reqHeaders = {}
-      req.headers.forEach((value, name) => {
-        reqHeaders[name] = value
-      })
+      const reqHeaders = serializeHeaders(req.headers)
 
       /**
        * If the body cannot be resolved (either as JSON or to text/string),
@@ -79,10 +93,14 @@ self.addEventListener('fetch', async (event) => {
         cache: req.cache,
         mode: req.mode,
         credentials: req.credentials,
+        destination: req.destination,
+        integrity: req.integrity,
         redirect: req.redirect,
         referrer: req.referrer,
         referrerPolicy: req.referrerPolicy,
         body: json || text,
+        bodyUsed: req.bodyUsed,
+        keepalive: req.keepalive,
       })
 
       if (clientResponse === 'MOCK_NOT_FOUND') {
@@ -107,3 +125,11 @@ self.addEventListener('fetch', async (event) => {
     }),
   )
 })
+
+const serializeHeaders = (headers) => {
+  const reqHeaders = {}
+  headers.forEach((value, name) => {
+    reqHeaders[name] = value
+  })
+  return reqHeaders
+}

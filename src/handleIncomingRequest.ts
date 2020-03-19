@@ -1,6 +1,7 @@
 import { match } from 'node-match-path'
 import { MockedResponse, response } from './response'
 import { MockedRequest, RequestHandler } from './handlers/requestHandler'
+import { resolveRequestMask } from './utils/resolveRequestMask'
 
 const sendToWorker = (event: MessageEvent, message: string) => {
   const port = event.ports[0]
@@ -13,9 +14,20 @@ const sendToWorker = (event: MessageEvent, message: string) => {
 export const createIncomingRequestHandler = (
   requestHandlers: RequestHandler[],
 ) => {
-  return (event: MessageEvent) => {
+  return async (event: MessageEvent) => {
     const req: MockedRequest = JSON.parse(event.data, (key, value) => {
-      return key === 'headers' ? new Headers(value) : value
+      // Serialize headers
+      if (key === 'headers') {
+        return new Headers(value)
+      }
+
+      // Prevent empty fields from presering an empty value.
+      // It's invalid to perform a GET request with { body: "" }
+      if (value === '') {
+        return undefined
+      }
+
+      return value
     })
 
     const relevantRequestHandler = requestHandlers.find((requestHandler) => {
@@ -27,9 +39,11 @@ export const createIncomingRequestHandler = (
     }
 
     // Retrieve request URL parameters based on the provided mask
-    const params = relevantRequestHandler.mask
-      ? match(relevantRequestHandler.mask, req.url).params
-      : {}
+    const params =
+      (relevantRequestHandler.mask &&
+        match(resolveRequestMask(relevantRequestHandler.mask), req.url)
+          .params) ||
+      {}
 
     const requestWithParams: MockedRequest = {
       ...req,
@@ -40,7 +54,7 @@ export const createIncomingRequestHandler = (
 
     const mockedResponse:
       | MockedResponse
-      | undefined = relevantRequestHandler.resolver(
+      | undefined = await relevantRequestHandler.resolver(
       requestWithParams,
       response,
       context,

@@ -1,0 +1,11 @@
+import { Mask } from '../composeMocks'
+
+/**
+ * Resolves a relative URL to the absolute URL with the same hostname.
+ * Ignores regular expressions.
+ */
+export const resolveRequestMask = (mask: Mask) => {
+  return typeof mask === 'string' && mask.startsWith('/')
+    ? `${location.origin}${mask}`
+    : mask
+}

@@ -8,6 +8,8 @@ import { text } from '../context/text'
 import { json } from '../context/json'
 import { xml } from '../context/xml'
 import { delay } from '../context/delay'
+import { fetch } from '../context/fetch'
+import { resolveRequestMask } from '../utils/resolveRequestMask'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -26,6 +28,7 @@ interface RestHandlerContext {
   json: typeof json
   xml: typeof xml
   delay: typeof delay
+  fetch: typeof fetch
 }
 
 const createRESTHandler = (method: RESTMethods) => {
@@ -42,12 +45,7 @@ const createRESTHandler = (method: RESTMethods) => {
         // with the slash ("/"). This way such routes will match
         // the respective hostname's routes, while bypassing
         // the routes from different hosts.
-        const resolvedMask =
-          typeof mask === 'string' && mask.startsWith('/')
-            ? `${location.origin}${mask}`
-            : mask
-
-        const urlMatch = match(resolvedMask, req.url)
+        const urlMatch = match(resolveRequestMask(mask), req.url)
 
         return hasSameMethod && urlMatch.matches
       },
@@ -60,6 +58,7 @@ const createRESTHandler = (method: RESTMethods) => {
           json,
           xml,
           delay,
+          fetch,
         }
       },
       resolver,

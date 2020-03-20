@@ -33,6 +33,7 @@
     "graphql": "^14.6.0",
     "node-match-path": "^0.3.0",
     "ramda": "^0.27.0",
+    "statuses": "^1.5.0",
     "yargs": "^15.1.0"
   },
   "devDependencies": {

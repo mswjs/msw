@@ -1,4 +1,4 @@
-import * as R from 'ramda'
+import statuses from 'statuses/codes.json'
 import { ResponseTransformer } from '../response'
 
 export const status = (
@@ -7,10 +7,7 @@ export const status = (
 ): ResponseTransformer => {
   return (res) => {
     res.status = statusCode
-
-    if (statusText) {
-      res.statusText = statusText
-    }
+    res.statusText = statusText || statuses[statusCode]
 
     return res
   }

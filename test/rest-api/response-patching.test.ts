@@ -51,4 +51,43 @@ describe('REST: Response patching', () => {
       })
     })
   })
+
+  describe('given a post request to be patched', () => {
+    it('should be able to properly request and patch a post', async () => {
+      const REQUEST_URL = 'https://jsonplaceholder.typicode.com/posts'
+
+      api.page.evaluate(
+        (url) =>
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: 'foo',
+              body: 'bar',
+              userId: 1,
+            }),
+          }),
+        REQUEST_URL,
+      )
+      const res = await api.page.waitForResponse((res) => {
+        return (
+          // Await for the response from MSW, so that original response
+          // from the same URL would not interfere.
+          res.url() === REQUEST_URL && res.headers()['x-powered-by'] === 'msw'
+        )
+      })
+      const body = await res.json()
+
+      expect(res.status()).toBe(200)
+      expect(body).toEqual({
+        id: 101,
+        title: 'foo',
+        body: 'bar',
+        userId: 1,
+        mocked: true,
+      })
+    })
+  })
 })

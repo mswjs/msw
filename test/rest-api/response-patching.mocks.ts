@@ -28,6 +28,19 @@ const { start } = composeMocks(
       )
     },
   ),
+
+  rest.post(
+    'https://jsonplaceholder.typicode.com/posts',
+    async (req, res, ctx) => {
+      const originalResponse = await ctx.fetch(req)
+      return res(
+        ctx.json({
+          ...originalResponse,
+          mocked: true,
+        }),
+      )
+    },
+  ),
 )
 
 start()

@@ -1,6 +1,5 @@
 import { RequestHandler } from './handlers/requestHandler'
 import { createIncomingRequestHandler } from './handleIncomingRequest'
-import { reject } from 'ramda'
 
 export type Mask = RegExp | string
 
@@ -81,7 +80,7 @@ const createStop = (
 }
 
 export const composeMocks = (
-  ...requestHandlers: RequestHandler[]
+  ...requestHandlers: RequestHandler<any>[]
 ): PublicAPI => {
   let worker: ServiceWorker
   let workerRegistration: ServiceWorkerRegistration

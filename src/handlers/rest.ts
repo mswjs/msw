@@ -20,22 +20,22 @@ export enum RESTMethods {
   DELETE = 'DELETE',
 }
 
-interface RestHandlerContext {
-  set: typeof set
-  status: typeof status
-  body: typeof body
-  text: typeof text
-  json: typeof json
-  xml: typeof xml
-  delay: typeof delay
-  fetch: typeof fetch
+export const restContext = {
+  set,
+  status,
+  body,
+  text,
+  json,
+  xml,
+  delay,
+  fetch,
 }
 
 const createRESTHandler = (method: RESTMethods) => {
   return (
     mask: Mask,
-    resolver: ResponseResolver<RestHandlerContext>,
-  ): RequestHandler<RestHandlerContext> => {
+    resolver: ResponseResolver<typeof restContext>,
+  ): RequestHandler<typeof restContext> => {
     return {
       mask,
       predicate(req) {
@@ -50,16 +50,7 @@ const createRESTHandler = (method: RESTMethods) => {
         return hasSameMethod && urlMatch.matches
       },
       defineContext() {
-        return {
-          set,
-          status,
-          body,
-          text,
-          json,
-          xml,
-          delay,
-          fetch,
-        }
+        return restContext
       },
       resolver,
     }

@@ -1,5 +1,16 @@
 import { Mask } from '../composeMocks'
 import { ResponseComposition, MockedResponse } from '../response'
+import { status } from '../context/status'
+import { set } from '../context/set'
+import { delay } from '../context/delay'
+import { fetch } from '../context/fetch'
+
+export const defaultContext = {
+  status,
+  set,
+  delay,
+  fetch,
+}
 
 export interface MockedRequest {
   url: Request['url']
@@ -23,20 +34,20 @@ export type RequestParams = {
   [paramName: string]: any
 }
 
-export type ResponseResolver<ContextType = any> = (
+export type ResponseResolver<ContextType = typeof defaultContext> = (
   req: MockedRequest,
   res: ResponseComposition,
   context: ContextType,
 ) => Promise<MockedResponse> | MockedResponse
 
-export interface RequestHandler<ContextType = any> {
+export interface RequestHandler<ContextType = typeof defaultContext> {
   mask?: Mask
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
   predicate: (req: MockedRequest) => boolean
   resolver: ResponseResolver<ContextType>
-  defineContext: (req: MockedRequest) => ContextType
+  defineContext?: (req: MockedRequest) => ContextType
 }
 
 export default null

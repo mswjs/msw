@@ -4,6 +4,7 @@ import { MockedResponse, ResponseComposition } from '../response'
 import { set } from '../context/set'
 import { status } from '../context/status'
 import { delay } from '../context/delay'
+import { fetch } from '../context/fetch'
 import { data, DataContext } from '../context/data'
 import { errors } from '../context/errors'
 
@@ -22,6 +23,7 @@ interface GraphQLMockedContext<QueryType> {
   set: typeof set
   status: typeof status
   delay: typeof delay
+  fetch: typeof fetch
   data: DataContext<QueryType>
   errors: typeof errors
 }
@@ -39,6 +41,15 @@ interface GraphQLRequestPayload<VariablesType> {
 
 interface ParsedQueryPayload {
   operationName: string
+}
+
+export const graphqlContext: GraphQLMockedContext<any> = {
+  set,
+  status,
+  delay,
+  fetch,
+  data,
+  errors,
 }
 
 const parseQuery = (
@@ -95,13 +106,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
         return isMatchingOperation
       },
       defineContext() {
-        return {
-          set,
-          status,
-          delay,
-          data,
-          errors,
-        }
+        return graphqlContext
       },
       resolver,
     }

@@ -1,6 +1,10 @@
 import { match } from 'node-match-path'
 import { MockedResponse, response } from './response'
-import { MockedRequest, RequestHandler } from './handlers/requestHandler'
+import {
+  MockedRequest,
+  RequestHandler,
+  defaultContext,
+} from './handlers/requestHandler'
 import { resolveRequestMask } from './utils/resolveRequestMask'
 
 const sendToWorker = (event: MessageEvent, message: string) => {
@@ -38,23 +42,22 @@ export const createIncomingRequestHandler = (
       return sendToWorker(event, 'MOCK_NOT_FOUND')
     }
 
+    const { mask, defineContext, resolver } = relevantRequestHandler
+
     // Retrieve request URL parameters based on the provided mask
     const params =
-      (relevantRequestHandler.mask &&
-        match(resolveRequestMask(relevantRequestHandler.mask), req.url)
-          .params) ||
-      {}
+      (mask && match(resolveRequestMask(mask), req.url).params) || {}
 
     const requestWithParams: MockedRequest = {
       ...req,
       params,
     }
 
-    const context = relevantRequestHandler.defineContext(requestWithParams)
+    const context = defineContext
+      ? defineContext(requestWithParams)
+      : defaultContext
 
-    const mockedResponse:
-      | MockedResponse
-      | undefined = await relevantRequestHandler.resolver(
+    const mockedResponse: MockedResponse | undefined = await resolver(
       requestWithParams,
       response,
       context,

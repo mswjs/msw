@@ -13,8 +13,8 @@ describe('status', () => {
       expect(result).toHaveProperty('status', 403)
     })
 
-    it('should have the default status text (OK)', () => {
-      expect(result).toHaveProperty('statusText', 'OK')
+    it('should have the status text associated with the status code', () => {
+      expect(result).toHaveProperty('statusText', 'Forbidden')
     })
   })
 

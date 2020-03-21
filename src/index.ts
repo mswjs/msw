@@ -2,7 +2,7 @@
 export * from './handlers/requestHandler'
 
 export { composeMocks } from './composeMocks'
-export { ResponseTransformer, response } from './response'
+export { MockedResponse, ResponseTransformer, response } from './response'
 export * as context from './context'
 
 /* Request handlers */

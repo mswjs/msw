@@ -5,7 +5,7 @@ import {
   RequestHandler,
   defaultContext,
 } from './handlers/requestHandler'
-import { resolveRequestMask } from './utils/resolveRequestMask'
+import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
 
 const sendToWorker = (event: MessageEvent, message: string) => {
   const port = event.ports[0]
@@ -49,7 +49,7 @@ export const createIncomingRequestHandler = (
 
     // Retrieve request URL parameters based on the provided mask
     const params =
-      (mask && match(resolveRequestMask(mask), req.url).params) || {}
+      (mask && match(resolveRelativeUrl(mask), req.url).params) || {}
 
     const requestWithParams: MockedRequest = {
       ...req,

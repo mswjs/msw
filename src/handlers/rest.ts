@@ -9,7 +9,7 @@ import { json } from '../context/json'
 import { xml } from '../context/xml'
 import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
-import { resolveRequestMask } from '../utils/resolveRequestMask'
+import { resolveRelativeUrl } from '../utils/resolveRelativeUrl'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -42,12 +42,7 @@ const createRESTHandler = (method: RESTMethods) => {
         // Ignore query parameters and hash when matching requests URI
         const rawUrl = parsedUrl.origin + parsedUrl.pathname
         const hasSameMethod = method === req.method
-
-        // Prepends a host origin to the routes that start
-        // with the slash ("/"). This way such routes will match
-        // the respective hostname's routes, while bypassing
-        // the routes from different hosts.
-        const urlMatch = match(resolveRequestMask(mask), rawUrl)
+        const urlMatch = match(resolveRelativeUrl(mask), rawUrl)
 
         return hasSameMethod && urlMatch.matches
       },

@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
-describe('REST: URI Parameters', () => {
+describe('REST: URI parameters', () => {
   let api: TestAPI
 
   beforeAll(async () => {

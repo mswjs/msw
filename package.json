@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Deviation-less client-side runtime API mocking using Service Workers.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

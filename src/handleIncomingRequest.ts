@@ -34,8 +34,11 @@ export const createIncomingRequestHandler = (
       return value
     })
 
+    const parsedUrl = new URL(req.url)
+    req.query = parsedUrl.searchParams
+
     const relevantRequestHandler = requestHandlers.find((requestHandler) => {
-      return requestHandler.predicate(req)
+      return requestHandler.predicate(req, parsedUrl)
     })
 
     if (relevantRequestHandler == null) {

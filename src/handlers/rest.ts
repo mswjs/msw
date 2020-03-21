@@ -38,14 +38,16 @@ const createRESTHandler = (method: RESTMethods) => {
   ): RequestHandler<typeof restContext> => {
     return {
       mask,
-      predicate(req) {
+      predicate(req, parsedUrl) {
+        // Ignore query parameters and hash when matching requests URI
+        const rawUrl = parsedUrl.origin + parsedUrl.pathname
         const hasSameMethod = method === req.method
 
         // Prepends a host origin to the routes that start
         // with the slash ("/"). This way such routes will match
         // the respective hostname's routes, while bypassing
         // the routes from different hosts.
-        const urlMatch = match(resolveRequestMask(mask), req.url)
+        const urlMatch = match(resolveRequestMask(mask), rawUrl)
 
         return hasSameMethod && urlMatch.matches
       },

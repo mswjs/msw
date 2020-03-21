@@ -27,7 +27,12 @@ export interface MockedRequest {
   referrerPolicy: Request['referrerPolicy']
   body: Record<string, any> | string
   bodyUsed: Request['bodyUsed']
+  query: URLSearchParams
   params: RequestParams
+}
+
+export type RequestQuery = {
+  [queryName: string]: any
 }
 
 export type RequestParams = {
@@ -45,7 +50,7 @@ export interface RequestHandler<ContextType = typeof defaultContext> {
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
-  predicate: (req: MockedRequest) => boolean
+  predicate: (req: MockedRequest, parsedUrl?: URL) => boolean
   resolver: ResponseResolver<ContextType>
   defineContext?: (req: MockedRequest) => ContextType
 }

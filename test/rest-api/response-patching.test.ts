@@ -56,21 +56,20 @@ describe('REST: Response patching', () => {
     it('should be able to properly request and patch a post', async () => {
       const REQUEST_URL = 'https://jsonplaceholder.typicode.com/posts'
 
-      api.page.evaluate(
-        (url) =>
-          fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              title: 'foo',
-              body: 'bar',
-              userId: 1,
-            }),
-          }),
-        REQUEST_URL,
-      )
+      const data = {
+        url: REQUEST_URL,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'foo',
+          body: 'bar',
+          userId: 1,
+        }),
+      }
+
+      api.page.evaluate((url, req) => fetch(url, req), REQUEST_URL, data)
       const res = await api.page.waitForResponse((res) => {
         return (
           // Await for the response from MSW, so that original response

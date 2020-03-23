@@ -57,7 +57,6 @@ describe('REST: Response patching', () => {
       const REQUEST_URL = 'https://jsonplaceholder.typicode.com/posts'
 
       const data = {
-        url: REQUEST_URL,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

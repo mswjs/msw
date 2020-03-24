@@ -8,6 +8,7 @@
 /* tslint:disable */
 
 const bannerStyle = 'color:orangered;font-weight:bold;'
+const bypassHeaderName = 'x-msw-bypass'
 
 self.addEventListener('install', function() {
   return self.skipWaiting()
@@ -80,10 +81,10 @@ self.addEventListener('fetch', async function(event) {
       }
 
       // Bypass requests with the explicit bypass header
-      if (request.headers.get('x-msw-bypass') === 'true') {
+      if (request.headers.get(bypassHeaderName) === 'true') {
         const modifiedHeaders = serializeHeaders(request.headers)
         // Remove the bypass header to comply with the CORS preflight check
-        delete modifiedHeaders['x-msw-bypass']
+        delete modifiedHeaders[bypassHeaderName]
 
         return resolve(
           fetch(

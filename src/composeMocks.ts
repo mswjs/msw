@@ -1,5 +1,7 @@
+import { until } from '@open-draft/until'
 import { RequestHandler } from './handlers/requestHandler'
 import { createIncomingRequestHandler } from './handleIncomingRequest'
+import { requestIntegrityCheck } from './requestIntegrityCheck'
 
 export type Mask = RegExp | string
 
@@ -16,9 +18,9 @@ const createStart = (
   workerRegistration: ServiceWorkerRegistration,
 ): PublicAPI['start'] => {
   /**
-   * Starts MockServiceWorker.
+   * Registers and activates the MockServiceWorker at the given URL.
    */
-  return (serviceWorkerUrl = './mockServiceWorker.js', options) => {
+  return async (serviceWorkerUrl = './mockServiceWorker.js', options) => {
     if (workerRegistration) {
       return workerRegistration.update().then(() => workerRegistration)
     }
@@ -30,27 +32,52 @@ const createStart = (
       }
     })
 
-    return navigator.serviceWorker
-      .register(serviceWorkerUrl, options)
-      .then((reg) => {
-        const workerInstance = reg.active || reg.installing || reg.waiting
+    const [error, data] = await until<
+      [ServiceWorker, ServiceWorkerRegistration]
+    >(() =>
+      navigator.serviceWorker
+        .register(serviceWorkerUrl, options)
+        .then((registration) => {
+          const instance =
+            registration.active ||
+            registration.installing ||
+            registration.waiting
+          return [instance, registration]
+        }),
+    )
 
-        // Signal Service Worker to enable interception of requests
-        workerInstance.postMessage('MOCK_ACTIVATE')
-        worker = workerInstance
-        workerRegistration = reg
+    if (error) {
+      console.error(
+        '[MSW] Failed to register Service Worker (%s). %o',
+        serviceWorkerUrl,
+        error,
+      )
+      return
+    }
 
-        return reg
-      })
-      .catch((error) => {
-        console.error(
-          '[MSW] Failed to register MockServiceWorker (%s). %o',
-          serviceWorkerUrl,
-          error,
-        )
+    const [serviceWorker, registration] = data
 
-        return null
-      })
+    const [integrityError] = await until(() =>
+      requestIntegrityCheck(serviceWorker),
+    )
+
+    if (integrityError) {
+      console.error(`\
+[MSW] Failed to activate Service Worker: integrity check didn't pass.
+
+This error most likely means that the "mockServiceWorker.js" file served by your application is older than the Service Worker module distributed in the latest release of the library. Please update your Service Worker by running the following command in your project's root directory:
+
+$ npx msw init <PUBLIC_DIR>
+
+If this error message persists after the successful initialization of a new Service Worker, please report an issue: https://github.com/open-draft/msw/issues\
+      `)
+      return
+    }
+
+    // Signal Service Worker to enable requests interception
+    serviceWorker.postMessage('MOCK_ACTIVATE')
+    worker = serviceWorker
+    workerRegistration = registration
   }
 }
 
@@ -63,7 +90,7 @@ const createStop = (
    */
   return () => {
     if (!workerRegistration) {
-      console.warn('[MSW] No active instance of MockServiceWorker is running.')
+      console.warn('[MSW] No active instance of Service Worker is running.')
       return null
     }
 
@@ -74,7 +101,7 @@ const createStop = (
         workerRegistration = null
       })
       .catch((error) => {
-        console.error('[MSW] Failed to unregister MockServiceWorker. %o', error)
+        console.error('[MSW] Failed to unregister Service Worker. %o', error)
       })
   }
 }

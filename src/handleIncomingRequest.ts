@@ -6,33 +6,41 @@ import {
   defaultContext,
 } from './handlers/requestHandler'
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
+import { createBroadcastChannel } from './utils/createBroadcastChannel'
 
-const sendToWorker = (event: MessageEvent, message: string) => {
-  const port = event.ports[0]
-
-  if (port) {
-    port.postMessage(message)
-  }
+interface ServiceWorkerMessage<T> {
+  type: string
+  payload: T
 }
 
 export const createIncomingRequestHandler = (
   requestHandlers: RequestHandler[],
 ) => {
   return async (event: MessageEvent) => {
-    const req: MockedRequest = JSON.parse(event.data, (key, value) => {
-      // Serialize headers
-      if (key === 'headers') {
-        return new Headers(value)
-      }
+    const channel = createBroadcastChannel(event)
+    const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
+      event.data,
+      (key, value) => {
+        // Serialize headers
+        if (key === 'headers') {
+          return new Headers(value)
+        }
 
-      // Prevent empty fields from presering an empty value.
-      // It's invalid to perform a GET request with { body: "" }
-      if (value === '') {
-        return undefined
-      }
+        // Prevent empty fields from presering an empty value.
+        // It's invalid to perform a GET request with { body: "" }
+        if (value === '') {
+          return undefined
+        }
 
-      return value
-    })
+        return value
+      },
+    )
+
+    const { type, payload: req } = message
+
+    if (type !== 'REQUEST') {
+      return null
+    }
 
     const parsedUrl = new URL(req.url)
     req.query = parsedUrl.searchParams
@@ -42,7 +50,7 @@ export const createIncomingRequestHandler = (
     })
 
     if (relevantRequestHandler == null) {
-      return sendToWorker(event, 'MOCK_NOT_FOUND')
+      return channel.send('MOCK_NOT_FOUND')
     }
 
     const { mask, defineContext, resolver } = relevantRequestHandler
@@ -72,7 +80,7 @@ export const createIncomingRequestHandler = (
         mockedResponse,
       )
 
-      return sendToWorker(event, 'MOCK_NOT_FOUND')
+      return channel.send('MOCK_NOT_FOUND')
     }
 
     // Transform Headers into a list to be stringified preserving multiple
@@ -83,6 +91,6 @@ export const createIncomingRequestHandler = (
       headers: Array.from(mockedResponse.headers.entries()),
     }
 
-    sendToWorker(event, JSON.stringify(responseWithHeaders))
+    channel.send(JSON.stringify(responseWithHeaders))
   }
 }

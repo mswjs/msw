@@ -20,7 +20,7 @@ module.exports = function(args) {
     resolvedPublicDir,
   )
 
-  const swSrcFilepath = path.resolve(__dirname, '../mockServiceWorker.js')
+  const swSrcFilepath = path.resolve(__dirname, '../lib/mockServiceWorker.js')
   const swFilename = path.basename(swSrcFilepath)
   const swDestFilepath = path.resolve(resolvedPublicDir, swFilename)
   fs.copyFile(swSrcFilepath, swDestFilepath, (error) => {

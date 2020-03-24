@@ -7,6 +7,7 @@
 /* eslint-disable */
 /* tslint:disable */
 
+const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const bannerStyle = 'color:orangered;font-weight:bold;'
 const bypassHeaderName = 'x-msw-bypass'
 
@@ -15,17 +16,27 @@ self.addEventListener('install', function() {
 })
 
 self.addEventListener('activate', function() {
-  console.log('%c[MSW] Service Worker activated.', bannerStyle)
   return self.clients.claim()
 })
 
-self.addEventListener('message', function(event) {
+self.addEventListener('message', async function(event) {
   switch (event.data) {
+    case 'INTEGRITY_CHECK_REQUEST': {
+      const clientId = event.source.id
+      const client = await event.currentTarget.clients.get(clientId)
+
+      messageClient(client, {
+        type: 'INTEGRITY_CHECK_RESPONSE',
+        payload: INTEGRITY_CHECKSUM,
+      })
+      break
+    }
+
     case 'MOCK_ACTIVATE': {
       self.__isMswEnabled = true
       console.groupCollapsed('%c[MSW] Mocking enabled.', bannerStyle)
       console.log(
-        '%cGetting started: %chttps://redd.gitbook.io/msw/getting-started',
+        '%cDocumentation: %chttps://redd.gitbook.io/msw',
         'font-weight:bold',
         'font-weight:normal',
       )
@@ -89,7 +100,7 @@ self.addEventListener('fetch', async function(event) {
         return resolve(
           fetch(
             new Request(request.url, {
-              ...req,
+              ...request,
               headers: new Headers(modifiedHeaders),
             }),
           ),
@@ -107,20 +118,23 @@ self.addEventListener('fetch', async function(event) {
         .catch(() => null)
 
       const clientResponse = await messageClient(client, {
-        url: request.url,
-        method: request.method,
-        headers: reqHeaders,
-        cache: request.cache,
-        mode: request.mode,
-        credentials: request.credentials,
-        destination: request.destination,
-        integrity: request.integrity,
-        redirect: request.redirect,
-        referrer: request.referrer,
-        referrerPolicy: request.referrerPolicy,
-        body,
-        bodyUsed: request.bodyUsed,
-        keepalive: request.keepalive,
+        type: 'REQUEST',
+        payload: {
+          url: request.url,
+          method: request.method,
+          headers: reqHeaders,
+          cache: request.cache,
+          mode: request.mode,
+          credentials: request.credentials,
+          destination: request.destination,
+          integrity: request.integrity,
+          redirect: request.redirect,
+          referrer: request.referrer,
+          referrerPolicy: request.referrerPolicy,
+          body,
+          bodyUsed: request.bodyUsed,
+          keepalive: request.keepalive,
+        },
       })
 
       if (clientResponse === 'MOCK_NOT_FOUND') {

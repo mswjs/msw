@@ -67,7 +67,7 @@ Resolved "msw" module to:
 
   const wds = new WebpackDevServer(compiler, {
     historyApiFallback: true,
-    contentBase: path.resolve(__dirname, '../..'),
+    contentBase: path.resolve(__dirname, '../../lib'),
     publicPath: '/',
     noInfo: true,
     openPage: '/test/support',

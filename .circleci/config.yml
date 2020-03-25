@@ -20,6 +20,9 @@ jobs:
             node --version
             npm --version
             yarn --version
+      - run:
+          name: Service Worker integrity
+          command: cat integrity.json
 
       - run:
           name: Installing dependencies

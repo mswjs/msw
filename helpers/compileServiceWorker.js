@@ -1,10 +1,8 @@
 const fs = require('fs')
+const path = require('path')
 const util = require('util')
 const chalk = require('chalk')
 const { until } = require('@open-draft/until')
-
-const readFile = util.promisify(fs.readFile)
-const writeFile = util.promisify(fs.writeFile)
 
 /**
  * Copies the given Service Worker source file into the destination.
@@ -18,16 +16,28 @@ module.exports = async function compileServiceWorker(
   console.log('Compiling Service Worker...')
 
   const [readError, fileContent] = await until(() =>
-    readFile(sourceFilePath, 'utf8'),
+    fs.promises.readFile(sourceFilePath, 'utf8'),
   )
 
   if (readError) {
     throw new Error('Failed to read file.\n${readError.message}')
   }
 
+  const destFileDirectory = path.dirname(destFilePath)
+  console.log(
+    'Checking if "%s" path exists...',
+    destFileDirectory,
+    fs.existsSync(destFileDirectory),
+  )
+
+  if (!fs.existsSync(destFileDirectory)) {
+    console.log('Destination directory does not exist, creating...')
+    await fs.promises.mkdir(destFileDirectory, { recursive: true })
+  }
+
   const nextFileContent = fileContent.replace('<INTEGRITY_CHECKSUM>', checksum)
   const [writeFileError] = await until(() =>
-    writeFile(destFilePath, nextFileContent),
+    fs.promises.writeFile(destFilePath, nextFileContent),
   )
 
   if (writeFileError) {

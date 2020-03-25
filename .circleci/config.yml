@@ -20,9 +20,6 @@ jobs:
             node --version
             npm --version
             yarn --version
-      - run:
-          name: Service Worker integrity
-          command: cat integrity.json
 
       - run:
           name: Installing dependencies
@@ -34,8 +31,16 @@ jobs:
             - ~/.cache/yarn
 
       - run:
+          name: Signing Service Worker
+          command: yarn sign
+
+      - run:
           name: Building the module
           command: yarn build
+
+      - run:
+          name: Distributed Service Worker preview
+          command: cat lib/mockServiceWorker.js
 
       - run:
           name: Unit tests

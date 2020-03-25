@@ -34,24 +34,34 @@
 - [**Getting started**](https://redd.gitbook.io/msw/getting-started)
 - [Recipes](https://redd.gitbook.io/msw/recipes)
 
-## Quick look
+## Quick start
+
+Install the library in your application:
 
 ```bash
 $ npm install msw --save-dev
 ```
 
-Now we have to put the `mockServiceWorker.js` file in your **public directory**. That is usually a directory being served by your server (i.e. `public/` or `dist/`). The placing of the file is done by running the following command from your project's root directory:
+Now we have to copy the Service Worker file that's responsible for requests interception. To do so, run the following command in your project's root directory:
 
 ```bash
 $ npx msw init <PUBLIC_DIR>
 ```
 
-> For example, in a Create React App you would have to run: `npx msw init public/`.
+> Provide the path to your public directory instead of the `<PUBLIC_DIR>` placeholder above. Your public directory is usually a directory being served by a server (i.e. `./public` or `./dist`). Running this command will place the `mockServiceWorker.js` file into given directory.
+>
+> For example, in [Create React App](https://github.com/facebook/create-react-app) you would run: `npx msw init ./public`
 
-MSW workflow consist of three phases:
+Once the Service Worker has been copied, we can continue with creating a mocking definition file. For the purpose of this short tutorial we are going to keep all our mocking logic in the `mocks.js` file, but the end file structure is up to you.
+
+```bash
+$ touch mock.js
+```
+
+Open that file and follow the example below to create your first mocking definition:
 
 ```js
-// src/mocks.js
+// mocks.js
 // 1. Import mocking utils
 import { composeMocks, rest } from 'msw'
 
@@ -72,20 +82,22 @@ const { start } = composeMocks(
 start()
 ```
 
-Import the `mocks.js` module into your application to enable the mocking.
+Import the `mocks.js` module into your application to enable the mocking. You can import the mocking definition file conditionally, so it's never loaded on production:
 
 ```js
 // src/index.js
-import './mocks'
+if (process.env.NODE_ENV === 'development') {
+  require('./mocks')
+}
 ```
 
-Once enabled, any requests matching the defined paths will be intercepted by Service Worker, which would respond with mocked responses.
+Verify the MSW is running by seeing a successful Service Worker activation message in the browser's console. Now any outgoing request of your application are intercepted by the Service Worker, signaled to the client-side library, and matched against the mocking definition. If a request matches any definition, its response is being mocked and returned to the browser.
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
 
 > Notice the `202 Mocked status (from ServiceWorker)` status in the response.
 
-There is a set of step-by-step tutorials to get you started with mocking the API type you need. Please refer to those tutorials below for more detailed instructions.
+We have prepared a set of step-by-step tutorials to get you started with mocking the API type you need. For example, did you know you can mock a GraphQL API using MSW? Find detailed instructions in the respective tutorials below.
 
 ## Tutorials
 

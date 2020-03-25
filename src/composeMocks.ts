@@ -78,6 +78,8 @@ If this error message persists after the successful initialization of a new Serv
     serviceWorker.postMessage('MOCK_ACTIVATE')
     worker = serviceWorker
     workerRegistration = registration
+
+    return workerRegistration
   }
 }
 

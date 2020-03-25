@@ -67,10 +67,15 @@ Resolved "msw" module to:
 
   const wds = new WebpackDevServer(compiler, {
     historyApiFallback: true,
-    contentBase: path.resolve(__dirname, '../../lib'),
+    contentBase: path.resolve(__dirname, '../..'),
     publicPath: '/',
     noInfo: true,
-    openPage: '/test/support',
+    openPage: '/test/support/index.html',
+    after(app) {
+      app.get('/mockServiceWorker.js', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '../../lib/mockServiceWorker.js'))
+      })
+    },
   })
 
   return new Promise((resolve, reject) => {

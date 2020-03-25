@@ -5,6 +5,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "declaration": false,
+    "allowJs": true,
     "baseUrl": ".",
     "paths": {
       "msw": [".."]

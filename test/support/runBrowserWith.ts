@@ -25,10 +25,13 @@ export const runBrowserWith = async (
   })
 
   const cleanup = () => {
-    return new Promise((resolve) => {
-      browser.close().then(() => {
-        server.close(resolve)
-      })
+    return new Promise((resolve, reject) => {
+      browser
+        .close()
+        .then(() => {
+          server.close(resolve)
+        })
+        .catch(reject)
     })
   }
 

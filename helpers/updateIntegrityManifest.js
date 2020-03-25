@@ -10,17 +10,13 @@ const INTEGRITY_FILE_PATH = path.resolve(__dirname, '..', 'integrity.json')
  * with the latest published integrity checksum.
  */
 module.exports = function updateIntegrityManifest(nextChecksum) {
-  const fileContent = JSON.parse(fs.readFileSync(INTEGRITY_FILE_PATH, 'utf8'))
-  const { serviceWorkerIntegrity: prevChecksum } = fileContent
-
-  const nextIntegrityContent = {
-    ...fileContent,
+  const integrityContent = {
     serviceWorkerIntegrity: nextChecksum,
   }
 
   fs.writeFile(
     INTEGRITY_FILE_PATH,
-    JSON.stringify(nextIntegrityContent, null, 2),
+    JSON.stringify(integrityContent, null, 2),
     (error) => {
       if (error) {
         console.error(chalk.red('Failed to update integrity manifest.'))
@@ -28,8 +24,7 @@ module.exports = function updateIntegrityManifest(nextChecksum) {
       }
 
       console.log(
-        'Integrity manifest updated!\n\tPrev: %s\n\tNext: %s',
-        chalk.red(prevChecksum),
+        'Integrity manifest updated with: %s',
         chalk.green(nextChecksum),
       )
     },

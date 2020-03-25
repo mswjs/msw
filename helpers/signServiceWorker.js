@@ -14,13 +14,18 @@ console.log(
 )
 
 async function prepublish() {
-  const checksum = getChecksum(SERVICE_WORKER_SOURCE_PATH)
-  await compileServiceWorker(
-    SERVICE_WORKER_SOURCE_PATH,
-    SERVICE_WORKER_BUILD_PATH,
-    checksum,
-  )
-  updateIntegrityManifest(checksum)
+  try {
+    const checksum = getChecksum(SERVICE_WORKER_SOURCE_PATH)
+    await compileServiceWorker(
+      SERVICE_WORKER_SOURCE_PATH,
+      SERVICE_WORKER_BUILD_PATH,
+      checksum,
+    )
+    updateIntegrityManifest(checksum)
+  } catch (error) {
+    console.error(error)
+    process.exit(1)
+  }
 }
 
 prepublish()

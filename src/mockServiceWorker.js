@@ -92,19 +92,16 @@ self.addEventListener('fetch', async function(event) {
       }
 
       // Bypass requests with the explicit bypass header
-      if (request.headers.get(bypassHeaderName) === 'true') {
-        const modifiedHeaders = serializeHeaders(request.headers)
+      if (requestClone.headers.get(bypassHeaderName) === 'true') {
+        const modifiedHeaders = serializeHeaders(requestClone.headers)
         // Remove the bypass header to comply with the CORS preflight check
         delete modifiedHeaders[bypassHeaderName]
 
-        return resolve(
-          fetch(
-            new Request(request.url, {
-              ...request,
-              headers: new Headers(modifiedHeaders),
-            }),
-          ),
-        )
+        const originalRequest = new Request(requestClone, {
+          headers: new Headers(modifiedHeaders),
+        })
+
+        return resolve(fetch(originalRequest))
       }
 
       /**

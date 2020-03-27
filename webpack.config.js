@@ -7,7 +7,11 @@ const { IntegrityWebpackPlugin } = require('./config/IntegrityWebpackPlugin')
 
 module.exports = {
   mode: process.env.NODE_ENV,
-  entry: ['regenerator-runtime/runtime', path.resolve(__dirname, 'src/index')],
+  entry: [
+    'regenerator-runtime/runtime',
+    SERVICE_WORKER_SOURCE_PATH,
+    path.resolve(__dirname, 'src/index'),
+  ],
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'lib'),
@@ -28,6 +32,10 @@ module.exports = {
             loader: 'awesome-typescript-loader',
           },
         ],
+      },
+      {
+        test: SERVICE_WORKER_SOURCE_PATH,
+        use: 'ignore-loader',
       },
       {
         test: /\.mjs$/,

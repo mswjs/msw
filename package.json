@@ -22,6 +22,7 @@
   },
   "license": "MIT",
   "files": [
+    "config/constants.js",
     "cli",
     "lib",
     "LICENSE.md",

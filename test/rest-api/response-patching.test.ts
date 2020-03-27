@@ -68,11 +68,9 @@ describe('REST: Response patching', () => {
         }),
       }
 
-      api.page.evaluate((url, req) => fetch(url, req), REQUEST_URL, data)
+      api.page.evaluate((url, init) => fetch(url, init), REQUEST_URL, data)
       const res = await api.page.waitForResponse((res) => {
         return (
-          // Await for the response from MSW, so that original response
-          // from the same URL would not interfere.
           res.url() === REQUEST_URL && res.headers()['x-powered-by'] === 'msw'
         )
       })
@@ -81,9 +79,6 @@ describe('REST: Response patching', () => {
       expect(res.status()).toBe(200)
       expect(body).toEqual({
         id: 101,
-        title: 'foo',
-        body: 'bar',
-        userId: 1,
         mocked: true,
       })
     })

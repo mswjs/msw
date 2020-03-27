@@ -1,14 +1,14 @@
-const integrity = require('../integrity.json')
-
 export const requestIntegrityCheck = (
   serviceWorker: ServiceWorker,
 ): Promise<ServiceWorker> => {
   return new Promise((resolve, reject) => {
     navigator.serviceWorker.addEventListener('message', (event) => {
-      const { type, payload: actualIntegrity } = JSON.parse(event.data)
+      const { type, payload: actualChecksum } = JSON.parse(event.data)
 
       if (type === 'INTEGRITY_CHECK_RESPONSE') {
-        if (integrity.serviceWorkerIntegrity !== actualIntegrity) {
+        // Compare the response from the Service Worker and the
+        // global variable set by webpack upon build.
+        if (SERVICE_WORKER_CHECKSUM !== actualChecksum) {
           return reject(new Error('Integrity assertion failed'))
         }
 

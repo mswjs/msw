@@ -10,6 +10,6 @@
     "declarationDir": "./lib",
     "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["global.d.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

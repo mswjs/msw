@@ -1,9 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { SERVICE_WORKER_SOURCE_PATH } from '../../helpers/constants'
+import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
-const compileServiceWorker = require('../../helpers/compileServiceWorker')
+const copyServiceWorker = require('../../config/IntegrityWebpackPlugin/utils/copyServiceWorker')
 
 describe('Integrity check', () => {
   describe('given a Service Worker with the latest published integrity', () => {
@@ -57,7 +57,7 @@ describe('Integrity check', () => {
 
     beforeAll(async () => {
       // Manually create a Service Worker file with invalid integrity
-      await compileServiceWorker(
+      await copyServiceWorker(
         SERVICE_WORKER_SOURCE_PATH,
         TEMP_SERVICE_WORKER_PATH,
         'intentionally-invalid-checksum',

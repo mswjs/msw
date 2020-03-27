@@ -24,7 +24,6 @@
   "files": [
     "cli",
     "lib",
-    "mockServiceWorker.js",
     "LICENSE.md",
     "README.md"
   ],

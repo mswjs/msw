@@ -5,4 +5,3 @@ lib
 tmp
 *-error.log
 ./package-lock.json
-integrity.json

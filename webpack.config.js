@@ -1,4 +1,9 @@
 const path = require('path')
+const {
+  SERVICE_WORKER_SOURCE_PATH,
+  SERVICE_WORKER_BUILD_PATH,
+} = require('./config/constants')
+const { IntegrityWebpackPlugin } = require('./config/IntegrityWebpackPlugin')
 
 module.exports = {
   mode: process.env.NODE_ENV,
@@ -13,11 +18,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.mjs$/,
-        include: /node_modules/,
-        type: 'javascript/auto',
-      },
-      {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: [
@@ -29,8 +29,19 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+      },
     ],
   },
+  plugins: [
+    new IntegrityWebpackPlugin({
+      src: SERVICE_WORKER_SOURCE_PATH,
+      output: SERVICE_WORKER_BUILD_PATH,
+    }),
+  ],
   optimization: {
     minimize: false,
   },

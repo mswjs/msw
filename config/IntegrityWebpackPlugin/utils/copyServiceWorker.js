@@ -8,7 +8,7 @@ const { until } = require('@open-draft/until')
  * Copies the given Service Worker source file into the destination.
  * Injects the integrity checksum into the destination file.
  */
-module.exports = async function compileServiceWorker(
+module.exports = async function copyServiceWorker(
   sourceFilePath,
   destFilePath,
   checksum,

@@ -4,8 +4,7 @@ const crypto = require('crypto')
 const minify = require('babel-minify')
 
 /**
- * Minifies and removes the comments from the given Service Worker module.
- * Generates an idempotent checksum based on its contents.
+ * Returns an MD5 checksum for minified and normalized Service Worker file.
  */
 module.exports = function getChecksum(sourceFilePath) {
   const fileContent = fs.readFileSync(sourceFilePath, 'utf8')

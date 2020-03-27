@@ -31,10 +31,6 @@ jobs:
             - ~/.cache/yarn
 
       - run:
-          name: Signing Service Worker
-          command: yarn sign
-
-      - run:
           name: Building the module
           command: yarn build
 

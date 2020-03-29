@@ -5,6 +5,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "declaration": false,
+    "noEmit": true,
     "allowJs": true,
     "baseUrl": ".",
     "paths": {

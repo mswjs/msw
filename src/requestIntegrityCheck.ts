@@ -8,8 +8,12 @@ export const requestIntegrityCheck = (
       if (type === 'INTEGRITY_CHECK_RESPONSE') {
         // Compare the response from the Service Worker and the
         // global variable set by webpack upon build.
-        if (SERVICE_WORKER_CHECKSUM !== actualChecksum) {
-          return reject(new Error('Integrity assertion failed'))
+        if (actualChecksum !== SERVICE_WORKER_CHECKSUM) {
+          return reject(
+            new Error(
+              `Currently active Service Worker (${actualChecksum}) is behind the latest published one (${SERVICE_WORKER_CHECKSUM}).`,
+            ),
+          )
         }
 
         resolve(serviceWorker)

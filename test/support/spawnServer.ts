@@ -71,6 +71,11 @@ Resolved "msw" module to:
     publicPath: '/',
     noInfo: true,
     openPage: '/test/support/index.html',
+    headers: {
+      // Allow for the test-only Service Workers from "/tmp" directory
+      // to be registered at the website's root.
+      'Service-Worker-Allowed': '/',
+    },
     after(app) {
       app.get('/mockServiceWorker.js', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../../lib/mockServiceWorker.js'))

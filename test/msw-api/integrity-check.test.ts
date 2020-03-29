@@ -74,11 +74,11 @@ describe('Integrity check', () => {
     })
 
     it('should throw a meaningful error in the console', async () => {
-      const errorMessages: string[] = []
+      const errors: string[] = []
 
       api.page.on('console', function(message) {
         if (message.type() === 'error') {
-          errorMessages.push(message.text())
+          errors.push(message.text())
         }
       })
 
@@ -87,24 +87,20 @@ describe('Integrity check', () => {
         waitUntil: 'networkidle0',
       })
 
-      const integrityError = errorMessages.find((message) => {
-        return message.startsWith(
-          `[MSW] Failed to activate Service Worker: integrity check didn't pass`,
-        )
+      const integrityError = errors.find((message) => {
+        return message.startsWith(`[MSW] Detected outdated Service Worker`)
       })
 
       expect(integrityError).toBeTruthy()
     })
 
-    it('should not enable any mocking', async () => {
+    it('should still leave the mocking enabled', async () => {
       const REQUEST_URL = 'https://api.github.com/users/octocat'
       api.page.evaluate((url) => fetch(url), REQUEST_URL)
-      console.log('request fired...')
       const res = await api.page.waitForResponse(REQUEST_URL)
-      console.log('response awaited!')
       const body = await res.json()
 
-      expect(body).not.toEqual({
+      expect(body).toEqual({
         mocked: true,
       })
     })

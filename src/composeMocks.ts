@@ -63,15 +63,15 @@ const createStart = (
 
     if (integrityError) {
       console.error(`\
-[MSW] Failed to activate Service Worker: integrity check didn't pass.
+[MSW] Detected outdated Service Worker: ${integrityError.message}
 
-This error most likely means that the "mockServiceWorker.js" file served by your application is older than the Service Worker module distributed in the latest release of the library. Please update your Service Worker by running the following command in your project's root directory:
+The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:
 
 $ npx msw init <PUBLIC_DIR>
 
-If this error message persists after the successful initialization of a new Service Worker, please report an issue: https://github.com/open-draft/msw/issues\
+This is necessary to ensure that the Service Worker is in sync with the library to guarantee its stability.
+If this message still persists after updating, please report an issue: https://github.com/open-draft/msw/issues\
       `)
-      return
     }
 
     // Signal Service Worker to enable requests interception

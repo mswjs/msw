@@ -11,7 +11,9 @@
     "paths": {
       "msw": [".."]
     },
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "sourceMap": false,
+    "watch": false
   },
   "include": ["**/*.ts"]
 }

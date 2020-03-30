@@ -7,12 +7,13 @@ import * as WebpackDevServer from 'webpack-dev-server'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as packageJson from '../../package.json'
 
-interface Payload {
+export interface SpawnServerAPI {
   server: WebpackDevServer
   origin: string
+  closeServer: () => Promise<void>
 }
 
-export const spawnServer = (mockDefs: string): Promise<Payload> => {
+export const spawnServer = (mockDefs: string): Promise<SpawnServerAPI> => {
   const absoluteMockPath = path.resolve(process.cwd(), mockDefs)
   const mswModulePath = path.resolve(__dirname, '../..', packageJson.main)
 
@@ -32,11 +33,13 @@ Resolved "msw" module to:
   const compiler = webpack({
     mode: 'development',
     target: 'web',
-    entry: [path.resolve(__dirname, 'utils'), absoluteMockPath],
+    entry: {
+      index: [path.resolve(__dirname, 'utils'), absoluteMockPath],
+    },
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
+          test: /\.ts$/,
           exclude: /node_modules/,
           loaders: [
             {
@@ -57,13 +60,25 @@ Resolved "msw" module to:
           mockDefs: `// ${mockDefs}\n${mockDefsContent}`,
         }),
       }),
+      new webpack.LoaderOptionsPlugin({
+        options: {
+          resolve: {
+            extensions: ['.ts', '.js'],
+          },
+        },
+      }),
     ],
+    optimization: {
+      minimize: false,
+      splitChunks: false,
+    },
     resolve: {
       alias: {
         msw: mswModulePath,
       },
       extensions: ['.ts', '.js'],
     },
+    devtool: false,
   })
 
   const wds = new WebpackDevServer(compiler, {
@@ -71,6 +86,7 @@ Resolved "msw" module to:
     contentBase: path.resolve(__dirname, '../..'),
     publicPath: '/',
     noInfo: true,
+    hot: false,
     openPage: '/test/support/index.html',
     headers: {
       // Allow for the test-only Service Workers from "/tmp" directory
@@ -78,29 +94,48 @@ Resolved "msw" module to:
       'Service-Worker-Allowed': '/',
     },
     after(app) {
-      app.get('/mockServiceWorker.js', (req, res) => {
+      app.get('/mockServiceWorker.js', (_, res) => {
         res.sendFile(path.resolve(__dirname, '../../lib/mockServiceWorker.js'))
       })
     },
   })
 
-  return new Promise((resolve, reject) => {
-    const server = wds.listen(0, 'localhost', (error) => {
-      if (error) {
-        return reject(error)
+  const closeServer = () => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        wds.close(resolve)
+      } catch (error) {
+        reject(error)
       }
+    })
+  }
 
-      const { port } = server.address() as AddressInfo
-      const origin = `http://localhost:${port}`
+  return new Promise((resolve, reject) => {
+    // Await for the compilation to finish before spawning the server.
+    // This prevents Puppeteer from waiting until the bundling is done
+    // when requesting to open the page that WDS serves.
+    compiler.hooks.done.tap('SpawnServer', () => {
+      const serverInstance = wds.listen(0, 'localhost', (error) => {
+        if (error) {
+          return reject(error)
+        }
 
-      console.log(
-        `
-Server established at %s
-`,
-        chalk.cyan(origin),
-      )
+        const { port } = serverInstance.address() as AddressInfo
+        const origin = `http://localhost:${port}`
 
-      resolve({ server: wds, origin })
+        console.log(
+          `
+  Server established at %s
+  `,
+          chalk.cyan(origin),
+        )
+
+        resolve({
+          server: wds,
+          origin,
+          closeServer,
+        })
+      })
     })
   })
 }

@@ -34,6 +34,8 @@ module.exports = {
         ],
       },
       {
+        // Ignore the Service Worker module so that its changes trigger the rebuild,
+        // but the module itself is not included in the built bundle.
         test: SERVICE_WORKER_SOURCE_PATH,
         use: 'ignore-loader',
       },

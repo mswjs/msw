@@ -7,13 +7,13 @@ export interface TestAPI {
   origin: string
   browser: puppeteer.Browser
   page: puppeteer.Page
-  cleanup: () => Promise<unknown>
+  cleanup: () => Promise<void>
 }
 
 export const runBrowserWith = async (
   mockDefinitionPath: string,
 ): Promise<TestAPI> => {
-  const { server, origin } = await spawnServer(mockDefinitionPath)
+  const { server, origin, closeServer } = await spawnServer(mockDefinitionPath)
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -25,17 +25,10 @@ export const runBrowserWith = async (
   })
 
   const cleanup = () => {
-    return new Promise((resolve, reject) => {
-      browser
-        .close()
-        .then(() => {
-          server.close(resolve)
-        })
-        .catch(reject)
-    })
+    return browser.close().then(closeServer)
   }
 
-  process.on('exit', cleanup)
+  // process.on('exit', cleanup)
 
   return {
     server,

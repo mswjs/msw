@@ -24,11 +24,6 @@ module.exports = async function copyServiceWorker(
   }
 
   const destFileDirectory = path.dirname(destFilePath)
-  console.log(
-    'Checking if "%s" path exists...',
-    destFileDirectory,
-    fs.existsSync(destFileDirectory),
-  )
 
   if (!fs.existsSync(destFileDirectory)) {
     console.log('Destination directory does not exist, creating...')

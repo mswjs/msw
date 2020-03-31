@@ -20,11 +20,11 @@ self.addEventListener('activate', function() {
 })
 
 self.addEventListener('message', async function(event) {
+  const clientId = event.source.id
+  const client = await event.currentTarget.clients.get(clientId)
+
   switch (event.data) {
     case 'INTEGRITY_CHECK_REQUEST': {
-      const clientId = event.source.id
-      const client = await event.currentTarget.clients.get(clientId)
-
       messageClient(client, {
         type: 'INTEGRITY_CHECK_RESPONSE',
         payload: INTEGRITY_CHECKSUM,
@@ -34,6 +34,11 @@ self.addEventListener('message', async function(event) {
 
     case 'MOCK_ACTIVATE': {
       self.__isMswEnabled = true
+      messageClient(client, {
+        type: 'MOCKING_ENABLED',
+        payload: true,
+      })
+
       console.groupCollapsed('%c[MSW] Mocking enabled.', bannerStyle)
       console.log(
         '%cDocumentation: %chttps://redd.gitbook.io/msw',

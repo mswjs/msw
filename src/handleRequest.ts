@@ -6,16 +6,12 @@ import {
   defaultContext,
 } from './handlers/requestHandler'
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
-import { createBroadcastChannel } from './utils/createBroadcastChannel'
+import {
+  ServiceWorkerMessage,
+  createBroadcastChannel,
+} from './utils/createBroadcastChannel'
 
-interface ServiceWorkerMessage<T> {
-  type: string
-  payload: T
-}
-
-export const createIncomingRequestHandler = (
-  requestHandlers: RequestHandler[],
-) => {
+export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
   return async (event: MessageEvent) => {
     const channel = createBroadcastChannel(event)
     const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(

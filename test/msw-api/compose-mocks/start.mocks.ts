@@ -8,5 +8,6 @@ const { start } = composeMocks(
 
 // @ts-ignore
 window.__MSW_REGISTRATION__ = start().then((reg) => {
+  console.log('Registration Promise resolved')
   return reg.constructor.name
 })

@@ -1,6 +1,5 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
-import { resolvePtr } from 'dns'
 
 describe('API: composeMocks / start', () => {
   let api: TestAPI
@@ -25,6 +24,30 @@ describe('API: composeMocks / start', () => {
 
     it('should return instance of ServiceWorkerRegistration', () => {
       expect(resolvedPayload).toBe('ServiceWorkerRegistration')
+    })
+
+    it('should resolve after the mocking has been activated', async () => {
+      const logs: string[] = []
+
+      api.page.on('console', function(message) {
+        if (message.type() === 'log') {
+          logs.push(message.text())
+        }
+      })
+
+      await api.page.goto(api.origin, {
+        waitUntil: 'networkidle0',
+      })
+
+      const activationMessageIndex = logs.findIndex((text) => {
+        return text.startsWith('[MSW] Mocking enabled')
+      })
+
+      const customMessageIndex = logs.findIndex((text) => {
+        return text.startsWith('Registration Promise resolved')
+      })
+
+      expect(customMessageIndex).toBeGreaterThan(activationMessageIndex)
     })
   })
 })

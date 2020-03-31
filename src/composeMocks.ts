@@ -1,7 +1,8 @@
 import { until } from '@open-draft/until'
 import { RequestHandler } from './handlers/requestHandler'
-import { createIncomingRequestHandler } from './handleIncomingRequest'
+import { handleRequestWith } from './handleRequest'
 import { requestIntegrityCheck } from './requestIntegrityCheck'
+import { addMessageListener } from './utils/createBroadcastChannel'
 
 export type Mask = RegExp | string
 
@@ -79,7 +80,16 @@ If this message still persists after updating, please report an issue: https://g
     worker = serviceWorker
     workerRegistration = registration
 
-    return workerRegistration
+    return new Promise((resolve, reject) => {
+      // Wait until the mocking is enabled to resolve the start Promise
+      addMessageListener(
+        'MOCKING_ENABLED',
+        () => {
+          resolve(workerRegistration)
+        },
+        reject,
+      )
+    })
   }
 }
 
@@ -90,21 +100,21 @@ const createStop = (
   /**
    * Stops active running instance of MockServiceWorker.
    */
-  return () => {
+  return async () => {
     if (!workerRegistration) {
       console.warn('[MSW] No active instance of Service Worker is running.')
       return null
     }
 
-    return workerRegistration
-      .unregister()
-      .then(() => {
-        worker = null
-        workerRegistration = null
-      })
-      .catch((error) => {
-        console.error('[MSW] Failed to unregister Service Worker. %o', error)
-      })
+    const [error] = await until(workerRegistration.unregister)
+
+    if (error) {
+      console.error('[MSW] Failed to unregister Service Worker. %o', error)
+      return
+    }
+
+    worker = null
+    workerRegistration = null
   }
 }
 
@@ -116,7 +126,7 @@ export const composeMocks = (
 
   navigator.serviceWorker.addEventListener(
     'message',
-    createIncomingRequestHandler(requestHandlers),
+    handleRequestWith(requestHandlers),
   )
 
   return {

@@ -12,7 +12,7 @@
     "build": "cross-env NODE_ENV=production webpack",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
-    "test:integration": "jest --config=test/jest.config.js --runInBand",
+    "test:integration": "node --max_old_space_size=8000 node_modules/.bin/jest --config=test/jest.config.js --runInBand",
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn test:unit && yarn build && yarn test:integration"
   },

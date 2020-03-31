@@ -25,7 +25,7 @@ self.addEventListener('message', async function(event) {
 
   switch (event.data) {
     case 'INTEGRITY_CHECK_REQUEST': {
-      messageClient(client, {
+      sendToClient(client, {
         type: 'INTEGRITY_CHECK_RESPONSE',
         payload: INTEGRITY_CHECKSUM,
       })
@@ -34,7 +34,7 @@ self.addEventListener('message', async function(event) {
 
     case 'MOCK_ACTIVATE': {
       self.__isMswEnabled = true
-      messageClient(client, {
+      sendToClient(client, {
         type: 'MOCKING_ENABLED',
         payload: true,
       })
@@ -66,7 +66,7 @@ function serializeHeaders(headers) {
   return reqHeaders
 }
 
-function messageClient(client, message) {
+function sendToClient(client, message) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -79,6 +79,13 @@ function messageClient(client, message) {
     }
 
     client.postMessage(JSON.stringify(message), [channel.port2])
+  })
+}
+
+function createResponse(clientMessage) {
+  return new Response(clientMessage.payload.body, {
+    ...clientMessage.payload,
+    headers: clientMessage.payload.headers,
   })
 }
 
@@ -119,7 +126,7 @@ self.addEventListener('fetch', async function(event) {
         .catch(() => request.text())
         .catch(() => null)
 
-      const clientResponse = await messageClient(client, {
+      const rawClientMessage = await sendToClient(client, {
         type: 'REQUEST',
         payload: {
           url: request.url,
@@ -139,20 +146,14 @@ self.addEventListener('fetch', async function(event) {
         },
       })
 
-      if (clientResponse === 'MOCK_NOT_FOUND') {
+      const clientMessage = JSON.parse(rawClientMessage)
+
+      if (clientMessage.type === 'MOCK_NOT_FOUND') {
         return resolve(getOriginalResponse())
       }
 
-      const mockedResponse = JSON.parse(clientResponse, (key, value) => {
-        if (key === 'headers') {
-          return new Headers(value)
-        }
-
-        return value
-      })
-
-      if (mockedResponse.type === 'INTERNAL_ERROR') {
-        const parsedBody = JSON.parse(mockedResponse.payload.body)
+      if (clientMessage.type === 'INTERNAL_ERROR') {
+        const parsedBody = JSON.parse(clientMessage.payload.body)
 
         console.error(
           `\
@@ -167,15 +168,16 @@ If you wish to mock an error response, please refer to this guide: https://redd.
           request.method,
           request.url,
         )
-        return resolve(
-          new Response(mockedResponse.payload.body, mockedResponse.payload),
-        )
+
+        return resolve(createResponse(clientMessage))
       }
 
-      setTimeout(
-        resolve.bind(this, new Response(mockedResponse.body, mockedResponse)),
-        mockedResponse.delay,
-      )
+      if (clientMessage.type === 'MOCK_SUCCESS') {
+        setTimeout(
+          resolve.bind(this, createResponse(clientMessage)),
+          clientMessage.delay,
+        )
+      }
     }).catch((error) => {
       console.error(
         '[MSW] Failed to mock a "%s" request to "%s": %s',

@@ -3,6 +3,11 @@ export interface ServiceWorkerMessage<T> {
   payload: T
 }
 
+export type ClientMessageTypes =
+  | 'MOCK_NOT_FOUND'
+  | 'MOCK_SUCCESS'
+  | 'INTERNAL_ERROR'
+
 /**
  * Creates a communication channel between the client
  * and the Service Worker associated with the given event.
@@ -14,9 +19,12 @@ export const createBroadcastChannel = (event: MessageEvent) => {
     /**
      * Sends a text message to the connected Service Worker.
      */
-    send(message: string) {
+    send(message: {
+      type: ClientMessageTypes
+      payload?: Record<string, any> | string
+    }) {
       if (port) {
-        port.postMessage(message)
+        port.postMessage(JSON.stringify(message))
       }
     },
   }

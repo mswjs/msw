@@ -48,7 +48,7 @@ export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
       })
 
       if (relevantRequestHandler == null) {
-        return channel.send('MOCK_NOT_FOUND')
+        return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
       const { mask, defineContext, resolver } = relevantRequestHandler
@@ -78,7 +78,7 @@ export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
           mockedResponse,
         )
 
-        return channel.send('MOCK_NOT_FOUND')
+        return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
       // Transform Headers into a list to be stringified preserving multiple
@@ -89,21 +89,22 @@ export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
         headers: Array.from(mockedResponse.headers.entries()),
       }
 
-      channel.send(JSON.stringify(responseWithHeaders))
+      channel.send({
+        type: 'MOCK_SUCCESS',
+        payload: responseWithHeaders,
+      })
     } catch (error) {
-      channel.send(
-        JSON.stringify({
-          type: 'INTERNAL_ERROR',
-          payload: {
-            status: 500,
-            body: JSON.stringify({
-              errorType: error.constructor.name,
-              message: error.message,
-              location: error.stack,
-            }),
-          },
-        }),
-      )
+      channel.send({
+        type: 'INTERNAL_ERROR',
+        payload: {
+          status: 500,
+          body: JSON.stringify({
+            errorType: error.constructor.name,
+            message: error.message,
+            location: error.stack,
+          }),
+        },
+      })
     }
   }
 }

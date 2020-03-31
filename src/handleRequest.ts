@@ -14,79 +14,96 @@ import {
 export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
   return async (event: MessageEvent) => {
     const channel = createBroadcastChannel(event)
-    const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
-      event.data,
-      (key, value) => {
-        // Serialize headers
-        if (key === 'headers') {
-          return new Headers(value)
-        }
 
-        // Prevent empty fields from presering an empty value.
-        // It's invalid to perform a GET request with { body: "" }
-        if (value === '') {
-          return undefined
-        }
+    try {
+      const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
+        event.data,
+        (key, value) => {
+          // Serialize headers
+          if (key === 'headers') {
+            return new Headers(value)
+          }
 
-        return value
-      },
-    )
+          // Prevent empty fields from presering an empty value.
+          // It's invalid to perform a GET request with { body: "" }
+          if (value === '') {
+            return undefined
+          }
 
-    const { type, payload: req } = message
-
-    if (type !== 'REQUEST') {
-      return null
-    }
-
-    const parsedUrl = new URL(req.url)
-    req.query = parsedUrl.searchParams
-
-    const relevantRequestHandler = requestHandlers.find((requestHandler) => {
-      return requestHandler.predicate(req, parsedUrl)
-    })
-
-    if (relevantRequestHandler == null) {
-      return channel.send('MOCK_NOT_FOUND')
-    }
-
-    const { mask, defineContext, resolver } = relevantRequestHandler
-
-    // Retrieve request URL parameters based on the provided mask
-    const params =
-      (mask && match(resolveRelativeUrl(mask), req.url).params) || {}
-
-    const requestWithParams: MockedRequest = {
-      ...req,
-      params,
-    }
-
-    const context = defineContext
-      ? defineContext(requestWithParams)
-      : defaultContext
-
-    const mockedResponse: MockedResponse | undefined = await resolver(
-      requestWithParams,
-      response,
-      context,
-    )
-
-    if (!mockedResponse) {
-      console.warn(
-        '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
-        mockedResponse,
+          return value
+        },
       )
 
-      return channel.send('MOCK_NOT_FOUND')
-    }
+      const { type, payload: req } = message
 
-    // Transform Headers into a list to be stringified preserving multiple
-    // header keys. Stringified list is then parsed inside the ServiceWorker.
-    const responseWithHeaders = {
-      ...mockedResponse,
-      // @ts-ignore
-      headers: Array.from(mockedResponse.headers.entries()),
-    }
+      if (type !== 'REQUEST') {
+        return null
+      }
 
-    channel.send(JSON.stringify(responseWithHeaders))
+      const parsedUrl = new URL(req.url)
+      req.query = parsedUrl.searchParams
+
+      const relevantRequestHandler = requestHandlers.find((requestHandler) => {
+        return requestHandler.predicate(req, parsedUrl)
+      })
+
+      if (relevantRequestHandler == null) {
+        return channel.send('MOCK_NOT_FOUND')
+      }
+
+      const { mask, defineContext, resolver } = relevantRequestHandler
+
+      // Retrieve request URL parameters based on the provided mask
+      const params =
+        (mask && match(resolveRelativeUrl(mask), req.url).params) || {}
+
+      const requestWithParams: MockedRequest = {
+        ...req,
+        params,
+      }
+
+      const context = defineContext
+        ? defineContext(requestWithParams)
+        : defaultContext
+
+      const mockedResponse: MockedResponse | undefined = await resolver(
+        requestWithParams,
+        response,
+        context,
+      )
+
+      if (!mockedResponse) {
+        console.warn(
+          '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
+          mockedResponse,
+        )
+
+        return channel.send('MOCK_NOT_FOUND')
+      }
+
+      // Transform Headers into a list to be stringified preserving multiple
+      // header keys. Stringified list is then parsed inside the ServiceWorker.
+      const responseWithHeaders = {
+        ...mockedResponse,
+        // @ts-ignore
+        headers: Array.from(mockedResponse.headers.entries()),
+      }
+
+      channel.send(JSON.stringify(responseWithHeaders))
+    } catch (error) {
+      channel.send(
+        JSON.stringify({
+          type: 'INTERNAL_ERROR',
+          payload: {
+            status: 500,
+            body: JSON.stringify({
+              errorType: error.constructor.name,
+              message: error.message,
+              location: error.stack,
+            }),
+          },
+        }),
+      )
+    }
   }
 }

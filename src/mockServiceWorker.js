@@ -144,8 +144,33 @@ self.addEventListener('fetch', async function(event) {
       }
 
       const mockedResponse = JSON.parse(clientResponse, (key, value) => {
-        return key === 'headers' ? new Headers(value) : value
+        if (key === 'headers') {
+          return new Headers(value)
+        }
+
+        return value
       })
+
+      if (mockedResponse.type === 'INTERNAL_ERROR') {
+        const parsedBody = JSON.parse(mockedResponse.payload.body)
+
+        console.error(
+          `\
+[MSW] Request handler function for "%s %s" has thrown the following exception:
+
+${parsedBody.errorType}: ${parsedBody.message}
+(see more detailed error stack trace in the mocked response body)
+
+This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error.
+If you wish to mock an error response, please refer to this guide: https://redd.gitbook.io/msw/recipes/mocking-error-responses\
+  `,
+          request.method,
+          request.url,
+        )
+        return resolve(
+          new Response(mockedResponse.payload.body, mockedResponse.payload),
+        )
+      }
 
       setTimeout(
         resolve.bind(this, new Response(mockedResponse.body, mockedResponse)),

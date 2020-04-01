@@ -40,9 +40,10 @@ Resolved "msw" module to:
           exclude: /node_modules/,
           loaders: [
             {
-              loader: 'awesome-typescript-loader',
+              loader: 'ts-loader',
               options: {
-                configFileName: path.resolve(__dirname, '../tsconfig.json'),
+                configFile: path.resolve(__dirname, '../tsconfig.json'),
+                transpileOnly: true,
               },
             },
           ],

@@ -29,7 +29,7 @@ module.exports = {
             loader: 'babel-loader',
           },
           {
-            loader: 'awesome-typescript-loader',
+            loader: 'ts-loader',
           },
         ],
       },

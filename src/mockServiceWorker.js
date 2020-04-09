@@ -11,15 +11,15 @@ const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const bannerStyle = 'color:orangered;font-weight:bold;'
 const bypassHeaderName = 'x-msw-bypass'
 
-self.addEventListener('install', function() {
+self.addEventListener('install', function () {
   return self.skipWaiting()
 })
 
-self.addEventListener('activate', function() {
+self.addEventListener('activate', function () {
   return self.clients.claim()
 })
 
-self.addEventListener('message', async function(event) {
+self.addEventListener('message', async function (event) {
   const clientId = event.source.id
   const client = await event.currentTarget.clients.get(clientId)
 
@@ -89,7 +89,7 @@ function createResponse(clientMessage) {
   })
 }
 
-self.addEventListener('fetch', async function(event) {
+self.addEventListener('fetch', async function (event) {
   const { clientId, request } = event
   const requestClone = request.clone()
   const getOriginalResponse = () => fetch(requestClone)
@@ -116,10 +116,6 @@ self.addEventListener('fetch', async function(event) {
         return resolve(fetch(originalRequest))
       }
 
-      /**
-       * Converts "Headers" to the plain Object to be stringified.
-       * @todo See how this handles multipe headers with the same name.
-       */
       const reqHeaders = serializeHeaders(request.headers)
       const body = await request
         .json()

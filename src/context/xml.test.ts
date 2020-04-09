@@ -1,6 +1,5 @@
 import { xml } from './xml'
 import { response } from '../response'
-import { assertHeader } from '../utils/assertHeader'
 
 describe('xml', () => {
   describe('given an XML string', () => {
@@ -11,7 +10,7 @@ describe('xml', () => {
     })
 
     it('should have "Content-Type" as "text/xml"', () => {
-      assertHeader(result.headers, 'Content-Type', 'text/xml')
+      expect(result.headers.get('content-type')).toEqual('text/xml')
     })
 
     it('should have body set to the given XML', () => {

@@ -1,6 +1,5 @@
 import { text } from './text'
 import { response } from '../response'
-import { assertHeader } from '../utils/assertHeader'
 
 describe('text', () => {
   describe('given a text body', () => {
@@ -11,7 +10,7 @@ describe('text', () => {
     })
 
     it('should have "Content-Type" as "text/plain"', () => {
-      assertHeader(result.headers, 'Content-Type', 'text/plain')
+      expect(result.headers.get('content-type')).toEqual('text/plain')
     })
 
     it('should have body set to the given text', () => {

@@ -1,6 +1,5 @@
 import { json } from './json'
 import { response } from '../response'
-import { assertHeader } from '../utils/assertHeader'
 
 describe('json', () => {
   describe('given a JSON body', () => {
@@ -11,7 +10,7 @@ describe('json', () => {
     })
 
     it('should have "Content-Type" as "application/json"', () => {
-      assertHeader(result.headers, 'Content-Type', 'application/json')
+      expect(result.headers.get('content-type')).toEqual('application/json')
     })
 
     it('should have body set to the given JSON', () => {

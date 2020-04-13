@@ -2,24 +2,24 @@ import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
 describe('XHR', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'xhr.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'xhr.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   it('should return the mocked response', async () => {
     const REQUEST_URL = 'https://api.github.com/users/octocat'
-    api.page.evaluate((url) => {
+    test.page.evaluate((url) => {
       const req = new XMLHttpRequest()
       req.open('GET', url)
       req.send()
     }, REQUEST_URL)
-    const res = await api.page.waitForResponse(REQUEST_URL)
+    const res = await test.page.waitForResponse(REQUEST_URL)
     const body = await res.json()
 
     expect(res.status()).toBe(200)

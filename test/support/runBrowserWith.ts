@@ -1,6 +1,34 @@
 import * as puppeteer from 'puppeteer'
+import { match } from 'node-match-path'
 import { spawnServer } from './spawnServer'
 import WebpackDevServer from 'webpack-dev-server'
+
+/**
+ * Requests a given URL within the test scenario's browser session.
+ */
+type RequestHelper = (options: {
+  url: string
+  fetchOptions?: RequestInit & Record<string, any>
+  responsePredicate?: (res: puppeteer.Response, url: string) => boolean
+}) => Promise<puppeteer.Response>
+
+const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
+  return async ({
+    url,
+    fetchOptions,
+    responsePredicate = (res) => {
+      // Use native matcher to preserve the standard matching behavior
+      // (i.e. disregard trailing slashes).
+      return match(url, res.url()).matches
+    },
+  }) => {
+    page.evaluate((a, b) => fetch(a, b), url, fetchOptions)
+
+    return page.waitForResponse((res) => {
+      return responsePredicate(res, url)
+    })
+  }
+}
 
 export interface TestAPI {
   server: WebpackDevServer
@@ -8,6 +36,9 @@ export interface TestAPI {
   browser: puppeteer.Browser
   page: puppeteer.Page
   cleanup: () => Promise<unknown>
+
+  /* Helpers */
+  request: RequestHelper
 }
 
 export const runBrowserWith = async (
@@ -43,5 +74,6 @@ export const runBrowserWith = async (
     browser,
     page,
     cleanup,
+    request: createRequestHelper(page),
   }
 }

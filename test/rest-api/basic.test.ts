@@ -2,22 +2,23 @@ import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
 describe('REST: Basic example', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'basic.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'basic.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   it('should receive mocked response', async () => {
-    const REQUEST_URL = 'https://api.github.com/users/octocat'
-    api.page.evaluate((url) => fetch(url), REQUEST_URL)
-    const res = await api.page.waitForResponse(REQUEST_URL)
+    const res = await test.request({
+      url: 'https://api.github.com/users/octocat',
+    })
     const body = await res.json()
 
+    expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
     expect(res.status()).toBe(200)
     expect(body).toEqual({
       name: 'John Maverick',

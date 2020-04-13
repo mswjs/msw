@@ -52,7 +52,7 @@ Resolved "msw" module to:
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: 'test/support/index.html',
+        template: 'test/support/template/index.html',
         templateParameters: () => ({
           mockDefs: `// ${mockDefs}\n${mockDefsContent}`,
         }),
@@ -71,7 +71,7 @@ Resolved "msw" module to:
     contentBase: path.resolve(__dirname, '../..'),
     publicPath: '/',
     noInfo: true,
-    openPage: '/test/support/index.html',
+    openPage: '/test/support/template/index.html',
     headers: {
       // Allow for the test-only Service Workers from "/tmp" directory
       // to be registered at the website's root.

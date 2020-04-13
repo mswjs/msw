@@ -7,28 +7,28 @@ const copyServiceWorker = require('../../config/IntegrityWebpackPlugin/utils/cop
 
 describe('Integrity check', () => {
   describe('given a Service Worker with the latest published integrity', () => {
-    let api: TestAPI
+    let test: TestAPI
 
     beforeAll(async () => {
-      api = await runBrowserWith(
+      test = await runBrowserWith(
         path.resolve(__dirname, 'integrity-check-valid.mocks.ts'),
       )
     })
 
     afterAll(() => {
-      return api.cleanup()
+      return test.cleanup()
     })
 
     it('should activate without errors', async () => {
       const errorMessages: string[] = []
 
-      api.page.on('console', function(message) {
+      test.page.on('console', function (message) {
         if (message.type() === 'error') {
           errorMessages.push(message.text())
         }
       })
 
-      await api.page.goto(api.origin, {
+      await test.page.goto(test.origin, {
         waitUntil: 'networkidle0',
       })
 
@@ -36,9 +36,9 @@ describe('Integrity check', () => {
     })
 
     it('should have the mocking enabled', async () => {
-      const REQUEST_URL = 'https://api.github.com/users/octocat'
-      api.page.evaluate((url) => fetch(url), REQUEST_URL)
-      const res = await api.page.waitForResponse(REQUEST_URL)
+      const res = await test.request({
+        url: 'https://api.github.com/users/octocat',
+      })
       const body = await res.json()
 
       expect(body).toEqual({
@@ -48,7 +48,7 @@ describe('Integrity check', () => {
   })
 
   describe('given a Service Worker with a non-matching integrity', () => {
-    let api: TestAPI
+    let test: TestAPI
     const TEMP_SERVICE_WORKER_PATH = path.resolve(
       __dirname,
       '../..',
@@ -63,27 +63,27 @@ describe('Integrity check', () => {
         'intentionally-invalid-checksum',
       )
 
-      api = await runBrowserWith(
+      test = await runBrowserWith(
         path.resolve(__dirname, 'integrity-check-invalid.mocks.ts'),
       )
     })
 
     afterAll(() => {
       fs.unlinkSync(TEMP_SERVICE_WORKER_PATH)
-      return api.cleanup()
+      return test.cleanup()
     })
 
     it('should throw a meaningful error in the console', async () => {
       const errors: string[] = []
 
-      api.page.on('console', function(message) {
+      test.page.on('console', function (message) {
         if (message.type() === 'error') {
           errors.push(message.text())
         }
       })
 
       // Open the page anew to trigger the console listener
-      await api.page.goto(api.origin, {
+      await test.page.goto(test.origin, {
         waitUntil: 'networkidle0',
       })
 
@@ -95,9 +95,9 @@ describe('Integrity check', () => {
     })
 
     it('should still leave the mocking enabled', async () => {
-      const REQUEST_URL = 'https://api.github.com/users/octocat'
-      api.page.evaluate((url) => fetch(url), REQUEST_URL)
-      const res = await api.page.waitForResponse(REQUEST_URL)
+      const res = await test.request({
+        url: 'https://api.github.com/users/octocat',
+      })
       const body = await res.json()
 
       expect(body).toEqual({

@@ -3,28 +3,28 @@ import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
 describe('Exception handling', () => {
   describe('given exception in a request handler', () => {
-    let api: TestAPI
+    let test: TestAPI
 
     beforeAll(async () => {
-      api = await runBrowserWith(
+      test = await runBrowserWith(
         path.resolve(__dirname, 'exception-handling.mocks.ts'),
       )
     })
 
     afterAll(() => {
-      return api.cleanup()
+      return test.cleanup()
     })
 
     it('should activate without errors', async () => {
       const errorMessages: string[] = []
 
-      api.page.on('console', function(message) {
+      test.page.on('console', function (message) {
         if (message.type() === 'error') {
           errorMessages.push(message.text())
         }
       })
 
-      await api.page.goto(api.origin, {
+      await test.page.goto(test.origin, {
         waitUntil: 'networkidle0',
       })
 
@@ -32,9 +32,9 @@ describe('Exception handling', () => {
     })
 
     it('should transform exception into 500 response', async () => {
-      const REQUEST_URL = 'https://api.github.com/users/octocat'
-      api.page.evaluate((url) => fetch(url), REQUEST_URL)
-      const res = await api.page.waitForResponse(REQUEST_URL)
+      const res = await test.request({
+        url: 'https://api.github.com/users/octocat',
+      })
       const body = await res.json()
 
       expect(res.status()).toEqual(500)

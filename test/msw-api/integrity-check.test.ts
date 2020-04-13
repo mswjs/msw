@@ -39,8 +39,10 @@ describe('Integrity check', () => {
       const res = await test.request({
         url: 'https://api.github.com/users/octocat',
       })
+      const headers = res.headers()
       const body = await res.json()
 
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
       expect(body).toEqual({
         mocked: true,
       })
@@ -98,8 +100,10 @@ describe('Integrity check', () => {
       const res = await test.request({
         url: 'https://api.github.com/users/octocat',
       })
+      const headers = res.headers()
       const body = await res.json()
 
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
       expect(body).toEqual({
         mocked: true,
       })

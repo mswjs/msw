@@ -2,21 +2,21 @@ import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
 
 describe('API: composeMocks / start', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'start.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'start.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   describe('given a custom Promise chain handler to start()', () => {
     let resolvedPayload
 
     beforeAll(async () => {
-      resolvedPayload = await api.page.evaluate(() => {
+      resolvedPayload = await test.page.evaluate(() => {
         // @ts-ignore
         return window.__MSW_REGISTRATION__
       })
@@ -29,22 +29,22 @@ describe('API: composeMocks / start', () => {
     it('should resolve after the mocking has been activated', async () => {
       const logs: string[] = []
 
-      api.page.on('console', function(message) {
+      test.page.on('console', function (message) {
         if (message.type() === 'log') {
           logs.push(message.text())
         }
       })
 
-      await api.page.goto(api.origin, {
+      await test.page.goto(test.origin, {
         waitUntil: 'networkidle0',
       })
 
-      const activationMessageIndex = logs.findIndex((text) => {
-        return text.startsWith('[MSW] Mocking enabled')
+      const activationMessageIndex = logs.findIndex((log) => {
+        return log.startsWith('[MSW] Mocking enabled')
       })
 
-      const customMessageIndex = logs.findIndex((text) => {
-        return text.startsWith('Registration Promise resolved')
+      const customMessageIndex = logs.findIndex((log) => {
+        return log.startsWith('Registration Promise resolved')
       })
 
       expect(customMessageIndex).toBeGreaterThan(activationMessageIndex)

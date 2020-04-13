@@ -12,7 +12,7 @@ describe('REST: Request matching (method)', () => {
     return test.cleanup()
   })
 
-  describe('given mocked a POST request to "https://api.github.com/users/:username"', () => {
+  describe('given mocked a POST request', () => {
     it('should mock a POST request to the matched URL', async () => {
       const res = await test.request({
         url: 'https://api.github.com/users/octocat',
@@ -40,7 +40,7 @@ describe('REST: Request matching (method)', () => {
       const body = await res.json()
 
       expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(headers).not.toHaveProperty('x-powered-by', 'msw')
       expect(body).not.toHaveProperty('mocked', true)
     })
   })

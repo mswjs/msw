@@ -47,7 +47,8 @@ export const runBrowserWith = async (
   const { server, origin } = await spawnServer(mockDefinitionPath)
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: !process.env.DEBUG,
+    devtools: !!process.env.DEBUG,
     args: ['--no-sandbox'],
   })
   const page = await browser.newPage()

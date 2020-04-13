@@ -8,7 +8,6 @@
 /* tslint:disable */
 
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
-const bannerStyle = 'color:orangered;font-weight:bold;'
 const bypassHeaderName = 'x-msw-bypass'
 
 self.addEventListener('install', function () {
@@ -38,15 +37,6 @@ self.addEventListener('message', async function (event) {
         type: 'MOCKING_ENABLED',
         payload: true,
       })
-
-      console.groupCollapsed('%c[MSW] Mocking enabled.', bannerStyle)
-      console.log(
-        '%cDocumentation: %chttps://redd.gitbook.io/msw',
-        'font-weight:bold',
-        'font-weight:normal',
-      )
-      console.log('Found an issue? https://github.com/open-draft/msw/issues')
-      console.groupEnd()
       break
     }
 
@@ -58,37 +48,6 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-function serializeHeaders(headers) {
-  const reqHeaders = {}
-  headers.forEach((value, name) => {
-    reqHeaders[name] = value
-  })
-  return reqHeaders
-}
-
-function sendToClient(client, message) {
-  return new Promise((resolve, reject) => {
-    const channel = new MessageChannel()
-
-    channel.port1.onmessage = (event) => {
-      if (event.data && event.data.error) {
-        reject(event.data.error)
-      } else {
-        resolve(event.data)
-      }
-    }
-
-    client.postMessage(JSON.stringify(message), [channel.port2])
-  })
-}
-
-function createResponse(clientMessage) {
-  return new Response(clientMessage.payload.body, {
-    ...clientMessage.payload,
-    headers: clientMessage.payload.headers,
-  })
-}
-
 self.addEventListener('fetch', async function (event) {
   const { clientId, request } = event
   const requestClone = request.clone()
@@ -96,6 +55,12 @@ self.addEventListener('fetch', async function (event) {
 
   event.respondWith(
     new Promise(async (resolve) => {
+      // Always bypass navigation requests
+      if (request.mode === 'navigate') {
+        self.__isMswEnabled = false
+        return resolve(getOriginalResponse())
+      }
+
       const client = await event.target.clients.get(clientId)
 
       // Bypass requests while MSW is not enabled
@@ -184,3 +149,34 @@ If you wish to mock an error response, please refer to this guide: https://redd.
     }),
   )
 })
+
+function serializeHeaders(headers) {
+  const reqHeaders = {}
+  headers.forEach((value, name) => {
+    reqHeaders[name] = value
+  })
+  return reqHeaders
+}
+
+function sendToClient(client, message) {
+  return new Promise((resolve, reject) => {
+    const channel = new MessageChannel()
+
+    channel.port1.onmessage = (event) => {
+      if (event.data && event.data.error) {
+        reject(event.data.error)
+      } else {
+        resolve(event.data)
+      }
+    }
+
+    client.postMessage(JSON.stringify(message), [channel.port2])
+  })
+}
+
+function createResponse(clientMessage) {
+  return new Response(clientMessage.payload.body, {
+    ...clientMessage.payload,
+    headers: clientMessage.payload.headers,
+  })
+}

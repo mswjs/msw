@@ -1,6 +1,6 @@
 import * as puppeteer from 'puppeteer'
 import { match } from 'node-match-path'
-import { spawnServer } from './spawnServer'
+import { SpawnServerOptions, spawnServer } from './spawnServer'
 import WebpackDevServer from 'webpack-dev-server'
 
 /**
@@ -43,8 +43,12 @@ export interface TestAPI {
 
 export const runBrowserWith = async (
   mockDefinitionPath: string,
+  serverOptions?: SpawnServerOptions,
 ): Promise<TestAPI> => {
-  const { server, origin } = await spawnServer(mockDefinitionPath)
+  const { server, origin } = await spawnServer(
+    mockDefinitionPath,
+    serverOptions,
+  )
 
   const browser = await puppeteer.launch({
     headless: !process.env.DEBUG,

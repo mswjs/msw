@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { match } from 'node-match-path'
 
 describe('REST: Response patching', () => {
   let test: TestAPI
@@ -7,6 +8,13 @@ describe('REST: Response patching', () => {
   beforeAll(async () => {
     test = await runBrowserWith(
       path.resolve(__dirname, 'response-patching.mocks.ts'),
+      {
+        withRoutes(app) {
+          app.post('/posts', (req, res) => {
+            res.status(200).json({ id: 101 }).end()
+          })
+        },
+      },
     )
   })
 
@@ -41,7 +49,8 @@ describe('REST: Response patching', () => {
           return (
             // Await for the response from MSW, so that original response
             // from the same URL would not interfere.
-            res.url() === url && res.headers()['x-powered-by'] === 'msw'
+            match(url, res.url()).matches &&
+            res.headers()['x-powered-by'] === 'msw'
           )
         },
       })
@@ -59,9 +68,9 @@ describe('REST: Response patching', () => {
   })
 
   describe('given a post request to be patched', () => {
-    it('should be able to properly request and patch a post', async () => {
+    it('should be able to properly request and patch the response', async () => {
       const res = await test.request({
-        url: 'https://jsonplaceholder.typicode.com/posts',
+        url: '/posts',
         fetchOptions: {
           method: 'POST',
           headers: {
@@ -74,7 +83,10 @@ describe('REST: Response patching', () => {
           }),
         },
         responsePredicate(res, url) {
-          return res.url() === url && res.headers()['x-powered-by'] === 'msw'
+          return (
+            match(test.origin + url, res.url()).matches &&
+            res.headers()['x-powered-by'] === 'msw'
+          )
         },
       })
       const status = res.status()

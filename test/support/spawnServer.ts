@@ -12,7 +12,14 @@ interface Payload {
   origin: string
 }
 
-export const spawnServer = (mockDefs: string): Promise<Payload> => {
+export interface SpawnServerOptions {
+  withRoutes?: WebpackDevServer.Configuration['after']
+}
+
+export const spawnServer = (
+  mockDefs: string,
+  options?: SpawnServerOptions,
+): Promise<Payload> => {
   const absoluteMockPath = path.resolve(process.cwd(), mockDefs)
   const mswModulePath = path.resolve(__dirname, '../..', packageJson.main)
 
@@ -77,10 +84,14 @@ Resolved "msw" module to:
       // to be registered at the website's root.
       'Service-Worker-Allowed': '/',
     },
-    after(app) {
+    after(app, server, compiler) {
       app.get('/mockServiceWorker.js', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../../lib/mockServiceWorker.js'))
       })
+
+      if (options?.withRoutes) {
+        options.withRoutes(app, server, compiler)
+      }
     },
   })
 

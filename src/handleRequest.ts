@@ -10,6 +10,7 @@ import {
   ServiceWorkerMessage,
   createBroadcastChannel,
 } from './utils/createBroadcastChannel'
+import { log } from './logger'
 
 export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
   return async (event: MessageEvent) => {
@@ -83,11 +84,13 @@ export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
 
       // Transform Headers into a list to be stringified preserving multiple
       // header keys. Stringified list is then parsed inside the ServiceWorker.
-      const responseWithHeaders = {
+      const responseWithHeaders: MockedResponse = {
         ...mockedResponse,
         // @ts-ignore
         headers: Array.from(mockedResponse.headers.entries()),
       }
+
+      log(req, responseWithHeaders, relevantRequestHandler)
 
       channel.send({
         type: 'MOCK_SUCCESS',

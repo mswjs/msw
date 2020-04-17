@@ -2,14 +2,12 @@ import { until } from '@open-draft/until'
 import { RequestHandler } from './handlers/requestHandler'
 import { handleRequestWith } from './handleRequest'
 import { requestIntegrityCheck } from './requestIntegrityCheck'
-import { addMessageListener } from './utils/createBroadcastChannel'
+import {
+  addMessageListener,
+  createBroadcastChannel,
+} from './utils/createBroadcastChannel'
 
 export type Mask = RegExp | string
-
-interface InternalContext {
-  worker: ServiceWorker
-  registration: ServiceWorkerRegistration
-}
 
 interface PublicAPI {
   start(
@@ -17,6 +15,11 @@ interface PublicAPI {
     options?: RegistrationOptions,
   ): Promise<ServiceWorkerRegistration>
   stop(): Promise<void>
+}
+
+interface InternalContext {
+  worker: ServiceWorker
+  registration: ServiceWorkerRegistration
 }
 
 const activateMocking = (worker: ServiceWorker) => {
@@ -50,6 +53,10 @@ const getWorkerByRegistration = (registration: ServiceWorkerRegistration) => {
   return registration.active || registration.installing || registration.waiting
 }
 
+/**
+ * Returns an active Service Worker instance.
+ * When not found, registers a new Service Worker.
+ */
 const getWorkerInstance = async (
   url: string,
   options: RegistrationOptions,
@@ -113,15 +120,13 @@ const createStart = (context: InternalContext): PublicAPI['start'] => {
       })
     })
 
-    // Deactivate mocking and unregister the active Service Worker
-    // when the window unloads.
     window.addEventListener('beforeunload', () => {
       if (worker?.state !== 'redundant') {
-        // Deactivating the mocking prevents the Service Worker
-        // from serving page assets on initial load. Otherwise
-        // it would expect the MSW to resolve a mock for assets,
-        // which would result into an infinite promise.
-        worker.postMessage('MOCK_DEACTIVATE')
+        // Notify the Service Worker that this client has closed.
+        // Internally, it's similar to disabling the mocking, only
+        // client close event has a handler that self-terminates
+        // the Service Worker when there are no open clients.
+        worker.postMessage('CLIENT_CLOSED')
       }
     })
 
@@ -158,6 +163,9 @@ const createStop = (context: InternalContext): PublicAPI['stop'] => {
    * Stop the active running instance of the Service Worker.
    */
   return async () => {
+    // Signal the Service Worker to disable mocking for this client.
+    // Use this an an explicit way to stop the mocking, while preserving
+    // the worker-client relation. Does not affect the worker's lifecycle.
     context.worker.postMessage('MOCK_DEACTIVATE')
   }
 }

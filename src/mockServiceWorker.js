@@ -39,8 +39,6 @@ self.addEventListener('message', async function (event) {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = true
 
-      console.warn('[MSW] Activated mocking for client "%s"', clientId)
-
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
         payload: true,
@@ -51,7 +49,16 @@ self.addEventListener('message', async function (event) {
     case 'MOCK_DEACTIVATE': {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = false
-      console.warn('[MSW] Deactivating mocking for client "%s"...', clientId)
+      break
+    }
+
+    case 'CLIENT_CLOSED': {
+      delete clients[clientId]
+
+      // Unregister itself when there are no more clients
+      if (Object.keys(clients).length === 0) {
+        self.registration.unregister()
+      }
 
       break
     }
@@ -119,15 +126,24 @@ self.addEventListener('fetch', async function (event) {
 
       const clientMessage = JSON.parse(rawClientMessage)
 
-      if (clientMessage.type === 'MOCK_NOT_FOUND') {
-        return resolve(getOriginalResponse())
-      }
+      switch (clientMessage.type) {
+        case 'MOCK_SUCCESS': {
+          setTimeout(
+            resolve.bind(this, createResponse(clientMessage)),
+            clientMessage.delay,
+          )
+          break
+        }
 
-      if (clientMessage.type === 'INTERNAL_ERROR') {
-        const parsedBody = JSON.parse(clientMessage.payload.body)
+        case 'MOCK_NOT_FOUND': {
+          return resolve(getOriginalResponse())
+        }
 
-        console.error(
-          `\
+        case 'INTERNAL_ERROR': {
+          const parsedBody = JSON.parse(clientMessage.payload.body)
+
+          console.error(
+            `\
 [MSW] Request handler function for "%s %s" has thrown the following exception:
 
 ${parsedBody.errorType}: ${parsedBody.message}
@@ -136,18 +152,12 @@ ${parsedBody.errorType}: ${parsedBody.message}
 This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error.
 If you wish to mock an error response, please refer to this guide: https://redd.gitbook.io/msw/recipes/mocking-error-responses\
   `,
-          request.method,
-          request.url,
-        )
+            request.method,
+            request.url,
+          )
 
-        return resolve(createResponse(clientMessage))
-      }
-
-      if (clientMessage.type === 'MOCK_SUCCESS') {
-        setTimeout(
-          resolve.bind(this, createResponse(clientMessage)),
-          clientMessage.delay,
-        )
+          return resolve(createResponse(clientMessage))
+        }
       }
     }).catch((error) => {
       console.error(

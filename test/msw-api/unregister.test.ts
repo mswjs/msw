@@ -1,4 +1,5 @@
 import * as path from 'path'
+import { Response } from 'puppeteer'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 
 describe('Unregister', () => {
@@ -12,23 +13,19 @@ describe('Unregister', () => {
     return test.cleanup()
   })
 
-  describe('given the service worker is manually started', () => {
-    beforeAll((done) => {
-      const onceRegistered = test.page.evaluate(() => {
+  describe('given I manually start the service worker', () => {
+    beforeAll(async () => {
+      await test.page.evaluate(() => {
         // @ts-ignore
         return window.__mswStart()
       })
 
-      onceRegistered.then(() => {
-        /**
-         * @fixme Stop relying on side-effects in tests.
-         * For no apparent reason, awaiting the registration promise is not enough.
-         */
-        setTimeout(done, 1000)
+      return new Promise((resolve) => {
+        setTimeout(resolve, 1000)
       })
     })
 
-    it('should have the mocking enabled', async () => {
+    it('should return a mocked response', async () => {
       const res = await test.request({
         url: 'https://api.github.com',
       })
@@ -42,19 +39,49 @@ describe('Unregister', () => {
     })
 
     describe('and I reload the page without starting the service worker', () => {
+      let res: Response
+
       beforeAll(async () => {
         await test.page.reload()
-      })
 
-      it('should have the service worker unregistered', async () => {
-        const res = await test.request({
+        res = await test.request({
           url: 'https://api.github.com',
         })
-        const body = await res.json()
+      })
 
-        expect(res.fromServiceWorker()).toBe(false)
+      // Although the Service Worker unregisters itself upon refreshing the page,
+      // it still remains "active and running" with the "deleted" status.
+      // This results into requests go through the Service Worker until the next reload.
+      it('should still serve the response from Service Worker', () => {
+        expect(res.fromServiceWorker()).toBe(true)
+      })
+
+      it('should not return a mocked response', async () => {
+        const body = await res.json()
         expect(body).not.toEqual({
           mocked: true,
+        })
+      })
+
+      describe('and I refresh the second time', () => {
+        let res: Response
+
+        beforeAll(async () => {
+          await test.page.reload()
+          res = await test.request({
+            url: 'https://api.github.com',
+          })
+        })
+
+        it('should not serve the response from Service Worker', () => {
+          expect(res.fromServiceWorker()).toBe(false)
+        })
+
+        it('should not return a mocked response', async () => {
+          const body = await res.json()
+          expect(body).not.toEqual({
+            mocked: true,
+          })
         })
       })
     })

@@ -10,17 +10,21 @@
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const bypassHeaderName = 'x-msw-bypass'
 
+let clients = {}
+
 self.addEventListener('install', function () {
   return self.skipWaiting()
 })
 
-self.addEventListener('activate', function () {
+self.addEventListener('activate', async function (event) {
   return self.clients.claim()
 })
 
 self.addEventListener('message', async function (event) {
   const clientId = event.source.id
   const client = await event.currentTarget.clients.get(clientId)
+  const allClients = await self.clients.matchAll()
+  const allClientIds = allClients.map((client) => client.id)
 
   switch (event.data) {
     case 'INTEGRITY_CHECK_REQUEST': {
@@ -32,7 +36,11 @@ self.addEventListener('message', async function (event) {
     }
 
     case 'MOCK_ACTIVATE': {
-      self.__isMswEnabled = true
+      clients = ensureKeys(allClientIds, clients)
+      clients[clientId] = true
+
+      console.warn('[MSW] Activated mocking for client "%s"', clientId)
+
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
         payload: true,
@@ -41,8 +49,10 @@ self.addEventListener('message', async function (event) {
     }
 
     case 'MOCK_DEACTIVATE': {
-      self.__isMswEnabled = false
-      console.warn('[MSW] Deactivating Service Worker...')
+      clients = ensureKeys(allClientIds, clients)
+      clients[clientId] = false
+      console.warn('[MSW] Deactivating mocking for client "%s"...', clientId)
+
       break
     }
   }
@@ -55,16 +65,16 @@ self.addEventListener('fetch', async function (event) {
 
   event.respondWith(
     new Promise(async (resolve) => {
-      // Always bypass navigation requests
-      if (request.mode === 'navigate') {
-        self.__isMswEnabled = false
-        return resolve(getOriginalResponse())
-      }
-
       const client = await event.target.clients.get(clientId)
 
-      // Bypass requests while MSW is not enabled
-      if (!client || !self.__isMswEnabled) {
+      if (
+        // Bypass mocking when no clients active
+        !client ||
+        // Bypass mocking if the current client has mocking disabled
+        !clients[clientId] ||
+        // Bypass mocking for navigation requests
+        request.mode === 'navigate'
+      ) {
         return resolve(getOriginalResponse())
       }
 
@@ -179,4 +189,14 @@ function createResponse(clientMessage) {
     ...clientMessage.payload,
     headers: clientMessage.payload.headers,
   })
+}
+
+function ensureKeys(keys, obj) {
+  return Object.keys(obj).reduce((acc, key) => {
+    if (keys.includes(key)) {
+      acc[key] = obj[key]
+    }
+
+    return acc
+  }, {})
 }

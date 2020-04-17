@@ -19,20 +19,22 @@ export const log = (
         pathname: parsedUrl.pathname,
       })
 
-  console.groupCollapsed(
-    '[MSW] %s %s %s (%c%s%c)',
-    getTimestamp(),
-    req.method,
-    publicUrl,
-    styleStatusCode(res.status),
-    res.status,
-    'color:inherit',
-  )
-  console.log('Request', req)
-  console.log('Handler:', {
-    mask: handler.mask,
-    resolver: handler.resolver,
-  })
-  console.log('Response', res)
-  console.groupEnd()
+  setTimeout(() => {
+    console.groupCollapsed(
+      '[MSW] %s %s %s (%c%s%c)',
+      getTimestamp(),
+      req.method,
+      publicUrl,
+      styleStatusCode(res.status),
+      res.status,
+      'color:inherit',
+    )
+    console.log('Request', req)
+    console.log('Handler:', {
+      mask: handler.mask,
+      resolver: handler.resolver,
+    })
+    console.log('Response', res)
+    console.groupEnd()
+  }, res.delay)
 }

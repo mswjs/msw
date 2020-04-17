@@ -122,11 +122,6 @@ const createStart = (context: InternalContext): PublicAPI['start'] => {
         // it would expect the MSW to resolve a mock for assets,
         // which would result into an infinite promise.
         worker.postMessage('MOCK_DEACTIVATE')
-
-        // Unregister the Service Worker.
-        // This way it doesn't persist between page sessions, as well as
-        // doesn't affect other apps running on the same address.
-        registration.unregister()
       }
     })
 
@@ -163,24 +158,7 @@ const createStop = (context: InternalContext): PublicAPI['stop'] => {
    * Stop the active running instance of the Service Worker.
    */
   return async () => {
-    const { registration } = context
-
-    if (!registration) {
-      console.warn('[MSW] No active instance of Service Worker is running.')
-      return null
-    }
-
-    const [error] = await until(() => registration.unregister())
-
-    if (error) {
-      console.error('[MSW] Failed to unregister Service Worker. %o', error)
-      return
-    }
-
     context.worker.postMessage('MOCK_DEACTIVATE')
-
-    context.worker = null
-    context.registration = null
   }
 }
 

@@ -12,7 +12,7 @@ type RequestHelper = (options: {
   responsePredicate?: (res: puppeteer.Response, url: string) => boolean
 }) => Promise<puppeteer.Response>
 
-const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
+export const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
   return async ({
     url,
     fetchOptions,

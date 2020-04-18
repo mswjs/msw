@@ -17,13 +17,14 @@
   </a>
 </p>
 
-<p align="center">Mock Service Worker (MSW) is a client-side API mocking library that operates by intercepting outgoing requests using Service Workers.</p>
+<p align="center">Mock Service Worker (MSW) is a client-side API mocking library that intercepts outgoing requests using Service Workers.</p>
 
 ## Features
 
-- **Server-less**. Doesn't establish any servers, operating entirely in a browser;
-- **Deviation-free**. Intercepts production URI requests from your page and mocks their responses, without having to deal with mocked URI.
-- **Mocking as a tool**. Enable/change/disable mocking on runtime _instantly_ without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
+- **Server-less**. Mocking that doesn't establish any servers, operating entirely in a browser;
+- **Seamless**. Forget about stubs and hacks that make your code smell. Leverage a dedicated layer of interception to keep your code clean and shiny.
+- **Deviation-free**. Request _the same_ resources you would in production, and mock their responses. No more conditional URLs, no more mock-specific parts of code in your app.
+- **Mocking as a tool**. Enable, change, disable mocking on runtime _instantly_ without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
 - **Essentials**. Use [Express](https://github.com/expressjs/express/)-like syntax to define which requests to mock. Respond with custom status codes, headers, delays, or create custom response resolvers.
 
 > "This is awesome."

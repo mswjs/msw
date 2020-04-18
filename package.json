@@ -31,6 +31,7 @@
   "dependencies": {
     "@open-draft/until": "^1.0.0",
     "chalk": "^3.0.0",
+    "cookie": "^0.4.0",
     "graphql": "^14.6.0",
     "node-match-path": "^0.3.1",
     "ramda": "^0.27.0",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
+    "@types/cookie": "^0.3.3",
     "@types/jest": "^25.1.2",
     "@types/node": "^13.7.7",
     "@types/puppeteer": "^2.0.1",

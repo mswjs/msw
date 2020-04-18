@@ -3,6 +3,7 @@ import { RequestHandler, ResponseResolver } from './requestHandler'
 import { Mask } from '../composeMocks'
 import { set } from '../context/set'
 import { status } from '../context/status'
+import { cookie } from '../context/cookie'
 import { body } from '../context/body'
 import { text } from '../context/text'
 import { json } from '../context/json'
@@ -23,6 +24,7 @@ export enum RESTMethods {
 export const restContext = {
   set,
   status,
+  cookie,
   body,
   text,
   json,

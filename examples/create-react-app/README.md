@@ -11,7 +11,7 @@ npm install msw --save-dev
 ## Initiate
 
 ```bash
-msw init public
+npx msw init public
 ```
 
 > We are using "public" as the `rootDir` because `create-react-app` serves files from the "public" directory.

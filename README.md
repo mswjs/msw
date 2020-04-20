@@ -58,7 +58,7 @@ $ npx msw init <PUBLIC_DIR>
 Once the Service Worker has been copied, we can continue with creating a mocking definition file. For the purpose of this short tutorial we are going to keep all our mocking logic in the `mocks.js` file, but the end file structure is up to you.
 
 ```bash
-$ touch mock.js
+$ touch mocks.js
 ```
 
 Open that file and follow the example below to create your first mocking definition:

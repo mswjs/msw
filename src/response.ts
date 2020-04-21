@@ -1,4 +1,4 @@
-import * as R from 'ramda'
+import { pipe } from './utils/pipe'
 
 export interface MockedResponse {
   body: any
@@ -8,11 +8,6 @@ export interface MockedResponse {
   delay: number
 }
 
-/**
- * @todo Use proper function signature.
- * (res: MockedResponse) => MockedResponse is the correct one, but
- * it doesn't seem to work properly with Radma's annotations.
- */
 export type ResponseTransformer = (res: MockedResponse) => MockedResponse
 export type ResponseComposition = (
   ...transformers: ResponseTransformer[]
@@ -26,22 +21,17 @@ export const defaultResponse: MockedResponse = {
 }
 
 export const response: ResponseComposition = (...transformers) => {
-  const headers = new Headers()
-  headers.set('X-Powered-By', 'msw')
+  const headers = new Headers({
+    'x-powered-by': 'msw',
+  })
 
   const initialResponse = {
     ...defaultResponse,
     headers,
   }
 
-  if (transformers && transformers.length > 0) {
-    /**
-     * Ignore the arity annotation from Ramda.
-     * Apparently, TypeScript assumes "transformers" may be modified before
-     * they get into pipe as arguments, thus screams at potentially empty array.
-     */
-    // @ts-ignore
-    return R.pipe(...transformers)(initialResponse)
+  if (transformers.length > 0) {
+    return pipe(...transformers)(initialResponse)
   }
 
   return initialResponse

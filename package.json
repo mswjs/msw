@@ -34,7 +34,6 @@
     "cookie": "^0.4.0",
     "graphql": "^15.0.0",
     "node-match-path": "^0.3.1",
-    "ramda": "^0.27.0",
     "statuses": "^2.0.0",
     "yargs": "^15.3.1"
   },

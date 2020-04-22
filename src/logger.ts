@@ -1,4 +1,4 @@
-import url from 'url'
+import { parse, format } from 'url'
 import { MockedRequest, RequestHandler } from './handlers/requestHandler'
 import { MockedResponse } from './response'
 import { getTimestamp } from './utils/getTimestamp'
@@ -10,10 +10,10 @@ export const log = (
   handler: RequestHandler<any>,
 ) => {
   const isLocal = req.url.startsWith(req.referrer)
-  const parsedUrl = url.parse(req.url)
+  const parsedUrl = parse(req.url)
   const publicUrl = isLocal
     ? parsedUrl.pathname
-    : url.format({
+    : format({
         protocol: parsedUrl.protocol,
         host: parsedUrl.host,
         pathname: parsedUrl.pathname,

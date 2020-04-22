@@ -5,3 +5,4 @@ lib
 tmp
 *-error.log
 ./package-lock.json
+stats.html

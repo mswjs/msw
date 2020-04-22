@@ -39,19 +39,25 @@ export type RequestParams = {
   [paramName: string]: any
 }
 
-export type ResponseResolver<ContextType = typeof defaultContext> = (
-  req: MockedRequest,
+export type ResponseResolver<
+  RequestType = MockedRequest,
+  ContextType = typeof defaultContext
+> = (
+  req: RequestType,
   res: ResponseComposition,
   context: ContextType,
 ) => Promise<MockedResponse> | MockedResponse
 
-export interface RequestHandler<ContextType = typeof defaultContext> {
+export interface RequestHandler<
+  RequestType = MockedRequest,
+  ContextType = typeof defaultContext
+> {
   mask?: Mask
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
-  predicate: (req: MockedRequest, parsedUrl?: URL) => boolean
-  resolver: ResponseResolver<ContextType>
+  predicate: (req: MockedRequest, parsedUrl: URL) => boolean
+  resolver: ResponseResolver<RequestType, ContextType>
   defineContext?: (req: MockedRequest) => ContextType
 }
 

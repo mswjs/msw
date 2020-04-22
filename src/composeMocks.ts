@@ -2,10 +2,7 @@ import { until } from '@open-draft/until'
 import { RequestHandler } from './handlers/requestHandler'
 import { handleRequestWith } from './handleRequest'
 import { requestIntegrityCheck } from './requestIntegrityCheck'
-import {
-  addMessageListener,
-  createBroadcastChannel,
-} from './utils/createBroadcastChannel'
+import { addMessageListener } from './utils/createBroadcastChannel'
 
 export type Mask = RegExp | string
 
@@ -13,14 +10,16 @@ interface PublicAPI {
   start(
     serviceWorkerURL?: string,
     options?: RegistrationOptions,
-  ): Promise<ServiceWorkerRegistration>
+  ): Promise<ServiceWorkerRegistration | null>
   stop(): Promise<void>
 }
 
 interface InternalContext {
-  worker: ServiceWorker
-  registration: ServiceWorkerRegistration
+  worker: ServiceWorker | null
+  registration: ServiceWorkerRegistration | null
 }
+
+type InstanceTuple = [ServiceWorker | null, ServiceWorkerRegistration]
 
 const activateMocking = (worker: ServiceWorker) => {
   worker.postMessage('MOCK_ACTIVATE')
@@ -59,8 +58,8 @@ const getWorkerByRegistration = (registration: ServiceWorkerRegistration) => {
  */
 const getWorkerInstance = async (
   url: string,
-  options: RegistrationOptions,
-): Promise<[ServiceWorker, ServiceWorkerRegistration]> => {
+  options?: RegistrationOptions,
+): Promise<InstanceTuple | null> => {
   const [, existingRegistration] = await until(() => {
     return navigator.serviceWorker.getRegistration(url)
   })
@@ -75,9 +74,7 @@ const getWorkerInstance = async (
     })
   }
 
-  const [error, instance] = await until<
-    [ServiceWorker, ServiceWorkerRegistration]
-  >(async () => {
+  const [error, instance] = await until<InstanceTuple>(async () => {
     const registration = await navigator.serviceWorker.register(url, options)
     return [getWorkerByRegistration(registration), registration]
   })
@@ -99,10 +96,20 @@ const createStart = (context: InternalContext): PublicAPI['start'] => {
    * Register and activate the mock Service Worker.
    */
   return async (serviceWorkerUrl = './mockServiceWorker.js', options) => {
-    const [worker, registration] = await getWorkerInstance(
-      serviceWorkerUrl,
-      options,
+    const [, instance] = await until<InstanceTuple | null>(() =>
+      getWorkerInstance(serviceWorkerUrl, options),
     )
+
+    if (!instance) {
+      return null
+    }
+
+    const [worker, registration] = instance
+
+    if (!worker) {
+      return null
+    }
+
     context.worker = worker
     context.registration = registration
 
@@ -110,7 +117,7 @@ const createStart = (context: InternalContext): PublicAPI['start'] => {
     registration.addEventListener('updatefound', () => {
       const nextWorker = registration.installing
 
-      nextWorker.addEventListener('statechange', () => {
+      nextWorker?.addEventListener('statechange', () => {
         if (
           nextWorker.state === 'installed' &&
           navigator.serviceWorker.controller
@@ -121,7 +128,7 @@ const createStart = (context: InternalContext): PublicAPI['start'] => {
     })
 
     window.addEventListener('beforeunload', () => {
-      if (worker?.state !== 'redundant') {
+      if (worker.state !== 'redundant') {
         // Notify the Service Worker that this client has closed.
         // Internally, it's similar to disabling the mocking, only
         // client close event has a handler that self-terminates
@@ -151,7 +158,7 @@ If this message still persists after updating, please report an issue: https://g
 
     if (activationError) {
       console.error('Failed to enable mocking', activationError)
-      return
+      return null
     }
 
     return registration
@@ -166,12 +173,12 @@ const createStop = (context: InternalContext): PublicAPI['stop'] => {
     // Signal the Service Worker to disable mocking for this client.
     // Use this an an explicit way to stop the mocking, while preserving
     // the worker-client relation. Does not affect the worker's lifecycle.
-    context.worker.postMessage('MOCK_DEACTIVATE')
+    context.worker?.postMessage('MOCK_DEACTIVATE')
   }
 }
 
 export const composeMocks = (
-  ...requestHandlers: RequestHandler<any>[]
+  ...requestHandlers: RequestHandler<any, any>[]
 ): PublicAPI => {
   const context: InternalContext = {
     worker: null,

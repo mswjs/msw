@@ -7,7 +7,8 @@ export const status = (
 ): ResponseTransformer => {
   return (res) => {
     res.status = statusCode
-    res.statusText = statusText || statuses[statusCode]
+    res.statusText =
+      statusText || statuses[String(statusCode) as keyof typeof statuses]
 
     return res
   }

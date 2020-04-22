@@ -4,7 +4,7 @@ export interface MockedResponse {
   body: any
   status: number
   statusText: string
-  headers?: Headers
+  headers: Headers
   delay: number
 }
 
@@ -13,7 +13,7 @@ export type ResponseComposition = (
   ...transformers: ResponseTransformer[]
 ) => MockedResponse
 
-export const defaultResponse: MockedResponse = {
+export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   status: 200,
   statusText: 'OK',
   body: null,
@@ -25,7 +25,7 @@ export const response: ResponseComposition = (...transformers) => {
     'x-powered-by': 'msw',
   })
 
-  const initialResponse = {
+  const initialResponse: MockedResponse = {
     ...defaultResponse,
     headers,
   }

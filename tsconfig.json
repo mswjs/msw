@@ -1,15 +1,15 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "module": "es2015",
+    "strict": true,
     "target": "es6",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationDir": "./lib",
+    "declarationDir": "lib/types",
     "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
   },
   "include": ["global.d.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

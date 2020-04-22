@@ -16,10 +16,7 @@ module.exports = function getChecksum(sourceFilePath) {
     },
   )
 
-  const checksum = crypto
-    .createHash('md5')
-    .update(code, 'utf8')
-    .digest('hex')
+  const checksum = crypto.createHash('md5').update(code, 'utf8').digest('hex')
 
   console.log('Generated checksum: %s', chalk.magenta(checksum))
 

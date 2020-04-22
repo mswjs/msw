@@ -30,7 +30,7 @@ describe('API: composeMocks / start', () => {
       const logs: string[] = []
 
       test.page.on('console', function (message) {
-        if (message.type() === 'log') {
+        if (['startGroupCollapsed', 'log'].includes(message.type())) {
           logs.push(message.text())
         }
       })
@@ -39,14 +39,16 @@ describe('API: composeMocks / start', () => {
         waitUntil: 'networkidle0',
       })
 
-      const activationMessageIndex = logs.findIndex((log) => {
-        return log.startsWith('[MSW] Mocking enabled')
+      const activationMessageIndex = logs.findIndex((message) => {
+        return message.includes('[MSW] Mocking enabled')
       })
 
-      const customMessageIndex = logs.findIndex((log) => {
-        return log.startsWith('Registration Promise resolved')
+      const customMessageIndex = logs.findIndex((message) => {
+        return message.includes('Registration Promise resolved')
       })
 
+      expect(activationMessageIndex).toBeGreaterThan(-1)
+      expect(customMessageIndex).toBeGreaterThan(-1)
       expect(customMessageIndex).toBeGreaterThan(activationMessageIndex)
     })
   })

@@ -6,8 +6,13 @@ const { start } = composeMocks(
   }),
 )
 
-// Use custom Service Worker URL for the purpose of intentionally
-// registering an outdated worker. Please do not use this as an example.
-start('/tmp/mockServiceWorker-outdated.js', {
-  scope: '/',
+start({
+  serviceWorker: {
+    // Use custom Service Worker URL for the purpose of intentionally
+    // registering an outdated worker. Please do not use this as an example.
+    url: '/tmp/mockServiceWorker-outdated.js',
+    options: {
+      scope: '/',
+    },
+  },
 })

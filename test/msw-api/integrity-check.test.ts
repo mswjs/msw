@@ -89,7 +89,7 @@ describe('Integrity check', () => {
       })
 
       const integrityError = errors.find((message) => {
-        return message.startsWith(`[MSW] Detected outdated Service Worker`)
+        return message.includes('[MSW] Detected outdated Service Worker')
       })
 
       expect(integrityError).toBeTruthy()

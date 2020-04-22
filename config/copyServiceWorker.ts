@@ -1,18 +1,17 @@
-const fs = require('fs')
-const path = require('path')
-const util = require('util')
-const chalk = require('chalk')
-const { until } = require('@open-draft/until')
+import * as fs from 'fs'
+import * as path from 'path'
+import * as chalk from 'chalk'
+import { until } from '@open-draft/until'
 
 /**
  * Copies the given Service Worker source file into the destination.
  * Injects the integrity checksum into the destination file.
  */
-module.exports = async function copyServiceWorker(
-  sourceFilePath,
-  destFilePath,
-  checksum,
-) {
+export default async function copyServiceWorker(
+  sourceFilePath: string,
+  destFilePath: string,
+  checksum: string,
+): Promise<void> {
   console.log('Compiling Service Worker...')
 
   const [readError, fileContent] = await until(() =>
@@ -24,11 +23,7 @@ module.exports = async function copyServiceWorker(
   }
 
   const destFileDirectory = path.dirname(destFilePath)
-  console.log(
-    'Checking if "%s" path exists...',
-    destFileDirectory,
-    fs.existsSync(destFileDirectory),
-  )
+  console.log('Checking if "%s" path exists...', destFileDirectory)
 
   if (!fs.existsSync(destFileDirectory)) {
     console.log('Destination directory does not exist, creating...')

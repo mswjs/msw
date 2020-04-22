@@ -2,14 +2,12 @@ const path = require('path')
 const packageJson = require('../package.json')
 
 const SERVICE_WORKER_SOURCE_PATH = path.resolve(
-  __dirname,
-  '../src',
-  'mockServiceWorker.js',
+  process.cwd(),
+  'src/mockServiceWorker.js',
 )
 
 const SERVICE_WORKER_BUILD_PATH = path.resolve(
-  __dirname,
-  '..',
+  process.cwd(),
   path.dirname(packageJson.main),
   path.basename(SERVICE_WORKER_SOURCE_PATH),
 )

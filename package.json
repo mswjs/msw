@@ -9,7 +9,7 @@
     "msw": "cli/msw.js"
   },
   "scripts": {
-    "start": "cross-env NODE_ENV=development webpack --watch",
+    "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",

@@ -1,4 +1,5 @@
 import { match } from 'node-match-path'
+import { StartOptions } from './composeMocks/glossary'
 import { MockedResponse, response } from './response'
 import {
   MockedRequest,
@@ -12,7 +13,10 @@ import {
 } from './utils/createBroadcastChannel'
 import { log } from './logger'
 
-export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
+export const handleRequestWith = (
+  requestHandlers: RequestHandler[],
+  options: StartOptions,
+) => {
   return async (event: MessageEvent) => {
     const channel = createBroadcastChannel(event)
 
@@ -90,7 +94,9 @@ export const handleRequestWith = (requestHandlers: RequestHandler[]) => {
         headers: Array.from(mockedResponse.headers.entries()),
       }
 
-      log(req, responseWithHeaders, relevantRequestHandler)
+      if (!options.quiet) {
+        log(req, responseWithHeaders, relevantRequestHandler)
+      }
 
       channel.send({
         type: 'MOCK_SUCCESS',

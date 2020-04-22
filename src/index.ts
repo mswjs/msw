@@ -1,4 +1,4 @@
-export { composeMocks } from './composeMocks'
+export { composeMocks } from './composeMocks/composeMocks'
 export { MockedResponse, ResponseTransformer, response } from './response'
 export * as context from './context'
 

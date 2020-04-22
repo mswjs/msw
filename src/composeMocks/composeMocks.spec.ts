@@ -1,6 +1,6 @@
 import { composeMocks } from './composeMocks'
-import rest, { restContext } from './handlers/rest'
-import { MockedRequest, ResponseResolver } from './handlers/requestHandler'
+import rest, { restContext } from '../handlers/rest'
+import { MockedRequest, ResponseResolver } from '../handlers/requestHandler'
 
 test('Generates schema based on provided handlers', () => {
   const simpleResolver: ResponseResolver<MockedRequest, typeof restContext> = (

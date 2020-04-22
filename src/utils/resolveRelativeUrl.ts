@@ -1,4 +1,4 @@
-import { Mask } from '../composeMocks'
+import { Mask } from '../composeMocks/glossary'
 
 /**
  * Resolves a relative URL to the absolute URL with the same hostname.

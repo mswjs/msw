@@ -4,7 +4,7 @@ import {
   ResponseResolver,
   MockedRequest,
 } from './requestHandler'
-import { Mask } from '../composeMocks'
+import { Mask } from '../composeMocks/glossary'
 import { set } from '../context/set'
 import { status } from '../context/status'
 import { cookie } from '../context/cookie'

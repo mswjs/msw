@@ -1,22 +1,24 @@
 import { composeMocks } from './composeMocks'
 import rest, { restContext } from './handlers/rest'
-import { ResponseResolver } from './handlers/requestHandler'
+import { MockedRequest, ResponseResolver } from './handlers/requestHandler'
 
 test('Generates schema based on provided handlers', () => {
-  const simpleResolver: ResponseResolver<typeof restContext> = (
+  const simpleResolver: ResponseResolver<MockedRequest, typeof restContext> = (
     req,
     res,
     { json },
-  ) => res(json({ a: 2 }))
+  ) => {
+    return res(json({ a: 2 }))
+  }
 
-  const payload = composeMocks(
+  const api = composeMocks(
     rest.get('https://api.github.com/users/:username', simpleResolver),
     rest.get('foo', simpleResolver),
     rest.post(/footer/, simpleResolver),
   )
 
-  expect(payload).toHaveProperty('start')
-  expect(payload.start).toBeInstanceOf(Function)
-  expect(payload).toHaveProperty('stop')
-  expect(payload.stop).toBeInstanceOf(Function)
+  expect(api).toHaveProperty('start')
+  expect(api.start).toBeInstanceOf(Function)
+  expect(api).toHaveProperty('stop')
+  expect(api.stop).toBeInstanceOf(Function)
 })

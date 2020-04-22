@@ -1,5 +1,9 @@
 import { match } from 'node-match-path'
-import { RequestHandler, ResponseResolver } from './requestHandler'
+import {
+  RequestHandler,
+  ResponseResolver,
+  MockedRequest,
+} from './requestHandler'
 import { Mask } from '../composeMocks'
 import { set } from '../context/set'
 import { status } from '../context/status'
@@ -36,8 +40,8 @@ export const restContext = {
 const createRESTHandler = (method: RESTMethods) => {
   return (
     mask: Mask,
-    resolver: ResponseResolver<typeof restContext>,
-  ): RequestHandler<typeof restContext> => {
+    resolver: ResponseResolver<MockedRequest, typeof restContext>,
+  ): RequestHandler<MockedRequest, typeof restContext> => {
     return {
       mask,
       predicate(req, parsedUrl) {

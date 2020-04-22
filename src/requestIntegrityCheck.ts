@@ -1,7 +1,5 @@
 import { addMessageListener } from './utils/createBroadcastChannel'
 
-addMessageListener
-
 export const requestIntegrityCheck = (
   serviceWorker: ServiceWorker,
 ): Promise<ServiceWorker> => {

@@ -2,8 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
-
-const copyServiceWorker = require('../../config/IntegrityWebpackPlugin/utils/copyServiceWorker')
+import copyServiceWorker from '../../config/copyServiceWorker'
 
 describe('Integrity check', () => {
   describe('given a Service Worker with the latest published integrity', () => {

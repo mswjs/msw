@@ -40,7 +40,7 @@ interface GraphQLRequestPayload<VariablesType> {
 }
 
 interface ParsedQueryPayload {
-  operationName: string
+  operationName: string | undefined
 }
 
 export const graphqlContext: GraphQLMockedContext<any> = {
@@ -54,9 +54,6 @@ export const graphqlContext: GraphQLMockedContext<any> = {
 
 const parseQuery = (
   query: string,
-  /**
-   * @todo Use this to parametrize AST lookup (query/mutation/subscription).
-   */
   definitionOperation: OperationTypeNode = 'query',
 ): ParsedQueryPayload => {
   const ast = parse(query)
@@ -76,7 +73,10 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
   return <QueryType, VariablesType = Record<string, any>>(
     expectedOperation: GraphQLRequestHandlerSelector,
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
-  ): RequestHandler<GraphQLMockedContext<QueryType>> => {
+  ): RequestHandler<
+    GraphQLMockedRequest<VariablesType>,
+    GraphQLMockedContext<QueryType>
+  > => {
     return {
       predicate(req) {
         if (
@@ -90,6 +90,10 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           VariablesType
         >
         const { operationName } = parseQuery(query, operationType)
+
+        if (!operationName) {
+          return false
+        }
 
         const isMatchingOperation =
           expectedOperation instanceof RegExp

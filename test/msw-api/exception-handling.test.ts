@@ -24,9 +24,7 @@ describe('Exception handling', () => {
         }
       })
 
-      await test.page.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
+      await test.reload()
 
       expect(errorMessages).toHaveLength(0)
     })

@@ -35,9 +35,7 @@ describe('API: composeMocks / start', () => {
         }
       })
 
-      await test.page.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
+      await test.reload()
 
       const activationMessageIndex = logs.findIndex((message) => {
         return message.includes('[MSW] Mocking enabled')

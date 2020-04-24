@@ -4,14 +4,14 @@ import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 describe('GraphQL: Errors', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'errors.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'errors.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   describe('given mocked query errors', () => {
@@ -19,7 +19,7 @@ describe('GraphQL: Errors', () => {
     let body: Record<string, any>
 
     beforeAll(async () => {
-      res = await executeOperation(api.page, {
+      res = await executeOperation(test.page, {
         query: `
           query Login {
             user {

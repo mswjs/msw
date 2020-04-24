@@ -3,18 +3,18 @@ import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 describe('GraphQL: Query', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   it('should mock the query response', async () => {
-    const res = await executeOperation(api.page, {
+    const res = await executeOperation(test.page, {
       query: `
         query GetUserDetail {
           user {

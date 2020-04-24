@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
-    "build": "cross-env NODE_ENV=production rollup -c rollup.config.ts",
+    "clean": "rimraf lib",
+    "build": "yarn clean && cross-env NODE_ENV=production rollup -c rollup.config.ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
     "test:integration": "node --max_old_space_size=8000 node_modules/.bin/jest --config=test/jest.config.js --runInBand",
@@ -62,6 +63,7 @@
     "prettier": "^2.0.4",
     "puppeteer": "^3.0.0",
     "regenerator-runtime": "^0.13.5",
+    "rimraf": "^3.0.2",
     "rollup": "^2.6.1",
     "rollup-plugin-typescript2": "^0.27.0",
     "ts-jest": "^25.4.0",

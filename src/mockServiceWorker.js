@@ -70,6 +70,12 @@ self.addEventListener('fetch', async function (event) {
   const requestClone = request.clone()
   const getOriginalResponse = () => fetch(requestClone)
 
+  // Opening the DevTools triggers the "only-if-cached" request
+  // that cannot be handled by the worker. Bypass such requests.
+  // if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+  //   return
+  // }
+
   event.respondWith(
     new Promise(async (resolve) => {
       const client = await event.target.clients.get(clientId)

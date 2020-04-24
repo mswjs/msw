@@ -34,7 +34,7 @@
     "chalk": "^4.0.0",
     "cookie": "^0.4.0",
     "graphql": "^15.0.0",
-    "node-match-path": "^0.3.1",
+    "node-match-path": "^0.4.2",
     "statuses": "^2.0.0",
     "yargs": "^15.3.1"
   },

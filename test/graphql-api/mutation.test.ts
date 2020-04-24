@@ -3,18 +3,18 @@ import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 describe('GraphQL: Mutation', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'mutation.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'mutation.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   it('should mock the mutation response', async () => {
-    const res = await executeOperation(api.page, {
+    const res = await executeOperation(test.page, {
       query: `
         mutation Logout {
           logout {

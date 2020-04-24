@@ -27,9 +27,7 @@ describe('API: composeMocks / start / quiet', () => {
         return window.__MSW_REGISTRATION__
       })
 
-      await test.page.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
+      await test.reload()
     })
 
     it('should still print activation message into console', () => {

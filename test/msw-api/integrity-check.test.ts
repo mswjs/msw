@@ -27,9 +27,7 @@ describe('Integrity check', () => {
         }
       })
 
-      await test.page.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
+      await test.reload()
 
       expect(errorMessages).toHaveLength(0)
     })
@@ -84,9 +82,7 @@ describe('Integrity check', () => {
       })
 
       // Open the page anew to trigger the console listener
-      await test.page.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
+      await test.reload()
 
       const integrityError = errors.find((message) => {
         return message.includes('[MSW] Detected outdated Service Worker')

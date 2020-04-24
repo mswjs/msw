@@ -35,20 +35,22 @@ export interface TestAPI {
   origin: string
   browser: puppeteer.Browser
   page: puppeteer.Page
+  reload: () => Promise<void>
   cleanup: () => Promise<unknown>
 
   /* Helpers */
   request: RequestHelper
 }
 
+type RunBrowserOptions = SpawnServerOptions & {
+  preventInitialLoad?: boolean
+}
+
 export const runBrowserWith = async (
   mockDefinitionPath: string,
-  serverOptions?: SpawnServerOptions,
+  options?: RunBrowserOptions,
 ): Promise<TestAPI> => {
-  const { server, origin } = await spawnServer(
-    mockDefinitionPath,
-    serverOptions,
-  )
+  const { server, origin } = await spawnServer(mockDefinitionPath, options)
 
   const browser = await puppeteer.launch({
     headless: !process.env.DEBUG,
@@ -56,9 +58,16 @@ export const runBrowserWith = async (
     args: ['--no-sandbox'],
   })
   const page = await browser.newPage()
-  await page.goto(origin, {
-    waitUntil: 'networkidle0',
-  })
+
+  const reload = async () => {
+    await page.goto(origin, {
+      waitUntil: 'networkidle0',
+    })
+  }
+
+  if (!options?.preventInitialLoad) {
+    await reload()
+  }
 
   const cleanup = () => {
     return new Promise((resolve, reject) => {
@@ -79,6 +88,7 @@ export const runBrowserWith = async (
     browser,
     page,
     cleanup,
+    reload,
     request: createRequestHelper(page),
   }
 }

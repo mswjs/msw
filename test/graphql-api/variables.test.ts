@@ -4,14 +4,14 @@ import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 describe('GraphQL: Variables', () => {
-  let api: TestAPI
+  let test: TestAPI
 
   beforeAll(async () => {
-    api = await runBrowserWith(path.resolve(__dirname, 'variables.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'variables.mocks.ts'))
   })
 
   afterAll(() => {
-    return api.cleanup()
+    return test.cleanup()
   })
 
   describe('given a query with variables', () => {
@@ -19,7 +19,7 @@ describe('GraphQL: Variables', () => {
     let body: Record<string, any>
 
     beforeAll(async () => {
-      res = await executeOperation(api.page, {
+      res = await executeOperation(test.page, {
         query: `
           query GetGithubUser($username: String!) {
             user(login: $username) {
@@ -56,7 +56,7 @@ describe('GraphQL: Variables', () => {
     let body: Record<string, any>
 
     beforeAll(async () => {
-      res = await executeOperation(api.page, {
+      res = await executeOperation(test.page, {
         query: `
           mutation DeletePost($postId: String!) {
             deletePost(id: $postId) {
@@ -91,7 +91,7 @@ describe('GraphQL: Variables', () => {
     let body: Record<string, any>
 
     beforeAll(async () => {
-      res = await executeOperation(api.page, {
+      res = await executeOperation(test.page, {
         query: `
             query GetActiveUser {
               user {

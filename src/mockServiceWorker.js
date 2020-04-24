@@ -72,9 +72,9 @@ self.addEventListener('fetch', async function (event) {
 
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
-  // if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
-  //   return
-  // }
+  if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+    return
+  }
 
   event.respondWith(
     new Promise(async (resolve) => {

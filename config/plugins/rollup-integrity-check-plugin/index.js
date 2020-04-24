@@ -22,6 +22,8 @@ module.exports = function integrityCheck(options) {
       return replace(injectChecksum(this.checksum)).transform(...args)
     },
     buildStart() {
+      this.addWatchFile(input)
+
       if (!fs.existsSync(input)) {
         this.error(`Failed to locate the Service Worker file at: ${input}`)
       }

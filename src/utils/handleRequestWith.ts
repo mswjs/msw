@@ -1,17 +1,10 @@
-import { match } from 'node-match-path'
 import { StartOptions } from '../setupWorker/glossary'
-import { MockedResponse, response } from '../response'
-import {
-  MockedRequest,
-  RequestHandler,
-  defaultContext,
-} from '../handlers/requestHandler'
-import { resolveRelativeUrl } from '../utils/resolveRelativeUrl'
-import { getCleanUrl } from '../utils/getCleanUrl'
+import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
-} from './createBroadcastChannel'
+} from '../utils/createBroadcastChannel'
+import { getResponse } from '../utils/getResponse'
 import { log } from './logger'
 
 export const handleRequestWith = (
@@ -42,68 +35,37 @@ export const handleRequestWith = (
 
       const { type, payload: req } = message
 
+      // Ignore worker irrelevant worker messages
       if (type !== 'REQUEST') {
         return null
       }
 
-      const parsedUrl = new URL(req.url)
-      req.query = parsedUrl.searchParams
+      const { response, handler } = await getResponse(req, requestHandlers)
 
-      const relevantRequestHandler = requestHandlers.find((requestHandler) => {
-        return requestHandler.predicate(req, parsedUrl)
-      })
-
-      if (relevantRequestHandler == null) {
+      // Handle a scenario when there is no request handler
+      // found for a given request.
+      if (!handler) {
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
-      const { mask, defineContext, resolver } = relevantRequestHandler
-
-      // Retrieve request URL parameters based on the provided mask
-      const params =
-        (mask &&
-          match(resolveRelativeUrl(mask), getCleanUrl(parsedUrl)).params) ||
-        {}
-
-      const requestWithParams: MockedRequest = {
-        ...req,
-        params,
-      }
-
-      const context = defineContext
-        ? defineContext(requestWithParams)
-        : defaultContext
-
-      const mockedResponse: MockedResponse | undefined = await resolver(
-        requestWithParams,
-        response,
-        context,
-      )
-
-      if (!mockedResponse) {
+      // Handle a scenario when there is a request handler,
+      // but its response resolver didn't return any response.
+      if (!response) {
         console.warn(
           '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
-          mockedResponse,
+          response,
         )
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
-      // Transform Headers into a list to be stringified preserving multiple
-      // header keys. Stringified list is then parsed inside the ServiceWorker.
-      const responseWithHeaders: MockedResponse = {
-        ...mockedResponse,
-        // @ts-ignore
-        headers: Array.from(mockedResponse.headers.entries()),
-      }
-
       if (!options.quiet) {
-        log(req, responseWithHeaders, relevantRequestHandler)
+        log(req, response, handler)
       }
 
       channel.send({
         type: 'MOCK_SUCCESS',
-        payload: responseWithHeaders,
+        payload: response,
       })
     } catch (error) {
       channel.send({

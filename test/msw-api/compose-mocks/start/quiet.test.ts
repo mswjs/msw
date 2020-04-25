@@ -30,11 +30,11 @@ describe('API: composeMocks / start / quiet', () => {
       await test.reload()
     })
 
-    it('should still print activation message into console', () => {
+    it('should not print any activation message into console', () => {
       const activationMessage = logs.find((message) => {
         return message.includes('[MSW] Mocking enabled.')
       })
-      expect(activationMessage).toBeTruthy()
+      expect(activationMessage).toBeFalsy()
     })
 
     describe('and I perform a request that should be mocked', () => {

@@ -90,7 +90,9 @@ If this message still persists after updating, please report an issue: https://g
     }
 
     // Signal the Service Worker to enable requests interception
-    const [activationError] = await until(() => activateMocking(worker))
+    const [activationError] = await until(() =>
+      activateMocking(worker, options),
+    )
 
     if (activationError) {
       console.error('Failed to enable mocking', activationError)

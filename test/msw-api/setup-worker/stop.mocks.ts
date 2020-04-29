@@ -1,12 +1,12 @@
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
-const { start, stop } = composeMocks(
+const worker = setupWorker(
   rest.get('https://api.github.com', (req, res, ctx) => {
     return res(ctx.json({ mocked: true }))
   }),
 )
 
-start()
+worker.start()
 
 // @ts-ignore
-window.__mswStop = stop
+window.__mswStop = worker.stop

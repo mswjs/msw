@@ -1,6 +1,6 @@
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => {
     return res(
       ctx.cookie('my-cookie', 'value'),
@@ -11,4 +11,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

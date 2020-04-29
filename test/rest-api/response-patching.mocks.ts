@@ -1,6 +1,6 @@
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   rest.get('https://test.msw.io/user', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(
       'https://api.github.com/users/octocat',
@@ -41,4 +41,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

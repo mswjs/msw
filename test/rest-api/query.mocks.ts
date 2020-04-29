@@ -1,6 +1,6 @@
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   rest.get('https://test.msw.io/api/books', (req, res, ctx) => {
     const bookId = req.query.get('id')
     req.query.getAll
@@ -23,4 +23,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

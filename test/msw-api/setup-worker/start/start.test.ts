@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 
-describe('API: composeMocks / start', () => {
+describe('API: setupWorker / start', () => {
   let test: TestAPI
 
   beforeAll(async () => {
@@ -12,7 +12,7 @@ describe('API: composeMocks / start', () => {
     return test.cleanup()
   })
 
-  describe('given a custom Promise chain handler to start()', () => {
+  describe('given a custom Promise chain handler to worker.start()', () => {
     let resolvedPayload
 
     beforeAll(async () => {

@@ -1,6 +1,6 @@
-import { composeMocks, graphql } from 'msw'
+import { setupWorker, graphql } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   graphql.query('GetUserDetail', (req, res, ctx) => {
     return res(
       ctx.data({
@@ -13,4 +13,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

@@ -14,7 +14,7 @@ interface ResponsePayload {
 }
 
 /**
- * Returns mocked response for a given request using following request handlers.
+ * Returns a mocked response for a given request using following request handlers.
  */
 export const getResponse = async <
   R extends MockedRequest,
@@ -69,7 +69,7 @@ export const getResponse = async <
   const responseWithHeaders: MockedResponse = {
     ...mockedResponse,
     // @ts-ignore
-    headers: Array.from(mockedResponse.headers.entries()),
+    headers: mockedResponse.headers,
   }
 
   return {

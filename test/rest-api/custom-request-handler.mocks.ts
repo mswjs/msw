@@ -1,5 +1,5 @@
 import {
-  composeMocks,
+  setupWorker,
   ResponseResolver,
   RequestHandler,
   ResponseTransformer,
@@ -53,7 +53,7 @@ const withUrl = (
   }
 }
 
-const { start } = composeMocks(
+const worker = setupWorker(
   withHeader('x-custom-header', (req, res, ctx) => {
     return res(
       ctx.status(401),
@@ -73,4 +73,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

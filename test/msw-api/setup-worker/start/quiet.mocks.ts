@@ -1,6 +1,6 @@
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => {
     return res(
       ctx.json({
@@ -12,7 +12,7 @@ const { start } = composeMocks(
 )
 
 // @ts-ignore
-window.__MSW_REGISTRATION__ = start({
+window.__MSW_REGISTRATION__ = worker.start({
   // Disable logging of matched requests into browser's console
   quiet: true,
 })

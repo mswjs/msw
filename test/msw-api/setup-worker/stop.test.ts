@@ -17,7 +17,7 @@ const stopWorkerOn = async (page: Page) => {
   })
 }
 
-describe('API: composeMocks / stop', () => {
+describe('API: setupWorker / stop', () => {
   let test: TestAPI
 
   beforeAll(async () => {

@@ -1,6 +1,6 @@
-import { composeMocks, graphql } from 'msw'
+import { setupWorker, graphql } from 'msw'
 
-const { start } = composeMocks(
+const worker = setupWorker(
   graphql.query('GetGithubUser', (req, res, ctx) => {
     const { username } = req.variables
 
@@ -40,4 +40,4 @@ const { start } = composeMocks(
   }),
 )
 
-start()
+worker.start()

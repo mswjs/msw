@@ -2,7 +2,7 @@ import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { Response } from 'puppeteer'
 
-describe('API: composeMocks / start / quiet', () => {
+describe('API: setupWorker / start / quiet', () => {
   let test: TestAPI
   let logs: string[] = []
 

@@ -66,10 +66,10 @@ Open that file and follow the example below to create your first mocking definit
 ```js
 // mocks.js
 // 1. Import mocking utils
-import { composeMocks, rest } from 'msw'
+import { setupWorker, rest } from 'msw'
 
 // 2. Define request handlers and response resolvers
-const { start } = composeMocks(
+const worker = setupWorker(
   rest.get('https://github.com/octocat', (req, res, ctx) => {
     return res(
       ctx.delay(1500),
@@ -82,7 +82,7 @@ const { start } = composeMocks(
 )
 
 // 3. Start the Service Worker
-start()
+worker.start()
 ```
 
 Import the `mocks.js` module into your application to enable the mocking. You can import the mocking definition file conditionally, so it's never loaded on production:

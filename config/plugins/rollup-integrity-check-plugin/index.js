@@ -15,15 +15,11 @@ module.exports = function integrityCheck(options) {
 
   return {
     name: 'integrity-check',
-    renderChunk(...args) {
-      return replace(injectChecksum(this.checksum)).renderChunk(...args)
-    },
     transform(...args) {
+      this.addWatchFile(input)
       return replace(injectChecksum(this.checksum)).transform(...args)
     },
     buildStart() {
-      this.addWatchFile(input)
-
       if (!fs.existsSync(input)) {
         this.error(`Failed to locate the Service Worker file at: ${input}`)
       }
@@ -31,6 +27,7 @@ module.exports = function integrityCheck(options) {
       console.log('Signing the Service Worker at:\n%s', chalk.cyan(input))
 
       this.checksum = getChecksum(input)
+
       const workerContent = fs.readFileSync(input, 'utf8')
       const publicWorkerContent = workerContent.replace(
         checksumPlaceholder,

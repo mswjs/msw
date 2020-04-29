@@ -5,6 +5,7 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
+import { headersToArray } from '../utils/headersToArray'
 import { log } from './logger'
 
 export const handleRequestWith = (
@@ -63,9 +64,14 @@ export const handleRequestWith = (
         log(req, response, handler)
       }
 
+      const responseWithPreparedHeaders = {
+        ...response,
+        headers: headersToArray(response.headers),
+      }
+
       channel.send({
         type: 'MOCK_SUCCESS',
-        payload: response,
+        payload: responseWithPreparedHeaders,
       })
     } catch (error) {
       channel.send({

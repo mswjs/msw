@@ -41,6 +41,7 @@
     "cookie": "^0.4.1",
     "graphql": "^15.0.0",
     "node-match-path": "^0.4.2",
+    "node-request-interceptor": "^0.1.6",
     "statuses": "^2.0.0",
     "yargs": "^15.3.1"
   },
@@ -54,6 +55,7 @@
     "@types/cookie": "^0.3.3",
     "@types/jest": "^25.2.1",
     "@types/node": "^13.7.7",
+    "@types/node-fetch": "^2.5.7",
     "@types/puppeteer": "^2.0.1",
     "@types/webpack-dev-server": "^3.10.1",
     "babel-loader": "^8.1.0",

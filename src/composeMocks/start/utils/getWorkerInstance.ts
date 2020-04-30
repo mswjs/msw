@@ -12,7 +12,7 @@ export const getWorkerInstance = async (
 ): Promise<ServiceWorkerInstanceTuple | null> => {
   // Resolve the absolute Service Worker URL
   const absoluteWorkerUrl = (location.origin + url).replace(
-    /(\.\/|\/{2,})/g,
+    /(?<!:)(\/*\.\/|\/{2,})/g,
     '/',
   )
 

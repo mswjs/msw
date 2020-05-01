@@ -24,8 +24,9 @@ module.exports = function init(args) {
 
   const swFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
   const swDestFilepath = path.resolve(resolvedPublicDir, swFilename)
+
   fs.copyFile(SERVICE_WORKER_BUILD_PATH, swDestFilepath, (error) => {
-    invariant(typeof error !== null, 'Failed to copy Service Worker. %s', error)
+    invariant(typeof error === null, 'Failed to copy Service Worker. %s', error)
 
     console.log(`
 ${chalk.green('Service Worker successfully created!')}

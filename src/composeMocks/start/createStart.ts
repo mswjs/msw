@@ -49,20 +49,6 @@ export const createStart = (context: ComposeMocksInternalContext) => {
     context.worker = worker
     context.registration = registration
 
-    // Reload the page when new Service Worker has been installed
-    registration.addEventListener('updatefound', () => {
-      const nextWorker = registration.installing
-
-      nextWorker?.addEventListener('statechange', () => {
-        if (
-          nextWorker.state === 'installed' &&
-          navigator.serviceWorker.controller
-        ) {
-          location.reload()
-        }
-      })
-    })
-
     window.addEventListener('beforeunload', () => {
       if (worker.state !== 'redundant') {
         // Notify the Service Worker that this client has closed.

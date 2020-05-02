@@ -6,7 +6,7 @@
   "module": "lib/esm.js",
   "types": "lib/types",
   "bin": {
-    "msw": "cli/msw.js"
+    "msw": "cli/index.js"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",

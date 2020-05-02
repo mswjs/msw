@@ -18,6 +18,10 @@
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn test:unit && yarn build && yarn test:integration"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mswjs/msw"
+  },
   "author": {
     "name": "Artem Zakharchenko",
     "url": "https://github.com/kettanaito"

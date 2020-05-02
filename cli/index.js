@@ -10,7 +10,7 @@ yargs
       yargs
         .positional('publicDir', {
           type: 'string',
-          description: 'Relative path to server public directory',
+          description: 'Relative path to the public directory',
           required: true,
           normalize: true,
         })

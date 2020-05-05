@@ -2,8 +2,8 @@
   "name": "msw",
   "version": "0.15.6",
   "description": "Client-side API mocking using Service Workers.",
-  "main": "lib/umd.js",
-  "module": "lib/esm.js",
+  "main": "lib/umd/index.js",
+  "module": "lib/esm/index.js",
   "types": "lib/types",
   "bin": {
     "msw": "cli/index.js"
@@ -34,6 +34,7 @@
     "LICENSE.md",
     "README.md"
   ],
+  "sideEffects": false,
   "dependencies": {
     "@open-draft/until": "^1.0.0",
     "chalk": "^4.0.0",

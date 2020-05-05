@@ -1,8 +1,8 @@
 import { parse, format } from 'url'
-import { MockedRequest, RequestHandler } from './handlers/requestHandler'
-import { MockedResponse } from './response'
-import { getTimestamp } from './utils/getTimestamp'
-import { styleStatusCode } from './utils/styleStatusCode'
+import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
+import { MockedResponse } from '../response'
+import { getTimestamp } from './getTimestamp'
+import { styleStatusCode } from './styleStatusCode'
 
 export const log = (
   req: MockedRequest,

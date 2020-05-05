@@ -1,12 +1,12 @@
 import { parse, OperationDefinitionNode, OperationTypeNode } from 'graphql'
-import { RequestHandler, MockedRequest } from './requestHandler'
-import { MockedResponse, ResponseComposition } from '../response'
-import { set } from '../context/set'
-import { status } from '../context/status'
-import { delay } from '../context/delay'
-import { fetch } from '../context/fetch'
-import { data, DataContext } from '../context/data'
-import { errors } from '../context/errors'
+import { RequestHandler, MockedRequest } from './handlers/requestHandler'
+import { MockedResponse, ResponseComposition } from './response'
+import { set } from './context/set'
+import { status } from './context/status'
+import { delay } from './context/delay'
+import { fetch } from './context/fetch'
+import { data, DataContext } from './context/data'
+import { errors } from './context/errors'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -43,6 +43,7 @@ interface ParsedQueryPayload {
   operationName: string | undefined
 }
 
+/*#__PURE__*/
 export const graphqlContext: GraphQLMockedContext<any> = {
   set,
   status,
@@ -52,6 +53,7 @@ export const graphqlContext: GraphQLMockedContext<any> = {
   errors,
 }
 
+/*#__PURE__*/
 const parseQuery = (
   query: string,
   definitionOperation: OperationTypeNode = 'query',
@@ -69,6 +71,7 @@ const parseQuery = (
   }
 }
 
+/*#__PURE__*/
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
   return <QueryType, VariablesType = Record<string, any>>(
     expectedOperation: GraphQLRequestHandlerSelector,
@@ -117,7 +120,9 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
   }
 }
 
-export default {
+const graphql = {
   query: createGraphQLHandler('query'),
   mutation: createGraphQLHandler('mutation'),
 }
+
+export { graphql }

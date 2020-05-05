@@ -1,17 +1,17 @@
 import { match } from 'node-match-path'
-import { StartOptions } from './composeMocks/glossary'
-import { MockedResponse, response } from './response'
+import { StartOptions } from '../setupWorker/glossary'
+import { MockedResponse, response } from '../response'
 import {
   MockedRequest,
   RequestHandler,
   defaultContext,
-} from './handlers/requestHandler'
-import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
-import { getCleanUrl } from './utils/getCleanUrl'
+} from '../handlers/requestHandler'
+import { resolveRelativeUrl } from '../utils/resolveRelativeUrl'
+import { getCleanUrl } from '../utils/getCleanUrl'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
-} from './utils/createBroadcastChannel'
+} from './createBroadcastChannel'
 import { log } from './logger'
 
 export const handleRequestWith = (

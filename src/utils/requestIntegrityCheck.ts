@@ -1,4 +1,4 @@
-import { addMessageListener } from './utils/createBroadcastChannel'
+import { addMessageListener } from './createBroadcastChannel'
 
 export const requestIntegrityCheck = (
   serviceWorker: ServiceWorker,

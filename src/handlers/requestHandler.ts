@@ -1,4 +1,4 @@
-import { Mask } from '../composeMocks/glossary'
+import { Mask } from '../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../response'
 import { status } from '../context/status'
 import { set } from '../context/set'

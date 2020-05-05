@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "es6",
+    "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,

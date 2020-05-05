@@ -6,8 +6,8 @@ import {
   ServiceWorkerInstanceTuple,
   StartOptions,
 } from '../glossary'
-import { handleRequestWith } from '../../handleRequestWith'
-import { requestIntegrityCheck } from '../../requestIntegrityCheck'
+import { handleRequestWith } from '../../utils/handleRequestWith'
+import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {

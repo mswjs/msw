@@ -1,6 +1,6 @@
 import * as context from './context'
 
-export { setupWorker, composeMocks } from './composeMocks/setupWorker'
+export { setupWorker, composeMocks } from './setupWorker/setupWorker'
 export { MockedResponse, ResponseTransformer, response } from './response'
 export { context }
 
@@ -13,5 +13,5 @@ export {
   ResponseResolver,
   defaultContext,
 } from './handlers/requestHandler'
-export { default as rest, restContext, RESTMethods } from './handlers/rest'
-export { default as graphql, graphqlContext } from './handlers/graphql'
+export { rest, restContext, RESTMethods } from './rest'
+export { graphql, graphqlContext } from './graphql'

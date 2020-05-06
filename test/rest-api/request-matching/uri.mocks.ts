@@ -19,6 +19,16 @@ const worker = setupWorker(
     )
   }),
 
+  rest.get('https://test.msw.io/messages/:messageId/items', (req, res, ctx) => {
+    const { messageId } = req.params
+
+    return res(
+      ctx.json({
+        messageId,
+      }),
+    )
+  }),
+
   rest.get(/(.+?)\.google\.com\/path/, (req, res, ctx) => {
     return res(
       ctx.json({

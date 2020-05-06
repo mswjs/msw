@@ -87,6 +87,36 @@ describe('REST: Request matching (URI)', () => {
 
       expect(res).toBeNull()
     })
+
+    it('should match a request with query parameters that matches the mask', async () => {
+      const res = await test.request({
+        url: 'https://test.msw.io/messages/abc-123/items?hello=true',
+      })
+      const status = res.status()
+      const headers = res.headers()
+      const body = await res.json()
+
+      expect(status).toBe(200)
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(body).toEqual({
+        messageId: 'abc-123',
+      })
+    })
+
+    it('should match a request with a hash that matches the mask', async () => {
+      const res = await test.request({
+        url: 'https://test.msw.io/messages/abc-123/items#hello',
+      })
+      const status = res.status()
+      const headers = res.headers()
+      const body = await res.json()
+
+      expect(status).toBe(200)
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(body).toEqual({
+        messageId: 'abc-123',
+      })
+    })
   })
 
   describe('given RegExp for request URI', () => {

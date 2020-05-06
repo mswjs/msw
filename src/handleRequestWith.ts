@@ -7,6 +7,7 @@ import {
   defaultContext,
 } from './handlers/requestHandler'
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
+import { getCleanUrl } from './utils/getCleanUrl'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
@@ -60,7 +61,9 @@ export const handleRequestWith = (
 
       // Retrieve request URL parameters based on the provided mask
       const params =
-        (mask && match(resolveRelativeUrl(mask), req.url).params) || {}
+        (mask &&
+          match(resolveRelativeUrl(mask), getCleanUrl(parsedUrl)).params) ||
+        {}
 
       const requestWithParams: MockedRequest = {
         ...req,

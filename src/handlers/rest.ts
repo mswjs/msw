@@ -15,6 +15,7 @@ import { xml } from '../context/xml'
 import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
 import { resolveRelativeUrl } from '../utils/resolveRelativeUrl'
+import { getCleanUrl } from '../utils/getCleanUrl'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -46,7 +47,7 @@ const createRESTHandler = (method: RESTMethods) => {
       mask,
       predicate(req, parsedUrl) {
         // Ignore query parameters and hash when matching requests URI
-        const rawUrl = parsedUrl.origin + parsedUrl.pathname
+        const rawUrl = getCleanUrl(parsedUrl)
         const hasSameMethod = method === req.method
         const urlMatch = match(resolveRelativeUrl(mask), rawUrl)
 

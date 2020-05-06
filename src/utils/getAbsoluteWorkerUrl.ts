@@ -3,5 +3,5 @@
  * relative URL (known during the registration).
  */
 export function getAbsoluteWorkerUrl(relativeUrl: string): string {
-  return (location.origin + relativeUrl).replace(/(?<!:)(\/*\.\/|\/{2,})/g, '/')
+  return new URL(relativeUrl, location.origin).href
 }

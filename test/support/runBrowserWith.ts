@@ -1,7 +1,8 @@
 import * as puppeteer from 'puppeteer'
 import { match } from 'node-match-path'
-import { SpawnServerOptions, spawnServer } from './spawnServer'
 import WebpackDevServer from 'webpack-dev-server'
+import { SpawnServerOptions, spawnServer } from './spawnServer'
+import { getCleanUrl } from '../../src/utils/getCleanUrl'
 
 /**
  * Requests a given URL within the test scenario's browser session.
@@ -17,9 +18,13 @@ export const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
     url,
     fetchOptions,
     responsePredicate = (res) => {
+      // Remove query parameters from both URLs
+      const expectedUrl = getCleanUrl(new URL(url))
+      const actualUrl = getCleanUrl(new URL(res.url()))
+
       // Use native matcher to preserve the standard matching behavior
       // (i.e. disregard trailing slashes).
-      return match(url, res.url()).matches
+      return match(expectedUrl, actualUrl).matches
     },
   }) => {
     page.evaluate((a, b) => fetch(a, b), url, fetchOptions)

@@ -1,6 +1,7 @@
 import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { until } from '@open-draft/until'
 import { ServiceWorkerInstanceTuple } from '../../glossary'
+import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerURl'
 
 /**
  * Returns an active Service Worker instance.
@@ -11,10 +12,7 @@ export const getWorkerInstance = async (
   options?: RegistrationOptions,
 ): Promise<ServiceWorkerInstanceTuple | null> => {
   // Resolve the absolute Service Worker URL
-  const absoluteWorkerUrl = (location.origin + url).replace(
-    /(?<!:)(\/*\.\/|\/{2,})/g,
-    '/',
-  )
+  const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
   const [, mockRegistrations] = await until(async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()

@@ -1,4 +1,4 @@
-import rest from './rest'
+import { rest } from './rest'
 
 test('Exports all REST API methods', () => {
   expect(rest).not.toBeUndefined()

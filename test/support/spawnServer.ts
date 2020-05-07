@@ -5,6 +5,7 @@ import * as chalk from 'chalk'
 import * as webpack from 'webpack'
 import * as WebpackDevServer from 'webpack-dev-server'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
+import { SERVICE_WORKER_BUILD_PATH } from '../../config/constants'
 import * as packageJson from '../../package.json'
 
 interface Payload {
@@ -86,7 +87,7 @@ Resolved "msw" module to:
     },
     after(app, server, compiler) {
       app.get('/mockServiceWorker.js', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../../lib/mockServiceWorker.js'))
+        res.sendFile(SERVICE_WORKER_BUILD_PATH)
       })
 
       if (options?.withRoutes) {

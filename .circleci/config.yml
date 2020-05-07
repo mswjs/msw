@@ -35,8 +35,8 @@ jobs:
           command: yarn build
 
       - run:
-          name: Distributed Service Worker preview
-          command: cat lib/mockServiceWorker.js
+          name: Preview Service Worker build
+          command: cat lib/esm/mockServiceWorker.js
 
       - run:
           name: Unit tests

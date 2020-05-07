@@ -43,7 +43,7 @@ const buildEsm = {
   output: [
     {
       entryFileNames: '[name].js',
-      chunkFileNames: '[name].js',
+      chunkFileNames: '[name]-deps.js',
       dir: path.dirname(packageJson.module),
       format: 'esm',
     },

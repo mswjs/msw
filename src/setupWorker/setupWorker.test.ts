@@ -1,5 +1,5 @@
 import { setupWorker } from './setupWorker'
-import rest, { restContext } from '../handlers/rest'
+import { rest, restContext } from '../rest'
 import { MockedRequest, ResponseResolver } from '../handlers/requestHandler'
 
 test('Generates schema based on provided handlers', () => {

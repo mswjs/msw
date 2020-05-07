@@ -10,7 +10,7 @@ const SERVICE_WORKER_SOURCE_PATH = path.resolve(
 const SERVICE_WORKER_BUILD_PATH = path.resolve(
   __dirname,
   '../',
-  path.dirname(packageJson.main),
+  path.dirname(packageJson.module),
   path.basename(SERVICE_WORKER_SOURCE_PATH),
 )
 

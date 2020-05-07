@@ -43,7 +43,6 @@ interface ParsedQueryPayload {
   operationName: string | undefined
 }
 
-/*#__PURE__*/
 export const graphqlContext: GraphQLMockedContext<any> = {
   set,
   status,
@@ -53,7 +52,6 @@ export const graphqlContext: GraphQLMockedContext<any> = {
   errors,
 }
 
-/*#__PURE__*/
 const parseQuery = (
   query: string,
   definitionOperation: OperationTypeNode = 'query',
@@ -71,7 +69,6 @@ const parseQuery = (
   }
 }
 
-/*#__PURE__*/
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
   return <QueryType, VariablesType = Record<string, any>>(
     expectedOperation: GraphQLRequestHandlerSelector,

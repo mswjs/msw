@@ -1,3 +1,4 @@
+import { headersToList } from 'headers-utils'
 import { StartOptions } from '../setupWorker/glossary'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import {
@@ -5,7 +6,6 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
-import { headersToArray } from '../utils/headersToArray'
 import { log } from './logger'
 
 export const handleRequestWith = (
@@ -64,14 +64,14 @@ export const handleRequestWith = (
         log(req, response, handler)
       }
 
-      const responseWithPreparedHeaders = {
+      const responseWithHeaders = {
         ...response,
-        headers: headersToArray(response.headers),
+        headers: headersToList(response.headers),
       }
 
       channel.send({
         type: 'MOCK_SUCCESS',
-        payload: responseWithPreparedHeaders,
+        payload: responseWithHeaders,
       })
     } catch (error) {
       channel.send({

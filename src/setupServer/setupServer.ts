@@ -1,7 +1,7 @@
+import { headersToObject } from 'headers-utils'
 import { RequestInterceptor } from 'node-request-interceptor'
 import { RequestHandler, MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
-import { headersToObject } from '../utils/headersToObject'
 
 export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
   let interceptor: RequestInterceptor

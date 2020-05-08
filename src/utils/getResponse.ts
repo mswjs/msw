@@ -6,6 +6,7 @@ import {
 } from '../handlers/requestHandler'
 import { MockedResponse, response } from '../response'
 import { resolveRelativeUrl } from './resolveRelativeUrl'
+import { getCleanUrl } from './getCleanUrl'
 
 interface ResponsePayload {
   response: MockedResponse | null
@@ -39,7 +40,9 @@ export const getResponse = async <
   const { mask, defineContext, resolver } = relevantHandler
 
   // Retrieve request URL parameters based on the provided mask
-  const params = (mask && match(resolveRelativeUrl(mask), req.url).params) || {}
+  const params =
+    (mask && match(resolveRelativeUrl(mask), getCleanUrl(parsedUrl)).params) ||
+    {}
 
   const requestWithParams: MockedRequest = {
     ...req,

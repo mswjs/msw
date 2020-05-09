@@ -24,6 +24,13 @@ export const createStart = (context: ComposeMocksInternalContext) => {
   return async function start(options?: StartOptions) {
     const resolvedOptions = Object.assign({}, DEFAULT_START_OPTIONS, options)
 
+    if (!('serviceWorker' in navigator)) {
+      console.error(
+        `[MSW] Failed to register a Service Worker: this browser does not support Service Workers (see https://caniuse.com/serviceworkers), or your application is running on an insecure host (consider using HTTPS for custom hostnames).`,
+      )
+      return null
+    }
+
     navigator.serviceWorker.addEventListener(
       'message',
       handleRequestWith(context.requestHandlers, resolvedOptions),

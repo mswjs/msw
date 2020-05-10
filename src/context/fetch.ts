@@ -6,13 +6,12 @@ const gracefully = <ResponseType>(
   return promise.then((res) => res.json().catch(() => res.text()))
 }
 
-const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
+export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
+  const headers = new Headers(requestInit.headers)
+  headers.set('x-msw-bypass', 'true')
   return {
     ...requestInit,
-    headers: {
-      ...requestInit.headers,
-      'x-msw-bypass': 'true',
-    },
+    headers,
   }
 }
 

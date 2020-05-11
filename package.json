@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
-    "clean": "rimraf lib",
+    "clean": "rimraf lib node/**/*.js",
     "build": "yarn clean && cross-env NODE_ENV=production rollup -c rollup.config.ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
@@ -31,6 +31,7 @@
     "config/constants.js",
     "cli",
     "lib",
+    "node",
     "LICENSE.md",
     "README.md"
   ],

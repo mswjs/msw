@@ -4,7 +4,7 @@ module.exports = {
   // and Puppeteer bootstrapping to take place.
   testTimeout: 60000,
   moduleNameMapper: {
-    '^msw$': '<rootDir>/..',
+    '^msw(.*)': '<rootDir>/..$1',
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {

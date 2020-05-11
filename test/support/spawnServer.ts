@@ -22,7 +22,7 @@ export const spawnServer = (
   options?: SpawnServerOptions,
 ): Promise<Payload> => {
   const absoluteMockPath = path.resolve(process.cwd(), mockDefs)
-  const mswModulePath = path.resolve(__dirname, '../..', packageJson.main)
+  const mswModulePath = path.resolve(__dirname, '../..')
 
   console.log(
     `

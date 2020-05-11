@@ -1,7 +1,8 @@
 __*
 .DS_*
 node_modules
-lib
+/lib
+/node/**/*.js
 tmp
 *-error.log
 ./package-lock.json

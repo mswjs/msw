@@ -10,6 +10,16 @@ describe('REST: Response patching', () => {
       path.resolve(__dirname, 'response-patching.mocks.ts'),
       {
         withRoutes(app) {
+          app.post('/headers-proxy', (req, res) => {
+            const { authorization } = req.headers
+
+            if (!authorization) {
+              return res.status(403).json({ message: 'error' }).end()
+            }
+
+            return res.status(200).json({ message: 'success' }).end()
+          })
+
           app.post('/posts', (req, res) => {
             res.status(200).json({ id: 101 }).end()
           })
@@ -64,6 +74,24 @@ describe('REST: Response patching', () => {
         name: 'msw',
         stargazers_count: 9999,
       })
+    })
+  })
+
+  describe('given a mocked request with custom headers', () => {
+    it('should forward the headers to the original request', async () => {
+      const res = await test.request({
+        url: 'https://test.msw.io/headers',
+        fetchOptions: {
+          headers: {
+            Authorization: 'token',
+          },
+        },
+      })
+      const status = res.status()
+      const body = await res.json()
+
+      expect(status).toEqual(200)
+      expect(body).toEqual({ message: 'success' })
     })
   })
 

@@ -3,7 +3,13 @@ import { MockedRequest } from '../handlers/requestHandler'
 const gracefully = <ResponseType>(
   promise: Promise<Response>,
 ): Promise<ResponseType> => {
-  return promise.then((res) => res.json().catch(() => res.text()))
+  return promise.then((res) => {
+    if (res.headers.get('content-type')?.includes('json')) {
+      return res.json()
+    }
+
+    return res.text()
+  })
 }
 
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {

@@ -1,52 +1,73 @@
 import { augmentRequestInit } from './fetch'
 
 describe('augmentRequestInit', () => {
-  describe('given Headers object', () => {
-    it('should have header "x-msw-bypass" and original headers', () => {
-      const headers = new Headers()
-      headers.set('Authorization', 'token')
+  describe('given provided custom headers', () => {
+    describe('and headers is the instance of Headers', () => {
+      let result: ReturnType<typeof augmentRequestInit>
+      let headers: Headers
 
-      const requestInit = { headers }
+      beforeAll(() => {
+        const init = {
+          headers: new Headers({ Authorization: 'token' }),
+        }
 
-      const result = augmentRequestInit(requestInit)
-      const resultHeaders = new Headers(result.headers)
+        result = augmentRequestInit(init)
+        headers = new Headers(result.headers)
+      })
 
-      expect(resultHeaders.get('Authorization')).toEqual('token')
-      expect(resultHeaders.get('x-msw-bypass')).toEqual('true')
+      it('should append "x-msw-bypass" header', () => {
+        expect(headers.get('x-msw-bypass')).toEqual('true')
+      })
+
+      it('should preserve custom headers', () => {
+        expect(headers.get('Authorization')).toEqual('token')
+      })
     })
-  })
 
-  describe('given string[][] object', () => {
-    it('should have header "x-msw-bypass" and original headers', () => {
-      const headers = [
-        ['Authorization', 'token'],
-        ['x-msw-bypass', 'true'],
-      ]
+    describe('and headers is a string[][] object', () => {
+      let result: ReturnType<typeof augmentRequestInit>
+      let headers: Headers
 
-      const requestInit = { headers }
+      beforeAll(() => {
+        const init = {
+          headers: [['Authorization', 'token']],
+        }
 
-      const result = augmentRequestInit(requestInit)
-      const resultHeaders = new Headers(result.headers)
+        result = augmentRequestInit(init)
+        headers = new Headers(result.headers)
+      })
 
-      expect(resultHeaders.get('Authorization')).toEqual('token')
-      expect(resultHeaders.get('x-msw-bypass')).toEqual('true')
+      it('should append "x-msw-bypass" header', () => {
+        expect(headers.get('x-msw-bypass')).toEqual('true')
+      })
+
+      it('should preserve custom headers', () => {
+        expect(headers.get('authorization')).toEqual('token')
+      })
     })
-  })
 
-  describe('given Record<string, string> object', () => {
-    it('should have header "x-msw-bypass" and original headers', () => {
-      const headers: Record<string, string> = {
-        Authorization: 'token',
-        'x-msw-bypass': 'true',
-      }
+    describe('and headers is a Record<string, string> object', () => {
+      let result: ReturnType<typeof augmentRequestInit>
+      let headers: Headers
 
-      const requestInit = { headers }
+      beforeAll(() => {
+        const init = {
+          headers: {
+            Authorization: 'token',
+          },
+        }
 
-      const result = augmentRequestInit(requestInit)
-      const resultHeaders = new Headers(result.headers)
+        result = augmentRequestInit(init)
+        headers = new Headers(result.headers)
+      })
 
-      expect(resultHeaders.get('Authorization')).toEqual('token')
-      expect(resultHeaders.get('x-msw-bypass')).toEqual('true')
+      it('should append "x-msw-bypass" header', () => {
+        expect(headers.get('x-msw-bypass')).toEqual('true')
+      })
+
+      it('should preserve custom headers', () => {
+        expect(headers.get('authorization')).toEqual('token')
+      })
     })
   })
 })

@@ -29,6 +29,15 @@ const worker = setupWorker(
     },
   ),
 
+  rest.get('https://test.msw.io/headers', async (req, res, ctx) => {
+    const originalResponse = await ctx.fetch('/headers-proxy', {
+      method: 'POST',
+      headers: req.headers,
+    })
+
+    return res(ctx.json(originalResponse))
+  }),
+
   rest.post('/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req)
 

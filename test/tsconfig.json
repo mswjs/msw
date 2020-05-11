@@ -6,10 +6,10 @@
     "resolveJsonModule": true,
     "declaration": false,
     "noEmit": true,
-    // "allowJs": true,
     "baseUrl": ".",
     "paths": {
-      "msw": [".."]
+      "msw": [".."],
+      "msw/*": ["../*"]
     },
     "types": ["node", "jest"]
   },

@@ -1,22 +1,21 @@
 import fetch, { Response } from 'node-fetch'
-import { setupServer, rest } from 'msw'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
 
-describe('Server / fetch', () => {
-  let mock: ReturnType<typeof setupServer>
+describe('setupServer / fetch', () => {
+  const mock = setupServer(
+    rest.get('http://test.msw.io', (req, res, ctx) => {
+      return res(
+        ctx.status(401),
+        ctx.json({
+          firstName: 'John',
+          age: 32,
+        }),
+      )
+    }),
+  )
 
   beforeAll(async () => {
-    mock = setupServer(
-      rest.get('http://test.msw.io', (req, res, ctx) => {
-        return res(
-          ctx.status(401),
-          ctx.json({
-            firstName: 'John',
-            age: 32,
-          }),
-        )
-      }),
-    )
-
     return mock.open()
   })
 
@@ -24,7 +23,7 @@ describe('Server / fetch', () => {
     return mock.close()
   })
 
-  describe('given I perform a request in node environment', () => {
+  describe('given I perform a fetch request in node environment', () => {
     let res: Response
 
     beforeAll(async () => {

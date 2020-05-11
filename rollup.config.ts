@@ -40,14 +40,12 @@ const buildEsm = {
     'src/graphql.ts',
     'src/context/index.ts',
   ],
-  output: [
-    {
-      entryFileNames: '[name].js',
-      chunkFileNames: '[name]-deps.js',
-      dir: path.dirname(packageJson.module),
-      format: 'esm',
-    },
-  ],
+  output: {
+    entryFileNames: '[name].js',
+    chunkFileNames: '[name]-deps.js',
+    dir: path.dirname(packageJson.module),
+    format: 'esm',
+  },
   plugins,
 }
 
@@ -65,4 +63,28 @@ const buildUdm = {
   plugins,
 }
 
-export default [buildEsm, buildUdm]
+const buildNode = {
+  input: 'src/node/index.ts',
+  output: {
+    file: 'node/index.js',
+    format: 'cjs',
+  },
+  plugins: [
+    json(),
+    resolve({
+      browser: false,
+      preferBuiltins: true,
+      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    }),
+    typescript({
+      useTsconfigDeclarationDir: true,
+      tsconfigOverride: {
+        outDir: './node',
+        declarationDir: './node',
+      },
+    }),
+    commonjs(),
+  ],
+}
+
+export default [buildNode, buildEsm, buildUdm]

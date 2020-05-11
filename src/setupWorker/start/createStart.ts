@@ -11,7 +11,7 @@ import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {
-    url: './mockServiceWorker.js',
+    url: '/mockServiceWorker.js',
     options: null as any,
   },
   quiet: false,

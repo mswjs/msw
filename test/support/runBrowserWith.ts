@@ -1,4 +1,5 @@
 import * as puppeteer from 'puppeteer'
+import { headersToObject } from 'headers-utils'
 import { match } from 'node-match-path'
 import WebpackDevServer from 'webpack-dev-server'
 import { SpawnServerOptions, spawnServer } from './spawnServer'
@@ -27,7 +28,26 @@ export const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
       return match(expectedUrl, actualUrl).matches
     },
   }) => {
-    page.evaluate((a, b) => fetch(a, b), url, fetchOptions)
+    const requestInit: any = Object.assign(
+      {},
+      fetchOptions && {
+        ...fetchOptions,
+        headers:
+          // Convert headers to object, because the `Headers` instance
+          // cannot be serialized during `page.evaluate()`.
+          fetchOptions.headers instanceof Headers
+            ? headersToObject(fetchOptions.headers)
+            : fetchOptions.headers,
+      },
+    )
+
+    page.evaluate(
+      (a: string, b: RequestInit) => {
+        return fetch(a, b)
+      },
+      url,
+      requestInit,
+    )
 
     return page.waitForResponse((res) => {
       return responsePredicate(res, url)

@@ -53,10 +53,12 @@ self.addEventListener('message', async function (event) {
     }
 
     case 'CLIENT_CLOSED': {
-      delete clients[clientId]
+      const remainingClients = allClients.filter((client) => {
+        return client.id !== clientId
+      })
 
       // Unregister itself when there are no more clients
-      if (Object.keys(clients).length === 0) {
+      if (remainingClients.length === 0) {
         self.registration.unregister()
       }
 

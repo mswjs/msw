@@ -1,12 +1,13 @@
 import { parse, format } from 'url'
+import { headersToObject } from 'headers-utils'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
-import { MockedResponse } from '../response'
+import { ResponseWithHeaders } from '../setupWorker/glossary'
 import { getTimestamp } from './getTimestamp'
 import { styleStatusCode } from './styleStatusCode'
 
 export const log = (
   req: MockedRequest,
-  res: MockedResponse,
+  res: ResponseWithHeaders,
   handler: RequestHandler<any>,
 ) => {
   const isLocal = req.url.startsWith(req.referrer)
@@ -18,6 +19,10 @@ export const log = (
         host: parsedUrl.host,
         pathname: parsedUrl.pathname,
       })
+  const requestWithHeaders = {
+    ...req,
+    headers: headersToObject(req.headers),
+  }
 
   setTimeout(() => {
     console.groupCollapsed(
@@ -29,7 +34,7 @@ export const log = (
       res.status,
       'color:inherit',
     )
-    console.log('Request', req)
+    console.log('Request', requestWithHeaders)
     console.log('Handler:', {
       mask: handler.mask,
       resolver: handler.resolver,

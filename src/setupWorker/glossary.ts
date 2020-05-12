@@ -1,4 +1,6 @@
 import { RequestHandler } from '../handlers/requestHandler'
+import { MockedResponse } from '../response'
+import { HeadersList } from 'headers-utils/lib/glossary'
 
 export type Mask = RegExp | string
 
@@ -19,4 +21,8 @@ export interface StartOptions {
     options?: RegistrationOptions
   }
   quiet?: boolean
+}
+
+export type ResponseWithHeaders = Omit<MockedResponse, 'headers'> & {
+  headers: HeadersList
 }

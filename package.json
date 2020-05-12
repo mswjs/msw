@@ -41,7 +41,7 @@
     "chalk": "^4.0.0",
     "cookie": "^0.4.1",
     "graphql": "^15.0.0",
-    "headers-utils": "^1.1.2",
+    "headers-utils": "^1.1.3",
     "node-match-path": "^0.4.2",
     "node-request-interceptor": "^0.1.6",
     "statuses": "^2.0.0",

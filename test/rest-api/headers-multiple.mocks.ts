@@ -1,10 +1,10 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.post('https://test.msw.io/', (req, res, ctx) => {
+  rest.post('https://test.msw.io', (req, res, ctx) => {
     return res(
       ctx.json({
-        accept: req.headers.get('accept'),
+        'x-header': req.headers.get('x-header'),
       }),
     )
   }),

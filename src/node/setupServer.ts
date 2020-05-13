@@ -1,5 +1,8 @@
 import { headersToObject } from 'headers-utils'
-import { RequestInterceptor } from 'node-request-interceptor'
+import {
+  RequestInterceptor,
+  MockedResponse as MockedInterceptedResponse,
+} from 'node-request-interceptor'
 import { RequestHandler, MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 
@@ -30,14 +33,13 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
           credentials: 'same-origin',
         }
 
-        const { handler, response } = await getResponse(mockedRequest, handlers)
+        const { response } = await getResponse(mockedRequest, handlers)
 
         if (!response) {
           return
         }
 
-        /** @todo import {MockedResponse} from NRI */
-        return new Promise<any>((resolve) => {
+        return new Promise<MockedInterceptedResponse>((resolve) => {
           setTimeout(() => {
             resolve({
               status: response.status,

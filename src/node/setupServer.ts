@@ -13,31 +13,40 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
         const mockedRequest: MockedRequest = {
           url: req.url,
           method: req.method,
+          body: req.body || '',
+          query: req.query,
+          // @ts-ignore
+          headers: {},
+          params: {},
           redirect: 'manual',
           referrer: '',
           keepalive: false,
           cache: 'default',
-          headers: new Headers(),
           mode: 'cors',
           referrerPolicy: 'no-referrer',
           integrity: '',
           destination: 'document',
-          body: '',
           bodyUsed: false,
           credentials: 'same-origin',
-          params: {},
-          query: new URLSearchParams(),
         }
 
-        const { response } = await getResponse(mockedRequest as any, handlers)
+        const { handler, response } = await getResponse(mockedRequest, handlers)
 
-        if (response) {
-          return {
-            status: response.status,
-            body: response.body,
-            headers: headersToObject(response.headers),
-          }
+        if (!response) {
+          return
         }
+
+        /** @todo import {MockedResponse} from NRI */
+        return new Promise<any>((resolve) => {
+          setTimeout(() => {
+            resolve({
+              status: response.status,
+              statusText: response.statusText,
+              headers: headersToObject(response.headers),
+              body: response.body,
+            })
+          }, response.delay)
+        })
       })
     },
     close() {

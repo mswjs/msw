@@ -10,7 +10,7 @@ describe('body', () => {
     })
 
     it('should not have any "Content-Type" header set', () => {
-      expect(result.headers.get('content-type')).toBeUndefined()
+      expect(result.headers.get('content-type')).toBeNull()
     })
 
     it('should have body set to the given text', () => {

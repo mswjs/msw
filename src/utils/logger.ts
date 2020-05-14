@@ -1,12 +1,12 @@
 import { parse, format } from 'url'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
-import { ResponseWithHeaders } from '../setupWorker/glossary'
+import { ResponseWithSerializedHeaders } from '../setupWorker/glossary'
 import { getTimestamp } from './getTimestamp'
 import { styleStatusCode } from './styleStatusCode'
 
 export const log = (
   req: MockedRequest,
-  res: ResponseWithHeaders,
+  res: ResponseWithSerializedHeaders,
   handler: RequestHandler<any>,
 ) => {
   const isLocal = req.url.startsWith(req.referrer)

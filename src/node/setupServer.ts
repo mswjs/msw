@@ -1,4 +1,4 @@
-import { headersToObject } from 'headers-utils'
+import { Headers, flattenHeadersObject } from 'headers-utils'
 import {
   RequestInterceptor,
   MockedResponse as MockedInterceptedResponse,
@@ -18,8 +18,7 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
           method: req.method,
           body: req.body || '',
           query: req.query,
-          // @ts-ignore
-          headers: {},
+          headers: new Headers(flattenHeadersObject(req.headers || {})),
           params: {},
           redirect: 'manual',
           referrer: '',
@@ -44,7 +43,7 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
             resolve({
               status: response.status,
               statusText: response.statusText,
-              headers: headersToObject(response.headers),
+              headers: response.headers.getAllHeaders(),
               body: response.body,
             })
           }, response.delay)

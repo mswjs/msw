@@ -19,7 +19,3 @@ export function set<N extends string | Record<string, string | string[]>>(
     return res
   }
 }
-
-set('foo', 'bar')
-set({ foo: 'bar' })
-set({ foo: ['bar', 'doe'] })

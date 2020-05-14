@@ -1,3 +1,4 @@
+import { Headers, FlatHeadersObject } from 'headers-utils/lib'
 import { pipe } from './utils/pipe'
 
 export interface MockedResponse {
@@ -21,18 +22,19 @@ export const defaultResponse: Omit<MockedResponse, 'headers'> = {
 }
 
 export const response: ResponseComposition = (...transformers) => {
-  const headers = new Headers({
-    'x-powered-by': 'msw',
-  })
-
-  const initialResponse: MockedResponse = {
-    ...defaultResponse,
-    headers,
-  }
+  const resolvedResponse: Partial<MockedResponse> = Object.assign(
+    {},
+    defaultResponse,
+    {
+      headers: new Headers({
+        'x-powered-by': 'msw',
+      }),
+    },
+  )
 
   if (transformers.length > 0) {
-    return pipe(...transformers)(initialResponse)
+    return pipe(...transformers)(resolvedResponse)
   }
 
-  return initialResponse
+  return resolvedResponse
 }

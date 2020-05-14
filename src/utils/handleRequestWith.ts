@@ -1,4 +1,4 @@
-import { headersToList } from 'headers-utils'
+import { Headers, headersToList } from 'headers-utils'
 import { StartOptions, ResponseWithHeaders } from '../setupWorker/glossary'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import {

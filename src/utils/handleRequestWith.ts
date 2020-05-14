@@ -1,5 +1,8 @@
 import { Headers, headersToList } from 'headers-utils'
-import { StartOptions, ResponseWithHeaders } from '../setupWorker/glossary'
+import {
+  StartOptions,
+  ResponseWithSerializedHeaders,
+} from '../setupWorker/glossary'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import {
   ServiceWorkerMessage,
@@ -60,18 +63,18 @@ export const handleRequestWith = (
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
-      const responseWithHeaders: ResponseWithHeaders = {
+      const responseWithSerializedHeaders: ResponseWithSerializedHeaders = {
         ...response,
         headers: headersToList(response.headers),
       }
 
       if (!options.quiet) {
-        log(req, responseWithHeaders, handler)
+        log(req, responseWithSerializedHeaders, handler)
       }
 
       channel.send({
         type: 'MOCK_SUCCESS',
-        payload: responseWithHeaders,
+        payload: responseWithSerializedHeaders,
       })
     } catch (error) {
       channel.send({

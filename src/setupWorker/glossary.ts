@@ -23,6 +23,6 @@ export interface StartOptions {
   quiet?: boolean
 }
 
-export type ResponseWithHeaders = Omit<MockedResponse, 'headers'> & {
+export type ResponseWithSerializedHeaders = Omit<MockedResponse, 'headers'> & {
   headers: HeadersList
 }

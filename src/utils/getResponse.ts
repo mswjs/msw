@@ -66,14 +66,8 @@ export const getResponse = async <
     }
   }
 
-  const responseWithHeaders: MockedResponse = {
-    ...mockedResponse,
-    // @ts-ignore
-    headers: mockedResponse.headers,
-  }
-
   return {
-    response: responseWithHeaders,
+    response: mockedResponse,
     handler: relevantHandler,
   }
 }

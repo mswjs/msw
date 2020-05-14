@@ -1,3 +1,4 @@
+import { Headers } from 'headers-utils'
 import { Mask } from '../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../response'
 import { status } from '../context/status'
@@ -15,7 +16,7 @@ export const defaultContext = {
 export interface MockedRequest {
   url: Request['url']
   method: Request['method']
-  headers: Request['headers']
+  headers: Headers
   mode: Request['mode']
   keepalive: Request['keepalive']
   cache: Request['cache']

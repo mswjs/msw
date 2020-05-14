@@ -1,3 +1,4 @@
+import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/requestHandler'
 
 const gracefully = <ResponseType>(
@@ -15,9 +16,10 @@ const gracefully = <ResponseType>(
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)
   headers.set('x-msw-bypass', 'true')
+
   return {
     ...requestInit,
-    headers,
+    headers: headers.getAllHeaders(),
   }
 }
 

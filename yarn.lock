@@ -3931,6 +3931,11 @@ headers-utils@^1.1.3:
   resolved "https://registry.yarnpkg.com/headers-utils/-/headers-utils-1.1.3.tgz#1991ac7a9349cb5a74de4caec4202ae33c1c8b04"
   integrity sha512-s8n0NWkmclKGwa2yHKLTdop+toi/BNDOkitP3KzgNMfUgaRVm8Nd3ZU/uMfEQk1VvE+fY/VF2T8A4x8ISH+F6Q==
 
+headers-utils@^1.1.8:
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/headers-utils/-/headers-utils-1.1.8.tgz#157a607d50e13870ff8fdbee2338529c152c20f7"
+  integrity sha512-CqZyKDwbZ68kUJxb1ehpjr7aGwzT52+vZuymh4GaRyr2ugbRd43I8hGzrjYKrHGpN7U7pqQdhrTTVXdYPXLgKQ==
+
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"

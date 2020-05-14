@@ -1,5 +1,4 @@
 import { parse, format } from 'url'
-import { headersToObject } from 'headers-utils'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import { ResponseWithHeaders } from '../setupWorker/glossary'
 import { getTimestamp } from './getTimestamp'
@@ -21,7 +20,7 @@ export const log = (
       })
   const requestWithHeaders = {
     ...req,
-    headers: headersToObject(req.headers),
+    headers: req.headers.getAllHeaders(),
   }
 
   setTimeout(() => {

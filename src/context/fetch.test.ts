@@ -15,12 +15,12 @@ describe('augmentRequestInit', () => {
         headers = new Headers(result.headers)
       })
 
-      it('should append "x-msw-bypass" header', () => {
-        expect(headers.get('x-msw-bypass')).toEqual('true')
-      })
-
       it('should preserve custom headers', () => {
         expect(headers.get('Authorization')).toEqual('token')
+      })
+
+      it('should append "x-msw-bypass" header', () => {
+        expect(headers.get('x-msw-bypass')).toEqual('true')
       })
     })
 

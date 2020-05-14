@@ -181,7 +181,9 @@ If you wish to mock an error response, please refer to this guide: https://redd.
 function serializeHeaders(headers) {
   const reqHeaders = {}
   headers.forEach((value, name) => {
-    reqHeaders[name] = value
+    reqHeaders[name] = reqHeaders[name]
+      ? [].concat(reqHeaders[name]).concat(value)
+      : value
   })
   return reqHeaders
 }

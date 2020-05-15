@@ -36,7 +36,7 @@ const withUrl = (
 ): RequestHandler<CustomContext> => {
   return {
     predicate(req) {
-      return req.url.includes(url)
+      return req.url.href.includes(url)
     },
     resolver,
     defineContext() {

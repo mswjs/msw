@@ -22,6 +22,10 @@ export const handleRequestWith = (
       const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
         event.data,
         (key, value) => {
+          if (key === 'url') {
+            return new URL(value)
+          }
+
           // Serialize headers
           if (key === 'headers') {
             return new Headers(value)

@@ -1,4 +1,5 @@
 import { match } from 'node-match-path'
+import { getCleanUrl } from 'node-request-interceptor'
 import {
   RequestHandler,
   MockedRequest,
@@ -6,7 +7,6 @@ import {
 } from '../handlers/requestHandler'
 import { MockedResponse, response } from '../response'
 import { resolveRelativeUrl } from './resolveRelativeUrl'
-import { getCleanUrl } from './getCleanUrl'
 
 interface ResponsePayload {
   response: MockedResponse | null
@@ -23,11 +23,8 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const parsedUrl = new URL(req.url)
-  req.query = parsedUrl.searchParams
-
   const relevantHandler = handlers.find((requestHandler) => {
-    return requestHandler.predicate(req, parsedUrl)
+    return requestHandler.predicate(req)
   })
 
   if (relevantHandler == null) {
@@ -41,8 +38,7 @@ export const getResponse = async <
 
   // Retrieve request URL parameters based on the provided mask
   const params =
-    (mask && match(resolveRelativeUrl(mask), getCleanUrl(parsedUrl)).params) ||
-    {}
+    (mask && match(resolveRelativeUrl(mask), getCleanUrl(req.url)).params) || {}
 
   const requestWithParams: MockedRequest = {
     ...req,

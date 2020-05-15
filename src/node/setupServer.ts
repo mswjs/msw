@@ -23,7 +23,6 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
           url: req.url,
           method: req.method,
           body: req.body || '',
-          query: req.query,
           headers: new Headers(flattenHeadersObject(req.headers || {})),
           params: {},
           redirect: 'manual',

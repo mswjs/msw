@@ -1,4 +1,4 @@
-import { parse, format } from 'url'
+import { format } from 'url'
 import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
 import { ResponseWithSerializedHeaders } from '../setupWorker/glossary'
 import { getTimestamp } from './getTimestamp'
@@ -9,15 +9,15 @@ export const log = (
   res: ResponseWithSerializedHeaders,
   handler: RequestHandler<any>,
 ) => {
-  const isLocal = req.url.startsWith(req.referrer)
-  const parsedUrl = parse(req.url)
+  const isLocal = req.url.origin.startsWith(req.referrer)
   const publicUrl = isLocal
-    ? parsedUrl.pathname
+    ? req.url.pathname
     : format({
-        protocol: parsedUrl.protocol,
-        host: parsedUrl.host,
-        pathname: parsedUrl.pathname,
+        protocol: req.url.protocol,
+        host: req.url.host,
+        pathname: req.url.pathname,
       })
+
   const requestWithHeaders = {
     ...req,
     headers: req.headers.getAllHeaders(),

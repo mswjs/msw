@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-utils'
 
 describe('setupServer / XHR', () => {
-  const mock = setupServer(
+  const server = setupServer(
     rest.get('http://test.msw.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
@@ -17,11 +17,11 @@ describe('setupServer / XHR', () => {
   )
 
   beforeAll(() => {
-    return mock.open()
+    server.listen()
   })
 
   afterAll(() => {
-    return mock.close()
+    server.close()
   })
 
   describe('given I perform an XMLHttpRequest', () => {

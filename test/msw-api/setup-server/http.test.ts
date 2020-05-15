@@ -6,7 +6,7 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 describe('setupServer / http', () => {
-  const mock = setupServer(
+  const server = setupServer(
     rest.get('http://test.msw.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
@@ -19,11 +19,11 @@ describe('setupServer / http', () => {
   )
 
   beforeAll(() => {
-    mock.open()
+    server.listen()
   })
 
   afterAll(() => {
-    mock.close()
+    server.close()
   })
 
   describe('given I perform a request using http.get', () => {

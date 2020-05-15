@@ -3,7 +3,7 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 describe('setupServer / fetch', () => {
-  const mock = setupServer(
+  const server = setupServer(
     rest.get('http://test.msw.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
@@ -17,11 +17,11 @@ describe('setupServer / fetch', () => {
   )
 
   beforeAll(async () => {
-    return mock.open()
+    server.listen()
   })
 
   afterAll(() => {
-    return mock.close()
+    server.close()
   })
 
   describe('given I perform a fetch request', () => {

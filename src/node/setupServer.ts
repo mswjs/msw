@@ -6,11 +6,17 @@ import {
 import { RequestHandler, MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 
+/**
+ * Sets up a server-side requests interception with the given mock definition.
+ */
 export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
   let interceptor: RequestInterceptor
 
   return {
-    open() {
+    /**
+     * Enables requests interception based on the previously provided mock definition.
+     */
+    listen() {
       interceptor = new RequestInterceptor()
       interceptor.use(async (req) => {
         const mockedRequest: MockedRequest = {
@@ -50,6 +56,10 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
         })
       })
     },
+
+    /**
+     * Stops requests interception by restoring all augmented modules.
+     */
     close() {
       interceptor.restore()
     },

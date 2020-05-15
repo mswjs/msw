@@ -1,9 +1,9 @@
 import * as puppeteer from 'puppeteer'
 import { headersToObject } from 'headers-utils'
 import { match } from 'node-match-path'
+import { getCleanUrl } from 'node-request-interceptor'
 import WebpackDevServer from 'webpack-dev-server'
 import { SpawnServerOptions, spawnServer } from './spawnServer'
-import { getCleanUrl } from '../../src/utils/getCleanUrl'
 
 /**
  * Requests a given URL within the test scenario's browser session.

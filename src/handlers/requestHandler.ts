@@ -14,7 +14,7 @@ export const defaultContext = {
 }
 
 export interface MockedRequest {
-  url: Request['url']
+  url: URL
   method: Request['method']
   headers: Headers
   mode: Request['mode']
@@ -28,7 +28,6 @@ export interface MockedRequest {
   referrerPolicy: Request['referrerPolicy']
   body: Record<string, any> | string
   bodyUsed: Request['bodyUsed']
-  query: URLSearchParams
   params: RequestParams
 }
 
@@ -57,7 +56,7 @@ export interface RequestHandler<
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
-  predicate: (req: MockedRequest, parsedUrl: URL) => boolean
+  predicate: (req: MockedRequest) => boolean
   resolver: ResponseResolver<RequestType, ContextType>
   defineContext?: (req: MockedRequest) => ContextType
 }

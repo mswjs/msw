@@ -45,5 +45,5 @@ export const fetch = <ResponseType = any>(
     body: typeof body === 'object' ? JSON.stringify(body) : body,
   })
 
-  return gracefully<ResponseType>(window.fetch(input.url, compliantReq))
+  return gracefully<ResponseType>(window.fetch(input.url.href, compliantReq))
 }

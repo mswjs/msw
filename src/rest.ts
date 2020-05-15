@@ -1,4 +1,5 @@
 import { match } from 'node-match-path'
+import { getCleanUrl } from 'node-request-interceptor'
 import {
   RequestHandler,
   ResponseResolver,
@@ -15,7 +16,6 @@ import { xml } from './context/xml'
 import { delay } from './context/delay'
 import { fetch } from './context/fetch'
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
-import { getCleanUrl } from './utils/getCleanUrl'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -45,9 +45,9 @@ const createRESTHandler = (method: RESTMethods) => {
   ): RequestHandler<MockedRequest, typeof restContext> => {
     return {
       mask,
-      predicate(req, parsedUrl) {
+      predicate(req) {
         // Ignore query parameters and hash when matching requests URI
-        const rawUrl = getCleanUrl(parsedUrl)
+        const rawUrl = getCleanUrl(req.url)
         const hasSameMethod = method === req.method
         const urlMatch = match(resolveRelativeUrl(mask), rawUrl)
 

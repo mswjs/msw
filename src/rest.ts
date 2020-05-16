@@ -1,5 +1,5 @@
 import { match } from 'node-match-path'
-import { getCleanUrl } from 'node-request-interceptor'
+import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
 import {
   RequestHandler,
   ResponseResolver,

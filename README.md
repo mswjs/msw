@@ -17,7 +17,7 @@
   </a>
 </p>
 
-<p align="center">Mock Service Worker (MSW) is a client-side API mocking library that intercepts outgoing requests using Service Workers.</p>
+<p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node that intercepts outgoing requests using Service Workers.</p>
 
 ## Features
 
@@ -39,13 +39,13 @@
 
 ## Quick start
 
-Install the library in your application:
+Install the library in your project:
 
 ```bash
-$ npm install msw --save-dev
+$ npm install msw
 ```
 
-Now we have to copy the Service Worker file that's responsible for requests interception. To do so, run the following command in your project's root directory:
+Copy the Service Worker file that's responsible for requests interception. Use a dedicated CLI to do that (from your project's root directory):
 
 ```bash
 $ npx msw init <PUBLIC_DIR>

@@ -65,6 +65,7 @@ const buildUdm = {
 
 const buildNode = {
   input: 'src/node/index.ts',
+  external: ['http', 'https', 'util', 'events', 'tty', 'os'],
   output: {
     file: 'node/index.js',
     format: 'cjs',

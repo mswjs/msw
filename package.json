@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.15.9",
+  "version": "0.16.0",
   "description": "Client-side API mocking using Service Workers.",
   "main": "lib/umd/index.js",
   "module": "lib/esm/index.js",

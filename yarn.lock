@@ -5558,10 +5558,10 @@ node-releases@^1.1.53:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.53.tgz#2d821bfa499ed7c5dffc5e2f28c88e78a08ee3f4"
   integrity sha512-wp8zyQVwef2hpZ/dJH7SfSrIPD6YoJz6BDQDpGEkcA0s3LpAQoxBIYmfIq6QAhC1DhwsyCgTaTTcONwX8qzCuQ==
 
-node-request-interceptor@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/node-request-interceptor/-/node-request-interceptor-0.2.1.tgz#363ecb913f7eb9a76bb23598ae977abd052d36c7"
-  integrity sha512-OIW5y6y9Lcs/V7mBCHpmyI/th+oOK3Yr216ZSDVMJF3isSJ+xdqY1uwg6g4tDZqnEIUIw4jZax8Qzw9Yx0oimQ==
+node-request-interceptor@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/node-request-interceptor/-/node-request-interceptor-0.2.2.tgz#bfaf7887cda70833b1be95bcbedb689b64b5257b"
+  integrity sha512-pljLfJrbY3fLKwPQJ773a0M+SDfQVXYIBa3bkTqDVmqzHYLVxbwjcKefk93Yfzjj7M3x52pvTdNHcJNxTVpPcA==
   dependencies:
     debug "^4.1.1"
     headers-utils "^1.1.3"

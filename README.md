@@ -45,7 +45,7 @@ Install the library in your project:
 $ npm install msw
 ```
 
-Copy the Service Worker file that's responsible for requests interception. Use a dedicated CLI to do that (from your project's root directory):
+Copy the Service Worker file that's responsible for requests interception. Use a designated CLI to do that (from your project's root directory):
 
 ```bash
 $ npx msw init <PUBLIC_DIR>
@@ -109,4 +109,4 @@ We have prepared a set of step-by-step tutorials to get you started with mocking
 
 ## Examples
 
-- [Using MSW with **Create React App**](https://github.com/open-draft/msw/tree/master/examples/create-react-app)
+- [**Usage examples**](https://github.com/mswjs/examples)

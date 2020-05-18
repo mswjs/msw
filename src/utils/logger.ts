@@ -9,8 +9,8 @@ export const log = (
   res: ResponseWithSerializedHeaders,
   handler: RequestHandler<any>,
 ) => {
-  const isLocal = req.url.origin.startsWith(req.referrer)
-  const publicUrl = isLocal
+  const isRelativeRequest = req.referrer.startsWith(req.url.origin)
+  const publicUrl = isRelativeRequest
     ? req.url.pathname
     : format({
         protocol: req.url.protocol,

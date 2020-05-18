@@ -32,15 +32,6 @@ export const handleRequestWith = (
             return new Headers(value)
           }
 
-          if (key === 'body') {
-            // If the intercepted request's body has a JSON Content-Type
-            // parse it into an object, otherwise leave as-is.
-            const isJsonBody = this.headers
-              .get('content-type')
-              ?.includes('json')
-            return isJsonBody ? getJsonBody(value) : value
-          }
-
           // Prevent empty fields from presering an empty value.
           // It's invalid to perform a GET request with { body: "" }
           if (value === '') {
@@ -52,6 +43,19 @@ export const handleRequestWith = (
       )
 
       const { type, payload: req } = message
+
+      // Handle request body parsing outside of the worker's message parsing,
+      // because a non set request body is sent over as an empty string.
+      if (req.body) {
+        // If the intercepted request's body has a JSON Content-Type
+        // parse it into an object, otherwise leave as-is.
+        const isJsonBody = req.headers.get('content-type')?.includes('json')
+
+        req.body =
+          isJsonBody && typeof req.body !== 'object'
+            ? getJsonBody(req.body)
+            : req.body
+      }
 
       // Ignore worker irrelevant worker messages
       if (type !== 'REQUEST') {

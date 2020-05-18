@@ -9,6 +9,7 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
+import { getJsonBody } from './getJsonBody'
 import { log } from './logger'
 
 export const handleRequestWith = (
@@ -21,7 +22,7 @@ export const handleRequestWith = (
     try {
       const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
         event.data,
-        (key, value) => {
+        function (key, value) {
           if (key === 'url') {
             return new URL(value)
           }
@@ -29,6 +30,15 @@ export const handleRequestWith = (
           // Serialize headers
           if (key === 'headers') {
             return new Headers(value)
+          }
+
+          if (key === 'body') {
+            // If the intercepted request's body has a JSON Content-Type
+            // parse it into an object, otherwise leave as-is.
+            const isJsonBody = this.headers
+              .get('content-type')
+              ?.includes('json')
+            return isJsonBody ? getJsonBody(value) : value
           }
 
           // Prevent empty fields from presering an empty value.

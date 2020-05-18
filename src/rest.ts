@@ -48,7 +48,7 @@ const createRESTHandler = (method: RESTMethods) => {
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI
         const rawUrl = getCleanUrl(req.url)
-        const hasSameMethod = method === req.method
+        const hasSameMethod = method.toUpperCase() === req.method.toUpperCase()
         const urlMatch = match(resolveRelativeUrl(mask), rawUrl)
 
         return hasSameMethod && urlMatch.matches

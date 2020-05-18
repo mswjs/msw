@@ -70,18 +70,4 @@ describe('REST: Request body', () => {
       })
     })
   })
-
-  // it('should receive mocked response', async () => {
-  //   const res = await test.request({
-  //     url: 'https://api.github.com/users/octocat',
-  //   })
-  //   const body = await res.json()
-
-  //   expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
-  //   expect(res.status()).toBe(200)
-  //   expect(body).toEqual({
-  //     name: 'John Maverick',
-  //     originalUsername: 'octocat',
-  //   })
-  // })
 })

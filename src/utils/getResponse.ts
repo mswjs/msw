@@ -55,6 +55,8 @@ export const getResponse = async <
     context,
   )
 
+  // Handle a scenario when a request handler is present,
+  // but returns no mocked response (i.e. misses a `return res()` statement).
   if (!mockedResponse) {
     return {
       response: null,

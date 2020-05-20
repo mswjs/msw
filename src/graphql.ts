@@ -1,4 +1,4 @@
-import { parse, OperationDefinitionNode, OperationTypeNode } from 'graphql'
+import { OperationTypeNode } from 'graphql'
 import { RequestHandler, MockedRequest } from './handlers/requestHandler'
 import { MockedResponse, ResponseComposition } from './response'
 import { set } from './context/set'
@@ -7,6 +7,8 @@ import { delay } from './context/delay'
 import { fetch } from './context/fetch'
 import { data, DataContext } from './context/data'
 import { errors } from './context/errors'
+import { parseQuery } from './utils/graphql/parseQuery'
+import { logGraphQLRequest } from './utils/graphql/logger'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -39,10 +41,6 @@ interface GraphQLRequestPayload<VariablesType> {
   variables?: VariablesType
 }
 
-interface ParsedQueryPayload {
-  operationName: string | undefined
-}
-
 export const graphqlContext: GraphQLMockedContext<any> = {
   set,
   status,
@@ -50,23 +48,6 @@ export const graphqlContext: GraphQLMockedContext<any> = {
   fetch,
   data,
   errors,
-}
-
-const parseQuery = (
-  query: string,
-  definitionOperation: OperationTypeNode = 'query',
-): ParsedQueryPayload => {
-  const ast = parse(query)
-
-  const operationDef = ast.definitions.find(
-    (def) =>
-      def.kind === 'OperationDefinition' &&
-      def.operation === definitionOperation,
-  ) as OperationDefinitionNode
-
-  return {
-    operationName: operationDef?.name?.value,
-  }
 }
 
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
@@ -78,6 +59,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
     GraphQLMockedContext<QueryType>
   > => {
     return {
+      resolver,
       predicate(req) {
         if (
           req.headers.get('Content-Type') !== 'application/json' ||
@@ -112,14 +94,12 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
       defineContext() {
         return graphqlContext
       },
-      resolver,
+      log: logGraphQLRequest,
     }
   }
 }
 
-const graphql = {
+export const graphql = {
   query: createGraphQLHandler('query'),
   mutation: createGraphQLHandler('mutation'),
 }
-
-export { graphql }

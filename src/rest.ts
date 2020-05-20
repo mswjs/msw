@@ -16,6 +16,7 @@ import { xml } from './context/xml'
 import { delay } from './context/delay'
 import { fetch } from './context/fetch'
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
+import { logRestRequest } from './utils/rest/logger'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -45,6 +46,7 @@ const createRESTHandler = (method: RESTMethods) => {
   ): RequestHandler<MockedRequest, typeof restContext> => {
     return {
       mask,
+      resolver,
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI
         const rawUrl = getCleanUrl(req.url)
@@ -56,12 +58,12 @@ const createRESTHandler = (method: RESTMethods) => {
       defineContext() {
         return restContext
       },
-      resolver,
+      log: logRestRequest,
     }
   }
 }
 
-const rest = {
+export const rest = {
   get: createRESTHandler(RESTMethods.GET),
   post: createRESTHandler(RESTMethods.POST),
   put: createRESTHandler(RESTMethods.PUT),
@@ -69,5 +71,3 @@ const rest = {
   patch: createRESTHandler(RESTMethods.PATCH),
   options: createRESTHandler(RESTMethods.OPTIONS),
 }
-
-export { rest }

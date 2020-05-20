@@ -1,4 +1,4 @@
-export const styleStatusCode = (status: number) => {
+export function styleStatusCode(status: number) {
   if (status < 300) {
     return 'color:#69AB32;'
   }

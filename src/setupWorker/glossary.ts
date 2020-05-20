@@ -1,6 +1,6 @@
+import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../handlers/requestHandler'
 import { MockedResponse } from '../response'
-import { HeadersList } from 'headers-utils/lib/glossary'
 
 export type Mask = RegExp | string
 

@@ -11,6 +11,7 @@ import {
 import { getResponse } from '../utils/getResponse'
 import { getJsonBody } from './getJsonBody'
 import { log } from './logger'
+import { parseRequestBody } from './parseRequestBody'
 
 export const handleRequestWith = (
   requestHandlers: RequestHandler[],
@@ -44,23 +45,13 @@ export const handleRequestWith = (
 
       const { type, payload: req } = message
 
-      // Handle request body parsing outside of the worker's message parsing,
-      // because a non set request body is sent over as an empty string.
-      if (req.body) {
-        // If the intercepted request's body has a JSON Content-Type
-        // parse it into an object, otherwise leave as-is.
-        const isJsonBody = req.headers.get('content-type')?.includes('json')
-
-        req.body =
-          isJsonBody && typeof req.body !== 'object'
-            ? getJsonBody(req.body)
-            : req.body
-      }
-
       // Ignore worker irrelevant worker messages
       if (type !== 'REQUEST') {
         return null
       }
+
+      // Parse the request's body based on the "Content-Type" header.
+      req.body = parseRequestBody(req.body, req.headers)
 
       const { response, handler } = await getResponse(req, requestHandlers)
 

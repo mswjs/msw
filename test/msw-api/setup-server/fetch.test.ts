@@ -14,9 +14,16 @@ describe('setupServer / fetch', () => {
         }),
       )
     }),
+    rest.post('https://test.msw.io', (req, res, ctx) => {
+      return res(
+        ctx.status(403),
+        ctx.set('x-header', 'yes'),
+        ctx.json(req.body as Record<string, any>),
+      )
+    }),
   )
 
-  beforeAll(async () => {
+  beforeAll(() => {
     server.listen()
   })
 
@@ -24,7 +31,7 @@ describe('setupServer / fetch', () => {
     server.close()
   })
 
-  describe('given I perform a fetch request', () => {
+  describe('given I perform a GET request using fetch', () => {
     let res: Response
 
     beforeAll(async () => {
@@ -46,6 +53,38 @@ describe('setupServer / fetch', () => {
       expect(body).toEqual({
         firstName: 'John',
         age: 32,
+      })
+    })
+  })
+
+  describe('given I perform a POST request using fetch', () => {
+    let res: Response
+
+    beforeAll(async () => {
+      res = await fetch('https://test.msw.io', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          payload: 'info',
+        }),
+      })
+    })
+
+    it('should return mocked status code', () => {
+      expect(res.status).toEqual(403)
+    })
+
+    it('should return mocked headers', () => {
+      expect(res.headers.get('content-type')).toEqual('application/json')
+      expect(res.headers.get('x-header')).toEqual('yes')
+    })
+
+    it('should return mocked and parsed JSON body', async () => {
+      const body = await res.json()
+      expect(body).toEqual({
+        payload: 'info',
       })
     })
   })

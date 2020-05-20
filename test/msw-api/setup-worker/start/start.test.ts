@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
+import { captureConsole } from '../../../support/captureConsole'
 
 describe('API: setupWorker / start', () => {
   let test: TestAPI
@@ -29,10 +30,8 @@ describe('API: setupWorker / start', () => {
     it('should resolve after the mocking has been activated', async () => {
       const logs: string[] = []
 
-      test.page.on('console', function (message) {
-        if (['startGroupCollapsed', 'log'].includes(message.type())) {
-          logs.push(message.text())
-        }
+      captureConsole(test.page, logs, (message) => {
+        return ['startGroupCollapsed', 'log'].includes(message.type())
       })
 
       await test.reload()

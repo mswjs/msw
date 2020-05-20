@@ -60,6 +60,7 @@
     "@types/node-fetch": "^2.5.7",
     "@types/puppeteer": "^2.0.1",
     "@types/webpack-dev-server": "^3.10.1",
+    "apollo-fetch": "^0.7.0",
     "babel-loader": "^8.1.0",
     "babel-minify": "^0.5.1",
     "cross-env": "^7.0.0",

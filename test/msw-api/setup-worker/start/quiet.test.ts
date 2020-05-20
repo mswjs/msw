@@ -1,6 +1,7 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { Response } from 'puppeteer'
+import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
+import { captureConsole } from '../../../support/captureConsole'
 
 describe('API: setupWorker / start / quiet', () => {
   let test: TestAPI
@@ -9,10 +10,8 @@ describe('API: setupWorker / start / quiet', () => {
   beforeAll(async () => {
     test = await runBrowserWith(path.resolve(__dirname, 'quiet.mocks.ts'))
 
-    test.page.on('console', (message) => {
-      if (message.type() === 'startGroupCollapsed') {
-        logs.push(message.text())
-      }
+    captureConsole(test.page, logs, (message) => {
+      return message.type() === 'startGroupCollapsed'
     })
   })
 

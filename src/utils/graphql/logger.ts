@@ -26,7 +26,10 @@ export function logGraphQLRequest<RequestType, ContextType>(
     'color:inherit',
   )
   console.log('Request:', loggedRequest)
-  console.log('Handler:', handler)
+  console.log('Handler:', {
+    operation: handler.mask,
+    predicate: handler.predicate,
+  })
   console.log('Response:', loggedResponse)
   console.groupEnd()
 }

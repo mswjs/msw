@@ -60,6 +60,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
   > => {
     return {
       resolver,
+      mask: expectedOperation,
       predicate(req) {
         if (
           req.headers.get('Content-Type') !== 'application/json' ||

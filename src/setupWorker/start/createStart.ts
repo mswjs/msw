@@ -7,7 +7,7 @@ import {
   StartOptions,
 } from '../glossary'
 import { handleRequestWith } from '../../utils/handleRequestWith'
-import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
+import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {

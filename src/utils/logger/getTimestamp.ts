@@ -1,5 +1,6 @@
-export const getTimestamp = () => {
+export function getTimestamp() {
   const now = new Date()
+
   return [now.getHours(), now.getMinutes(), now.getSeconds()]
     .map(String)
     .map((chunk) => chunk.slice(0, 2))

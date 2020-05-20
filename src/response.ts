@@ -1,5 +1,5 @@
-import { Headers, FlatHeadersObject } from 'headers-utils/lib'
-import { pipe } from './utils/pipe'
+import { Headers } from 'headers-utils'
+import { pipe } from './utils/internal/pipe'
 
 export interface MockedResponse {
   body: any

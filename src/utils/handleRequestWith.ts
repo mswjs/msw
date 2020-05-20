@@ -9,8 +9,6 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
-import { getJsonBody } from './getJsonBody'
-import { log } from './logger'
 import { parseRequestBody } from './parseRequestBody'
 
 export const handleRequestWith = (
@@ -78,7 +76,9 @@ export const handleRequestWith = (
       }
 
       if (!options.quiet) {
-        log(req, responseWithSerializedHeaders, handler)
+        setTimeout(() => {
+          handler.log(req, responseWithSerializedHeaders, handler)
+        }, response.delay)
       }
 
       channel.send({

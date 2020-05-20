@@ -1,8 +1,8 @@
-import { addMessageListener } from './createBroadcastChannel'
+import { addMessageListener } from '../createBroadcastChannel'
 
-export const requestIntegrityCheck = (
+export function requestIntegrityCheck(
   serviceWorker: ServiceWorker,
-): Promise<ServiceWorker> => {
+): Promise<ServiceWorker> {
   return new Promise((resolve, reject) => {
     addMessageListener('INTEGRITY_CHECK_RESPONSE', (message) => {
       const { payload: actualChecksum } = message

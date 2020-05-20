@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { Mask } from '../setupWorker/glossary'
+import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../response'
 import { status } from '../context/status'
 import { set } from '../context/set'
@@ -59,6 +59,11 @@ export interface RequestHandler<
   predicate: (req: MockedRequest) => boolean
   resolver: ResponseResolver<RequestType, ContextType>
   defineContext?: (req: MockedRequest) => ContextType
+  log: (
+    req: MockedRequest,
+    res: ResponseWithSerializedHeaders,
+    handler: RequestHandler<RequestType, ContextType>,
+  ) => void
 }
 
 export default null

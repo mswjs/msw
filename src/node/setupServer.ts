@@ -5,6 +5,7 @@ import {
 } from 'node-request-interceptor'
 import { RequestHandler, MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
+import { parseRequestBody } from '../utils/parseRequestBody'
 
 /**
  * Sets up a server-side requests interception with the given mock definition.
@@ -19,11 +20,16 @@ export const setupServer = (...handlers: RequestHandler<any, any>[]) => {
     listen() {
       interceptor = new RequestInterceptor()
       interceptor.use(async (req) => {
+        const requestHeaders = new Headers(
+          flattenHeadersObject(req.headers || {}),
+        )
+
         const mockedRequest: MockedRequest = {
           url: req.url,
           method: req.method,
-          body: req.body || '',
-          headers: new Headers(flattenHeadersObject(req.headers || {})),
+          // Parse the request's body based on the "Content-Type" header.
+          body: parseRequestBody(req.body, requestHeaders),
+          headers: requestHeaders,
           params: {},
           redirect: 'manual',
           referrer: '',

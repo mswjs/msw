@@ -7,7 +7,7 @@ describe('GraphQL: Logging', () => {
   let test: TestAPI
 
   beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'logging.mocks.ts'))
   })
 
   afterAll(() => {
@@ -45,6 +45,44 @@ describe('GraphQL: Logging', () => {
 
       it('with the request operation name', () => {
         expect(requestLog).toContain('GetUserDetail')
+      })
+
+      it('with the response status code', () => {
+        expect(requestLog).toContain('200')
+      })
+    })
+  })
+
+  describe('given I perform a GraphQL mutation', () => {
+    let requestLog: string
+
+    beforeAll(async () => {
+      const logs: string[] = []
+
+      captureConsole(test.page, logs, filterLibraryLogs)
+
+      await executeOperation(test.page, {
+        query: `
+          mutation Login {
+            user {
+              id
+            }
+          }
+        `,
+      })
+
+      requestLog = logs.find((message) => {
+        return message.includes('Login')
+      })
+    })
+
+    describe('should print an information about the request in browser console', () => {
+      it('with a timestamp', () => {
+        expect(requestLog).toMatch(/\d{2}:\d{2}:\d{2}/)
+      })
+
+      it('with the request operation name', () => {
+        expect(requestLog).toContain('Login')
       })
 
       it('with the response status code', () => {

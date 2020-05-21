@@ -1,3 +1,4 @@
+import { format } from 'url'
 import { match } from 'node-match-path'
 import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
 import {
@@ -15,8 +16,13 @@ import { json } from './context/json'
 import { xml } from './context/xml'
 import { delay } from './context/delay'
 import { fetch } from './context/fetch'
+
+/* Logging */
 import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
-import { logRestRequest } from './utils/rest/logger'
+import { prepareRequest } from './utils/logger/prepareRequest'
+import { prepareResponse } from './utils/logger/prepareResponse'
+import { getTimestamp } from './utils/logger/getTimestamp'
+import { styleStatusCode } from './utils/logger/styleStatusCode'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -39,35 +45,78 @@ export const restContext = {
   fetch,
 }
 
-const createRESTHandler = (method: RESTMethods) => {
+const createRestHandler = (method: RESTMethods) => {
   return (
     mask: Mask,
     resolver: ResponseResolver<MockedRequest, typeof restContext>,
   ): RequestHandler<MockedRequest, typeof restContext> => {
     return {
-      mask,
-      resolver,
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI
-        const rawUrl = getCleanUrl(req.url)
+        const cleanUrl = getCleanUrl(req.url)
         const hasSameMethod = method.toUpperCase() === req.method.toUpperCase()
-        const urlMatch = match(resolveRelativeUrl(mask), rawUrl)
+        const urlMatch = match(resolveRelativeUrl(mask), cleanUrl)
 
         return hasSameMethod && urlMatch.matches
       },
+
+      getPublicRequest(req) {
+        // Get request path parameters based on the given mask
+        const params =
+          (mask &&
+            match(resolveRelativeUrl(mask), getCleanUrl(req.url)).params) ||
+          {}
+
+        return {
+          ...req,
+          params,
+        }
+      },
+      resolver,
+
       defineContext() {
         return restContext
       },
-      log: logRestRequest,
+
+      log(req, res, handler, parsed) {
+        const isRelativeRequest = req.referrer.startsWith(req.url.origin)
+        const publicUrl = isRelativeRequest
+          ? req.url.pathname
+          : format({
+              protocol: req.url.protocol,
+              host: req.url.host,
+              pathname: req.url.pathname,
+            })
+
+        const loggedRequest = prepareRequest(req)
+        const loggedResponse = prepareResponse(res)
+
+        console.groupCollapsed(
+          '[MSW] %s %s %s (%c%s%c)',
+          getTimestamp(),
+          req.method,
+          publicUrl,
+          styleStatusCode(res.status),
+          res.status,
+          'color:inherit',
+        )
+        console.log('Request', loggedRequest)
+        console.log('Handler:', {
+          mask,
+          resolver: handler.resolver,
+        })
+        console.log('Response', loggedResponse)
+        console.groupEnd()
+      },
     }
   }
 }
 
 export const rest = {
-  get: createRESTHandler(RESTMethods.GET),
-  post: createRESTHandler(RESTMethods.POST),
-  put: createRESTHandler(RESTMethods.PUT),
-  delete: createRESTHandler(RESTMethods.DELETE),
-  patch: createRESTHandler(RESTMethods.PATCH),
-  options: createRESTHandler(RESTMethods.OPTIONS),
+  get: createRestHandler(RESTMethods.GET),
+  post: createRestHandler(RESTMethods.POST),
+  put: createRestHandler(RESTMethods.PUT),
+  delete: createRestHandler(RESTMethods.DELETE),
+  patch: createRestHandler(RESTMethods.PATCH),
+  options: createRestHandler(RESTMethods.OPTIONS),
 }

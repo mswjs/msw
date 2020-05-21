@@ -1,4 +1,4 @@
-import { OperationTypeNode } from 'graphql'
+import { OperationTypeNode, OperationDefinitionNode, parse } from 'graphql'
 import { RequestHandler, MockedRequest } from './handlers/requestHandler'
 import { MockedResponse, ResponseComposition } from './response'
 import { set } from './context/set'
@@ -7,8 +7,12 @@ import { delay } from './context/delay'
 import { fetch } from './context/fetch'
 import { data, DataContext } from './context/data'
 import { errors } from './context/errors'
-import { parseQuery } from './utils/graphql/parseQuery'
-import { logGraphQLRequest } from './utils/graphql/logger'
+
+/* Logging */
+import { prepareRequest } from './utils/logger/prepareRequest'
+import { prepareResponse } from './utils/logger/prepareResponse'
+import { getTimestamp } from './utils/logger/getTimestamp'
+import { styleStatusCode } from './utils/logger/styleStatusCode'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -30,6 +34,15 @@ interface GraphQLMockedContext<QueryType> {
   errors: typeof errors
 }
 
+export const graphqlContext: GraphQLMockedContext<any> = {
+  set,
+  status,
+  delay,
+  fetch,
+  data,
+  errors,
+}
+
 type GraphQLResponseResolver<QueryType, VariablesType> = (
   req: GraphQLMockedRequest<VariablesType>,
   res: ResponseComposition,
@@ -41,13 +54,31 @@ interface GraphQLRequestPayload<VariablesType> {
   variables?: VariablesType
 }
 
-export const graphqlContext: GraphQLMockedContext<any> = {
-  set,
-  status,
-  delay,
-  fetch,
-  data,
-  errors,
+interface GraphQLRequestParsedResult<VariablesType> {
+  operationType: OperationTypeNode
+  operationName: string | undefined
+  variables: VariablesType | undefined
+}
+
+interface ParsedQueryPayload {
+  operationName: string | undefined
+}
+
+export function parseQuery(
+  query: string,
+  definitionOperation: OperationTypeNode = 'query',
+): ParsedQueryPayload {
+  const ast = parse(query)
+
+  const operationDef = ast.definitions.find(
+    (def) =>
+      def.kind === 'OperationDefinition' &&
+      def.operation === definitionOperation,
+  ) as OperationDefinitionNode
+
+  return {
+    operationName: operationDef?.name?.value,
+  }
 }
 
 const createGraphQLHandler = (operationType: OperationTypeNode) => {
@@ -56,12 +87,37 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<
     GraphQLMockedRequest<VariablesType>,
-    GraphQLMockedContext<QueryType>
+    GraphQLMockedContext<QueryType>,
+    GraphQLRequestParsedResult<VariablesType>
   > => {
     return {
       resolver,
-      mask: expectedOperation,
-      predicate(req) {
+
+      parse(req) {
+        if (!req.body) {
+          return {} as GraphQLRequestParsedResult<VariablesType>
+        }
+
+        const { query, variables } = req.body as GraphQLRequestPayload<
+          VariablesType
+        >
+        const { operationName } = parseQuery(query, operationType)
+
+        return {
+          operationType,
+          operationName,
+          variables,
+        }
+      },
+
+      getPublicRequest(req, parsed) {
+        return {
+          ...req,
+          variables: parsed.variables || ({} as VariablesType),
+        }
+      },
+
+      predicate(req, parsed) {
         if (
           req.headers.get('Content-Type') !== 'application/json' ||
           typeof req.body === 'string'
@@ -69,10 +125,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           return false
         }
 
-        const { query, variables } = req.body as GraphQLRequestPayload<
-          VariablesType
-        >
-        const { operationName } = parseQuery(query, operationType)
+        const { operationName } = parsed
 
         if (!operationName) {
           return false
@@ -83,19 +136,34 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
             ? expectedOperation.test(operationName)
             : expectedOperation === operationName
 
-        if (isMatchingOperation) {
-          // Set the parsed variables on the request object
-          // so they could be accessed in the response resolver.
-          // @ts-ignore
-          req.variables = variables || {}
-        }
-
         return isMatchingOperation
       },
+
       defineContext() {
         return graphqlContext
       },
-      log: logGraphQLRequest,
+
+      log(req, res, handler, parsed) {
+        const { operationName } = parsed
+        const loggedRequest = prepareRequest(req)
+        const loggedResponse = prepareResponse(res)
+
+        console.groupCollapsed(
+          '[MSW] %s %s (%c%s%c)',
+          getTimestamp(),
+          operationName,
+          styleStatusCode(res.status),
+          res.status,
+          'color:inherit',
+        )
+        console.log('Request:', loggedRequest)
+        console.log('Handler:', {
+          operation: expectedOperation,
+          predicate: handler.predicate,
+        })
+        console.log('Response:', loggedResponse)
+        console.groupEnd()
+      },
     }
   }
 }

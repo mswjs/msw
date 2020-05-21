@@ -43,7 +43,7 @@ export const handleRequestWith = (
 
       const { type, payload: req } = message
 
-      // Ignore worker irrelevant worker messages
+      // Ignore irrelevant worker message types
       if (type !== 'REQUEST') {
         return null
       }
@@ -51,7 +51,12 @@ export const handleRequestWith = (
       // Parse the request's body based on the "Content-Type" header.
       req.body = parseRequestBody(req.body, req.headers)
 
-      const { response, handler } = await getResponse(req, requestHandlers)
+      const {
+        response,
+        handler,
+        publicRequest,
+        parsedRequest,
+      } = await getResponse(req, requestHandlers)
 
       // Handle a scenario when there is no request handler
       // found for a given request.
@@ -77,7 +82,12 @@ export const handleRequestWith = (
 
       if (!options.quiet) {
         setTimeout(() => {
-          handler.log(req, responseWithSerializedHeaders, handler)
+          handler.log(
+            publicRequest,
+            responseWithSerializedHeaders,
+            handler,
+            parsedRequest,
+          )
         }, response.delay)
       }
 

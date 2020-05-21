@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
+import { ResponseWithSerializedHeaders } from '../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../response'
 import { status } from '../context/status'
 import { set } from '../context/set'
@@ -50,19 +50,49 @@ export type ResponseResolver<
 
 export interface RequestHandler<
   RequestType = MockedRequest,
-  ContextType = typeof defaultContext
+  ContextType = typeof defaultContext,
+  ParsedRequest = any,
+  PublicRequest = RequestType
 > {
-  mask?: Mask
+  /**
+   * Parses a captured request to retrieve additional
+   * information meant for internal usage in the request handler.
+   */
+  parse?: (req: MockedRequest) => ParsedRequest
+
+  /**
+   * Returns a modified request with necessary public properties appended.
+   */
+  getPublicRequest?: (
+    req: RequestType,
+    parsedRequest: ParsedRequest,
+  ) => PublicRequest
+
   /**
    * Predicate function that decides whether a Request should be mocked.
    */
-  predicate: (req: MockedRequest) => boolean
+  predicate: (req: RequestType, parsedRequest: ParsedRequest) => boolean
+
+  /**
+   * Returns a mocked response object to the captured request.
+   */
   resolver: ResponseResolver<RequestType, ContextType>
-  defineContext?: (req: MockedRequest) => ContextType
+
+  /**
+   * Returns a map of context utility functions available
+   * under the `ctx` argument of request handler.
+   */
+  defineContext?: (req: PublicRequest) => ContextType
+
+  /**
+   * Logs out a mocked request/response information
+   * upon each request capture.
+   */
   log: (
-    req: MockedRequest,
+    req: PublicRequest,
     res: ResponseWithSerializedHeaders,
     handler: RequestHandler<RequestType, ContextType>,
+    parsedRequest: ParsedRequest,
   ) => void
 }
 

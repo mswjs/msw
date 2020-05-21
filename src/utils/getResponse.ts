@@ -1,17 +1,18 @@
-import { match } from 'node-match-path'
-import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
 import {
   RequestHandler,
   MockedRequest,
   defaultContext,
 } from '../handlers/requestHandler'
 import { MockedResponse, response } from '../response'
-import { resolveRelativeUrl } from './resolveRelativeUrl'
 
 interface ResponsePayload {
   response: MockedResponse | null
   handler: RequestHandler<any, any> | null
+  publicRequest?: any
+  parsedRequest?: any
 }
+
+type ReducedHandlers = [RequestHandler, any]
 
 /**
  * Returns a mocked response for a given request using following request handlers.
@@ -23,34 +24,42 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const relevantHandler = handlers.find((requestHandler) => {
-    return requestHandler.predicate(req)
-  })
+  const [relevantHandler, parsedRequest] = handlers.reduce<any>(
+    (found, requestHandler) => {
+      if (found && found[0]) {
+        return found
+      }
+
+      // Parse the captured request to get additional information.
+      // Make the predicate function accept all the necessary information
+      // to decide on the interception.
+      const parsedRequest = requestHandler.parse
+        ? requestHandler.parse(req)
+        : null
+
+      if (requestHandler.predicate(req, parsedRequest)) {
+        return [requestHandler, parsedRequest]
+      }
+    },
+    [],
+  ) || [null, null]
 
   if (relevantHandler == null) {
     return {
-      response: null,
       handler: null,
+      response: null,
     }
   }
 
-  const { mask, defineContext, resolver } = relevantHandler
+  const { getPublicRequest, defineContext, resolver } = relevantHandler
 
-  // Retrieve request URL parameters based on the provided mask
-  const params =
-    (mask && match(resolveRelativeUrl(mask), getCleanUrl(req.url)).params) || {}
-
-  const requestWithParams: MockedRequest = {
-    ...req,
-    params,
-  }
-
-  const context = defineContext
-    ? defineContext(requestWithParams)
-    : defaultContext
+  const publicRequest = getPublicRequest
+    ? getPublicRequest(req, parsedRequest)
+    : req
+  const context = defineContext ? defineContext(publicRequest) : defaultContext
 
   const mockedResponse: MockedResponse | undefined = await resolver(
-    requestWithParams,
+    publicRequest,
     response,
     context,
   )
@@ -59,13 +68,15 @@ export const getResponse = async <
   // but returns no mocked response (i.e. misses a `return res()` statement).
   if (!mockedResponse) {
     return {
-      response: null,
       handler: relevantHandler,
+      response: null,
     }
   }
 
   return {
-    response: mockedResponse,
     handler: relevantHandler,
+    response: mockedResponse,
+    publicRequest,
+    parsedRequest,
   }
 }

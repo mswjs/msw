@@ -158,7 +158,8 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
         )
         console.log('Request:', loggedRequest)
         console.log('Handler:', {
-          operation: expectedOperation,
+          operationType,
+          operationName: expectedOperation,
           predicate: handler.predicate,
         })
         console.log('Response:', loggedResponse)

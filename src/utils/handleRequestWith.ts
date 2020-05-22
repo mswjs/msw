@@ -10,6 +10,7 @@ import {
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from './parseRequestBody'
+import { isStringEqual } from './isStringEqual'
 
 export const handleRequestWith = (
   requestHandlers: RequestHandler[],
@@ -21,7 +22,7 @@ export const handleRequestWith = (
     try {
       const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
         event.data,
-        function (key, value) {
+        function (this: MockedRequest, key, value) {
           if (key === 'url') {
             return new URL(value)
           }
@@ -33,7 +34,14 @@ export const handleRequestWith = (
 
           // Prevent empty fields from presering an empty value.
           // It's invalid to perform a GET request with { body: "" }
-          if (value === '') {
+          if (
+            // Check if we are parsing deeper in `event.data.payload`,
+            // because this custom JSON parser is invoked for each depth level.
+            this.method &&
+            isStringEqual(this.method, 'GET') &&
+            key === 'body' &&
+            value === ''
+          ) {
             return undefined
           }
 

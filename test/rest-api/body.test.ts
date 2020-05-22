@@ -13,7 +13,33 @@ describe('REST: Request body', () => {
   })
 
   describe('when I reference "req.body" inside a request handler', () => {
-    describe('and I performed a request with a text body', () => {
+    describe('and I performed a GET request without a body', () => {
+      it('should not return any request body', async () => {
+        const res = await test.request({
+          url: `${test.origin}/login`,
+        })
+        const body = await res.json()
+
+        expect(body).toEqual({ body: undefined })
+      })
+    })
+
+    describe('and I performed a POST request with intentionally empty body', () => {
+      it('should return the request body as-is', async () => {
+        const res = await test.request({
+          url: `${test.origin}/login`,
+          fetchOptions: {
+            method: 'POST',
+            body: '',
+          },
+        })
+        const body = await res.json()
+
+        expect(body).toEqual({ body: '' })
+      })
+    })
+
+    describe('and I performed a POST request with a text body', () => {
       it('should return a text request body as-is', async () => {
         const res = await test.request({
           url: `${test.origin}/login`,
@@ -22,14 +48,13 @@ describe('REST: Request body', () => {
             body: 'text-body',
           },
         })
+        const body = await res.json()
 
-        const body = await res.text()
-
-        expect(body).toEqual('text-body')
+        expect(body).toEqual({ body: 'text-body' })
       })
     })
 
-    describe('and I performed a request with a JSON body without any "Content-Type" header', () => {
+    describe('and I performed a POST request with a JSON body without any "Content-Type" header', () => {
       it('should return a text request body as-is', async () => {
         const res = await test.request({
           url: `${test.origin}/login`,
@@ -40,14 +65,13 @@ describe('REST: Request body', () => {
             }),
           },
         })
-
         const body = await res.text()
 
-        expect(body).toEqual('{"json":"body"}')
+        expect(body).toEqual(`{"body":"{\\"json\\":\\"body\\"}"}`)
       })
     })
 
-    describe('and I performed a request with a JSON body with a "Content-Type" header', () => {
+    describe('and I performed a POST request with a JSON body with a "Content-Type" header', () => {
       it('should return a text request body as-is', async () => {
         const res = await test.request({
           url: `${test.origin}/login`,
@@ -61,11 +85,12 @@ describe('REST: Request body', () => {
             }),
           },
         })
-
         const body = await res.json()
 
         expect(body).toEqual({
-          json: 'body',
+          body: {
+            json: 'body',
+          },
         })
       })
     })

@@ -23,6 +23,7 @@ import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { styleStatusCode } from './utils/logger/styleStatusCode'
+import { isStringEqual } from './utils/isStringEqual'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -54,7 +55,7 @@ const createRestHandler = (method: RESTMethods) => {
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI
         const cleanUrl = getCleanUrl(req.url)
-        const hasSameMethod = method.toUpperCase() === req.method.toUpperCase()
+        const hasSameMethod = isStringEqual(method, req.method)
         const urlMatch = match(resolveRelativeUrl(mask), cleanUrl)
 
         return hasSameMethod && urlMatch.matches

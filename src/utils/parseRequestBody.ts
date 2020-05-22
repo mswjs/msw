@@ -1,8 +1,6 @@
 import { getJsonBody } from './getJsonBody'
 import { MockedRequest } from '../handlers/requestHandler'
 
-type Request = Partial<Pick<MockedRequest, 'headers' | 'body'>>
-
 export function parseRequestBody(
   body?: MockedRequest['body'],
   headers?: MockedRequest['headers'],
@@ -14,4 +12,7 @@ export function parseRequestBody(
 
     return isJsonBody && typeof body !== 'object' ? getJsonBody(body) : body
   }
+
+  // Return whatever falsey body value is given.
+  return body
 }

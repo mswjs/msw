@@ -65,7 +65,7 @@ describe('init', () => {
         {
           cwd: PROJECT_ROOT,
         },
-        (error, stdout) => {
+        (error) => {
           capturedError = error
           done()
         },

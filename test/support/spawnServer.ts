@@ -6,7 +6,6 @@ import * as webpack from 'webpack'
 import * as WebpackDevServer from 'webpack-dev-server'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import { SERVICE_WORKER_BUILD_PATH } from '../../config/constants'
-import * as packageJson from '../../package.json'
 
 interface Payload {
   server: WebpackDevServer

@@ -28,7 +28,7 @@ describe('setupServer / http', () => {
 
   describe('given I perform a request using http.get', () => {
     let res: http.IncomingMessage
-    let resBody: string = ''
+    let resBody = ''
 
     beforeAll((done) => {
       http.get('http://test.msw.io', (message) => {
@@ -55,7 +55,7 @@ describe('setupServer / http', () => {
 
   describe('given I perform a request using http.request', () => {
     let res: http.IncomingMessage
-    let resBody: string = ''
+    let resBody = ''
 
     beforeAll((done) => {
       const req = http.request('http://test.msw.io', (message) => {

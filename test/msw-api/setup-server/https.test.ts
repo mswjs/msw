@@ -29,7 +29,7 @@ describe('setupServer / https', () => {
 
   describe('given I perform a request using https.get', () => {
     let res: IncomingMessage
-    let resBody: string = ''
+    let resBody = ''
 
     beforeAll((done) => {
       https.get('https://test.msw.io', (message) => {
@@ -56,7 +56,7 @@ describe('setupServer / https', () => {
 
   describe('given I perform a request using https.request', () => {
     let res: IncomingMessage
-    let resBody: string = ''
+    let resBody = ''
 
     beforeAll((done) => {
       const req = https.request('https://test.msw.io', (message) => {

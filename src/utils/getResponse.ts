@@ -12,8 +12,6 @@ interface ResponsePayload {
   parsedRequest?: any
 }
 
-type ReducedHandlers = [RequestHandler, any]
-
 /**
  * Returns a mocked response for a given request using following request handlers.
  */

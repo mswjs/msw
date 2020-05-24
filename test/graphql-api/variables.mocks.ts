@@ -28,6 +28,7 @@ const worker = setupWorker(
 
   graphql.query('GetActiveUser', (req, res, ctx) => {
     // Intentionally unused variable
+    // eslint-disable-next-line
     const { foo } = req.variables
 
     return res(

@@ -1,6 +1,6 @@
 # Contributing
 
-This document is going to take you through the process of contributing to the Mock Service Worker library. Please make sure you read it before landing your first contribution.
+This document is going to take you through the process of contributing to the Mock Service Worker library. Please make sure you read it before landing your first contribution. Thank you.
 
 ## Getting started
 
@@ -15,7 +15,7 @@ $ cd msw
 $ yarn install
 ```
 
-> Please use the [Yarn][yarn-url] package manager while working on this project. Thank you for respecting our internal decisions.
+> Please use the [**Yarn**][yarn-url] package manager while working on this project. Thank you for respecting our internal decisions.
 
 ## Git workflow
 
@@ -96,7 +96,7 @@ $ yarn test:unit path/to/suite.test.ts
 
 Each integration test consists of two parts:
 
-- `test-name.mock.ts`, a client-side usage scenario. This is a mock definition file that showcases how the library is used in the respective test scenario.
+- `test-name.mocks.ts`, a client-side usage scenario. This is a mock definition file that showcases how the library is used in this test scenario.
 - `test-name.test.ts`, an actual test suite. This is where you interact with a test scenario and write your assertions.
 
 > Please refer to the [existing integration tests](https://github.com/open-draft/msw/tree/master/test) for more details on how a test suite must be structured and what interaction commands are available.
@@ -115,11 +115,13 @@ $ yarn test:integration test/rest-api/basic.mock.ts
 
 #### Running a usage scenario
 
+When working on a feature or a bug fix it's useful to interact with your usage example. There's a dedicated command that can run a given usage scenario in a local server for you to work with:
+
 ```bash
 $ yarn test:focused test/rest-api/basic.mock.ts
 ```
 
-> Running this command will create a web page with the provided usage scenario loaded. Navigate to the URL in the terminal to preview and interact with the usage scenario.
+> Navigate to the URL in the terminal to preview and interact with the usage scenario.
 
 ## Build
 

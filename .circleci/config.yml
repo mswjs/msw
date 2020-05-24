@@ -31,6 +31,10 @@ jobs:
             - ~/.cache/yarn
 
       - run:
+          name: Linting
+          command: yarn lint
+
+      - run:
           name: Building the module
           command: yarn build
 
@@ -39,9 +43,9 @@ jobs:
           command: cat lib/esm/mockServiceWorker.js
 
       - run:
-          name: Unit tests
+          name: Running unit tests
           command: yarn test:unit
 
       - run:
-          name: Integration tests
+          name: Running integration tests
           command: yarn test:integration

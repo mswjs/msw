@@ -78,7 +78,7 @@ const createRestHandler = (method: RESTMethods) => {
         return restContext
       },
 
-      log(req, res, handler, parsed) {
+      log(req, res, handler) {
         const isRelativeRequest = req.referrer.startsWith(req.url.origin)
         const publicUrl = isRelativeRequest
           ? req.url.pathname

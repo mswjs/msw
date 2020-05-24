@@ -5,7 +5,7 @@ import { captureConsole } from '../../../support/captureConsole'
 
 describe('API: setupWorker / start / quiet', () => {
   let test: TestAPI
-  let logs: string[] = []
+  const logs: string[] = []
 
   beforeAll(async () => {
     test = await runBrowserWith(path.resolve(__dirname, 'quiet.mocks.ts'))

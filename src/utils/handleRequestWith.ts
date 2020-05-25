@@ -73,7 +73,7 @@ export const handleRequestWith = (
       }
 
       // Handle a scenario when there is a request handler,
-      // but its response resolver didn't return any response.
+      // but it doesn't return any mocked response.
       if (!response) {
         console.warn(
           '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',

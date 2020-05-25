@@ -1,7 +1,7 @@
 import { ResponseTransformer } from '../response'
 
 /**
- * Sets the given text as the body of the response.
+ * Sets a given text as a "Cotent-Type: text/plain" body of the response.
  * @example
  * res(text('Message'))
  */

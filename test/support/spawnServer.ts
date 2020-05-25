@@ -29,9 +29,14 @@ Loaded mock definition:
 %s
 
 Resolved "msw" module to:
-%s`,
+%s
+
+Using Service Worker build:
+%s
+`,
     chalk.magenta(absoluteMockPath),
     chalk.magenta(mswModulePath),
+    chalk.magenta(SERVICE_WORKER_BUILD_PATH),
   )
 
   const mockDefsContent = fs.readFileSync(absoluteMockPath).toString()

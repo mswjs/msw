@@ -77,6 +77,17 @@ export const setupServer = (...handlers: RequestHandlersList) => {
     },
 
     /**
+     * Marks all request handlers that respond using `res.once()` as unused.
+     */
+    restoreHandlers() {
+      currentHandlers.forEach((handler) => {
+        if (handler.hasOwnProperty('shouldSkip')) {
+          handler.shouldSkip = false
+        }
+      })
+    },
+
+    /**
      * Resets request handlers to the initial list given to the `setupServer` call.
      */
     resetHandlers(...nextHandlers: RequestHandlersList) {

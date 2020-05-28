@@ -22,25 +22,25 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const [relevantHandler, parsedRequest] = handlers.reduce<any>(
-    (found, requestHandler) => {
-      if (found && found[0]) {
-        return found
-      }
+  const [relevantHandler, parsedRequest]: [
+    RequestHandler<any, any>,
+    R,
+  ] = handlers.reduce<any>((found, requestHandler) => {
+    if ((found && found[0]) || requestHandler.isUsed) {
+      return found
+    }
 
-      // Parse the captured request to get additional information.
-      // Make the predicate function accept all the necessary information
-      // to decide on the interception.
-      const parsedRequest = requestHandler.parse
-        ? requestHandler.parse(req)
-        : null
+    // Parse the captured request to get additional information.
+    // Make the predicate function accept all the necessary information
+    // to decide on the interception.
+    const parsedRequest = requestHandler.parse
+      ? requestHandler.parse(req)
+      : null
 
-      if (requestHandler.predicate(req, parsedRequest)) {
-        return [requestHandler, parsedRequest]
-      }
-    },
-    [],
-  ) || [null, null]
+    if (requestHandler.predicate(req, parsedRequest)) {
+      return [requestHandler, parsedRequest]
+    }
+  }, []) || [null, null]
 
   if (relevantHandler == null) {
     return {
@@ -69,6 +69,12 @@ export const getResponse = async <
       handler: relevantHandler,
       response: null,
     }
+  }
+
+  if (mockedResponse.once) {
+    // When responded with a one-time response, mark the current request handler
+    // as used, skipping it from affecting any subsequent captured requests.
+    relevantHandler.isUsed = true
   }
 
   return {

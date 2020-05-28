@@ -79,8 +79,9 @@ export const setupServer = (...handlers: RequestHandlersList) => {
     /**
      * Resets request handlers to the initial list given to the `setupServer` call.
      */
-    resetHandlers() {
-      currentHandlers = [...handlers]
+    resetHandlers(...nextHandlers: RequestHandlersList) {
+      currentHandlers =
+        nextHandlers.length > 0 ? [...nextHandlers] : [...handlers]
     },
 
     /**

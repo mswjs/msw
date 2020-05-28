@@ -85,8 +85,8 @@ export interface RequestHandler<
   defineContext?: (req: PublicRequest) => ContextType
 
   /**
-   * Logs out a mocked request/response information
-   * upon each request capture.
+   * Prints out a mocked request/response information
+   * upon each request capture into browser's console.
    */
   log: (
     req: PublicRequest,
@@ -96,10 +96,10 @@ export interface RequestHandler<
   ) => void
 
   /**
-   * Used status of the request handler. Used handlers cannot affect
-   * any captured requests anymore.
+   * Describes whether this request handler should be skipped
+   * when dealing with any subsequent matching requests.
    */
-  isUsed?: boolean
+  shouldSkip?: boolean
 }
 
 export default null

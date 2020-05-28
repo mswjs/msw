@@ -26,7 +26,9 @@ export const getResponse = async <
     RequestHandler<any, any>,
     R,
   ] = handlers.reduce<any>((found, requestHandler) => {
-    if ((found && found[0]) || requestHandler.isUsed) {
+    // Skip any request handlers lookup if a handler is already found,
+    // or the current handler is a one-time handler that's been already used.
+    if ((found && found[0]) || requestHandler.shouldSkip) {
       return found
     }
 
@@ -72,9 +74,9 @@ export const getResponse = async <
   }
 
   if (mockedResponse.once) {
-    // When responded with a one-time response, mark the current request handler
-    // as used, skipping it from affecting any subsequent captured requests.
-    relevantHandler.isUsed = true
+    // When responded with a one-time response, match the relevant request handler
+    // as skipped, so it cannot affect the captured requests anymore.
+    relevantHandler.shouldSkip = true
   }
 
   return {

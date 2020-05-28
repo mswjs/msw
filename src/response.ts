@@ -7,34 +7,55 @@ export interface MockedResponse {
   statusText: string
   headers: Headers
   delay: number
+  once: boolean
 }
 
 export type ResponseTransformer = (res: MockedResponse) => MockedResponse
-export type ResponseComposition = (
+type ResponseFunction = (
   ...transformers: ResponseTransformer[]
 ) => MockedResponse
+export type ResponseComposition = ResponseFunction & {
+  /**
+   * Respond using a given mocked response to the first captured request.
+   * Does not affect any subsequent captured requests.
+   */
+  once: ResponseFunction
+}
 
 export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   status: 200,
   statusText: 'OK',
   body: null,
   delay: 0,
+  once: false,
 }
 
-export const response: ResponseComposition = (...transformers) => {
-  const resolvedResponse: Partial<MockedResponse> = Object.assign(
-    {},
-    defaultResponse,
-    {
-      headers: new Headers({
-        'x-powered-by': 'msw',
-      }),
-    },
-  )
+function createResponseComposition(
+  overrides: Partial<MockedResponse> = {},
+): ResponseFunction {
+  return (...transformers) => {
+    const resolvedResponse: Partial<MockedResponse> = Object.assign(
+      {},
+      defaultResponse,
+      {
+        headers: new Headers({
+          'x-powered-by': 'msw',
+        }),
+      },
+      overrides,
+    )
 
-  if (transformers.length > 0) {
-    return pipe(...transformers)(resolvedResponse)
+    if (transformers.length > 0) {
+      return pipe(...transformers)(resolvedResponse)
+    }
+
+    return resolvedResponse
   }
-
-  return resolvedResponse
 }
+
+export const response: ResponseComposition = Object.assign(
+  createResponseComposition(),
+  {
+    once: createResponseComposition({ once: true }),
+  },
+)

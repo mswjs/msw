@@ -94,6 +94,12 @@ export interface RequestHandler<
     handler: RequestHandler<RequestType, ContextType>,
     parsedRequest: ParsedRequest,
   ) => void
+
+  /**
+   * Used status of the request handler. Used handlers cannot affect
+   * any captured requests anymore.
+   */
+  isUsed?: boolean
 }
 
 export default null

@@ -2,60 +2,54 @@ import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-describe('setupServer / restoreHandlers', () => {
-  const server = setupServer(
+const server = setupServer(
+  rest.get('https://mswjs.io/books', (req, res, ctx) => {
+    return res(ctx.json({ title: 'Original title' }))
+  }),
+)
+
+beforeAll(() => server.listen())
+afterAll(() => server.close())
+
+test('returns a mocked response from the one-time request handler only upon first request', async () => {
+  server.use(
     rest.get('https://mswjs.io/books', (req, res, ctx) => {
-      return res(ctx.json({ title: 'Original title' }))
+      return res.once(ctx.json({ title: 'Overridden title' }))
     }),
   )
 
-  beforeAll(() => {
-    server.listen()
+  const firstResponse = await fetch('https://mswjs.io/books')
+  const firstBody = await firstResponse.json()
+  expect(firstResponse.status).toBe(200)
+  expect(firstBody).toEqual({ title: 'Overridden title' })
 
-    server.use(
-      rest.get('https://mswjs.io/books', (req, res, ctx) => {
-        return res.once(ctx.json({ title: 'Overridden title' }))
-      }),
-    )
-  })
+  const secondResponse = await fetch('https://mswjs.io/books')
+  const secondBody = await secondResponse.json()
+  expect(secondResponse.status).toBe(200)
+  expect(secondBody).toEqual({ title: 'Original title' })
+})
 
-  afterAll(() => server.close())
+test('returns a mocked response from the used one-time request handler when restored', async () => {
+  server.use(
+    rest.get('https://mswjs.io/books', (req, res, ctx) => {
+      return res.once(ctx.json({ title: 'Overridden title' }))
+    }),
+  )
 
-  describe('given I had a one-time request handler override', () => {
-    it('should return a mocked response from the one-time request handler upon the first requests', async () => {
-      const res = await fetch('https://mswjs.io/books')
-      const body = await res.json()
+  const firstResponse = await fetch('https://mswjs.io/books')
+  const firstBody = await firstResponse.json()
+  expect(firstResponse.status).toBe(200)
+  expect(firstBody).toEqual({ title: 'Overridden title' })
 
-      expect(res.status).toBe(200)
-      expect(body).toEqual({ title: 'Overridden title' })
-    })
+  const secondResponse = await fetch('https://mswjs.io/books')
+  const secondBody = await secondResponse.json()
+  expect(secondResponse.status).toBe(200)
+  expect(secondBody).toEqual({ title: 'Original title' })
 
-    it('should return an original response upon subsequent requests', async () => {
-      const res = await fetch('https://mswjs.io/books')
-      const body = await res.json()
+  server.restoreHandlers()
 
-      expect(res.status).toBe(200)
-      expect(body).toEqual({ title: 'Original title' })
-    })
-
-    describe('given I restored the one-time handlers', () => {
-      beforeAll(() => server.restoreHandlers())
-
-      it('should restore the used state of the one-time request handler', async () => {
-        const res = await fetch('https://mswjs.io/books')
-        const body = await res.json()
-
-        expect(res.status).toBe(200)
-        expect(body).toEqual({ title: 'Overridden title' })
-      })
-
-      it('should return an original response upon subsequent requests', async () => {
-        const res = await fetch('https://mswjs.io/books')
-        const body = await res.json()
-
-        expect(res.status).toBe(200)
-        expect(body).toEqual({ title: 'Original title' })
-      })
-    })
-  })
+  const thirdResponse = await fetch('https://mswjs.io/books')
+  const thirdBody = await thirdResponse.json()
+  expect(firstResponse.status).toBe(200)
+  expect(thirdBody).toEqual({ title: 'Overridden title' })
 })

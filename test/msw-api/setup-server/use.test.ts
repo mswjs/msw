@@ -2,95 +2,70 @@ import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-describe('setupServer / use', () => {
-  const server = setupServer(
-    rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
-      return res(ctx.json({ title: 'Original title' }))
+const server = setupServer(
+  rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
+    return res(ctx.json({ title: 'Original title' }))
+  }),
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+test('returns a mocked response from a runtime request handler upon match', async () => {
+  server.use(
+    rest.post('https://mswjs.io/login', (req, res, ctx) => {
+      return res(ctx.json({ accepted: true }))
     }),
   )
 
-  beforeAll(() => server.listen())
-  afterAll(() => server.close())
-
-  describe('given I define a runtime request handler', () => {
-    describe('that does not override any existing request handler', () => {
-      beforeAll(() => {
-        server.use(
-          rest.post('https://mswjs.io/login', (req, res, ctx) => {
-            return res(ctx.json({ accepted: true }))
-          }),
-        )
-      })
-
-      it('should return a mocked response to the runtime request handler', async () => {
-        const res = await fetch('https://mswjs.io/login', { method: 'POST' })
-        const body = await res.json()
-
-        expect(res.status).toBe(200)
-        expect(body).toEqual({ accepted: true })
-      })
-    })
-
-    describe('that overrides an existing request handler', () => {
-      describe('and overrides it persistently', () => {
-        beforeAll(() => {
-          server.use(
-            rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
-              return res(ctx.json({ title: 'Persistent override title' }))
-            }),
-          )
-        })
-
-        it('should return a mocked response to the handler override upon first hit', async () => {
-          const res = await fetch('https://mswjs.io/book/abc-123')
-          const body = await res.json()
-
-          expect(res.status).toBe(200)
-          expect(body).toEqual({ title: 'Persistent override title' })
-        })
-
-        it('should return a mocked response to the handler override upon subsequent calls', async () => {
-          const calls = await Promise.all([
-            fetch('https://mswjs.io/book/abc-123'),
-            fetch('https://mswjs.io/book/def-456'),
-          ])
-
-          for (const res of calls) {
-            const body = await res.json()
-
-            expect(res.status).toBe(200)
-            expect(body).toEqual({ title: 'Persistent override title' })
-          }
-        })
-      })
-
-      describe('and overrides it one-time', () => {
-        beforeAll(() => {
-          server.resetHandlers()
-
-          server.use(
-            rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
-              return res.once(ctx.json({ title: 'One-time override title' }))
-            }),
-          )
-        })
-
-        it('should return a mocked response to the handler override upon first hit', async () => {
-          const res = await fetch('https://mswjs.io/book/abc-123')
-          const body = await res.json()
-
-          expect(res.status).toBe(200)
-          expect(body).toEqual({ title: 'One-time override title' })
-        })
-
-        it('should return a mocked response to the original handler in subsequent hits', async () => {
-          const res = await fetch('https://mswjs.io/book/abc-123')
-          const body = await res.json()
-
-          expect(res.status).toBe(200)
-          expect(body).toEqual({ title: 'Original title' })
-        })
-      })
-    })
+  // Request handlers added on runtime affect network communication as usual.
+  const loginResponse = await fetch('https://mswjs.io/login', {
+    method: 'POST',
   })
+  const loginBody = await loginResponse.json()
+  expect(loginResponse.status).toBe(200)
+  expect(loginBody).toEqual({ accepted: true })
+
+  // Other request handlers are preserved, if there are no overlaps.
+  const bookResponse = await fetch('https://mswjs.io/book/abc-123')
+  const bookBody = await bookResponse.json()
+  expect(bookResponse.status).toBe(200)
+  expect(bookBody).toEqual({ title: 'Original title' })
+})
+
+test('returns a mocked response from a persistent request handler override', async () => {
+  server.use(
+    rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
+      return res(ctx.json({ title: 'Permanent override' }))
+    }),
+  )
+
+  const bookResponse = await fetch('https://mswjs.io/book/abc-123')
+  const bookBody = await bookResponse.json()
+  expect(bookResponse.status).toBe(200)
+  expect(bookBody).toEqual({ title: 'Permanent override' })
+
+  const anotherBookResponse = await fetch('https://mswjs.io/book/abc-123')
+  const anotherBookBody = await anotherBookResponse.json()
+  expect(anotherBookResponse.status).toBe(200)
+  expect(anotherBookBody).toEqual({ title: 'Permanent override' })
+})
+
+test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
+  server.use(
+    rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
+      return res.once(ctx.json({ title: 'Permanent override' }))
+    }),
+  )
+
+  const bookResponse = await fetch('https://mswjs.io/book/abc-123')
+  const bookBody = await bookResponse.json()
+  expect(bookResponse.status).toBe(200)
+  expect(bookBody).toEqual({ title: 'Permanent override' })
+
+  const anotherBookResponse = await fetch('https://mswjs.io/book/abc-123')
+  const anotherBookBody = await anotherBookResponse.json()
+  expect(anotherBookResponse.status).toBe(200)
+  expect(anotherBookBody).toEqual({ title: 'Original title' })
 })

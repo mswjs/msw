@@ -1,5 +1,4 @@
-import { RequestHandler } from '../handlers/requestHandler'
-import { ComposeMocksInternalContext } from './glossary'
+import { ComposeMocksInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 
@@ -10,7 +9,7 @@ export interface SetupWorkerApi {
   /**
    * Prepends given request handlers to the list of existing handlers.
    */
-  use: (...handlers: RequestHandler<any, any>[]) => void
+  use: (...handlers: RequestHandlersList) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -20,14 +19,14 @@ export interface SetupWorkerApi {
   /**
    * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
    */
-  resetHandlers: (...nextHandlers: RequestHandler<any, any>[]) => void
+  resetHandlers: (...nextHandlers: RequestHandlersList) => void
 }
 
 /**
  * Configures a Service Worker with the given request handler functions.
  */
 export function setupWorker(
-  ...requestHandlers: RequestHandler<any, any>[]
+  ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
   const context: ComposeMocksInternalContext = {
     worker: null,
@@ -62,7 +61,7 @@ export function setupWorker(
  * Composes multiple request handlers into a single mocking schema.
  * @deprecated
  */
-export function composeMocks(...requestHandlers: RequestHandler<any, any>[]) {
+export function composeMocks(...requestHandlers: RequestHandlersList) {
   console.warn(
     '[MSW] The `composeMocks()` function is deprecated and will be removed in the next release. Please use the `setupWorker()` function instead.',
   )

@@ -23,6 +23,8 @@ export interface StartOptions {
   quiet?: boolean
 }
 
+export type RequestHandlersList = RequestHandler<any, any>[]
+
 export type ResponseWithSerializedHeaders = Omit<MockedResponse, 'headers'> & {
   headers: HeadersList
 }

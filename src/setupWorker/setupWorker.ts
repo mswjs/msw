@@ -6,7 +6,20 @@ import { createStop } from './stop/createStop'
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
   stop: ReturnType<typeof createStop>
+
+  /**
+   * Prepends given request handlers to the list of existing handlers.
+   */
   use: (...handlers: RequestHandler<any, any>[]) => void
+
+  /**
+   * Marks all request handlers that respond using `res.once()` as unused.
+   */
+  restoreHandlers: () => void
+
+  /**
+   * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
+   */
   resetHandlers: (...nextHandlers: RequestHandler<any, any>[]) => void
 }
 
@@ -26,16 +39,18 @@ export function setupWorker(
     start: createStart(context),
     stop: createStop(context),
 
-    /**
-     * Prepends given request handlers to the list of existing handlers.
-     */
     use(...handlers) {
       context.requestHandlers.unshift(...handlers)
     },
 
-    /**
-     * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
-     */
+    restoreHandlers() {
+      context.requestHandlers.forEach((handler) => {
+        if (handler.hasOwnProperty('shouldSkip')) {
+          handler.shouldSkip = false
+        }
+      })
+    },
+
     resetHandlers(...nextHandlers) {
       context.requestHandlers =
         nextHandlers.length > 0 ? [...nextHandlers] : [...requestHandlers]

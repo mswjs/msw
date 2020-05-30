@@ -1,6 +1,7 @@
 import { ComposeMocksInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
+import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
@@ -39,20 +40,18 @@ export function setupWorker(
     stop: createStop(context),
 
     use(...handlers) {
-      context.requestHandlers.unshift(...handlers)
+      requestHandlerUtils.use(context.requestHandlers, ...handlers)
     },
 
     restoreHandlers() {
-      context.requestHandlers.forEach((handler) => {
-        if (handler.hasOwnProperty('shouldSkip')) {
-          handler.shouldSkip = false
-        }
-      })
+      requestHandlerUtils.restoreHandlers(context.requestHandlers)
     },
 
     resetHandlers(...nextHandlers) {
-      context.requestHandlers =
-        nextHandlers.length > 0 ? [...nextHandlers] : [...requestHandlers]
+      context.requestHandlers = requestHandlerUtils.resetHandlers(
+        requestHandlers,
+        ...nextHandlers,
+      )
     },
   }
 }

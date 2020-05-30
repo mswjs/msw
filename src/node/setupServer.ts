@@ -7,6 +7,7 @@ import { RequestHandlersList } from '../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from '../utils/parseRequestBody'
+import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 
 /**
  * Sets up a server-side requests interception with the given mock definition.
@@ -72,26 +73,24 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
      * Prepends given request handlers to the list of existing handlers.
      */
     use(...handlers: RequestHandlersList) {
-      currentHandlers.unshift(...handlers)
+      requestHandlerUtils.use(currentHandlers, ...handlers)
     },
 
     /**
      * Marks all request handlers that respond using `res.once()` as unused.
      */
     restoreHandlers() {
-      currentHandlers.forEach((handler) => {
-        if (handler.hasOwnProperty('shouldSkip')) {
-          handler.shouldSkip = false
-        }
-      })
+      requestHandlerUtils.restoreHandlers(currentHandlers)
     },
 
     /**
      * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
      */
     resetHandlers(...nextHandlers: RequestHandlersList) {
-      currentHandlers =
-        nextHandlers.length > 0 ? [...nextHandlers] : [...requestHandlers]
+      currentHandlers = requestHandlerUtils.resetHandlers(
+        requestHandlers,
+        ...nextHandlers,
+      )
     },
 
     /**

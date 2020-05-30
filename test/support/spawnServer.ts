@@ -79,7 +79,6 @@ Using Service Worker build:
   })
 
   const wds = new WebpackDevServer(compiler, {
-    historyApiFallback: true,
     contentBase: path.resolve(__dirname, '../..'),
     publicPath: '/',
     noInfo: true,

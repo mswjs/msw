@@ -1,6 +1,10 @@
 import * as context from './context'
 
-export { setupWorker, composeMocks } from './setupWorker/setupWorker'
+export {
+  SetupWorkerApi,
+  setupWorker,
+  composeMocks,
+} from './setupWorker/setupWorker'
 export { MockedResponse, ResponseTransformer, response } from './response'
 export { context }
 

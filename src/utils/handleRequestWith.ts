@@ -2,8 +2,9 @@ import { Headers, headersToList } from 'headers-utils'
 import {
   StartOptions,
   ResponseWithSerializedHeaders,
+  ComposeMocksInternalContext,
 } from '../setupWorker/glossary'
-import { MockedRequest, RequestHandler } from '../handlers/requestHandler'
+import { MockedRequest } from '../handlers/requestHandler'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
@@ -13,7 +14,7 @@ import { parseRequestBody } from './parseRequestBody'
 import { isStringEqual } from './isStringEqual'
 
 export const handleRequestWith = (
-  requestHandlers: RequestHandler[],
+  context: ComposeMocksInternalContext,
   options: StartOptions,
 ) => {
   return async (event: MessageEvent) => {
@@ -64,7 +65,7 @@ export const handleRequestWith = (
         handler,
         publicRequest,
         parsedRequest,
-      } = await getResponse(req, requestHandlers)
+      } = await getResponse(req, context.requestHandlers)
 
       // Handle a scenario when there is no request handler
       // found for a given request.

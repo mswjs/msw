@@ -3,11 +3,10 @@ import {
   RequestInterceptor,
   MockedResponse as MockedInterceptedResponse,
 } from 'node-request-interceptor'
-import { RequestHandler, MockedRequest } from '../handlers/requestHandler'
+import { RequestHandlersList } from '../setupWorker/glossary'
+import { MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from '../utils/parseRequestBody'
-
-type RequestHandlersList = RequestHandler<any, any>[]
 
 /**
  * Sets up a server-side requests interception with the given mock definition.

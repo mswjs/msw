@@ -1,3 +1,4 @@
+import { RequestHandlersList } from '../setupWorker/glossary'
 import {
   RequestHandler,
   MockedRequest,
@@ -17,7 +18,7 @@ interface ResponsePayload {
  */
 export const getResponse = async <
   R extends MockedRequest,
-  H extends Array<RequestHandler<any, any>>
+  H extends RequestHandlersList
 >(
   req: R,
   handlers: H,

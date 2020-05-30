@@ -12,12 +12,12 @@ type RequestHandlersList = RequestHandler<any, any>[]
 /**
  * Sets up a server-side requests interception with the given mock definition.
  */
-export const setupServer = (...handlers: RequestHandlersList) => {
+export const setupServer = (...requestHandlers: RequestHandlersList) => {
   const interceptor = new RequestInterceptor()
 
   // Store the list of request handlers for the current server instance,
   // so it could be modified at a runtime.
-  let currentHandlers: RequestHandlersList = [...handlers]
+  let currentHandlers: RequestHandlersList = [...requestHandlers]
 
   return {
     /**
@@ -88,11 +88,11 @@ export const setupServer = (...handlers: RequestHandlersList) => {
     },
 
     /**
-     * Resets request handlers to the initial list given to the `setupServer` call.
+     * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
      */
     resetHandlers(...nextHandlers: RequestHandlersList) {
       currentHandlers =
-        nextHandlers.length > 0 ? [...nextHandlers] : [...handlers]
+        nextHandlers.length > 0 ? [...nextHandlers] : [...requestHandlers]
     },
 
     /**

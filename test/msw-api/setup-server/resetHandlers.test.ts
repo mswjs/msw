@@ -26,7 +26,7 @@ test('removes all runtime request handlers when resetting without explicit next 
   expect(loginResponse.status).toBe(200)
   expect(loginBody).toEqual({ accepted: true })
 
-  // Once reset, all the request handlers that were added on runtime are moved.
+  // Once reset, all the runtime request handlers are removed.
   server.resetHandlers()
 
   const secondLoginResponse = await fetch('https://mswjs.io/login', {
@@ -48,13 +48,6 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     }),
   )
 
-  const loginResponse = await fetch('https://mswjs.io/login', {
-    method: 'POST',
-  })
-  const loginBody = await loginResponse.json()
-  expect(loginResponse.status).toBe(200)
-  expect(loginBody).toEqual({ accepted: true })
-
   // Once reset with explicit next requets handlers,
   // replaces all present requets handlers with those.
   server.resetHandlers(
@@ -63,8 +56,8 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     }),
   )
 
-  const secondLoginResponse = await fetch('https://mswjs.io/login')
-  expect(secondLoginResponse.status).toBe(404)
+  const loginResponse = await fetch('https://mswjs.io/login')
+  expect(loginResponse.status).toBe(404)
 
   const booksResponse = await fetch('https://mswjs.io/books')
   expect(booksResponse.status).toBe(404)

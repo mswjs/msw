@@ -55,14 +55,14 @@ test('returns a mocked response from a persistent request handler override', asy
 test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
   server.use(
     rest.get('https://mswjs.io/book/:bookId', (req, res, ctx) => {
-      return res.once(ctx.json({ title: 'Permanent override' }))
+      return res.once(ctx.json({ title: 'One-time override' }))
     }),
   )
 
   const bookResponse = await fetch('https://mswjs.io/book/abc-123')
   const bookBody = await bookResponse.json()
   expect(bookResponse.status).toBe(200)
-  expect(bookBody).toEqual({ title: 'Permanent override' })
+  expect(bookBody).toEqual({ title: 'One-time override' })
 
   const anotherBookResponse = await fetch('https://mswjs.io/book/abc-123')
   const anotherBookBody = await anotherBookResponse.json()

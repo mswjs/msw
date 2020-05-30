@@ -33,7 +33,7 @@ export const createStart = (context: ComposeMocksInternalContext) => {
 
     navigator.serviceWorker.addEventListener(
       'message',
-      handleRequestWith(context.requestHandlers, resolvedOptions),
+      handleRequestWith(context, resolvedOptions),
     )
 
     const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>

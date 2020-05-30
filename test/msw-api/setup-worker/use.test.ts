@@ -1,6 +1,7 @@
 import * as path from 'path'
-import { SetupWorkerApi, rest } from 'msw'
+import { rest } from 'msw'
 import { runBrowserWith } from '../../support/runBrowserWith'
+import { SetupWorkerApi } from '../../../src/setupWorker/setupWorker'
 
 declare namespace window {
   // Annotate global references to the worker and rest request handlers.

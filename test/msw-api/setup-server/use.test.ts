@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'

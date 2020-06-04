@@ -10,7 +10,7 @@ const worker = setupWorker(
 // until the worker is ready to intercept them.
 worker.start()
 
-// Although this request is performed alognside an asynchronous
+// Although this request is performed alongside an asynchronous
 // worker registration, it's being deferred by `worker.start`,
 // so it will happen only when the worker is ready.
 fetch('/numbers')

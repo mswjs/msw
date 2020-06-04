@@ -7,7 +7,7 @@ test('defers network requests until the worker is ready', async () => {
   )
 
   // Reload is necessary, because `runBrowserWith` has `{ waitUntil: 'networkidle0' }` predicate
-  // when openning a test scenario mock. Reload doesn't affect the worker state, and without
+  // when opening a test scenario mock. Reload doesn't affect the worker state, and without
   // the deferred network requests option it's still subjected to race condition.
   await runtime.page.reload()
 

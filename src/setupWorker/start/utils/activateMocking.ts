@@ -22,9 +22,7 @@ export const activateMocking = (
             'font-weight:bold',
             'font-weight:normal',
           )
-          console.log(
-            'Found an issue? https://github.com/open-draft/msw/issues',
-          )
+          console.log('Found an issue? https://github.com/mswjs/msw/issues')
           console.groupEnd()
         }
 

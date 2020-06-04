@@ -5,7 +5,11 @@ import { Mask } from '../setupWorker/glossary'
  * Ignores regular expressions.
  */
 export const resolveRelativeUrl = (mask: Mask) => {
+  // Global `location` object doesn't exist in Node.
+  // Relative request predicate URL cannot become absolute.
+  const hasLocation = typeof location !== 'undefined'
+
   return typeof mask === 'string' && mask.startsWith('/')
-    ? `${location.origin}${mask}`
+    ? `${hasLocation ? location.origin : ''}${mask}`
     : mask
 }

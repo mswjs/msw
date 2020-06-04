@@ -29,7 +29,7 @@ export interface StartOptions {
 
   /**
    * Defer any network requests until the Service Worker
-   * instance is ready.
+   * instance is ready. Defaults to `true`.
    */
   waitUntilReady?: boolean
 }

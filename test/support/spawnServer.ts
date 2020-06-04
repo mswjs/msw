@@ -16,6 +16,8 @@ export interface SpawnServerOptions {
   withRoutes?: WebpackDevServer.Configuration['after']
 }
 
+const IS_TEST = process.env.NODE_ENV === 'test'
+
 export const spawnServer = (
   mockDefs: string,
   options?: SpawnServerOptions,
@@ -82,6 +84,9 @@ Using Service Worker build:
     contentBase: path.resolve(__dirname, '../..'),
     publicPath: '/',
     noInfo: true,
+    hot: !IS_TEST,
+    inline: !IS_TEST,
+    liveReload: !IS_TEST,
     openPage: '/test/support/template/index.html',
     headers: {
       // Allow for the test-only Service Workers from "/tmp" directory

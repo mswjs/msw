@@ -11,15 +11,24 @@ test('defers network requests until the worker is ready', async () => {
   // the deferred network requests option it's still subjected to race condition.
   await runtime.page.reload()
 
-  const res = await runtime.page.waitForResponse((res) => {
-    return res.url().includes('/numbers')
-  })
+  const [numbersResponse, lettersResponse] = await Promise.all([
+    runtime.page.waitForResponse((res) => {
+      return res.url().includes('/numbers')
+    }),
+    runtime.page.waitForResponse((res) => {
+      return res.url().includes('/letters')
+    }),
+  ])
 
-  const status = res.status()
-  const body = await res.json()
+  const numbersStatus = numbersResponse.status()
+  const numbersBody = await numbersResponse.json()
+  expect(numbersStatus).toBe(200)
+  expect(numbersBody).toEqual([1, 2, 3])
 
-  expect(status).toBe(200)
-  expect(body).toEqual([1, 2, 3])
+  const lettersStatus = lettersResponse.status()
+  const lettersBody = await lettersResponse.json()
+  expect(lettersStatus).toBe(200)
+  expect(lettersBody).toEqual(['a', 'b', 'c'])
 
   await runtime.cleanup()
 })
@@ -30,13 +39,20 @@ test('allows requests to fall through with the option disabled', async () => {
   )
   await runtime.page.reload()
 
-  const res = await runtime.page.waitForResponse((res) => {
-    return res.url().includes('/numbers')
-  })
+  const [numbersResponse, lettersResponse] = await Promise.all([
+    runtime.page.waitForResponse((res) => {
+      return res.url().includes('/numbers')
+    }),
+    runtime.page.waitForResponse((res) => {
+      return res.url().includes('/letters')
+    }),
+  ])
 
-  const status = res.status()
+  const numbersStatus = numbersResponse.status()
+  expect(numbersStatus).toBe(404)
 
-  expect(status).toBe(404)
+  const lettersStatus = lettersResponse.status()
+  expect(lettersStatus).toBe(404)
 
   await runtime.cleanup()
 })

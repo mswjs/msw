@@ -20,7 +20,18 @@ export interface StartOptions {
     url?: string
     options?: RegistrationOptions
   }
+
+  /**
+   * Disable the logging of captured requests
+   * into browser's console.
+   */
   quiet?: boolean
+
+  /**
+   * Defer any network requests until the Service Worker
+   * instance is ready.
+   */
+  waitUntilReady?: boolean
 }
 
 export type RequestHandlersList = RequestHandler<any, any>[]

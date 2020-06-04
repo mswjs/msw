@@ -4,6 +4,9 @@ const worker = setupWorker(
   rest.get('/numbers', (req, res, ctx) => {
     return res(ctx.json([1, 2, 3]))
   }),
+  rest.get('/letters', (req, res, ctx) => {
+    return res(ctx.json(['a', 'b', 'c']))
+  }),
 )
 
 // By default, starting the worker defers the network requests
@@ -14,3 +17,7 @@ worker.start()
 // worker registration, it's being deferred by `worker.start`,
 // so it will happen only when the worker is ready.
 fetch('/numbers')
+
+const req = new XMLHttpRequest()
+req.open('GET', '/letters')
+req.send()

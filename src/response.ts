@@ -6,8 +6,8 @@ export interface MockedResponse {
   status: number
   statusText: string
   headers: Headers
-  delay: number
   once: boolean
+  delay?: number
 }
 
 export type ResponseTransformer = (res: MockedResponse) => MockedResponse

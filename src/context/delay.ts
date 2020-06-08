@@ -2,13 +2,17 @@ import { ResponseTransformer } from '../response'
 
 export const MIN_SERVER_RESPONSE_TIME = 100
 export const MAX_SERVER_RESPONSE_TIME = 400
+export const SERVER_RESPONSE_TIME_NODE = 5
 
-const getRandomServerResponseTime = () =>
-  Math.floor(
+const getRandomServerResponseTime = () => {
+  if (typeof window === 'undefined') {
+    return SERVER_RESPONSE_TIME_NODE
+  }
+  return Math.floor(
     Math.random() * (MAX_SERVER_RESPONSE_TIME - MIN_SERVER_RESPONSE_TIME) +
       MIN_SERVER_RESPONSE_TIME,
   )
-
+}
 /**
  * Delays the current response for the given duration (in ms)
  * @example

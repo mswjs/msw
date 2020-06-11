@@ -1,98 +1,92 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
-describe('REST: Request body', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'body.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'body.mocks.ts'))
+test('handles a GET request without a body', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/login`,
+  })
+  const body = await res.json()
+  expect(body).toEqual({ body: undefined })
+
+  await runtime.cleanup()
+})
+
+test('handles a GET request without a body and "Content-Type: application/json" header', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/login`,
+    fetchOptions: {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  })
+  const body = await res.json()
+  expect(body).toEqual({ body: undefined })
+
+  await runtime.cleanup()
+})
+
+test('handles a POST request with an explicit empty body', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/login`,
+    fetchOptions: {
+      method: 'POST',
+      body: '',
+    },
+  })
+  const body = await res.json()
+  expect(body).toEqual({ body: '' })
+
+  await runtime.cleanup()
+})
+
+test('handles a POST request with a textual body', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/login`,
+    fetchOptions: {
+      method: 'POST',
+      body: 'text-body',
+    },
+  })
+  const body = await res.json()
+  expect(body).toEqual({ body: 'text-body' })
+
+  await runtime.cleanup()
+})
+
+test('handles a POST request with a JSON body and "Content-Type: application/json" header', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/login`,
+    fetchOptions: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        json: 'body',
+      }),
+    },
+  })
+  const body = await res.json()
+  expect(body).toEqual({
+    body: {
+      json: 'body',
+    },
   })
 
-  afterAll(() => {
-    return test.cleanup()
-  })
-
-  describe('when I reference "req.body" inside a request handler', () => {
-    describe('and I performed a GET request without a body', () => {
-      it('should not return any request body', async () => {
-        const res = await test.request({
-          url: `${test.origin}/login`,
-        })
-        const body = await res.json()
-
-        expect(body).toEqual({ body: undefined })
-      })
-    })
-
-    describe('and I performed a POST request with intentionally empty body', () => {
-      it('should return the request body as-is', async () => {
-        const res = await test.request({
-          url: `${test.origin}/login`,
-          fetchOptions: {
-            method: 'POST',
-            body: '',
-          },
-        })
-        const body = await res.json()
-
-        expect(body).toEqual({ body: '' })
-      })
-    })
-
-    describe('and I performed a POST request with a text body', () => {
-      it('should return a text request body as-is', async () => {
-        const res = await test.request({
-          url: `${test.origin}/login`,
-          fetchOptions: {
-            method: 'POST',
-            body: 'text-body',
-          },
-        })
-        const body = await res.json()
-
-        expect(body).toEqual({ body: 'text-body' })
-      })
-    })
-
-    describe('and I performed a POST request with a JSON body without any "Content-Type" header', () => {
-      it('should return a text request body as-is', async () => {
-        const res = await test.request({
-          url: `${test.origin}/login`,
-          fetchOptions: {
-            method: 'POST',
-            body: JSON.stringify({
-              json: 'body',
-            }),
-          },
-        })
-        const body = await res.text()
-
-        expect(body).toEqual(`{"body":"{\\"json\\":\\"body\\"}"}`)
-      })
-    })
-
-    describe('and I performed a POST request with a JSON body with a "Content-Type" header', () => {
-      it('should return a text request body as-is', async () => {
-        const res = await test.request({
-          url: `${test.origin}/login`,
-          fetchOptions: {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json: 'body',
-            }),
-          },
-        })
-        const body = await res.json()
-
-        expect(body).toEqual({
-          body: {
-            json: 'body',
-          },
-        })
-      })
-    })
-  })
+  await runtime.cleanup()
 })

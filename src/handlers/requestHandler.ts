@@ -58,7 +58,7 @@ export interface RequestHandler<
    * Parses a captured request to retrieve additional
    * information meant for internal usage in the request handler.
    */
-  parse?: (req: MockedRequest) => ParsedRequest
+  parse?: (req: MockedRequest) => ParsedRequest | null
 
   /**
    * Returns a modified request with necessary public properties appended.

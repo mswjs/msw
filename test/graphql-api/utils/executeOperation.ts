@@ -30,24 +30,46 @@ interface GraphQLRequestPayload {
 export const executeOperation = async (
   page: Page,
   payload: GraphQLRequestPayload,
+  method: 'GET' | 'POST' = 'POST',
 ) => {
+  const { query, variables } = payload
+
+  const url = new URL(HOSTNAME)
+
+  if (method === 'GET') {
+    url.searchParams.set('query', query)
+
+    if (variables) {
+      url.searchParams.set('variables', JSON.stringify(variables))
+    }
+  }
+
+  const urlString = url.toString()
+
   page.evaluate(
-    (url, query, variables) => {
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          variables,
-        }),
-      })
+    (url, method, query, variables) => {
+      fetch(
+        url,
+        Object.assign(
+          {},
+          method === 'POST' && {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables,
+            }),
+          },
+        ),
+      )
     },
-    HOSTNAME,
+    urlString,
+    method,
     payload.query,
     payload.variables,
   )
 
-  return page.waitForResponse(HOSTNAME)
+  return page.waitForResponse(urlString)
 }

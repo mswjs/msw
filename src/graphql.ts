@@ -94,19 +94,46 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
       resolver,
 
       parse(req) {
-        if (!req.body) {
-          return {} as GraphQLRequestParsedResult<VariablesType>
-        }
+        // According to the GraphQL specification, a GraphQL request can be issued
+        // using both "GET" and "POST" methods.
+        switch (req.method) {
+          case 'GET': {
+            const query = req.url.searchParams.get('query')
+            const variablesString = req.url.searchParams.get('variables') || ''
 
-        const { query, variables } = req.body as GraphQLRequestPayload<
-          VariablesType
-        >
-        const { operationName } = parseQuery(query, operationType)
+            if (!query) {
+              return null
+            }
 
-        return {
-          operationType,
-          operationName,
-          variables,
+            const variables = variablesString ? JSON.parse(variablesString) : {}
+            const { operationName } = parseQuery(query, operationType)
+
+            return {
+              operationType,
+              operationName,
+              variables,
+            }
+          }
+
+          case 'POST': {
+            if (!req.body) {
+              return null
+            }
+
+            const { query, variables } = req.body as GraphQLRequestPayload<
+              VariablesType
+            >
+            const { operationName } = parseQuery(query, operationType)
+
+            return {
+              operationType,
+              operationName,
+              variables,
+            }
+          }
+
+          default:
+            return null
         }
       },
 
@@ -118,23 +145,14 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
       },
 
       predicate(req, parsed) {
-        if (
-          req.headers.get('Content-Type') !== 'application/json' ||
-          typeof req.body === 'string'
-        ) {
-          return false
-        }
-
-        const { operationName } = parsed
-
-        if (!operationName) {
+        if (!parsed || !parsed.operationName) {
           return false
         }
 
         const isMatchingOperation =
           expectedOperation instanceof RegExp
-            ? expectedOperation.test(operationName)
-            : expectedOperation === operationName
+            ? expectedOperation.test(parsed.operationName)
+            : expectedOperation === parsed.operationName
 
         return isMatchingOperation
       },

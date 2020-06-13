@@ -13,6 +13,7 @@ import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { styleStatusCode } from './utils/logger/styleStatusCode'
+import { jsonParse } from './utils/jsonParse'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -105,7 +106,9 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
               return null
             }
 
-            const variables = variablesString ? JSON.parse(variablesString) : {}
+            const variables = variablesString
+              ? jsonParse<VariablesType>(variablesString)
+              : ({} as VariablesType)
             const { operationName } = parseQuery(query, operationType)
 
             return {

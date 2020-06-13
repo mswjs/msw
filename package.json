@@ -55,7 +55,7 @@
     "graphql": "^15.0.0",
     "headers-utils": "^1.1.9",
     "node-match-path": "^0.4.2",
-    "node-request-interceptor": "^0.2.4",
+    "node-request-interceptor": "^0.2.5",
     "statuses": "^2.0.0",
     "yargs": "^15.3.1"
   },

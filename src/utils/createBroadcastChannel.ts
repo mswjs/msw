@@ -24,7 +24,7 @@ export const createBroadcastChannel = (event: MessageEvent) => {
       payload?: Record<string, any> | string
     }) {
       if (port) {
-        port.postMessage(JSON.stringify(message))
+        port.postMessage(message)
       }
     },
   }

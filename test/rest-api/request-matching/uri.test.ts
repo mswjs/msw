@@ -122,7 +122,7 @@ describe('REST: Request matching (URI)', () => {
   describe('given RegExp for request URI', () => {
     it('should match a request URI matching the expression', async () => {
       const res = await test.request({
-        url: 'https://msw.google.com/path',
+        url: 'https://mswjs.google.com/path',
       })
       const status = res.status()
       const headers = res.headers()
@@ -137,7 +137,7 @@ describe('REST: Request matching (URI)', () => {
 
     it('should not match a request URI not matching the expression', async () => {
       const res = await test.page.evaluate(() =>
-        fetch('https://msw.google.com/other').catch(() => null),
+        fetch('https://mswjs.google.com/other').catch(() => null),
       )
 
       expect(res).toBeNull()

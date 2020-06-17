@@ -129,7 +129,7 @@ self.addEventListener('fetch', async function (event) {
         },
       })
 
-      const clientMessage = JSON.parse(rawClientMessage)
+      const clientMessage = rawClientMessage
 
       switch (clientMessage.type) {
         case 'MOCK_SUCCESS': {

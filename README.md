@@ -184,3 +184,9 @@ test('handles login exception', () => {
 ```
 
 > **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers established? The name is kept for familiarity, and API is designed to resemble operating with an actual server.
+
+## Awards & Mentions
+
+<br />
+
+<img src="./media/os-awards-2020.png" width="160" alt="Open Source Awards 2020" />

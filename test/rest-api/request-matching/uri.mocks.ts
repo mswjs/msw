@@ -9,7 +9,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('https://test.msw.io/messages/:messageId', (req, res, ctx) => {
+  rest.get('https://test.mswjs.io/messages/:messageId', (req, res, ctx) => {
     const { messageId } = req.params
 
     return res(
@@ -19,15 +19,18 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('https://test.msw.io/messages/:messageId/items', (req, res, ctx) => {
-    const { messageId } = req.params
+  rest.get(
+    'https://test.mswjs.io/messages/:messageId/items',
+    (req, res, ctx) => {
+      const { messageId } = req.params
 
-    return res(
-      ctx.json({
-        messageId,
-      }),
-    )
-  }),
+      return res(
+        ctx.json({
+          messageId,
+        }),
+      )
+    },
+  ),
 
   rest.get(/(.+?)\.google\.com\/path/, (req, res, ctx) => {
     return res(

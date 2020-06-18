@@ -67,7 +67,7 @@ describe('REST: Request matching (URI)', () => {
   describe('given mask for request URI', () => {
     it('should match a request that matches the mask', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/messages/abc-123',
+        url: 'https://test.mswjs.io/messages/abc-123',
       })
       const status = res.status()
       const headers = res.headers()
@@ -82,7 +82,7 @@ describe('REST: Request matching (URI)', () => {
 
     it('should not match a request that does not match the mask', async () => {
       const res = await test.page.evaluate(() =>
-        fetch('https://test.msw.io/users/def-456').catch(() => null),
+        fetch('https://test.mswjs.io/users/def-456').catch(() => null),
       )
 
       expect(res).toBeNull()
@@ -90,7 +90,7 @@ describe('REST: Request matching (URI)', () => {
 
     it('should match a request with query parameters that matches the mask', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/messages/abc-123/items?hello=true',
+        url: 'https://test.mswjs.io/messages/abc-123/items?hello=true',
       })
       const status = res.status()
       const headers = res.headers()
@@ -105,7 +105,7 @@ describe('REST: Request matching (URI)', () => {
 
     it('should match a request with a hash that matches the mask', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/messages/abc-123/items#hello',
+        url: 'https://test.mswjs.io/messages/abc-123/items#hello',
       })
       const status = res.status()
       const headers = res.headers()

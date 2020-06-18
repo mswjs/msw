@@ -14,7 +14,7 @@ describe('REST: Context utilities', () => {
 
   it('should receive mocked response', async () => {
     const res = await test.request({
-      url: 'https://test.msw.io/',
+      url: 'https://test.mswjs.io/',
     })
     const headers = res.headers()
     const body = await res.json()

@@ -1,7 +1,7 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.msw.io/', (req, res, ctx) => {
+  rest.get('https://test.mswjs.io/', (req, res, ctx) => {
     return res(
       ctx.delay(2000),
       ctx.set({

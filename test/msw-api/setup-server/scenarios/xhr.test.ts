@@ -4,7 +4,7 @@ import { stringToHeaders } from 'headers-utils'
 
 describe('setupServer / XHR', () => {
   const server = setupServer(
-    rest.get('http://test.msw.io', (req, res, ctx) => {
+    rest.get('http://test.mswjs.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
         ctx.set('x-header', 'yes'),
@@ -31,7 +31,7 @@ describe('setupServer / XHR', () => {
 
     beforeAll((done) => {
       const req = new XMLHttpRequest()
-      req.open('GET', 'http://test.msw.io')
+      req.open('GET', 'http://test.mswjs.io')
       req.onload = function () {
         statusCode = this.status
         body = JSON.parse(this.response)

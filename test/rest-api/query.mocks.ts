@@ -1,7 +1,7 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.msw.io/api/books', (req, res, ctx) => {
+  rest.get('https://test.mswjs.io/api/books', (req, res, ctx) => {
     const bookId = req.url.searchParams.get('id')
 
     return res(
@@ -11,7 +11,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.post('https://test.msw.io/products', (req, res, ctx) => {
+  rest.post('https://test.mswjs.io/products', (req, res, ctx) => {
     const productIds = req.url.searchParams.getAll('id')
 
     return res(

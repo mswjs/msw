@@ -4,7 +4,7 @@ import { setupServer } from 'msw/node'
 
 describe('setupServer / fetch', () => {
   const server = setupServer(
-    rest.get('http://test.msw.io', (req, res, ctx) => {
+    rest.get('http://test.mswjs.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
         ctx.set('x-header', 'yes'),
@@ -14,7 +14,7 @@ describe('setupServer / fetch', () => {
         }),
       )
     }),
-    rest.post('https://test.msw.io', (req, res, ctx) => {
+    rest.post('https://test.mswjs.io', (req, res, ctx) => {
       return res(
         ctx.status(403),
         ctx.set('x-header', 'yes'),
@@ -35,7 +35,7 @@ describe('setupServer / fetch', () => {
     let res: Response
 
     beforeAll(async () => {
-      res = await fetch('http://test.msw.io')
+      res = await fetch('http://test.mswjs.io')
     })
 
     it('should return mocked status code', async () => {
@@ -61,7 +61,7 @@ describe('setupServer / fetch', () => {
     let res: Response
 
     beforeAll(async () => {
-      res = await fetch('https://test.msw.io', {
+      res = await fetch('https://test.mswjs.io', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ describe('REST: Multiple headers with the same name', () => {
       headers.append('x-header', 'application/hal+json')
 
       const res = await test.request({
-        url: 'https://test.msw.io',
+        url: 'https://test.mswjs.io',
         fetchOptions: {
           method: 'POST',
           headers,
@@ -39,7 +39,7 @@ describe('REST: Multiple headers with the same name', () => {
   describe('given mocking a header with multiple values', () => {
     it('should receive all the headers', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io',
+        url: 'https://test.mswjs.io',
       })
       const status = res.status()
       const headers = res.headers()

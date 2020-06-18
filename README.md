@@ -139,8 +139,14 @@ afterAll(() => server.close())
 
 test('allows the user to log in', async () => {
   render(<Login />)
-  userEvent.type(screen.getByLabelText(/username/i), 'john.maverick')
-  userEvent.type(screen.getByLabelText(/password/i), 'super-secret')
+  userEvent.type(
+    screen.getByRole('textbox', { name: /username/i }),
+    'john.maverick',
+  )
+  userEvent.type(
+    screen.getByRole('textbox', { name: /password/i }),
+    'super-secret',
+  )
   fireEvent.click(screen.getByText(/submit/i))
   const alert = await screen.findByRole('alert')
 
@@ -161,8 +167,14 @@ test('handles login exception', () => {
   )
 
   render(<Login />)
-  userEvent.type(screen.getByLabelText(/username/i), 'john.maverick')
-  userEvent.type(screen.getByLabelText(/password/i), 'super-secret')
+  userEvent.type(
+    screen.getByRole('textbox', { name: /username/i }),
+    'john.maverick',
+  )
+  userEvent.type(
+    screen.getByRole('textbox', { name: /password/i }),
+    'super-secret',
+  )
   fireEvent.click(screen.getByText(/submit/i))
 
   // Assert meaningful error message shown to the user

@@ -17,96 +17,158 @@
   </a>
 </p>
 
-<p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node that intercepts outgoing requests using Service Workers.</p>
+<p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node.</p>
 
 ## Features
 
-- **Server-less**. Mocking that doesn't establish any servers, operating entirely in a browser;
-- **Seamless**. Forget about stubs and hacks that make your code smell. Leverage a dedicated layer of interception to keep your code clean and shiny.
-- **Deviation-free**. Request _the same_ resources you would in production, and mock their responses. No more conditional URLs, no more mock-specific parts of code in your app.
-- **Mocking as a tool**. Enable, change, disable mocking on runtime _instantly_ without any compilations or rebuilds. Control the MSW lifecycle from your browser's DevTools;
-- **Essentials**. Use [Express](https://github.com/expressjs/express/)-like syntax to define which requests to mock. Respond with custom status codes, headers, delays, or create custom response resolvers.
+- **Seamless**. Dedicated layer of requests interception at your disposal. Keep your application's code and tests unaware whether something is mocked or not.
+- **Deviation-free**. Request the same production resources and test the actual behavior of your app. Augment an existing API, or design it as you go, when there is none.
+- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture outgoing requests. Use parameters, wildcards and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
 
-> "This is awesome."
+---
+
+> "_I found MSW and was thrilled that not only could I still see the mocked responses in my DevTools, but that the mocks didn't have to be written in a Service Worker and could instead live alongside the rest of my app. This made it silly easy to adopt. The fact that I can use it for testing as well makes MSW a huge productivity booster._"
 >
-> – [Kent C. Dodds](https://twitter.com/kentcdodds/status/1233899811608219648)
+> – [Kent C. Dodds](https://twitter.com/kentcdodds)
 
 ## Documentation
 
-- [Documentation](https://redd.gitbook.io/msw)
-- [**Getting started**](https://redd.gitbook.io/msw/getting-started)
-- [Recipes](https://redd.gitbook.io/msw/recipes)
+- [Documentation](https://mswjs.io/docs)
+- [**Getting started**](https://mswjs.io/docs/getting-started/install)
+- [Recipes](https://mswjs.io/docs/recipes)
+- [FAQ](https://mswjs.io/docs/faq)
 
-## Quick start
+## Examples
 
-Install the library in your project:
+- See the list of [**Usage examples**](https://github.com/mswjs/examples)
 
-```bash
-$ npm install msw
-```
+## Browser
 
-Copy the Service Worker file that's responsible for requests interception. Use a designated CLI to do that (from your project's root directory):
+- [Learn more about the browser integration](https://mswjs.io/docs/getting-started/integrate/browser)
+- [`setupWorker` API](https://mswjs.io/docs/api/setup-worker)
 
-```bash
-$ npx msw init <PUBLIC_DIR>
-```
+### How does it work?
 
-> Provide the path to your public directory instead of the `<PUBLIC_DIR>` placeholder above. Your public directory is usually a directory being served by a server (i.e. `./public` or `./dist`). Running this command will place the `mockServiceWorker.js` file into given directory.
->
-> For example, in [Create React App](https://github.com/facebook/create-react-app) you would run: `npx msw init ./public`
+Browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) that intercepts requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
 
-Once the Service Worker has been copied, we can continue with creating a mocking definition file. For the purpose of this short tutorial we are going to keep all our mocking logic in the `mocks.js` file, but the end file structure is up to you.
+**Watch a 30 seconds explanation on how Mock Service Worker works in a browser:**
 
-```bash
-$ touch mocks.js
-```
+[![What is Mock Service Worker?](https://img.youtube.com/vi/HcQCqboatZk/maxresdefault.jpg)](https://youtu.be/HcQCqboatZk)
 
-Open that file and follow the example below to create your first mocking definition:
+### How is it different?
+
+- Intercepts requests on the network level, not the application level.
+- If your think of your application as a box, Mock Service Worker lives in its own box next to yours, instead of opening and altering it for the purpose of mocking.
+- Agnostic of request-issuing libraries, so you can use it with `fetch`, `axios`, `react-query`, you-name-it.
+- The same mock definition can be reused for unit, integration, E2E testing, and debugging.
+
+### Usage example
 
 ```js
-// mocks.js
-// 1. Import mocking utils
+// src/mocks.js
+// 1. Import mocking utils.
 import { setupWorker, rest } from 'msw'
 
-// 2. Define request handlers and response resolvers
+// 2. Define request handlers and response resolvers.
 const worker = setupWorker(
   rest.get('https://github.com/octocat', (req, res, ctx) => {
     return res(
       ctx.delay(1500),
       ctx.status(202, 'Mocked status'),
       ctx.json({
-        message: 'This is a mocked error',
+        message: 'Mocked response JSON body',
       }),
     )
   }),
 )
 
-// 3. Start the Service Worker
+// 3. Start the Service Worker.
 worker.start()
 ```
 
-Import the `mocks.js` module into your application to enable the mocking. You can import the mocking definition file conditionally, so it's never loaded on production:
-
-```js
-// src/index.js
-if (process.env.NODE_ENV === 'development') {
-  require('./mocks')
-}
-```
-
-Verify the MSW is running by seeing a successful Service Worker activation message in the browser's console. Now any outgoing request of your application are intercepted by the Service Worker, signaled to the client-side library, and matched against the mocking definition. If a request matches any definition, its response is being mocked and returned to the browser.
+Performing a `GET https://github.com/octocat` request in your application will result into a mocked response that you can inspect in your browser's "Network" tab:
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
 
-> Notice the `202 Mocked status (from ServiceWorker)` status in the response.
+> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes on the client side? That way you can use the same language (i.e. TypeScript), third-party libraries, and internal logic in mocks.
 
-We have prepared a set of step-by-step tutorials to get you started with mocking the API type you need. For example, did you know you can mock a GraphQL API using MSW? Find detailed instructions in the respective tutorials below.
+## Node
 
-## Tutorials
+- [Learn more about the NodeJS integration](https://mswjs.io/docs/getting-started/integrate/node)
+- [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
-- [Mocking REST API](https://redd.gitbook.io/msw/tutorials/mocking-rest-api)
-- [Mocking GraphQL API](https://redd.gitbook.io/msw/tutorials/mocking-graphql-api)
+### How does it work?
 
-## Examples
+Although Service Worker is a browser-specific API, this library allows to reuse the same mock definition to have API mocking in NodeJS through augmenting native request issuing modules.
 
-- [**Usage examples**](https://github.com/mswjs/examples)
+### How is it different?
+
+- Prevents from stubbing `fetch`/`axios`/etc. as a part of your test, allowing you to treat API mocking as a pre-requisite and focus on what actually matters during testing.
+- The same mock definition you use for local development can be reused for testing.
+
+### Usage example
+
+Here's an example of an actual integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+
+```js
+// test/LoginForm.test.js
+import '@testing-library/jest-dom'
+import React from 'react'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import Login from '../src/components/Login'
+
+const server = setupServer(
+  rest.post('/login', (req, res, ctx) => {
+    // Respond with a mocked user token that gets persisted
+    // in the `sessionStorage` by the `Login` component.
+    return res(ctx.json({ token: 'mocked_user_token' }))
+  }),
+)
+
+// Enable API mocking before tests.
+beforeAll(() => server.listen())
+
+// Reset any runtime request handlers we may add during the tests.
+afterEach(() => server.resetHandlers())
+
+// Disable API mocking after the tests are done.
+afterAll(() => server.close())
+
+test('allows the user to log in', async () => {
+  render(<Login />)
+  userEvent.type(screen.getByLabelText(/username/i), 'john.maverick')
+  userEvent.type(screen.getByLabelText(/password/i), 'super-secret')
+  fireEvent.click(screen.getByText(/submit/i))
+  const alert = await screen.findByRole('alert')
+
+  // Assert successful login state
+  expect(alert).toHaveTextContent(/welcome/i)
+  expect(window.sessionStorage.getItem('token')).toEqual(fakeUserResponse.token)
+})
+
+test('handles login exception', () => {
+  server.use(
+    rest.post('/login', (req, res, ctx) => {
+      // Respond with "500 Internal Server Error" status for this test.
+      return res(
+        ctx.status(500),
+        ctx.json({ message: 'Internal Server Error' }),
+      )
+    }),
+  )
+
+  render(<Login />)
+  userEvent.type(screen.getByLabelText(/username/i), 'john.maverick')
+  userEvent.type(screen.getByLabelText(/password/i), 'super-secret')
+  fireEvent.click(screen.getByText(/submit/i))
+
+  // Assert meaningful error message shown to the user
+  expect(alert).toHaveTextContent(/sorry, something went wrong/i)
+  expect(window.sessionStorage.getItem('token')).toBeNull()
+})
+```
+
+> **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers established? The name is kept for familiarity, and API is designed to resemble operating with an actual server.

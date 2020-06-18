@@ -5,7 +5,7 @@ describe('REST: Binary response types', () => {
   let test: TestAPI
 
   beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'binary.mocks.ts'))
+    test = await runBrowserWith(path.resolve(__dirname, 'body-binary.mocks.ts'))
   })
 
   afterAll(() => {

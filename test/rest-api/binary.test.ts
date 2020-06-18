@@ -15,7 +15,7 @@ describe('REST: Binary response types', () => {
   describe('given a binary response', () => {
     it('should return a binary response', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/binary',
+        url: 'https://test.mswjs.io/binary',
       })
       const status = res.status()
       const headers = res.headers()

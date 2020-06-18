@@ -29,6 +29,7 @@
       "eslint"
     ]
   },
+  "homepage": "https://mswjs.io",
   "repository": {
     "type": "git",
     "url": "https://github.com/mswjs/msw"

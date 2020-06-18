@@ -17,7 +17,7 @@ describe('REST: Custom request handler', () => {
   describe('given a request handler with default context', () => {
     it('should intercept request by a custom handler', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/url/matters/not',
+        url: 'https://test.mswjs.io/url/matters/not',
         fetchOptions: {
           headers: {
             'x-custom-header': 'true',

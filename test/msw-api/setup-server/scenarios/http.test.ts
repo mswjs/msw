@@ -7,7 +7,7 @@ import { setupServer } from 'msw/node'
 
 describe('setupServer / http', () => {
   const server = setupServer(
-    rest.get('http://test.msw.io', (req, res, ctx) => {
+    rest.get('http://test.mswjs.io', (req, res, ctx) => {
       return res(
         ctx.status(401),
         ctx.set('x-header', 'yes'),
@@ -31,7 +31,7 @@ describe('setupServer / http', () => {
     let resBody = ''
 
     beforeAll((done) => {
-      http.get('http://test.msw.io', (message) => {
+      http.get('http://test.mswjs.io', (message) => {
         res = message
         res.setEncoding('utf8')
         res.on('data', (chunk) => (resBody += chunk))
@@ -58,7 +58,7 @@ describe('setupServer / http', () => {
     let resBody = ''
 
     beforeAll((done) => {
-      const req = http.request('http://test.msw.io', (message) => {
+      const req = http.request('http://test.mswjs.io', (message) => {
         res = message
         res.setEncoding('utf8')
         res.on('data', (chunk) => (resBody += chunk))

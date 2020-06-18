@@ -1,7 +1,7 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.msw.io/user', async (req, res, ctx) => {
+  rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(
       'https://api.github.com/users/octocat',
     )
@@ -29,7 +29,7 @@ const worker = setupWorker(
     },
   ),
 
-  rest.get('https://test.msw.io/headers', async (req, res, ctx) => {
+  rest.get('https://test.mswjs.io/headers', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch('/headers-proxy', {
       method: 'POST',
       headers: req.headers.getAllHeaders(),

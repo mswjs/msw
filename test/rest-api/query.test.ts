@@ -15,7 +15,7 @@ describe('REST: Query parameters', () => {
   describe('given a single query parameter', () => {
     it('should retrieve parameters from the URI', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/api/books?id=abc-123',
+        url: 'https://test.mswjs.io/api/books?id=abc-123',
       })
       const status = res.status()
       const headers = res.headers()
@@ -32,7 +32,7 @@ describe('REST: Query parameters', () => {
   describe('given multiple query parameters', () => {
     it('should return the list of values by parameter name', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/products?id=1&id=2&id=3',
+        url: 'https://test.mswjs.io/products?id=1&id=2&id=3',
         fetchOptions: {
           method: 'POST',
         },

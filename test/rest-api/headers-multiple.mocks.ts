@@ -1,7 +1,7 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.post('https://test.msw.io', (req, res, ctx) => {
+  rest.post('https://test.mswjs.io', (req, res, ctx) => {
     return res(
       ctx.json({
         'x-header': req.headers.get('x-header'),
@@ -9,7 +9,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('https://test.msw.io', (req, res, ctx) => {
+  rest.get('https://test.mswjs.io', (req, res, ctx) => {
     return res(
       ctx.set({
         Accept: ['application/json', 'image/png'],

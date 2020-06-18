@@ -35,7 +35,7 @@ describe('REST: Response patching', () => {
   describe('given mocked and original requests differ', () => {
     it('should return a combination of mocked and original responses', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/user',
+        url: 'https://test.mswjs.io/user',
       })
       const status = res.status()
       const headers = res.headers()
@@ -80,7 +80,7 @@ describe('REST: Response patching', () => {
   describe('given a mocked request with custom headers', () => {
     it('should forward the headers to the original request', async () => {
       const res = await test.request({
-        url: 'https://test.msw.io/headers',
+        url: 'https://test.mswjs.io/headers',
         fetchOptions: {
           headers: {
             Authorization: 'token',

@@ -147,7 +147,7 @@ test('allows the user to log in', async () => {
     screen.getByRole('textbox', { name: /password/i }),
     'super-secret',
   )
-  fireEvent.click(screen.getByText(/submit/i))
+  userEvent.click(screen.getByText(/submit/i))
   const alert = await screen.findByRole('alert')
 
   // Assert successful login state
@@ -175,7 +175,7 @@ test('handles login exception', () => {
     screen.getByRole('textbox', { name: /password/i }),
     'super-secret',
   )
-  fireEvent.click(screen.getByText(/submit/i))
+  userEvent.click(screen.getByText(/submit/i))
 
   // Assert meaningful error message shown to the user
   expect(alert).toHaveTextContent(/sorry, something went wrong/i)

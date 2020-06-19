@@ -24,6 +24,7 @@ import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { styleStatusCode } from './utils/logger/styleStatusCode'
 import { isStringEqual } from './utils/isStringEqual'
+import { resolveMask } from './utils/resolveMask'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -51,12 +52,20 @@ const createRestHandler = (method: RESTMethods) => {
     mask: Mask,
     resolver: ResponseResolver<MockedRequest, typeof restContext>,
   ): RequestHandler<MockedRequest, typeof restContext> => {
+    const resolvedMask = resolveMask(mask)
+    const cleanMask =
+      resolvedMask instanceof URL
+        ? getCleanUrl(resolvedMask)
+        : resolvedMask instanceof RegExp
+        ? resolvedMask
+        : resolveRelativeUrl(resolvedMask)
+
     return {
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI
         const cleanUrl = getCleanUrl(req.url)
         const hasSameMethod = isStringEqual(method, req.method)
-        const urlMatch = match(resolveRelativeUrl(mask), cleanUrl)
+        const urlMatch = match(cleanMask, cleanUrl)
 
         return hasSameMethod && urlMatch.matches
       },

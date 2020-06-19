@@ -51,6 +51,12 @@ const createRestHandler = (method: RESTMethods) => {
     mask: Mask,
     resolver: ResponseResolver<MockedRequest, typeof restContext>,
   ): RequestHandler<MockedRequest, typeof restContext> => {
+    if (typeof mask === 'string' && new RegExp(/\?.+=.*/g).test(mask)) {
+      console.warn(
+        `It should not be good to add query parameters in the mask. 
+        It's better to use without them`,
+      )
+    }
     return {
       predicate(req) {
         // Ignore query parameters and hash when matching requests URI

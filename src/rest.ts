@@ -88,7 +88,31 @@ const createRestHandler = (method: RESTMethods) => {
         return restContext
       },
 
-      log(req, res, handler) {
+      log(req, res, handler, parsed) {
+        // Warn on request handler URL containing query parameters.
+        if (resolvedMask instanceof URL && resolvedMask.search !== '') {
+          const queryParams: string[] = []
+          resolvedMask.searchParams.forEach((_, paramName) =>
+            queryParams.push(paramName),
+          )
+
+          console.warn(
+            `\
+[MSW] Found a redundant usage of query parameters in the request handler URL for "${method} ${mask}". Please match against a path instead, and access query parameters in the response resolver function:
+
+rest.${method.toLowerCase()}("${resolvedMask.pathname}", (req, res, ctx) => {
+  const query = req.url.searchParams
+${queryParams
+  .map(
+    (paramName) => `\
+  const ${paramName} = query.get("${paramName}")`,
+  )
+  .join('\n')}
+})\
+`,
+          )
+        }
+
         const isRelativeRequest = req.referrer.startsWith(req.url.origin)
         const publicUrl = isRelativeRequest
           ? req.url.pathname

@@ -8,7 +8,7 @@ import {
 } from '../glossary'
 import { handleRequestWith } from '../../utils/handleRequestWith'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
-import { deferNetworkRequests } from '../../utils/deferNetworkRequests'
+import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {
@@ -104,7 +104,7 @@ If this message still persists after updating, please report an issue: https://g
     // This prevents a race condition between the Service Worker registration
     // and application's runtime requests (i.e. requests on mount).
     if (resolvedOptions.waitUntilReady) {
-      deferNetworkRequests(workerRegistration)
+      deferNetworkRequestsUntil(workerRegistration)
     }
 
     return workerRegistration

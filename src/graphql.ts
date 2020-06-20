@@ -12,7 +12,7 @@ import { errors } from './context/errors'
 import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
-import { styleStatusCode } from './utils/logger/styleStatusCode'
+import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { jsonParse } from './utils/jsonParse'
 
 type GraphQLRequestHandlerSelector = RegExp | string
@@ -173,7 +173,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           '[MSW] %s %s (%c%s%c)',
           getTimestamp(),
           operationName,
-          styleStatusCode(res.status),
+          `color:${getStatusCodeColor(res.status)}`,
           res.status,
           'color:inherit',
         )

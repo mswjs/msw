@@ -22,7 +22,7 @@ import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
 import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
-import { styleStatusCode } from './utils/logger/styleStatusCode'
+import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { isStringEqual } from './utils/isStringEqual'
 import { resolveMask } from './utils/resolveMask'
 
@@ -130,7 +130,7 @@ ${queryParams
           getTimestamp(),
           req.method,
           publicUrl,
-          styleStatusCode(res.status),
+          `color:${getStatusCodeColor(res.status)}`,
           res.status,
           'color:inherit',
         )

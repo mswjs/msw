@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { deferNetworkRequests } from './deferNetworkRequests'
+import { deferNetworkRequestsUntil } from './deferNetworkRequestsUntil'
 
 beforeAll(() => {
   // Stubs native `fetch` function to remove any external
@@ -34,7 +34,7 @@ test('defers any requests that happen while a given promise is pending', async (
   // Calling this functions captures all requests that happen while
   // the given promise is pending, and defers their execution
   // until the promise is resolved.
-  deferNetworkRequests(workerPromise)
+  deferNetworkRequestsUntil(workerPromise)
 
   // Perform a request.
   const requestPromise = fetch('/user').then(() => {

@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { pipe } from './utils/internal/pipe'
+import { compose } from './utils/internal/compose'
 
 export interface MockedResponse {
   body: any
@@ -46,7 +46,7 @@ function createResponseComposition(
     )
 
     if (transformers.length > 0) {
-      return pipe(...transformers)(resolvedResponse)
+      return compose(...transformers)(resolvedResponse)
     }
 
     return resolvedResponse

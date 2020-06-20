@@ -26,7 +26,7 @@ export interface MockedRequest {
   redirect: Request['redirect']
   referrer: Request['referrer']
   referrerPolicy: Request['referrerPolicy']
-  body: Record<string, any> | string
+  body: Record<string, any> | string | undefined
   bodyUsed: Request['bodyUsed']
   params: RequestParams
 }

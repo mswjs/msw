@@ -1,11 +1,9 @@
+import { jsonParse } from './jsonParse'
+
 /**
- * Returns a parsed object from a given valid JSON string,
- * otherwise returns as text without parsing.
+ * Returns a parsed JSON from a given valid body string,
+ * otherwise returns a given body string as-is.
  */
 export function getJsonBody(body: string) {
-  try {
-    return JSON.parse(body)
-  } catch (error) {
-    return body
-  }
+  return jsonParse(body) || body
 }

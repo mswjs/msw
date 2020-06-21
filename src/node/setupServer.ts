@@ -16,11 +16,11 @@ import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 export const setupServer = (...requestHandlers: RequestHandlersList) => {
   const interceptor = new RequestInterceptor()
 
+  // Error when attempting to run this function in a browser environment.
   if (!isNodeProcess()) {
-    console.error(
+    throw new Error(
       '[MSW] Failed to execute `setupServer` in the environment that is not NodeJS (i.e. a browser). Consider using `setupWorker` instead.',
     )
-    return
   }
 
   // Store the list of request handlers for the current server instance,

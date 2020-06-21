@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node'
 // we provide a useful error message. If setup server
 // is accidentally called in the browser. Do not use
 // this as an actual example for real code.
-const server = setupServer(
+setupServer(
   rest.get('/user', (req, res, ctx) => {
     return res(ctx.status(200))
   }),

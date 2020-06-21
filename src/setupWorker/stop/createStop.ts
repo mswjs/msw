@@ -1,6 +1,6 @@
-import { ComposeMocksInternalContext } from '../glossary'
+import { SetupWorkerInternalContext } from '../glossary'
 
-export const createStop = (context: ComposeMocksInternalContext) => {
+export const createStop = (context: SetupWorkerInternalContext) => {
   /**
    * Stop the active running instance of the Service Worker.
    */

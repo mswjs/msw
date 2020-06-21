@@ -1,4 +1,4 @@
-import { ComposeMocksInternalContext, RequestHandlersList } from './glossary'
+import { SetupWorkerInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
@@ -30,7 +30,7 @@ export interface SetupWorkerApi {
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
-  const context: ComposeMocksInternalContext = {
+  const context: SetupWorkerInternalContext = {
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
@@ -62,15 +62,4 @@ export function setupWorker(
       )
     },
   }
-}
-
-/**
- * Composes multiple request handlers into a single mocking schema.
- * @deprecated
- */
-export function composeMocks(...requestHandlers: RequestHandlersList) {
-  console.warn(
-    '[MSW] The `composeMocks()` function is deprecated and will be removed in the next release. Please use the `setupWorker()` function instead.',
-  )
-  return setupWorker(...requestHandlers)
 }

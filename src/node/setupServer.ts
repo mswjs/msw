@@ -7,7 +7,7 @@ import { RequestHandlersList } from '../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from '../utils/parseRequestBody'
-import { isNode } from '../utils/isNodeProcess'
+import { isNodeProcess } from '../utils/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 
 /**
@@ -16,12 +16,13 @@ import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 export const setupServer = (...requestHandlers: RequestHandlersList) => {
   const interceptor = new RequestInterceptor()
 
-  if (!isNode()) {
+  if (!isNodeProcess()) {
     console.error(
       '[MSW] Failed to execute `setupServer` in the environment that is not NodeJS (i.e. a browser). Consider using `setupWorker` instead.',
     )
     return
   }
+
   // Store the list of request handlers for the current server instance,
   // so it could be modified at a runtime.
   let currentHandlers: RequestHandlersList = [...requestHandlers]

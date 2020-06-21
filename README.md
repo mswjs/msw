@@ -189,4 +189,4 @@ test('handles login exception', () => {
 
 <br />
 
-<img src="./media/os-awards-2020.png" width="160" alt="Open Source Awards 2020" />
+<img src="https://raw.githubusercontent.com/open-draft/msw/master/media/os-awards-2020.png" width="160" alt="Open Source Awards 2020" />

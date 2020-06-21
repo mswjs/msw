@@ -2,7 +2,7 @@ import { until } from '@open-draft/until'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { activateMocking } from './utils/activateMocking'
 import {
-  ComposeMocksInternalContext,
+  SetupWorkerInternalContext,
   ServiceWorkerInstanceTuple,
   StartOptions,
 } from '../glossary'
@@ -19,7 +19,7 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   waitUntilReady: true,
 }
 
-export const createStart = (context: ComposeMocksInternalContext) => {
+export const createStart = (context: SetupWorkerInternalContext) => {
   /**
    * Registers and activates the mock Service Worker.
    */

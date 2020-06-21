@@ -2,7 +2,7 @@ import { Headers, headersToList } from 'headers-utils'
 import {
   StartOptions,
   ResponseWithSerializedHeaders,
-  ComposeMocksInternalContext,
+  SetupWorkerInternalContext,
 } from '../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 import {
@@ -14,7 +14,7 @@ import { parseRequestBody } from './parseRequestBody'
 import { isStringEqual } from './isStringEqual'
 
 export const handleRequestWith = (
-  context: ComposeMocksInternalContext,
+  context: SetupWorkerInternalContext,
   options: StartOptions,
 ) => {
   return async (event: MessageEvent) => {

@@ -4,7 +4,7 @@ import { MockedResponse } from '../response'
 
 export type Mask = RegExp | string
 
-export interface ComposeMocksInternalContext {
+export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]

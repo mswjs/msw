@@ -47,6 +47,16 @@
     "LICENSE.md",
     "README.md"
   ],
+  "keywords": [
+    "api",
+    "mock",
+    "mocking",
+    "worker",
+    "prototype",
+    "server",
+    "service",
+    "handler"
+  ],
   "sideEffects": false,
   "dependencies": {
     "@open-draft/until": "^1.0.0",

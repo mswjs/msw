@@ -2,6 +2,7 @@ import { ComposeMocksInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
+import { isNodeProcess } from '../utils/isNodeProcess'
 
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
@@ -33,6 +34,13 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
+  }
+
+  // Error when attempting to run this function in a NodeJS environment.
+  if (isNodeProcess()) {
+    throw new Error(
+      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for NodeJS environment instead.',
+    )
   }
 
   return {

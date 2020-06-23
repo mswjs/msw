@@ -1,14 +1,15 @@
 /**
  * @jest-environment node
  */
-import { delay, SERVER_RESPONSE_TIME_NODE } from './delay'
+import { delay, NODE_SERVER_RESPONSE_TIME } from './delay'
 import { response } from '../response'
 
-describe('delay', () => {
-  describe('if no delay provided ', () => {
-    it('should set no delay on the response if the env is node', () => {
-      const endResponse = response(delay())
-      expect(endResponse.delay).toBe(SERVER_RESPONSE_TIME_NODE)
-    })
-  })
+test('sets a NodeJS-specific response delay when not provided', () => {
+  const resolvedResponse = response(delay())
+  expect(resolvedResponse).toHaveProperty('delay', NODE_SERVER_RESPONSE_TIME)
+})
+
+test('allows response delay duration overrides', () => {
+  const resolvedResponse = response(delay(1234))
+  expect(resolvedResponse).toHaveProperty('delay', 1234)
 })

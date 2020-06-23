@@ -19,5 +19,6 @@ module.exports = {
         allowDeclarations: true,
       },
     ],
+    '@typescript-eslint/no-namespace': 0,
   },
 }

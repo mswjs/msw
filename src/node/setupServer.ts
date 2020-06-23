@@ -1,3 +1,4 @@
+import timers from 'timers'
 import { Headers, flattenHeadersObject } from 'headers-utils'
 import {
   RequestInterceptor,
@@ -65,7 +66,9 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
         }
 
         return new Promise<MockedInterceptedResponse>((resolve) => {
-          setTimeout(() => {
+          // using the timers module to ensure @sinon/fake-timers or jest fake timers
+          // don't affect this timeout.
+          timers.setTimeout(() => {
             resolve({
               status: response.status,
               statusText: response.statusText,

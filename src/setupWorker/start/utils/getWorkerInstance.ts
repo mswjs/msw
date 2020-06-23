@@ -46,7 +46,6 @@ export const getWorkerInstance = async (
       ]
     })
   }
-
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
@@ -56,9 +55,8 @@ export const getWorkerInstance = async (
 
   if (error) {
     console.error(
-      '[MSW] Failed to register Service Worker (%s). %o',
-      url,
-      error,
+      `[MSW] ${error.message} 
+      If the worker file has not been found maybe you didn't run "npx msw init <PUBLIC_DIR>"`,
     )
     return null
   }

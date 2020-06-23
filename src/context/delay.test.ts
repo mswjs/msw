@@ -1,23 +1,17 @@
-import {
-  delay,
-  MIN_SERVER_RESPONSE_TIME,
-  MAX_SERVER_RESPONSE_TIME,
-} from './delay'
+/**
+ * @jest-environment jsdom
+ *
+ * Since jsdom also runs in NodeJS, expect a NodeJS-specific implicit delay.
+ */
+import { delay, NODE_SERVER_RESPONSE_TIME } from './delay'
 import { response } from '../response'
 
-describe('delay', () => {
-  describe('given a delay ', () => {
-    it('should set delay on the response', () => {
-      const endResponse = response(delay(1200))
-      expect(endResponse).toHaveProperty('delay', 1200)
-    })
-  })
+test('sets a NodeJS-specific response delay when not provided', () => {
+  const resolvedResponse = response(delay())
+  expect(resolvedResponse).toHaveProperty('delay', NODE_SERVER_RESPONSE_TIME)
+})
 
-  describe('if no delay provided ', () => {
-    it('should set random delay on the response', () => {
-      const endResponse = response(delay())
-      expect(endResponse.delay).toBeGreaterThanOrEqual(MIN_SERVER_RESPONSE_TIME)
-      expect(endResponse.delay).toBeLessThanOrEqual(MAX_SERVER_RESPONSE_TIME)
-    })
-  })
+test('allows response delay duration overrides', () => {
+  const resolvedResponse = response(delay(1234))
+  expect(resolvedResponse).toHaveProperty('delay', 1234)
 })

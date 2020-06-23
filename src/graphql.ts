@@ -17,7 +17,7 @@ import { jsonParse } from './utils/jsonParse'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
-type GraphQLMockedRequest<
+export type GraphQLMockedRequest<
   VariablesType = Record<string, any>
 > = MockedRequest & {
   variables: VariablesType
@@ -26,7 +26,7 @@ type GraphQLMockedRequest<
 // GraphQL related context should contain utility functions
 // useful for GraphQL. Functions like `xml()` bear no value
 // in the GraphQL universe.
-interface GraphQLMockedContext<QueryType> {
+export interface GraphQLMockedContext<QueryType> {
   set: typeof set
   status: typeof status
   delay: typeof delay
@@ -44,13 +44,13 @@ export const graphqlContext: GraphQLMockedContext<any> = {
   errors,
 }
 
-type GraphQLResponseResolver<QueryType, VariablesType> = (
+export type GraphQLResponseResolver<QueryType, VariablesType> = (
   req: GraphQLMockedRequest<VariablesType>,
   res: ResponseComposition,
   context: GraphQLMockedContext<QueryType>,
 ) => MockedResponse
 
-interface GraphQLRequestPayload<VariablesType> {
+export interface GraphQLRequestPayload<VariablesType> {
   query: string
   variables?: VariablesType
 }

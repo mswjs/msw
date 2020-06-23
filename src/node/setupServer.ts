@@ -75,7 +75,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
               headers: response.headers.getAllHeaders(),
               body: response.body,
             })
-          }, response.delay)
+          }, response.delay ?? 0)
         })
       })
     },

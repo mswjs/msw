@@ -18,7 +18,7 @@ export const activateMocking = (
             'color:orangered;font-weight:bold;',
           )
           console.log(
-            '%cDocumentation: %chttps://redd.gitbook.io/msw',
+            '%cDocumentation: %chttps://mswjs.io/docs',
             'font-weight:bold',
             'font-weight:normal',
           )

@@ -2,12 +2,7 @@ import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        firstName: 'John',
-        age: 32,
-      }),
-    )
+    return res(ctx.status(200))
   }),
 )
 

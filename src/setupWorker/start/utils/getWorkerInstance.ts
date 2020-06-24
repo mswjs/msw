@@ -54,9 +54,26 @@ export const getWorkerInstance = async (
   )
 
   if (error) {
+    const isWorkerMissing = error.message.includes('(404)')
+
+    // Produce a custom error message when given a non-existing Service Worker url.
+    // Suggest developers to check their setup.
+    if (isWorkerMissing) {
+      const scopeUrl = new URL(options?.scope || '/', location.href)
+
+      console.error(`\
+[MSW] Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
+
+Did you forget to run "npx msw init <PUBLIC_DIR>"?
+
+Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`)
+
+      return null
+    }
+
+    // Fallback error message for any other registration errors.
     console.error(
-      `[MSW] ${error.message} 
-      If the worker file has not been found maybe you didn't run "npx msw init <PUBLIC_DIR>"`,
+      `[MSW] Failed to register a Service Worker:\n\m${error.message}`,
     )
     return null
   }

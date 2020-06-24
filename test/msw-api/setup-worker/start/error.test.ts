@@ -21,7 +21,7 @@ describe('API: setupWorker / start with error', () => {
     })
     expect(logs).toHaveLength(1)
     expect(logs[0]).toMatchInlineSnapshot(`
-      "[MSW] Failed to register a ServiceWorker for scope ('http://localhost:62036/') with script ('http://localhost:62036/invalidServiceWorker'): A bad HTTP response code (404) was received when fetching the script. 
+      "[MSW] Failed to register a ServiceWorker for scope ('${runtime.page.url()}') with script ('${runtime.page.url()}invalidServiceWorker'): A bad HTTP response code (404) was received when fetching the script. 
             If the worker file has not been found maybe you didn't run \\"npx msw init <PUBLIC_DIR>\\""
     `)
     runtime.cleanup()

@@ -72,6 +72,7 @@ const buildNode = {
     'events',
     'tty',
     'os',
+    'timers',
     'node-request-interceptor',
   ],
   output: {

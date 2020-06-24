@@ -1,7 +1,6 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { captureConsole } from '../support/captureConsole'
-import { warn } from 'console'
 
 let runtime: TestAPI
 

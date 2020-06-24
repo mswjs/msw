@@ -88,7 +88,7 @@ const createRestHandler = (method: RESTMethods) => {
         return restContext
       },
 
-      log(req, res, handler, parsed) {
+      log(req, res, handler) {
         // Warn on request handler URL containing query parameters.
         if (resolvedMask instanceof URL && resolvedMask.search !== '') {
           const queryParams: string[] = []

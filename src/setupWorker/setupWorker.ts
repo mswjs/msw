@@ -3,7 +3,6 @@ import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { isNodeProcess } from '../utils/isNodeProcess'
-
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
   stop: ReturnType<typeof createStop>
@@ -34,6 +33,12 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
+    listeners: [],
+    removeAllListeners: () => {
+      context.listeners.forEach((listener) => {
+        listener.handler.removeEventListener(listener.type, listener.listener)
+      })
+    },
   }
 
   // Error when attempting to run this function in a NodeJS environment.

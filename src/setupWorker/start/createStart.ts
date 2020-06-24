@@ -35,10 +35,14 @@ export const createStart = (context: SetupWorkerInternalContext) => {
         return null
       }
 
-      navigator.serviceWorker.addEventListener(
-        'message',
-        handleRequestWith(context, resolvedOptions),
-      )
+      const handleRequest = handleRequestWith(context, resolvedOptions)
+      navigator.serviceWorker.addEventListener('message', handleRequest)
+
+      context.listeners.push({
+        type: 'message',
+        handler: navigator.serviceWorker,
+        listener: handleRequest,
+      })
 
       const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
         getWorkerInstance(
@@ -60,7 +64,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       context.worker = worker
       context.registration = registration
 
-      window.addEventListener('beforeunload', () => {
+      const beforeUnload = () => {
         if (worker.state !== 'redundant') {
           // Notify the Service Worker that this client has closed.
           // Internally, it's similar to disabling the mocking, only
@@ -68,6 +72,13 @@ export const createStart = (context: SetupWorkerInternalContext) => {
           // the Service Worker when there are no open clients.
           worker.postMessage('CLIENT_CLOSED')
         }
+      }
+      window.addEventListener('beforeunload', beforeUnload)
+
+      context.listeners.push({
+        type: 'beforeunload',
+        handler: window,
+        listener: beforeUnload,
       })
 
       // Check if the active Service Worker is the latest published one

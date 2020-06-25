@@ -1,51 +1,104 @@
 version: 2
-jobs:
-  build:
-    docker:
-      - image: cypress/browsers:node12.13.0-chrome80-ff74
-        environment:
-          TERM: xterm
-    working_directory: ~/root
 
+aliases:
+  - &workspace
+    at: ~/
+  - &deps-cache
+    keys:
+      - v1-deps-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - v1-deps-{{ .Branch }}-
+  - &persist-build
+    root: ~/
+    paths:
+      - release
+
+env-node: &env-node
+  working_directory: ~/release
+  docker:
+    - image: cimg/node:12.13.0
+      environment:
+        TERM: xterm
+
+env-browser: &env-browser
+  working_directory: ~/release
+  docker:
+    - image: cypress/browsers:node12.13.0-chrome80-ff74
+      environment:
+        TERM: xterm
+
+jobs:
+  bootstrap:
+    <<: *env-node
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - yarn-packages-{{ checksum "yarn.lock" }}
-            - yarn-packages
-
+      - restore_cache: *deps-cache
       - run:
-          name: Environment
+          name: Checking environment
           command: |
             node --version
             npm --version
             yarn --version
-
       - run:
           name: Installing dependencies
           command: yarn install --frozen-lockfile
       - save_cache:
-          name: Saving package cache
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          name: Caching dependencies
+          key: v1-deps-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
-            - ~/.cache/yarn
+            - .cache
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - .cache
+            - release
 
+  build:
+    <<: *env-node
+    steps:
+      - attach_workspace: *workspace
+      - restore_cache: *deps-cache
       - run:
           name: Linting
           command: yarn lint
-
       - run:
-          name: Building the module
+          name: Building the library
           command: yarn build
-
       - run:
-          name: Preview Service Worker build
+          name: Previewing Service Worker script build
           command: cat lib/esm/mockServiceWorker.js
+      - persist_to_workspace: *persist-build
 
+  test-unit:
+    <<: *env-node
+    steps:
+      - attach_workspace: *workspace
+      - restore_cache: *deps-cache
       - run:
           name: Running unit tests
           command: yarn test:unit
 
+  test-integration:
+    <<: *env-browser
+    steps:
+      - attach_workspace: *workspace
+      - restore_cache: *deps-cache
       - run:
           name: Running integration tests
           command: yarn test:integration
+
+workflows:
+  version: 2
+  release:
+    jobs:
+      - bootstrap
+
+      - build:
+          requires:
+            - bootstrap
+      - test-unit:
+          requires:
+            - bootstrap
+
+      - test-integration:
+          requires:
+            - build

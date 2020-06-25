@@ -15,14 +15,14 @@ aliases:
 env-node: &env-node
   working_directory: ~/release
   docker:
-    - image: cimg/node:12.13.0
+    - image: cimg/node:12.18.0
       environment:
         TERM: xterm
 
 env-browser: &env-browser
   working_directory: ~/release
   docker:
-    - image: cypress/browsers:node12.13.0-chrome80-ff74
+    - image: cypress/browsers:node12.18.0-chrome83-ff77
       environment:
         TERM: xterm
 
@@ -86,6 +86,21 @@ jobs:
           name: Running integration tests
           command: yarn test:integration
 
+  test-smoke:
+    <<: *env-browser
+    steps:
+      - attach_workspace: *workspace
+      - restore_cache: *deps-cache
+      - run:
+          name: Checking environment
+          command: |
+            node --version
+            npm --version
+            yarn --version
+      - run:
+          name: Running smoke tests
+          command: yarn test:smoke
+
 workflows:
   version: 2
   release:
@@ -100,5 +115,8 @@ workflows:
             - bootstrap
 
       - test-integration:
+          requires:
+            - build
+      - test-smoke:
           requires:
             - build

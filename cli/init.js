@@ -34,7 +34,7 @@ ${chalk.gray(swDestFilepath)}
 
 Continue by creating a mocking definition module in your application:
 
-  ${chalk.cyan.bold('https://redd.gitbook.io/msw/getting-started#define-mocks')}
+  ${chalk.cyan.bold('https://mswjs.io/docs/getting-started/mocks')}
 `)
   })
 }

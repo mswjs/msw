@@ -8,3 +8,4 @@ tmp
 ./package-lock.json
 stats.html
 .vscode
+msw-*

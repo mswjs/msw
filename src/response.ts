@@ -20,6 +20,7 @@ export type ResponseComposition = ResponseFunction & {
    * Does not affect any subsequent captured requests.
    */
   once: ResponseFunction
+  networkError: () => never
 }
 
 export const defaultResponse: Omit<MockedResponse, 'headers'> = {
@@ -57,5 +58,8 @@ export const response: ResponseComposition = Object.assign(
   createResponseComposition(),
   {
     once: createResponseComposition({ once: true }),
+    networkError: () => {
+      throw new Error('Network error')
+    },
   },
 )

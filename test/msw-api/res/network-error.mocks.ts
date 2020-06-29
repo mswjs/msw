@@ -6,5 +6,4 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.__MSW_START__ = worker.start
+worker.start()

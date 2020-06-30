@@ -12,12 +12,10 @@ afterAll(() => server.close())
 
 test('res.networkError causes Fetch API to throw error', async () => {
   server.use(
-    rest.get('https://api.backend.com/path', (_, res) => {
+    rest.get('http://test.io', (_, res) => {
       return res.networkError()
     }),
   )
 
-  expect(fetch('https://api.backend.com/path')).toThrow(
-    'Mocked network error message',
-  )
+  await expect(fetch('http://test.io')).rejects.toThrow()
 })

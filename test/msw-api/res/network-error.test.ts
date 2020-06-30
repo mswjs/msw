@@ -12,5 +12,5 @@ beforeAll(async () => {
 afterAll(() => runtime.cleanup())
 
 test('res.networkError causes Fetch API to throw error', async () => {
-  expect(runtime.request({ url: `${runtime.origin}/user` })).toThrow()
+  expect(runtime.request({ url: `http://test.io` })).rejects.toThrow()
 })

@@ -1,7 +1,7 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (_, res) => {
+  rest.get('http://test.io', (_, res) => {
     return res.networkError()
   }),
 )

@@ -77,16 +77,16 @@ export const handleRequestWith = (
       if (!handler) {
         if (options.onUnhandledRequest === 'warn') {
           // Produce a developer-friendly warning
-          return
+          return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 
         if (options.onUnhandledRequest === 'error') {
           // Throw an exception
-          return
+          return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 
         if (typeof options.onUnhandledRequest === 'function') {
-          return
+          return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 
         // options.onUnhandledRequest === 'bypass'

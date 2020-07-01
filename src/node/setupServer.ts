@@ -96,7 +96,8 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
           }
 
           if (typeof resolvedOptions.onUnhandledRequest === 'function') {
-            return resolvedOptions.onUnhandledRequest(mockedRequest)
+            resolvedOptions.onUnhandledRequest(mockedRequest)
+            return
           }
 
           // resolvedOptions.onUnhandledRequest === 'bypass'

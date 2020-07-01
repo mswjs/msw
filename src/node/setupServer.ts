@@ -10,6 +10,11 @@ import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from '../utils/request/parseRequestBody'
 import { isNodeProcess } from '../utils/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
+import { ListenOptions } from './glossary'
+
+const DEFAULT_LISTEN_OPTIONS: DeepRequired<ListenOptions> = {
+  onUnhandledRequest: 'bypass',
+}
 
 /**
  * Sets up a server-side requests interception with the given mock definition.
@@ -32,7 +37,9 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
     /**
      * Enables requests interception based on the previously provided mock definition.
      */
-    listen() {
+    listen(options?: ListenOptions) {
+      const resolvedOptions = Object.assign({}, DEFAULT_LISTEN_OPTIONS, options)
+
       interceptor.use(async (req) => {
         const requestHeaders = new Headers(
           flattenHeadersObject(req.headers || {}),
@@ -74,6 +81,22 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
         const { response } = await getResponse(mockedRequest, currentHandlers)
 
         if (!response) {
+          if (resolvedOptions.onUnhandledRequest === 'warn') {
+            // Produce a developer-friendly warning
+            return
+          }
+
+          if (resolvedOptions.onUnhandledRequest === 'error') {
+            // Throw an exception
+            return
+          }
+
+          if (typeof resolvedOptions.onUnhandledRequest === 'function') {
+            return
+          }
+
+          // resolvedOptions.onUnhandledRequest === 'bypass'
+
           // Return nothing, if no mocked response associated with this request.
           // That makes `node-request-interceptor` to perform the request as-is.
           return

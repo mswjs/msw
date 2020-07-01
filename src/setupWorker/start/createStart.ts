@@ -17,6 +17,7 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   },
   quiet: false,
   waitUntilReady: true,
+  onUnhandledRequest: 'bypass',
 }
 
 export const createStart = (context: SetupWorkerInternalContext) => {

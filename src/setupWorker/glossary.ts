@@ -1,6 +1,7 @@
 import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../handlers/requestHandler'
 import { MockedResponse } from '../response'
+import { OnUnhandledRequest } from '../onUnhandledRequest'
 
 export type Mask = RegExp | string
 
@@ -32,6 +33,8 @@ export interface StartOptions {
    * instance is ready. Defaults to `true`.
    */
   waitUntilReady?: boolean
+
+  onUnhandledRequest?: OnUnhandledRequest
 }
 
 export type RequestHandlersList = RequestHandler<any, any>[]

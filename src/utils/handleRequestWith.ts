@@ -75,6 +75,22 @@ export const handleRequestWith = (
       // Handle a scenario when there is no request handler
       // found for a given request.
       if (!handler) {
+        if (options.onUnhandledRequest === 'warn') {
+          // Produce a developer-friendly warning
+          return
+        }
+
+        if (options.onUnhandledRequest === 'error') {
+          // Throw an exception
+          return
+        }
+
+        if (typeof options.onUnhandledRequest === 'function') {
+          return
+        }
+
+        // options.onUnhandledRequest === 'bypass'
+
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 

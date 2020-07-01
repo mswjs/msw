@@ -77,15 +77,21 @@ export const handleRequestWith = (
       if (!handler) {
         if (options.onUnhandledRequest === 'warn') {
           // Produce a developer-friendly warning
+          console.warn(
+            `A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`,
+          )
           return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 
         if (options.onUnhandledRequest === 'error') {
           // Throw an exception
+
+          // throw new Error(`A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`)
           return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 
         if (typeof options.onUnhandledRequest === 'function') {
+          options.onUnhandledRequest(req)
           return channel.send({ type: 'MOCK_NOT_FOUND' })
         }
 

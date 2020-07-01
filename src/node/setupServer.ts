@@ -83,16 +83,20 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
         if (!response) {
           if (resolvedOptions.onUnhandledRequest === 'warn') {
             // Produce a developer-friendly warning
-            return
+            return console.warn(
+              `A request to ${mockedRequest.url} was detected but not mocked because no request handler matching the URL exists.`,
+            )
           }
 
           if (resolvedOptions.onUnhandledRequest === 'error') {
             // Throw an exception
+
+            // throw new Error(`A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`)
             return
           }
 
           if (typeof resolvedOptions.onUnhandledRequest === 'function') {
-            return
+            return resolvedOptions.onUnhandledRequest(mockedRequest)
           }
 
           // resolvedOptions.onUnhandledRequest === 'bypass'

@@ -9,6 +9,6 @@ export const createStop = (context: SetupWorkerInternalContext) => {
     // Use this an an explicit way to stop the mocking, while preserving
     // the worker-client relation. Does not affect the worker's lifecycle.
     context.worker?.postMessage('MOCK_DEACTIVATE')
-    context.removeAllListeners()
+    context.events.removeAllListeners()
   }
 }

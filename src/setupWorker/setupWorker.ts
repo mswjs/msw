@@ -3,6 +3,8 @@ import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { isNodeProcess } from '../utils/isNodeProcess'
+import { MSWEventListener } from '../utils/internal/mswEventListener'
+
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
   stop: ReturnType<typeof createStop>
@@ -29,15 +31,32 @@ export interface SetupWorkerApi {
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
+  let listeners: MSWEventListener[] = []
+
   const context: SetupWorkerInternalContext = {
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    listeners: [],
-    removeAllListeners: () => {
-      context.listeners.forEach((listener) => {
-        listener.handler.removeEventListener(listener.type, listener.listener)
-      })
+    events: {
+      add: (
+        handler: ServiceWorkerContainer | Window,
+        type: string,
+        listener: any,
+      ) => {
+        handler.addEventListener(type, listener)
+
+        listeners.push({
+          type,
+          handler,
+          listener,
+        })
+      },
+      removeAllListeners: () => {
+        listeners.forEach((listener) => {
+          listener.handler.removeEventListener(listener.type, listener.listener)
+        })
+        listeners = []
+      },
     },
   }
 

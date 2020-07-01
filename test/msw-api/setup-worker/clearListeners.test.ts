@@ -40,9 +40,6 @@ describe('API: setupWorker / removeListeners', () => {
 
     await runtime.request({
       url: `${runtime.origin}/user`,
-      fetchOptions: {
-        method: 'GET',
-      },
     })
 
     const requetsLogs = logs.filter((message) => {

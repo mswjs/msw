@@ -36,13 +36,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       }
 
       const handleRequest = handleRequestWith(context, resolvedOptions)
-      navigator.serviceWorker.addEventListener('message', handleRequest)
-
-      context.listeners.push({
-        type: 'message',
-        handler: navigator.serviceWorker,
-        listener: handleRequest,
-      })
+      context.events.add(navigator.serviceWorker, 'message', handleRequest)
 
       const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
         getWorkerInstance(
@@ -73,13 +67,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
           worker.postMessage('CLIENT_CLOSED')
         }
       }
-      window.addEventListener('beforeunload', beforeUnload)
-
-      context.listeners.push({
-        type: 'beforeunload',
-        handler: window,
-        listener: beforeUnload,
-      })
+      context.events.add(window, 'beforeunload', beforeUnload)
 
       // Check if the active Service Worker is the latest published one
       const [integrityError] = await until(() => requestIntegrityCheck(worker))

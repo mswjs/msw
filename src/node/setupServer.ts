@@ -11,8 +11,9 @@ import { parseRequestBody } from '../utils/request/parseRequestBody'
 import { isNodeProcess } from '../utils/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { ListenOptions } from './glossary'
+import { onUnhandledRequest } from '../onUnhandledRequest'
 
-const DEFAULT_LISTEN_OPTIONS: DeepRequired<ListenOptions> = {
+const DEFAULT_LISTEN_OPTIONS: ListenOptions = {
   onUnhandledRequest: 'bypass',
 }
 
@@ -81,29 +82,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
         const { response } = await getResponse(mockedRequest, currentHandlers)
 
         if (!response) {
-          if (resolvedOptions.onUnhandledRequest === 'warn') {
-            // Produce a developer-friendly warning
-            return console.warn(
-              `A request to ${mockedRequest.url} was detected but not mocked because no request handler matching the URL exists.`,
-            )
-          }
-
-          if (resolvedOptions.onUnhandledRequest === 'error') {
-            // Throw an exception
-
-            // throw new Error(`A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`)
-            return
-          }
-
-          if (typeof resolvedOptions.onUnhandledRequest === 'function') {
-            resolvedOptions.onUnhandledRequest(mockedRequest)
-            return
-          }
-
-          // resolvedOptions.onUnhandledRequest === 'bypass'
-
-          // Return nothing, if no mocked response associated with this request.
-          // That makes `node-request-interceptor` to perform the request as-is.
+          onUnhandledRequest(mockedRequest, resolvedOptions.onUnhandledRequest)
           return
         }
 

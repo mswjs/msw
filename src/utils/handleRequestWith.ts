@@ -10,6 +10,7 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
+import { onUnhandledRequest } from '../onUnhandledRequest'
 import { parseRequestBody } from './request/parseRequestBody'
 import { getRequestCookies } from './request/getRequestCookies'
 import { isStringEqual } from './isStringEqual'
@@ -75,27 +76,7 @@ export const handleRequestWith = (
       // Handle a scenario when there is no request handler
       // found for a given request.
       if (!handler) {
-        if (options.onUnhandledRequest === 'warn') {
-          // Produce a developer-friendly warning
-          console.warn(
-            `A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`,
-          )
-          return channel.send({ type: 'MOCK_NOT_FOUND' })
-        }
-
-        if (options.onUnhandledRequest === 'error') {
-          // Throw an exception
-
-          // throw new Error(`A request to ${req.url} was detected but not mocked because no request handler matching the URL exists.`)
-          return channel.send({ type: 'MOCK_NOT_FOUND' })
-        }
-
-        if (typeof options.onUnhandledRequest === 'function') {
-          options.onUnhandledRequest(req)
-          return channel.send({ type: 'MOCK_NOT_FOUND' })
-        }
-
-        // options.onUnhandledRequest === 'bypass'
+        onUnhandledRequest(req, options.onUnhandledRequest)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }

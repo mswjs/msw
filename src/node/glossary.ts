@@ -1,5 +1,3 @@
-import { OnUnhandledRequest } from '../onUnhandledRequest'
+import { SharedOptions } from '../sharedOptions'
 
-export interface ListenOptions {
-  onUnhandledRequest?: OnUnhandledRequest
-}
+export type ListenOptions = SharedOptions

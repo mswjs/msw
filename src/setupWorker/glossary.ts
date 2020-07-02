@@ -1,7 +1,7 @@
 import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../handlers/requestHandler'
 import { MockedResponse } from '../response'
-import { OnUnhandledRequest } from '../onUnhandledRequest'
+import { SharedOptions } from '../sharedOptions'
 
 export type Mask = RegExp | string
 
@@ -16,7 +16,7 @@ export type ServiceWorkerInstanceTuple = [
   ServiceWorkerRegistration,
 ]
 
-export interface StartOptions {
+export interface StartOptions extends SharedOptions {
   serviceWorker?: {
     url?: string
     options?: RegistrationOptions
@@ -33,8 +33,6 @@ export interface StartOptions {
    * instance is ready. Defaults to `true`.
    */
   waitUntilReady?: boolean
-
-  onUnhandledRequest?: OnUnhandledRequest
 }
 
 export type RequestHandlersList = RequestHandler<any, any>[]

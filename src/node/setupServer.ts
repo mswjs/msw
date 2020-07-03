@@ -8,7 +8,7 @@ import {
 import { RequestHandlersList } from '../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
-import { parseRequestBody } from '../utils/parseRequestBody'
+import { parseRequestBody } from '../utils/request/parseRequestBody'
 import { isNodeProcess } from '../utils/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 

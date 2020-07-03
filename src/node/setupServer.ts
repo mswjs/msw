@@ -1,4 +1,5 @@
 import timers from 'timers'
+import cookieUtils from 'cookie'
 import { Headers, flattenHeadersObject } from 'headers-utils'
 import {
   RequestInterceptor,
@@ -37,6 +38,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
         const requestHeaders = new Headers(
           flattenHeadersObject(req.headers || {}),
         )
+        const requestCookieString = requestHeaders.get('cookie')
 
         const mockedRequest: MockedRequest = {
           url: req.url,
@@ -56,6 +58,14 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
           destination: 'document',
           bodyUsed: false,
           credentials: 'same-origin',
+        }
+
+        if (requestCookieString) {
+          // Set mocked request cookies from the `cookie` header of the original request.
+          // No need to take `credentials` into account, because in NodeJS requests are intercepted
+          // _after_ they happen. Request issuer should have already taken care of sending relevant cookies.
+          // Unlike browser, where interception is on the worker level, _before_ the request happens.
+          mockedRequest.cookies = cookieUtils.parse(requestCookieString)
         }
 
         const { response } = await getResponse(mockedRequest, currentHandlers)

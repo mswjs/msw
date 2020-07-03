@@ -1,47 +1,55 @@
-// @ts-nocheck
 /**
- * @jest-environment jsdom
+ * @jest-environment node
+ *
+ * This test suite asserts `isNodeProcess` behavior in the React Native environment.
+ * Its setup hooks emulate the aforementioned environment as much as it's possible.
  */
-/**
- * Test in React Native Environment
- * Please see https://github.com/mswjs/msw/pull/255
- */
-
 import { isNodeProcess } from './isNodeProcess'
 
+// Provide TypeScript overrides to operate with the `global` namespace
+declare global {
+  namespace NodeJS {
+    interface Global {
+      navigator: {
+        product: string
+      }
+    }
+  }
+}
+
 // need to mock process and navigator in React Native and restore them
-let originalNavigator
-let originalProcess
+let originalProcess: typeof global['process']
+let originalNavigator: typeof global['navigator']
 
 beforeAll(() => {
-  // back up
-  originalNavigator = global.navigator
+  // Store the original `global` properties.
   originalProcess = global.process
+  originalNavigator = global.navigator
 
   /**
-   * because it runs in node, Object.proyotype.toString(global.process) will equal '[object process]',
-   * we need to mock global.process and global.navigator. let them behave like in React Native
-   * PLease see https://github.com/facebook/react-native/blob/master/Libraries/Core/setUpNavigator.js and
-   * https://github.com/facebook/react-native/blob/master/Libraries/Core/setUpGlobals.js
+   * React Native has a unique property to determine that the process
+   * is running in a React Native environment.
+   * @see https://github.com/facebook/react-native/issues/1331
+   * @see https://github.com/facebook/react-native/blob/6d6c68c2c639b6473e049f7d916690b92e921c7e/Libraries/Core/setUpNavigator.js
+   * @see https://github.com/facebook/react-native/blob/6d6c68c2c639b6473e049f7d916690b92e921c7e/Libraries/Core/setUpGlobals.js
    */
-  global.process = {
-    env: {
+  Object.defineProperty(global.process, 'env', {
+    get: () => ({
       NODE_ENV: 'development',
-    },
-  }
-  Object.defineProperty(global.navigator, 'product', {
-    get: () => {
-      return 'ReactNative'
-    },
+    }),
   })
-})
 
-test('returns true when run in a react native environment', () => {
-  expect(isNodeProcess()).toBe(true)
+  global.navigator = {
+    product: 'ReactNative',
+  }
 })
 
 afterAll(() => {
-  // restore them
+  // Restore the stubbed `global` properties.
   global.process = originalProcess
   global.navigator = originalNavigator
+})
+
+test('treats React Native as a NodeJS environment', () => {
+  expect(isNodeProcess()).toBe(true)
 })

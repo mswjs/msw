@@ -10,9 +10,9 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
-import { parseRequestBody } from './parseRequestBody'
-import { isStringEqual } from './isStringEqual'
+import { parseRequestBody } from './request/parseRequestBody'
 import { getRequestCookies } from './request/getRequestCookies'
+import { isStringEqual } from './isStringEqual'
 
 export const handleRequestWith = (
   context: SetupWorkerInternalContext,

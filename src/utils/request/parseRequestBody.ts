@@ -1,5 +1,5 @@
-import { getJsonBody } from './getJsonBody'
-import { MockedRequest } from '../handlers/requestHandler'
+import { getJsonBody } from './../getJsonBody'
+import { MockedRequest } from '../../handlers/requestHandler'
 
 export function parseRequestBody(
   body?: MockedRequest['body'],

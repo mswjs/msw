@@ -6,7 +6,7 @@ export type OnUnhandledRequest = 'bypass' | 'warn' | 'error' | CustomFunction
 
 export function onUnhandledRequest(
   request: MockedRequest,
-  onUnhandledRequest: OnUnhandledRequest,
+  onUnhandledRequest: OnUnhandledRequest = 'bypass',
 ) {
   if (typeof onUnhandledRequest === 'function') {
     onUnhandledRequest(request)

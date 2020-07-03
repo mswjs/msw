@@ -17,6 +17,7 @@ export interface MockedRequest {
   url: URL
   method: Request['method']
   headers: Headers
+  cookies: Record<string, string>
   mode: Request['mode']
   keepalive: Request['keepalive']
   cache: Request['cache']

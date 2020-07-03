@@ -12,6 +12,7 @@ import {
 import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from './parseRequestBody'
 import { isStringEqual } from './isStringEqual'
+import { getRequestCookies } from './request/getRequestCookies'
 
 export const handleRequestWith = (
   context: SetupWorkerInternalContext,
@@ -59,6 +60,9 @@ export const handleRequestWith = (
 
       // Parse the request's body based on the "Content-Type" header.
       req.body = parseRequestBody(req.body, req.headers)
+
+      // Set document cookies on the request.
+      req.cookies = getRequestCookies(req)
 
       const {
         response,

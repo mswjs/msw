@@ -44,6 +44,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
           // Parse the request's body based on the "Content-Type" header.
           body: parseRequestBody(req.body, requestHeaders),
           headers: requestHeaders,
+          cookies: {},
           params: {},
           redirect: 'manual',
           referrer: '',

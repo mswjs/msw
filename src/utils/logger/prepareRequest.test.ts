@@ -21,6 +21,7 @@ test('converts request headers into an object', () => {
     body: 'text-body',
     bodyUsed: false,
     params: {},
+    cookies: {},
   })
 
   // Converts `Headers` instance into inspectable object

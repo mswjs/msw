@@ -1,8 +1,17 @@
 import { setupWorker, rest } from 'msw'
+import base64Image from 'url-loader!../fixtures/image.jpg'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/binary', (_, res, ctx) => {
-    return res(ctx.body(new Uint8Array([1, 2, 3, 4, 5, 6])))
+  rest.get('/images/:imageId', async (_, res, ctx) => {
+    const imageBuffer = await fetch(base64Image).then((res) =>
+      res.arrayBuffer(),
+    )
+
+    return res(
+      ctx.set('Content-Length', imageBuffer.byteLength.toString()),
+      ctx.set('Content-Type', 'image/jpeg'),
+      ctx.body(imageBuffer),
+    )
   }),
 )
 

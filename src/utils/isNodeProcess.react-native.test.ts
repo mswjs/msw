@@ -33,12 +33,11 @@ beforeAll(() => {
    * @see https://github.com/facebook/react-native/blob/6d6c68c2c639b6473e049f7d916690b92e921c7e/Libraries/Core/setUpNavigator.js
    * @see https://github.com/facebook/react-native/blob/6d6c68c2c639b6473e049f7d916690b92e921c7e/Libraries/Core/setUpGlobals.js
    */
-  // @ts-ignore
   global.process = {
     env: {
       NODE_ENV: 'development',
     },
-  }
+  } as any
 
   global.navigator = {
     product: 'ReactNative',

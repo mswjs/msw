@@ -23,10 +23,12 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const [relevantHandler, parsedRequest]: [
+  const [relevantHandler, parsedRequest, mockedResponse, publicRequest]: [
     RequestHandler<any, any>,
     R,
-  ] = handlers.reduce<any>((found, requestHandler) => {
+    MockedResponse | null,
+    any,
+  ] = (await handlers.reduce<any>(async (found, requestHandler) => {
     // Skip any request handlers lookup if a handler is already found,
     // or the current handler is a one-time handler that's been already used.
     if ((found && found[0]) || requestHandler.shouldSkip) {
@@ -41,9 +43,25 @@ export const getResponse = async <
       : null
 
     if (requestHandler.predicate(req, parsedRequest)) {
-      return [requestHandler, parsedRequest]
+      const { getPublicRequest, defineContext, resolver } = requestHandler
+
+      const publicRequest = getPublicRequest
+        ? getPublicRequest(req, parsedRequest)
+        : req
+      const context = defineContext
+        ? defineContext(publicRequest)
+        : defaultContext
+
+      const mockedResponse = await resolver(publicRequest, response, context)
+      // Handle a scenario when a request handler is present,
+      // but returns no mocked response (i.e. misses a `return res()` statement).
+      // In this case we try to find another handler
+      if (!mockedResponse) {
+        return [null, null, null, null]
+      }
+      return [requestHandler, parsedRequest, mockedResponse, publicRequest]
     }
-  }, []) || [null, null]
+  }, Promise.resolve([]))) || [null, null, null, null]
 
   if (relevantHandler == null) {
     return {
@@ -52,17 +70,6 @@ export const getResponse = async <
     }
   }
 
-  const { getPublicRequest, defineContext, resolver } = relevantHandler
-
-  const publicRequest = getPublicRequest
-    ? getPublicRequest(req, parsedRequest)
-    : req
-  const context = defineContext ? defineContext(publicRequest) : defaultContext
-
-  const mockedResponse = await resolver(publicRequest, response, context)
-
-  // Handle a scenario when a request handler is present,
-  // but returns no mocked response (i.e. misses a `return res()` statement).
   if (!mockedResponse) {
     return {
       handler: relevantHandler,

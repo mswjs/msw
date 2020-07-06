@@ -28,11 +28,13 @@ export const getResponse = async <
     R,
     MockedResponse | null,
     any,
-  ] = (await handlers.reduce<any>(async (found, requestHandler) => {
+  ] = (await handlers.reduce<any>(async (handlerPromise, requestHandler) => {
+    // Now the reduce function is async so I need to wait to understand if a response was found
+    const handler = await handlerPromise
     // Skip any request handlers lookup if a handler is already found,
     // or the current handler is a one-time handler that's been already used.
-    if ((found && found[0]) || requestHandler.shouldSkip) {
-      return found
+    if ((handler && handler[0]) || requestHandler.shouldSkip) {
+      return Promise.resolve(handler)
     }
 
     // Parse the captured request to get additional information.

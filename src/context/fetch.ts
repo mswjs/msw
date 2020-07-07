@@ -3,6 +3,8 @@ import { MockedRequest } from '../handlers/requestHandler'
 import nodeFetch from 'node-fetch'
 import { isNodeProcess } from '../utils/isNodeProcess'
 
+const useFetch = isNodeProcess() ? nodeFetch : window.fetch
+
 const gracefully = <ResponseType>(
   promise: Promise<Response>,
 ): Promise<ResponseType> => {
@@ -37,11 +39,9 @@ export const fetch = <ResponseType = any>(
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
     return gracefully<ResponseType>(
-      isNodeProcess()
-        ? // TODO: Figure out cross typing of request and response.
-          /// @ts-ignore
-          nodeFetch(input, augmentRequestInit(requestInit))
-        : window.fetch(input, augmentRequestInit(requestInit)),
+      // TODO: Figure out cross typing of request and response.
+      /// @ts-ignore
+      useFetch(input, augmentRequestInit(requestInit)),
     )
   }
 
@@ -52,10 +52,8 @@ export const fetch = <ResponseType = any>(
   })
 
   return gracefully<ResponseType>(
-    isNodeProcess()
-      ? // TODO: Figure out cross typing of request and response.
-        /// @ts-ignore
-        nodeFetch(input.url.href, compliantReq)
-      : window.fetch(input.url.href, compliantReq),
+    // TODO: Figure out cross typing of request and response.
+    /// @ts-ignore
+    useFetch(input.url.href, compliantReq),
   )
 }

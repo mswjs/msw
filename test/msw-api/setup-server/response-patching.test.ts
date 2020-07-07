@@ -7,14 +7,11 @@ import { setupServer } from 'msw/node'
 
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch(
-      'https://api.github.com/users/octocat',
-    )
+    const originalResponse = await ctx.fetch('https://httpbin.org/get')
 
     return res(
       ctx.json({
-        name: originalResponse.name,
-        location: originalResponse.location,
+        url: originalResponse.url,
         mocked: true,
       }),
     )
@@ -33,8 +30,7 @@ describe('given mocked and original requests differ', () => {
 
     expect(status).toBe(200)
     expect(body).toEqual({
-      name: 'The Octocat',
-      location: 'San Francisco',
+      url: 'https://httpbin.org/get',
       mocked: true,
     })
   })

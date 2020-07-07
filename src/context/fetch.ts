@@ -1,6 +1,7 @@
 import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/requestHandler'
-import isoFetch from 'cross-fetch'
+import nodeFetch from 'node-fetch'
+import { isNodeProcess } from '../utils/isNodeProcess'
 
 const gracefully = <ResponseType>(
   promise: Promise<Response>,
@@ -36,7 +37,11 @@ export const fetch = <ResponseType = any>(
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
     return gracefully<ResponseType>(
-      isoFetch(input, augmentRequestInit(requestInit)),
+      isNodeProcess()
+        ? // TODO: Figure out cross typing of request and response.
+          /// @ts-ignore
+          nodeFetch(input, augmentRequestInit(requestInit))
+        : window.fetch(input, augmentRequestInit(requestInit)),
     )
   }
 
@@ -46,5 +51,11 @@ export const fetch = <ResponseType = any>(
     body: typeof body === 'object' ? JSON.stringify(body) : body,
   })
 
-  return gracefully<ResponseType>(isoFetch(input.url.href, compliantReq))
+  return gracefully<ResponseType>(
+    isNodeProcess()
+      ? // TODO: Figure out cross typing of request and response.
+        /// @ts-ignore
+        nodeFetch(input.url.href, compliantReq)
+      : window.fetch(input.url.href, compliantReq),
+  )
 }

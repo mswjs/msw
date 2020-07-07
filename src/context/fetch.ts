@@ -1,9 +1,8 @@
 import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/requestHandler'
-import nodeFetch from 'node-fetch'
 import { isNodeProcess } from '../utils/isNodeProcess'
 
-const useFetch = isNodeProcess() ? nodeFetch : window.fetch
+const useFetch = isNodeProcess() ? require('node-fetch') : window.fetch
 
 const gracefully = <ResponseType>(
   promise: Promise<Response>,
@@ -40,7 +39,6 @@ export const fetch = <ResponseType = any>(
   if (typeof input === 'string') {
     return gracefully<ResponseType>(
       // TODO: Figure out cross typing of request and response.
-      /// @ts-ignore
       useFetch(input, augmentRequestInit(requestInit)),
     )
   }
@@ -53,7 +51,6 @@ export const fetch = <ResponseType = any>(
 
   return gracefully<ResponseType>(
     // TODO: Figure out cross typing of request and response.
-    /// @ts-ignore
     useFetch(input.url.href, compliantReq),
   )
 }

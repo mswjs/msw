@@ -1,5 +1,6 @@
 import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/requestHandler'
+import isoFetch from 'cross-fetch'
 
 const gracefully = <ResponseType>(
   promise: Promise<Response>,
@@ -35,7 +36,7 @@ export const fetch = <ResponseType = any>(
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
     return gracefully<ResponseType>(
-      window.fetch(input, augmentRequestInit(requestInit)),
+      isoFetch(input, augmentRequestInit(requestInit)),
     )
   }
 
@@ -45,5 +46,5 @@ export const fetch = <ResponseType = any>(
     body: typeof body === 'object' ? JSON.stringify(body) : body,
   })
 
-  return gracefully<ResponseType>(window.fetch(input.url.href, compliantReq))
+  return gracefully<ResponseType>(isoFetch(input.url.href, compliantReq))
 }

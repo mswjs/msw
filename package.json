@@ -64,6 +64,7 @@
     "@types/cookie": "^0.3.3",
     "chalk": "^4.0.0",
     "cookie": "^0.4.1",
+    "cross-fetch": "^3.0.5",
     "graphql": "^15.0.0",
     "headers-utils": "^1.1.9",
     "node-match-path": "^0.4.2",

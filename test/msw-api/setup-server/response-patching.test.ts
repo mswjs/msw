@@ -29,11 +29,9 @@ describe('given mocked and original requests differ', () => {
   it('should return a combination of mocked and original responses', async () => {
     const res = await fetch('https://test.mswjs.io/user')
     const status = res.status
-    const headers = res.headers
     const body = await res.json()
 
     expect(status).toBe(200)
-    expect(headers).toHaveProperty('x-powered-by', 'msw')
     expect(body).toEqual({
       name: 'The Octocat',
       location: 'San Francisco',

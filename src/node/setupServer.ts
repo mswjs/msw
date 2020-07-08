@@ -10,8 +10,10 @@ import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from '../utils/request/parseRequestBody'
 import { isNodeProcess } from '../utils/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
-import { ListenOptions } from './glossary'
+import { SharedOptions } from '../sharedOptions'
 import { onUnhandledRequest } from '../onUnhandledRequest'
+
+type ListenOptions = SharedOptions
 
 const DEFAULT_LISTEN_OPTIONS: ListenOptions = {
   onUnhandledRequest: 'bypass',

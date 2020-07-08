@@ -16,7 +16,7 @@ export type ServiceWorkerInstanceTuple = [
   ServiceWorkerRegistration,
 ]
 
-export interface StartOptions extends SharedOptions {
+export type StartOptions = SharedOptions & {
   serviceWorker?: {
     url?: string
     options?: RegistrationOptions

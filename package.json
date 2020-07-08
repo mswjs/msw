@@ -60,7 +60,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@open-draft/until": "^1.0.0",
+    "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.3.3",
     "chalk": "^4.0.0",
     "cookie": "^0.4.1",

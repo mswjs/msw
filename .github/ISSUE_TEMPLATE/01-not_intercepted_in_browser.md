@@ -1,5 +1,5 @@
 ---
-name: Browser interception
+name: 'Issue: Browser interception'
 about: My request is not intercepted/mocked in a browser
 title: ''
 labels: bug, scope:browser

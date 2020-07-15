@@ -6,6 +6,7 @@ export interface ServiceWorkerMessage<T> {
 export type ClientMessageTypes =
   | 'MOCK_NOT_FOUND'
   | 'MOCK_SUCCESS'
+  | 'NETWORK_ERROR'
   | 'INTERNAL_ERROR'
 
 /**

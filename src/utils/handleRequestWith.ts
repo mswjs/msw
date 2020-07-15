@@ -13,6 +13,7 @@ import { getResponse } from '../utils/getResponse'
 import { parseRequestBody } from './request/parseRequestBody'
 import { getRequestCookies } from './request/getRequestCookies'
 import { isStringEqual } from './isStringEqual'
+import { NetworkError } from './NetworkError'
 
 export const handleRequestWith = (
   context: SetupWorkerInternalContext,
@@ -109,6 +110,20 @@ export const handleRequestWith = (
         payload: responseWithSerializedHeaders,
       })
     } catch (error) {
+      if (error instanceof NetworkError) {
+        // Treat emulated network error differently,
+        // as it is an intended exception in a request handler.
+        return channel.send({
+          type: 'NETWORK_ERROR',
+          payload: {
+            name: error.name,
+            message: error.message,
+          },
+        })
+      }
+
+      // Treat all the other exceptions in a request handler
+      // as unintended, alerting that there is a problem needs fixing.
       channel.send({
         type: 'INTERNAL_ERROR',
         payload: {

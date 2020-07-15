@@ -1,5 +1,6 @@
 import { Headers } from 'headers-utils'
 import { compose } from './utils/internal/compose'
+import { NetworkError } from './utils/NetworkError'
 
 export interface MockedResponse {
   body: any
@@ -59,7 +60,7 @@ export const response: ResponseComposition = Object.assign(
   {
     once: createResponseComposition({ once: true }),
     networkError(message: string) {
-      Promise.reject(new Error(message))
+      throw new NetworkError(message)
     },
   },
 )

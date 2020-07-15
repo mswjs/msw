@@ -79,7 +79,7 @@ self.addEventListener('fetch', async function (event) {
   }
 
   event.respondWith(
-    new Promise(async (resolve) => {
+    new Promise(async (resolve, reject) => {
       const client = await event.target.clients.get(clientId)
 
       if (
@@ -142,6 +142,15 @@ self.addEventListener('fetch', async function (event) {
 
         case 'MOCK_NOT_FOUND': {
           return resolve(getOriginalResponse())
+        }
+
+        case 'NETWORK_ERROR': {
+          const { name, message } = clientMessage.payload
+          const networkError = new Error(message)
+          networkError.name = name
+
+          // Rejecting a request Promise emulates a network error.
+          return reject(networkError)
         }
 
         case 'INTERNAL_ERROR': {

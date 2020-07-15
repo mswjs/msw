@@ -1,21 +1,23 @@
 /**
  * @jest-environment node
  */
+import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import fetch from 'node-fetch'
 
 const server = setupServer()
 
 beforeAll(() => server.listen())
 afterAll(() => server.close())
 
-test('res.networkError causes Fetch API to throw error', async () => {
+test('throws a network error when used with fetch', async () => {
   server.use(
     rest.get('http://test.io/user', (_, res) => {
-      return res.networkError('Network error')
+      return res.networkError('Custom network error message')
     }),
   )
 
-  await expect(fetch('http://test.io/user')).rejects.toThrow('Network error')
+  await expect(fetch('http://test.io/user')).rejects.toThrow(
+    'Custom network error message',
+  )
 })

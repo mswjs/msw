@@ -59,11 +59,7 @@ export const getResponse = async <
     : req
   const context = defineContext ? defineContext(publicRequest) : defaultContext
 
-  const mockedResponse: MockedResponse | undefined = await resolver(
-    publicRequest,
-    response,
-    context,
-  )
+  const mockedResponse = await resolver(publicRequest, response, context)
 
   // Handle a scenario when a request handler is present,
   // but returns no mocked response (i.e. misses a `return res()` statement).

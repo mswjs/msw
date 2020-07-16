@@ -38,7 +38,6 @@ export const fetch = <ResponseType = any>(
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
     return gracefully<ResponseType>(
-      // TODO: Figure out cross typing of request and response.
       useFetch(input, augmentRequestInit(requestInit)),
     )
   }
@@ -49,8 +48,5 @@ export const fetch = <ResponseType = any>(
     body: typeof body === 'object' ? JSON.stringify(body) : body,
   })
 
-  return gracefully<ResponseType>(
-    // TODO: Figure out cross typing of request and response.
-    useFetch(input.url.href, compliantReq),
-  )
+  return gracefully<ResponseType>(useFetch(input.url.href, compliantReq))
 }

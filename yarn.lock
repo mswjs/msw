@@ -6118,10 +6118,10 @@ node-releases@^1.1.53:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.53.tgz#2d821bfa499ed7c5dffc5e2f28c88e78a08ee3f4"
   integrity sha512-wp8zyQVwef2hpZ/dJH7SfSrIPD6YoJz6BDQDpGEkcA0s3LpAQoxBIYmfIq6QAhC1DhwsyCgTaTTcONwX8qzCuQ==
 
-node-request-interceptor@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/node-request-interceptor/-/node-request-interceptor-0.3.2.tgz#6accc72468c35e5ed45fc5751bb9787ecbc42a3d"
-  integrity sha512-qF8Mt8PevsE7W3+yTPEbP8DVyYk4hpeUDvgtAwPLTEWVmo1be4JBsbiNL48mOKnu72Hq9caMLSFgg1v3nGLEOw==
+node-request-interceptor@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/node-request-interceptor/-/node-request-interceptor-0.3.3.tgz#4227763d1d8d696fc15f7d6e1fe0ed1dd8c9d86d"
+  integrity sha512-NLFD4F7sB72WSVI7YYQzaRa7PkhdbXL1cPNvu2LlGkmnLbE11EEKrRmie5gDOKy3xfk22xXPk654CbiFwaBLdA==
   dependencies:
     "@open-draft/until" "^1.0.3"
     debug "^4.1.1"

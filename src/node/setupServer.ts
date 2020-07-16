@@ -68,6 +68,10 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
           mockedRequest.cookies = cookieUtils.parse(requestCookieString)
         }
 
+        if (mockedRequest.headers.get('x-msw-bypass')) {
+          return
+        }
+
         const { response } = await getResponse(mockedRequest, currentHandlers)
 
         if (!response) {

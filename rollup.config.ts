@@ -1,7 +1,7 @@
 import * as path from 'path'
-import alias from '@rollup/plugin-alias'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import inject from '@rollup/plugin-inject'
 import typescript from 'rollup-plugin-typescript2'
 import json from '@rollup/plugin-json'
 import packageJson from './package.json'
@@ -94,6 +94,9 @@ const buildNode = {
         declarationDir: './node',
       },
     }),
+    inject({
+      setTimeout: ['timers', 'setTimeout'],
+    }),
     commonjs(),
   ],
 }
@@ -106,9 +109,6 @@ const buildNative = {
     format: 'cjs',
   },
   plugins: [
-    alias({
-      entries: [{ find: 'timers', replacement: '../utils/reactNativeTimers' }],
-    }),
     json(),
     resolve({
       browser: false,

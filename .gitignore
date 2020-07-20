@@ -2,6 +2,7 @@ __*
 .DS_*
 node_modules
 /lib
+/native/**/*.js
 /node/**/*.js
 tmp
 *-error.log

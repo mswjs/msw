@@ -1,4 +1,5 @@
 import * as path from 'path'
+import alias from '@rollup/plugin-alias'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import typescript from 'rollup-plugin-typescript2'
@@ -97,4 +98,32 @@ const buildNode = {
   ],
 }
 
-export default [buildNode, buildEsm, buildUdm]
+const buildNative = {
+  input: 'src/native/index.ts',
+  external: ['events', 'node-request-interceptor'],
+  output: {
+    file: 'native/index.js',
+    format: 'cjs',
+  },
+  plugins: [
+    alias({
+      entries: [{ find: 'timers', replacement: '../utils/reactNativeTimers' }],
+    }),
+    json(),
+    resolve({
+      browser: false,
+      preferBuiltins: true,
+      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    }),
+    typescript({
+      useTsconfigDeclarationDir: true,
+      tsconfigOverride: {
+        outDir: './native',
+        declarationDir: './native',
+      },
+    }),
+    commonjs(),
+  ],
+}
+
+export default [buildNode, buildNative, buildEsm, buildUdm]

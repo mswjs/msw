@@ -1,7 +1,7 @@
 {
-  "name": "msw",
+  "name": "msutkowski-experimental-msw",
   "version": "0.19.5",
-  "description": "Client-side API mocking using Service Workers.",
+  "description": "Experimental, do not use! Client-side API mocking using Service Workers.",
   "main": "lib/umd/index.js",
   "module": "lib/esm/index.js",
   "types": "lib/types",
@@ -11,7 +11,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
     "clean": "rimraf lib node/**/*.js",
-    "lint": "eslint '{cli,config,src,test}/**/*.ts'",
+    "lint": "eslint src",
     "build": "yarn clean && cross-env NODE_ENV=production rollup -c rollup.config.ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
@@ -30,14 +30,13 @@
       "eslint"
     ]
   },
-  "homepage": "https://mswjs.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mswjs/msw"
+    "url": "https://github.com/msutkowski/msw"
   },
   "author": {
-    "name": "Artem Zakharchenko",
-    "url": "https://github.com/kettanaito"
+    "name": "Matt Sutkowski",
+    "url": "https://github.com/msutkowski"
   },
   "license": "MIT",
   "files": [
@@ -47,16 +46,6 @@
     "node",
     "LICENSE.md",
     "README.md"
-  ],
-  "keywords": [
-    "api",
-    "mock",
-    "mocking",
-    "worker",
-    "prototype",
-    "server",
-    "service",
-    "handler"
   ],
   "sideEffects": false,
   "dependencies": {

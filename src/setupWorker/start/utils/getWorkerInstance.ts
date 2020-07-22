@@ -14,14 +14,30 @@ export const getWorkerInstance = async (
   // Resolve the absolute Service Worker URL
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
+  console.log('absoluteWorkerUrl', absoluteWorkerUrl)
   const [, mockRegistrations] = await until(async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()
+    console.log('registrations', registrations)
+
     return registrations.filter((registration) => {
       const worker = getWorkerByRegistration(registration)
       // Filter out other workers that can be associated with this page
+      console.log(
+        'filter',
+        worker,
+        'eq check',
+        worker?.scriptURL === absoluteWorkerUrl,
+      )
+
       return worker?.scriptURL === absoluteWorkerUrl
     })
   })
+
+  console.log(
+    '.controller .length check',
+    navigator.serviceWorker.controller,
+    mockRegistrations.length,
+  )
 
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
     // Reload the page when it has associated workers, but no active controller.
@@ -37,9 +53,16 @@ export const getWorkerInstance = async (
     return navigator.serviceWorker.getRegistration(url)
   })
 
+  console.log('existingRegistration', existingRegistration)
+
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date
     return existingRegistration.update().then(() => {
+      console.log(
+        'updated existing, returning',
+        getWorkerByRegistration(existingRegistration),
+        existingRegistration,
+      )
       return [
         getWorkerByRegistration(existingRegistration),
         existingRegistration,
@@ -49,6 +72,7 @@ export const getWorkerInstance = async (
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
+      console.log('registered?', registration)
       return [getWorkerByRegistration(registration), registration]
     },
   )
@@ -77,6 +101,6 @@ Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/i
     )
     return null
   }
-
+  console.log('returning instance', instance)
   return instance
 }

@@ -5,5 +5,6 @@
 export const getWorkerByRegistration = (
   registration: ServiceWorkerRegistration,
 ): ServiceWorker | null => {
+  console.log('getWorkerByRegistration registration', registration)
   return registration.active || registration.installing || registration.waiting
 }

@@ -14,17 +14,15 @@ export const getWorkerInstance = async (
   // Resolve the absolute Service Worker URL
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
-  const filterRegistrations = async () => {
+  const [, mockRegistrations] = await until(async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()
 
-    console.log('filterRegistrations', registrations)
     return registrations.filter((registration) => {
       const worker = getWorkerByRegistration(registration)
       // Filter out other workers that can be associated with this page
       return worker?.scriptURL === absoluteWorkerUrl
     })
-  }
-  const [, mockRegistrations] = await until(filterRegistrations)
+  })
 
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
     // Reload the page when it has associated workers, but no active controller.
@@ -39,8 +37,6 @@ export const getWorkerInstance = async (
   const existingRegistration =
     mockRegistrations.length > 0 ? mockRegistrations[0] : undefined
 
-  console.log('got mocks', mockRegistrations, existingRegistration)
-
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date
     return existingRegistration.update().then(() => {
@@ -53,15 +49,18 @@ export const getWorkerInstance = async (
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
-      console.log('registered!!?', registration)
+      // .register will potentially give us _one_ instance of a ServiceWorkerRegistration, but it _may_ include multiple workers
+      // We need to filter by the worker statuses and return the one that matches our absoluteWorkerUrl
+      const foundWorker = Object.entries(registration).find(([, entry]) => {
+        return entry?.scriptURL === absoluteWorkerUrl
+      })
 
-      const [, mockRegistration] = await until(filterRegistrations)
-      console.log(
-        'returning: ',
-        getWorkerByRegistration(mockRegistration[0]),
-        registration,
-      )
-      return [getWorkerByRegistration(mockRegistration[0]), mockRegistration[0]]
+      let worker = null
+      if (foundWorker) {
+        worker = foundWorker[1] as ServiceWorker
+      }
+
+      return [worker, registration]
     },
   )
 

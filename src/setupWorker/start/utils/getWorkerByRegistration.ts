@@ -5,6 +5,12 @@
 export const getWorkerByRegistration = (
   registration: ServiceWorkerRegistration,
 ): ServiceWorker | null => {
-  console.log('getWorkerByRegistration registration', registration)
+  console.log(
+    'getWorkerByRegistration registration',
+    JSON.stringify(registration),
+    registration.active,
+    registration.installing,
+    registration.waiting,
+  )
   return registration.active || registration.installing || registration.waiting
 }

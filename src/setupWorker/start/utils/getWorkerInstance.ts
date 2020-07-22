@@ -25,6 +25,8 @@ export const getWorkerInstance = async (
       console.log(
         'filter',
         worker,
+        worker?.scriptURL,
+        absoluteWorkerUrl,
         'eq check',
         worker?.scriptURL === absoluteWorkerUrl,
       )
@@ -50,7 +52,7 @@ export const getWorkerInstance = async (
   }
 
   const [, existingRegistration] = await until(() => {
-    return navigator.serviceWorker.getRegistration(url)
+    return navigator.serviceWorker.getRegistration(absoluteWorkerUrl)
   })
 
   console.log('existingRegistration', existingRegistration)

@@ -33,9 +33,8 @@ export const getWorkerInstance = async (
     location.reload()
   }
 
-  const [, existingRegistration] = await until(() => {
-    return navigator.serviceWorker.getRegistration(url)
-  })
+  const existingRegistration =
+    mockRegistrations.length > 0 ? mockRegistrations[0] : undefined
 
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date

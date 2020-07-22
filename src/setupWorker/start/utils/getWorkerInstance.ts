@@ -23,7 +23,7 @@ export const getWorkerInstance = async (
       return worker?.scriptURL === absoluteWorkerUrl
     })
   }
-  const [, mockRegistrations] = await until(async () => filterRegistrations())
+  const [, mockRegistrations] = await until(filterRegistrations)
 
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
     // Reload the page when it has associated workers, but no active controller.
@@ -56,10 +56,13 @@ export const getWorkerInstance = async (
         getWorkerByRegistration(registration),
       )
 
-      const [, mockRegistration] = await until(async () =>
-        filterRegistrations(),
+      const [, mockRegistration] = await until(filterRegistrations)
+      console.log(
+        'returning: ',
+        getWorkerByRegistration(mockRegistration[0]),
+        registration,
       )
-      return [getWorkerByRegistration(mockRegistration[0]), registration]
+      return [getWorkerByRegistration(mockRegistration[0]), mockRegistration[0]]
     },
   )
 

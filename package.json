@@ -18,7 +18,7 @@
     "test:integration": "node --max_old_space_size=8000 node_modules/.bin/jest --config=test/jest.config.js --runInBand",
     "test:smoke": "config/scripts/smoke.sh",
     "test:focused": "node_modules/.bin/ts-node --project=test/tsconfig.json test/focusedTest.ts",
-    "prepublishOnly": "yarn lint && yarn test:unit && yarn build"
+    "prepublishOnly": "yarn lint && yarn build"
   },
   "husky": {
     "hooks": {

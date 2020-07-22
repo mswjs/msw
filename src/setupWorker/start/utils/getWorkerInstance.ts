@@ -18,9 +18,7 @@ export const getWorkerInstance = async (
     const registrations = await navigator.serviceWorker.getRegistrations()
 
     return registrations.filter((registration) => {
-      const worker = getWorkerByRegistration(registration)
-      // Filter out other workers that can be associated with this page
-      return worker?.scriptURL === absoluteWorkerUrl
+      return getWorkerByRegistration(registration, absoluteWorkerUrl)
     })
   })
 
@@ -41,7 +39,7 @@ export const getWorkerInstance = async (
     // Update existing service worker to ensure it's up-to-date
     return existingRegistration.update().then(() => {
       return [
-        getWorkerByRegistration(existingRegistration),
+        getWorkerByRegistration(existingRegistration, absoluteWorkerUrl),
         existingRegistration,
       ]
     })
@@ -49,21 +47,11 @@ export const getWorkerInstance = async (
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
-      // .register will potentially give us _one_ instance of a ServiceWorkerRegistration, but it _may_ include multiple workers
-      // We need to filter by the worker statuses and return the one that matches our absoluteWorkerUrl
-      const foundWorker = Object.entries(registration).find(([, entry]) => {
-        console.log('entry', entry)
-        return entry?.scriptURL === absoluteWorkerUrl
-      })
 
-      console.log('what?', Object.entries(registration), foundWorker)
-
-      let worker = null
-      if (foundWorker) {
-        worker = foundWorker[1] as ServiceWorker
-      }
-
-      return [worker, registration]
+      return [
+        getWorkerByRegistration(registration, absoluteWorkerUrl),
+        registration,
+      ]
     },
   )
 

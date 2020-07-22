@@ -4,13 +4,11 @@
  */
 export const getWorkerByRegistration = (
   registration: ServiceWorkerRegistration,
+  absoluteWorkerUrl: string,
 ): ServiceWorker | null => {
-  console.log(
-    'getWorkerByRegistration registration',
-    registration,
-    registration.active,
-    registration.installing,
-    registration.waiting,
+  return (
+    [registration.active, registration.installing, registration.waiting].find(
+      (worker) => worker?.scriptURL === absoluteWorkerUrl,
+    ) || null
   )
-  return registration.active || registration.installing || registration.waiting
 }

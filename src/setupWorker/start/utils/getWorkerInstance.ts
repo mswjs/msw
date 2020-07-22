@@ -58,9 +58,15 @@ export const getWorkerInstance = async (
       console.log('url', 'options', url, options)
       const registration = await navigator.serviceWorker.register(url, options)
       console.log('registered?', registration)
+      console.log(
+        'resolvedWorker for registration',
+        getWorkerByRegistration(registration),
+      )
       return [getWorkerByRegistration(registration), registration]
     },
   )
+
+  console.log('error, instance', error, instance)
 
   if (error) {
     const isWorkerMissing = error.message.includes('(404)')

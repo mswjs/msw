@@ -31,8 +31,7 @@ export const getWorkerInstance = async (
     location.reload()
   }
 
-  const existingRegistration =
-    mockRegistrations.length > 0 ? mockRegistrations[0] : undefined
+  const existingRegistration = mockRegistrations[0]
 
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date

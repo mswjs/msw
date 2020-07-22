@@ -14,7 +14,7 @@ export const getWorkerInstance = async (
   // Resolve the absolute Service Worker URL
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
-  const [, mockRegistrations] = await until(async () => {
+  const filterRegistrations = async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()
 
     return registrations.filter((registration) => {
@@ -22,7 +22,8 @@ export const getWorkerInstance = async (
       // Filter out other workers that can be associated with this page
       return worker?.scriptURL === absoluteWorkerUrl
     })
-  })
+  }
+  const [, mockRegistrations] = await until(async () => filterRegistrations())
 
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
     // Reload the page when it has associated workers, but no active controller.
@@ -34,15 +35,8 @@ export const getWorkerInstance = async (
     location.reload()
   }
 
-  // this is most likely a bug. existingRegistration will be whatever service worker is scoped to the root domain
-  // const [, existingRegistration] = await until(() => {
-  //   return navigator.serviceWorker.getRegistration(absoluteWorkerUrl)
-  // })
-
   const existingRegistration =
     mockRegistrations.length > 0 ? mockRegistrations[0] : undefined
-
-  console.log('existingRegistration', existingRegistration)
 
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date
@@ -55,14 +49,17 @@ export const getWorkerInstance = async (
   }
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
-      console.log('url', 'options', url, options)
       const registration = await navigator.serviceWorker.register(url, options)
       console.log('registered?', registration)
       console.log(
         'resolvedWorker for registration',
         getWorkerByRegistration(registration),
       )
-      return [getWorkerByRegistration(registration), registration]
+
+      const [, mockRegistration] = await until(async () =>
+        filterRegistrations(),
+      )
+      return [getWorkerByRegistration(mockRegistration[0]), registration]
     },
   )
 

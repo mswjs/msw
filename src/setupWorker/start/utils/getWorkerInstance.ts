@@ -52,8 +52,11 @@ export const getWorkerInstance = async (
       // .register will potentially give us _one_ instance of a ServiceWorkerRegistration, but it _may_ include multiple workers
       // We need to filter by the worker statuses and return the one that matches our absoluteWorkerUrl
       const foundWorker = Object.entries(registration).find(([, entry]) => {
+        console.log('entry', entry)
         return entry?.scriptURL === absoluteWorkerUrl
       })
+
+      console.log('what?', Object.entries(registration), foundWorker)
 
       let worker = null
       if (foundWorker) {

@@ -17,6 +17,7 @@ export const getWorkerInstance = async (
   const filterRegistrations = async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()
 
+    console.log('filterRegistrations', registrations)
     return registrations.filter((registration) => {
       const worker = getWorkerByRegistration(registration)
       // Filter out other workers that can be associated with this page
@@ -38,6 +39,8 @@ export const getWorkerInstance = async (
   const existingRegistration =
     mockRegistrations.length > 0 ? mockRegistrations[0] : undefined
 
+  console.log('got mocks', mockRegistrations, existingRegistration)
+
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date
     return existingRegistration.update().then(() => {
@@ -50,11 +53,7 @@ export const getWorkerInstance = async (
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
-      console.log('registered?', registration)
-      console.log(
-        'resolvedWorker for registration',
-        getWorkerByRegistration(registration),
-      )
+      console.log('registered!!?', registration)
 
       const [, mockRegistration] = await until(filterRegistrations)
       console.log(

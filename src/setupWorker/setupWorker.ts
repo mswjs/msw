@@ -3,7 +3,6 @@ import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { isNodeProcess } from '../utils/isNodeProcess'
-import { MSWEventListener } from '../utils/internal/mswEventListener'
 
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
@@ -28,35 +27,35 @@ export interface SetupWorkerApi {
 /**
  * Configures a Service Worker with the given request handler functions.
  */
+
+interface Listener {
+  target: EventTarget
+  type: string
+  callback: EventListener
+}
+
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
-  let listeners: MSWEventListener[] = []
+  let listeners: Listener[] = []
 
   const context: SetupWorkerInternalContext = {
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    events: {
-      add: (
-        handler: ServiceWorkerContainer | Window,
-        type: string,
-        listener: any,
-      ) => {
-        handler.addEventListener(type, listener)
-
-        listeners.push({
-          type,
-          handler,
-          listener,
-        })
-      },
-      removeAllListeners: () => {
-        listeners.forEach((listener) => {
-          listener.handler.removeEventListener(listener.type, listener.listener)
-        })
-        listeners = []
-      },
+    addEventListener(
+      target: EventTarget,
+      type: string,
+      callback: EventListener,
+    ) {
+      target.addEventListener(type, callback)
+      listeners.push({ type, target, callback })
+    },
+    removeAllEventListeners() {
+      for (const { target, type, callback } of listeners) {
+        target.removeEventListener(type, callback)
+      }
+      listeners = []
     },
   }
 

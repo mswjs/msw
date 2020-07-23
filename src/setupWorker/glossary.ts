@@ -2,6 +2,7 @@ import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
+import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 
 export type Mask = RegExp | string
 
@@ -15,6 +16,7 @@ export interface SetupWorkerInternalContext {
     listener: (event: E) => void,
   ): void
   removeAllEventListeners(): void
+  once<T>(type: string): Promise<ServiceWorkerMessage<T>>
 }
 
 export type ServiceWorkerInstanceTuple = [

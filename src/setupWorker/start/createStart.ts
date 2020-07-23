@@ -74,7 +74,9 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       context.addEventListener(window, 'beforeunload', beforeUnload)
 
       // Check if the active Service Worker is the latest published one
-      const [integrityError] = await until(() => requestIntegrityCheck(worker))
+      const [integrityError] = await until(() =>
+        requestIntegrityCheck(context, worker),
+      )
 
       if (integrityError) {
         console.error(`\
@@ -91,7 +93,7 @@ If this message still persists after updating, please report an issue: https://g
 
       // Signal the Service Worker to enable requests interception
       const [activationError] = await until(() =>
-        activateMocking(worker, options),
+        activateMocking(context, options),
       )
 
       if (activationError) {

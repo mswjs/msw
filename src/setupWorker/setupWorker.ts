@@ -3,6 +3,7 @@ import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { isNodeProcess } from '../utils/isNodeProcess'
+import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
@@ -56,6 +57,45 @@ export function setupWorker(
         target.removeEventListener(type, callback)
       }
       listeners = []
+    },
+
+    once<T>(type: string) {
+      const bindings: Array<() => void> = []
+
+      return new Promise<ServiceWorkerMessage<T>>((resolve, reject) => {
+        const dispatchMessage = (event: MessageEvent) => {
+          try {
+            const message = JSON.parse(event.data)
+
+            if (message.type === type) {
+              resolve(message)
+            }
+          } catch (error) {
+            reject(error)
+          }
+        }
+
+        bindings.push(
+          () =>
+            navigator.serviceWorker.removeEventListener(
+              'message',
+              dispatchMessage,
+            ),
+          () =>
+            navigator.serviceWorker.removeEventListener('messageerror', reject),
+        )
+
+        context.addEventListener(
+          navigator.serviceWorker,
+          'message',
+          dispatchMessage,
+        )
+        context.addEventListener(
+          navigator.serviceWorker,
+          'messageerror',
+          reject,
+        )
+      }).finally(() => bindings.forEach((unbind) => unbind()))
     },
   }
 

@@ -95,6 +95,12 @@ export const runBrowserWith = async (
   }
 
   const cleanup = () => {
+    // Do not close browser/server when running tests in debug mode.
+    // This leaves the browser open, so its state could be observed.
+    if (!!process.env.DEBUG) {
+      return null
+    }
+
     return new Promise((resolve, reject) => {
       browser
         .close()

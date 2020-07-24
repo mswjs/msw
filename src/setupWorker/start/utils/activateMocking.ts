@@ -6,7 +6,7 @@ export const activateMocking = async (
 ) => {
   context.worker?.postMessage('MOCK_ACTIVATE')
 
-  return context.once('MOCKING_ENABLED').then(() => {
+  return context.events.once('MOCKING_ENABLED').then(() => {
     if (!options?.quiet) {
       console.groupCollapsed(
         '%c[MSW] Mocking enabled.',

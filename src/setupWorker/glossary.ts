@@ -10,13 +10,25 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]
-  addEventListener<E extends Event>(
-    target: EventTarget,
-    type: string,
-    listener: (event: E) => void,
-  ): void
-  removeAllEventListeners(): void
-  once<T>(type: string): Promise<ServiceWorkerMessage<T>>
+  events: {
+    /**
+     * Adds an event listener on the given target.
+     * Returns a clean up function that removes that listener.
+     */
+    addListener<E extends Event>(
+      target: EventTarget,
+      type: string,
+      listener: (event: E) => void,
+    ): () => void
+    /**
+     * Removes all currently attached listeners.
+     */
+    removeAllListeners(): void
+    /**
+     * Awaits a given message type from the Service Worker.
+     */
+    once<T>(type: string): Promise<ServiceWorkerMessage<T>>
+  }
 }
 
 export type ServiceWorkerInstanceTuple = [

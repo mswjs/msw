@@ -31,7 +31,7 @@ export interface SetupWorkerApi {
 
 interface Listener {
   target: EventTarget
-  type: string
+  event: string
   callback: EventListener
 }
 
@@ -44,58 +44,51 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    addEventListener(
-      target: EventTarget,
-      type: string,
-      callback: EventListener,
-    ) {
-      target.addEventListener(type, callback)
-      listeners.push({ type, target, callback })
-    },
-    removeAllEventListeners() {
-      for (const { target, type, callback } of listeners) {
-        target.removeEventListener(type, callback)
-      }
-      listeners = []
-    },
+    events: {
+      addListener(target: EventTarget, event: string, callback: EventListener) {
+        target.addEventListener(event, callback)
+        listeners.push({ event, target, callback })
 
-    once<T>(type: string) {
-      const bindings: Array<() => void> = []
-
-      return new Promise<ServiceWorkerMessage<T>>((resolve, reject) => {
-        const dispatchMessage = (event: MessageEvent) => {
-          try {
-            const message = JSON.parse(event.data)
-
-            if (message.type === type) {
-              resolve(message)
-            }
-          } catch (error) {
-            reject(error)
-          }
+        return () => {
+          target.removeEventListener(event, callback)
         }
+      },
+      removeAllListeners() {
+        for (const { target, event, callback } of listeners) {
+          target.removeEventListener(event, callback)
+        }
+        listeners = []
+      },
+      once<T>(type: string) {
+        const bindings: Array<() => void> = []
 
-        bindings.push(
-          () =>
-            navigator.serviceWorker.removeEventListener(
+        return new Promise<ServiceWorkerMessage<T>>((resolve, reject) => {
+          const handleIncomingMessage = (event: MessageEvent) => {
+            try {
+              const message = JSON.parse(event.data)
+
+              if (message.type === type) {
+                resolve(message)
+              }
+            } catch (error) {
+              reject(error)
+            }
+          }
+
+          bindings.push(
+            context.events.addListener(
+              navigator.serviceWorker,
               'message',
-              dispatchMessage,
+              handleIncomingMessage,
             ),
-          () =>
-            navigator.serviceWorker.removeEventListener('messageerror', reject),
-        )
-
-        context.addEventListener(
-          navigator.serviceWorker,
-          'message',
-          dispatchMessage,
-        )
-        context.addEventListener(
-          navigator.serviceWorker,
-          'messageerror',
-          reject,
-        )
-      }).finally(() => bindings.forEach((unbind) => unbind()))
+            context.events.addListener(
+              navigator.serviceWorker,
+              'messageerror',
+              reject,
+            ),
+          )
+        }).finally(() => bindings.forEach((unbind) => unbind()))
+      },
     },
   }
 

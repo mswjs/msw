@@ -7,7 +7,7 @@ export async function requestIntegrityCheck(
   // Signal Service Worker to report back its integrity
   serviceWorker.postMessage('INTEGRITY_CHECK_REQUEST')
 
-  const { payload: actualChecksum } = await context.once(
+  const { payload: actualChecksum } = await context.events.once(
     'INTEGRITY_CHECK_RESPONSE',
   )
 
@@ -18,5 +18,6 @@ export async function requestIntegrityCheck(
       `Currently active Service Worker (${actualChecksum}) is behind the latest published one (${SERVICE_WORKER_CHECKSUM}).`,
     )
   }
+
   return serviceWorker
 }

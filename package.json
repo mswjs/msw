@@ -113,5 +113,8 @@
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
+  },
+  "resolutions": {
+    "chokidar": "3.3.1"
   }
 }

@@ -84,8 +84,8 @@ describe('Integrity check', () => {
       // Open the page anew to trigger the console listener
       await test.reload()
 
-      const integrityError = errors.find((message) => {
-        return message.includes('[MSW] Detected outdated Service Worker')
+      const integrityError = errors.find((text) => {
+        return text.includes('[MSW] Detected outdated Service Worker')
       })
 
       expect(integrityError).toBeTruthy()

@@ -11,10 +11,7 @@ beforeAll(async () => {
 afterAll(() => runtime.cleanup())
 
 test('prints a custom error message when given a non-existing worker script', async () => {
-  const errors: string[] = []
-  captureConsole(runtime.page, errors, (message) => {
-    return message.type() === 'error'
-  })
+  const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {
     // @ts-ignore
@@ -25,12 +22,11 @@ test('prints a custom error message when given a non-existing worker script', as
     })
   })
 
-  const workerNotFoundMessage = errors.find((message) => {
+  const workerNotFoundMessage = messages.error.find((text) => {
     return (
-      message.startsWith(
+      text.startsWith(
         `[MSW] Failed to register a Service Worker for scope ('${runtime.page.url()}')`,
-      ) &&
-      message.includes('Did you forget to run "npx msw init <PUBLIC_DIR>"?')
+      ) && text.includes('Did you forget to run "npx msw init <PUBLIC_DIR>"?')
     )
   })
 

@@ -13,10 +13,7 @@ beforeAll(async () => {
 afterAll(() => runtime.cleanup())
 
 test('throws a network error', async () => {
-  const errors: string[] = []
-  captureConsole(runtime.page, errors, (message) => {
-    return message.type() === 'error'
-  })
+  const { messages } = captureConsole(runtime.page)
 
   // Do not use `runtime.request()`, because it always awaits a response.
   // In this case we await a network error, performing a request manually.
@@ -32,5 +29,5 @@ test('throws a network error', async () => {
 
   // Assert a network error message printed into the console
   // before `fetch` rejects.
-  expect(errors).toContain('Failed to load resource: net::ERR_FAILED')
+  expect(messages.error).toContain('Failed to load resource: net::ERR_FAILED')
 })

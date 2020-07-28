@@ -1,10 +1,14 @@
 import { Page, ConsoleMessage, ConsoleMessageType } from 'puppeteer'
 
 export type Messages = Record<ConsoleMessageType, string[]>
+export type ConsolePredicate = (
+  text: string,
+  type: ConsoleMessageType,
+) => boolean
 
 export function captureConsole(
   page: Page,
-  predicate: (message: ConsoleMessage) => boolean = () => true,
+  predicate: ConsolePredicate = () => true,
 ) {
   const messages: Messages = {
     info: [],
@@ -28,7 +32,7 @@ export function captureConsole(
   }
 
   page.on('console', (message) => {
-    if (predicate(message)) {
+    if (predicate(message.text(), message.type())) {
       const type = message.type()
       const text = message.text()
 
@@ -41,8 +45,8 @@ export function captureConsole(
   }
 }
 
-export function filterLibraryLogs(message: ConsoleMessage) {
-  return message.text().startsWith('[MSW]')
+export const filterLibraryLogs = (text: string) => {
+  return text.startsWith('[MSW]')
 }
 
 export function removeConsoleStyles(message: string): string {

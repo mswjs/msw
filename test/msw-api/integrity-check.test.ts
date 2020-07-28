@@ -2,38 +2,32 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { captureConsole } from '../support/captureConsole'
 import copyServiceWorker from '../../config/copyServiceWorker'
 
 describe('Integrity check', () => {
   describe('given a Service Worker with the latest published integrity', () => {
-    let test: TestAPI
+    let runtime: TestAPI
 
     beforeAll(async () => {
-      test = await runBrowserWith(
+      runtime = await runBrowserWith(
         path.resolve(__dirname, 'integrity-check-valid.mocks.ts'),
       )
     })
 
     afterAll(() => {
-      return test.cleanup()
+      return runtime.cleanup()
     })
 
     it('should activate without errors', async () => {
-      const errorMessages: string[] = []
+      const { messages } = captureConsole(runtime.page)
+      await runtime.reload()
 
-      test.page.on('console', function (message) {
-        if (message.type() === 'error') {
-          errorMessages.push(message.text())
-        }
-      })
-
-      await test.reload()
-
-      expect(errorMessages).toHaveLength(0)
+      expect(messages.error).toHaveLength(0)
     })
 
     it('should have the mocking enabled', async () => {
-      const res = await test.request({
+      const res = await runtime.request({
         url: 'https://api.github.com/users/octocat',
       })
       const headers = res.headers()
@@ -47,7 +41,7 @@ describe('Integrity check', () => {
   })
 
   describe('given a Service Worker with a non-matching integrity', () => {
-    let test: TestAPI
+    let runtime: TestAPI
     const TEMP_SERVICE_WORKER_PATH = path.resolve(
       __dirname,
       '../..',
@@ -62,29 +56,23 @@ describe('Integrity check', () => {
         'intentionally-invalid-checksum',
       )
 
-      test = await runBrowserWith(
+      runtime = await runBrowserWith(
         path.resolve(__dirname, 'integrity-check-invalid.mocks.ts'),
       )
     })
 
     afterAll(() => {
       fs.unlinkSync(TEMP_SERVICE_WORKER_PATH)
-      return test.cleanup()
+      return runtime.cleanup()
     })
 
     it('should throw a meaningful error in the console', async () => {
-      const errors: string[] = []
-
-      test.page.on('console', function (message) {
-        if (message.type() === 'error') {
-          errors.push(message.text())
-        }
-      })
+      const { messages } = captureConsole(runtime.page)
 
       // Open the page anew to trigger the console listener
-      await test.reload()
+      await runtime.reload()
 
-      const integrityError = errors.find((text) => {
+      const integrityError = messages.error.find((text) => {
         return text.includes('[MSW] Detected outdated Service Worker')
       })
 
@@ -92,7 +80,7 @@ describe('Integrity check', () => {
     })
 
     it('should still leave the mocking enabled', async () => {
-      const res = await test.request({
+      const res = await runtime.request({
         url: 'https://api.github.com/users/octocat',
       })
       const headers = res.headers()

@@ -1,45 +1,22 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../../../support/runBrowserWith'
+import {
+  captureConsole,
+  filterLibraryLogs,
+} from '../../../../support/captureConsole'
 
-let runtimeRef: TestAPI
+let runtime: TestAPI
 
-async function startWorker() {
-  const errors: string[] = []
-  const warnings: string[] = []
-
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'warn.mocks.ts'))
-
-  runtime.page.on('console', (message) => {
-    const messageText = message.text()
-
-    switch (message.type()) {
-      case 'warning': {
-        if (messageText.startsWith('[MSW]')) {
-          warnings.push(messageText)
-          break
-        }
-      }
-
-      case 'error': {
-        if (messageText.startsWith('[MSW]')) {
-          errors.push(messageText)
-          break
-        }
-      }
-    }
-  })
-
-  runtimeRef = runtime
-
-  return { runtime, errors, warnings }
-}
+beforeAll(async () => {
+  runtime = await runBrowserWith(path.resolve(__dirname, 'warn.mocks.ts'))
+})
 
 afterEach(async () => {
-  await runtimeRef.cleanup()
+  await runtime.cleanup()
 })
 
 test('warns on an unhandled request when using the "warn" option', async () => {
-  const { runtime, warnings, errors } = await startWorker()
+  const { messages } = captureConsole(runtime.page)
 
   const res = await runtime.request({
     url: 'https://mswjs.io/non-existing-page',
@@ -47,8 +24,12 @@ test('warns on an unhandled request when using the "warn" option', async () => {
   const status = res.status()
 
   expect(status).toBe(404)
-  expect(errors).toHaveLength(0)
-  expect(warnings).toContain(
+
+  const libraryErrors = messages.error.filter(filterLibraryLogs)
+  const libraryWarnings = messages.warning.filter(filterLibraryLogs)
+
+  expect(libraryErrors).toHaveLength(0)
+  expect(libraryWarnings).toContain(
     '[MSW] Warning: captured a GET https://mswjs.io/non-existing-page request without a corresponding request handler.',
   )
 })

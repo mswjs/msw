@@ -15,6 +15,9 @@
   <a href="https://david-dm.org/mswjs/msw?type=dev" target="_blank">
     <img src="https://img.shields.io/david/dev/mswjs/msw.svg" alt="Dev dependencies status" />
   </a>
+   <a href="https://kcd.im/discord" target="_blank">
+    <img src="https://img.shields.io/badge/chat-online-green" alt="Discord server" />
+  </a>
 </p>
 
 <p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node.</p>

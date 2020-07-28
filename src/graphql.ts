@@ -17,9 +17,11 @@ import { jsonParse } from './utils/jsonParse'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
-export type GraphQLMockedRequest<
-  VariablesType = Record<string, any>
-> = MockedRequest & {
+export type GraphQLMockedRequest<VariablesType = Record<string, any>> = Omit<
+  MockedRequest,
+  'body'
+> & {
+  body: (GraphQLRequestPayload<VariablesType> & Record<string, any>) | undefined
   variables: VariablesType
 }
 

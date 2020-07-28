@@ -41,7 +41,7 @@ beforeAll(() => {
 
   global.navigator = {
     product: 'ReactNative',
-  }
+  } as any
 })
 
 afterAll(() => {

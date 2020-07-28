@@ -13,29 +13,26 @@ beforeAll(async () => {
 afterAll(() => runtime.cleanup())
 
 function findQueryParametersWarning(logs: string[]) {
-  return logs.find((message) => {
-    return message.startsWith(
+  return logs.find((text) => {
+    return text.startsWith(
       '[MSW] Found a redundant usage of query parameters in the request handler URL',
     )
   })
 }
 
 function findQueryParametersSuggestions(logs: string[], params: string[]) {
-  return logs.find((message) => {
+  return logs.find((text) => {
     return params.every((paramName) =>
-      message.includes(`const ${paramName} = query.get("${paramName}")`),
+      text.includes(`const ${paramName} = query.get("${paramName}")`),
     )
   })
 }
 
 test('warns when a request handler URL contains a single query parameter', async () => {
-  const warnings: string[] = []
-  captureConsole(runtime.page, warnings, (message) => {
-    return message.type() === 'warning'
-  })
+  const { messages } = captureConsole(runtime.page)
 
   await runtime.reload()
-  expect(findQueryParametersWarning(warnings)).toBeUndefined()
+  expect(findQueryParametersWarning(messages.warning)).toBeUndefined()
 
   const res = await runtime.request({
     url: `${runtime.origin}/user?id=123`,
@@ -43,20 +40,19 @@ test('warns when a request handler URL contains a single query parameter', async
   expect(res.status()).toBe(200)
 
   // Should produce a friendly warning.
-  expect(findQueryParametersWarning(warnings)).not.toBeUndefined()
+  expect(findQueryParametersWarning(messages.warning)).not.toBeUndefined()
 
   // Should suggest how to reference query parameters in the response resolver.
-  expect(findQueryParametersSuggestions(warnings, ['name'])).not.toBeUndefined()
+  expect(
+    findQueryParametersSuggestions(messages.warning, ['name']),
+  ).not.toBeUndefined()
 })
 
 test('warns when a request handler URL contains multiple query parameters', async () => {
-  const warnings: string[] = []
-  captureConsole(runtime.page, warnings, (message) => {
-    return message.type() === 'warning'
-  })
+  const { messages } = captureConsole(runtime.page)
 
   await runtime.reload()
-  expect(findQueryParametersWarning(warnings)).toBeUndefined()
+  expect(findQueryParametersWarning(messages.warning)).toBeUndefined()
 
   const res = await runtime.request({
     url: `${runtime.origin}/login?id=123`,
@@ -67,10 +63,10 @@ test('warns when a request handler URL contains multiple query parameters', asyn
   expect(res.status()).toBe(200)
 
   // Should produce a friendly warning.
-  expect(findQueryParametersWarning(warnings)).not.toBeUndefined()
+  expect(findQueryParametersWarning(messages.warning)).not.toBeUndefined()
 
   // Should suggest how to reference query parameters in the response resolver.
   expect(
-    findQueryParametersSuggestions(warnings, ['id', 'type']),
+    findQueryParametersSuggestions(messages.warning, ['id', 'type']),
   ).not.toBeUndefined()
 })

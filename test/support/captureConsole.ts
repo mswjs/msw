@@ -1,15 +1,44 @@
-import { Page, ConsoleMessage } from 'puppeteer'
+import { Page, ConsoleMessage, ConsoleMessageType } from 'puppeteer'
+
+export type Messages = Record<ConsoleMessageType, string[]>
 
 export function captureConsole(
   page: Page,
-  logs: string[],
   predicate: (message: ConsoleMessage) => boolean = () => true,
 ) {
+  const messages: Messages = {
+    info: [],
+    log: [],
+    debug: [],
+    error: [],
+    warning: [],
+    profile: [],
+    profileEnd: [],
+    table: [],
+    trace: [],
+    timeEnd: [],
+    startGroup: [],
+    startGroupCollapsed: [],
+    endGroup: [],
+    dir: [],
+    dirxml: [],
+    clear: [],
+    count: [],
+    assert: [],
+  }
+
   page.on('console', (message) => {
     if (predicate(message)) {
-      logs.push(removeConsoleStyles(message.text()))
+      const type = message.type()
+      const text = message.text()
+
+      messages[type] = messages[type].concat(removeConsoleStyles(text))
     }
   })
+
+  return {
+    messages,
+  }
 }
 
 export function filterLibraryLogs(message: ConsoleMessage) {

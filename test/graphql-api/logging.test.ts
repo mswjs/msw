@@ -18,9 +18,7 @@ describe('GraphQL: Logging', () => {
     let requestLog: string
 
     beforeAll(async () => {
-      const logs: string[] = []
-
-      captureConsole(test.page, logs, filterLibraryLogs)
+      const { messages } = captureConsole(test.page, filterLibraryLogs)
 
       await executeOperation(test.page, {
         query: `
@@ -33,8 +31,8 @@ describe('GraphQL: Logging', () => {
         `,
       })
 
-      requestLog = logs.find((message) => {
-        return message.includes('GetUserDetail')
+      requestLog = messages.startGroupCollapsed.find((text) => {
+        return text.includes('GetUserDetail')
       })
     })
 
@@ -57,9 +55,7 @@ describe('GraphQL: Logging', () => {
     let requestLog: string
 
     beforeAll(async () => {
-      const logs: string[] = []
-
-      captureConsole(test.page, logs, filterLibraryLogs)
+      const { messages } = captureConsole(test.page, filterLibraryLogs)
 
       await executeOperation(test.page, {
         query: `
@@ -71,8 +67,8 @@ describe('GraphQL: Logging', () => {
         `,
       })
 
-      requestLog = logs.find((message) => {
-        return message.includes('Login')
+      requestLog = messages.startGroupCollapsed.find((text) => {
+        return text.includes('Login')
       })
     })
 

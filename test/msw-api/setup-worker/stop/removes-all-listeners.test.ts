@@ -26,8 +26,7 @@ test('removes all listeners when the worker is stopped', async () => {
       return worker2.start()
     })
   })
-
-  const activationMessages = messages.log.filter((text) => {
+  const activationMessages = messages.startGroupCollapsed.filter((text) => {
     return text.includes('[MSW] Mocking enabled.')
   })
   expect(activationMessages).toHaveLength(2)
@@ -36,7 +35,7 @@ test('removes all listeners when the worker is stopped', async () => {
     url: `${runtime.origin}/user`,
   })
 
-  const requestLogs = messages.log.filter((text) => {
+  const requestLogs = messages.startGroupCollapsed.filter((text) => {
     return text.includes('[MSW]') && text.includes('GET /user')
   })
 

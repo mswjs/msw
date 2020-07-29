@@ -13,11 +13,7 @@ beforeAll(async () => {
 afterAll(() => runtime.cleanup())
 
 test('removes all listeners when the worker is stopped', async () => {
-  const logs = []
-
-  captureConsole(runtime.page, logs, (message) => {
-    return message.type() === 'startGroupCollapsed'
-  })
+  const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {
     // @ts-ignore
@@ -31,8 +27,8 @@ test('removes all listeners when the worker is stopped', async () => {
     })
   })
 
-  const activationMessages = logs.filter((message) => {
-    return message.includes('[MSW] Mocking enabled.')
+  const activationMessages = messages.log.filter((text) => {
+    return text.includes('[MSW] Mocking enabled.')
   })
   expect(activationMessages).toHaveLength(2)
 
@@ -40,8 +36,8 @@ test('removes all listeners when the worker is stopped', async () => {
     url: `${runtime.origin}/user`,
   })
 
-  const requestLogs = logs.filter((message) => {
-    return message.includes('[MSW]') && message.includes('GET /user')
+  const requestLogs = messages.log.filter((text) => {
+    return text.includes('[MSW]') && text.includes('GET /user')
   })
 
   expect(requestLogs).toHaveLength(1)

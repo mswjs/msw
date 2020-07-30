@@ -62,14 +62,14 @@
   "dependencies": {
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.0",
-    "chalk": "^4.0.0",
+    "chalk": "^4.1.0",
     "cookie": "^0.4.1",
-    "graphql": "^15.0.0",
-    "headers-utils": "^1.1.9",
-    "node-match-path": "^0.4.2",
+    "graphql": "^15.3.0",
+    "headers-utils": "^1.2.0",
+    "node-match-path": "^0.4.4",
     "node-request-interceptor": "^0.3.3",
     "statuses": "^2.0.0",
-    "yargs": "^15.3.1"
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.10.5",
@@ -82,7 +82,7 @@
     "@types/jest": "^26.0.7",
     "@types/node": "^14.0.27",
     "@types/node-fetch": "^2.5.7",
-    "@types/puppeteer": "^2.0.1",
+    "@types/puppeteer": "^3.0.1",
     "@types/webpack-dev-server": "^3.11.0",
     "@typescript-eslint/eslint-plugin": "^3.7.1",
     "@typescript-eslint/parser": "^3.7.1",
@@ -90,18 +90,18 @@
     "babel-loader": "^8.1.0",
     "babel-minify": "^0.5.1",
     "cross-env": "^7.0.0",
-    "eslint": "^7.1.0",
+    "eslint": "^7.5.0",
     "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.3",
-    "html-webpack-plugin": "^4.2.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "html-webpack-plugin": "^4.3.0",
     "husky": "^4.2.5",
     "ignore-loader": "^0.1.2",
     "jest": "^26.1.0",
-    "lint-staged": "^10.2.6",
+    "lint-staged": "^10.2.11",
     "node-fetch": "^2.6.0",
     "prettier": "^2.0.5",
-    "puppeteer": "^3.0.2",
-    "regenerator-runtime": "^0.13.5",
+    "puppeteer": "^5.2.1",
+    "regenerator-runtime": "^0.13.7",
     "rimraf": "^3.0.2",
     "rollup": "^2.23.0",
     "rollup-plugin-typescript2": "^0.27.1",
@@ -115,6 +115,6 @@
     "webpack-dev-server": "^3.11.0"
   },
   "resolutions": {
-    "chokidar": "3.3.1"
+    "chokidar": "3.4.1"
   }
 }

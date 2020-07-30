@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest, MockedRequest } from 'msw'
+import { rest } from 'msw'
 
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', (req, res, ctx) => {

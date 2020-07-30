@@ -1,4 +1,4 @@
-import { Page, ConsoleMessage, ConsoleMessageType } from 'puppeteer'
+import { Page, ConsoleMessageType } from 'puppeteer'
 
 export type Messages = Record<ConsoleMessageType, string[]>
 export type ConsolePredicate = (

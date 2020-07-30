@@ -12,7 +12,7 @@ beforeAll(async () => {
 
 afterAll(() => runtime.cleanup())
 
-test('removes all listeners when the worker is stopped', async () => {
+test.skip('removes all listeners when the worker is stopped', async () => {
   const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {

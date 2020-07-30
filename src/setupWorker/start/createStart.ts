@@ -35,6 +35,11 @@ export const createStart = (context: SetupWorkerInternalContext) => {
         return null
       }
 
+      // Remove all previously existing event listeners.
+      // This way none of the listeners persists between Fast refresh
+      // of the application's code.
+      context.events.removeAllListeners()
+
       context.events.addListener(
         navigator.serviceWorker,
         'message',

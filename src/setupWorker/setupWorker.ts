@@ -35,11 +35,13 @@ interface Listener {
   callback: EventListener
 }
 
+// Declare the list of event handlers on the module's scope
+// so it persists between Fash refreshes of the application's code.
+let listeners: Listener[] = []
+
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
-  let listeners: Listener[] = []
-
   const context: SetupWorkerInternalContext = {
     worker: null,
     registration: null,
@@ -87,7 +89,9 @@ export function setupWorker(
               reject,
             ),
           )
-        }).finally(() => bindings.forEach((unbind) => unbind()))
+        }).finally(() => {
+          bindings.forEach((unbind) => unbind())
+        })
       },
     },
   }

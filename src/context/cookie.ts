@@ -14,7 +14,9 @@ export const cookie = (
   return (res) => {
     const serializedCookie = cookieUtils.serialize(name, value, options)
     res.headers.set('Set-Cookie', serializedCookie)
-    document.cookie = serializedCookie
+    if (typeof document !== 'undefined') {
+      document.cookie = serializedCookie
+    }
     return res
   }
 }

@@ -11,6 +11,8 @@ export {
   RequestParams,
   RequestQuery,
   ResponseResolver,
+  ResponseResolverReturnType,
+  AsyncResponseResolverReturnType,
   defaultContext,
 } from './handlers/requestHandler'
 export { rest, restContext, RESTMethods } from './rest'

@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "Client-side API mocking using Service Workers.",
   "main": "lib/umd/index.js",
   "module": "lib/esm/index.js",
@@ -67,11 +67,11 @@
     "cookie": "^0.4.1",
     "graphql": "^15.3.0",
     "headers-utils": "^1.2.0",
+    "node-fetch": "^2.6.0",
     "node-match-path": "^0.4.4",
     "node-request-interceptor": "^0.3.3",
     "statuses": "^2.0.0",
-    "yargs": "^15.4.1",
-    "node-fetch": "^2.6.0"
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.10.5",

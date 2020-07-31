@@ -40,7 +40,10 @@ export type RequestParams = {
   [paramName: string]: any
 }
 
-type ResponseResolverReturnType = MockedResponse | undefined | void
+export type ResponseResolverReturnType<R> = R | undefined | void
+export type AsyncResponseResolverReturnType<R> =
+  | Promise<ResponseResolverReturnType<R>>
+  | ResponseResolverReturnType<R>
 
 export type ResponseResolver<
   RequestType = MockedRequest,
@@ -49,7 +52,7 @@ export type ResponseResolver<
   req: RequestType,
   res: ResponseComposition,
   context: ContextType,
-) => Promise<ResponseResolverReturnType> | ResponseResolverReturnType
+) => AsyncResponseResolverReturnType<MockedResponse>
 
 export interface RequestHandler<
   RequestType = MockedRequest,

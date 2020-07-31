@@ -1,5 +1,9 @@
 import { OperationTypeNode, OperationDefinitionNode, parse } from 'graphql'
-import { RequestHandler, MockedRequest } from './handlers/requestHandler'
+import {
+  RequestHandler,
+  MockedRequest,
+  AsyncResponseResolverReturnType,
+} from './handlers/requestHandler'
 import { MockedResponse, ResponseComposition } from './response'
 import { set } from './context/set'
 import { status } from './context/status'
@@ -50,7 +54,7 @@ export type GraphQLResponseResolver<QueryType, VariablesType> = (
   req: GraphQLMockedRequest<VariablesType>,
   res: ResponseComposition,
   context: GraphQLMockedContext<QueryType>,
-) => MockedResponse
+) => AsyncResponseResolverReturnType<MockedResponse>
 
 export interface GraphQLRequestPayload<VariablesType> {
   query: string

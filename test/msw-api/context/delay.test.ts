@@ -78,7 +78,7 @@ test('uses realistic server response delay, when not provided', async () => {
   // Actual response time should lie within min/max boundaries
   // of the random realistic response time.
   const responseTime = endPerf - startPerf
-  expect(responseTime).toRoughlyEqual(250, 150)
+  expect(responseTime).toRoughlyEqual(250, 200)
 
   const status = res.status()
   const headers = res.headers()

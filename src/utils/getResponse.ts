@@ -23,18 +23,10 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const [relevantHandler, parsedRequest, mockedResponse, publicRequest]: [
-    RequestHandler<any, any>,
-    R,
-    MockedResponse | null,
-    any,
-  ] = (await handlers.reduce<any>(async (handlerPromise, requestHandler) => {
-    // Now the reduce function is async so I need to wait to understand if a response was found
-    const handler = await handlerPromise
-    // Skip any request handlers lookup if a handler is already found,
-    // or the current handler is a one-time handler that's been already used.
-    if ((handler && handler[0]) || requestHandler.shouldSkip) {
-      return Promise.resolve(handler)
+  const relevantHandlers = handlers.filter((requestHandler) => {
+    //Skip current handler  if is a one-time handler that's been already used.
+    if (requestHandler.shouldSkip) {
+      return false
     }
 
     // Parse the captured request to get additional information.
@@ -45,44 +37,70 @@ export const getResponse = async <
       : null
 
     if (requestHandler.predicate(req, parsedRequest)) {
-      const { getPublicRequest, defineContext, resolver } = requestHandler
-
-      const publicRequest = getPublicRequest
-        ? getPublicRequest(req, parsedRequest)
-        : req
-      const context = defineContext
-        ? defineContext(publicRequest)
-        : defaultContext
-
-      const mockedResponse = await resolver(publicRequest, response, context)
-      // Handle a scenario when a request handler is present,
-      // but returns no mocked response (i.e. misses a `return res()` statement).
-      // In this case we try to find another handler
-      if (!mockedResponse) {
-        return [null, null, null, null]
-      }
-      return [requestHandler, parsedRequest, mockedResponse, publicRequest]
+      return true
     }
-  }, Promise.resolve([]))) || [null, null, null, null]
 
-  if (relevantHandler == null) {
+    return false
+  })
+
+  if (relevantHandlers.length == 0) {
     return {
       handler: null,
       response: null,
     }
   }
 
+  const handlerResponse = (await relevantHandlers.reduce(
+    async (handlerPromise, currentHandler) => {
+      // Now the reduce function is async so I need to wait to understand if a response was found
+      const handler = await handlerPromise
+
+      const { getPublicRequest, defineContext, resolver } = currentHandler
+
+      const parsedRequest = currentHandler.parse
+        ? currentHandler.parse(req)
+        : null
+
+      const publicRequest = getPublicRequest
+        ? getPublicRequest(req, parsedRequest)
+        : req
+
+      const context = defineContext
+        ? defineContext(publicRequest)
+        : defaultContext
+
+      const mockedResponse = await resolver(publicRequest, response, context)
+
+      if (mockedResponse && mockedResponse.once) {
+        // When responded with a one-time response, match the relevant request handler
+        // as skipped, so it cannot affect the captured requests anymore.
+        currentHandler.shouldSkip = true
+      }
+
+      //We will return the response of the first matching handler
+      if (!mockedResponse || handler[0]) {
+        return handler
+      }
+
+      return [currentHandler, parsedRequest, mockedResponse, publicRequest]
+    },
+    Promise.resolve([null, null, null, null]),
+  )) || [null, null, null, null]
+
+  const [
+    relevantHandler,
+    parsedRequest,
+    mockedResponse,
+    publicRequest,
+  ] = handlerResponse
+
+  // Handle a scenario when a request handler is present,
+  // but returns no mocked response (i.e. misses a `return res()` statement).
   if (!mockedResponse) {
     return {
       handler: relevantHandler,
       response: null,
     }
-  }
-
-  if (mockedResponse.once) {
-    // When responded with a one-time response, match the relevant request handler
-    // as skipped, so it cannot affect the captured requests anymore.
-    relevantHandler.shouldSkip = true
   }
 
   return {

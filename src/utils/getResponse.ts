@@ -55,6 +55,10 @@ export const getResponse = async <
       // Now the reduce function is async so I need to wait to understand if a response was found
       const handler = await handlerPromise
 
+      //If a first not empty response was found we'll stop evaluating other requests
+      if (handler[0]) {
+        return handler
+      }
       const { getPublicRequest, defineContext, resolver } = currentHandler
 
       const parsedRequest = currentHandler.parse
@@ -71,15 +75,14 @@ export const getResponse = async <
 
       const mockedResponse = await resolver(publicRequest, response, context)
 
+      if (!mockedResponse) {
+        return handler
+      }
+
       if (mockedResponse && mockedResponse.once) {
         // When responded with a one-time response, match the relevant request handler
         // as skipped, so it cannot affect the captured requests anymore.
         currentHandler.shouldSkip = true
-      }
-
-      //We will return the response of the first matching handler
-      if (!mockedResponse || handler[0]) {
-        return handler
       }
 
       return [currentHandler, parsedRequest, mockedResponse, publicRequest]

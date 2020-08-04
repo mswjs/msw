@@ -1,6 +1,4 @@
 import { format } from 'url'
-import { match } from 'node-match-path'
-import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
 import {
   RequestHandler,
   ResponseResolver,
@@ -18,12 +16,12 @@ import { delay } from './context/delay'
 import { fetch } from './context/fetch'
 
 /* Logging */
-import { resolveRelativeUrl } from './utils/resolveRelativeUrl'
 import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { isStringEqual } from './utils/isStringEqual'
+import { matchRequestUrl } from './utils/matching/matchRequest'
 import { resolveMask } from './utils/resolveMask'
 
 export enum RESTMethods {
@@ -47,35 +45,34 @@ export const restContext = {
   fetch,
 }
 
+interface ParsedRestRequest {
+  match: ReturnType<typeof matchRequestUrl>
+}
+
 const createRestHandler = (method: RESTMethods) => {
   return (
     mask: Mask,
     resolver: ResponseResolver<MockedRequest, typeof restContext>,
-  ): RequestHandler<MockedRequest, typeof restContext> => {
+  ): RequestHandler<MockedRequest, typeof restContext, ParsedRestRequest> => {
     const resolvedMask = resolveMask(mask)
-    const cleanMask =
-      resolvedMask instanceof URL
-        ? getCleanUrl(resolvedMask)
-        : resolvedMask instanceof RegExp
-        ? resolvedMask
-        : resolveRelativeUrl(resolvedMask)
 
     return {
-      predicate(req) {
-        // Ignore query parameters and hash when matching requests URI
-        const cleanUrl = getCleanUrl(req.url)
-        const hasSameMethod = isStringEqual(method, req.method)
-        const urlMatch = match(cleanMask, cleanUrl)
+      parse(req) {
+        // Match the request during parsing to prevent matching it twice
+        // in order to get the request URL parameters.
+        const match = matchRequestUrl(req.url, mask)
 
-        return hasSameMethod && urlMatch.matches
+        return {
+          match,
+        }
+      },
+      predicate(req, parsedRequest) {
+        return isStringEqual(method, req.method) && parsedRequest.match.matches
       },
 
-      getPublicRequest(req) {
+      getPublicRequest(req, parsedRequest) {
         // Get request path parameters based on the given mask
-        const params =
-          (mask &&
-            match(resolveRelativeUrl(mask), getCleanUrl(req.url)).params) ||
-          {}
+        const params = (mask && parsedRequest.match.params) || {}
 
         return {
           ...req,

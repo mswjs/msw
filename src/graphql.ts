@@ -5,6 +5,7 @@ import {
   AsyncResponseResolverReturnType,
 } from './handlers/requestHandler'
 import { MockedResponse, ResponseComposition } from './response'
+import { Mask } from './setupWorker/glossary'
 import { set } from './context/set'
 import { status } from './context/status'
 import { delay } from './context/delay'
@@ -18,6 +19,7 @@ import { prepareResponse } from './utils/logger/prepareResponse'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { jsonParse } from './utils/jsonParse'
+import { matchRequestUrl } from './utils/matching/matchRequest'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -88,7 +90,7 @@ export function parseQuery(
   }
 }
 
-const createGraphQLHandler = (operationType: OperationTypeNode) => {
+const createGraphQLHandler = (operationType: OperationTypeNode, mask: Mask) => {
   return <QueryType, VariablesType = Record<string, any>>(
     expectedOperation: GraphQLRequestHandlerSelector,
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
@@ -132,6 +134,7 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
             const { query, variables } = req.body as GraphQLRequestPayload<
               VariablesType
             >
+
             const { operationName } = parseQuery(query, operationType)
 
             return {
@@ -158,12 +161,16 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
           return false
         }
 
+        // Match the request URL against a given mask,
+        // in case of an endpoint-specific request handler.
+        const hasMatchingMask = matchRequestUrl(req.url, mask)
+
         const isMatchingOperation =
           expectedOperation instanceof RegExp
             ? expectedOperation.test(parsed.operationName)
             : expectedOperation === parsed.operationName
 
-        return isMatchingOperation
+        return isMatchingOperation && hasMatchingMask.matches
       },
 
       defineContext() {
@@ -196,7 +203,19 @@ const createGraphQLHandler = (operationType: OperationTypeNode) => {
   }
 }
 
+const graphqlStandardHandlers = {
+  query: createGraphQLHandler('query', '*'),
+  mutation: createGraphQLHandler('mutation', '*'),
+}
+
+function createGraphQLLink(uri: Mask): typeof graphqlStandardHandlers {
+  return {
+    query: createGraphQLHandler('query', uri),
+    mutation: createGraphQLHandler('mutation', uri),
+  }
+}
+
 export const graphql = {
-  query: createGraphQLHandler('query'),
-  mutation: createGraphQLHandler('mutation'),
+  ...graphqlStandardHandlers,
+  link: createGraphQLLink,
 }

@@ -19,7 +19,9 @@ test('mocks a GraphQL query issued with a GET request', async () => {
       }
     `,
     },
-    'GET',
+    {
+      method: 'GET',
+    },
   )
 
   const headers = res.headers()

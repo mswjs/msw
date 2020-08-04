@@ -5,6 +5,7 @@ import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 
 export type Mask = RegExp | string
+export type ResolvedMask = Mask | URL
 
 export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null

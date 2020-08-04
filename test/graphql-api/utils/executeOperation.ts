@@ -1,4 +1,4 @@
-import { Page } from 'puppeteer'
+import { Page, Response } from 'puppeteer'
 
 export const HOSTNAME = 'http://localhost:8080/graphql'
 
@@ -21,7 +21,12 @@ export const graphqlOperation = (url: string) => {
 
 interface GraphQLRequestPayload {
   query: string
-  variables?: Record<string, string>
+  variables?: Record<string, any>
+}
+
+interface GraphQLOperationOptions {
+  uri?: string
+  method?: 'GET' | 'POST'
 }
 
 /**
@@ -30,11 +35,11 @@ interface GraphQLRequestPayload {
 export const executeOperation = async (
   page: Page,
   payload: GraphQLRequestPayload,
-  method: 'GET' | 'POST' = 'POST',
+  options?: GraphQLOperationOptions,
 ) => {
+  const { uri = HOSTNAME, method = 'POST' } = options || {}
   const { query, variables } = payload
-
-  const url = new URL(HOSTNAME)
+  const url = new URL(uri)
 
   if (method === 'GET') {
     url.searchParams.set('query', query)
@@ -46,9 +51,9 @@ export const executeOperation = async (
 
   const urlString = url.toString()
 
-  page.evaluate(
+  const responsePromise = page.evaluate(
     (url, method, query, variables) => {
-      fetch(
+      return fetch(
         url,
         Object.assign(
           {},
@@ -71,5 +76,10 @@ export const executeOperation = async (
     payload.variables,
   )
 
-  return page.waitForResponse(urlString)
+  return new Promise<Response>((resolve, reject) => {
+    // Propagate `fetch` exceptions to the parent Promise.
+    responsePromise.catch(reject)
+
+    return page.waitForResponse(urlString).then(resolve)
+  })
 }

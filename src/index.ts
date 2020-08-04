@@ -24,3 +24,4 @@ export {
   GraphQLRequestPayload,
   GraphQLResponseResolver,
 } from './graphql'
+export { matchRequestUrl } from './utils/matching/matchRequest'

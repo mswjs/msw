@@ -1,4 +1,4 @@
-import cookieUtils from 'cookie'
+import * as cookieUtils from 'cookie'
 import { Headers, flattenHeadersObject } from 'headers-utils'
 import {
   RequestInterceptor,

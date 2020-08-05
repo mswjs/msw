@@ -1,4 +1,4 @@
-import cookieUtils, { CookieSerializeOptions } from 'cookie'
+import * as cookieUtils from 'cookie'
 import { ResponseTransformer } from '../response'
 
 /**
@@ -9,14 +9,16 @@ import { ResponseTransformer } from '../response'
 export const cookie = (
   name: string,
   value: string,
-  options?: CookieSerializeOptions,
+  options?: cookieUtils.CookieSerializeOptions,
 ): ResponseTransformer => {
   return (res) => {
     const serializedCookie = cookieUtils.serialize(name, value, options)
     res.headers.set('Set-Cookie', serializedCookie)
+
     if (typeof document !== 'undefined') {
       document.cookie = serializedCookie
     }
+
     return res
   }
 }

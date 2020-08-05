@@ -1,4 +1,4 @@
-import cookieUtils from 'cookie'
+import * as cookieUtils from 'cookie'
 import { MockedRequest } from '../../handlers/requestHandler'
 
 function getAllCookies() {

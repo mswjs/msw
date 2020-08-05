@@ -1,4 +1,4 @@
-import cookieUtils from 'cookie'
+import * as cookieUtils from 'cookie'
 import { cookie } from './cookie'
 import { response } from '../response'
 

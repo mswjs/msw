@@ -16,13 +16,13 @@ test('falls through all relevant request handlers until response is returned', a
   const body = await res.json()
 
   const firstHandlerMessage = messages.log.find(
-    (text) => text === '[test] first caught',
+    (text) => text === '[get] first',
   )
   const secondHandlerMessage = messages.log.find(
-    (text) => text === '[test] second caught',
+    (text) => text === '[get] second',
   )
   const thirdHandlerMessage = messages.log.find(
-    (text) => text === '[test] third caught',
+    (text) => text === '[get] third',
   )
 
   // One of the handlers returns a mocked response.

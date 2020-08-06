@@ -13,6 +13,13 @@ interface ResponsePayload {
   parsedRequest?: any
 }
 
+interface ReducedHandlersPayload {
+  requestHandler?: RequestHandler<any, any>
+  parsedRequest?: any
+  mockedResponse: MockedResponse | null
+  publicRequest?: any
+}
+
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
@@ -23,47 +30,50 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const relevantHandlers = handlers.filter((requestHandler) => {
-    //Skip current handler  if is a one-time handler that's been already used.
-    if (requestHandler.shouldSkip) {
-      return false
-    }
+  const relevantHandlers = handlers
+    .filter((requestHandler) => {
+      // Skip a handler if it has been already used for a one-time response.
+      return !requestHandler.shouldSkip
+    })
+    .map<[RequestHandler<any, any>, any]>((requestHandler) => {
+      // Parse the captured request to get additional information.
+      // Make the predicate function accept all the necessary information
+      // to decide on the interception.
+      const parsedRequest = requestHandler.parse
+        ? requestHandler.parse(req)
+        : null
 
-    // Parse the captured request to get additional information.
-    // Make the predicate function accept all the necessary information
-    // to decide on the interception.
-    const parsedRequest = requestHandler.parse
-      ? requestHandler.parse(req)
-      : null
-
-    if (requestHandler.predicate(req, parsedRequest)) {
-      return true
-    }
-
-    return false
-  })
+      return [requestHandler, parsedRequest]
+    })
+    .filter(([requestHandler, parsedRequest]) => {
+      return requestHandler.predicate(req, parsedRequest)
+    })
 
   if (relevantHandlers.length == 0) {
+    // Handle a scenario when a request has no relevant request handlers.
+    // In that case it would be bypassed (performed as-is).
     return {
       handler: null,
       response: null,
     }
   }
 
-  const handlerResponse = (await relevantHandlers.reduce(
-    async (handlerPromise, currentHandler) => {
-      // Now the reduce function is async so I need to wait to understand if a response was found
-      const handler = await handlerPromise
+  const {
+    requestHandler,
+    parsedRequest,
+    mockedResponse,
+    publicRequest,
+  } = await relevantHandlers.reduce<Promise<ReducedHandlersPayload>>(
+    async (asyncAcc, [requestHandler, parsedRequest]) => {
+      // Now the reduce function is async so we need to await if response was found
+      const acc = await asyncAcc
 
-      //If a first not empty response was found we'll stop evaluating other requests
-      if (handler[0]) {
-        return handler
+      // If a first not empty response was found we'll stop evaluating other requests
+      if (acc.requestHandler) {
+        return acc
       }
-      const { getPublicRequest, defineContext, resolver } = currentHandler
 
-      const parsedRequest = currentHandler.parse
-        ? currentHandler.parse(req)
-        : null
+      const { getPublicRequest, defineContext, resolver } = requestHandler
 
       const publicRequest = getPublicRequest
         ? getPublicRequest(req, parsedRequest)
@@ -76,38 +86,37 @@ export const getResponse = async <
       const mockedResponse = await resolver(publicRequest, response, context)
 
       if (!mockedResponse) {
-        return handler
+        return acc
       }
 
       if (mockedResponse && mockedResponse.once) {
         // When responded with a one-time response, match the relevant request handler
         // as skipped, so it cannot affect the captured requests anymore.
-        currentHandler.shouldSkip = true
+        requestHandler.shouldSkip = true
       }
 
-      return [currentHandler, parsedRequest, mockedResponse, publicRequest]
+      return {
+        requestHandler,
+        parsedRequest,
+        mockedResponse,
+        publicRequest,
+      }
     },
-    Promise.resolve([null, null, null, null]),
-  )) || [null, null, null, null]
+    Promise.resolve({ mockedResponse: null }),
+  )
 
-  const [
-    relevantHandler,
-    parsedRequest,
-    mockedResponse,
-    publicRequest,
-  ] = handlerResponse
-
-  // Handle a scenario when a request handler is present,
-  // but returns no mocked response (i.e. misses a `return res()` statement).
-  if (!mockedResponse) {
+  // Although reducing a list of relevant request handlers, it's possible
+  // that in the end there will be no handler associted with the request
+  // (i.e. if relevant handlers are fall-through).
+  if (!requestHandler) {
     return {
-      handler: relevantHandler,
+      handler: null,
       response: null,
     }
   }
 
   return {
-    handler: relevantHandler,
+    handler: requestHandler,
     response: mockedResponse,
     publicRequest,
     parsedRequest,

@@ -38,3 +38,29 @@ test('falls through all relevant request handlers until response is returned', a
 
   await runtime.cleanup()
 })
+
+test('falls through all relevant handler even if none returns response', async () => {
+  const runtime = await createRuntime()
+  const { messages } = captureConsole(runtime.page)
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/blog/article`,
+    fetchOptions: {
+      method: 'POST',
+    },
+  })
+  const status = res.status()
+
+  // Neither of request handlers returned a mocked response.
+  expect(status).toBe(404)
+
+  const firstHandlerMessage = messages.log.find((text) => text === '[post] one')
+  const secondHandlerMessage = messages.log.find(
+    (text) => text === '[post] one',
+  )
+
+  expect(firstHandlerMessage).toBeTruthy()
+  expect(secondHandlerMessage).toBeTruthy()
+
+  await runtime.cleanup()
+})

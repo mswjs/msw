@@ -6,8 +6,8 @@ const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => res(ctx.json({ firstName: 'John' }))),
   rest.get('/user', () => console.log('[get] third')),
 
-  rest.post('/blog/*', () => console.log('[post] one')),
-  rest.post('/blog/article', () => console.log('[post] two')),
+  rest.post('/blog/*', () => console.log('[post] first')),
+  rest.post('/blog/article', () => console.log('[post] second')),
 )
 
 worker.start()

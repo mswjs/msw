@@ -54,9 +54,11 @@ test('falls through all relevant handler even if none returns response', async (
   // Neither of request handlers returned a mocked response.
   expect(status).toBe(404)
 
-  const firstHandlerMessage = messages.log.find((text) => text === '[post] one')
+  const firstHandlerMessage = messages.log.find(
+    (text) => text === '[post] first',
+  )
   const secondHandlerMessage = messages.log.find(
-    (text) => text === '[post] one',
+    (text) => text === '[post] second',
   )
 
   expect(firstHandlerMessage).toBeTruthy()

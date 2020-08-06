@@ -1,10 +1,10 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('*', () => console.log('[test] first caught')),
-  rest.get('/us*', () => console.log('[test] second caught')),
+  rest.get('*', () => console.log('[get] first')),
+  rest.get('/us*', () => console.log('[get] second')),
   rest.get('/user', (req, res, ctx) => res(ctx.json({ firstName: 'John' }))),
-  rest.get('/user', () => console.log('[test] third caught')),
+  rest.get('/user', () => console.log('[get] third')),
 )
 
 worker.start()

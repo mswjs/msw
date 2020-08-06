@@ -1,20 +1,13 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 import { captureConsole } from '../../support/captureConsole'
 
-let runtime: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'fall-through.mocks.ts'))
+}
 
-beforeAll(async () => {
-  runtime = await runBrowserWith(
-    path.resolve(__dirname, 'fall-through.mocks.ts'),
-  )
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
-
-it('falls through all relevant request handlers until response is returned', async () => {
+test('falls through all relevant request handlers until response is returned', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
 
   const res = await runtime.request({
@@ -22,13 +15,13 @@ it('falls through all relevant request handlers until response is returned', asy
   })
   const body = await res.json()
 
-  const firstHandlerMessages = messages.log.filter(
+  const firstHandlerMessage = messages.log.find(
     (text) => text === '[test] first caught',
   )
-  const secondHandlerMessages = messages.log.filter(
+  const secondHandlerMessage = messages.log.find(
     (text) => text === '[test] second caught',
   )
-  const thirdHandlerMessages = messages.log.filter(
+  const thirdHandlerMessage = messages.log.find(
     (text) => text === '[test] third caught',
   )
 
@@ -36,10 +29,12 @@ it('falls through all relevant request handlers until response is returned', asy
   expect(body).toEqual({ firstName: 'John' })
 
   // These two handlers execute before the one that returned the response.
-  expect(firstHandlerMessages).toHaveLength(1)
-  expect(secondHandlerMessages).toHaveLength(1)
+  expect(firstHandlerMessage).toBeTruthy()
+  expect(secondHandlerMessage).toBeTruthy()
 
   // The third handler is listed after the one that returnes the response,
   // so it must never execute (response is sent).
-  expect(thirdHandlerMessages).toHaveLength(0)
+  expect(thirdHandlerMessage).toBeFalsy()
+
+  await runtime.cleanup()
 })

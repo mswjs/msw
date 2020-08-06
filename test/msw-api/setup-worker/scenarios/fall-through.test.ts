@@ -1,6 +1,6 @@
 import * as path from 'path'
-import { runBrowserWith } from '../../support/runBrowserWith'
-import { captureConsole } from '../../support/captureConsole'
+import { runBrowserWith } from '../../../support/runBrowserWith'
+import { captureConsole } from '../../../support/captureConsole'
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'fall-through.mocks.ts'))

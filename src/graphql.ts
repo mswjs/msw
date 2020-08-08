@@ -127,7 +127,10 @@ const createGraphQLHandler = (operationType: OperationTypeNode, mask: Mask) => {
           }
 
           case 'POST': {
-            if (!req.body) {
+            if (
+              !req.body ||
+              !(req.body as GraphQLRequestPayload<VariablesType>).query
+            ) {
               return null
             }
 

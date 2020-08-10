@@ -1,5 +1,5 @@
-import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { until } from '@open-draft/until'
+import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { ServiceWorkerInstanceTuple } from '../../glossary'
 import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerUrl'
 
@@ -16,9 +16,9 @@ export const getWorkerInstance = async (
 
   const [, mockRegistrations] = await until(async () => {
     const registrations = await navigator.serviceWorker.getRegistrations()
-    return registrations.filter((registration) =>
-      getWorkerByRegistration(registration, absoluteWorkerUrl),
-    )
+    return registrations.filter((registration) => {
+      return getWorkerByRegistration(registration, absoluteWorkerUrl)
+    })
   })
 
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
@@ -31,7 +31,7 @@ export const getWorkerInstance = async (
     location.reload()
   }
 
-  const existingRegistration = mockRegistrations[0]
+  const [existingRegistration] = mockRegistrations
 
   if (existingRegistration) {
     // Update existing service worker to ensure it's up-to-date
@@ -47,6 +47,8 @@ export const getWorkerInstance = async (
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
       return [
+        // Compare existing worker registration by its worker URL,
+        // to prevent irrelevant workers to resolve here (such as Codesandbox worker).
         getWorkerByRegistration(registration, absoluteWorkerUrl),
         registration,
       ]

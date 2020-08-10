@@ -45,7 +45,7 @@ export const restContext = {
   fetch,
 }
 
-interface ParsedRestRequest {
+export interface ParsedRestRequest {
   match: ReturnType<typeof matchRequestUrl>
 }
 

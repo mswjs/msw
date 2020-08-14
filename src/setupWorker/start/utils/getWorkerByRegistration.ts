@@ -16,9 +16,7 @@ export const getWorkerByRegistration = (
   const mockWorker = existingStates.find((worker) => {
     if (matchFilenameOnly) {
       const workerFileName = absoluteWorkerUrl.split('/').pop()
-      if (workerFileName) {
-        return worker.scriptURL.includes(workerFileName)
-      }
+      return workerFileName ? worker.scriptURL.includes(workerFileName) : false
     }
     return worker.scriptURL === absoluteWorkerUrl
   })

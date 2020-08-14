@@ -5,6 +5,7 @@
 export const getWorkerByRegistration = (
   registration: ServiceWorkerRegistration,
   absoluteWorkerUrl: string,
+  matchFilenameOnly = false,
 ): ServiceWorker | null => {
   const allStates = [
     registration.active,
@@ -13,6 +14,12 @@ export const getWorkerByRegistration = (
   ]
   const existingStates = allStates.filter(Boolean) as ServiceWorker[]
   const mockWorker = existingStates.find((worker) => {
+    if (matchFilenameOnly) {
+      const workerFileName = absoluteWorkerUrl.split('/').pop()
+      if (workerFileName) {
+        return worker.scriptURL.includes(workerFileName)
+      }
+    }
     return worker.scriptURL === absoluteWorkerUrl
   })
 

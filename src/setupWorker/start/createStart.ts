@@ -18,6 +18,7 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   quiet: false,
   waitUntilReady: true,
   onUnhandledRequest: 'bypass',
+  matchFilenameOnly: false,
 }
 
 export const createStart = (context: SetupWorkerInternalContext) => {
@@ -50,6 +51,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
         getWorkerInstance(
           resolvedOptions.serviceWorker.url,
           resolvedOptions.serviceWorker.options,
+          resolvedOptions.matchFilenameOnly,
         ),
       )
 

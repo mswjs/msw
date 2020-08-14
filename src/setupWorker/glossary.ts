@@ -54,6 +54,14 @@ export type StartOptions = SharedOptions & {
    * instance is ready. Defaults to `true`.
    */
   waitUntilReady?: boolean
+
+  /**
+   * A boolean that allows you to override the default strict matching behavior. If set to false, the first worker
+   * based on a matching filename only (ex: mockServiceWorker.js) will be returned. This is primarily useful in the scenario that
+   * you are using proxies and having difficulty to get the origin and `scriptURL` to match due to port differences.
+   * Defaults to `false`.
+   */
+  matchFilenameOnly?: boolean
 }
 
 export type RequestHandlersList = RequestHandler<any, any>[]

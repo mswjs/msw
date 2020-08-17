@@ -11,7 +11,10 @@ const server = setupServer(
   }),
 )
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'warn' })
+})
+
 afterAll(() => {
   server.close()
   jest.restoreAllMocks()
@@ -23,7 +26,12 @@ test('warns on unhandled request when using the "warn" value', async () => {
   const res = await fetch('https://test.mswjs.io')
 
   expect(res).toHaveProperty('status', 404)
-  expect(console.warn).toBeCalledWith(
-    '[MSW] Warning: captured a GET https://test.mswjs.io/ request without a corresponding request handler.',
-  )
+  expect(console.warn).toBeCalledWith(`\
+[MSW] Warning: captured a GET https://test.mswjs.io/ request without a corresponding request handler.
+
+  If you wish to intercept this request, consider creating a request handler for it:
+
+  rest.get('https://test.mswjs.io/', (req, res, ctx) => {
+    return res(ctx.text('body'))
+  })`)
 })

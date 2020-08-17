@@ -11,13 +11,23 @@ const server = setupServer(
   }),
 )
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'error' })
+})
+
+afterAll(() => {
+  server.close()
+})
 
 test('errors on unhandled request when using the "error" value', async () => {
   const getResponse = () => fetch('https://test.mswjs.io')
 
-  await expect(getResponse()).rejects.toThrow(
-    'request to https://test.mswjs.io/ failed, reason: [MSW] Error: captured a GET https://test.mswjs.io/ request without a corresponding request handler.',
-  )
+  await expect(getResponse()).rejects.toThrow(`\
+request to https://test.mswjs.io/ failed, reason: [MSW] Error: captured a GET https://test.mswjs.io/ request without a corresponding request handler.
+
+  If you wish to intercept this request, consider creating a request handler for it:
+
+  rest.get('https://test.mswjs.io/', (req, res, ctx) => {
+    return res(ctx.text('body'))
+  })`)
 })

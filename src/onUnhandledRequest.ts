@@ -1,4 +1,5 @@
 import { MockedRequest } from './handlers/requestHandler'
+import { getPublicUrlFromRequest } from './utils/getPublicUrlFromRequest'
 
 type UnhandledRequestCallback = (req: MockedRequest) => void
 
@@ -17,7 +18,17 @@ export function onUnhandledRequest(
     return
   }
 
-  const message = `captured a ${request.method} ${request.url} request without a corresponding request handler.`
+  const publicUrl = getPublicUrlFromRequest(request)
+
+  const message = `captured a ${request.method} ${
+    request.url
+  } request without a corresponding request handler.
+
+  If you wish to intercept this request, consider creating a request handler for it:
+
+  rest.${request.method.toLowerCase()}('${publicUrl}', (req, res, ctx) => {
+    return res(ctx.text('body'))
+  })`
 
   switch (onUnhandledRequest) {
     case 'error': {

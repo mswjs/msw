@@ -1,4 +1,3 @@
-import { format } from 'url'
 import {
   RequestHandler,
   ResponseResolver,
@@ -18,6 +17,7 @@ import { fetch } from './context/fetch'
 /* Logging */
 import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
+import { getPublicUrlFromRequest } from './utils/getPublicUrlFromRequest'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { isStringEqual } from './utils/isStringEqual'
@@ -110,14 +110,7 @@ ${queryParams
           )
         }
 
-        const isRelativeRequest = req.referrer.startsWith(req.url.origin)
-        const publicUrl = isRelativeRequest
-          ? req.url.pathname
-          : format({
-              protocol: req.url.protocol,
-              host: req.url.host,
-              pathname: req.url.pathname,
-            })
+        const publicUrl = getPublicUrlFromRequest(req)
 
         const loggedRequest = prepareRequest(req)
         const loggedResponse = prepareResponse(res)

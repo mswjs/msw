@@ -61,7 +61,7 @@ Browser usage is what sets Mock Service Worker apart from other tools. Utilizing
 ### How is it different?
 
 - Intercepts requests on the network level, not the application level.
-- If your think of your application as a box, Mock Service Worker lives in its own box next to yours, instead of opening and altering it for the purpose of mocking.
+- If you think of your application as a box, Mock Service Worker lives in its own box next to yours, instead of opening and altering it for the purpose of mocking.
 - Agnostic of request-issuing libraries, so you can use it with `fetch`, `axios`, `react-query`, you-name-it.
 - The same mock definition can be reused for unit, integration, E2E testing, and debugging.
 

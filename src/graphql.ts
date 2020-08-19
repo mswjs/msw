@@ -73,6 +73,17 @@ interface ParsedQueryPayload {
   operationName: string | undefined
 }
 
+interface ParsedQueryAndTypePayload {
+  operationType: OperationTypeNode | undefined
+  operationName: string | undefined
+}
+
+function isOperationTypeNode(
+  operationType: any,
+): operationType is OperationTypeNode {
+  return true
+}
+
 export function parseQuery(
   query: string,
   definitionOperation: OperationTypeNode = 'query',
@@ -86,6 +97,21 @@ export function parseQuery(
   ) as OperationDefinitionNode
 
   return {
+    operationName: operationDef?.name?.value,
+  }
+}
+
+function parseQueryIndependentOfOperation(
+  query: string,
+): ParsedQueryAndTypePayload {
+  const ast = parse(query)
+
+  const operationDef = ast.definitions.find(
+    (def) => def.kind === 'OperationDefinition',
+  ) as OperationDefinitionNode
+
+  return {
+    operationType: operationDef?.operation,
     operationName: operationDef?.name?.value,
   }
 }
@@ -203,13 +229,137 @@ const createGraphQLHandler = (operationType: OperationTypeNode, mask: Mask) => {
   }
 }
 
+const createGraphQLOperationsHandler = (mask: Mask) => {
+  return <QueryType, VariablesType = Record<string, any>>(
+    resolver: GraphQLResponseResolver<QueryType, VariablesType>,
+  ): RequestHandler<
+    GraphQLMockedRequest<VariablesType>,
+    GraphQLMockedContext<QueryType>,
+    GraphQLRequestParsedResult<VariablesType>
+  > => {
+    return {
+      resolver,
+
+      parse(req) {
+        // According to the GraphQL specification, a GraphQL request can be issued
+        // using both "GET" and "POST" methods.
+        switch (req.method) {
+          case 'GET': {
+            const query = req.url.searchParams.get('query')
+            const variablesString = req.url.searchParams.get('variables') || ''
+
+            if (!query) {
+              return null
+            }
+
+            const variables = variablesString
+              ? jsonParse<VariablesType>(variablesString)
+              : ({} as VariablesType)
+
+            const {
+              operationType,
+              operationName,
+            } = parseQueryIndependentOfOperation(query)
+
+            if (isOperationTypeNode(operationType)) {
+              return {
+                operationType,
+                operationName,
+                variables,
+              }
+            } else {
+              return null
+            }
+          }
+
+          case 'POST': {
+            if (!req.body?.query) {
+              return null
+            }
+
+            const { query, variables } = req.body as GraphQLRequestPayload<
+              VariablesType
+            >
+
+            const {
+              operationType,
+              operationName,
+            } = parseQueryIndependentOfOperation(query)
+
+            if (isOperationTypeNode(operationType)) {
+              return {
+                operationType,
+                operationName,
+                variables,
+              }
+            } else {
+              return null
+            }
+          }
+
+          default:
+            return null
+        }
+      },
+
+      getPublicRequest(req, parsed) {
+        return {
+          ...req,
+          variables: parsed.variables || ({} as VariablesType),
+        }
+      },
+
+      predicate(req, parsed) {
+        if (!parsed) {
+          return false
+        }
+
+        // Match the request URL against a given mask,
+        // in case of an endpoint-specific request handler.
+        const hasMatchingMask = matchRequestUrl(req.url, mask)
+
+        return hasMatchingMask.matches
+      },
+
+      defineContext() {
+        return graphqlContext
+      },
+
+      log(req, res, handler, parsed) {
+        const { operationType, operationName } = parsed
+        const loggedRequest = prepareRequest(req)
+        const loggedResponse = prepareResponse(res)
+
+        console.groupCollapsed(
+          '[MSW] %s %s (%c%s%c)',
+          getTimestamp(),
+          operationName,
+          `color:${getStatusCodeColor(res.status)}`,
+          res.status,
+          'color:inherit',
+        )
+        console.log('Request:', loggedRequest)
+        console.log('Handler:', {
+          operationType,
+          operationName,
+          predicate: handler.predicate,
+        })
+        console.log('Response:', loggedResponse)
+        console.groupEnd()
+      },
+    }
+  }
+}
+
 const graphqlStandardHandlers = {
+  operations: createGraphQLOperationsHandler('*'),
   query: createGraphQLHandler('query', '*'),
   mutation: createGraphQLHandler('mutation', '*'),
 }
 
 function createGraphQLLink(uri: Mask): typeof graphqlStandardHandlers {
   return {
+    operations: createGraphQLOperationsHandler(uri),
     query: createGraphQLHandler('query', uri),
     mutation: createGraphQLHandler('mutation', uri),
   }

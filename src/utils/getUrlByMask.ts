@@ -3,9 +3,8 @@ import { getAbsoluteUrl } from './getAbsoluteUrl'
 
 /**
  * Converts a given request handler mask into a URL, if given a valid URL string.
- * Otherwise, returns the mask as-is.
  */
-export function resolveMask(mask: Mask): URL | RegExp | string {
+export function getUrlByMask(mask: Mask): URL | Mask {
   if (mask instanceof RegExp) {
     return mask
   }

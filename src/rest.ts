@@ -22,7 +22,7 @@ import { getTimestamp } from './utils/logging/getTimestamp'
 import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'
 import { matchRequestUrl } from './utils/matching/matchRequest'
-import { resolveMask } from './utils/resolveMask'
+import { getUrlByMask } from './utils/getUrlByMask'
 
 export enum RESTMethods {
   GET = 'GET',
@@ -54,7 +54,7 @@ const createRestHandler = (method: RESTMethods) => {
     mask: Mask,
     resolver: ResponseResolver<MockedRequest, typeof restContext>,
   ): RequestHandler<MockedRequest, typeof restContext, ParsedRestRequest> => {
-    const resolvedMask = resolveMask(mask)
+    const resolvedMask = getUrlByMask(mask)
 
     return {
       parse(req) {

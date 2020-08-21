@@ -17,7 +17,7 @@ import { fetch } from './context/fetch'
 /* Logging */
 import { prepareRequest } from './utils/logger/prepareRequest'
 import { prepareResponse } from './utils/logger/prepareResponse'
-import { getPublicUrlFromRequest } from './utils/getPublicUrlFromRequest'
+import { getPublicUrlFromRequest } from './utils/request/getPublicUrlFromRequest'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'

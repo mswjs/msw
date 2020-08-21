@@ -1,5 +1,5 @@
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from '../../handlers/requestHandler'
 
 test('returns an absolute URL string given its origin differs from the referrer', () => {
   const request = {

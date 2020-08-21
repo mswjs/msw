@@ -1,4 +1,4 @@
-import { MockedRequest } from '../../handlers/requestHandler'
+import { MockedRequest } from '../handlers/requestHandler'
 
 /**
  * Formats a mocked request for introspection in browser's console.

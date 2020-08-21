@@ -2,7 +2,7 @@ import {
   RequestHandler,
   ResponseResolver,
   MockedRequest,
-} from './handlers/requestHandler'
+} from './utils/handlers/requestHandler'
 import { Mask } from './setupWorker/glossary'
 import { set } from './context/set'
 import { status } from './context/status'

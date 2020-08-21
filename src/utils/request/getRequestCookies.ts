@@ -1,5 +1,5 @@
 import * as cookieUtils from 'cookie'
-import { MockedRequest } from '../../handlers/requestHandler'
+import { MockedRequest } from '../handlers/requestHandler'
 
 function getAllCookies() {
   return cookieUtils.parse(document.cookie)

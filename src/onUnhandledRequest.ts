@@ -1,4 +1,4 @@
-import { MockedRequest } from './handlers/requestHandler'
+import { MockedRequest } from './utils/handlers/requestHandler'
 import { getPublicUrlFromRequest } from './utils/request/getPublicUrlFromRequest'
 
 type UnhandledRequestCallback = (req: MockedRequest) => void

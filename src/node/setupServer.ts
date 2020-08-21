@@ -5,7 +5,7 @@ import {
   MockedResponse as MockedInterceptedResponse,
 } from 'node-request-interceptor'
 import { RequestHandlersList } from '../setupWorker/glossary'
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from '../utils/handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'

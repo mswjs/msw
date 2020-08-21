@@ -1,4 +1,4 @@
-import { MockedRequest } from '../../handlers/requestHandler'
+import { MockedRequest } from '../handlers/requestHandler'
 import { jsonParse } from '../internal/jsonParse'
 
 /**

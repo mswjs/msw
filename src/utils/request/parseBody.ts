@@ -1,17 +1,17 @@
-import { getJsonBody } from './../getJsonBody'
 import { MockedRequest } from '../../handlers/requestHandler'
+import { jsonParse } from '../internal/jsonParse'
 
-export function parseRequestBody(
-  body?: MockedRequest['body'],
-  headers?: MockedRequest['headers'],
-) {
+/**
+ * Parses a given request/response body based on the `Content-Type` header.
+ */
+export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
   if (body) {
     // If the intercepted request's body has a JSON Content-Type
     // parse it into an object, otherwise leave as-is.
     const hasJsonContent = headers?.get('content-type')?.includes('json')
 
     if (hasJsonContent && typeof body !== 'object') {
-      return getJsonBody(body)
+      return jsonParse(body) || body
     }
 
     return body

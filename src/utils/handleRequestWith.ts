@@ -11,7 +11,7 @@ import {
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
 import { onUnhandledRequest } from '../onUnhandledRequest'
-import { parseRequestBody } from './request/parseRequestBody'
+import { parseBody } from './request/parseBody'
 import { getRequestCookies } from './request/getRequestCookies'
 import { isStringEqual } from './internal/isStringEqual'
 import { NetworkError } from './NetworkError'
@@ -61,7 +61,7 @@ export const handleRequestWith = (
       }
 
       // Parse the request's body based on the "Content-Type" header.
-      req.body = parseRequestBody(req.body, req.headers)
+      req.body = parseBody(req.body, req.headers)
 
       // Set document cookies on the request.
       req.cookies = getRequestCookies(req)

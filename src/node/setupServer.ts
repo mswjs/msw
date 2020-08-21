@@ -7,7 +7,7 @@ import {
 import { RequestHandlersList } from '../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
-import { parseRequestBody } from '../utils/request/parseRequestBody'
+import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/requestHandlerUtils'
 import { SharedOptions } from '../sharedOptions'
@@ -53,7 +53,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
           url: req.url,
           method: req.method,
           // Parse the request's body based on the "Content-Type" header.
-          body: parseRequestBody(req.body, requestHeaders),
+          body: parseBody(req.body, requestHeaders),
           headers: requestHeaders,
           cookies: {},
           params: {},

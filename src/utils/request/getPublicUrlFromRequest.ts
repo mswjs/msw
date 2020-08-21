@@ -1,8 +1,9 @@
 import { format } from 'url'
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from '../../handlers/requestHandler'
 
 /**
- * Returns an absolute or relative URL string based on the URL's origin.
+ * Returns a relative URL if the given request URL is relative to the current origin.
+ * Otherwise returns an absolute URL.
  */
 export const getPublicUrlFromRequest = (request: MockedRequest) => {
   return request.referrer.startsWith(request.url.origin)

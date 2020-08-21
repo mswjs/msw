@@ -1,10 +1,10 @@
 import { Mask } from '../setupWorker/glossary'
 
 /**
- * Resolves a relative URL to the absolute URL with the same hostname.
+ * Returns an absolute URL based on the given relative URL, if possible.
  * Ignores regular expressions.
  */
-export const resolveRelativeUrl = <T extends Mask>(mask: T): T => {
+export const getAbsoluteUrl = <T extends Mask>(mask: T): T => {
   // Global `location` object doesn't exist in Node.
   // Relative request predicate URL cannot become absolute.
   const hasLocation = typeof location !== 'undefined'

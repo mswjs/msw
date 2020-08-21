@@ -1,5 +1,5 @@
 import { ResponseTransformer } from '../response'
-import { isNodeProcess } from '../utils/isNodeProcess'
+import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
 export const MIN_SERVER_RESPONSE_TIME = 100
 export const MAX_SERVER_RESPONSE_TIME = 400

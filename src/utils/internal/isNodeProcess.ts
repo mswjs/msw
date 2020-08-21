@@ -1,18 +1,18 @@
 /**
  * Returns a boolean indicating if the current process is running in NodeJS environment.
+ * @see https://github.com/mswjs/msw/pull/255
  */
-// Please see https://github.com/mswjs/msw/pull/255
 export function isNodeProcess() {
+  // Check browser environment.
   if (typeof global !== 'object') {
-    // check browser environment
     return false
   }
 
+  // Check nodejs or React Native environment.
   if (
     Object.prototype.toString.call(global.process) === '[object process]' ||
     navigator.product === 'ReactNative'
   ) {
-    // check nodejs or react native environment
     return true
   }
 }

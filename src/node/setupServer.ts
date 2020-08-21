@@ -9,7 +9,7 @@ import { MockedRequest } from '../utils/handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
-import * as requestHandlerUtils from '../utils/requestHandlerUtils'
+import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { SharedOptions } from '../sharedOptions'
 import { onUnhandledRequest } from '../onUnhandledRequest'
 

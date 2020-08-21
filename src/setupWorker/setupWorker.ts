@@ -1,7 +1,7 @@
 import { SetupWorkerInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
-import * as requestHandlerUtils from '../utils/requestHandlerUtils'
+import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 

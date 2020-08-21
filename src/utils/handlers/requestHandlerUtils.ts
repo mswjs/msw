@@ -1,4 +1,4 @@
-import { RequestHandlersList } from '../setupWorker/glossary'
+import { RequestHandlersList } from '../../setupWorker/glossary'
 
 export function use(
   currentHandlers: RequestHandlersList,

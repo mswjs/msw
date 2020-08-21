@@ -1,4 +1,4 @@
-import { jsonParse } from './jsonParse'
+import { jsonParse } from './internal/jsonParse'
 
 /**
  * Returns a parsed JSON from a given valid body string,

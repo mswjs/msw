@@ -1,4 +1,4 @@
-import { OnUnhandledRequest } from './onUnhandledRequest'
+import { OnUnhandledRequest } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {
   /**

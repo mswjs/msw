@@ -10,7 +10,7 @@ import {
   createBroadcastChannel,
 } from '../utils/createBroadcastChannel'
 import { getResponse } from '../utils/getResponse'
-import { onUnhandledRequest } from '../onUnhandledRequest'
+import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { parseBody } from './request/parseBody'
 import { getRequestCookies } from './request/getRequestCookies'
 import { isStringEqual } from './internal/isStringEqual'

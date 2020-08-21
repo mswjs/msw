@@ -14,10 +14,10 @@ import { data, DataContext } from './context/data'
 import { errors } from './context/errors'
 
 /* Logging */
-import { prepareRequest } from './utils/logger/prepareRequest'
-import { prepareResponse } from './utils/logger/prepareResponse'
-import { getTimestamp } from './utils/logger/getTimestamp'
-import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
+import { prepareRequest } from './utils/logging/prepareRequest'
+import { prepareResponse } from './utils/logging/prepareResponse'
+import { getTimestamp } from './utils/logging/getTimestamp'
+import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
 import { matchRequestUrl } from './utils/matching/matchRequest'
 

@@ -1,5 +1,5 @@
-import { MockedRequest } from './utils/handlers/requestHandler'
-import { getPublicUrlFromRequest } from './utils/request/getPublicUrlFromRequest'
+import { MockedRequest } from '../handlers/requestHandler'
+import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 
 type UnhandledRequestCallback = (req: MockedRequest) => void
 

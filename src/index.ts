@@ -14,7 +14,7 @@ export {
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
   defaultContext,
-} from './handlers/requestHandler'
+} from './utils/handlers/requestHandler'
 export { rest, restContext, RESTMethods, ParsedRestRequest } from './rest'
 export {
   graphql,

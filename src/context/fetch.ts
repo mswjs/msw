@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from '../utils/handlers/requestHandler'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
 const useFetch = isNodeProcess() ? require('node-fetch') : window.fetch

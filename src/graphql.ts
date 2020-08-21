@@ -3,7 +3,7 @@ import {
   RequestHandler,
   MockedRequest,
   AsyncResponseResolverReturnType,
-} from './handlers/requestHandler'
+} from './utils/handlers/requestHandler'
 import { MockedResponse, ResponseComposition } from './response'
 import { Mask } from './setupWorker/glossary'
 import { set } from './context/set'

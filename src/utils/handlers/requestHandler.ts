@@ -1,10 +1,10 @@
 import { Headers } from 'headers-utils'
-import { ResponseWithSerializedHeaders } from '../setupWorker/glossary'
-import { ResponseComposition, MockedResponse } from '../response'
-import { status } from '../context/status'
-import { set } from '../context/set'
-import { delay } from '../context/delay'
-import { fetch } from '../context/fetch'
+import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
+import { ResponseComposition, MockedResponse } from '../../response'
+import { status } from '../../context/status'
+import { set } from '../../context/set'
+import { delay } from '../../context/delay'
+import { fetch } from '../../context/fetch'
 
 export const defaultContext = {
   status,

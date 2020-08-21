@@ -4,7 +4,7 @@ import {
   ResponseWithSerializedHeaders,
   SetupWorkerInternalContext,
 } from '../setupWorker/glossary'
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from './handlers/requestHandler'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,

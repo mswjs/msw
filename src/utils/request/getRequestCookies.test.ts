@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { MockedRequest } from '../../handlers/requestHandler'
+import { MockedRequest } from '../handlers/requestHandler'
 import { getRequestCookies } from './getRequestCookies'
 
 beforeAll(() => {

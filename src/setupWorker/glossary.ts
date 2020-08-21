@@ -1,5 +1,5 @@
 import { HeadersList } from 'headers-utils'
-import { RequestHandler } from '../handlers/requestHandler'
+import { RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'

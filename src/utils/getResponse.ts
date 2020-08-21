@@ -3,7 +3,7 @@ import {
   RequestHandler,
   MockedRequest,
   defaultContext,
-} from '../handlers/requestHandler'
+} from './handlers/requestHandler'
 import { MockedResponse, response } from '../response'
 
 interface ResponsePayload {

@@ -19,7 +19,7 @@ import { prepareResponse } from './utils/logging/prepareResponse'
 import { getTimestamp } from './utils/logging/getTimestamp'
 import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
-import { matchRequestUrl } from './utils/matching/matchRequest'
+import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 

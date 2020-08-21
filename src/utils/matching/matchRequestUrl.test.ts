@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { matchRequestUrl } from './matchRequest'
+import { matchRequestUrl } from './matchRequestUrl'
 
 test('returns true when matched against a wildcard', () => {
   const match = matchRequestUrl(new URL('https://test.mswjs.io'), '*')

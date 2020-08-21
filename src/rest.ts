@@ -21,7 +21,7 @@ import { getPublicUrlFromRequest } from './utils/request/getPublicUrlFromRequest
 import { getTimestamp } from './utils/logging/getTimestamp'
 import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'
-import { matchRequestUrl } from './utils/matching/matchRequest'
+import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getUrlByMask } from './utils/getUrlByMask'
 
 export enum RESTMethods {

@@ -1,4 +1,4 @@
-import { Mask } from '../setupWorker/glossary'
+import { Mask } from '../../setupWorker/glossary'
 
 /**
  * Returns an absolute URL based on the given relative URL, if possible.

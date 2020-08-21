@@ -1,7 +1,7 @@
 import { until } from '@open-draft/until'
 import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { ServiceWorkerInstanceTuple } from '../../glossary'
-import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerUrl'
+import { getAbsoluteWorkerUrl } from '../../../utils/url/getAbsoluteWorkerUrl'
 
 /**
  * Returns an active Service Worker instance.

@@ -1,6 +1,6 @@
 import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
 import { Mask, ResolvedMask } from '../../setupWorker/glossary'
-import { getAbsoluteUrl } from '../getAbsoluteUrl'
+import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
 
 export function getCleanMask(resolvedMask: ResolvedMask): Mask {
   return resolvedMask instanceof URL

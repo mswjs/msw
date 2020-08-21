@@ -22,7 +22,7 @@ import { getTimestamp } from './utils/logging/getTimestamp'
 import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
-import { getUrlByMask } from './utils/getUrlByMask'
+import { getUrlByMask } from './utils/url/getUrlByMask'
 
 export enum RESTMethods {
   GET = 'GET',

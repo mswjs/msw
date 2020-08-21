@@ -1,4 +1,4 @@
-import { Mask } from '../setupWorker/glossary'
+import { Mask } from '../../setupWorker/glossary'
 import { getAbsoluteUrl } from './getAbsoluteUrl'
 
 /**

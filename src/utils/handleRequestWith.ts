@@ -13,7 +13,7 @@ import { getResponse } from '../utils/getResponse'
 import { onUnhandledRequest } from '../onUnhandledRequest'
 import { parseRequestBody } from './request/parseRequestBody'
 import { getRequestCookies } from './request/getRequestCookies'
-import { isStringEqual } from './isStringEqual'
+import { isStringEqual } from './internal/isStringEqual'
 import { NetworkError } from './NetworkError'
 
 export const handleRequestWith = (

@@ -20,7 +20,7 @@ import { prepareResponse } from './utils/logger/prepareResponse'
 import { getPublicUrlFromRequest } from './utils/getPublicUrlFromRequest'
 import { getTimestamp } from './utils/logger/getTimestamp'
 import { getStatusCodeColor } from './utils/logger/getStatusCodeColor'
-import { isStringEqual } from './utils/isStringEqual'
+import { isStringEqual } from './utils/internal/isStringEqual'
 import { matchRequestUrl } from './utils/matching/matchRequest'
 import { resolveMask } from './utils/resolveMask'
 

@@ -70,7 +70,7 @@ test('.operations() matches for GraphQL mutations', async () => {
   })
 })
 
-test('.operations() does not match non-GraphQL requests', async () => {
+test('.operations() only matches valid GraphQL requests', async () => {
   const res = await executeOperation(runtime.page, {
     query: 'test',
   })

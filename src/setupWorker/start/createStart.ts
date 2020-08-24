@@ -9,6 +9,7 @@ import {
 import { handleRequestWith } from '../../utils/handleRequestWith'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
+import { mergeRight } from '../../utils/internal/mergeRight'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {
@@ -25,7 +26,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
    * Registers and activates the mock Service Worker.
    */
   return function start(options?: StartOptions) {
-    const resolvedOptions = Object.assign({}, DEFAULT_START_OPTIONS, options)
+    const resolvedOptions = mergeRight(DEFAULT_START_OPTIONS, options || {})
 
     const startWorkerInstance = async () => {
       if (!('serviceWorker' in navigator)) {

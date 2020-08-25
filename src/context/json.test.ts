@@ -10,21 +10,31 @@ describe('json', () => {
     })
 
     it('should have body set to the given JSON', () => {
-      const object = response(json({ firstName: 'John' }))
+      const object = json({ firstName: 'John' })
 
-      expect(object).toHaveProperty('body', `{"firstName":"John"}`)
+      expect(response(object)).toHaveProperty('body', `{"firstName":"John"}`)
 
-      const array = response(json([1, '2', true, { ok: true }, '']))
+      const array = json([1, '2', true, { ok: true }, ''])
 
-      expect(array).toHaveProperty('body', '[1,"2",true,{"ok":true},""]')
+      expect(response(array)).toHaveProperty(
+        'body',
+        '[1,"2",true,{"ok":true},""]',
+      )
 
-      const string = response(json('Some string'))
+      const string = json('Some string')
 
-      expect(string).toHaveProperty('body', '"Some string"')
+      expect(response(string)).toHaveProperty('body', '"Some string"')
 
-      const bool = response(json(true))
+      const bool = json(true)
 
-      expect(bool).toHaveProperty('body', 'true')
+      expect(response(bool)).toHaveProperty('body', 'true')
+
+      const date = json(new Date(Date.UTC(2020, 0, 1)))
+
+      expect(response(date)).toHaveProperty(
+        'body',
+        '"2020-01-01T00:00:00.000Z"',
+      )
     })
   })
 })

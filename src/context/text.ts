@@ -1,4 +1,4 @@
-import { ResponseTransformer, MockedResponse } from '../response'
+import { ResponseTransformer } from '../response'
 
 /**
  * Sets a given text as a "Cotent-Type: text/plain" body of the response.

@@ -1,4 +1,4 @@
-import { ResponseTransformer, MockedResponse } from '../response'
+import { ResponseTransformer } from '../response'
 
 /**
  * Sets the given value as the JSON body of the response.

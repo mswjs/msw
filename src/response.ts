@@ -2,7 +2,7 @@ import { Headers } from 'headers-utils'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 
-export interface MockedResponse<BodyType = any> {
+export interface MockedResponse<BodyType = unknown> {
   body: BodyType
   status: number
   statusText: string
@@ -11,13 +11,15 @@ export interface MockedResponse<BodyType = any> {
   delay?: number
 }
 
-export type ResponseTransformer<BodyType = any> = (
+export type ResponseTransformer<BodyType = unknown> = (
   res: MockedResponse<BodyType>,
 ) => MockedResponse<BodyType>
 type ResponseFunction<BodyType = any> = (
   ...transformers: ResponseTransformer<BodyType>[]
 ) => MockedResponse<BodyType>
-export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
+export type ResponseComposition<BodyType = unknown> = ResponseFunction<
+  BodyType
+> & {
   /**
    * Respond using a given mocked response to the first captured request.
    * Does not affect any subsequent captured requests.

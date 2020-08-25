@@ -5,7 +5,7 @@ import { parseBody } from '../request/parseBody'
 /**
  * Formats a mocked response for introspection in browser's console.
  */
-export function prepareResponse(res: ResponseWithSerializedHeaders) {
+export function prepareResponse(res: ResponseWithSerializedHeaders<any>) {
   const responseHeaders = listToHeaders(res.headers)
 
   return {

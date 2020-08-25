@@ -58,6 +58,9 @@ export type StartOptions = SharedOptions & {
 
 export type RequestHandlersList = RequestHandler<any, any>[]
 
-export type ResponseWithSerializedHeaders = Omit<MockedResponse, 'headers'> & {
+export type ResponseWithSerializedHeaders<BodyType = unknown> = Omit<
+  MockedResponse<BodyType>,
+  'headers'
+> & {
   headers: HeadersList
 }

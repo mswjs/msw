@@ -1,4 +1,4 @@
-import { ResponseTransformer, MockedResponse } from '../response'
+import { ResponseTransformer } from '../response'
 
 /**
  * Sets the body of the response without any `Content-Type` header.

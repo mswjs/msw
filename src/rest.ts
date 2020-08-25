@@ -51,7 +51,7 @@ export interface ParsedRestRequest {
 }
 
 const createRestHandler = (method: RESTMethods) => {
-  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
+  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = unknown>(
     mask: Mask,
     resolver: ResponseResolver<
       MockedRequest<RequestBodyType>,

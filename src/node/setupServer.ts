@@ -96,7 +96,7 @@ export const setupServer = (...requestHandlers: RequestHandlersList) => {
               status: response.status,
               statusText: response.statusText,
               headers: response.headers.getAllHeaders(),
-              body: response.body,
+              body: response.body as string,
             })
           }, response.delay ?? 0)
         })

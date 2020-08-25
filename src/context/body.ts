@@ -1,11 +1,15 @@
-import { ResponseTransformer } from '../response'
+import { ResponseTransformer, MockedResponse } from '../response'
 
 /**
  * Sets the body of the response without any `Content-Type` header.
  * @example
- * res(body('foo'))
+ * res(body('message'))
  */
-export const body = <T>(value: T): ResponseTransformer => {
+export const body = <
+  BodyType extends string | Blob | BufferSource | ReadableStream | FormData
+>(
+  value: BodyType,
+): ResponseTransformer<BodyType> => {
   return (res) => {
     res.body = value
     return res

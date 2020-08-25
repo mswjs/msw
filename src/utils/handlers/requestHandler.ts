@@ -13,7 +13,9 @@ export const defaultContext = {
   fetch,
 }
 
-export interface MockedRequest {
+export type DefaultRequestBodyType = Record<string, any> | string | undefined
+
+export interface MockedRequest<BodyType = DefaultRequestBodyType> {
   url: URL
   method: Request['method']
   headers: Headers
@@ -27,7 +29,7 @@ export interface MockedRequest {
   redirect: Request['redirect']
   referrer: Request['referrer']
   referrerPolicy: Request['referrerPolicy']
-  body: Record<string, any> | string | undefined
+  body: BodyType
   bodyUsed: Request['bodyUsed']
   params: RequestParams
 }
@@ -47,18 +49,20 @@ export type AsyncResponseResolverReturnType<R> =
 
 export type ResponseResolver<
   RequestType = MockedRequest,
-  ContextType = typeof defaultContext
+  ContextType = typeof defaultContext,
+  BodyType = any
 > = (
   req: RequestType,
-  res: ResponseComposition,
+  res: ResponseComposition<BodyType>,
   context: ContextType,
-) => AsyncResponseResolverReturnType<MockedResponse>
+) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
 
 export interface RequestHandler<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
   ParsedRequest = any,
-  PublicRequest = RequestType
+  PublicRequest = RequestType,
+  ResponseBodyType = any
 > {
   /**
    * Parses a captured request to retrieve additional
@@ -82,7 +86,7 @@ export interface RequestHandler<
   /**
    * Returns a mocked response object to the captured request.
    */
-  resolver: ResponseResolver<RequestType, ContextType>
+  resolver: ResponseResolver<RequestType, ContextType, ResponseBodyType>
 
   /**
    * Returns a map of context utility functions available
@@ -97,7 +101,13 @@ export interface RequestHandler<
   log: (
     req: PublicRequest,
     res: ResponseWithSerializedHeaders,
-    handler: RequestHandler<RequestType, ContextType>,
+    handler: RequestHandler<
+      RequestType,
+      ContextType,
+      ParsedRequest,
+      PublicRequest,
+      ResponseBodyType
+    >,
     parsedRequest: ParsedRequest,
   ) => void
 

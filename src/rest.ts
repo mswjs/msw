@@ -2,6 +2,7 @@ import {
   RequestHandler,
   ResponseResolver,
   MockedRequest,
+  DefaultRequestBodyType,
 } from './utils/handlers/requestHandler'
 import { Mask } from './setupWorker/glossary'
 import { set } from './context/set'
@@ -50,10 +51,20 @@ export interface ParsedRestRequest {
 }
 
 const createRestHandler = (method: RESTMethods) => {
-  return (
+  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
     mask: Mask,
-    resolver: ResponseResolver<MockedRequest, typeof restContext>,
-  ): RequestHandler<MockedRequest, typeof restContext, ParsedRestRequest> => {
+    resolver: ResponseResolver<
+      MockedRequest<RequestBodyType>,
+      typeof restContext,
+      ResponseBodyType
+    >,
+  ): RequestHandler<
+    MockedRequest<RequestBodyType>,
+    typeof restContext,
+    ParsedRestRequest,
+    MockedRequest<RequestBodyType>,
+    ResponseBodyType
+  > => {
     const resolvedMask = getUrlByMask(mask)
 
     return {

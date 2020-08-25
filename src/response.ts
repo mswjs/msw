@@ -2,8 +2,8 @@ import { Headers } from 'headers-utils'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 
-export interface MockedResponse {
-  body: any
+export interface MockedResponse<BodyType = any> {
+  body: BodyType
   status: number
   statusText: string
   headers: Headers
@@ -11,16 +11,18 @@ export interface MockedResponse {
   delay?: number
 }
 
-export type ResponseTransformer = (res: MockedResponse) => MockedResponse
-type ResponseFunction = (
-  ...transformers: ResponseTransformer[]
-) => MockedResponse
-export type ResponseComposition = ResponseFunction & {
+export type ResponseTransformer<BodyType = any> = (
+  res: MockedResponse<BodyType>,
+) => MockedResponse<BodyType>
+type ResponseFunction<BodyType = any> = (
+  ...transformers: ResponseTransformer<BodyType>[]
+) => MockedResponse<BodyType>
+export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   /**
    * Respond using a given mocked response to the first captured request.
    * Does not affect any subsequent captured requests.
    */
-  once: ResponseFunction
+  once: ResponseFunction<BodyType>
   networkError: (message: string) => void
 }
 
@@ -55,12 +57,9 @@ function createResponseComposition(
   }
 }
 
-export const response: ResponseComposition = Object.assign(
-  createResponseComposition(),
-  {
-    once: createResponseComposition({ once: true }),
-    networkError(message: string) {
-      throw new NetworkError(message)
-    },
+export const response = Object.assign(createResponseComposition(), {
+  once: createResponseComposition({ once: true }),
+  networkError(message: string) {
+    throw new NetworkError(message)
   },
-)
+})

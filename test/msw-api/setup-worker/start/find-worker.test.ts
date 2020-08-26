@@ -2,9 +2,9 @@ import * as path from 'path'
 import { runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
 
-test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a serviceWorkerMatcher that returns true', async () => {
+test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async () => {
   const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'serviceworker-matcher.mocks.ts'),
+    path.resolve(__dirname, 'find-worker.mocks.ts'),
   )
 
   const resolvedPayload = await runtime.page.evaluate(() => {
@@ -35,9 +35,9 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
   await runtime.cleanup()
 })
 
-test('fails to return a ServiceWorkerRegistration when using a serviceWorkerMatcher that returns false', async () => {
+test('fails to return a ServiceWorkerRegistration when using a findWorker that returns false', async () => {
   const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'serviceworker-matcher.error.mocks.ts'),
+    path.resolve(__dirname, 'find-worker.error.mocks.ts'),
   )
 
   const resolvedPayload = await runtime.page.evaluate(() => {
@@ -63,7 +63,7 @@ test('fails to return a ServiceWorkerRegistration when using a serviceWorkerMatc
 
   const mswDeveloperWarningMessageIndex = messages.warning.findIndex((text) => {
     return text.includes(
-      '[MSW] worker.start() was provided a serviceWorkerMatcher predicate that failed to return a worker instance. Please verify your configuration.',
+      '[MSW] worker.start() registered the service worker, but was provided a findWorker predicate that failed to find a worker instance. Please verify your configuration.',
     )
   })
 

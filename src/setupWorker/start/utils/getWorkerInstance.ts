@@ -1,9 +1,6 @@
 import { until } from '@open-draft/until'
 import { getWorkerByRegistration } from './getWorkerByRegistration'
-import {
-  ServiceWorkerInstanceTuple,
-  ServiceWorkerMatcher,
-} from '../../glossary'
+import { ServiceWorkerInstanceTuple, FindWorker } from '../../glossary'
 import { getAbsoluteWorkerUrl } from '../../../utils/url/getAbsoluteWorkerUrl'
 
 /**
@@ -11,9 +8,9 @@ import { getAbsoluteWorkerUrl } from '../../../utils/url/getAbsoluteWorkerUrl'
  * When not found, registers a new Service Worker.
  */
 export const getWorkerInstance = async (
-  serviceWorkerMatcher: ServiceWorkerMatcher,
   url: string,
-  options?: RegistrationOptions,
+  options: RegistrationOptions = {},
+  findWorker: FindWorker,
 ): Promise<ServiceWorkerInstanceTuple | null> => {
   // Resolve the absolute Service Worker URL
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
@@ -24,7 +21,7 @@ export const getWorkerInstance = async (
       return getWorkerByRegistration(
         registration,
         absoluteWorkerUrl,
-        serviceWorkerMatcher,
+        findWorker,
       )
     })
   })
@@ -48,7 +45,7 @@ export const getWorkerInstance = async (
         getWorkerByRegistration(
           existingRegistration,
           absoluteWorkerUrl,
-          serviceWorkerMatcher,
+          findWorker,
         ),
         existingRegistration,
       ]
@@ -61,11 +58,7 @@ export const getWorkerInstance = async (
       return [
         // Compare existing worker registration by its worker URL,
         // to prevent irrelevant workers to resolve here (such as Codesandbox worker).
-        getWorkerByRegistration(
-          registration,
-          absoluteWorkerUrl,
-          serviceWorkerMatcher,
-        ),
+        getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker),
         registration,
       ]
     },

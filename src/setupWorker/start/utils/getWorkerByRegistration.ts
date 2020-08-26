@@ -1,4 +1,4 @@
-import { ServiceWorkerMatcher } from '../../glossary'
+import { FindWorker } from '../../glossary'
 
 /**
  * Attempts to resolve a Service Worker instance from a given registration,
@@ -7,7 +7,7 @@ import { ServiceWorkerMatcher } from '../../glossary'
 export const getWorkerByRegistration = (
   registration: ServiceWorkerRegistration,
   absoluteWorkerUrl: string,
-  serviceWorkerMatcher: ServiceWorkerMatcher,
+  findWorker: FindWorker,
 ): ServiceWorker | null => {
   const allStates = [
     registration.active,
@@ -16,7 +16,7 @@ export const getWorkerByRegistration = (
   ]
   const existingStates = allStates.filter(Boolean) as ServiceWorker[]
   const mockWorker = existingStates.find((worker) => {
-    return serviceWorkerMatcher(worker.scriptURL, absoluteWorkerUrl)
+    return findWorker(worker.scriptURL, absoluteWorkerUrl)
   })
 
   return mockWorker || null

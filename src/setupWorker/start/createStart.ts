@@ -19,8 +19,8 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   quiet: false,
   waitUntilReady: true,
   onUnhandledRequest: 'bypass',
-  serviceWorkerMatcher: (scriptURL, absoluteWorkerUrl) =>
-    scriptURL === absoluteWorkerUrl,
+  findWorker: (scriptURL, mockServiceWorkerUrl) =>
+    scriptURL === mockServiceWorkerUrl,
 }
 
 export const createStart = (context: SetupWorkerInternalContext) => {
@@ -51,9 +51,9 @@ export const createStart = (context: SetupWorkerInternalContext) => {
 
       const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
         getWorkerInstance(
-          resolvedOptions.serviceWorkerMatcher,
           resolvedOptions.serviceWorker.url,
           resolvedOptions.serviceWorker.options,
+          resolvedOptions.findWorker,
         ),
       )
 
@@ -64,9 +64,9 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       const [worker, registration] = instance
 
       if (!worker) {
-        if (options?.serviceWorkerMatcher) {
+        if (options?.findWorker) {
           console.warn(
-            `[MSW] worker.start() was provided a serviceWorkerMatcher predicate that failed to return a worker instance. Please verify your configuration.`,
+            `[MSW] worker.start() registered the service worker, but was provided a findWorker predicate that failed to find a worker instance. Please verify your configuration.`,
           )
         }
 

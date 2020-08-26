@@ -10,7 +10,7 @@ const worker = setupWorker(
 window.__MSW_REGISTRATION__ = worker
   .start({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    serviceWorkerMatcher: (scriptURL, _absoluteWorkerUrl) => {
+    findWorker: (scriptURL, _mockServiceWorkerUrl) => {
       return scriptURL.includes('some-bad-filename-that-does-not-exist.js')
     },
   })

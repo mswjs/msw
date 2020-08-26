@@ -26,6 +26,7 @@ import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getUrlByMask } from './utils/url/getUrlByMask'
 
 export enum RESTMethods {
+  HEAD = 'HEAD',
   GET = 'GET',
   POST = 'POST',
   PUT = 'PUT',
@@ -148,6 +149,7 @@ ${queryParams
 }
 
 export const rest = {
+  head: createRestHandler(RESTMethods.HEAD),
   get: createRestHandler(RESTMethods.GET),
   post: createRestHandler(RESTMethods.POST),
   put: createRestHandler(RESTMethods.PUT),

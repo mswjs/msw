@@ -10,7 +10,7 @@ beforeAll(async () => {
 
 afterAll(() => runtime.cleanup())
 
-test('.operation() matches for GraphQL queries', async () => {
+test('matches GraphQL queries', async () => {
   const GET_USER_QUERY = `
     query GetUser($id: String!) {
       query
@@ -39,7 +39,7 @@ test('.operation() matches for GraphQL queries', async () => {
   })
 })
 
-test('.operation() matches for GraphQL mutations', async () => {
+test('matches GraphQL mutations', async () => {
   const LOGIN_MUTATION = `
     mutation Login($username: String!, $password: String!) {
       mutation
@@ -70,7 +70,7 @@ test('.operation() matches for GraphQL mutations', async () => {
   })
 })
 
-test('.operation() only matches valid GraphQL requests', async () => {
+test('matches only valid GraphQL requests', async () => {
   const res = await executeOperation(runtime.page, {
     query: 'test',
   })

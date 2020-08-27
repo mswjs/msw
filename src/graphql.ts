@@ -21,7 +21,7 @@ import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 
-type ExpectedOperationTypeNode = OperationTypeNode | 'any'
+type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 
 type GraphQLRequestHandlerSelector = RegExp | string
 
@@ -72,43 +72,26 @@ interface GraphQLRequestParsedResult<VariablesType> {
 }
 
 interface ParsedQueryPayload {
+  operationType: OperationTypeNode
   operationName: string | undefined
 }
 
-export function parseQuery(
+function parseQuery(
   query: string,
-  definitionOperation: OperationTypeNode = 'query',
+  definitionOperation: ExpectedOperationTypeNode = 'query',
 ): ParsedQueryPayload {
   const ast = parse(query)
 
-  const operationDef = ast.definitions.find(
-    (def) =>
+  const operationDef = ast.definitions.find((def) => {
+    return (
       def.kind === 'OperationDefinition' &&
-      def.operation === definitionOperation,
-  ) as OperationDefinitionNode
-
-  return {
-    operationName: operationDef?.name?.value,
-  }
-}
-
-function parseQueryIndependentOfOperation<VariablesType = Record<string, any>>(
-  query: string,
-  definitionOperation: ExpectedOperationTypeNode = 'query',
-  variables?: VariablesType,
-): GraphQLRequestParsedResult<VariablesType> {
-  const ast = parse(query)
-
-  const operationDef = ast.definitions.find(
-    (def) =>
-      def.kind === 'OperationDefinition' &&
-      (def.operation === definitionOperation || definitionOperation === 'any'),
-  ) as OperationDefinitionNode
+      (definitionOperation === 'all' || def.operation === definitionOperation)
+    )
+  }) as OperationDefinitionNode
 
   return {
     operationType: operationDef?.operation,
     operationName: operationDef?.name?.value,
-    variables: variables,
   }
 }
 
@@ -141,11 +124,16 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
             ? jsonParse<VariablesType>(variablesString)
             : ({} as VariablesType)
 
-          return parseQueryIndependentOfOperation(
+          const { operationType, operationName } = parseQuery(
             query,
             expectedOperationType,
-            variables,
           )
+
+          return {
+            operationType,
+            operationName,
+            variables,
+          }
         }
 
         case 'POST': {
@@ -157,11 +145,16 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
             VariablesType
           >
 
-          return parseQueryIndependentOfOperation(
+          const { operationType, operationName } = parseQuery(
             query,
             expectedOperationType,
-            variables,
           )
+
+          return {
+            operationType,
+            operationName,
+            variables,
+          }
         }
 
         default:
@@ -222,7 +215,7 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
   }
 }
 
-const createGraphQLHandler = (
+const createGraphQLScopedHandler = (
   expectedOperationType: ExpectedOperationTypeNode,
   mask: Mask,
 ) => {
@@ -233,13 +226,14 @@ const createGraphQLHandler = (
     GraphQLMockedRequest<VariablesType>,
     GraphQLMockedContext<QueryType>,
     GraphQLRequestParsedResult<VariablesType>
-  > =>
-    graphQLRequestHandler(
+  > => {
+    return graphQLRequestHandler(
       expectedOperationType,
       expectedOperationName,
       mask,
       resolver,
     )
+  }
 }
 
 const createGraphQLOperationHandler = (mask: Mask) => {
@@ -249,20 +243,22 @@ const createGraphQLOperationHandler = (mask: Mask) => {
     GraphQLMockedRequest<VariablesType>,
     GraphQLMockedContext<QueryType>,
     GraphQLRequestParsedResult<VariablesType>
-  > => graphQLRequestHandler('any', new RegExp('.*'), mask, resolver)
+  > => {
+    return graphQLRequestHandler('all', new RegExp('.*'), mask, resolver)
+  }
 }
 
 const graphqlStandardHandlers = {
   operation: createGraphQLOperationHandler('*'),
-  query: createGraphQLHandler('query', '*'),
-  mutation: createGraphQLHandler('mutation', '*'),
+  query: createGraphQLScopedHandler('query', '*'),
+  mutation: createGraphQLScopedHandler('mutation', '*'),
 }
 
 function createGraphQLLink(uri: Mask): typeof graphqlStandardHandlers {
   return {
     operation: createGraphQLOperationHandler(uri),
-    query: createGraphQLHandler('query', uri),
-    mutation: createGraphQLHandler('mutation', uri),
+    query: createGraphQLScopedHandler('query', uri),
+    mutation: createGraphQLScopedHandler('mutation', uri),
   }
 }
 

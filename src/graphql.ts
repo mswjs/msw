@@ -242,7 +242,7 @@ const createGraphQLHandler = (
     )
 }
 
-const createGraphQLOperationsHandler = (mask: Mask) => {
+const createGraphQLOperationHandler = (mask: Mask) => {
   return <QueryType, VariablesType = Record<string, any>>(
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<
@@ -253,14 +253,14 @@ const createGraphQLOperationsHandler = (mask: Mask) => {
 }
 
 const graphqlStandardHandlers = {
-  operations: createGraphQLOperationsHandler('*'),
+  operation: createGraphQLOperationHandler('*'),
   query: createGraphQLHandler('query', '*'),
   mutation: createGraphQLHandler('mutation', '*'),
 }
 
 function createGraphQLLink(uri: Mask): typeof graphqlStandardHandlers {
   return {
-    operations: createGraphQLOperationsHandler(uri),
+    operation: createGraphQLOperationHandler(uri),
     query: createGraphQLHandler('query', uri),
     mutation: createGraphQLHandler('mutation', uri),
   }

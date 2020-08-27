@@ -5,12 +5,12 @@ import { executeOperation } from './utils/executeOperation'
 let runtime: TestAPI
 
 beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'operations.mocks.ts'))
+  runtime = await runBrowserWith(path.resolve(__dirname, 'operation.mocks.ts'))
 })
 
 afterAll(() => runtime.cleanup())
 
-test('.operations() matches for GraphQL queries', async () => {
+test('.operation() matches for GraphQL queries', async () => {
   const GET_USER_QUERY = `
     query GetUser($id: String!) {
       query
@@ -39,7 +39,7 @@ test('.operations() matches for GraphQL queries', async () => {
   })
 })
 
-test('.operations() matches for GraphQL mutations', async () => {
+test('.operation() matches for GraphQL mutations', async () => {
   const LOGIN_MUTATION = `
     mutation Login($username: String!, $password: String!) {
       mutation
@@ -70,7 +70,7 @@ test('.operations() matches for GraphQL mutations', async () => {
   })
 })
 
-test('.operations() only matches valid GraphQL requests', async () => {
+test('.operation() only matches valid GraphQL requests', async () => {
   const res = await executeOperation(runtime.page, {
     query: 'test',
   })

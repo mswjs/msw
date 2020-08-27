@@ -12,7 +12,7 @@ export const getWorkerInstance = async (
   options: RegistrationOptions = {},
   findWorker: FindWorker,
 ): Promise<ServiceWorkerInstanceTuple | null> => {
-  // Resolve the absolute Service Worker URL
+  // Resolve the absolute Service Worker URL.
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
   const [, mockRegistrations] = await until(async () => {
@@ -39,7 +39,7 @@ export const getWorkerInstance = async (
   const [existingRegistration] = mockRegistrations
 
   if (existingRegistration) {
-    // Update existing service worker to ensure it's up-to-date
+    // When the Service Worker is registered, update it and return the reference.
     return existingRegistration.update().then(() => {
       return [
         getWorkerByRegistration(
@@ -52,6 +52,7 @@ export const getWorkerInstance = async (
     })
   }
 
+  // When the Service Worker wasn't found, register it anew and return the reference.
   const [error, instance] = await until<ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
@@ -64,6 +65,7 @@ export const getWorkerInstance = async (
     },
   )
 
+  // Handle Service Worker registration errors.
   if (error) {
     const isWorkerMissing = error.message.includes('(404)')
 

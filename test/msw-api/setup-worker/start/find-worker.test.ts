@@ -1,6 +1,9 @@
 import * as path from 'path'
 import { runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
+import {
+  captureConsole,
+  filterLibraryLogs,
+} from '../../../support/captureConsole'
 
 test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async () => {
   const runtime = await runBrowserWith(
@@ -61,14 +64,16 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
     return text.includes('Error - no worker instance after starting')
   })
 
-  const mswDeveloperWarningMessageIndex = messages.warning.findIndex((text) => {
-    return text.includes(
-      '[MSW] worker.start() registered the service worker, but was provided a findWorker predicate that failed to find a worker instance. Please verify your configuration.',
-    )
-  })
+  const libraryErrors = messages.error.filter(filterLibraryLogs)
+
+  expect(libraryErrors).toContain(`\
+[MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
+
+Please ensure that the custom predicate properly locates the Service Worker registration at "/mockServiceWorker.js".
+More details: https://mswjs.io/docs/api/setup-worker/start#findworker\
+`)
 
   expect(activationMessageIndex).toEqual(-1)
-  expect(mswDeveloperWarningMessageIndex).toBeGreaterThan(-1)
   expect(errorMessageIndex).toBeGreaterThan(-1)
   expect(errorMessageIndex).toBeGreaterThan(activationMessageIndex)
 

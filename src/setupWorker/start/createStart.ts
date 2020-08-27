@@ -65,9 +65,19 @@ export const createStart = (context: SetupWorkerInternalContext) => {
 
       if (!worker) {
         if (options?.findWorker) {
-          console.warn(
-            `[MSW] worker.start() registered the service worker, but was provided a findWorker predicate that failed to find a worker instance. Please verify your configuration.`,
-          )
+          console.error(`\
+[MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
+
+Please ensure that the custom predicate properly locates the Service Worker registration at "${resolvedOptions.serviceWorker.url}".
+More details: https://mswjs.io/docs/api/setup-worker/start#findworker
+`)
+        } else {
+          console.error(`\
+[MSW] Failed to locate the Service Worker registration.
+
+This most likely means that the worker script URL "${resolvedOptions.serviceWorker.url}" cannot resolve against the actual public hostname (${location.host}). This may happen if your application runs behind a proxy, or has a dynamic hostname.
+
+Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`)
         }
 
         return null

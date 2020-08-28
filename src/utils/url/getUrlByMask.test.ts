@@ -22,6 +22,14 @@ test('creates a URL instance given a path with parameters', () => {
   expect(url.toString()).toBe('http://localhost/user/:userId')
 })
 
+test('returns a URL-like path string as-is', () => {
+  const url = getUrlByMask('http://*.mswjs.io/:resourceName')
+  expect(typeof url).toBe('string')
+  expect(url).toBe('http://*.mswjs.io/:resourceName')
+})
+
 test('returns a path string as-is', () => {
-  expect(getUrlByMask('*')).toBe('*')
+  const url = getUrlByMask('*')
+  expect(typeof url).toBe('string')
+  expect(url).toBe('*')
 })

@@ -5,7 +5,12 @@ import { getAbsoluteUrl } from './getAbsoluteUrl'
  * Converts a given request handler mask into a URL, if given a valid URL string.
  */
 export function getUrlByMask(mask: Mask): URL | Mask {
-  if (mask instanceof RegExp) {
+  /**
+   * If a string mask contains an asterisk (wildcard), return it as-is.
+   * Converting a URL-like path string into an actual URL is misleading.
+   * @see https://github.com/mswjs/msw/issues/357
+   */
+  if (mask instanceof RegExp || mask.includes('*')) {
     return mask
   }
 

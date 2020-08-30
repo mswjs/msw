@@ -47,6 +47,9 @@ Using Service Worker build:
     mode: 'development',
     target: 'web',
     entry: [path.resolve(__dirname, 'utils'), absoluteMockPath],
+    output: {
+      publicPath: '/',
+    },
     module: {
       rules: [
         {
@@ -93,14 +96,12 @@ Using Service Worker build:
       // to be registered at the website's root.
       'Service-Worker-Allowed': '/',
     },
-    after(app, server, compiler) {
+    before(app, server, compiler) {
+      options?.withRoutes?.(app, server, compiler)
+
       app.get('/mockServiceWorker.js', (req, res) => {
         res.sendFile(SERVICE_WORKER_BUILD_PATH)
       })
-
-      if (options?.withRoutes) {
-        options.withRoutes(app, server, compiler)
-      }
     },
   })
 

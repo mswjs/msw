@@ -27,7 +27,7 @@ describe('init', () => {
 
       // Run the CLI command
       exec(
-        'cli/index.js init ./tmp/cli/init/public',
+        'node cli/index.js init ./tmp/cli/init/public',
         {
           cwd: PROJECT_ROOT,
         },
@@ -61,7 +61,7 @@ describe('init', () => {
 
     beforeAll((done) => {
       exec(
-        'cli/index.js init ./tmp/cli/init/missing-public',
+        'node cli/index.js init ./tmp/cli/init/missing-public',
         {
           cwd: PROJECT_ROOT,
         },

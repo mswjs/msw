@@ -75,6 +75,12 @@ const buildNode = {
     'os',
     'timers',
     'node-request-interceptor',
+    /**
+     * Exclude NodeJS request interceptors from being compiled.
+     * @see https://github.com/mswjs/node-request-interceptor/issues/52
+     */
+    'node-request-interceptor/lib/interceptors/ClientRequest',
+    'node-request-interceptor/lib/interceptors/XMLHttpRequest',
   ],
   output: {
     file: 'node/index.js',
@@ -103,7 +109,19 @@ const buildNode = {
 
 const buildNative = {
   input: 'src/native/index.ts',
-  external: ['events', 'node-request-interceptor'],
+  external: [
+    'tty',
+    'os',
+    'util',
+    'events',
+    'node-request-interceptor',
+    /**
+     * Exclude NodeJS request interceptors from being compiled.
+     * @see https://github.com/mswjs/node-request-interceptor/issues/52
+     */
+    'node-request-interceptor/lib/interceptors/ClientRequest',
+    'node-request-interceptor/lib/interceptors/XMLHttpRequest',
+  ],
   output: {
     file: 'native/index.js',
     format: 'cjs',

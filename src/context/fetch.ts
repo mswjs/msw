@@ -26,7 +26,7 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   }
 }
 
-export const createFetchRequestParameters = (input: MockedRequest) => {
+const createFetchRequestParameters = (input: MockedRequest) => {
   const { body } = input
   const requestParameters: RequestInit = {
     ...input,

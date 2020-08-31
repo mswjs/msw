@@ -27,6 +27,10 @@ describe('REST: Response patching', () => {
           app.get('/posts', (req, res) => {
             res.status(200).json({ id: 101 }).end()
           })
+
+          app.head('/headtest', (req, res) => {
+            res.status(200).end()
+          })
         },
       },
     )
@@ -158,6 +162,31 @@ describe('REST: Response patching', () => {
       expect(status).toBe(200)
       expect(headers).toHaveProperty('x-powered-by', 'msw')
       expect(body).toEqual({ id: 101, mocked: true })
+    })
+  })
+
+  describe('given a HEAD request to be patched', () => {
+    it('should be able to properly request and patch the response', async () => {
+      const res = await test.request({
+        url: '/headtest',
+        fetchOptions: {
+          method: 'HEAD',
+        },
+        responsePredicate(res, url) {
+          return (
+            match(test.origin + url, res.url()).matches &&
+            res.headers()['x-powered-by'] === 'msw'
+          )
+        },
+      })
+
+      const status = res.status()
+      const headers = res.headers()
+      const body = await res.json()
+
+      expect(status).toBe(200)
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(body).toEqual(null)
     })
   })
 })

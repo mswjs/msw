@@ -59,6 +59,10 @@ const worker = setupWorker(
       }),
     )
   }),
+
+  rest.head('/headtest', async (req, res, ctx) => {
+    return res(ctx.json(null))
+  }),
 )
 
 worker.start()

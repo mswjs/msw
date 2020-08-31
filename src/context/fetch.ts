@@ -26,6 +26,21 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   }
 }
 
+export const createFetchRequestParameters = (input: MockedRequest) => {
+  const { body } = input
+  const requestParameters: RequestInit = {
+    ...input,
+    body: null,
+  }
+
+  if (input.method !== 'GET' && input.method !== 'HEAD') {
+    requestParameters.body =
+      typeof body === 'object' ? JSON.stringify(body) : body
+  }
+
+  return requestParameters
+}
+
 /**
  * Wrapper around the native `window.fetch()` function that performs
  * a request bypassing MSW. Requests performed using
@@ -42,11 +57,9 @@ export const fetch = <ResponseType = any>(
     )
   }
 
-  const { body } = input
-  const compliantReq: RequestInit = augmentRequestInit({
-    ...input,
-    body: typeof body === 'object' ? JSON.stringify(body) : body,
-  })
+  const requestParameters: RequestInit = createFetchRequestParameters(input)
+
+  const compliantReq: RequestInit = augmentRequestInit(requestParameters)
 
   return gracefully<ResponseType>(useFetch(input.url.href, compliantReq))
 }

@@ -1,4 +1,6 @@
-import { augmentRequestInit } from './fetch'
+import { augmentRequestInit, createFetchRequestParameters } from './fetch'
+import { MockedRequest } from '../utils/handlers/requestHandler'
+import { Headers } from 'headers-utils/lib'
 
 describe('augmentRequestInit', () => {
   describe('given provided custom headers', () => {
@@ -68,6 +70,60 @@ describe('augmentRequestInit', () => {
       it('should preserve custom headers', () => {
         expect(headers.get('authorization')).toEqual('token')
       })
+    })
+  })
+})
+
+describe('createFetchRequestParameters', () => {
+  let mockedRequest: MockedRequest
+
+  beforeAll(() => {
+    mockedRequest = {
+      url: new URL('http://www.mswjs.io'),
+      method: 'GET',
+      headers: new Headers(),
+      cookies: {},
+      mode: 'same-origin',
+      keepalive: true,
+      cache: 'default',
+      destination: '',
+      integrity: '',
+      credentials: 'same-origin',
+      redirect: 'follow',
+      referrer: '',
+      referrerPolicy: 'origin',
+      body: {},
+      bodyUsed: true,
+      params: {},
+    }
+  })
+
+  describe('given a GET request', () => {
+    it('should set the body to null', () => {
+      const result = createFetchRequestParameters(mockedRequest)
+      expect(result.body).toEqual(null)
+    })
+  })
+
+  describe('given a HEAD request', () => {
+    it('should set the body to null', () => {
+      mockedRequest.method = 'HEAD'
+
+      const result = createFetchRequestParameters(mockedRequest)
+      expect(result.body).toEqual(null)
+    })
+  })
+
+  describe('given a POST request', () => {
+    it('should keep the body', () => {
+      const body = {
+        foo: 'bar',
+      }
+      mockedRequest.method = 'POST'
+      mockedRequest.body = body
+
+      const result = createFetchRequestParameters(mockedRequest)
+      expect(result.body).toEqual(JSON.stringify(body))
     })
   })
 })

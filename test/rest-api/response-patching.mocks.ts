@@ -59,17 +59,6 @@ const worker = setupWorker(
       }),
     )
   }),
-
-  rest.head('/posts', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch(req)
-
-    return res(
-      ctx.json({
-        ...originalResponse,
-        mocked: true,
-      }),
-    )
-  }),
 )
 
 worker.start()

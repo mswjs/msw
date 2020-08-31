@@ -23,6 +23,14 @@ describe('REST: Response patching', () => {
           app.post('/posts', (req, res) => {
             res.status(200).json({ id: 101 }).end()
           })
+
+          app.get('/posts', (req, res) => {
+            res.status(200).json({ id: 101 }).end()
+          })
+
+          app.head('/posts', (req, res) => {
+            res.status(200).json({ id: 101 }).end()
+          })
         },
       },
     )
@@ -127,6 +135,60 @@ describe('REST: Response patching', () => {
         id: 101,
         mocked: true,
       })
+    })
+  })
+
+  describe('given a GET request to be patched', () => {
+    it('should be able to properly request and patch the response', async () => {
+      const res = await test.request({
+        url: '/posts',
+        fetchOptions: {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        responsePredicate(res, url) {
+          return (
+            match(test.origin + url, res.url()).matches &&
+            res.headers()['x-powered-by'] === 'msw'
+          )
+        },
+      })
+      const status = res.status()
+      const headers = res.headers()
+      const body = await res.json()
+
+      expect(status).toBe(200)
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(body).toEqual(null)
+    })
+  })
+
+  describe('given a HEAD request to be patched', () => {
+    it('should be able to properly request and patch the response', async () => {
+      const res = await test.request({
+        url: '/posts',
+        fetchOptions: {
+          method: 'HEAD',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        responsePredicate(res, url) {
+          return (
+            match(test.origin + url, res.url()).matches &&
+            res.headers()['x-powered-by'] === 'msw'
+          )
+        },
+      })
+      const status = res.status()
+      const headers = res.headers()
+      const body = await res.json()
+
+      expect(status).toBe(200)
+      expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(body).toEqual(null)
     })
   })
 })

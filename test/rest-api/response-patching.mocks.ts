@@ -60,7 +60,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.head('/headtest', async (req, res, ctx) => {
+  rest.head('/posts', async (req, res, ctx) => {
     return res(ctx.json(null))
   }),
 )

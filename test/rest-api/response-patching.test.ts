@@ -28,7 +28,7 @@ describe('REST: Response patching', () => {
             res.status(200).json({ id: 101 }).end()
           })
 
-          app.head('/headtest', (req, res) => {
+          app.head('/posts', (req, res) => {
             res.status(200).end()
           })
         },
@@ -168,7 +168,7 @@ describe('REST: Response patching', () => {
   describe('given a HEAD request to be patched', () => {
     it('should be able to properly request and patch the response', async () => {
       const res = await test.request({
-        url: '/headtest',
+        url: '/posts',
         fetchOptions: {
           method: 'HEAD',
         },

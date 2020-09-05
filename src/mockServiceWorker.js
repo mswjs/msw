@@ -27,6 +27,14 @@ self.addEventListener('message', async function (event) {
   const allClientIds = allClients.map((client) => client.id)
 
   switch (event.data) {
+    case 'PING': {
+      sendToClient(client, {
+        type: 'PONG',
+        payload: new Date(),
+      })
+      break
+    }
+
     case 'INTEGRITY_CHECK_REQUEST': {
       sendToClient(client, {
         type: 'INTEGRITY_CHECK_RESPONSE',

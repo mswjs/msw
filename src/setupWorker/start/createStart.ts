@@ -124,6 +124,11 @@ If this message still persists after updating, please report an issue: https://g
         return null
       }
 
+      context.keepAliveInterval = setInterval(
+        () => worker.postMessage('PING'),
+        5000,
+      )
+
       return registration
     }
 

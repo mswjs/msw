@@ -11,6 +11,7 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]
+  keepAliveInterval?: ReturnType<typeof setInterval> | number
   events: {
     /**
      * Adds an event listener on the given target.

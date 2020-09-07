@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
 import { match } from 'node-match-path'
+import { captureConsole } from '../support/captureConsole'
 
 describe('REST: Response patching', () => {
   let test: TestAPI
@@ -21,7 +22,11 @@ describe('REST: Response patching', () => {
           })
 
           app.post('/posts', (req, res) => {
-            res.status(200).json({ id: 101 }).end()
+            res
+              .status(200)
+              .header('x-custom', 'REQUEST PATCHED')
+              .json({ id: 101 })
+              .end()
           })
 
           app.get('/posts', (req, res) => {
@@ -131,6 +136,7 @@ describe('REST: Response patching', () => {
 
       expect(status).toBe(200)
       expect(headers).toHaveProperty('x-powered-by', 'msw')
+      expect(headers).toHaveProperty('x-custom', 'REQUEST PATCHED')
       expect(body).toEqual({
         id: 101,
         mocked: true,

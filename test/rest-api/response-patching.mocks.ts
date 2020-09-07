@@ -2,7 +2,7 @@ import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch(
+    const originalResponse = await ctx.gracefullyFetch(
       'https://api.github.com/users/octocat',
     )
 
@@ -18,7 +18,7 @@ const worker = setupWorker(
   rest.get(
     'https://api.github.com/repos/:owner/:repoName',
     async (req, res, ctx) => {
-      const originalResponse = await ctx.fetch(req)
+      const originalResponse = await ctx.gracefullyFetch(req)
 
       return res(
         ctx.json({
@@ -30,7 +30,7 @@ const worker = setupWorker(
   ),
 
   rest.get('https://test.mswjs.io/headers', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch('/headers-proxy', {
+    const originalResponse = await ctx.gracefullyFetch('/headers-proxy', {
       method: 'POST',
       headers: req.headers.getAllHeaders(),
     })
@@ -40,10 +40,11 @@ const worker = setupWorker(
 
   rest.post('/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req)
-
+    const body = await originalResponse.json()
     return res(
+      ctx.set('x-custom', originalResponse.headers.get('x-custom')),
       ctx.json({
-        ...originalResponse,
+        ...body,
         mocked: true,
       }),
     )

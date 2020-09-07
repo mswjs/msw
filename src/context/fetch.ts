@@ -27,16 +27,18 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
 }
 
 const createFetchRequestParameters = (input: MockedRequest) => {
-  const { body } = input
+  const { body, method } = input
   const requestParameters: RequestInit = {
     ...input,
-    body: null,
+    body: undefined,
   }
 
-  if (input.method !== 'GET' && input.method !== 'HEAD') {
-    requestParameters.body =
-      typeof body === 'object' ? JSON.stringify(body) : body
+  if (['GET', 'HEAD'].includes(method)) {
+    return requestParameters
   }
+
+  requestParameters.body =
+    typeof body === 'object' ? JSON.stringify(body) : body
 
   return requestParameters
 }
@@ -59,7 +61,7 @@ export const fetch = <ResponseType = any>(
 
   const requestParameters: RequestInit = createFetchRequestParameters(input)
 
-  const compliantReq: RequestInit = augmentRequestInit(requestParameters)
+  const compliantRequest: RequestInit = augmentRequestInit(requestParameters)
 
-  return gracefully<ResponseType>(useFetch(input.url.href, compliantReq))
+  return gracefully<ResponseType>(useFetch(input.url.href, compliantRequest))
 }

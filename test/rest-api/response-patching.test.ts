@@ -186,7 +186,7 @@ describe('REST: Response patching', () => {
 
       expect(status).toBe(200)
       expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual(null)
+      expect(body).toEqual({ mocked: true })
     })
   })
 })

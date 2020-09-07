@@ -118,7 +118,7 @@ $ yarn test:integration test/rest-api/basic.mock.ts
 When working on a feature or a bug fix it's useful to interact with your usage example. There's a dedicated command that can run a given usage scenario in a local server for you to work with:
 
 ```bash
-$ yarn test:focused test/rest-api/basic.mock.ts
+$ yarn test:focused test/rest-api/basic.mocks.ts
 ```
 
 > Navigate to the URL in the terminal to preview and interact with the usage scenario.

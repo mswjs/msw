@@ -61,7 +61,11 @@ const worker = setupWorker(
   }),
 
   rest.head('/posts', async (req, res, ctx) => {
-    return res(ctx.json(null))
+    return res(
+      ctx.json({
+        mocked: true,
+      }),
+    )
   }),
 )
 

@@ -43,25 +43,30 @@ const createFetchRequestParameters = (input: MockedRequest) => {
   return requestParameters
 }
 
+export const gracefullyFetch = <ResponseType = any>(
+  input: string | MockedRequest,
+  requestInit: RequestInit = {},
+): Promise<ResponseType> => {
+  return gracefully(fetch(input, requestInit))
+}
+
 /**
  * Wrapper around the native `window.fetch()` function that performs
  * a request bypassing MSW. Requests performed using
  * this function will never be mocked.
  */
-export const fetch = <ResponseType = any>(
+export const fetch = (
   input: string | MockedRequest,
   requestInit: RequestInit = {},
-) => {
+): Promise<Response> => {
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
-    return gracefully<ResponseType>(
-      useFetch(input, augmentRequestInit(requestInit)),
-    )
+    return useFetch(input, augmentRequestInit(requestInit))
   }
 
   const requestParameters: RequestInit = createFetchRequestParameters(input)
 
   const compliantRequest: RequestInit = augmentRequestInit(requestParameters)
 
-  return gracefully<ResponseType>(useFetch(input.url.href, compliantRequest))
+  return useFetch(input.url.href, compliantRequest)
 }

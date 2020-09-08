@@ -1,26 +1,38 @@
 /**
  * @jest-environment node
  */
+import * as http from 'http'
+import { AddressInfo } from 'net'
+import * as express from 'express'
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
+let actualServer: http.Server
+
+function getServerUrl() {
+  const { port } = actualServer.address() as AddressInfo
+  return `http://localhost:${port}`
+}
+
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch('https://httpbin.org/get')
+    const actualServerUrl = getServerUrl()
+    const originalResponse = await ctx.fetch(`${actualServerUrl}/user`)
 
     return res(
       ctx.json({
-        url: originalResponse.url,
+        id: originalResponse.id,
         mocked: true,
       }),
     )
   }),
   rest.get('https://test.mswjs.io/complex-request', async (req, res, ctx) => {
+    const actualServerUrl = getServerUrl()
     const bypass = req.url.searchParams.get('bypass')
     const shouldBypass = bypass === 'true'
     const performRequest = shouldBypass
-      ? () => ctx.fetch('https://httpbin.org/post', { method: 'POST' })
+      ? () => ctx.fetch(`${actualServerUrl}/user`, { method: 'POST' })
       : () =>
           fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
             res.json(),
@@ -29,19 +41,38 @@ const server = setupServer(
 
     return res(
       ctx.json({
-        url: originalResponse.url,
+        id: originalResponse.id,
         mocked: true,
       }),
     )
   }),
   rest.post('https://httpbin.org/post', (req, res, ctx) => {
-    return res(ctx.json({ url: 'completely-mocked' }))
+    return res(ctx.json({ id: 303 }))
   }),
 )
 
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+beforeAll((done) => {
+  server.listen()
+
+  // Establish an actual local server.
+  const app = express()
+  app.get('/user', (req, res) => {
+    res.status(200).json({ id: 101 }).end()
+  })
+  app.post('/user', (req, res) => {
+    res.status(200).json({ id: 202 }).end()
+  })
+  actualServer = app.listen(done)
+})
+
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll((done) => {
+  server.close()
+  actualServer.close(done)
+})
 
 test('returns a combination of mocked and original responses', async () => {
   const res = await fetch('https://test.mswjs.io/user')
@@ -51,7 +82,7 @@ test('returns a combination of mocked and original responses', async () => {
   expect(status).toBe(200)
   expect(headers.get('x-powered-by')).toBe('msw')
   expect(body).toEqual({
-    url: 'https://httpbin.org/get',
+    id: 101,
     mocked: true,
   })
 })
@@ -64,7 +95,7 @@ test('bypasses a mocked request when using "ctx.fetch"', async () => {
   expect(status).toBe(200)
   expect(headers.get('x-powered-by')).toBe('msw')
   expect(body).toEqual({
-    url: 'https://httpbin.org/post',
+    id: 202,
     mocked: true,
   })
 })
@@ -77,7 +108,7 @@ test('falls into the mocked request when using "fetch" directly', async () => {
   expect(status).toBe(200)
   expect(headers.get('x-powered-by')).toBe('msw')
   expect(body).toEqual({
-    url: 'completely-mocked',
+    id: 303,
     mocked: true,
   })
 })

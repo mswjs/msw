@@ -9,6 +9,6 @@ export const createStop = (context: SetupWorkerInternalContext) => {
   return function stop() {
     context.worker?.postMessage('MOCK_DEACTIVATE')
     context.events.removeAllListeners()
-    clearInterval(context.keepAliveInterval as any)
+    window.clearInterval(context.keepAliveInterval)
   }
 }

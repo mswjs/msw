@@ -27,9 +27,9 @@ self.addEventListener('message', async function (event) {
   const allClientIds = allClients.map((client) => client.id)
 
   switch (event.data) {
-    case 'PING': {
+    case 'KEEPALIVE_REQUEST': {
       sendToClient(client, {
-        type: 'PONG',
+        type: 'KEEPALIVE_RESPONSE',
         payload: new Date(),
       })
       break

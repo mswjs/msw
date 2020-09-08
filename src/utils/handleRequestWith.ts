@@ -57,6 +57,12 @@ export const handleRequestWith = (
 
       // Ignore irrelevant worker message types
       if (type !== 'REQUEST') {
+        if (type === 'KEEPALIVE_RESPONSE' && !options.quiet) {
+          console.info(
+            `[MSW] Received Keep Alive response from the mockServiceWorker`,
+          )
+        }
+
         return null
       }
 

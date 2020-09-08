@@ -17,6 +17,7 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
     options: null as any,
   },
   quiet: false,
+  keepAlive: 10000,
   waitUntilReady: true,
   onUnhandledRequest: 'bypass',
   findWorker: (scriptURL, mockServiceWorkerUrl) =>
@@ -94,6 +95,9 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
           // the Service Worker when there are no open clients.
           worker.postMessage('CLIENT_CLOSED')
         }
+        // Make sure we're always clearing the interval - there are reports that not doing this can
+        // cause memory leaks in headless browser environments.
+        window.clearInterval(context.keepAliveInterval)
       })
 
       // Check if the active Service Worker is the latest published one
@@ -124,10 +128,12 @@ If this message still persists after updating, please report an issue: https://g
         return null
       }
 
-      context.keepAliveInterval = setInterval(
-        () => worker.postMessage('PING'),
-        5000,
-      )
+      if (resolvedOptions.keepAlive) {
+        context.keepAliveInterval = window.setInterval(
+          () => worker.postMessage('KEEPALIVE_REQUEST'),
+          resolvedOptions.keepAlive,
+        )
+      }
 
       return registration
     }

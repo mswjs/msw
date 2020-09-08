@@ -32,7 +32,10 @@ const server = setupServer(
     const bypass = req.url.searchParams.get('bypass')
     const shouldBypass = bypass === 'true'
     const performRequest = shouldBypass
-      ? () => ctx.fetch(`${actualServerUrl}/user`, { method: 'POST' })
+      ? () =>
+          ctx
+            .fetch(`${actualServerUrl}/user`, { method: 'POST' })
+            .then((response) => response.json())
       : () =>
           fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
             res.json(),

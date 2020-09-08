@@ -58,17 +58,20 @@ const worker = setupWorker(
 
   rest.get('/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req)
+    const body = await originalResponse.json()
 
     return res(
       ctx.json({
-        ...originalResponse,
+        ...body,
         mocked: true,
       }),
     )
   }),
 
   rest.head('/posts', async (req, res, ctx) => {
+    const originalResponse = await ctx.fetch(req)
     return res(
+      ctx.set('x-custom', originalResponse.headers.get('x-custom')),
       ctx.json({
         mocked: true,
       }),

@@ -19,10 +19,10 @@ const server = setupServer(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
     const actualServerUrl = getServerUrl()
     const originalResponse = await ctx.fetch(`${actualServerUrl}/user`)
-
+    const body = await originalResponse.json()
     return res(
       ctx.json({
-        id: originalResponse.id,
+        id: body.id,
         mocked: true,
       }),
     )

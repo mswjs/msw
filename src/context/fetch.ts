@@ -38,7 +38,7 @@ const createFetchRequestParameters = (input: MockedRequest) => {
 export const fetch = (
   input: string | MockedRequest,
   requestInit: RequestInit = {},
-): Promise<Response> => {
+) => {
   // Keep the default `window.fetch()` call signature
   if (typeof input === 'string') {
     return useFetch(input, augmentRequestInit(requestInit))

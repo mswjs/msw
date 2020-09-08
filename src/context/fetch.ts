@@ -4,18 +4,6 @@ import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
 const useFetch = isNodeProcess() ? require('node-fetch') : window.fetch
 
-const gracefully = <ResponseType>(
-  promise: Promise<Response>,
-): Promise<ResponseType> => {
-  return promise.then((res) => {
-    if (res.headers.get('content-type')?.includes('json')) {
-      return res.json()
-    }
-
-    return res.text()
-  })
-}
-
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)
   headers.set('x-msw-bypass', 'true')
@@ -42,14 +30,6 @@ const createFetchRequestParameters = (input: MockedRequest) => {
 
   return requestParameters
 }
-
-export const gracefullyFetch = <ResponseType = any>(
-  input: string | MockedRequest,
-  requestInit: RequestInit = {},
-): Promise<ResponseType> => {
-  return gracefully(fetch(input, requestInit))
-}
-
 /**
  * Wrapper around the native `window.fetch()` function that performs
  * a request bypassing MSW. Requests performed using

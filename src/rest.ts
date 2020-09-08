@@ -13,7 +13,7 @@ import { text } from './context/text'
 import { json } from './context/json'
 import { xml } from './context/xml'
 import { delay } from './context/delay'
-import { fetch, gracefullyFetch } from './context/fetch'
+import { fetch } from './context/fetch'
 
 /* Logging */
 import { prepareRequest } from './utils/logging/prepareRequest'
@@ -45,7 +45,6 @@ export const restContext = {
   xml,
   delay,
   fetch,
-  gracefullyFetch,
 }
 
 export interface ParsedRestRequest {

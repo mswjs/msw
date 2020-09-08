@@ -2,14 +2,16 @@ import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
-    const originalResponse = await ctx.gracefullyFetch(
+    const originalResponse = await ctx.fetch(
       'https://api.github.com/users/octocat',
     )
 
+    const body = await originalResponse.json()
+
     return res(
       ctx.json({
-        name: originalResponse.name,
-        location: originalResponse.location,
+        name: body.name,
+        location: body.location,
         mocked: true,
       }),
     )
@@ -18,11 +20,13 @@ const worker = setupWorker(
   rest.get(
     'https://api.github.com/repos/:owner/:repoName',
     async (req, res, ctx) => {
-      const originalResponse = await ctx.gracefullyFetch(req)
+      const originalResponse = await ctx.fetch(req)
+
+      const body = await originalResponse.json()
 
       return res(
         ctx.json({
-          name: originalResponse.name,
+          name: body.name,
           stargazers_count: 9999,
         }),
       )
@@ -30,17 +34,19 @@ const worker = setupWorker(
   ),
 
   rest.get('https://test.mswjs.io/headers', async (req, res, ctx) => {
-    const originalResponse = await ctx.gracefullyFetch('/headers-proxy', {
+    const originalResponse = await ctx.fetch('/headers-proxy', {
       method: 'POST',
       headers: req.headers.getAllHeaders(),
     })
+    const body = await originalResponse.json()
 
-    return res(ctx.json(originalResponse))
+    return res(ctx.json(body))
   }),
 
   rest.post('/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req)
     const body = await originalResponse.json()
+
     return res(
       ctx.set('x-custom', originalResponse.headers.get('x-custom')),
       ctx.json({

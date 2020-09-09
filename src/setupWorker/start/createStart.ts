@@ -17,7 +17,6 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
     options: null as any,
   },
   quiet: false,
-  keepAlive: 10000,
   waitUntilReady: true,
   onUnhandledRequest: 'bypass',
   findWorker: (scriptURL, mockServiceWorkerUrl) =>
@@ -128,12 +127,10 @@ If this message still persists after updating, please report an issue: https://g
         return null
       }
 
-      if (resolvedOptions.keepAlive) {
-        context.keepAliveInterval = window.setInterval(
-          () => worker.postMessage('KEEPALIVE_REQUEST'),
-          resolvedOptions.keepAlive,
-        )
-      }
+      context.keepAliveInterval = window.setInterval(
+        () => worker.postMessage('KEEPALIVE_REQUEST'),
+        5000,
+      )
 
       return registration
     }

@@ -30,7 +30,6 @@ self.addEventListener('message', async function (event) {
     case 'KEEPALIVE_REQUEST': {
       sendToClient(client, {
         type: 'KEEPALIVE_RESPONSE',
-        payload: new Date(),
       })
       break
     }

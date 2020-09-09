@@ -66,12 +66,6 @@ export type StartOptions = SharedOptions & {
    * of all registered Service Workers on the page.
    */
   findWorker?: FindWorker
-
-  /**
-   * Disable the keep alive or use a custom interval.
-   * Defaults to 10000 (ms)
-   */
-  keepAlive?: false | number
 }
 
 export type RequestHandlersList = RequestHandler<any, any>[]

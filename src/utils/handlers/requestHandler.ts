@@ -50,7 +50,7 @@ export type AsyncResponseResolverReturnType<R> =
 export type ResponseResolver<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
-  BodyType = unknown
+  BodyType = any
 > = (
   req: RequestType,
   res: ResponseComposition<BodyType>,
@@ -60,9 +60,9 @@ export type ResponseResolver<
 export interface RequestHandler<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
-  ParsedRequest = unknown,
+  ParsedRequest = any,
   PublicRequest = RequestType,
-  ResponseBodyType = unknown
+  ResponseBodyType = any
 > {
   /**
    * Parses a captured request to retrieve additional

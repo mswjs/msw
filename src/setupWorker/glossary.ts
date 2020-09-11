@@ -68,9 +68,9 @@ export type StartOptions = SharedOptions & {
   findWorker?: FindWorker
 }
 
-export type RequestHandlersList = RequestHandler<any, any>[]
+export type RequestHandlersList = RequestHandler<any, any, any, any, any>[]
 
-export type ResponseWithSerializedHeaders<BodyType = unknown> = Omit<
+export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
   MockedResponse<BodyType>,
   'headers'
 > & {

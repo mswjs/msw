@@ -11,6 +11,7 @@ const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const bypassHeaderName = 'x-msw-bypass'
 
 let clients = {}
+let sharedClientId
 
 self.addEventListener('install', function () {
   return self.skipWaiting()
@@ -63,6 +64,18 @@ self.addEventListener('message', async function (event) {
       break
     }
 
+    case 'SHARED_MOCK_ACTIVATE': {
+      clients = ensureKeys(allClientIds, clients)
+      clients[clientId] = true
+      sharedClientId = clientId
+
+      sendToClient(client, {
+        type: 'SHARED_MOCKING_ENABLED',
+        payload: true,
+      })
+      break
+    }
+
     case 'MOCK_DEACTIVATE': {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = false
@@ -84,8 +97,8 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-self.addEventListener('fetch', function (event) {
-  const { clientId, request } = event
+self.addEventListener('fetch', async function (event) {
+  const { request } = event
   const requestId = uuidv4()
   const requestClone = request.clone()
   const getOriginalResponse = () => fetch(requestClone)
@@ -97,7 +110,7 @@ self.addEventListener('fetch', function (event) {
 
   // Bypass mocking if the current client isn't present in the internal clients map
   // (i.e. has the mocking disabled).
-  if (!clients[clientId]) {
+  if (!clients[event.clientId]) {
     return
   }
 
@@ -109,6 +122,7 @@ self.addEventListener('fetch', function (event) {
 
   event.respondWith(
     new Promise(async (resolve, reject) => {
+      const clientId = sharedClientId || event.clientId
       const client = await self.clients.get(clientId)
 
       // Bypass mocking when the request client is not active.

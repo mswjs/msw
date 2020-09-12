@@ -154,6 +154,7 @@ export type StartOptions = SharedOptions & {
    */
   serviceWorker?: {
     url?: string
+    shared?: boolean
     options?: RegistrationOptions
   }
 

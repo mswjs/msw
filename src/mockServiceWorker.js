@@ -121,40 +121,80 @@ self.addEventListener('fetch', function (event) {
 
       const reqHeaders = serializeHeaders(request.headers)
       const body = await request.text()
+      const payload = {
+        id: await event.currentTarget.crypto.getRandomValues(
+          new Uint32Array(1),
+        )[0],
+        url: request.url,
+        method: request.method,
+        headers: reqHeaders,
+        cache: request.cache,
+        mode: request.mode,
+        credentials: request.credentials,
+        destination: request.destination,
+        integrity: request.integrity,
+        redirect: request.redirect,
+        referrer: request.referrer,
+        referrerPolicy: request.referrerPolicy,
+        body,
+        bodyUsed: request.bodyUsed,
+        keepalive: request.keepalive,
+      }
 
       const rawClientMessage = await sendToClient(client, {
         type: 'REQUEST',
-        payload: {
-          url: request.url,
-          method: request.method,
-          headers: reqHeaders,
-          cache: request.cache,
-          mode: request.mode,
-          credentials: request.credentials,
-          destination: request.destination,
-          integrity: request.integrity,
-          redirect: request.redirect,
-          referrer: request.referrer,
-          referrerPolicy: request.referrerPolicy,
-          body,
-          bodyUsed: request.bodyUsed,
-          keepalive: request.keepalive,
-        },
+        payload,
       })
 
       const clientMessage = rawClientMessage
 
+      async function requestComplete(response) {
+        return sendToClient(client, {
+          type: 'REQUEST_COMPLETE',
+          payload: {
+            url: payload.url,
+            request: payload,
+            response,
+          },
+        })
+      }
+
       switch (clientMessage.type) {
         case 'MOCK_SUCCESS': {
-          setTimeout(
-            resolve.bind(this, createResponse(clientMessage)),
-            clientMessage.payload.delay,
-          )
+          setTimeout(async () => {
+            await resolve.call(this, createResponse(clientMessage))
+            await requestComplete(clientMessage.payload)
+          }, clientMessage.payload.delay)
           break
         }
 
         case 'MOCK_NOT_FOUND': {
-          return resolve(getOriginalResponse())
+          return resolve(
+            getOriginalResponse().then(async (response) => {
+              const cloned = response.clone()
+              const body = await cloned.text()
+              requestComplete({
+                ok: cloned.ok,
+                status: cloned.status,
+                statusText: cloned.statusText,
+                url: cloned.url,
+                method: cloned.method,
+                headers: serializeHeaders(cloned.headers),
+                cache: cloned.cache,
+                mode: cloned.mode,
+                credentials: cloned.credentials,
+                destination: cloned.destination,
+                integrity: cloned.integrity,
+                redirect: cloned.redirect,
+                referrer: cloned.referrer,
+                referrerPolicy: cloned.referrerPolicy,
+                bodyUsed: cloned.bodyUsed,
+                body,
+              })
+              setTimeout(() => {})
+              return response
+            }),
+          )
         }
 
         case 'NETWORK_ERROR': {

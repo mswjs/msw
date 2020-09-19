@@ -43,7 +43,6 @@ afterAll(() => {
 test('notifies when a fetch request initiates/completes with a mocked response', async () => {
   const { messages } = captureConsole(runtime.page)
 
-
   await runtime.reload()
 
   const res = await runtime.request({

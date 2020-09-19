@@ -43,10 +43,6 @@ afterAll(() => {
 test('notifies when a fetch request initiates/completes with a mocked response', async () => {
   const { messages } = captureConsole(runtime.page)
 
-  await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
-  })
 
   await runtime.reload()
 

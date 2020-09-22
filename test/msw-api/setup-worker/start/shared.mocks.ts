@@ -11,8 +11,7 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.__MSW_REGISTRATION__ = worker.start({
+worker.start({
   serviceWorker: {
     shared: true,
   },

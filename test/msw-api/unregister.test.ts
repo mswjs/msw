@@ -1,89 +1,59 @@
 import * as path from 'path'
-import { Response } from 'puppeteer'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
-describe('Unregister', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'unregister.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'unregister.mocks.ts'))
+test('unregisters itself when not prompted to be activated again', async () => {
+  const runtime = await createRuntime()
+  await runtime.page.evaluate(() => {
+    // @ts-ignore
+    return window.__mswStart()
+  })
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000)
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  // Should have the mocking enabled.
+  const firstResponse = await runtime.request({
+    url: 'https://api.github.com',
+  })
+  const headers = firstResponse.headers()
+  const body = await firstResponse.json()
+
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  describe('given I manually start the service worker', () => {
-    beforeAll(async () => {
-      await test.page.evaluate(() => {
-        // @ts-ignore
-        return window.__mswStart()
-      })
+  // Reload the page, not starting the worker manually this time.
+  await runtime.page.reload()
 
-      return new Promise((resolve) => {
-        setTimeout(resolve, 1000)
-      })
-    })
-
-    it('should return a mocked response', async () => {
-      const res = await test.request({
-        url: 'https://api.github.com',
-      })
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        mocked: true,
-      })
-    })
-
-    describe('and I reload the page without starting the service worker', () => {
-      let res: Response
-
-      beforeAll(async () => {
-        await test.page.reload()
-
-        res = await test.request({
-          url: 'https://api.github.com',
-        })
-      })
-
-      // Although the Service Worker unregisters itself upon refreshing the page,
-      // it still remains "active and running" with the "deleted" status.
-      // This results into requests go through the Service Worker until the next reload.
-      it('should still serve the response from Service Worker', () => {
-        expect(res.fromServiceWorker()).toBe(true)
-      })
-
-      it('should not return a mocked response', async () => {
-        const body = await res.json()
-        expect(body).not.toEqual({
-          mocked: true,
-        })
-      })
-
-      describe('and I refresh the second time', () => {
-        let res: Response
-
-        beforeAll(async () => {
-          await test.page.reload()
-          res = await test.request({
-            url: 'https://api.github.com',
-          })
-        })
-
-        it('should not serve the response from Service Worker', () => {
-          expect(res.fromServiceWorker()).toBe(false)
-        })
-
-        it('should not return a mocked response', async () => {
-          const body = await res.json()
-          expect(body).not.toEqual({
-            mocked: true,
-          })
-        })
-      })
-    })
+  const secondResponse = await runtime.request({
+    url: 'https://api.github.com',
   })
+  const secondBody = await secondResponse.json()
+
+  // Although the Service Worker unregisters itself upon refreshing the page,
+  // it still remains "active and running" with the "deleted" status.
+  // This results into requests go through the Service Worker until the next reload.
+  expect(secondResponse.fromServiceWorker()).toBe(true)
+  expect(secondBody).not.toEqual({
+    mocked: true,
+  })
+
+  // Refresh the page the second time.
+  await runtime.page.reload()
+  const thirdResponse = await runtime.request({
+    url: 'https://api.github.com',
+  })
+  const thirdBody = await thirdResponse.json()
+
+  expect(thirdResponse.fromServiceWorker()).toBe(false)
+  expect(thirdBody).not.toEqual({
+    mocked: true,
+  })
+
+  return runtime.cleanup()
 })

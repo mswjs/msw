@@ -1,27 +1,24 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { captureConsole } from '../support/captureConsole'
 
-let runtime: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'exception-handling.mocks.ts'))
+}
 
-beforeAll(async () => {
-  runtime = await runBrowserWith(
-    path.resolve(__dirname, 'exception-handling.mocks.ts'),
-  )
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
-
-it('should activate without errors', async () => {
+test('activates the worker without errors', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
   await runtime.reload()
 
   expect(messages.error).toHaveLength(0)
+
+  return runtime.cleanup()
 })
 
-it('should transform exception into 500 response', async () => {
+test('transforms uncaught exceptions into a 500 response', async () => {
+  const runtime = await createRuntime()
+
   const res = await runtime.request({
     url: 'https://api.github.com/users/octocat',
   })
@@ -33,4 +30,6 @@ it('should transform exception into 500 response', async () => {
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
   expect(body).toHaveProperty('errorType', 'ReferenceError')
   expect(body).toHaveProperty('message', 'nonExisting is not defined')
+
+  return runtime.cleanup()
 })

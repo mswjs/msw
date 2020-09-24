@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { Page } from 'puppeteer'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 
 declare global {
   namespace jest {
@@ -35,21 +35,16 @@ expect.extend({
   },
 })
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'delay.mocks.ts'))
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'delay.mocks.ts'))
+}
 
 function performanceNow(page: Page) {
   return page.evaluate(() => new Date().getTime())
 }
 
 test('uses explicit server response delay', async () => {
+  const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request({
     url: `${runtime.origin}/user?delay=1200`,
@@ -66,9 +61,12 @@ test('uses explicit server response delay', async () => {
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(status).toBe(200)
   expect(body).toEqual({ mocked: true })
+
+  return runtime.cleanup()
 })
 
 test('uses realistic server response delay, when not provided', async () => {
+  const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request({
     url: `${runtime.origin}/user`,
@@ -89,4 +87,6 @@ test('uses realistic server response delay, when not provided', async () => {
   expect(body).toEqual({
     mocked: true,
   })
+
+  return runtime.cleanup()
 })

@@ -1,18 +1,11 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 import { captureConsole } from '../../support/captureConsole'
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(
+test('throws a network error', async () => {
+  const runtime = await runBrowserWith(
     path.resolve(__dirname, 'network-error.mocks.ts'),
   )
-})
-
-afterAll(() => runtime.cleanup())
-
-test('throws a network error', async () => {
   const { messages } = captureConsole(runtime.page)
 
   // Do not use `runtime.request()`, because it always awaits a response.
@@ -30,4 +23,6 @@ test('throws a network error', async () => {
   // Assert a network error message printed into the console
   // before `fetch` rejects.
   expect(messages.error).toContain('Failed to load resource: net::ERR_FAILED')
+
+  return runtime.cleanup()
 })

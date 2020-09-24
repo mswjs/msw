@@ -3,7 +3,7 @@ import { runBrowserWith } from '../../support/runBrowserWith'
 import { captureConsole } from '../../support/captureConsole'
 
 function prepareRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'close.mocks.ts'))
+  return runBrowserWith(path.resolve(__dirname, 'close-client.mocks.ts'))
 }
 
 test('handles a WebSocket client "close" event', async () => {

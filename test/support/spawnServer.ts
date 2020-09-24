@@ -19,11 +19,25 @@ export interface SpawnServerOptions {
 const IS_TEST = process.env.NODE_ENV === 'test'
 
 export const spawnServer = (
-  mockDefs: string,
+  usageExamplePath: string,
   options?: SpawnServerOptions,
 ): Promise<Payload> => {
-  const absoluteMockPath = path.resolve(process.cwd(), mockDefs)
+  const absoluteUsageExamplePath = path.resolve(process.cwd(), usageExamplePath)
   const mswModulePath = path.resolve(__dirname, '../..')
+
+  if (!fs.existsSync(absoluteUsageExamplePath)) {
+    throw new Error(
+      `\
+Failed to locate a usage example module at the given path: ${absoluteUsageExamplePath}.
+Please make sure you are pointing to an existing file that represents the usage example for your test.`,
+    )
+  }
+
+  if (!fs.existsSync(mswModulePath)) {
+    throw new Error(
+      `Failed to locate the MSW library build at: %{mswModulePath}.`,
+    )
+  }
 
   console.log(
     `
@@ -36,17 +50,17 @@ Resolved "msw" module to:
 Using Service Worker build:
 %s
 `,
-    chalk.magenta(absoluteMockPath),
+    chalk.magenta(absoluteUsageExamplePath),
     chalk.magenta(mswModulePath),
     chalk.magenta(SERVICE_WORKER_BUILD_PATH),
   )
 
-  const mockDefsContent = fs.readFileSync(absoluteMockPath).toString()
+  const mockDefsContent = fs.readFileSync(absoluteUsageExamplePath).toString()
 
   const compiler = webpack({
     mode: 'development',
     target: 'web',
-    entry: [path.resolve(__dirname, 'utils'), absoluteMockPath],
+    entry: [path.resolve(__dirname, 'utils'), absoluteUsageExamplePath],
     output: {
       publicPath: '/',
     },
@@ -71,7 +85,7 @@ Using Service Worker build:
       new HtmlWebpackPlugin({
         template: 'test/support/template/index.html',
         templateParameters: () => ({
-          mockDefs: `// ${mockDefs}\n${mockDefsContent}`,
+          mockDefs: `// ${usageExamplePath}\n${mockDefsContent}`,
         }),
       }),
     ],

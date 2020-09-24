@@ -1,47 +1,45 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 
-describe('REST: Request matching (method)', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'method.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'method.mocks.ts'))
+test('sends a mocked response to a POST request on the matching URL', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://api.github.com/users/octocat',
+    fetchOptions: {
+      method: 'POST',
+    },
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  return runtime.cleanup()
+})
+
+test('does not send a mocked response to a GET request on the matching URL', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://api.github.com/users/octocat',
   })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
 
-  describe('given mocked a POST request', () => {
-    it('should mock a POST request to the matched URL', async () => {
-      const res = await test.request({
-        url: 'https://api.github.com/users/octocat',
-        fetchOptions: {
-          method: 'POST',
-        },
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
+  expect(status).toBe(200)
+  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(body).not.toHaveProperty('mocked', true)
 
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        mocked: true,
-      })
-    })
-
-    it('should not mock a GET request to the matched URL', async () => {
-      const res = await test.request({
-        url: 'https://api.github.com/users/octocat',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(status).toBe(200)
-      expect(headers).not.toHaveProperty('x-powered-by', 'msw')
-      expect(body).not.toHaveProperty('mocked', true)
-    })
-  })
+  return runtime.cleanup()
 })

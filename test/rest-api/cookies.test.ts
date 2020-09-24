@@ -1,51 +1,33 @@
 import * as path from 'path'
 import * as cookieUtils from 'cookie'
-import { Response } from 'puppeteer'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
-describe('REST: Cookies', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'cookies.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'cookies.mocks.ts'))
+test('allows setting cookies on the mocked response', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/user`,
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(headers).not.toHaveProperty('set-cookie')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  describe('given I set cookies on the mocked response', () => {
-    let res: Response
-
-    beforeAll(async () => {
-      res = await test.request({
-        url: `${test.origin}/user`,
-      })
-    })
-
-    it('should return the mocked response', async () => {
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        mocked: true,
-      })
-    })
-
-    it('should not have "Set-Cookie" header on the mocked response', () => {
-      const headers = res.headers()
-
-      expect(headers).not.toHaveProperty('set-cookie')
-    })
-
-    it('should be able to access response cookies via "document.cookie"', async () => {
-      const cookieString = await test.page.evaluate(() => {
-        return document.cookie
-      })
-      const allCookies = cookieUtils.parse(cookieString)
-
-      expect(allCookies).toHaveProperty('my-cookie', 'value')
-    })
+  // Should be able to access the response cookies.
+  const cookieString = await runtime.page.evaluate(() => {
+    return document.cookie
   })
+  const allCookies = cookieUtils.parse(cookieString)
+  expect(allCookies).toHaveProperty('my-cookie', 'value')
+
+  return runtime.cleanup()
 })

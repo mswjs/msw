@@ -1,20 +1,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(
+test('responds with a given binary body', async () => {
+  const runtime = await runBrowserWith(
     path.resolve(__dirname, 'body-binary.mocks.ts'),
   )
-})
 
-afterAll(() => {
-  return runtime.cleanup()
-})
-
-it('returns given binary in the mocked response', async () => {
   const res = await runtime.request({
     url: `${runtime.origin}/images/abc-123`,
   })
@@ -29,4 +21,6 @@ it('returns given binary in the mocked response', async () => {
   expect(status).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(new Uint8Array(body)).toEqual(new Uint8Array(expectedBuffer))
+
+  return runtime.cleanup()
 })

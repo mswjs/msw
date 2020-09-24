@@ -14,7 +14,7 @@ test('handles a GET request without a body', async () => {
   const body = await res.json()
   expect(body).toEqual({ body: undefined })
 
-  await runtime.cleanup()
+  return runtime.cleanup()
 })
 
 test('handles a GET request without a body and "Content-Type: application/json" header', async () => {
@@ -31,7 +31,7 @@ test('handles a GET request without a body and "Content-Type: application/json" 
   const body = await res.json()
   expect(body).toEqual({ body: undefined })
 
-  await runtime.cleanup()
+  return runtime.cleanup()
 })
 
 test('handles a POST request with an explicit empty body', async () => {
@@ -47,7 +47,7 @@ test('handles a POST request with an explicit empty body', async () => {
   const body = await res.json()
   expect(body).toEqual({ body: '' })
 
-  await runtime.cleanup()
+  return runtime.cleanup()
 })
 
 test('handles a POST request with a textual body', async () => {
@@ -63,7 +63,7 @@ test('handles a POST request with a textual body', async () => {
   const body = await res.json()
   expect(body).toEqual({ body: 'text-body' })
 
-  await runtime.cleanup()
+  return runtime.cleanup()
 })
 
 test('handles a POST request with a JSON body and "Content-Type: application/json" header', async () => {
@@ -88,5 +88,5 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
     },
   })
 
-  await runtime.cleanup()
+  return runtime.cleanup()
 })

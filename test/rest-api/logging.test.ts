@@ -1,18 +1,13 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { captureConsole } from '../support/captureConsole'
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'basic.mocks.ts'))
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'basic.mocks.ts'))
+}
 
 test('prints a captured request info into browser console', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
 
   await runtime.request({
@@ -34,4 +29,6 @@ test('prints a captured request info into browser console', async () => {
 
   // Request log must include the response status code.
   expect(requestLog).toContain('200')
+
+  return runtime.cleanup()
 })

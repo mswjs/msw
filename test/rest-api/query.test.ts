@@ -1,51 +1,47 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
-describe('REST: Query parameters', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
+test('retrieves a single request URL query parameter', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://test.mswjs.io/api/books?id=abc-123',
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    bookId: 'abc-123',
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  return runtime.cleanup()
+})
+
+test('retrieves multiple request URL query parameters', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://test.mswjs.io/products?id=1&id=2&id=3',
+    fetchOptions: {
+      method: 'POST',
+    },
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    productIds: ['1', '2', '3'],
   })
 
-  describe('given a single query parameter', () => {
-    it('should retrieve parameters from the URI', async () => {
-      const res = await test.request({
-        url: 'https://test.mswjs.io/api/books?id=abc-123',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        bookId: 'abc-123',
-      })
-    })
-  })
-
-  describe('given multiple query parameters', () => {
-    it('should return the list of values by parameter name', async () => {
-      const res = await test.request({
-        url: 'https://test.mswjs.io/products?id=1&id=2&id=3',
-        fetchOptions: {
-          method: 'POST',
-        },
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        productIds: ['1', '2', '3'],
-      })
-    })
-  })
+  return runtime.cleanup()
 })

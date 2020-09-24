@@ -1,18 +1,13 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(
-    path.resolve(__dirname, 'operation-reference.mocks.ts'),
-  )
-})
-
-afterAll(() => runtime.cleanup())
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'operation-reference.mocks.ts'))
+}
 
 test('allows referencing the request body in the request handler', async () => {
+  const runtime = await createRuntime()
   const GET_USER_QUERY = `
     query GetUser($id: String!) {
       query
@@ -38,9 +33,12 @@ test('allows referencing the request body in the request handler', async () => {
       },
     },
   })
+
+  return runtime.cleanup()
 })
 
 test('allows referencing the request body in the request handler', async () => {
+  const runtime = await createRuntime()
   const LOGIN_MUTATION = `
     mutation Login($username: String!, $password: String!) {
       mutation
@@ -68,4 +66,6 @@ test('allows referencing the request body in the request handler', async () => {
       },
     },
   })
+
+  return runtime.cleanup()
 })

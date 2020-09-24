@@ -1,20 +1,15 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
-
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'redirect.mocks.ts'))
-})
-
-afterAll(() => runtime.cleanup())
+import { runBrowserWith } from '../support/runBrowserWith'
 
 test('supports redirect in a mocked response', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'redirect.mocks.ts'),
+  )
   const res = await runtime.request({
     url: `${runtime.origin}/login`,
   })
 
-  // Assert the original response returns redirect
+  // Assert the original response returns redirect.
   expect(res.headers()).toHaveProperty('location', '/user')
   expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
   expect(res.status()).toBe(307)
@@ -26,11 +21,13 @@ test('supports redirect in a mocked response', async () => {
   const redirectHeaders = redirectRes.headers()
   const redirectBody = await redirectRes.json()
 
-  // Assert redirect gets requested and mocked
+  // Assert redirect gets requested and mocked.
   expect(redirectStatus).toBe(200)
   expect(redirectHeaders).toHaveProperty('x-powered-by', 'msw')
   expect(redirectBody).toEqual({
     firstName: 'John',
     lastName: 'Maverick',
   })
+
+  return runtime.cleanup()
 })

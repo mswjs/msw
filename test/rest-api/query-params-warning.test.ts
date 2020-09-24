@@ -1,16 +1,12 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { captureConsole } from '../support/captureConsole'
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(
+function createRuntime() {
+  return runBrowserWith(
     path.resolve(__dirname, 'query-params-warning.mocks.ts'),
   )
-})
-
-afterAll(() => runtime.cleanup())
+}
 
 function findQueryParametersWarning(logs: string[]) {
   return logs.find((text) => {
@@ -29,6 +25,7 @@ function findQueryParametersSuggestions(logs: string[], params: string[]) {
 }
 
 test('warns when a request handler URL contains a single query parameter', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
 
   await runtime.reload()
@@ -46,9 +43,13 @@ test('warns when a request handler URL contains a single query parameter', async
   expect(
     findQueryParametersSuggestions(messages.warning, ['name']),
   ).not.toBeUndefined()
+
+  return runtime.cleanup()
 })
 
 test('warns when a request handler URL contains multiple query parameters', async () => {
+  const runtime = await createRuntime()
+
   const { messages } = captureConsole(runtime.page)
 
   await runtime.reload()
@@ -69,4 +70,6 @@ test('warns when a request handler URL contains multiple query parameters', asyn
   expect(
     findQueryParametersSuggestions(messages.warning, ['id', 'type']),
   ).not.toBeUndefined()
+
+  return runtime.cleanup()
 })

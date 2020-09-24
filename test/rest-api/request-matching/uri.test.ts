@@ -1,146 +1,149 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 
-describe('REST: Request matching (URI)', () => {
-  let test: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'uri.mocks.ts'))
+}
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'uri.mocks.ts'))
+test('matches an exact string with the same request URL with a trailing slash', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://api.github.com/made-up/',
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  return runtime.cleanup()
+})
+
+test('does not match an exact string with a different request URL with a trailing slash', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.page.evaluate(() =>
+    fetch('https://api.github.com/other/'),
+  )
+
+  expect(res.status).not.toBe(200)
+
+  return runtime.cleanup()
+})
+
+test('matches an exact string with the same request URL without a trailing slash', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://api.github.com/made-up',
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  describe('given exact string for request URI', () => {
-    describe('given the actual URI with trailing slash', () => {
-      it('should match a request with the exact URI', async () => {
-        const res = await test.request({
-          url: 'https://api.github.com/made-up/',
-        })
-        const status = res.status()
-        const headers = res.headers()
-        const body = await res.json()
+  return runtime.cleanup()
+})
 
-        expect(status).toBe(200)
-        expect(headers).toHaveProperty('x-powered-by', 'msw')
-        expect(body).toEqual({
-          mocked: true,
-        })
-      })
+test('does not match an exact string with a different request URL without a trailing slash', async () => {
+  const runtime = await createRuntime()
 
-      it('should not match a request with different URI', async () => {
-        const res = await test.page.evaluate(() =>
-          fetch('https://api.github.com/other/'),
-        )
+  const res = await runtime.page.evaluate(() =>
+    fetch('https://api.github.com/other'),
+  )
 
-        expect(res.status).not.toBe(200)
-      })
-    })
+  expect(res.status).not.toBe(200)
 
-    describe('given the actual URL without a trailing slash', () => {
-      it('should match a request with the exact URI', async () => {
-        const res = await test.request({
-          url: 'https://api.github.com/made-up',
-        })
-        const status = res.status()
-        const headers = res.headers()
-        const body = await res.json()
+  return runtime.cleanup()
+})
 
-        expect(status).toBe(200)
-        expect(headers).toHaveProperty('x-powered-by', 'msw')
-        expect(body).toEqual({
-          mocked: true,
-        })
-      })
+test('matches a mask against a matching request URL', async () => {
+  const runtime = await createRuntime()
 
-      it('should not match a request with different URI', async () => {
-        const res = await test.page.evaluate(() =>
-          fetch('https://api.github.com/other'),
-        )
+  const res = await runtime.request({
+    url: 'https://test.mswjs.io/messages/abc-123',
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
 
-        expect(res.status).not.toBe(200)
-      })
-    })
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    messageId: 'abc-123',
   })
 
-  describe('given mask for request URI', () => {
-    it('should match a request that matches the mask', async () => {
-      const res = await test.request({
-        url: 'https://test.mswjs.io/messages/abc-123',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
+  return runtime.cleanup()
+})
 
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        messageId: 'abc-123',
-      })
-    })
+test('ignores query parameters when matching a mask against a matching request URL', async () => {
+  const runtime = await createRuntime()
 
-    it('should not match a request that does not match the mask', async () => {
-      const res = await test.page.evaluate(() =>
-        fetch('https://test.mswjs.io/users/def-456').catch(() => null),
-      )
+  const res = await runtime.request({
+    url: 'https://test.mswjs.io/messages/abc-123/items?hello=true',
+  })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
 
-      expect(res).toBeNull()
-    })
-
-    it('should match a request with query parameters that matches the mask', async () => {
-      const res = await test.request({
-        url: 'https://test.mswjs.io/messages/abc-123/items?hello=true',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        messageId: 'abc-123',
-      })
-    })
-
-    it('should match a request with a hash that matches the mask', async () => {
-      const res = await test.request({
-        url: 'https://test.mswjs.io/messages/abc-123/items#hello',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
-
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        messageId: 'abc-123',
-      })
-    })
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    messageId: 'abc-123',
   })
 
-  describe('given RegExp for request URI', () => {
-    it('should match a request URI matching the expression', async () => {
-      const res = await test.request({
-        url: 'https://mswjs.google.com/path',
-      })
-      const status = res.status()
-      const headers = res.headers()
-      const body = await res.json()
+  return runtime.cleanup()
+})
 
-      expect(status).toBe(200)
-      expect(headers).toHaveProperty('x-powered-by', 'msw')
-      expect(body).toEqual({
-        mocked: true,
-      })
-    })
+test('does not match a mask against a non-matching request URL', async () => {
+  const runtime = await createRuntime()
 
-    it('should not match a request URI not matching the expression', async () => {
-      const res = await test.page.evaluate(() =>
-        fetch('https://mswjs.google.com/other').catch(() => null),
-      )
+  const res = await runtime.page.evaluate(() =>
+    fetch('https://test.mswjs.io/users/def-456').catch(() => null),
+  )
 
-      expect(res).toBeNull()
-    })
+  expect(res).toBeNull()
+
+  return runtime.cleanup()
+})
+
+test('matches a RegExp against a matching request URL', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request({
+    url: 'https://mswjs.google.com/path',
   })
+  const status = res.status()
+  const headers = res.headers()
+  const body = await res.json()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
+  })
+
+  return runtime.cleanup()
+})
+
+test('does not match a RegExp against a non-matching request URL', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.page.evaluate(() =>
+    fetch('https://mswjs.google.com/other').catch(() => null),
+  )
+
+  expect(res).toBeNull()
+
+  return runtime.cleanup()
 })

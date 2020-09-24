@@ -50,6 +50,12 @@ export const ws = {
       ) {
         server.addEventListener(eventType, listener)
       },
+      /**
+       * Closes a WebSocket server, preventing it from sending or receiving events.
+       */
+      close() {
+        server.close()
+      },
     }
   },
 }

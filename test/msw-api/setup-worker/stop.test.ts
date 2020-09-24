@@ -1,10 +1,13 @@
 import * as path from 'path'
 import { Page } from 'puppeteer'
 import {
-  TestAPI,
   runBrowserWith,
   createRequestHelper,
 } from '../../support/runBrowserWith'
+
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'stop.mocks.ts'))
+}
 
 const stopWorkerOn = async (page: Page) => {
   await page.evaluate(() => {
@@ -17,81 +20,52 @@ const stopWorkerOn = async (page: Page) => {
   })
 }
 
-describe('API: setupWorker / stop', () => {
-  let test: TestAPI
+test('disables the mocking when the worker is stopped', async () => {
+  const runtime = await createRuntime()
+  await stopWorkerOn(runtime.page)
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'stop.mocks.ts'))
+  const res = await runtime.request({
+    url: 'https://api.github.com',
+  })
+  const headers = res.headers()
+  const body = res.json()
+
+  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(body).not.toEqual({
+    mocked: true,
   })
 
-  afterAll(() => {
-    return test.cleanup()
+  return runtime.cleanup()
+})
+
+test('keeps the mocking enabled in one tab when stopping the worker in another tab', async () => {
+  const runtime = await createRuntime()
+  const firstPage = await runtime.browser.newPage()
+  await firstPage.goto(runtime.origin, {
+    waitUntil: 'networkidle0',
+  })
+  const secondPage = await runtime.browser.newPage()
+  await secondPage.goto(runtime.origin, {
+    waitUntil: 'networkidle0',
   })
 
-  describe('given I manually stop the service worker', () => {
-    beforeAll(async () => {
-      await stopWorkerOn(test.page)
-    })
+  await stopWorkerOn(firstPage)
 
-    afterAll(async () => {
-      await test.page.close()
-    })
+  // Switch to another page.
+  await secondPage.bringToFront()
 
-    it('should have the mocking disabled', async () => {
-      const res = await test.request({
-        url: 'https://api.github.com',
-      })
-      const headers = res.headers()
-      const body = res.json()
+  // Creating a request handler for the new page.
+  const request = createRequestHelper(secondPage)
+  const res = await request({
+    url: 'https://api.github.com',
+  })
+  const headers = res.headers()
+  const body = await res.json()
 
-      expect(headers).not.toHaveProperty('x-powered-by', 'msw')
-      expect(body).not.toEqual({
-        mocked: true,
-      })
-    })
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(body).toEqual({
+    mocked: true,
   })
 
-  describe('given multiple clients of the same project', () => {
-    let firstPage: Page
-    let secondPage: Page
-
-    beforeAll(async () => {
-      firstPage = await test.browser.newPage()
-      await firstPage.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
-
-      secondPage = await test.browser.newPage()
-      await secondPage.goto(test.origin, {
-        waitUntil: 'networkidle0',
-      })
-    })
-
-    describe('when I stop the service worker on one page', () => {
-      beforeAll(async () => {
-        await stopWorkerOn(firstPage)
-      })
-
-      describe('and switch to another page', () => {
-        beforeAll(async () => {
-          await secondPage.bringToFront()
-        })
-
-        it('should still have mocking enabled', async () => {
-          // Creating a request handler for the new page
-          const request = createRequestHelper(secondPage)
-          const res = await request({
-            url: 'https://api.github.com',
-          })
-          const headers = res.headers()
-          const body = await res.json()
-
-          expect(headers).toHaveProperty('x-powered-by', 'msw')
-          expect(body).toEqual({
-            mocked: true,
-          })
-        })
-      })
-    })
-  })
+  return runtime.cleanup()
 })

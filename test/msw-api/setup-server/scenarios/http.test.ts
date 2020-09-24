@@ -39,16 +39,16 @@ describe('setupServer / http', () => {
       })
     })
 
-    it('should return mocked status code', () => {
+    test('should return mocked status code', () => {
       expect(res.statusCode).toEqual(401)
     })
 
-    it('should return mocked headers', () => {
+    test('should return mocked headers', () => {
       expect(res.headers).toHaveProperty('content-type', 'application/json')
       expect(res.headers).toHaveProperty('x-header', 'yes')
     })
 
-    it('should return mocked body', () => {
+    test('should return mocked body', () => {
       expect(resBody).toEqual('{"firstName":"John"}')
     })
   })
@@ -68,16 +68,16 @@ describe('setupServer / http', () => {
       req.end()
     })
 
-    it('should return mocked status code', () => {
+    test('should return mocked status code', () => {
       expect(res.statusCode).toEqual(401)
     })
 
-    it('should return mocked headers', () => {
+    test('should return mocked headers', () => {
       expect(res.headers).toHaveProperty('content-type', 'application/json')
       expect(res.headers).toHaveProperty('x-header', 'yes')
     })
 
-    it('should return mocked body', () => {
+    test('should return mocked body', () => {
       expect(resBody).toEqual('{"firstName":"John"}')
     })
   })

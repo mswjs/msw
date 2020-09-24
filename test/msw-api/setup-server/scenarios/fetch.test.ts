@@ -38,16 +38,16 @@ describe('setupServer / fetch', () => {
       res = await fetch('http://test.mswjs.io')
     })
 
-    it('should return mocked status code', async () => {
+    test('should return mocked status code', async () => {
       expect(res.status).toEqual(401)
     })
 
-    it('should return mocked headers', () => {
+    test('should return mocked headers', () => {
       expect(res.headers.get('content-type')).toEqual('application/json')
       expect(res.headers.get('x-header')).toEqual('yes')
     })
 
-    it('should return mocked body', async () => {
+    test('should return mocked body', async () => {
       const body = await res.json()
 
       expect(body).toEqual({
@@ -72,16 +72,16 @@ describe('setupServer / fetch', () => {
       })
     })
 
-    it('should return mocked status code', () => {
+    test('should return mocked status code', () => {
       expect(res.status).toEqual(403)
     })
 
-    it('should return mocked headers', () => {
+    test('should return mocked headers', () => {
       expect(res.headers.get('content-type')).toEqual('application/json')
       expect(res.headers.get('x-header')).toEqual('yes')
     })
 
-    it('should return mocked and parsed JSON body', async () => {
+    test('should return mocked and parsed JSON body', async () => {
       const body = await res.json()
       expect(body).toEqual({
         payload: 'info',

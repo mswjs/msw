@@ -1,31 +1,25 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
+import { runBrowserWith } from '../../../support/runBrowserWith'
 
-describe('API: setupWorker / start', () => {
-  let test: TestAPI
+test('errors when attempting to run the worker in a NodeJS environment', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'browser.mocks.ts'),
+  )
 
-  beforeAll(async () => {
-    test = await runBrowserWith(path.resolve(__dirname, 'browser.mocks.ts'))
+  const exceptions: string[] = []
+
+  runtime.page.on('pageerror', (error) => {
+    exceptions.push(error.message)
+  })
+  await runtime.reload()
+
+  const nodeMessage = exceptions.find((message) => {
+    return message.startsWith(
+      'Error: [MSW] Failed to execute `setupServer` in the environment that is not NodeJS',
+    )
   })
 
-  afterAll(() => {
-    return test.cleanup()
-  })
+  expect(nodeMessage).toBeTruthy()
 
-  it('log an error to the console', async () => {
-    const exceptions: string[] = []
-
-    test.page.on('pageerror', (error) => {
-      exceptions.push(error.message)
-    })
-    await test.reload()
-
-    const nodeMessage = exceptions.find((message) => {
-      return message.startsWith(
-        'Error: [MSW] Failed to execute `setupServer` in the environment that is not NodeJS',
-      )
-    })
-
-    expect(nodeMessage).toBeTruthy()
-  })
+  return runtime.cleanup()
 })

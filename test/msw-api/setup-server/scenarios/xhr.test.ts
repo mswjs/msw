@@ -41,16 +41,16 @@ describe('setupServer / XHR', () => {
       req.send()
     })
 
-    it('should return mocked status code', () => {
+    test('should return mocked status code', () => {
       expect(statusCode).toEqual(401)
     })
 
-    it('should return mocked headers', () => {
+    test('should return mocked headers', () => {
       expect(headers.get('content-type')).toEqual('application/json')
       expect(headers.get('x-header')).toEqual('yes')
     })
 
-    it('should return mocked body', () => {
+    test('should return mocked body', () => {
       expect(body).toEqual({
         firstName: 'John',
         age: 32,

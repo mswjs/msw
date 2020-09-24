@@ -78,7 +78,7 @@ describe('setupServer / graphql', () => {
       })
     })
 
-    it('should return a mocked response data', async () => {
+    test('should return a mocked response data', async () => {
       expect(res.data).toEqual({
         user: {
           id: 'abc-123',
@@ -101,7 +101,7 @@ describe('setupServer / graphql', () => {
       })
     })
 
-    it('should return a mocked error response', async () => {
+    test('should return a mocked error response', async () => {
       expect(res.data).toBeUndefined()
       expect(res.errors).toEqual([
         {

@@ -42,6 +42,12 @@ let listeners: Listener[] = []
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
+  requestHandlers.forEach((handler) => {
+    if (Array.isArray(handler))
+      throw new Error(
+        `[MSW] setupWorker function receive every handler as an arg. You should call it as setupWorker(...requestHandlers) with requestHandlers the array of handlers.`,
+      )
+  })
   const context: SetupWorkerInternalContext = {
     worker: null,
     registration: null,

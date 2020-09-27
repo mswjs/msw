@@ -31,7 +31,7 @@ describe('data', () => {
     it('should have body set to the given JSON nested in the "data" property', () => {
       expect(result).toHaveProperty(
         'body',
-        `{\"errors\":[{\"message\":\"is great\"}],\"data\":{\"name\":\"msw\"}}`,
+        `{\"data\":{\"name\":\"msw\"},\"errors\":[{\"message\":\"is great\"}]}`,
       )
     })
   })

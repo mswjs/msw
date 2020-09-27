@@ -26,8 +26,8 @@ export const json = <BodyType>(
 
     if (merge) {
       try {
-        const previousBody = JSON.parse(res.body as string)
-        res.body = JSON.stringify({ ...previousBody, ...body }) as any
+        const nextBody = JSON.parse(res.body as string)
+        res.body = JSON.stringify({ ...body, ...nextBody }) as any
       } catch (e) {
         res.body = JSON.stringify(body) as any
       }

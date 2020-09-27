@@ -29,6 +29,12 @@ export function createSetupServer(...interceptors: Interceptor[]) {
    * Sets up a server-side requests interception with the given mock definition.
    */
   return function setupServer(...requestHandlers: RequestHandlersList) {
+    requestHandlers.forEach((handler) => {
+      if (Array.isArray(handler))
+        throw new Error(
+          `[MSW] setupServer function receive every handler as an arg. You should call it as setupServer(...requestHandlers) with requestHandlers the array of handlers.`,
+        )
+    })
     const interceptor = new RequestInterceptor(interceptors)
 
     // Error when attempting to run this function in a browser environment.

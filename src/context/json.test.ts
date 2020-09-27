@@ -36,5 +36,28 @@ describe('json', () => {
         '"2020-01-01T00:00:00.000Z"',
       )
     })
+
+    it('should allow merging with a prior body', () => {
+      const firstNonNestedObject = json({ firstName: 'John' }, { merge: true })
+      const secondNonNestedObject = json({ lastName: 'Doe' }, { merge: true })
+
+      expect(
+        response(firstNonNestedObject, secondNonNestedObject),
+      ).toHaveProperty('body', '{"lastName":"Doe","firstName":"John"}')
+
+      const firstNestedObject = json(
+        { john: { street: 'Doe street' } },
+        { merge: true },
+      )
+      const secondNestedObject = json(
+        { john: { street: 'Doe street', number: 74 } },
+        { merge: true },
+      )
+
+      expect(response(firstNestedObject, secondNestedObject)).toHaveProperty(
+        'body',
+        '{"john":{"street":"Doe street"}}',
+      )
+    })
   })
 })

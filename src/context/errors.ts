@@ -8,5 +8,5 @@ import { json } from './json'
 export const errors = (
   errorsList: Partial<GraphQLError>[],
 ): ResponseTransformer<{ errors: typeof errorsList }> => {
-  return json({ errors: errorsList })
+  return json({ errors: errorsList }, { merge: true })
 }

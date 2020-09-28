@@ -61,7 +61,7 @@ describe('json', () => {
 
       expect(response(firstNestedObject, secondNestedObject)).toHaveProperty(
         'body',
-        '{"john":{"street":"Doe street"}}',
+        '{"john":{"street":"Doe street","number":74}}',
       )
     })
   })

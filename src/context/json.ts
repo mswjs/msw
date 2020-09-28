@@ -1,4 +1,5 @@
 import { ResponseTransformer } from '../response'
+import { mergeRight } from '../utils/internal/mergeRight'
 
 type JSONContextOptions = {
   merge?: boolean
@@ -27,7 +28,7 @@ export const json = <BodyType>(
     if (merge) {
       try {
         const nextBody = JSON.parse(res.body as string)
-        res.body = JSON.stringify({ ...body, ...nextBody }) as any
+        res.body = JSON.stringify(mergeRight(body, nextBody)) as any
       } catch (e) {
         res.body = JSON.stringify(body) as any
       }

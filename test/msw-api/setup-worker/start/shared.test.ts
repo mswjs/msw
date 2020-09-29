@@ -2,17 +2,11 @@ import * as path from 'path'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
 
-let runtime: TestAPI
 
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'shared.mocks.ts'))
-})
 
-afterAll(() => {
-  return runtime.cleanup()
-})
 
 test('shares the client registration for all other clients when "shared" option is set to "true"', async () => {
+  const runtime = await runBrowserWith(path.resolve(__dirname, 'shared.mocks.ts'))
   const { messages } = captureConsole(runtime.page)
   const iframeUrl = `${runtime.origin}/test/support/template/iframe.html`
 
@@ -51,4 +45,6 @@ test('shares the client registration for all other clients when "shared" option 
   })
 
   expect(requestsLog).toMatch(/\[MSW\] \d{2}:\d{2}:\d{2} GET \/user 200/)
+  
+  return runtime.cleanup()
 })

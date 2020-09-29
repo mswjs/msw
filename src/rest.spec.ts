@@ -10,5 +10,6 @@ test('Exports all REST API methods', () => {
     'delete',
     'patch',
     'options',
+    'link',
   ])
 })

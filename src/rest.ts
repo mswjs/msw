@@ -148,12 +148,66 @@ ${queryParams
   }
 }
 
+const DEFAULT_HANDLER_BASE = ''
+function createScopedRequestHandler(method: RESTMethods, base: Mask) {
+  function concatMasks(base: Mask, path: Mask) {
+    if (base === DEFAULT_HANDLER_BASE) {
+      return path
+    }
+
+    if (typeof base === 'string' && typeof path === 'string') {
+      return base + path
+    }
+
+    if (base instanceof RegExp && path instanceof RegExp) {
+      return new RegExp(base.source + path.source)
+    }
+
+    // ??
+    // 1. RegExp + string
+    // 2. string + RegExp
+    // @ts-ignore
+    return base + path
+  }
+
+  const createdHandler = createRestHandler(method)
+
+  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
+    path: Mask,
+    resolver: ResponseResolver<
+      MockedRequest<RequestBodyType>,
+      typeof restContext,
+      ResponseBodyType
+    >,
+  ): RequestHandler<
+    MockedRequest<RequestBodyType>,
+    typeof restContext,
+    ParsedRestRequest,
+    MockedRequest<RequestBodyType>,
+    ResponseBodyType
+  > => {
+    return createdHandler<RequestBodyType, ResponseBodyType>(
+      concatMasks(base, path),
+      resolver,
+    )
+  }
+}
+
+function createRestHandlerWithBase(base: Mask) {
+  return {
+    head: createScopedRequestHandler(RESTMethods.HEAD, base),
+    get: createScopedRequestHandler(RESTMethods.GET, base),
+    post: createScopedRequestHandler(RESTMethods.POST, base),
+    put: createScopedRequestHandler(RESTMethods.PUT, base),
+    delete: createScopedRequestHandler(RESTMethods.DELETE, base),
+    patch: createScopedRequestHandler(RESTMethods.PATCH, base),
+    options: createScopedRequestHandler(RESTMethods.OPTIONS, base),
+  }
+}
+
+const defaultRestHandlers = createRestHandlerWithBase(DEFAULT_HANDLER_BASE)
+
 export const rest = {
-  head: createRestHandler(RESTMethods.HEAD),
-  get: createRestHandler(RESTMethods.GET),
-  post: createRestHandler(RESTMethods.POST),
-  put: createRestHandler(RESTMethods.PUT),
-  delete: createRestHandler(RESTMethods.DELETE),
-  patch: createRestHandler(RESTMethods.PATCH),
-  options: createRestHandler(RESTMethods.OPTIONS),
+  ...defaultRestHandlers,
+  link: createRestHandlerWithBase,
 }

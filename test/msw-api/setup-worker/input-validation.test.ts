@@ -3,7 +3,7 @@ import { runBrowserWith } from '../../support/runBrowserWith'
 
 test('should throw an error if setupWorker is called with a wrong arg', async () => {
   const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'setupWorker.mocks.ts'),
+    path.resolve(__dirname, 'input-validation.mocks.ts'),
   )
 
   const exceptions: string[] = []
@@ -15,7 +15,7 @@ test('should throw an error if setupWorker is called with a wrong arg', async ()
 
   const nodeMessage = exceptions.find((message) => {
     return message.startsWith(
-      `Error: [MSW] setupWorker function receive every handler as an arg. You should call it as setupWorker(...requestHandlers) with requestHandlers the array of handlers.`,
+      `Error: [MSW] Failed to call "setupWorker": received a list of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).`,
     )
   })
 

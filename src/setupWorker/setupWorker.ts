@@ -45,7 +45,7 @@ export function setupWorker(
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
       throw new Error(
-        `[MSW] setupWorker function receive every handler as an arg. You should call it as setupWorker(...requestHandlers) with requestHandlers the array of handlers.`,
+        `[MSW] Failed to call "setupWorker": received a list of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).`,
       )
   })
   const context: SetupWorkerInternalContext = {

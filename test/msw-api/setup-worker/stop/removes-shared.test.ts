@@ -2,7 +2,6 @@ import * as path from 'path'
 import { Page } from 'puppeteer'
 import { runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
-import { response } from 'msw/lib/types'
 
 const stopWorkerOn = async (page: Page) => {
   await page.evaluate(() => {

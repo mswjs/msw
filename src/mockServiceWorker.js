@@ -87,6 +87,10 @@ self.addEventListener('message', async function (event) {
         return client.id !== clientId
       })
 
+      if (sharedClientId === clientId) {
+        sharedClientId = null
+      }
+
       // Unregister itself when there are no more clients
       if (remainingClients.length === 0) {
         self.registration.unregister()

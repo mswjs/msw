@@ -32,7 +32,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     requestHandlers.forEach((handler) => {
       if (Array.isArray(handler))
         throw new Error(
-          `[MSW] Failed to call "setupServer": received a list of request handlers (setupServer([a, b])), expected to receive each handler individually: setupServer(a, b).`,
+          `[MSW] Failed to call "setupServer" given an Array of request handlers (setupServer([a, b])), expected to receive each handler individually: setupServer(a, b).`,
         )
     })
     const interceptor = new RequestInterceptor(interceptors)

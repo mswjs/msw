@@ -35,10 +35,7 @@ test('unregisters itself when not prompted to be activated again', async () => {
   })
   const secondBody = await secondResponse.json()
 
-  // Although the Service Worker unregisters itself upon refreshing the page,
-  // it still remains "active and running" with the "deleted" status.
-  // This results into requests go through the Service Worker until the next reload.
-  expect(secondResponse.fromServiceWorker()).toBe(true)
+  expect(secondResponse.fromServiceWorker()).toBe(false)
   expect(secondBody).not.toEqual({
     mocked: true,
   })

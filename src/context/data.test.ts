@@ -3,19 +3,39 @@ import { errors } from './errors'
 import { response } from '../response'
 
 describe('data', () => {
-  describe('given a JSON data', () => {
-    let result: ReturnType<typeof response>
+  describe('given JSON data', () => {
+    describe('with specifying data once', () => {
+      let result: ReturnType<typeof response>
 
-    beforeAll(() => {
-      result = response(data({ name: 'msw' }))
+      beforeAll(() => {
+        result = response(data({ name: 'msw' }))
+      })
+
+      it('should have "Content-Type" as "application/json"', () => {
+        expect(result.headers.get('content-type')).toEqual('application/json')
+      })
+
+      it('should have body set to the given JSON nested in the "data" property', () => {
+        expect(result).toHaveProperty('body', `{"data":{"name":"msw"}}`)
+      })
     })
+    describe('with specifying data multiple times', () => {
+      let result: ReturnType<typeof response>
 
-    it('should have "Content-Type" as "application/json"', () => {
-      expect(result.headers.get('content-type')).toEqual('application/json')
-    })
+      beforeAll(() => {
+        result = response(data({ name: 'msw' }), data({ is: 'great' }))
+      })
 
-    it('should have body set to the given JSON nested in the "data" property', () => {
-      expect(result).toHaveProperty('body', `{"data":{"name":"msw"}}`)
+      it('should have "Content-Type" as "application/json"', () => {
+        expect(result.headers.get('content-type')).toEqual('application/json')
+      })
+
+      it('should have body set to the given JSON nested in the "data" property merging each "data" call', () => {
+        expect(result).toHaveProperty(
+          'body',
+          `{\"data\":{\"name\":\"msw\",\"is\":\"great\"}}`,
+        )
+      })
     })
   })
   describe('given composed with error', () => {

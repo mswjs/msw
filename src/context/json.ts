@@ -5,10 +5,6 @@ type JSONContextOptions = {
   merge?: boolean
 }
 
-const defaultJSONContextOptions: JSONContextOptions = {
-  merge: false,
-}
-
 /**
  * Sets the given value as the JSON body of the response.
  * @example
@@ -18,9 +14,7 @@ const defaultJSONContextOptions: JSONContextOptions = {
  */
 export const json = <BodyTypeJSON, BodyTypeString extends string>(
   body: BodyTypeJSON,
-  {
-    merge = defaultJSONContextOptions.merge,
-  }: JSONContextOptions = defaultJSONContextOptions,
+  { merge = false }: JSONContextOptions = {},
 ): ResponseTransformer<BodyTypeString> => {
   return (res) => {
     res.headers.set('Content-Type', 'application/json')

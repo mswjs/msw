@@ -5,8 +5,6 @@ import { json } from './json'
 /**
  * Returns a list of GraphQL errors.
  */
-export const errors = (
-  errorsList: Partial<GraphQLError>[],
-): ResponseTransformer<{ errors: typeof errorsList }> => {
+export const errors = (errorsList: Partial<GraphQLError>[]) => {
   return json({ errors: errorsList }, { merge: true })
 }

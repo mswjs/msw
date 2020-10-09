@@ -34,13 +34,15 @@ export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   once: false,
 }
 
-const postProcessJSONBody = <T = Partial<MockedResponse>>(response: T): T => {
-  if (response.headers.get('content-type')?.endsWith('json')) {
-    response.body = JSON.stringify(response.body)
+const JSONBodyResponseTransformer = (res: MockedResponse): MockedResponse => {
+  if (res.body && res.headers.get('content-type')?.endsWith('json')) {
+    res.body = JSON.stringify(res.body)
   }
 
-  return response
+  return res
 }
+
+const postProcessTransformers = [JSONBodyResponseTransformer]
 
 function createResponseComposition(
   overrides: Partial<MockedResponse> = {},
@@ -58,7 +60,9 @@ function createResponseComposition(
     )
 
     if (transformers.length > 0) {
-      return postProcessJSONBody(compose(...transformers)(resolvedResponse))
+      return compose(...postProcessTransformers.concat(transformers))(
+        resolvedResponse,
+      )
     }
 
     return resolvedResponse

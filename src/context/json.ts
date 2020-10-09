@@ -12,23 +12,17 @@ type JSONContextOptions = {
  * res(json('Some string'))
  * res(json([1, '2', false, { ok: true }]))
  */
-export const json = <BodyTypeJSON, BodyTypeString extends string>(
+export const json = <BodyTypeJSON>(
   body: BodyTypeJSON,
   { merge = false }: JSONContextOptions = {},
-): ResponseTransformer<BodyTypeString> => {
+): ResponseTransformer<BodyTypeJSON> => {
   return (res) => {
     res.headers.set('Content-Type', 'application/json')
 
     if (merge) {
-      try {
-        const nextBody = JSON.parse(res.body)
-
-        res.body = JSON.stringify(mergeRight(body, nextBody)) as BodyTypeString
-      } catch (e) {
-        res.body = JSON.stringify(body) as BodyTypeString
-      }
+      res.body = mergeRight(body, res.body || {})
     } else {
-      res.body = JSON.stringify(body) as BodyTypeString
+      res.body = body
     }
 
     return res

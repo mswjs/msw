@@ -40,15 +40,10 @@ describe('json', () => {
     it('should allow merging with a prior body', () => {
       const firstNonNestedObject = json({ firstName: 'John' }, { merge: true })
       const secondNonNestedObject = json({ lastName: 'Santa' }, { merge: true })
-      const thirdNonNestedObject = json({ lastName: 'Doe' }, { merge: true })
 
       expect(
-        response(
-          firstNonNestedObject,
-          secondNonNestedObject,
-          thirdNonNestedObject,
-        ),
-      ).toHaveProperty('body', '{"firstName":"John","lastName":"Doe"}')
+        response(firstNonNestedObject, secondNonNestedObject),
+      ).toHaveProperty('body', '{"firstName":"John","lastName":"Santa"}')
 
       const firstNestedObject = json(
         { john: { street: 'Doe street', number: 74 } },

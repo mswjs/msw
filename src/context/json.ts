@@ -19,11 +19,7 @@ export const json = <BodyTypeJSON>(
   return (res) => {
     res.headers.set('Content-Type', 'application/json')
 
-    if (merge) {
-      res.body = mergeRight(body, res.body || {})
-    } else {
-      res.body = body
-    }
+    res.body = merge ? mergeRight(body, res.body || {}) : body
 
     return res
   }

@@ -3,6 +3,7 @@ import {
   ResponseResolver,
   MockedRequest,
   DefaultRequestBodyType,
+  RequestParams,
 } from './utils/handlers/requestHandler'
 import { Mask } from './setupWorker/glossary'
 import { set } from './context/set'
@@ -52,15 +53,19 @@ export interface ParsedRestRequest {
 }
 
 const createRestHandler = (method: RESTMethods) => {
-  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
+  return <
+    RequestBodyType = DefaultRequestBodyType,
+    ResponseBodyType = any,
+    RequestParamsType extends RequestParams = RequestParams
+  >(
     mask: Mask,
     resolver: ResponseResolver<
-      MockedRequest<RequestBodyType>,
+      MockedRequest<RequestBodyType, RequestParamsType>,
       typeof restContext,
       ResponseBodyType
     >,
   ): RequestHandler<
-    MockedRequest<RequestBodyType>,
+    MockedRequest<RequestBodyType, RequestParamsType>,
     typeof restContext,
     ParsedRestRequest,
     MockedRequest<RequestBodyType>,

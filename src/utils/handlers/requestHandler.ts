@@ -15,7 +15,10 @@ export const defaultContext = {
 
 export type DefaultRequestBodyType = Record<string, any> | string | undefined
 
-export interface MockedRequest<BodyType = DefaultRequestBodyType> {
+export interface MockedRequest<
+  BodyType = DefaultRequestBodyType,
+  RequestParamsType = RequestParams
+> {
   url: URL
   method: Request['method']
   headers: Headers
@@ -31,7 +34,7 @@ export interface MockedRequest<BodyType = DefaultRequestBodyType> {
   referrerPolicy: Request['referrerPolicy']
   body: BodyType
   bodyUsed: Request['bodyUsed']
-  params: RequestParams
+  params: RequestParamsType
 }
 
 export type RequestQuery = {

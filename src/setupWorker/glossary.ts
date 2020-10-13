@@ -1,5 +1,5 @@
 import { HeadersList } from 'headers-utils'
-import { RequestHandler } from '../utils/handlers/requestHandler'
+import { MockedRequest, RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
@@ -53,7 +53,9 @@ export type StartOptions = SharedOptions & {
    * Disable the logging of captured requests
    * into browser's console.
    */
-  quiet?: boolean
+  quiet?:
+    | boolean
+    | ((req?: MockedRequest, res?: ResponseWithSerializedHeaders) => boolean)
 
   /**
    * Defer any network requests until the Service Worker

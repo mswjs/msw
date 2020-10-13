@@ -97,7 +97,12 @@ export const handleRequestWith = (
         headers: headersToList(response.headers),
       }
 
-      if (!options.quiet) {
+      const isQuiet =
+        typeof options.quiet === 'function'
+          ? options.quiet(req, responseWithSerializedHeaders)
+          : options.quiet
+
+      if (!isQuiet) {
         setTimeout(() => {
           handler.log(
             publicRequest,

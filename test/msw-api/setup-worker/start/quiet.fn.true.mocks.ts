@@ -22,8 +22,7 @@ const worker = setupWorker(
 // @ts-ignore
 window.__MSW_REGISTRATION__ = worker.start({
   // Disable logging of matched requests into browser's console
-  quiet: (req, res) => {
-    console.info('anything?', req.url.href, res.status)
+  quiet: (req) => {
     return req.url.href.includes('foo')
   },
 })

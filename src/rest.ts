@@ -24,6 +24,7 @@ import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getUrlByMask } from './utils/url/getUrlByMask'
+import { mergeMasks } from './utils/matching/mergeMasks'
 
 export enum RESTMethods {
   HEAD = 'HEAD',
@@ -51,7 +52,7 @@ export interface ParsedRestRequest {
   match: ReturnType<typeof matchRequestUrl>
 }
 
-const createRestHandler = (method: RESTMethods) => {
+const createRestHandler = (method: RESTMethods, baseUrl: string) => {
   return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
     mask: Mask,
     resolver: ResponseResolver<
@@ -66,31 +67,34 @@ const createRestHandler = (method: RESTMethods) => {
     MockedRequest<RequestBodyType>,
     ResponseBodyType
   > => {
-    const resolvedMask = getUrlByMask(mask)
+    const mergedMask = baseUrl ? mergeMasks(baseUrl, mask) : mask
+    const resolvedMask = getUrlByMask(mergedMask)
 
     return {
       parse(req) {
         // Match the request during parsing to prevent matching it twice
         // in order to get the request URL parameters.
-        const match = matchRequestUrl(req.url, mask)
+        const match = matchRequestUrl(req.url, mergedMask)
 
         return {
           match,
         }
       },
+
       predicate(req, parsedRequest) {
         return isStringEqual(method, req.method) && parsedRequest.match.matches
       },
 
       getPublicRequest(req, parsedRequest) {
         // Get request path parameters based on the given mask
-        const params = (mask && parsedRequest.match.params) || {}
+        const params = (mergedMask && parsedRequest.match.params) || {}
 
         return {
           ...req,
           params,
         }
       },
+
       resolver,
 
       defineContext() {
@@ -148,66 +152,21 @@ ${queryParams
   }
 }
 
-const DEFAULT_HANDLER_BASE = ''
-function createScopedRequestHandler(method: RESTMethods, base: Mask) {
-  function concatMasks(base: Mask, path: Mask) {
-    if (base === DEFAULT_HANDLER_BASE) {
-      return path
-    }
-
-    if (typeof base === 'string' && typeof path === 'string') {
-      return base + path
-    }
-
-    if (base instanceof RegExp && path instanceof RegExp) {
-      return new RegExp(base.source + path.source)
-    }
-
-    // ??
-    // 1. RegExp + string
-    // 2. string + RegExp
-    // @ts-ignore
-    return base + path
-  }
-
-  const createdHandler = createRestHandler(method)
-
-  return <RequestBodyType = DefaultRequestBodyType, ResponseBodyType = any>(
-    path: Mask,
-    resolver: ResponseResolver<
-      MockedRequest<RequestBodyType>,
-      typeof restContext,
-      ResponseBodyType
-    >,
-  ): RequestHandler<
-    MockedRequest<RequestBodyType>,
-    typeof restContext,
-    ParsedRestRequest,
-    MockedRequest<RequestBodyType>,
-    ResponseBodyType
-  > => {
-    return createdHandler<RequestBodyType, ResponseBodyType>(
-      concatMasks(base, path),
-      resolver,
-    )
-  }
-}
-
-function createRestHandlerWithBase(base: Mask) {
+function createRestStandardHandlers(uri: string) {
   return {
-    head: createScopedRequestHandler(RESTMethods.HEAD, base),
-    get: createScopedRequestHandler(RESTMethods.GET, base),
-    post: createScopedRequestHandler(RESTMethods.POST, base),
-    put: createScopedRequestHandler(RESTMethods.PUT, base),
-    delete: createScopedRequestHandler(RESTMethods.DELETE, base),
-    patch: createScopedRequestHandler(RESTMethods.PATCH, base),
-    options: createScopedRequestHandler(RESTMethods.OPTIONS, base),
+    head: createRestHandler(RESTMethods.HEAD, uri),
+    get: createRestHandler(RESTMethods.GET, uri),
+    post: createRestHandler(RESTMethods.POST, uri),
+    put: createRestHandler(RESTMethods.PUT, uri),
+    delete: createRestHandler(RESTMethods.DELETE, uri),
+    patch: createRestHandler(RESTMethods.PATCH, uri),
+    options: createRestHandler(RESTMethods.OPTIONS, uri),
   }
 }
 
-const defaultRestHandlers = createRestHandlerWithBase(DEFAULT_HANDLER_BASE)
+const restStandardHandlers = createRestStandardHandlers('')
 
 export const rest = {
-  ...defaultRestHandlers,
-  link: createRestHandlerWithBase,
+  ...restStandardHandlers,
+  link: createRestStandardHandlers,
 }

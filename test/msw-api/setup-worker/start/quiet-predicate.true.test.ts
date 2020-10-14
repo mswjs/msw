@@ -6,7 +6,7 @@ let runtime: TestAPI
 
 beforeAll(async () => {
   runtime = await runBrowserWith(
-    path.resolve(__dirname, 'quiet.fn.true.mocks.ts'),
+    path.resolve(__dirname, 'quiet-predicate.true.mocks.ts'),
   )
 })
 
@@ -64,7 +64,7 @@ test('does not log the captured request when the "quiet" option is returns to "t
   expect(activationMessage).toBeFalsy()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/foo`,
+    url: `${runtime.origin}/profile`,
   })
 
   const headers = res.headers()
@@ -77,7 +77,7 @@ test('does not log the captured request when the "quiet" option is returns to "t
   })
 
   const requetsLog = messages.startGroupCollapsed.find((text) => {
-    return text.includes('[MSW]') && text.includes('GET /foo')
+    return text.includes('[MSW]') && text.includes('GET /profile')
   })
 
   expect(requetsLog).toBeUndefined()

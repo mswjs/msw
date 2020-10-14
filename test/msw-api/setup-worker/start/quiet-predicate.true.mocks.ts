@@ -9,7 +9,7 @@ const worker = setupWorker(
       }),
     )
   }),
-  rest.get('/foo', (req, res, ctx) => {
+  rest.get('/profile', (req, res, ctx) => {
     return res(
       ctx.json({
         firstName: 'John',
@@ -23,6 +23,9 @@ const worker = setupWorker(
 window.__MSW_REGISTRATION__ = worker.start({
   // Disable logging of matched requests into browser's console
   quiet: (req) => {
-    return req.url.href.includes('foo')
+    if (req) {
+      return req.url.href.includes('profile')
+    }
+    return true
   },
 })

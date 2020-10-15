@@ -23,5 +23,6 @@ export {
   GraphQLMockedContext,
   GraphQLRequestPayload,
   GraphQLResponseResolver,
+  GraphQLRequestParsedResult,
 } from './graphql'
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'

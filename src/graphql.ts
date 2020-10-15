@@ -65,7 +65,7 @@ export interface GraphQLRequestPayload<VariablesType> {
   variables?: VariablesType
 }
 
-interface GraphQLRequestParsedResult<VariablesType> {
+export interface GraphQLRequestParsedResult<VariablesType> {
   operationType: OperationTypeNode
   operationName: string | undefined
   variables: VariablesType | undefined

@@ -55,7 +55,7 @@ export type StartOptions = SharedOptions & {
    */
   quiet?:
     | boolean
-    | ((req?: MockedRequest, res?: ResponseWithSerializedHeaders) => boolean)
+    | ((req: MockedRequest, res: ResponseWithSerializedHeaders) => boolean)
 
   /**
    * Defer any network requests until the Service Worker

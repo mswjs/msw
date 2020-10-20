@@ -3,7 +3,8 @@ __*
 node_modules
 /lib
 /native/**/*.js
-/node/**/*.js
+/node/**/*
+!/node/package.json
 tmp
 *-error.log
 ./package-lock.json

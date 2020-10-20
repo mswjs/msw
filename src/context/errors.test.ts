@@ -60,3 +60,10 @@ test('combines with data in the response JSON body', () => {
     }),
   )
 })
+
+test('bypasses undefined errors', () => {
+  const result = response(errors(undefined), errors(null))
+
+  expect(result.headers.get('content-type')).not.toEqual('application/json')
+  expect(result).toHaveProperty('body', null)
+})

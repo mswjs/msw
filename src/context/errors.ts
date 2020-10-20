@@ -3,10 +3,16 @@ import { ResponseTransformer } from '../response'
 import { json } from './json'
 
 /**
- * Returns a list of GraphQL errors.
+ * Sets a given list of GraphQL errors on the mocked response.
  */
-export const errors = (
-  errorsList: Partial<GraphQLError>[],
-): ResponseTransformer<{ errors: typeof errorsList }> => {
+export const errors = <
+  ErrorsType extends Partial<GraphQLError>[] | null | undefined
+>(
+  errorsList: ErrorsType,
+): ResponseTransformer<{ errors: ErrorsType }> => {
+  if (errorsList == null) {
+    return (res) => res
+  }
+
   return json({ errors: errorsList }, { merge: true })
 }

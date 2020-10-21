@@ -1,10 +1,21 @@
 import { parseBody } from './parseBody'
 
-test('parses a given body string if the "Content-Type:*/json" header is set', () => {
+test('parses a body if the "Content-Type:application/json" header is set', () => {
   expect(
     parseBody(
       `{"property":2}`,
       new Headers({ 'Content-Type': 'application/json' }),
+    ),
+  ).toEqual({
+    property: 2,
+  })
+})
+
+test('parses a body if the "Content-Type*/json" header is set', () => {
+  expect(
+    parseBody(
+      `{"property":2}`,
+      new Headers({ 'Content-Type': 'application/hal+json' }),
     ),
   ).toEqual({
     property: 2,

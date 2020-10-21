@@ -4,7 +4,17 @@ import {
   RequestHandler,
   ResponseTransformer,
   context,
+  MockedRequest,
 } from 'msw'
+import { ResponseWithSerializedHeaders } from 'msw/lib/types/setupWorker/glossary'
+
+const defaultLogger = (
+  req: MockedRequest,
+  res: ResponseWithSerializedHeaders,
+) => {
+  console.log('%s %s', req.method, req.url.href)
+  console.log('response:', res)
+}
 
 // This is an example of a custom request handler that matches requests
 // based on the presence of a given header.
@@ -21,6 +31,7 @@ const withHeader = (
     // Response resolver is a function that returns the mocked response.
     // You usually want this to be dynamic, so it's accepted via arguments.
     resolver,
+    log: defaultLogger,
     // Without a custom `defineContext` property this request handler
     // can operate with all common context utilities: set, status, fetch, delay.
   }
@@ -32,8 +43,8 @@ interface CustomContext {
 
 const withUrl = (
   url: string,
-  resolver: ResponseResolver<CustomContext>,
-): RequestHandler<CustomContext> => {
+  resolver: ResponseResolver<MockedRequest, CustomContext>,
+): RequestHandler<MockedRequest, CustomContext> => {
   return {
     predicate(req) {
       return req.url.href.includes(url)
@@ -44,12 +55,15 @@ const withUrl = (
         halJson(body) {
           return (res) => {
             res.headers.set('Content-Type', 'application/hal+json')
-            res.body = JSON.stringify(body)
+            // Response body stringification is performed automatically
+            // once the mocked response is concluded.
+            res.body = body
             return res
           }
         },
       }
     },
+    log: defaultLogger,
   }
 }
 
@@ -66,8 +80,8 @@ const worker = setupWorker(
   withUrl('https://test.url', (req, res, ctx) => {
     return res(
       ctx.halJson({
-        firstName: 'John',
         age: 42,
+        firstName: 'John',
       }),
     )
   }),

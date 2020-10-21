@@ -92,6 +92,8 @@ $ yarn test:unit path/to/suite.test.ts
 - [Jest][jest-url], a test runner.
 - [Puppeteer][puppeteer-url], a Chromium automation tool.
 
+> Note: make sure that you [build](#build) MSW before you run the integration tests
+
 #### Writing an integration test
 
 Each integration test consists of two parts:

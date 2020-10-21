@@ -18,8 +18,7 @@ export const json = <BodyTypeJSON>(
 ): ResponseTransformer<BodyTypeJSON> => {
   return (res) => {
     res.headers.set('Content-Type', 'application/json')
-
-    res.body = merge ? mergeRight(body, res.body || {}) : body
+    res.body = merge ? (mergeRight(res.body || {}, body) as BodyTypeJSON) : body
 
     return res
   }

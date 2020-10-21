@@ -1,32 +1,27 @@
-function isObject(obj: Record<string, any>): boolean {
-  return typeof obj === 'object'
-}
+import { isObject } from './isObject'
 
 /**
  * Deeply merges two given objects with the right one
  * having a priority during property assignment.
  */
 export function mergeRight(
-  a: Record<string, any>,
-  b: Record<string, any>,
-): Record<string, any> {
-  const result = Object.assign({}, a)
+  left: Record<string, any>,
+  right: Record<string, any>,
+) {
+  return Object.entries(right).reduce((result, [key, rightValue]) => {
+    const leftValue = result[key]
 
-  Object.entries(b).forEach(([key, value]) => {
-    const existingValue = result[key]
-
-    if (Array.isArray(existingValue) && Array.isArray(value)) {
-      result[key] = existingValue.concat(value)
-      return
+    if (Array.isArray(leftValue) && Array.isArray(rightValue)) {
+      result[key] = leftValue.concat(rightValue)
+      return result
     }
 
-    if (isObject(existingValue) && isObject(value)) {
-      result[key] = mergeRight(existingValue, value)
-      return
+    if (isObject(leftValue) && isObject(rightValue)) {
+      result[key] = mergeRight(leftValue, rightValue)
+      return result
     }
 
-    result[key] = value
-  })
-
-  return result
+    result[key] = rightValue
+    return result
+  }, Object.assign({}, left))
 }

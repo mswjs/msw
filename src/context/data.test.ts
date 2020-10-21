@@ -2,57 +2,60 @@ import { data } from './data'
 import { errors } from './errors'
 import { response } from '../response'
 
-describe('data', () => {
-  describe('given JSON data', () => {
-    describe('with specifying data once', () => {
-      let result: ReturnType<typeof response>
+test('sets a single data on the response JSON body', () => {
+  const result = response(data({ name: 'msw' }))
 
-      beforeAll(() => {
-        result = response(data({ name: 'msw' }))
-      })
+  expect(result.headers.get('content-type')).toBe('application/json')
+  expect(result).toHaveProperty(
+    'body',
+    JSON.stringify({
+      data: {
+        name: 'msw',
+      },
+    }),
+  )
+})
 
-      it('should have "Content-Type" as "application/json"', () => {
-        expect(result.headers.get('content-type')).toEqual('application/json')
-      })
+test('sets multiple data on the response JSON body', () => {
+  const result = response(
+    data({ name: 'msw' }),
+    data({ description: 'API mocking library' }),
+  )
 
-      it('should have body set to the given JSON nested in the "data" property', () => {
-        expect(result).toHaveProperty('body', `{"data":{"name":"msw"}}`)
-      })
-    })
-    describe('with specifying data multiple times', () => {
-      let result: ReturnType<typeof response>
+  expect(result.headers.get('content-type')).toBe('application/json')
+  expect(result).toHaveProperty(
+    'body',
+    JSON.stringify({
+      data: {
+        description: 'API mocking library',
+        name: 'msw',
+      },
+    }),
+  )
+})
 
-      beforeAll(() => {
-        result = response(data({ name: 'msw' }), data({ is: 'great' }))
-      })
+test('combines with error in the response JSON body', () => {
+  const result = response(
+    data({ name: 'msw' }),
+    errors([
+      {
+        message: 'exceeds the limit of awesomeness',
+      },
+    ]),
+  )
 
-      it('should have "Content-Type" as "application/json"', () => {
-        expect(result.headers.get('content-type')).toEqual('application/json')
-      })
-
-      it('should have body set to the given JSON nested in the "data" property merging each "data" call', () => {
-        expect(result).toHaveProperty(
-          'body',
-          `{\"data\":{\"name\":\"msw\",\"is\":\"great\"}}`,
-        )
-      })
-    })
-  })
-  describe('given composed with error', () => {
-    let result: ReturnType<typeof response>
-
-    beforeAll(() => {
-      result = response(
-        data({ name: 'msw' }),
-        errors([{ message: 'is great' }]),
-      )
-    })
-
-    it('should have body set to the given JSON nested in the "data" property', () => {
-      expect(result).toHaveProperty(
-        'body',
-        `{\"data\":{\"name\":\"msw\"},\"errors\":[{\"message\":\"is great\"}]}`,
-      )
-    })
-  })
+  expect(result.headers.get('content-type')).toBe('application/json')
+  expect(result).toHaveProperty(
+    'body',
+    JSON.stringify({
+      errors: [
+        {
+          message: 'exceeds the limit of awesomeness',
+        },
+      ],
+      data: {
+        name: 'msw',
+      },
+    }),
+  )
 })

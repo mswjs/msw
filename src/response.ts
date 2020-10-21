@@ -34,7 +34,11 @@ export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   once: false,
 }
 
-const JSONBodyResponseTransformer = (res: Partial<MockedResponse>) => {
+/**
+ * Internal response transformer to ensure response JSON body
+ * is always stringified.
+ */
+const stringifyJsonBody: ResponseTransformer = (res) => {
   if (res.body && res.headers?.get('content-type')?.endsWith('json')) {
     res.body = JSON.stringify(res.body)
   }
@@ -46,7 +50,7 @@ function createResponseComposition(
   overrides: Partial<MockedResponse> = {},
 ): ResponseFunction {
   return (...transformers) => {
-    const resolvedResponse: Partial<MockedResponse> = Object.assign(
+    const initialResponse: MockedResponse = Object.assign(
       {},
       defaultResponse,
       {
@@ -57,13 +61,12 @@ function createResponseComposition(
       overrides,
     )
 
-    if (transformers.length > 0) {
-      return JSONBodyResponseTransformer(
-        compose(...transformers)(resolvedResponse),
-      )
-    }
+    const resolvedResponse =
+      transformers.length > 0
+        ? compose(...transformers)(initialResponse)
+        : initialResponse
 
-    return resolvedResponse
+    return stringifyJsonBody(resolvedResponse)
   }
 }
 

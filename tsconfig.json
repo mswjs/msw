@@ -5,7 +5,7 @@
     "target": "es6",
     "module": "ESNext",
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": false,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "declaration": true,

@@ -1,4 +1,4 @@
-import * as statuses from 'statuses/codes.json'
+import statuses from 'statuses/codes.json'
 import { ResponseTransformer } from '../response'
 
 export const status = (

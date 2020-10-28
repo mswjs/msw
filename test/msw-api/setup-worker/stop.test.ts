@@ -28,7 +28,7 @@ test('disables the mocking when the worker is stopped', async () => {
     url: 'https://api.github.com',
   })
   const headers = res.headers()
-  const body = res.json()
+  const body = await res.json()
 
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
   expect(body).not.toEqual({

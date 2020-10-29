@@ -26,14 +26,6 @@ export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   networkError: (message: string) => void
 }
 
-export const defaultResponse: Omit<MockedResponse, 'headers'> = {
-  status: 200,
-  statusText: 'OK',
-  body: null,
-  delay: 0,
-  once: false,
-}
-
 /**
  * Internal response transformer to ensure response JSON body
  * is always stringified.
@@ -46,10 +38,26 @@ const stringifyJsonBody: ResponseTransformer = (res) => {
   return res
 }
 
-function createResponseComposition(
-  overrides: Partial<MockedResponse> = {},
+export const defaultResponse: Omit<MockedResponse, 'headers'> = {
+  status: 200,
+  statusText: 'OK',
+  body: null,
+  delay: 0,
+  once: false,
+}
+
+export type ResponseCompositionOptions<BodyInit> = {
+  defaultTransformers?: ResponseTransformer<BodyInit>[]
+  mockedResponseOverrides?: Partial<MockedResponse>
+}
+
+export function createResponseComposition<BodyInit>(
+  options: ResponseCompositionOptions<BodyInit> = {
+    defaultTransformers: [stringifyJsonBody],
+    mockedResponseOverrides: {},
+  },
 ): ResponseFunction {
-  return (...transformers) => {
+  return (...userTransformers) => {
     const initialResponse: MockedResponse = Object.assign(
       {},
       defaultResponse,
@@ -58,20 +66,24 @@ function createResponseComposition(
           'x-powered-by': 'msw',
         }),
       },
-      overrides,
+      options.mockedResponseOverrides,
     )
+    const transformers = [
+      ...(options.defaultTransformers ?? [stringifyJsonBody]),
+      ...userTransformers,
+    ].filter(Boolean)
 
     const resolvedResponse =
       transformers.length > 0
         ? compose(...transformers)(initialResponse)
         : initialResponse
 
-    return stringifyJsonBody(resolvedResponse)
+    return resolvedResponse
   }
 }
 
 export const response = Object.assign(createResponseComposition(), {
-  once: createResponseComposition({ once: true }),
+  once: createResponseComposition({ mockedResponseOverrides: { once: true } }),
   networkError(message: string) {
     throw new NetworkError(message)
   },

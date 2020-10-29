@@ -1,7 +1,12 @@
 import * as context from './context'
 
 export { setupWorker } from './setupWorker/setupWorker'
-export { MockedResponse, ResponseTransformer, response } from './response'
+export {
+  MockedResponse,
+  ResponseTransformer,
+  response,
+  createResponseComposition,
+} from './response'
 export { context }
 
 /* Request handlers */

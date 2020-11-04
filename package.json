@@ -69,7 +69,7 @@
     "graphql": "^15.3.0",
     "headers-utils": "^1.2.0",
     "node-fetch": "^2.6.1",
-    "node-match-path": "^0.4.4",
+    "node-match-path": "^0.5.2",
     "node-request-interceptor": "^0.5.1",
     "statuses": "^2.0.0",
     "yargs": "^16.0.3"

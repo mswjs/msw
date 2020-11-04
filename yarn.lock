@@ -6699,10 +6699,10 @@ node-libs-browser@^2.2.1:
     util "^0.11.0"
     vm-browserify "^1.0.1"
 
-node-match-path@^0.4.4:
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/node-match-path/-/node-match-path-0.4.4.tgz#516a10926093c0cc6f237d020685b593b19baebb"
-  integrity sha512-pBq9gp7TG0r0VXuy/oeZmQsjBSnYQo7G886Ly/B3azRwZuEtHCY155dzmfoKWcDPGgyfIGD8WKVC7h3+6y7yTg==
+node-match-path@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/node-match-path/-/node-match-path-0.5.2.tgz#07d9bcee70da453fab8bcf6de5540bc0395d0cd9"
+  integrity sha512-/qMS+TTZ4ZQzP+YvLkjzHHH3aSk2HXaNByMN3l7/nZNna3AzsEWgBIDsPyqdNiYznDGFGb+l+9fMiY96Xrd8fA==
 
 node-modules-regexp@^1.0.0:
   version "1.0.0"

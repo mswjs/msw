@@ -11,10 +11,10 @@ export type OnUnhandledRequest =
 
 export function onUnhandledRequest(
   request: MockedRequest,
-  onUnhandledRequest: OnUnhandledRequest = 'bypass',
+  handler: OnUnhandledRequest = 'bypass',
 ): void {
-  if (typeof onUnhandledRequest === 'function') {
-    onUnhandledRequest(request)
+  if (typeof handler === 'function') {
+    handler(request)
     return
   }
 
@@ -30,7 +30,7 @@ export function onUnhandledRequest(
     return res(ctx.text('body'))
   })`
 
-  switch (onUnhandledRequest) {
+  switch (handler) {
     case 'error': {
       throw new Error(`[MSW] Error: ${message}`)
     }

@@ -14,9 +14,11 @@ export interface MockedResponse<BodyType = any> {
 export type ResponseTransformer<BodyType = any> = (
   res: MockedResponse<BodyType>,
 ) => MockedResponse<BodyType>
-type ResponseFunction<BodyType = any> = (
+
+export type ResponseFunction<BodyType = any> = (
   ...transformers: ResponseTransformer<BodyType>[]
 ) => MockedResponse<BodyType>
+
 export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   /**
    * Respond using a given mocked response to the first captured request.
@@ -46,18 +48,22 @@ export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   once: false,
 }
 
-export type ResponseCompositionOptions<BodyInit> = {
-  defaultTransformers?: ResponseTransformer<BodyInit>[]
+export type ResponseCompositionOptions<BodyType> = {
+  defaultTransformers?: ResponseTransformer<BodyType>[]
   mockedResponseOverrides?: Partial<MockedResponse>
 }
 
-export function createResponseComposition<BodyInit>(
-  options: ResponseCompositionOptions<BodyInit> = {
-    defaultTransformers: [stringifyJsonBody],
-    mockedResponseOverrides: {},
-  },
+export const defaultResponseTransformers: ResponseTransformer<any>[] = [
+  stringifyJsonBody,
+]
+
+export function createResponseComposition<BodyType>(
+  responseOverrides?: Partial<MockedResponse<BodyType>>,
+  defaultTransformers: ResponseTransformer<
+    BodyType
+  >[] = defaultResponseTransformers,
 ): ResponseFunction {
-  return (...userTransformers) => {
+  return (...transformers) => {
     const initialResponse: MockedResponse = Object.assign(
       {},
       defaultResponse,
@@ -66,16 +72,17 @@ export function createResponseComposition<BodyInit>(
           'x-powered-by': 'msw',
         }),
       },
-      options.mockedResponseOverrides,
+      responseOverrides,
     )
-    const transformers = [
-      ...(options.defaultTransformers ?? [stringifyJsonBody]),
-      ...userTransformers,
+
+    const resolvedTransformers = [
+      ...defaultTransformers,
+      ...transformers,
     ].filter(Boolean)
 
     const resolvedResponse =
-      transformers.length > 0
-        ? compose(...transformers)(initialResponse)
+      resolvedTransformers.length > 0
+        ? compose(...resolvedTransformers)(initialResponse)
         : initialResponse
 
     return resolvedResponse
@@ -83,7 +90,7 @@ export function createResponseComposition<BodyInit>(
 }
 
 export const response = Object.assign(createResponseComposition(), {
-  once: createResponseComposition({ mockedResponseOverrides: { once: true } }),
+  once: createResponseComposition({ once: true }),
   networkError(message: string) {
     throw new NetworkError(message)
   },

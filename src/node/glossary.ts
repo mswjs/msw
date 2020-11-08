@@ -23,6 +23,11 @@ export interface SetupServerApi {
   resetHandlers: (...nextHandlers: RequestHandlersList) => void
 
   /**
+   * Lists all active request handlers.
+   */
+  list: () => void
+
+  /**
    * Stops requests interception by restoring all augmented modules.
    */
   close: () => void

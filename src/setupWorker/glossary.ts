@@ -97,4 +97,9 @@ export interface SetupWorkerApi {
    * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
    */
   resetHandlers: (...nextHandlers: RequestHandlersList) => void
+
+  /**
+   * Lists all active request handlers.
+   */
+  list: () => void
 }

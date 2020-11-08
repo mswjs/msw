@@ -1,4 +1,5 @@
 import * as cookieUtils from 'cookie'
+import { bold } from 'chalk'
 import { Headers, flattenHeadersObject } from 'headers-utils'
 import {
   RequestInterceptor,
@@ -135,6 +136,20 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
       },
 
+      list() {
+        currentHandlers.forEach((handler) => {
+          const meta = handler.getMetaInfo()
+
+          console.log(`\
+${bold(meta.header)}
+  Declaration: ${meta.callFrame}
+`)
+        })
+      },
+
+      /**
+       * Stops requests interception by restoring all augmented modules.
+       */
       close() {
         interceptor.restore()
       },

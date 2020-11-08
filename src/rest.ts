@@ -25,6 +25,7 @@ import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { isStringEqual } from './utils/internal/isStringEqual'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getUrlByMask } from './utils/url/getUrlByMask'
+import { getCallFrame } from './utils/internal/getCallFrame'
 
 export enum RESTMethods {
   HEAD = 'HEAD',
@@ -72,6 +73,7 @@ const createRestHandler = (method: RESTMethods) => {
     ResponseBodyType
   > => {
     const resolvedMask = getUrlByMask(mask)
+    const callFrame = getCallFrame()
 
     return {
       parse(req) {
@@ -148,6 +150,13 @@ ${queryParams
         })
         console.log('Response', loggedResponse)
         console.groupEnd()
+      },
+
+      getMetaInfo() {
+        return {
+          header: `[rest] ${method} ${mask.toString()}`,
+          callFrame,
+        }
       },
     }
   }

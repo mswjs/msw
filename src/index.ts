@@ -16,14 +16,15 @@ export { context }
 
 /* Request handlers */
 export {
+  defaultContext,
   MockedRequest,
   RequestHandler,
+  RequestHandlerMetaInfo,
   RequestParams,
   RequestQuery,
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
-  defaultContext,
 } from './utils/handlers/requestHandler'
 export { rest, restContext, RESTMethods, ParsedRestRequest } from './rest'
 export {

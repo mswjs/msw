@@ -9,10 +9,6 @@ import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 
-/**
- * Configures a Service Worker with the given request handler functions.
- */
-
 interface Listener {
   target: EventTarget
   event: string
@@ -110,6 +106,17 @@ export function setupWorker(
         requestHandlers,
         ...nextHandlers,
       )
+    },
+
+    list() {
+      context.requestHandlers.forEach((handler) => {
+        const meta = handler.getMetaInfo()
+
+        console.groupCollapsed(meta.header)
+        console.log(`Declaration: ${meta.callFrame}`)
+        console.log('Resolver: %s', handler.resolver)
+        console.groupEnd()
+      })
     },
   }
 }

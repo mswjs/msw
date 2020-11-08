@@ -20,6 +20,7 @@ import { getTimestamp } from './utils/logging/getTimestamp'
 import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
+import { getCallFrame } from './utils/internal/getCallFrame'
 
 type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 
@@ -105,6 +106,8 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
   GraphQLMockedContext<QueryType>,
   GraphQLRequestParsedResult<VariablesType>
 > {
+  const callFrame = getCallFrame()
+
   return {
     resolver,
 
@@ -211,6 +214,18 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
       })
       console.log('Response:', loggedResponse)
       console.groupEnd()
+    },
+
+    getMetaInfo() {
+      const header =
+        expectedOperationType === 'all'
+          ? `[graphql] ${expectedOperationType} (origin: ${mask.toString()})`
+          : `[graphql] ${expectedOperationType} ${expectedOperationName} (origin: ${mask.toString()})`
+
+      return {
+        header,
+        callFrame,
+      }
     },
   }
 }

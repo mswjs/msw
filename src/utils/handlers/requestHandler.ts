@@ -60,6 +60,11 @@ export type ResponseResolver<
   context: ContextType,
 ) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
 
+export interface RequestHandlerMetaInfo {
+  header: string
+  callFrame: string | undefined
+}
+
 export interface RequestHandler<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
@@ -119,6 +124,12 @@ export interface RequestHandler<
    * when dealing with any subsequent matching requests.
    */
   shouldSkip?: boolean
+
+  /**
+   * Returns request handler's meta information used
+   * when listing each current request handler.
+   */
+  getMetaInfo: () => RequestHandlerMetaInfo
 }
 
 export default null

@@ -2,10 +2,14 @@ import * as context from './context'
 
 export { setupWorker } from './setupWorker/setupWorker'
 export {
+  response,
+  defaultResponse,
+  createResponseComposition,
   MockedResponse,
   ResponseTransformer,
-  response,
-  createResponseComposition,
+  ResponseComposition,
+  ResponseCompositionOptions,
+  ResponseFunction,
 } from './response'
 export { context }
 

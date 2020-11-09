@@ -224,6 +224,7 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
 
       return {
         header,
+        mask,
         callFrame,
       }
     },

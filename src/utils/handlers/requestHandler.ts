@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
+import { Mask, ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../../response'
 import { status } from '../../context/status'
 import { set } from '../../context/set'
@@ -62,6 +62,7 @@ export type ResponseResolver<
 
 export interface RequestHandlerMetaInfo {
   header: string
+  mask: Mask
   callFrame: string | undefined
 }
 

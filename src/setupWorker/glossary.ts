@@ -101,5 +101,5 @@ export interface SetupWorkerApi {
   /**
    * Lists all active request handlers.
    */
-  list: () => void
+  printHandlers: () => void
 }

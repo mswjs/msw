@@ -25,7 +25,7 @@ export interface SetupServerApi {
   /**
    * Lists all active request handlers.
    */
-  list: () => void
+  printHandlers: () => void
 
   /**
    * Stops requests interception by restoring all augmented modules.

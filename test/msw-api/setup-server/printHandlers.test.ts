@@ -34,7 +34,7 @@ afterAll(() => {
 })
 
 test('lists all current request handlers', () => {
-  server.list()
+  server.printHandlers()
 
   expect(console.log).toBeCalledTimes(6)
 
@@ -75,7 +75,7 @@ test('respects runtime request handlers when listing handlers', () => {
     graphql.query('GetRandomNumber', resolver),
   )
 
-  server.list()
+  server.printHandlers()
 
   // Runtime handlers are prepended to the list of handlers
   // and they DON'T remove the handlers they may override.

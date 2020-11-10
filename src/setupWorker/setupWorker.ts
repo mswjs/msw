@@ -108,7 +108,7 @@ export function setupWorker(
       )
     },
 
-    list() {
+    printHandlers() {
       context.requestHandlers.forEach((handler) => {
         const meta = handler.getMetaInfo()
 

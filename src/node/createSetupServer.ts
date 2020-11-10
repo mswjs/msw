@@ -136,7 +136,10 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
       },
 
-      list() {
+      /**
+       * Prints the list of currently active request handlers.
+       */
+      printHandlers() {
         currentHandlers.forEach((handler) => {
           const meta = handler.getMetaInfo()
 

@@ -1,7 +1,7 @@
 import { Headers } from 'headers-utils'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
-import { getRequestCookies } from './getRequestCookies'
+import { setRequestCookies } from './setRequestCookies'
 import { parseBody } from './parseBody'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 
@@ -29,7 +29,7 @@ export function parseWorkerRequest(
   }
 
   // Set document cookies on the request.
-  request.cookies = getRequestCookies(request)
+  setRequestCookies(request)
 
   // Parse the request's body based on the "Content-Type" header.
   request.body = parseBody(request.body, request.headers) as any

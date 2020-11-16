@@ -76,6 +76,7 @@
     "node-request-interceptor": "^0.6.3",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.1.0",
+    "virtual-cookies": "^0.1.2",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

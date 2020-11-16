@@ -13,6 +13,8 @@ import { getResponse } from '../getResponse'
 import { onUnhandledRequest } from '../request/onUnhandledRequest'
 import { NetworkError } from '../NetworkError'
 import { parseWorkerRequest } from '../request/parseWorkerRequest'
+import { readResponseCookies } from '../request/readResponseCookies'
+import { setRequestCookies } from '../request/setRequestCookies'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -30,6 +32,9 @@ export const createRequestListener = (
     try {
       const request = parseWorkerRequest(message.payload)
       context.emitter.emit('request:start', request)
+
+      // Set document cookies on the request.
+      setRequestCookies(request)
 
       const {
         response,
@@ -66,6 +71,8 @@ export const createRequestListener = (
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
+
+      readResponseCookies(request, response)
 
       const responseWithSerializedHeaders: ResponseWithSerializedHeaders = {
         ...response,

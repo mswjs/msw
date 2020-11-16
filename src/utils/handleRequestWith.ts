@@ -1,4 +1,6 @@
+import parseSetCookie from 'set-cookie-parser'
 import { Headers, headersToList } from 'headers-utils'
+import { cookieStore } from '../cookie-store'
 import {
   StartOptions,
   ResponseWithSerializedHeaders,
@@ -65,6 +67,12 @@ export const handleRequestWith = (
 
       // Set document cookies on the request.
       req.cookies = getRequestCookies(req)
+      req.headers.set(
+        'cookie',
+        Object.entries(req.cookies)
+          .map(([name, value]) => `${name}=${value}`)
+          .join('; '),
+      )
 
       const {
         response,
@@ -90,6 +98,45 @@ export const handleRequestWith = (
         )
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
+      }
+
+      const cookieString = response.headers.get('set-cookie')
+
+      if (req.credentials !== 'omit' && cookieString) {
+        const cookies = parseSetCookie(cookieString)
+        const cookieEntries = cookies.map(
+          ({ maxAge, name, ...cookie }) =>
+            [
+              name,
+              {
+                ...cookie,
+                expires:
+                  maxAge === undefined
+                    ? cookie.expires
+                    : new Date(Date.now() + maxAge * 1000),
+                maxAge: undefined,
+              },
+            ] as const,
+        )
+        const cookiesOfOrigin = cookieStore.get(req.url.origin)
+
+        if (cookiesOfOrigin) {
+          cookieEntries.forEach(([name, cookie]) =>
+            cookiesOfOrigin.set(name, cookie),
+          )
+        } else {
+          cookieStore.set(req.url.origin, new Map(cookieEntries))
+        }
+
+        localStorage.setItem(
+          '_MSW_COOKIE_STORE',
+          JSON.stringify(
+            Array.from(cookieStore.entries()).map(([origin, cookies]) => [
+              origin,
+              Array.from(cookies.entries()),
+            ]),
+          ),
+        )
       }
 
       const responseWithSerializedHeaders: ResponseWithSerializedHeaders = {

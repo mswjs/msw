@@ -63,6 +63,7 @@
   "dependencies": {
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.0",
+    "@types/set-cookie-parser": "^2.4.0",
     "chalk": "^4.1.0",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.1",
@@ -71,6 +72,7 @@
     "node-fetch": "^2.6.1",
     "node-match-path": "^0.5.2",
     "node-request-interceptor": "^0.5.1",
+    "set-cookie-parser": "^2.4.6",
     "statuses": "^2.0.0",
     "yargs": "^16.0.3"
   },

@@ -8,7 +8,7 @@ export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
   if (body) {
     // If the intercepted request's body has a JSON Content-Type
     // parse it into an object, otherwise leave as-is.
-    const hasJsonContent = headers?.get('content-type')?.endsWith('json')
+    const hasJsonContent = headers?.get('content-type')?.includes('json')
 
     if (hasJsonContent && typeof body !== 'object') {
       return jsonParse(body) || body

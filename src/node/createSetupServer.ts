@@ -12,9 +12,10 @@ import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
-import { ListenOptions, ServerInstance } from './glossary'
+import { SetupServerApi } from './glossary'
+import { SharedOptions } from '../sharedOptions'
 
-const DEFAULT_LISTEN_OPTIONS: ListenOptions = {
+const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
 }
 
@@ -28,7 +29,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
    */
   return function setupServer(
     ...requestHandlers: RequestHandlersList
-  ): ServerInstance {
+  ): SetupServerApi {
     requestHandlers.forEach((handler) => {
       if (Array.isArray(handler))
         throw new Error(
@@ -49,10 +50,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     let currentHandlers: RequestHandlersList = [...requestHandlers]
 
     return {
-      /**
-       * Enables requests interception based on the previously provided mock definition.
-       */
-      listen(options?: ListenOptions): void {
+      listen(options?: SharedOptions) {
         const resolvedOptions = Object.assign(
           {},
           DEFAULT_LISTEN_OPTIONS,
@@ -122,34 +120,22 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         })
       },
 
-      /**
-       * Prepends given request handlers to the list of existing handlers.
-       */
-      use(...handlers: RequestHandlersList): void {
+      use(...handlers: RequestHandlersList) {
         requestHandlerUtils.use(currentHandlers, ...handlers)
       },
 
-      /**
-       * Marks all request handlers that respond using `res.once()` as unused.
-       */
-      restoreHandlers(): void {
+      restoreHandlers() {
         requestHandlerUtils.restoreHandlers(currentHandlers)
       },
 
-      /**
-       * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
-       */
-      resetHandlers(...nextHandlers: RequestHandlersList): void {
+      resetHandlers(...nextHandlers: RequestHandlersList) {
         currentHandlers = requestHandlerUtils.resetHandlers(
           requestHandlers,
           ...nextHandlers,
         )
       },
 
-      /**
-       * Stops requests interception by restoring all augmented modules.
-       */
-      close(): void {
+      close() {
         interceptor.restore()
       },
     }

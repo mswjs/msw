@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { rest } from 'msw'
 import { runBrowserWith } from '../../support/runBrowserWith'
-import { SetupWorkerApi } from '../../../src/setupWorker/setupWorker'
+import { SetupWorkerApi } from '../../../src/setupWorker/glossary'
 
 declare namespace window {
   export const msw: {

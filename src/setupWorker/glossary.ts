@@ -3,6 +3,8 @@ import { RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
+import { createStart } from './start/createStart'
+import { createStop } from './stop/createStop'
 
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
@@ -75,4 +77,23 @@ export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
   'headers'
 > & {
   headers: HeadersList
+}
+export interface SetupWorkerApi {
+  start: ReturnType<typeof createStart>
+  stop: ReturnType<typeof createStop>
+
+  /**
+   * Prepends given request handlers to the list of existing handlers.
+   */
+  use: (...handlers: RequestHandlersList) => void
+
+  /**
+   * Marks all request handlers that respond using `res.once()` as unused.
+   */
+  restoreHandlers: () => void
+
+  /**
+   * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
+   */
+  resetHandlers: (...nextHandlers: RequestHandlersList) => void
 }

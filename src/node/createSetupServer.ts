@@ -50,7 +50,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     let currentHandlers: RequestHandlersList = [...requestHandlers]
 
     return {
-      listen(options?: SharedOptions) {
+      listen(options) {
         const resolvedOptions = Object.assign(
           {},
           DEFAULT_LISTEN_OPTIONS,
@@ -120,7 +120,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         })
       },
 
-      use(...handlers: RequestHandlersList) {
+      use(...handlers) {
         requestHandlerUtils.use(currentHandlers, ...handlers)
       },
 
@@ -128,7 +128,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         requestHandlerUtils.restoreHandlers(currentHandlers)
       },
 
-      resetHandlers(...nextHandlers: RequestHandlersList) {
+      resetHandlers(...nextHandlers) {
         currentHandlers = requestHandlerUtils.resetHandlers(
           requestHandlers,
           ...nextHandlers,

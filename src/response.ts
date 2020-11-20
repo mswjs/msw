@@ -2,6 +2,9 @@ import { Headers } from 'headers-utils'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 
+/**
+ * Internal representation of a mocked response instance.
+ */
 export interface MockedResponse<BodyType = any> {
   body: BodyType
   status: number
@@ -13,11 +16,11 @@ export interface MockedResponse<BodyType = any> {
 
 export type ResponseTransformer<BodyType = any> = (
   res: MockedResponse<BodyType>,
-) => MockedResponse<BodyType>
+) => MockedResponse<BodyType> | Promise<MockedResponse<BodyType>>
 
 export type ResponseFunction<BodyType = any> = (
   ...transformers: ResponseTransformer<BodyType>[]
-) => MockedResponse<BodyType>
+) => MockedResponse<BodyType> | Promise<MockedResponse<BodyType>>
 
 export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   /**
@@ -63,7 +66,7 @@ export function createResponseComposition<BodyType>(
     BodyType
   >[] = defaultResponseTransformers,
 ): ResponseFunction {
-  return (...transformers) => {
+  return async (...transformers) => {
     const initialResponse: MockedResponse = Object.assign(
       {},
       defaultResponse,

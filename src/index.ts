@@ -37,3 +37,6 @@ export {
   GraphQLRequestParsedResult,
 } from './graphql'
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
+
+/* Utils */
+export { compose } from './utils/internal/compose'

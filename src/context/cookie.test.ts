@@ -2,23 +2,12 @@ import * as cookieUtils from 'cookie'
 import { cookie } from './cookie'
 import { response } from '../response'
 
-describe('cookie', () => {
-  describe('given I set a cookie', () => {
-    let result: ReturnType<typeof response>
+test('sets a given cookie on the response', async () => {
+  const result = await response(cookie('my-cookie', 'arbitrary-value'))
 
-    beforeAll(() => {
-      result = response(cookie('my-cookie', 'arbitrary-value'))
-    })
+  expect(result.headers.get('set-cookie')).toEqual('my-cookie=arbitrary-value')
 
-    it('should be set on the response headers', () => {
-      expect(result.headers.get('set-cookie')).toEqual(
-        'my-cookie=arbitrary-value',
-      )
-    })
-
-    it('should set the cookie on "document.cookie"', () => {
-      const allCookies = cookieUtils.parse(document.cookie)
-      expect(allCookies).toHaveProperty('my-cookie', 'arbitrary-value')
-    })
-  })
+  // Propagates the response cookies on the document.
+  const allCookies = cookieUtils.parse(document.cookie)
+  expect(allCookies).toHaveProperty('my-cookie', 'arbitrary-value')
 })

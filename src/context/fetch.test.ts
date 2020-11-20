@@ -1,73 +1,33 @@
 import { augmentRequestInit } from './fetch'
 
-describe('augmentRequestInit', () => {
-  describe('given provided custom headers', () => {
-    describe('and headers is the instance of Headers', () => {
-      let result: ReturnType<typeof augmentRequestInit>
-      let headers: Headers
-
-      beforeAll(() => {
-        const init = {
-          headers: new Headers({ Authorization: 'token' }),
-        }
-
-        result = augmentRequestInit(init)
-        headers = new Headers(result.headers)
-      })
-
-      it('should preserve custom headers', () => {
-        expect(headers.get('Authorization')).toEqual('token')
-      })
-
-      it('should append "x-msw-bypass" header', () => {
-        expect(headers.get('x-msw-bypass')).toEqual('true')
-      })
-    })
-
-    describe('and headers is a string[][] object', () => {
-      let result: ReturnType<typeof augmentRequestInit>
-      let headers: Headers
-
-      beforeAll(() => {
-        const init = {
-          headers: [['Authorization', 'token']],
-        }
-
-        result = augmentRequestInit(init)
-        headers = new Headers(result.headers)
-      })
-
-      it('should append "x-msw-bypass" header', () => {
-        expect(headers.get('x-msw-bypass')).toEqual('true')
-      })
-
-      it('should preserve custom headers', () => {
-        expect(headers.get('authorization')).toEqual('token')
-      })
-    })
-
-    describe('and headers is a Record<string, string> object', () => {
-      let result: ReturnType<typeof augmentRequestInit>
-      let headers: Headers
-
-      beforeAll(() => {
-        const init = {
-          headers: {
-            Authorization: 'token',
-          },
-        }
-
-        result = augmentRequestInit(init)
-        headers = new Headers(result.headers)
-      })
-
-      it('should append "x-msw-bypass" header', () => {
-        expect(headers.get('x-msw-bypass')).toEqual('true')
-      })
-
-      it('should preserve custom headers', () => {
-        expect(headers.get('authorization')).toEqual('token')
-      })
-    })
+test('augments RequestInit with the Headers instance', () => {
+  const result = augmentRequestInit({
+    headers: new Headers({ Authorization: 'token' }),
   })
+  const headers = new Headers(result.headers)
+
+  expect(headers.get('Authorization')).toEqual('token')
+  expect(headers.get('x-msw-bypass')).toEqual('true')
+})
+
+test('augments RequestInit with the string[][] headers object', () => {
+  const result = augmentRequestInit({
+    headers: [['Authorization', 'token']],
+  })
+  const headers = new Headers(result.headers)
+
+  expect(headers.get('x-msw-bypass')).toEqual('true')
+  expect(headers.get('authorization')).toEqual('token')
+})
+
+test('aguments RequestInit with the Record<string, string> headers', () => {
+  const result = augmentRequestInit({
+    headers: {
+      Authorization: 'token',
+    },
+  })
+  const headers = new Headers(result.headers)
+
+  expect(headers.get('x-msw-bypass')).toEqual('true')
+  expect(headers.get('authorization')).toEqual('token')
 })

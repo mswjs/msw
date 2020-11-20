@@ -156,7 +156,6 @@ ${queryParams
         return {
           header: `[rest] ${method} ${mask.toString()}`,
           mask,
-          method,
           callFrame,
         }
       },

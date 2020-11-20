@@ -1,11 +1,11 @@
-import { webSocketStorage } from './webSocketStorage'
+import { webSocketStorage } from './WebSocketStorage'
 import { createCloseEvent } from './utils/createCloseEvent'
 import { getDataLength } from './utils/getDataLength'
 import { WebSocketServer } from './WebSocketServer'
 import { WebSocketConnection } from './WebSocketConnection'
 import { WebSocketMessageData } from './glossary'
 
-export class WebSocketOvereride extends EventTarget implements WebSocket {
+export class WebSocketOverride extends EventTarget implements WebSocket {
   private _realSocket: WebSocket | null = null
   private _server: WebSocketServer = null as any
   private _connection: WebSocketConnection = null as any
@@ -60,7 +60,7 @@ export class WebSocketOvereride extends EventTarget implements WebSocket {
 
     // Look up if there is a WebSocket link created to intercept
     // events to this WebSocket URL.
-    const server = webSocketStorage.lookupServer(url)
+    const server = webSocketStorage.findServer(url)
 
     if (!server) {
       // Create an actual WebSocket instance.
@@ -79,13 +79,14 @@ export class WebSocketOvereride extends EventTarget implements WebSocket {
       // Signal the server that a new client has connected.
       this._connection = new WebSocketConnection(this, this._server)
       this._server.emit('connection', this._connection)
-
       this._readyState = WebSocket.OPEN
+
       const openEvent = new Event('open')
       Object.defineProperty(openEvent, 'target', {
         writable: false,
         value: this,
       })
+
       this.dispatchEvent(openEvent)
     })
   }

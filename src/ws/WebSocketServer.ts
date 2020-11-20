@@ -1,17 +1,16 @@
 import { EventEmitter } from 'events'
-import { Mask } from '../setupWorker/glossary'
 import { WebSocketMessageData, WebSocketServerEventMap } from './glossary'
 import { MessageEventOverride } from './utils/MessageEventOverride'
 import { WebSocketConnection } from './WebSocketConnection'
-import { webSocketStorage } from './webSocketStorage'
+import { webSocketStorage } from './WebSocketStorage'
 
 export class WebSocketServer {
-  mask: Mask
+  mask: string
   private connections: WebSocketConnection[] = []
   private emitter: EventEmitter
-  private channel: BroadcastChannel
+  private channel: BroadcastChannel | undefined
 
-  constructor(mask: Mask, channel: BroadcastChannel) {
+  constructor(mask: string, channel?: BroadcastChannel) {
     this.mask = mask
     this.emitter = new EventEmitter()
     this.channel = channel
@@ -75,7 +74,7 @@ export class WebSocketServer {
     this.emit('message', client, data)
 
     if (broadcast) {
-      this.channel.postMessage(data)
+      this.channel?.postMessage(data)
     }
   }
 

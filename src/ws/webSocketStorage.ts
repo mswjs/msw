@@ -8,7 +8,7 @@ class WebSocketStorage {
     this.servers.push(server)
   }
 
-  lookupServer(url: string) {
+  findServer(url: string) {
     const urlRecord = new URL(url)
 
     return this.servers.find((server) => {

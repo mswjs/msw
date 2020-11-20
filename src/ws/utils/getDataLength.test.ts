@@ -4,7 +4,7 @@ test('returns string lengths', () => {
   expect(getDataLength('something')).toBe(9)
 })
 
-test('returns blob length', () => {
+test('returns Blob length', () => {
   const blob = new Blob(['a', 'blob', 'part'])
   expect(getDataLength(blob)).toBe(9)
 })

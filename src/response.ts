@@ -36,7 +36,7 @@ export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
  * is always stringified.
  */
 const stringifyJsonBody: ResponseTransformer = (res) => {
-  if (res.body && res.headers?.get('content-type')?.endsWith('json')) {
+  if (res.body && res.headers?.get('content-type')?.includes('json')) {
     res.body = JSON.stringify(res.body)
   }
 

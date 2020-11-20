@@ -154,6 +154,7 @@ ${queryParams
 
       getMetaInfo() {
         return {
+          type: 'rest',
           header: `[rest] ${method} ${mask.toString()}`,
           mask,
           callFrame,

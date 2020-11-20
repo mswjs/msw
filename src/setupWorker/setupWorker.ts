@@ -115,7 +115,9 @@ export function setupWorker(
         console.groupCollapsed(meta.header)
         console.log(`Declaration: ${meta.callFrame}`)
         console.log('Resolver: %s', handler.resolver)
-        console.log('Match:', `https://mswjs.io/repl?path=${meta.mask}`)
+        if (['rest'].includes(meta.type)) {
+          console.log('Match:', `https://mswjs.io/repl?path=${meta.mask}`)
+        }
         console.groupEnd()
       })
     },

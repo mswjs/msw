@@ -223,6 +223,7 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
           : `[graphql] ${expectedOperationType} ${expectedOperationName} (origin: ${mask.toString()})`
 
       return {
+        type: 'graphql',
         header,
         mask,
         callFrame,

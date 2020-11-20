@@ -60,7 +60,10 @@ export type ResponseResolver<
   context: ContextType,
 ) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
 
-export interface RequestHandlerMetaInfo {
+type RequestHandlerType = 'rest' | 'graphql'
+
+export interface RequestHandlerMetaInfo<Type = RequestHandlerType> {
+  type: Type
   header: string
   mask: Mask
   callFrame: string | undefined

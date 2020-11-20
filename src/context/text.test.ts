@@ -1,20 +1,9 @@
 import { text } from './text'
 import { response } from '../response'
 
-describe('text', () => {
-  describe('given a text body', () => {
-    let result: ReturnType<typeof response>
+test('sets a given text as the response body', async () => {
+  const result = await response(text('Lorem ipsum'))
 
-    beforeAll(() => {
-      result = response(text('Lorem ipsum'))
-    })
-
-    it('should have "Content-Type" as "text/plain"', () => {
-      expect(result.headers.get('content-type')).toEqual('text/plain')
-    })
-
-    it('should have body set to the given text', () => {
-      expect(result).toHaveProperty('body', 'Lorem ipsum')
-    })
-  })
+  expect(result.headers.get('content-type')).toEqual('text/plain')
+  expect(result).toHaveProperty('body', 'Lorem ipsum')
 })

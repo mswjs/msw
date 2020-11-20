@@ -2,8 +2,8 @@ import { data } from './data'
 import { errors } from './errors'
 import { response } from '../response'
 
-test('sets a single data on the response JSON body', () => {
-  const result = response(data({ name: 'msw' }))
+test('sets a single data on the response JSON body', async () => {
+  const result = await response(data({ name: 'msw' }))
 
   expect(result.headers.get('content-type')).toBe('application/json')
   expect(result).toHaveProperty(
@@ -16,8 +16,8 @@ test('sets a single data on the response JSON body', () => {
   )
 })
 
-test('sets multiple data on the response JSON body', () => {
-  const result = response(
+test('sets multiple data on the response JSON body', async () => {
+  const result = await response(
     data({ name: 'msw' }),
     data({ description: 'API mocking library' }),
   )
@@ -34,8 +34,8 @@ test('sets multiple data on the response JSON body', () => {
   )
 })
 
-test('combines with error in the response JSON body', () => {
-  const result = response(
+test('combines with error in the response JSON body', async () => {
+  const result = await response(
     data({ name: 'msw' }),
     errors([
       {

@@ -3,5 +3,15 @@
  * executes from right to left.
  */
 export function compose(...funcs: Array<(...args: any[]) => any>) {
-  return funcs.reduce((f, g) => (...args: any[]) => f(g(...args)))
+  return funcs.reduce((f, g) => {
+    return (...args: any[]) => {
+      const res = g(...args)
+
+      if (res instanceof Promise) {
+        return Promise.resolve(res).then(f)
+      }
+
+      return f(res)
+    }
+  })
 }

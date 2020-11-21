@@ -1,6 +1,6 @@
 import { compose } from './compose'
 
-test('executes a list of given functions from right to left', () => {
+test('composes given functions from right to left', () => {
   const list: number[] = []
 
   const populateList = compose(
@@ -11,4 +11,14 @@ test('executes a list of given functions from right to left', () => {
   populateList()
 
   expect(list).toEqual([5, 7, 1])
+})
+
+test('composes a list of async functions from right to left', async () => {
+  const generateNumber = compose(
+    async (n) => n + 1,
+    async (n) => n * 5,
+  )
+  const number = await generateNumber(5)
+
+  expect(number).toEqual(26)
 })

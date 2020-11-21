@@ -27,3 +27,25 @@ test('supports asynchronous response transformer', async () => {
 
   return runtime.cleanup()
 })
+
+test('supports asynchronous default response transformer', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
+  )
+
+  const res = await runtime.request({
+    url: `${runtime.origin}/search`,
+    fetchOptions: {
+      method: 'POST',
+    },
+  })
+  const status = res.status()
+  const statusText = res.statusText()
+  const headers = res.headers()
+
+  expect(status).toBe(301)
+  expect(statusText).toBe('Custom Status Text')
+  expect(headers).toHaveProperty('x-custom', 'yes')
+
+  return runtime.cleanup()
+})

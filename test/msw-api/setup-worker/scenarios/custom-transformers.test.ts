@@ -2,20 +2,19 @@ import * as path from 'path'
 import * as JSONbig from 'json-bigint'
 import { runBrowserWith } from '../../../support/runBrowserWith'
 
-function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'custom-transformers.mocks.ts'))
-}
-
-test('should use custom transformes and parse BigInt', async () => {
-  const runtime = await createRuntime()
+test('uses a custom transformer to parse BigInt in response body', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'custom-transformers.mocks.ts'),
+  )
 
   const res = await runtime.request({
-    url: `${runtime.origin}/me`,
+    url: `${runtime.origin}/user`,
   })
   const body = await res.text()
+
   expect(body).toEqual(
     JSONbig.stringify({
-      username: 'Dude',
+      username: 'john.maverick',
       balance: BigInt(1597928668063727616),
     }),
   )

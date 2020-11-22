@@ -1,0 +1,3 @@
+{
+  "sandboxes": ["vanilla", "vanilla-ts", "new"]
+}

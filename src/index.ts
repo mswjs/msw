@@ -1,6 +1,7 @@
 import * as context from './context'
 
 export { setupWorker } from './setupWorker/setupWorker'
+export { SetupWorkerApi } from './setupWorker/glossary'
 export {
   response,
   defaultResponse,

@@ -78,6 +78,7 @@ export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
 > & {
   headers: HeadersList
 }
+
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
   stop: ReturnType<typeof createStop>

@@ -9,12 +9,10 @@
   <a href="https://circleci.com/gh/mswjs/msw" target="_blank">
     <img src="https://img.shields.io/circleci/project/github/mswjs/msw/master.svg" alt="Build status" />
   </a>
-  <a href="https://david-dm.org/mswjs/msw" target="_blank">
-    <img src="https://img.shields.io/david/mswjs/msw.svg" alt="Dependencies status" />
+  <a href="https://www.npmjs.com/package/msw" target="_blank">
+    <img src="https://img.shields.io/npm/dw/msw" alt="Download rate" />
   </a>
-  <a href="https://david-dm.org/mswjs/msw?type=dev" target="_blank">
-    <img src="https://img.shields.io/david/dev/mswjs/msw.svg" alt="Dev dependencies status" />
-  </a>
+  <img alt="Libraries.io dependency status for latest release" src="https://img.shields.io/librariesio/release/npm/msw"/ >
    <a href="https://kcd.im/discord" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green" alt="Discord server" />
   </a>

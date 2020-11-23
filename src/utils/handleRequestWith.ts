@@ -52,12 +52,20 @@ export const handleRequestWith = (
           return value
         },
       )
-
+      const { recorder } = context
       const { type, payload: req } = message
 
       // Ignore irrelevant worker message types
       if (type !== 'REQUEST') {
         return null
+      }
+      console.log(recorder)
+      if (recorder._isRecording()) {
+        const originalResponse = await recorder._handleRequest(req)
+        return channel.send({
+          type: 'MOCK_SUCCESS',
+          payload: originalResponse,
+        })
       }
 
       // Parse the request's body based on the "Content-Type" header.

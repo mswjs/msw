@@ -5,6 +5,7 @@ import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
+import { Recorder, ApiRecorder } from '../utils/Recorder'
 
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
@@ -33,6 +34,7 @@ export interface SetupWorkerInternalContext {
      */
     once<T>(type: string): Promise<ServiceWorkerMessage<T>>
   }
+  recorder: Recorder
 }
 
 export type ServiceWorkerInstanceTuple = [
@@ -102,4 +104,8 @@ export interface SetupWorkerApi {
    * Lists all active request handlers.
    */
   printHandlers: () => void
+  /**
+   * Recorder API
+   */
+  recorder: ApiRecorder
 }

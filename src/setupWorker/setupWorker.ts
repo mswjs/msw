@@ -1,13 +1,33 @@
-import {
-  SetupWorkerInternalContext,
-  RequestHandlersList,
-  SetupWorkerApi,
-} from './glossary'
+import { SetupWorkerInternalContext, RequestHandlersList } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
+import { Recorder, ApiRecorder } from '../utils/Recorder'
+export interface SetupWorkerApi {
+  start: ReturnType<typeof createStart>
+  stop: ReturnType<typeof createStop>
+
+  /**
+   * Prepends given request handlers to the list of existing handlers.
+   */
+  use: (...handlers: RequestHandlersList) => void
+
+  /**
+   * Marks all request handlers that respond using `res.once()` as unused.
+   */
+  restoreHandlers: () => void
+
+  /**
+   * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
+   */
+  resetHandlers: (...nextHandlers: RequestHandlersList) => void
+  /**
+   * Record your APIS
+   */
+  recorder: ApiRecorder
+}
 
 interface Listener {
   target: EventTarget
@@ -22,6 +42,7 @@ let listeners: Listener[] = []
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
+  const recorder = new Recorder()
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
       throw new Error(
@@ -32,6 +53,7 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
+    recorder,
     events: {
       addListener(target: EventTarget, event: string, callback: EventListener) {
         target.addEventListener(event, callback)
@@ -120,6 +142,12 @@ export function setupWorker(
         }
         console.groupEnd()
       })
+    },
+
+    recorder: {
+      record: () => recorder.record(),
+      getLogs: () => recorder.getLogs(),
+      stop: () => recorder.stop(),
     },
   }
 }

@@ -1,10 +1,16 @@
 import { MockedRequest } from './handlers/requestHandler'
 import { fetch } from '../context/fetch'
 
-async function createFunctionFromRequest(
+type RecordRequest = {
+  function: string
+  method: Request['method']
+  url: URL
+}
+
+async function createRecordFromRequest(
   request: MockedRequest,
   response: Response,
-) {
+): Promise<RecordRequest> {
   const lines = []
   const composeLines = []
   lines.push(
@@ -20,7 +26,7 @@ async function createFunctionFromRequest(
   if (hasJsonContent) {
     composeLines.push(`ctx.json(${body})`)
   } else {
-    composeLines.push(`ctx.body(${body})`)
+    composeLines.push(`ctx.body("${body}")`)
   }
 
   response.headers.forEach((value, key) => {
@@ -31,53 +37,49 @@ async function createFunctionFromRequest(
 ${composeLines.join(',\n')}
   )`)
   lines.push(`})`)
-  return lines.join('\n')
+  return {
+    function: lines.join('\n'),
+    method: request.method.toUpperCase(),
+    url: request.url,
+  }
 }
 
 class Recorder {
-  private isRecording: boolean
-  private logs: string[]
+  private _isRecording: boolean
+  private logs: RecordRequest[]
   constructor() {
-    this.isRecording = false
+    this._isRecording = false
     this.logs = []
   }
 
   record() {
-    if (this.isRecording) {
+    if (this._isRecording) {
       return
     }
-    this.isRecording = true
+    this._isRecording = true
     this.logs = []
   }
 
-  _isRecording() {
-    return this.isRecording
+  isRecording() {
+    return this._isRecording
   }
 
   async _handleRequest(request: MockedRequest) {
-    console.log(request)
     const response = await fetch(request)
 
-    const log = await createFunctionFromRequest(request, response)
-
+    const log = await createRecordFromRequest(request, response)
     this.logs.push(log)
     return response
   }
 
   getLogs() {
-    return [...this.logs]
+    return this.logs
   }
 
   stop() {
-    this.isRecording = false
+    this._isRecording = false
     return this.logs
   }
 }
 
-type ApiRecorder = {
-  record: () => void
-  getLogs: () => string[]
-  stop: () => string[]
-}
-
-export { Recorder, ApiRecorder }
+export { Recorder }

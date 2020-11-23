@@ -59,8 +59,7 @@ export const handleRequestWith = (
       if (type !== 'REQUEST') {
         return null
       }
-      console.log(recorder)
-      if (recorder._isRecording()) {
+      if (recorder.isRecording()) {
         const originalResponse = await recorder._handleRequest(req)
         return channel.send({
           type: 'MOCK_SUCCESS',

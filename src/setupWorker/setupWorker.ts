@@ -4,7 +4,7 @@ import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
-import { Recorder, ApiRecorder } from '../utils/Recorder'
+import { Recorder } from '../utils/Recorder'
 export interface SetupWorkerApi {
   start: ReturnType<typeof createStart>
   stop: ReturnType<typeof createStop>
@@ -26,7 +26,7 @@ export interface SetupWorkerApi {
   /**
    * Record your APIS
    */
-  recorder: ApiRecorder
+  recorder: Recorder
 }
 
 interface Listener {
@@ -144,10 +144,6 @@ export function setupWorker(
       })
     },
 
-    recorder: {
-      record: () => recorder.record(),
-      getLogs: () => recorder.getLogs(),
-      stop: () => recorder.stop(),
-    },
+    recorder,
   }
 }

@@ -36,7 +36,7 @@ test('should record GET request with object', async () => {
 
   await runtime.page.evaluate((logs) => {
     // @ts-ignore
-    return window.__MSW__.use(eval(logs[0]))
+    return window.__MSW__.use(eval(logs[0].function))
   }, logs)
 
   res = await runtime.request({

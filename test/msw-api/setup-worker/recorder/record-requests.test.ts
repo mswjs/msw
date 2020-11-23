@@ -33,7 +33,7 @@ test('should record GET request', async () => {
 
   let headers = res.headers()
 
-  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(headers).toHaveProperty('x-powered-by', 'Express')
 
   const logs = await runtime.page.evaluate(() => {
     // @ts-ignore

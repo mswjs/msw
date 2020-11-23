@@ -153,6 +153,12 @@ ${bold(meta.header)}
       /**
        * Stops requests interception by restoring all augmented modules.
        */
+      removeAllHandlers() {
+        const handlers = currentHandlers
+        currentHandlers = []
+        return handlers
+      },
+
       close() {
         interceptor.restore()
       },

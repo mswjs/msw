@@ -34,6 +34,8 @@ test('should record GET request with object', async () => {
     return window.__MSW__.recorder.stop()
   })
 
+  expect(logs).toHaveLength(1)
+
   await runtime.page.evaluate((logs) => {
     // @ts-ignore
     return window.__MSW__.use(eval(logs[0].function))

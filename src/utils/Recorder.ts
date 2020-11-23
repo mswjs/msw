@@ -1,5 +1,7 @@
 import { MockedRequest } from './handlers/requestHandler'
 import { fetch } from '../context/fetch'
+import { SetupApi, RequestHandlersList } from '../setupWorker/glossary'
+import { rest } from '../rest'
 
 type RecordRequest = {
   function: string
@@ -46,39 +48,58 @@ ${composeLines.join(',\n')}
 
 class Recorder {
   private _isRecording: boolean
-  private logs: RecordRequest[]
-  constructor() {
+  private _logs: RecordRequest[]
+  private _mswInstance?: SetupApi
+  private _currentHandlers: RequestHandlersList = []
+
+  constructor(mswInstance?: SetupApi) {
     this._isRecording = false
-    this.logs = []
+    this._mswInstance = mswInstance
+    this._logs = []
   }
 
   record() {
+    if (!this._mswInstance) {
+      throw new Error("We can't record requests without an instance of MSW.")
+    }
     if (this._isRecording) {
       return
     }
+    this._currentHandlers = this._mswInstance.removeAllHandlers()
+    this._mswInstance.use(rest.get('*', this._handleRequest.bind(this)))
     this._isRecording = true
-    this.logs = []
+    this._logs = []
+  }
+
+  setMSWInstance(mswInstance: SetupApi) {
+    this._mswInstance = mswInstance
   }
 
   isRecording() {
     return this._isRecording
   }
 
-  async _handleRequest(request: MockedRequest) {
-    const response = await fetch(request)
-
-    const log = await createRecordFromRequest(request, response)
-    this.logs.push(log)
-    return response
-  }
-
   getLogs() {
-    return this.logs
+    return this._logs
   }
 
   stop() {
-    this._isRecording = false
-    return this.logs
+    if (!this._mswInstance) {
+      throw new Error("We can't record requests without an instance of MSW.")
+    }
+    if (this._isRecording) {
+      this._isRecording = false
+      this._mswInstance.use(...this._currentHandlers)
+    }
+    return this._logs
+  }
+
+  async _handleRequest(request: MockedRequest) {
+    console.log('here')
+    const response = await fetch(request)
+
+    const log = await createRecordFromRequest(request, response)
+    this._logs.push(log)
   }
 }
 

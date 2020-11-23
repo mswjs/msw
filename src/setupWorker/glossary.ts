@@ -5,7 +5,7 @@ import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
-import { Recorder, ApiRecorder } from '../utils/Recorder'
+import { Recorder } from '../utils/Recorder'
 
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
@@ -13,7 +13,7 @@ export type ResolvedMask = Mask | URL
 export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  requestHandlers: RequestHandler<any, any>[]
+  requestHandlers: RequestHandlersList
   keepAliveInterval?: number
   events: {
     /**
@@ -34,7 +34,6 @@ export interface SetupWorkerInternalContext {
      */
     once<T>(type: string): Promise<ServiceWorkerMessage<T>>
   }
-  recorder: Recorder
 }
 
 export type ServiceWorkerInstanceTuple = [
@@ -80,11 +79,7 @@ export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
 > & {
   headers: HeadersList
 }
-
-export interface SetupWorkerApi {
-  start: ReturnType<typeof createStart>
-  stop: ReturnType<typeof createStop>
-
+export interface SetupApi {
   /**
    * Prepends given request handlers to the list of existing handlers.
    */
@@ -96,7 +91,7 @@ export interface SetupWorkerApi {
   restoreHandlers: () => void
 
   /**
-   * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
+   * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
    */
   resetHandlers: (...nextHandlers: RequestHandlersList) => void
 
@@ -104,8 +99,19 @@ export interface SetupWorkerApi {
    * Lists all active request handlers.
    */
   printHandlers: () => void
+
+  /*
+   * Remove all handlers and return the list
+   */
+  removeAllHandlers: () => RequestHandlersList
+}
+
+export interface SetupWorkerApi extends SetupApi {
+  start: ReturnType<typeof createStart>
+  stop: ReturnType<typeof createStop>
+
   /**
    * Recorder API
    */
-  recorder: ApiRecorder
+  recorder: Recorder
 }

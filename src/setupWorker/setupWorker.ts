@@ -1,33 +1,14 @@
-import { SetupWorkerInternalContext, RequestHandlersList } from './glossary'
+import {
+  SetupWorkerInternalContext,
+  RequestHandlersList,
+  SetupWorkerApi,
+} from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { Recorder } from '../utils/Recorder'
-export interface SetupWorkerApi {
-  start: ReturnType<typeof createStart>
-  stop: ReturnType<typeof createStop>
-
-  /**
-   * Prepends given request handlers to the list of existing handlers.
-   */
-  use: (...handlers: RequestHandlersList) => void
-
-  /**
-   * Marks all request handlers that respond using `res.once()` as unused.
-   */
-  restoreHandlers: () => void
-
-  /**
-   * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
-   */
-  resetHandlers: (...nextHandlers: RequestHandlersList) => void
-  /**
-   * Record your APIS
-   */
-  recorder: Recorder
-}
 
 interface Listener {
   target: EventTarget
@@ -42,7 +23,6 @@ let listeners: Listener[] = []
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {
-  const recorder = new Recorder()
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
       throw new Error(
@@ -53,7 +33,6 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    recorder,
     events: {
       addListener(target: EventTarget, event: string, callback: EventListener) {
         target.addEventListener(event, callback)
@@ -111,11 +90,11 @@ export function setupWorker(
     )
   }
 
-  return {
+  const instance: SetupWorkerApi = {
     start: createStart(context),
     stop: createStop(context),
 
-    use(...handlers) {
+    use(...handlers: RequestHandlersList) {
       requestHandlerUtils.use(context.requestHandlers, ...handlers)
     },
 
@@ -123,7 +102,7 @@ export function setupWorker(
       requestHandlerUtils.restoreHandlers(context.requestHandlers)
     },
 
-    resetHandlers(...nextHandlers) {
+    resetHandlers(...nextHandlers: RequestHandlersList) {
       context.requestHandlers = requestHandlerUtils.resetHandlers(
         requestHandlers,
         ...nextHandlers,
@@ -144,6 +123,15 @@ export function setupWorker(
       })
     },
 
-    recorder,
+    removeAllHandlers() {
+      const handlers = context.requestHandlers
+      context.requestHandlers = []
+      return handlers
+    },
+
+    recorder: new Recorder(),
   }
+
+  instance.recorder.setMSWInstance(instance)
+  return instance
 }

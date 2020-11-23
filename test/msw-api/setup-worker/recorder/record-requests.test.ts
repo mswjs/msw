@@ -5,13 +5,7 @@ async function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'record-requests.mocks.ts'), {
     withRoutes(app) {
       app.get('/user', (req, res) => {
-        const { authorization } = req.headers
-
         res.setHeader('x-recorder', 'true')
-
-        if (!authorization) {
-          return res.status(403).json({ message: 'error' }).end()
-        }
 
         return res.status(200).json({ name: 'John', surname: 'Maverick' }).end()
       })
@@ -19,7 +13,7 @@ async function createRuntime() {
   })
 }
 
-test('should record GET request', async () => {
+test('should record GET request with object', async () => {
   const runtime = await createRuntime()
 
   await runtime.page.evaluate(() => {
@@ -54,10 +48,8 @@ test('should record GET request', async () => {
 
   expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
   expect(headers).toHaveProperty('x-recorder', 'true')
-  expect(res.status()).toEqual(403)
-  expect(body).toEqual({
-    message: 'error',
-  })
+  expect(res.status()).toEqual(200)
+  expect(body).toEqual({ name: 'John', surname: 'Maverick' })
 
   return runtime.cleanup()
 })

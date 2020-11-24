@@ -1,28 +1,42 @@
 import * as path from 'path'
-import { runBrowserWith } from '../../../support/runBrowserWith'
+import { runBrowserWith, TestAPI } from '../../../support/runBrowserWith'
 
 async function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'record-requests.mocks.ts'), {
     withRoutes(app) {
-      app.get('/user', (req, res) => {
-        res.setHeader('x-recorder', 'true')
-
+      app.post('/login', (_, res) => {
         return res.status(200).json({ name: 'John', surname: 'Maverick' }).end()
       })
-      app.post('/user', (req, res) => {
-        res.setHeader('x-recorder', 'true')
-
+      app.get('/users', (_, res) => {
+        return res
+          .status(200)
+          .json([
+            {
+              name: 'Giovani',
+              surname: 'Schmeler',
+            },
+            {
+              name: 'Florence',
+              surname: 'Yundt',
+            },
+            {
+              name: 'Lenore',
+              surname: 'Walsh',
+            },
+          ])
+          .end()
+      })
+      app.post('/users', (_, res) => {
         return res.status(201).json({ message: 'user created' }).end()
       })
-      app.delete('/user/:userId', (req, res) => {
-        res.setHeader('x-recorder', 'true')
+      app.delete('/users/:userId', (_, res) => {
         res.setHeader('x-my-header', 'MSW')
 
         return res.status(204).end()
       })
-      app.head('/info', (req, res) => {
-        res.setHeader('x-recorder', 'true')
+      app.head('/system', (_, res) => {
         res.setHeader('x-my-header', 'MSW')
+        res.setHeader('x-maintenance', 'false')
 
         return res.status(200).end()
       })
@@ -30,7 +44,62 @@ async function createRuntime() {
   })
 }
 
-test('should record GET request', async () => {
+async function workflow(runtime: TestAPI) {
+  const responses = []
+  responses.push(
+    await runtime.request({
+      url: `${runtime.origin}/system`,
+      fetchOptions: {
+        method: 'HEAD',
+      },
+    }),
+  )
+
+  responses.push(
+    await runtime.request({
+      url: `${runtime.origin}/login`,
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          username: 'john.maverick',
+          password: 'foo',
+        }),
+      },
+    }),
+  )
+
+  responses.push(
+    await runtime.request({
+      url: `${runtime.origin}/users`,
+    }),
+  )
+
+  responses.push(
+    await runtime.request({
+      url: `${runtime.origin}/users`,
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          username: 'lucinda.kuhlman',
+          surname: 'Kuhlman',
+          name: 'lucinda',
+        }),
+      },
+    }),
+  )
+
+  responses.push(
+    await runtime.request({
+      url: `${runtime.origin}/users/1`,
+      fetchOptions: {
+        method: 'DELETE',
+      },
+    }),
+  )
+  return responses
+}
+
+test('should recorder the workflow with all http methods', async () => {
   const runtime = await createRuntime()
 
   await runtime.page.evaluate(() => {
@@ -38,182 +107,83 @@ test('should record GET request', async () => {
     return window.__MSW__.recorder.record()
   })
 
-  let res = await runtime.request({
-    url: `${runtime.origin}/user`,
+  const realResponses = await workflow(runtime)
+
+  realResponses.forEach((response) => {
+    const headers = response.headers()
+
+    expect(headers).not.toHaveProperty('x-recorder')
   })
-
-  let headers = res.headers()
-
-  expect(headers).toHaveProperty('x-powered-by', 'Express')
 
   const logs = await runtime.page.evaluate(() => {
     // @ts-ignore
     return window.__MSW__.recorder.stop()
   })
 
-  expect(logs).toHaveLength(1)
+  expect(logs).toHaveLength(realResponses.length)
 
   await runtime.page.evaluate((logs) => {
     // @ts-ignore
-    return window.__MSW__.use(eval(logs[0].function))
+    return window.__MSW__.use(...logs.map((log) => eval(log.function)))
   }, logs)
 
-  res = await runtime.request({
-    url: `${runtime.origin}/user`,
-  })
+  const mockResponses = await workflow(runtime)
 
-  headers = res.headers()
-  const body = await res.json()
-
-  expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
-  expect(headers).toHaveProperty('x-recorder', 'true')
-  expect(res.status()).toEqual(200)
-  expect(body).toEqual({ name: 'John', surname: 'Maverick' })
-
-  return runtime.cleanup()
-})
-
-test('should record POST request', async () => {
-  const runtime = await createRuntime()
-
-  await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.record()
-  })
-
-  let res = await runtime.request({
-    url: `${runtime.origin}/user`,
-    fetchOptions: {
-      method: 'POST',
+  const expectedResponses = [
+    {
+      id: 'system',
+      status: 200,
     },
-  })
-
-  let headers = res.headers()
-
-  expect(headers).toHaveProperty('x-powered-by', 'Express')
-
-  const logs = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.stop()
-  })
-
-  expect(logs).toHaveLength(1)
-
-  await runtime.page.evaluate((logs) => {
-    // @ts-ignore
-    return window.__MSW__.use(eval(logs[0].function))
-  }, logs)
-
-  res = await runtime.request({
-    url: `${runtime.origin}/user`,
-    fetchOptions: {
-      method: 'POST',
+    {
+      id: 'login',
+      status: 200,
+      body: { name: 'John', surname: 'Maverick' },
     },
-  })
-
-  headers = res.headers()
-  const body = await res.json()
-
-  expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
-  expect(headers).toHaveProperty('x-recorder', 'true')
-  expect(res.status()).toEqual(201)
-  expect(body).toEqual({ message: 'user created' })
-
-  return runtime.cleanup()
-})
-
-test('should record HEAD request', async () => {
-  const runtime = await createRuntime()
-
-  await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.record()
-  })
-
-  let res = await runtime.request({
-    url: `${runtime.origin}/info`,
-    fetchOptions: {
-      method: 'HEAD',
+    {
+      id: 'get users',
+      status: 200,
+      body: [
+        {
+          name: 'Giovani',
+          surname: 'Schmeler',
+        },
+        {
+          name: 'Florence',
+          surname: 'Yundt',
+        },
+        {
+          name: 'Lenore',
+          surname: 'Walsh',
+        },
+      ],
     },
-  })
-
-  let headers = res.headers()
-
-  expect(headers).toHaveProperty('x-powered-by', 'Express')
-
-  const logs = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.stop()
-  })
-
-  expect(logs).toHaveLength(1)
-
-  await runtime.page.evaluate((logs) => {
-    // @ts-ignore
-    return window.__MSW__.use(eval(logs[0].function))
-  }, logs)
-
-  res = await runtime.request({
-    url: `${runtime.origin}/info`,
-    fetchOptions: {
-      method: 'HEAD',
+    {
+      id: 'create user',
+      status: 201,
+      body: { message: 'user created' },
     },
-  })
-
-  headers = res.headers()
-
-  expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
-  expect(headers).toHaveProperty('x-recorder', 'true')
-  expect(headers).toHaveProperty('x-my-header', 'MSW')
-  expect(res.status()).toEqual(200)
-
-  return runtime.cleanup()
-})
-
-test('should record DELETE request', async () => {
-  const runtime = await createRuntime()
-
-  await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.record()
-  })
-
-  let res = await runtime.request({
-    url: `${runtime.origin}/user/1`,
-    fetchOptions: {
-      method: 'DELETE',
+    {
+      id: 'delete user',
+      status: 204,
     },
-  })
+  ]
 
-  let headers = res.headers()
+  for (let i = 0; i < mockResponses.length; i++) {
+    const headers = mockResponses[i].headers()
 
-  expect(headers).toHaveProperty('x-powered-by', 'Express')
+    expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
+    expect(headers).toHaveProperty('x-recorded-by', 'msw')
 
-  const logs = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW__.recorder.stop()
-  })
+    const expectedResponse = expectedResponses[i]
 
-  expect(logs).toHaveLength(1)
-
-  await runtime.page.evaluate((logs) => {
-    // @ts-ignore
-    return window.__MSW__.use(eval(logs[0].function))
-  }, logs)
-
-  res = await runtime.request({
-    url: `${runtime.origin}/user/1`,
-    fetchOptions: {
-      method: 'DELETE',
-    },
-  })
-
-  headers = res.headers()
-
-  expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
-  expect(headers).toHaveProperty('x-recorder', 'true')
-  expect(headers).toHaveProperty('x-my-header', 'MSW')
-  expect(res.status()).toEqual(204)
+    expect(mockResponses[i].status()).toEqual(expectedResponse.status)
+    if (expectedResponse.body) {
+      const body = await mockResponses[i].json()
+      expect(body).toEqual(expectedResponse.body)
+    } else {
+      expect(headers).not.toHaveProperty('Content-Type')
+    }
+  }
 
   return runtime.cleanup()
 })

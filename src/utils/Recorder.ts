@@ -33,16 +33,16 @@ async function createRecordFromRequest(
     if (hasJsonContent) {
       composeLines.push(`ctx.json(${body})`)
     } else {
-      composeLines.push(`ctx.body("${body}")`)
+      composeLines.push(`ctx.body(\`${body.replace(/`/g, '\\`')}\`)`)
     }
   }
 
   response.headers.forEach((value, key) => {
-    composeLines.push(`ctx.set('${key}', '${value}')`)
+    composeLines.push(`ctx.set('${key}', \`${value}\`)`)
   })
 
   lines.push(`return res(
-${composeLines.join(',\n')}
+${[...composeLines, `ctx.set('x-recorded-by', 'msw')`].join(',\n')}
   )`)
   lines.push(`})`)
   return {
@@ -79,7 +79,6 @@ class Recorder {
       ctx: typeof restContext,
     ) => {
       const response = await fetch(request)
-
       const log = await createRecordFromRequest(request, response)
       this._logs.push({
         function: log.function,

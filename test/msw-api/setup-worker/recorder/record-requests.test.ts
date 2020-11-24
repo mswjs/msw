@@ -14,6 +14,12 @@ async function createRuntime() {
 
         return res.status(201).json({ message: 'user created' }).end()
       })
+      app.delete('/user/:userId', (req, res) => {
+        res.setHeader('x-recorder', 'true')
+        res.setHeader('x-my-header', 'MSW')
+
+        return res.status(204).end()
+      })
       app.head('/info', (req, res) => {
         res.setHeader('x-recorder', 'true')
         res.setHeader('x-my-header', 'MSW')
@@ -160,6 +166,54 @@ test('should record HEAD request', async () => {
   expect(headers).toHaveProperty('x-recorder', 'true')
   expect(headers).toHaveProperty('x-my-header', 'MSW')
   expect(res.status()).toEqual(200)
+
+  return runtime.cleanup()
+})
+
+test('should record DELETE request', async () => {
+  const runtime = await createRuntime()
+
+  await runtime.page.evaluate(() => {
+    // @ts-ignore
+    return window.__MSW__.recorder.record()
+  })
+
+  let res = await runtime.request({
+    url: `${runtime.origin}/user/1`,
+    fetchOptions: {
+      method: 'DELETE',
+    },
+  })
+
+  let headers = res.headers()
+
+  expect(headers).toHaveProperty('x-powered-by', 'Express')
+
+  const logs = await runtime.page.evaluate(() => {
+    // @ts-ignore
+    return window.__MSW__.recorder.stop()
+  })
+
+  expect(logs).toHaveLength(1)
+
+  await runtime.page.evaluate((logs) => {
+    // @ts-ignore
+    return window.__MSW__.use(eval(logs[0].function))
+  }, logs)
+
+  res = await runtime.request({
+    url: `${runtime.origin}/user/1`,
+    fetchOptions: {
+      method: 'DELETE',
+    },
+  })
+
+  headers = res.headers()
+
+  expect(headers).toHaveProperty('x-powered-by', 'msw,Express')
+  expect(headers).toHaveProperty('x-recorder', 'true')
+  expect(headers).toHaveProperty('x-my-header', 'MSW')
+  expect(res.status()).toEqual(204)
 
   return runtime.cleanup()
 })

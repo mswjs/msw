@@ -26,11 +26,15 @@ async function createRecordFromRequest(
   composeLines.push(`ctx.status(${response.status})`)
   const body = await response.text()
 
-  const hasJsonContent = response.headers?.get('content-type')?.includes('json')
-  if (hasJsonContent) {
-    composeLines.push(`ctx.json(${body})`)
-  } else {
-    composeLines.push(`ctx.body("${body}")`)
+  if (body) {
+    const hasJsonContent = response.headers
+      ?.get('content-type')
+      ?.includes('json')
+    if (hasJsonContent) {
+      composeLines.push(`ctx.json(${body})`)
+    } else {
+      composeLines.push(`ctx.body("${body}")`)
+    }
   }
 
   response.headers.forEach((value, key) => {
@@ -92,6 +96,7 @@ class Recorder {
     this._mswInstance.use(rest.head('*', handleRequest))
     this._mswInstance.use(rest.options('*', handleRequest))
     this._mswInstance.use(rest.put('*', handleRequest))
+    this._mswInstance.use(rest.delete('*', handleRequest))
     this._isRecording = true
     this._logs = []
   }

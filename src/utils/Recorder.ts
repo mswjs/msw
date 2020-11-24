@@ -1,10 +1,12 @@
 import { MockedRequest } from './handlers/requestHandler'
 import { fetch } from '../context/fetch'
 import { SetupApi, RequestHandlersList } from '../setupWorker/glossary'
-import { rest } from '../rest'
+import { rest, restContext } from '../rest'
+import { ResponseComposition } from '../response'
 
 type RecordRequest = {
   function: string
+  returnStatement: string
   method: Request['method']
   url: URL
 }
@@ -43,12 +45,13 @@ ${composeLines.join(',\n')}
     function: lines.join('\n'),
     method: request.method.toUpperCase(),
     url: request.url,
+    returnStatement: composeLines.join(',\n'),
   }
 }
 
 class Recorder {
   private _isRecording: boolean
-  private _logs: RecordRequest[]
+  private _logs: Omit<RecordRequest, 'returnStatement'>[]
   private _mswInstance?: SetupApi
   private _currentHandlers: RequestHandlersList = []
 
@@ -65,8 +68,30 @@ class Recorder {
     if (this._isRecording) {
       return
     }
+    // do not remove ctx because it will be used by eval
+    const handleRequest = async (
+      request: MockedRequest,
+      res: ResponseComposition<any>,
+      ctx: typeof restContext,
+    ) => {
+      const response = await fetch(request)
+
+      const log = await createRecordFromRequest(request, response)
+      this._logs.push({
+        function: log.function,
+        method: log.method,
+        url: log.url,
+      })
+
+      return res(eval(log.returnStatement))
+    }
+
     this._currentHandlers = this._mswInstance.removeAllHandlers()
-    this._mswInstance.use(rest.get('*', this._handleRequest.bind(this)))
+    this._mswInstance.use(rest.get('*', handleRequest))
+    this._mswInstance.use(rest.post('*', handleRequest))
+    this._mswInstance.use(rest.head('*', handleRequest))
+    this._mswInstance.use(rest.options('*', handleRequest))
+    this._mswInstance.use(rest.put('*', handleRequest))
     this._isRecording = true
     this._logs = []
   }
@@ -88,18 +113,11 @@ class Recorder {
       throw new Error("We can't record requests without an instance of MSW.")
     }
     if (this._isRecording) {
+      this._mswInstance.removeAllHandlers()
       this._isRecording = false
       this._mswInstance.use(...this._currentHandlers)
     }
     return this._logs
-  }
-
-  async _handleRequest(request: MockedRequest) {
-    console.log('here')
-    const response = await fetch(request)
-
-    const log = await createRecordFromRequest(request, response)
-    this._logs.push(log)
   }
 }
 

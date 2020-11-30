@@ -5,6 +5,7 @@ import {
   ResponseTransformer,
   context,
   MockedRequest,
+  compose,
 } from 'msw'
 import { ResponseWithSerializedHeaders } from 'msw/lib/types/setupWorker/glossary'
 
@@ -53,13 +54,10 @@ const withUrl = (
     defineContext() {
       return {
         halJson(body) {
-          return (res) => {
-            res.headers.set('Content-Type', 'application/hal+json')
-            // Response body stringification is performed automatically
-            // once the mocked response is concluded.
-            res.body = body
-            return res
-          }
+          return compose(
+            context.set('Content-Type', 'application/hal+json'),
+            context.body(JSON.stringify(body)),
+          )
         },
       }
     },

@@ -1,9 +1,4 @@
 import { ResponseTransformer } from '../response'
-import { mergeRight } from '../utils/internal/mergeRight'
-
-type JSONContextOptions = {
-  merge?: boolean
-}
 
 /**
  * Sets the given value as the JSON body of the response.
@@ -14,11 +9,10 @@ type JSONContextOptions = {
  */
 export const json = <BodyTypeJSON>(
   body: BodyTypeJSON,
-  { merge = false }: JSONContextOptions = {},
-): ResponseTransformer<BodyTypeJSON> => {
+): ResponseTransformer<string> => {
   return (res) => {
     res.headers.set('Content-Type', 'application/json')
-    res.body = merge ? (mergeRight(res.body || {}, body) as BodyTypeJSON) : body
+    res.body = JSON.stringify(body)
 
     return res
   }

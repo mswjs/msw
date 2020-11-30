@@ -9,10 +9,10 @@ export const errors = <
   ErrorsType extends Partial<GraphQLError>[] | null | undefined
 >(
   errorsList: ErrorsType,
-): ResponseTransformer<{ errors: ErrorsType }> => {
+): ResponseTransformer<string> => {
   if (errorsList == null) {
     return (res) => res
   }
 
-  return json({ errors: errorsList }, { merge: true })
+  return json({ errors: errorsList })
 }

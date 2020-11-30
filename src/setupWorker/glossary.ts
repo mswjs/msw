@@ -2,6 +2,7 @@ import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
+import { EventsMap, LifecycleEventEmitter } from '../LifecycleEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
@@ -13,6 +14,7 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]
+  emitter: LifecycleEventEmitter
   keepAliveInterval?: number
   events: {
     /**
@@ -120,4 +122,9 @@ export interface SetupWorkerApi {
    * @see {@link https://mswjs.io/docs/api/setup-worker/print-handlers `worker.printHandlers()`}
    */
   printHandlers: () => void
+
+  on<EventType extends keyof EventsMap>(
+    event: EventType,
+    listener: EventsMap[EventType],
+  ): void
 }

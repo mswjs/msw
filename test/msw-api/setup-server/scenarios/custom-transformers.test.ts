@@ -1,22 +1,19 @@
 import fetch from 'node-fetch'
 import * as JSONbig from 'json-bigint'
-import { rest, createResponseComposition, MockedResponse } from 'msw'
+import { ResponseTransformer, compose, context, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-function stringifyJsonBigInt(res: MockedResponse<string>) {
-  if (res.body && res.headers?.get('content-type')?.endsWith('json')) {
-    res.body = JSONbig.stringify(res.body)
-  }
-
-  return res
+const jsonBig = (body: Record<string, any>): ResponseTransformer => {
+  return compose(
+    context.set('Content-Type', 'application/json'),
+    context.body(JSONbig.stringify(body)),
+  )
 }
-
-const customReponse = createResponseComposition(null, [stringifyJsonBigInt])
 
 const server = setupServer(
   rest.get('http://test.mswjs.io/me', (req, res, ctx) => {
-    return customReponse(
-      ctx.json({
+    return res(
+      jsonBig({
         username: 'john.maverick',
         balance: BigInt(1597928668063727616),
       }),

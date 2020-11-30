@@ -1,5 +1,7 @@
 import { GraphQLError } from 'graphql'
 import { ResponseTransformer } from '../response'
+import { jsonParse } from '../utils/internal/jsonParse'
+import { mergeRight } from '../utils/internal/mergeRight'
 import { json } from './json'
 
 /**
@@ -10,9 +12,14 @@ export const errors = <
 >(
   errorsList: ErrorsType,
 ): ResponseTransformer<string> => {
-  if (errorsList == null) {
-    return (res) => res
-  }
+  return (res) => {
+    if (errorsList == null) {
+      return res
+    }
 
-  return json({ errors: errorsList })
+    const prevBody = jsonParse(res.body) || {}
+    const nextBody = mergeRight(prevBody, { errors: errorsList })
+
+    return json(nextBody)(res)
+  }
 }

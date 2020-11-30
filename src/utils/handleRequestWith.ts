@@ -66,6 +66,8 @@ export const handleRequestWith = (
       // Set document cookies on the request.
       req.cookies = getRequestCookies(req)
 
+      context.emitter.emit('request:start', req)
+
       const {
         response,
         handler,
@@ -77,6 +79,8 @@ export const handleRequestWith = (
       // found for a given request.
       if (!handler) {
         onUnhandledRequest(req, options.onUnhandledRequest)
+        context.emitter.emit('request:unhandled', req)
+        context.emitter.emit('request:end', req)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
@@ -88,6 +92,9 @@ export const handleRequestWith = (
           '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
           response,
         )
+
+        context.emitter.emit('response:bypass', req)
+        context.emitter.emit('request:end', req)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
@@ -107,6 +114,13 @@ export const handleRequestWith = (
           )
         }, response.delay)
       }
+
+      context.emitter.emit(
+        'response:mocked',
+        req,
+        responseWithSerializedHeaders,
+      )
+      context.emitter.emit('request:end', req)
 
       channel.send({
         type: 'MOCK_SUCCESS',

@@ -31,18 +31,6 @@ export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   networkError: (message: string) => void
 }
 
-/**
- * Internal response transformer to ensure response JSON body
- * is always stringified.
- */
-const stringifyJsonBody: ResponseTransformer = (res) => {
-  if (res.body && res.headers?.get('content-type')?.includes('json')) {
-    res.body = JSON.stringify(res.body)
-  }
-
-  return res
-}
-
 export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   status: 200,
   statusText: 'OK',
@@ -56,9 +44,7 @@ export type ResponseCompositionOptions<BodyType> = {
   mockedResponseOverrides?: Partial<MockedResponse>
 }
 
-export const defaultResponseTransformers: ResponseTransformer<any>[] = [
-  stringifyJsonBody,
-]
+export const defaultResponseTransformers: ResponseTransformer<any>[] = []
 
 export function createResponseComposition<BodyType>(
   responseOverrides?: Partial<MockedResponse<BodyType>>,

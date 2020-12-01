@@ -37,7 +37,21 @@ export enum RESTMethods {
   DELETE = 'DELETE',
 }
 
-export const restContext = {
+// Declaring a context interface infers
+// JSDoc description of the referenced utils.
+export interface RestContext {
+  set: typeof set
+  status: typeof status
+  cookie: typeof cookie
+  text: typeof text
+  body: typeof body
+  json: typeof json
+  xml: typeof xml
+  delay: typeof delay
+  fetch: typeof fetch
+}
+
+export const restContext: RestContext = {
   set,
   status,
   cookie,

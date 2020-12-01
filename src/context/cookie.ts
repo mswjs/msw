@@ -2,9 +2,8 @@ import * as cookieUtils from 'cookie'
 import { ResponseTransformer } from '../response'
 
 /**
- * Sets a given cookie on the response.
- * @example
- * res(cookie('name', 'value'))
+ * Sets a given cookie on the mocked response.
+ * @example res(ctx.cookie('name', 'value'))
  */
 export const cookie = (
   name: string,

@@ -6,6 +6,8 @@ import { json } from './json'
 
 /**
  * Sets a given list of GraphQL errors on the mocked response.
+ * @example res(ctx.errors([{ message: 'Unauthorized' }]))
+ * @see {@link https://mswjs.io/docs/api/context/errors}
  */
 export const errors = <
   ErrorsType extends Partial<GraphQLError>[] | null | undefined

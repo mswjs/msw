@@ -30,10 +30,12 @@ const createFetchRequestParameters = (input: MockedRequest) => {
 
   return requestParameters
 }
+
 /**
- * Wrapper around the native `window.fetch()` function that performs
- * a request bypassing MSW. Requests performed using
- * this function will never be mocked.
+ * Performs a bypassed request inside a request handler.
+ * @example
+ * const originalResponse = await ctx.fetch(req)
+ * @see {@link https://mswjs.io/docs/api/context/fetch `ctx.fetch()`}
  */
 export const fetch = (
   input: string | MockedRequest,

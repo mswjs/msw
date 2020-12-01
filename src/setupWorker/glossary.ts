@@ -46,19 +46,22 @@ export type FindWorker = (
 ) => boolean
 
 export type StartOptions = SharedOptions & {
+  /**
+   * Service Worker instance options.
+   */
   serviceWorker?: {
     url?: string
     options?: RegistrationOptions
   }
 
   /**
-   * Disable the logging of captured requests
+   * Disables the logging of captured requests
    * into browser's console.
    */
   quiet?: boolean
 
   /**
-   * Defer any network requests until the Service Worker
+   * Defers any network requests until the Service Worker
    * instance is ready. Defaults to `true`.
    */
   waitUntilReady?: boolean
@@ -80,26 +83,41 @@ export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
 }
 
 export interface SetupWorkerApi {
+  /**
+   * Registers and activates the mock Service Worker.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}
+   */
   start: ReturnType<typeof createStart>
+
+  /**
+   * Stops requests interception for the current client.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()`}
+   */
   stop: ReturnType<typeof createStop>
 
   /**
    * Prepends given request handlers to the list of existing handlers.
+   * @param {RequestHandler[]} handlers List of runtime request handlers.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()`}
    */
   use: (...handlers: RequestHandlersList) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/restore-handlers `worker.restoreHandlers()`}
    */
   restoreHandlers: () => void
 
   /**
    * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
+   * @param {RequestHandler[]} nextHandlers List of the new initial request handlers.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()`}
    */
   resetHandlers: (...nextHandlers: RequestHandlersList) => void
 
   /**
    * Lists all active request handlers.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/print-handlers `worker.printHandlers()`}
    */
   printHandlers: () => void
 }

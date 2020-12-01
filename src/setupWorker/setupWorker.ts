@@ -19,6 +19,12 @@ interface Listener {
 // so it persists between Fash refreshes of the application's code.
 let listeners: Listener[] = []
 
+/**
+ * Creates a new mock Service Worker registration
+ * with the given request handlers.
+ * @param {RequestHandler[]} requestHandlers List of request handlers
+ * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
+ */
 export function setupWorker(
   ...requestHandlers: RequestHandlersList
 ): SetupWorkerApi {

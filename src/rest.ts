@@ -179,11 +179,78 @@ ${queryParams
 }
 
 export const rest = {
+  /**
+   * Captures a HEAD request by a given path.
+   * @example
+   * rest.head('/numbers', (req, res, ctx) => {
+   *   return res(ctx.status(302))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   head: createRestHandler(RESTMethods.HEAD),
+
+  /**
+   * Captures a GET request by a given path.
+   * @example
+   * rest.get('/numbers', (req, res, ctx) => {
+   *   return res(ctx.json([1, 2, 3]))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   get: createRestHandler(RESTMethods.GET),
+
+  /**
+   * Captures a POST request by a given path.
+   * @example
+   * rest.post('/numbers', (req, res, ctx) => {
+   *   return res(ctx.text('success'))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   post: createRestHandler(RESTMethods.POST),
+
+  /**
+   * Captures a PUT request by a given path.
+   * @example
+   * rest.put('/numbers', (req, res, ctx) => {
+   *   const { numbers } = req.body
+   *   return res(ctx.json(numbers))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   put: createRestHandler(RESTMethods.PUT),
+
+  /**
+   * Captures a DELETE request by a given path.
+   * @example
+   * rest.delete('/numbers', (req, res, ctx) => {
+   *   const index = req.url.searchParams.get('index')
+   *   prevNumbers.splice(index, 1)
+   *   return res(ctx.json(nextNumbers))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   delete: createRestHandler(RESTMethods.DELETE),
+
+  /**
+   * Captures a PATCH request by a given path.
+   * @example
+   * rest.patch('/numbers', (req, res, ctx) => {
+   *   const { numbers } = req.body
+   *   const nextNumbers = prevNumbers.concat(number)
+   *   return res(ctx.json(nextNumbers))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   patch: createRestHandler(RESTMethods.PATCH),
+
+  /**
+   * Captures an OPTIONS request by a given path.
+   * @example
+   * rest.options('/numbers', (req, res, ctx) => {
+   *   return res(ctx.set('Allow', 'GET,HEAD,POST'))
+   * })
+   * @see {@link https://mswjs.io/docs/api/rest `rest`}
+   */
   options: createRestHandler(RESTMethods.OPTIONS),
 }

@@ -4,7 +4,7 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { json } from './json'
 
 /**
- * Sets a given payload as a GraphQL operation body.
+ * Sets a given payload as a GraphQL response body.
  * @example
  * res(ctx.data({ user: { firstName: 'John' }}))
  * @see {@link https://mswjs.io/docs/api/context/data `ctx.data()`}

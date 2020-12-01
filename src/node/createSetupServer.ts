@@ -25,9 +25,6 @@ const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
  * Useful to generate identical API using different patches to request issuing modules.
  */
 export function createSetupServer(...interceptors: Interceptor[]) {
-  /**
-   * Sets up a server-side requests interception with the given mock definition.
-   */
   return function setupServer(
     ...requestHandlers: RequestHandlersList
   ): SetupServerApi {

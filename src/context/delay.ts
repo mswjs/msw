@@ -15,11 +15,13 @@ const getRandomServerResponseTime = () => {
       MIN_SERVER_RESPONSE_TIME,
   )
 }
+
 /**
- * Delays the current response for the given duration (in ms)
+ * Delays the response by the given duration (ms).
  * @example
- * res(delay()) // realistic server response time
- * res(delay(1500)) // explicit response delay duration
+ * res(ctx.delay()) // realistic server response time
+ * res(ctx.delay(1200))
+ * @see {@link https://mswjs.io/docs/api/context/delay `ctx.delay()`}
  */
 export const delay = (durationMs?: number): ResponseTransformer => {
   return (res) => {

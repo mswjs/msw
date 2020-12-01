@@ -1,9 +1,11 @@
 import { ResponseTransformer } from '../response'
 
 /**
- * Sets the body of the response without any `Content-Type` header.
+ * Sets a raw response body. Does not append any `Content-Type` headers.
  * @example
- * res(body('message'))
+ * res(ctx.body('Successful response'))
+ * res(ctx.body(JSON.stringify({ key: 'value' })))
+ * @see {@link https://mswjs.io/docs/api/context/body `ctx.body()`}
  */
 export const body = <
   BodyType extends string | Blob | BufferSource | ReadableStream | FormData

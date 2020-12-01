@@ -266,11 +266,45 @@ const createGraphQLOperationHandler = (mask: Mask) => {
 }
 
 const graphqlStandardHandlers = {
+  /**
+   * Captures any GraphQL operation, regardless of its name, under the current scope.
+   * @example
+   * graphql.operation((req, res, ctx) => {
+   *   return res(ctx.data({ name: 'John' }))
+   * })
+   * @see {@link https://mswjs.io/docs/api/graphql/operation `graphql.operation()`}
+   */
   operation: createGraphQLOperationHandler('*'),
+
+  /**
+   * Captures a GraphQL query by a given name.
+   * @example
+   * graphql.query('GetUser', (req, res, ctx) => {
+   *   return res(ctx.data({ user: { name: 'John' } }))
+   * })
+   * @see {@link https://mswjs.io/docs/api/graphql/query `graphql.query()`}
+   */
   query: createGraphQLScopedHandler('query', '*'),
+
+  /**
+   * Captures a GraphQL mutation by a given name.
+   * @example
+   * graphql.mutation('SavePost', (req, res, ctx) => {
+   *   return res(ctx.data({ post: { id: 'abc-123' } }))
+   * })
+   * @see {@link https://mswjs.io/docs/api/graphql/mutation `graphql.mutation()`}
+   */
   mutation: createGraphQLScopedHandler('mutation', '*'),
 }
 
+/**
+ * Creates a GraphQL mocking API scoped to the given endpoint.
+ * @param uri Endpoint URL, or path.
+ * @example
+ * const api = graphql.link('https://api.site.com/graphql)
+ * api.query('GetUser', resolver)
+ * @see {@link https://mswjs.io/docs/api/graphql/link `graphql.link()`}
+ */
 function createGraphQLLink(uri: Mask): typeof graphqlStandardHandlers {
   return {
     operation: createGraphQLOperationHandler(uri),

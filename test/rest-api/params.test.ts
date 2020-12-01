@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
 test('parses request URL parameters', async () => {
   const runtime = await runBrowserWith(

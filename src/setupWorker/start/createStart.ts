@@ -92,7 +92,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
           // Internally, it's similar to disabling the mocking, only
           // client close event has a handler that self-terminates
           // the Service Worker when there are no open clients.
-          worker.postMessage('CLIENT_CLOSED')
+          context.workerChannel.send('CLIENT_CLOSED')
         }
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
@@ -128,7 +128,7 @@ If this message still persists after updating, please report an issue: https://g
       }
 
       context.keepAliveInterval = window.setInterval(
-        () => worker.postMessage('KEEPALIVE_REQUEST'),
+        () => context.workerChannel.send('KEEPALIVE_REQUEST'),
         5000,
       )
 

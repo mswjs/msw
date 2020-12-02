@@ -7,7 +7,7 @@ export const createStop = (context: SetupWorkerInternalContext) => {
    * the worker-client relation. Does not affect the worker's lifecycle.
    */
   return function stop() {
-    context.worker?.postMessage('MOCK_DEACTIVATE')
+    context.workerChannel.send('MOCK_DEACTIVATE')
     context.events.removeAllListeners()
     context.emitter.removeAllListeners()
     window.clearInterval(context.keepAliveInterval)

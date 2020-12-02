@@ -62,6 +62,9 @@ export function setupWorker(
           },
         )
       },
+      send(type) {
+        context.worker?.postMessage(type)
+      },
     },
     events: {
       addListener(target: EventTarget, event: string, callback: EventListener) {

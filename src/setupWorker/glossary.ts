@@ -13,6 +13,13 @@ import { createStop } from './stop/createStop'
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
 
+export interface ServiceWorkerIncomingEventsMap {
+  MOCKING_ENABLED: boolean
+  INTEGRITY_CHECK_RESPONSE: string
+  KEEPALIVE_RESPONSE: never
+  REQUEST: any /** @todo */
+}
+
 export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
@@ -36,7 +43,11 @@ export interface SetupWorkerInternalContext {
     /**
      * Awaits a given message type from the Service Worker.
      */
-    once<T>(type: string): Promise<ServiceWorkerMessage<T>>
+    once<EventType extends keyof ServiceWorkerIncomingEventsMap>(
+      type: EventType,
+    ): Promise<
+      ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
+    >
   }
 }
 

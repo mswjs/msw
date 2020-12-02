@@ -1,6 +1,11 @@
-export interface ServiceWorkerMessage<T> {
-  type: string
-  payload: T
+import { ServiceWorkerIncomingEventsMap } from '../setupWorker/glossary'
+
+export interface ServiceWorkerMessage<
+  EventType extends keyof ServiceWorkerIncomingEventsMap,
+  EventPayload
+> {
+  type: EventType
+  payload: EventPayload
 }
 
 export type ClientMessageTypes =

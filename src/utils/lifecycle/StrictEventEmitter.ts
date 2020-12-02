@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
-import { ResponseWithSerializedHeaders } from './setupWorker/glossary'
-import { MockedRequest } from './utils/handlers/requestHandler'
+import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
+import { MockedRequest } from '../handlers/requestHandler'
 
 export interface EventsMap {
   'request:start': (req: MockedRequest) => void
@@ -13,24 +13,22 @@ export interface EventsMap {
   'response:bypass': (req: MockedRequest) => void
 }
 
-export class LifecycleEventEmitter {
-  private emitter: EventEmitter
-
+export class StrictEventEmitter extends EventEmitter {
   constructor() {
-    this.emitter = new EventEmitter()
+    super()
   }
 
   emit<EventType extends keyof EventsMap>(
     eventType: EventType,
     ...data: Parameters<EventsMap[EventType]>
   ) {
-    this.emitter.emit(eventType, ...data)
+    return super.emit(eventType, ...data)
   }
 
   addEventListener<EventType extends keyof EventsMap>(
     eventType: EventType,
     listener: EventsMap[EventType],
   ) {
-    this.emitter.addListener(eventType, listener)
+    super.addListener(eventType, listener)
   }
 }

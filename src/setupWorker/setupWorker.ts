@@ -8,8 +8,7 @@ import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
-import { EventEmitter } from 'events'
-import { LifecycleEventEmitter } from '../LifecycleEventEmitter'
+import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
 
 interface Listener {
   target: EventTarget
@@ -40,7 +39,7 @@ export function setupWorker(
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    emitter: new LifecycleEventEmitter(),
+    emitter: new StrictEventEmitter(),
     events: {
       addListener(target: EventTarget, event: string, callback: EventListener) {
         target.addEventListener(event, callback)

@@ -2,7 +2,10 @@ import { HeadersList } from 'headers-utils'
 import { RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
-import { EventsMap, LifecycleEventEmitter } from '../LifecycleEventEmitter'
+import {
+  EventsMap,
+  StrictEventEmitter,
+} from '../utils/lifecycle/StrictEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
@@ -14,7 +17,7 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]
-  emitter: LifecycleEventEmitter
+  emitter: StrictEventEmitter
   keepAliveInterval?: number
   events: {
     /**

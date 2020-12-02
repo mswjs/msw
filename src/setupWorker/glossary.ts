@@ -56,6 +56,21 @@ export interface SetupWorkerInternalContext {
   requestHandlers: RequestHandler<any, any>[]
   emitter: StrictEventEmitter
   keepAliveInterval?: number
+  workerChannel: {
+    /**
+     * Adds a Service Worker event listener.
+     */
+    on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
+      type: EventType,
+      callback: (
+        event: MessageEvent,
+        message: ServiceWorkerMessage<
+          EventType,
+          ServiceWorkerIncomingEventsMap[EventType]
+        >,
+      ) => void,
+    ): void
+  }
   events: {
     /**
      * Adds an event listener on the given target.
@@ -70,19 +85,6 @@ export interface SetupWorkerInternalContext {
      * Removes all currently attached listeners.
      */
     removeAllListeners(): void
-    /**
-     * Adds a Service Worker event listener.
-     */
-    on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
-      type: EventType,
-      callback: (
-        event: MessageEvent,
-        message: ServiceWorkerMessage<
-          EventType,
-          ServiceWorkerIncomingEventsMap[EventType]
-        >,
-      ) => void,
-    ): void
     /**
      * Awaits a given message type from the Service Worker.
      */

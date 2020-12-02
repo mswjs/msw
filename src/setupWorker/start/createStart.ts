@@ -44,7 +44,7 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       context.events.removeAllListeners()
 
       // Handle requests signaled by the worker.
-      context.events.on(
+      context.workerChannel.on(
         'REQUEST',
         createRequestListener(context, resolvedOptions),
       )

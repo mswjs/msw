@@ -42,23 +42,9 @@ export function setupWorker(
     registration: null,
     requestHandlers: [...requestHandlers],
     emitter: new StrictEventEmitter(),
-    events: {
-      addListener(target: EventTarget, event: string, callback: EventListener) {
-        target.addEventListener(event, callback)
-        listeners.push({ event, target, callback })
-
-        return () => {
-          target.removeEventListener(event, callback)
-        }
-      },
-      removeAllListeners() {
-        for (const { target, event, callback } of listeners) {
-          target.removeEventListener(event, callback)
-        }
-        listeners = []
-      },
+    workerChannel: {
       on(type, callback) {
-        this.addListener(
+        context.events.addListener(
           navigator.serviceWorker,
           'message',
           (event: MessageEvent) => {
@@ -75,6 +61,22 @@ export function setupWorker(
             }
           },
         )
+      },
+    },
+    events: {
+      addListener(target: EventTarget, event: string, callback: EventListener) {
+        target.addEventListener(event, callback)
+        listeners.push({ event, target, callback })
+
+        return () => {
+          target.removeEventListener(event, callback)
+        }
+      },
+      removeAllListeners() {
+        for (const { target, event, callback } of listeners) {
+          target.removeEventListener(event, callback)
+        }
+        listeners = []
       },
       once(type) {
         const bindings: Array<() => void> = []

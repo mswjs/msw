@@ -4,6 +4,7 @@ import { MockedRequest } from '../handlers/requestHandler'
 
 export interface EventsMap {
   'request:start': (req: MockedRequest) => void
+  'request:match': (req: MockedRequest) => void
   'request:unhandled': (req: MockedRequest) => void
   'request:end': (req: MockedRequest) => void
   'response:mocked': (

@@ -2,13 +2,14 @@ import {
   SetupWorkerInternalContext,
   RequestHandlersList,
   SetupWorkerApi,
+  ServiceWorkerIncomingEventsMap,
 } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
-import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
+import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 
 interface Listener {
   target: EventTarget
@@ -55,10 +56,15 @@ export function setupWorker(
         }
         listeners = []
       },
-      once<T>(type: string) {
+      once(type) {
         const bindings: Array<() => void> = []
 
-        return new Promise<ServiceWorkerMessage<T>>((resolve, reject) => {
+        return new Promise<
+          ServiceWorkerMessage<
+            typeof type,
+            ServiceWorkerIncomingEventsMap[typeof type]
+          >
+        >((resolve, reject) => {
           const handleIncomingMessage = (event: MessageEvent) => {
             try {
               const message = JSON.parse(event.data)

@@ -24,34 +24,34 @@ export const handleRequestWith = (
     const channel = createBroadcastChannel(event)
 
     try {
-      const message: ServiceWorkerMessage<MockedRequest> = JSON.parse(
-        event.data,
-        function (this: MockedRequest, key, value) {
-          if (key === 'url') {
-            return new URL(value)
-          }
+      const message: ServiceWorkerMessage<
+        'REQUEST',
+        MockedRequest
+      > = JSON.parse(event.data, function (this: MockedRequest, key, value) {
+        if (key === 'url') {
+          return new URL(value)
+        }
 
-          // Serialize headers
-          if (key === 'headers') {
-            return new Headers(value)
-          }
+        // Serialize headers
+        if (key === 'headers') {
+          return new Headers(value)
+        }
 
-          // Prevent empty fields from presering an empty value.
-          // It's invalid to perform a GET request with { body: "" }
-          if (
-            // Check if we are parsing deeper in `event.data.payload`,
-            // because this custom JSON parser is invoked for each depth level.
-            this.method &&
-            isStringEqual(this.method, 'GET') &&
-            key === 'body' &&
-            value === ''
-          ) {
-            return undefined
-          }
+        // Prevent empty fields from presering an empty value.
+        // It's invalid to perform a GET request with { body: "" }
+        if (
+          // Check if we are parsing deeper in `event.data.payload`,
+          // because this custom JSON parser is invoked for each depth level.
+          this.method &&
+          isStringEqual(this.method, 'GET') &&
+          key === 'body' &&
+          value === ''
+        ) {
+          return undefined
+        }
 
-          return value
-        },
-      )
+        return value
+      })
 
       const { type, payload: req } = message
 

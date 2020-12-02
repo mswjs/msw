@@ -14,7 +14,7 @@ import { onUnhandledRequest } from '../request/onUnhandledRequest'
 import { NetworkError } from '../NetworkError'
 import { parseWorkerRequest } from '../request/parseWorkerRequest'
 
-export const handleRequestWith = (
+export const createRequestListener = (
   context: SetupWorkerInternalContext,
   options: StartOptions,
 ) => {

@@ -57,7 +57,7 @@ export const graphqlContext: GraphQLMockedContext = {
 
 export type GraphQLResponseResolver<QueryType, VariablesType> = (
   req: GraphQLMockedRequest<VariablesType>,
-  res: ResponseComposition,
+  res: ResponseComposition<any>,
   context: GraphQLMockedContext,
 ) => AsyncResponseResolverReturnType<MockedResponse>
 

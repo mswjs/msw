@@ -85,6 +85,8 @@ export const handleRequestWith = (
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
+      context.emitter.emit('request:match', req)
+
       // Handle a scenario when there is a request handler,
       // but it doesn't return any mocked response.
       if (!response) {

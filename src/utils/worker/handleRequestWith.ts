@@ -3,18 +3,18 @@ import {
   StartOptions,
   ResponseWithSerializedHeaders,
   SetupWorkerInternalContext,
-} from '../setupWorker/glossary'
-import { MockedRequest } from './handlers/requestHandler'
+} from '../../setupWorker/glossary'
+import { MockedRequest } from '../handlers/requestHandler'
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
-} from '../utils/createBroadcastChannel'
-import { getResponse } from '../utils/getResponse'
-import { onUnhandledRequest } from './request/onUnhandledRequest'
-import { parseBody } from './request/parseBody'
-import { getRequestCookies } from './request/getRequestCookies'
-import { isStringEqual } from './internal/isStringEqual'
-import { NetworkError } from './NetworkError'
+} from '../createBroadcastChannel'
+import { getResponse } from '../getResponse'
+import { onUnhandledRequest } from '../request/onUnhandledRequest'
+import { parseBody } from '../request/parseBody'
+import { getRequestCookies } from '../request/getRequestCookies'
+import { isStringEqual } from '../internal/isStringEqual'
+import { NetworkError } from '../NetworkError'
 
 export const handleRequestWith = (
   context: SetupWorkerInternalContext,

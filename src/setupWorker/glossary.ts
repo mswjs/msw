@@ -40,6 +40,16 @@ export interface SetupWorkerInternalContext {
      * Removes all currently attached listeners.
      */
     removeAllListeners(): void
+    on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
+      type: EventType,
+      callback: (
+        event: MessageEvent,
+        message: ServiceWorkerMessage<
+          EventType,
+          ServiceWorkerIncomingEventsMap[EventType]
+        >,
+      ) => void,
+    ): void
     /**
      * Awaits a given message type from the Service Worker.
      */

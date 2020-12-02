@@ -19,6 +19,7 @@ export interface MockedRequest<
   BodyType = DefaultRequestBodyType,
   RequestParamsType = RequestParams
 > {
+  id: string
   url: URL
   method: Request['method']
   headers: Headers

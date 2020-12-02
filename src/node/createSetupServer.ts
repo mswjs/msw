@@ -15,6 +15,7 @@ import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
+import { uuidv4 } from '../utils/internal/uuidv4'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -62,6 +63,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           const requestCookieString = requestHeaders.get('cookie')
 
           const mockedRequest: MockedRequest = {
+            id: uuidv4(),
             url: req.url,
             method: req.method,
             // Parse the request's body based on the "Content-Type" header.

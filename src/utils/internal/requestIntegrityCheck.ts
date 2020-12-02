@@ -5,7 +5,7 @@ export async function requestIntegrityCheck(
   serviceWorker: ServiceWorker,
 ): Promise<ServiceWorker> {
   // Signal Service Worker to report back its integrity
-  serviceWorker.postMessage('INTEGRITY_CHECK_REQUEST')
+  context.workerChannel.send('INTEGRITY_CHECK_REQUEST')
 
   const { payload: actualChecksum } = await context.events.once(
     'INTEGRITY_CHECK_RESPONSE',

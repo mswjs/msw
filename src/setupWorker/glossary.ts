@@ -43,12 +43,36 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body: string | undefined
 }
 
+/**
+ * Map of the events that can be received from the Service Worker.
+ */
 export interface ServiceWorkerIncomingEventsMap {
   MOCKING_ENABLED: boolean
   INTEGRITY_CHECK_RESPONSE: string
   KEEPALIVE_RESPONSE: never
   REQUEST: ServiceWorkerIncomingRequest
 }
+
+/**
+ * Map of the events that can be sent to the Service Worker
+ * from any execution context.
+ */
+export type ServiceWorkerOutgoingEventTypes =
+  | 'MOCK_ACTIVATE'
+  | 'MOCK_DEACTIVATE'
+  | 'INTEGRITY_CHECK_REQUEST'
+  | 'KEEPALIVE_REQUEST'
+  | 'CLIENT_CLOSED'
+
+/**
+ * Map of the events that can be sent to the Service Worker
+ * only as a part of a single `fetch` event handler.
+ */
+export type ServiceWorkerFetchEventTypes =
+  | 'MOCK_SUCCESS'
+  | 'MOCK_NOT_FOUND'
+  | 'NETWORK_ERROR'
+  | 'INTERNAL_ERROR'
 
 export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
@@ -69,6 +93,9 @@ export interface SetupWorkerInternalContext {
           ServiceWorkerIncomingEventsMap[EventType]
         >,
       ) => void,
+    ): void
+    send<EventType extends ServiceWorkerOutgoingEventTypes>(
+      type: EventType,
     ): void
   }
   events: {

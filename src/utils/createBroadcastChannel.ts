@@ -1,4 +1,7 @@
-import { ServiceWorkerIncomingEventsMap } from '../setupWorker/glossary'
+import {
+  ServiceWorkerFetchEventTypes,
+  ServiceWorkerIncomingEventsMap,
+} from '../setupWorker/glossary'
 
 export interface ServiceWorkerMessage<
   EventType extends keyof ServiceWorkerIncomingEventsMap,
@@ -7,12 +10,6 @@ export interface ServiceWorkerMessage<
   type: EventType
   payload: EventPayload
 }
-
-export type ClientMessageTypes =
-  | 'MOCK_NOT_FOUND'
-  | 'MOCK_SUCCESS'
-  | 'NETWORK_ERROR'
-  | 'INTERNAL_ERROR'
 
 /**
  * Creates a communication channel between the client
@@ -26,7 +23,7 @@ export const createBroadcastChannel = (event: MessageEvent) => {
      * Sends a text message to the connected Service Worker.
      */
     send(message: {
-      type: ClientMessageTypes
+      type: ServiceWorkerFetchEventTypes
       payload?: Record<string, any> | string
     }) {
       if (port) {

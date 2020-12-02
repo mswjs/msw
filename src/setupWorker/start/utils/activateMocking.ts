@@ -4,7 +4,7 @@ export const activateMocking = async (
   context: SetupWorkerInternalContext,
   options?: StartOptions,
 ) => {
-  context.worker?.postMessage('MOCK_ACTIVATE')
+  context.workerChannel.send('MOCK_ACTIVATE')
 
   return context.events.once('MOCKING_ENABLED').then(() => {
     if (!options?.quiet) {

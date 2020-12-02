@@ -13,11 +13,41 @@ import { createStop } from './stop/createStop'
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
 
+type RequestWithoutMethods = Omit<
+  Request,
+  | 'text'
+  | 'body'
+  | 'json'
+  | 'blob'
+  | 'arrayBuffer'
+  | 'formData'
+  | 'clone'
+  | 'signal'
+  | 'isHistoryNavigation'
+  | 'isReloadNavigation'
+>
+
+/**
+ * Request representation received from the worker message event.
+ */
+export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
+  /**
+   * Unique UUID of the request generated once the request is
+   * captured by the "fetch" event in the Service Worker.
+   */
+  id: string
+
+  /**
+   * Text response body.
+   */
+  body: string | undefined
+}
+
 export interface ServiceWorkerIncomingEventsMap {
   MOCKING_ENABLED: boolean
   INTEGRITY_CHECK_RESPONSE: string
   KEEPALIVE_RESPONSE: never
-  REQUEST: any /** @todo */
+  REQUEST: ServiceWorkerIncomingRequest
 }
 
 export interface SetupWorkerInternalContext {
@@ -29,7 +59,7 @@ export interface SetupWorkerInternalContext {
   events: {
     /**
      * Adds an event listener on the given target.
-     * Returns a clean up function that removes that listener.
+     * Returns a clean-up function that removes that listener.
      */
     addListener<E extends Event>(
       target: EventTarget,
@@ -40,6 +70,9 @@ export interface SetupWorkerInternalContext {
      * Removes all currently attached listeners.
      */
     removeAllListeners(): void
+    /**
+     * Adds a Service Worker event listener.
+     */
     on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
       type: EventType,
       callback: (

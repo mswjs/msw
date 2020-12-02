@@ -6,7 +6,7 @@ import {
   ServiceWorkerInstanceTuple,
   StartOptions,
 } from '../glossary'
-import { handleRequestWith } from '../../utils/handleRequestWith'
+import { handleRequestWith } from '../../utils/worker/handleRequestWith'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { mergeRight } from '../../utils/internal/mergeRight'
@@ -43,11 +43,8 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       // of the application's code.
       context.events.removeAllListeners()
 
-      context.events.addListener(
-        navigator.serviceWorker,
-        'message',
-        handleRequestWith(context, resolvedOptions),
-      )
+      // Handle requests signaled by the worker.
+      context.events.on('REQUEST', handleRequestWith(context, resolvedOptions))
 
       const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
         getWorkerInstance(

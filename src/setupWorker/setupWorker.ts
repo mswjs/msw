@@ -10,6 +10,7 @@ import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
+import { jsonParse } from '../utils/internal/jsonParse'
 
 interface Listener {
   target: EventTarget
@@ -55,6 +56,25 @@ export function setupWorker(
           target.removeEventListener(event, callback)
         }
         listeners = []
+      },
+      on(type, callback) {
+        this.addListener(
+          navigator.serviceWorker,
+          'message',
+          (event: MessageEvent) => {
+            const message = jsonParse<ServiceWorkerMessage<typeof type, any>>(
+              event.data,
+            )
+
+            if (!message) {
+              return
+            }
+
+            if (message.type === type) {
+              callback(event, message)
+            }
+          },
+        )
       },
       once(type) {
         const bindings: Array<() => void> = []

@@ -11,5 +11,12 @@ export const createStop = (context: SetupWorkerInternalContext) => {
     context.events.removeAllListeners()
     context.emitter.removeAllListeners()
     window.clearInterval(context.keepAliveInterval)
+
+    if (!context.startOptions?.quiet) {
+      console.log(
+        '%c[MSW] Mocking disabled.',
+        'color:orangered;font-weight:bold;',
+      )
+    }
   }
 }

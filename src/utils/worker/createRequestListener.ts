@@ -58,7 +58,6 @@ export const createRequestListener = (
           response,
         )
 
-        context.emitter.emit('response:bypass', req)
         context.emitter.emit('request:end', req)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
@@ -80,11 +79,6 @@ export const createRequestListener = (
         }, response.delay)
       }
 
-      context.emitter.emit(
-        'response:mocked',
-        req,
-        responseWithSerializedHeaders,
-      )
       context.emitter.emit('request:end', req)
 
       channel.send({

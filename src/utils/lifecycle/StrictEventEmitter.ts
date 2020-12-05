@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events'
-import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
 import { MockedRequest } from '../handlers/requestHandler'
 
 export interface EventsMap {
@@ -7,11 +6,8 @@ export interface EventsMap {
   'request:match': (req: MockedRequest) => void
   'request:unhandled': (req: MockedRequest) => void
   'request:end': (req: MockedRequest) => void
-  'response:mocked': (
-    req: MockedRequest,
-    res: ResponseWithSerializedHeaders,
-  ) => void
-  'response:bypass': (req: MockedRequest) => void
+  'response:mocked': (res: Response, requestId: string) => void
+  'response:bypass': (res: Response, requestId: string) => void
 }
 
 export class StrictEventEmitter extends EventEmitter {

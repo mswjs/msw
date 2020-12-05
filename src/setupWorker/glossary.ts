@@ -43,6 +43,10 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body: string | undefined
 }
 
+export interface ServiceWorkerIncomingResponse extends Response {
+  requestId: string
+}
+
 /**
  * Map of the events that can be received from the Service Worker.
  */
@@ -51,6 +55,7 @@ export interface ServiceWorkerIncomingEventsMap {
   INTEGRITY_CHECK_RESPONSE: string
   KEEPALIVE_RESPONSE: never
   REQUEST: ServiceWorkerIncomingRequest
+  RESPONSE: ServiceWorkerIncomingResponse
 }
 
 /**

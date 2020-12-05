@@ -10,6 +10,7 @@ import { createRequestListener } from '../../utils/worker/createRequestListener'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { mergeRight } from '../../utils/internal/mergeRight'
+import { createResponseListener } from '../../utils/worker/createResponseListener'
 
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {
@@ -48,6 +49,8 @@ export const createStart = (context: SetupWorkerInternalContext) => {
         'REQUEST',
         createRequestListener(context, resolvedOptions),
       )
+
+      context.workerChannel.on('RESPONSE', createResponseListener(context))
 
       const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
         getWorkerInstance(

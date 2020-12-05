@@ -86,6 +86,7 @@ export interface WorkerLifecycleEventsMap {
 }
 
 export interface SetupWorkerInternalContext {
+  startOptions: StartOptions | undefined
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]

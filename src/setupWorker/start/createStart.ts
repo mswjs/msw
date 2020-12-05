@@ -31,6 +31,10 @@ export const createStart = (context: SetupWorkerInternalContext) => {
   return function start(options?: StartOptions) {
     const resolvedOptions = mergeRight(DEFAULT_START_OPTIONS, options || {})
 
+    // Store the start options in the context so that other methods (like `stop`)
+    // could reference them.
+    context.startOptions = resolvedOptions
+
     const startWorkerInstance = async () => {
       if (!('serviceWorker' in navigator)) {
         console.error(

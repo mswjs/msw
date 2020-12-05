@@ -38,6 +38,7 @@ export function setupWorker(
       )
   })
   const context: SetupWorkerInternalContext = {
+    startOptions: undefined,
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],

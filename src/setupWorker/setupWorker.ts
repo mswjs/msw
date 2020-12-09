@@ -14,7 +14,7 @@ import { jsonParse } from '../utils/internal/jsonParse'
 
 interface Listener {
   target: EventTarget
-  event: string
+  eventType: string
   callback: EventListener
 }
 
@@ -43,20 +43,20 @@ export function setupWorker(
     requestHandlers: [...requestHandlers],
     emitter: new StrictEventEmitter(),
     workerChannel: {
-      on(type, callback) {
+      on(eventType, callback) {
         context.events.addListener(
           navigator.serviceWorker,
           'message',
           (event: MessageEvent) => {
-            const message = jsonParse<ServiceWorkerMessage<typeof type, any>>(
-              event.data,
-            )
+            const message = jsonParse<
+              ServiceWorkerMessage<typeof eventType, any>
+            >(event.data)
 
             if (!message) {
               return
             }
 
-            if (message.type === type) {
+            if (message.type === eventType) {
               callback(event, message)
             }
           },
@@ -67,34 +67,38 @@ export function setupWorker(
       },
     },
     events: {
-      addListener(target: EventTarget, event: string, callback: EventListener) {
-        target.addEventListener(event, callback)
-        listeners.push({ event, target, callback })
+      addListener(
+        target: EventTarget,
+        eventType: string,
+        callback: EventListener,
+      ) {
+        target.addEventListener(eventType, callback)
+        listeners.push({ eventType, target, callback })
 
         return () => {
-          target.removeEventListener(event, callback)
+          target.removeEventListener(eventType, callback)
         }
       },
       removeAllListeners() {
-        for (const { target, event, callback } of listeners) {
-          target.removeEventListener(event, callback)
+        for (const { target, eventType, callback } of listeners) {
+          target.removeEventListener(eventType, callback)
         }
         listeners = []
       },
-      once(type) {
+      once(eventType) {
         const bindings: Array<() => void> = []
 
         return new Promise<
           ServiceWorkerMessage<
-            typeof type,
-            ServiceWorkerIncomingEventsMap[typeof type]
+            typeof eventType,
+            ServiceWorkerIncomingEventsMap[typeof eventType]
           >
         >((resolve, reject) => {
           const handleIncomingMessage = (event: MessageEvent) => {
             try {
               const message = JSON.parse(event.data)
 
-              if (message.type === type) {
+              if (message.type === eventType) {
                 resolve(message)
               }
             } catch (error) {

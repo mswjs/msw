@@ -90,7 +90,7 @@ export interface SetupWorkerInternalContext {
      * Adds a Service Worker event listener.
      */
     on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
-      type: EventType,
+      eventType: EventType,
       callback: (
         event: MessageEvent,
         message: ServiceWorkerMessage<
@@ -100,7 +100,7 @@ export interface SetupWorkerInternalContext {
       ) => void,
     ): void
     send<EventType extends ServiceWorkerOutgoingEventTypes>(
-      type: EventType,
+      eventType: EventType,
     ): void
   }
   events: {
@@ -110,7 +110,7 @@ export interface SetupWorkerInternalContext {
      */
     addListener<E extends Event>(
       target: EventTarget,
-      type: string,
+      eventType: string,
       listener: (event: E) => void,
     ): () => void
     /**
@@ -121,7 +121,7 @@ export interface SetupWorkerInternalContext {
      * Awaits a given message type from the Service Worker.
      */
     once<EventType extends keyof ServiceWorkerIncomingEventsMap>(
-      type: EventType,
+      eventType: EventType,
     ): Promise<
       ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
     >

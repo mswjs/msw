@@ -9,7 +9,7 @@ import { json } from './json'
  * res(ctx.data({ user: { firstName: 'John' }}))
  * @see {@link https://mswjs.io/docs/api/context/data `ctx.data()`}
  */
-export const data = <T extends Record<string, any>>(
+export const data = <T extends Record<string, unknown>>(
   payload: T,
 ): ResponseTransformer => {
   return (res) => {

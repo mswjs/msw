@@ -4,6 +4,8 @@ import commonjs from '@rollup/plugin-commonjs'
 import inject from '@rollup/plugin-inject'
 import typescript from 'rollup-plugin-typescript2'
 import json from '@rollup/plugin-json'
+import replace from '@rollup/plugin-replace'
+import { terser } from 'rollup-plugin-terser'
 import packageJson from './package.json'
 
 const integrityCheck = require('./config/plugins/rollup-integrity-check-plugin')
@@ -53,7 +55,7 @@ const buildEsm = {
 /**
  * Configuration for the UMD build
  */
-const buildUdm = {
+const buildUmd = {
   input: 'src/index.ts',
   output: {
     file: packageJson.main,
@@ -144,4 +146,25 @@ const buildNative = {
   ],
 }
 
-export default [buildNode, buildNative, buildEsm, buildUdm]
+/**
+ * Configuration for the iife build
+ */
+const buildIife = {
+  input: 'src/index.ts',
+  output: {
+    file: 'lib/iife/index.js',
+    name: 'MockServiceWorker',
+    format: 'iife',
+    esModule: false,
+  },
+  plugins: [
+    ,
+    replace({
+      'process.env.NODE_ENV': JSON.stringify('development'),
+    }),
+    ...plugins,
+    terser(),
+  ],
+}
+
+export default [buildNode, buildNative, buildEsm, buildUmd, buildIife]

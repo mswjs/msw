@@ -108,6 +108,23 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
 > {
   const callFrame = getCallFrame()
 
+  function buildRequest(
+    request: GraphQLRequestPayload<VariablesType> & Record<string, any>,
+  ) {
+    const { query, variables } = request as GraphQLRequestPayload<VariablesType>
+
+    const { operationType, operationName } = parseQuery(
+      query,
+      expectedOperationType,
+    )
+
+    return {
+      operationType,
+      operationName,
+      variables,
+    }
+  }
+
   return {
     resolver,
 
@@ -127,16 +144,10 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
             ? jsonParse<VariablesType>(variablesString)
             : ({} as VariablesType)
 
-          const { operationType, operationName } = parseQuery(
-            query,
-            expectedOperationType,
-          )
+          // There's no spec for using GET with batches.
+          // apollo-link-batch-http only works with POSTs
 
-          return {
-            operationType,
-            operationName,
-            variables,
-          }
+          return buildRequest({ query, variables })
         }
 
         case 'POST': {
@@ -144,19 +155,12 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
             return null
           }
 
-          const { query, variables } = req.body as GraphQLRequestPayload<
-            VariablesType
-          >
-
-          const { operationType, operationName } = parseQuery(
-            query,
-            expectedOperationType,
-          )
-
-          return {
-            operationType,
-            operationName,
-            variables,
+          if (Array.isArray(req.body)) {
+            // Batch operation
+            return req.body.map(buildRequest)
+          } else {
+            // Single operation
+            return buildRequest(req.body)
           }
         }
 

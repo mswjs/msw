@@ -1,6 +1,9 @@
 import * as path from 'path'
 import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import {
+  executeBatchOperation,
+  executeOperation,
+} from './utils/executeOperation'
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'operation.mocks.ts'))
@@ -20,6 +23,7 @@ test('matches GraphQL queries', async () => {
       id: 'abc-123',
     },
   })
+
   const headers = res.headers()
   const body = await res.json()
 
@@ -53,6 +57,7 @@ test('matches GraphQL mutations', async () => {
       password: 'super-secret',
     },
   })
+
   const headers = res.headers()
   const body = await res.json()
 
@@ -87,6 +92,71 @@ test('matches only valid GraphQL requests', async () => {
       query: 'test',
     },
   })
+
+  return runtime.cleanup()
+})
+
+test('matches batch GraphQL queries', async () => {
+  const runtime = await createRuntime()
+  const GET_USER_QUERY = `
+    query GetUser($id: String!) {
+      query
+      variables
+    }
+  `
+  const GET_OTHER_USER_QUERY = `
+    query GetOtherUser($id: String!) {
+      query
+      variables
+    }
+  `
+
+  const responses = await executeBatchOperation(runtime.page, [
+    {
+      query: GET_USER_QUERY,
+      variables: {
+        id: 'abc-123',
+      },
+    },
+    {
+      query: GET_OTHER_USER_QUERY,
+      variables: {
+        id: 'abc-123',
+      },
+    },
+  ])
+
+  if (!Array.isArray(responses)) return runtime.cleanup()
+
+  const dataResults = []
+
+  for (const response of responses) {
+    const headers = response.headers()
+    const body = await response.json()
+    dataResults.push(body)
+
+    expect(response.status()).toEqual(200)
+    expect(headers).toHaveProperty('x-powered-by', 'msw')
+  }
+
+  expect(dataResults).toEqual([
+    {
+      data: [
+        {
+          query: GET_USER_QUERY,
+          variables: {
+            id: 'abc-123',
+          },
+        },
+        {
+          query: GET_OTHER_USER_QUERY,
+          variables: {
+            id: 'abc-123',
+          },
+        },
+      ],
+    },
+  ])
 
   return runtime.cleanup()
 })

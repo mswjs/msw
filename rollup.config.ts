@@ -158,7 +158,6 @@ const buildIife = {
     esModule: false,
   },
   plugins: [
-    ,
     replace({
       'process.env.NODE_ENV': JSON.stringify('development'),
     }),

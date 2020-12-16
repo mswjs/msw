@@ -70,7 +70,7 @@
     "headers-utils": "^1.2.0",
     "node-fetch": "^2.6.1",
     "node-match-path": "^0.6.0",
-    "node-request-interceptor": "^0.5.3",
+    "node-request-interceptor": "^0.5.9",
     "statuses": "^2.0.0",
     "yargs": "^16.1.1"
   },

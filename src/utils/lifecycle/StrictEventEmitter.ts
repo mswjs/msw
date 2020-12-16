@@ -1,16 +1,8 @@
 import { EventEmitter } from 'events'
-import { MockedRequest } from '../handlers/requestHandler'
 
-export interface EventsMap {
-  'request:start': (req: MockedRequest) => void
-  'request:match': (req: MockedRequest) => void
-  'request:unhandled': (req: MockedRequest) => void
-  'request:end': (req: MockedRequest) => void
-  'response:mocked': (res: Response, requestId: string) => void
-  'response:bypass': (res: Response, requestId: string) => void
-}
-
-export class StrictEventEmitter extends EventEmitter {
+export class StrictEventEmitter<
+  EventsMap extends Record<string | symbol, any>
+> extends EventEmitter {
   constructor() {
     super()
   }
@@ -19,6 +11,10 @@ export class StrictEventEmitter extends EventEmitter {
     eventType: EventType,
     ...data: Parameters<EventsMap[EventType]>
   ) {
+    if (typeof eventType !== 'string') {
+      return false
+    }
+
     return super.emit(eventType, ...data)
   }
 
@@ -26,6 +22,10 @@ export class StrictEventEmitter extends EventEmitter {
     eventType: EventType,
     listener: EventsMap[EventType],
   ) {
+    if (typeof eventType !== 'string') {
+      return
+    }
+
     super.addListener(eventType, listener)
   }
 }

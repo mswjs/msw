@@ -1,10 +1,10 @@
 import { HeadersList } from 'headers-utils'
-import { RequestHandler } from '../utils/handlers/requestHandler'
+import { MockedRequest, RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import {
-  EventsMap,
   StrictEventEmitter,
+  StrictEventsMap,
 } from '../utils/lifecycle/StrictEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
@@ -79,11 +79,20 @@ export type ServiceWorkerFetchEventTypes =
   | 'NETWORK_ERROR'
   | 'INTERNAL_ERROR'
 
+export interface WorkerLifecycleEventsMap extends StrictEventsMap {
+  'request:start': (req: MockedRequest) => void
+  'request:match': (req: MockedRequest) => void
+  'request:unhandled': (req: MockedRequest) => void
+  'request:end': (req: MockedRequest) => void
+  'response:mocked': (res: Response, requestId: string) => void
+  'response:bypass': (res: Response, requestId: string) => void
+}
+
 export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler<any, any>[]
-  emitter: StrictEventEmitter
+  emitter: StrictEventEmitter<WorkerLifecycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {
     /**
@@ -214,8 +223,11 @@ export interface SetupWorkerApi {
    */
   printHandlers: () => void
 
-  on<EventType extends keyof EventsMap>(
-    event: EventType,
-    listener: EventsMap[EventType],
+  /**
+   * Attaches a listener to one of the life-cycle events.
+   */
+  on<EventType extends keyof WorkerLifecycleEventsMap>(
+    eventType: EventType,
+    listener: WorkerLifecycleEventsMap[EventType],
   ): void
 }

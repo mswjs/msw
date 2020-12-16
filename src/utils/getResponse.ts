@@ -30,7 +30,7 @@ export const getResponse = async <
   req: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const relevantHandlers = handlers
+  let relevantHandlers = handlers
     .filter((requestHandler) => {
       // Skip a handler if it has been already used for a one-time response.
       return !requestHandler.shouldSkip
@@ -56,7 +56,14 @@ export const getResponse = async <
       handler: null,
       response: null,
     }
+  } else if (relevantHandlers.length > 1) {
+    // TODO: this is probably not the best approach... we need some way to limit the result set of relevantHandlers to 1 of each type.
+    // Is this really even possible though? Will one request ever _really_ match multiple handlers?
+    // We can match many graphql endpoints in a bulk request, but we should only use the graphql handler?
+    relevantHandlers = relevantHandlers[0]
   }
+
+  // TODO: What needs to happen here is that if we have an array in `parsedRequest`, we need to build one singular response with the aggregate of the operations.
 
   const {
     requestHandler,
@@ -106,7 +113,7 @@ export const getResponse = async <
   )
 
   // Although reducing a list of relevant request handlers, it's possible
-  // that in the end there will be no handler associted with the request
+  // that in the end there will be no handler associated with the request
   // (i.e. if relevant handlers are fall-through).
   if (!requestHandler) {
     return {

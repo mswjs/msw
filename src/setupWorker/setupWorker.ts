@@ -165,7 +165,7 @@ export function setupWorker(
       })
     },
 
-    on(eventType, listener): void {
+    on(eventType, listener) {
       context.emitter.addEventListener(eventType, listener)
     },
   }

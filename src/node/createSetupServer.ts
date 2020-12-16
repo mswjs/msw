@@ -13,9 +13,10 @@ import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
-import { SetupServerApi } from './glossary'
+import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
+import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -26,6 +27,8 @@ const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
  * Useful to generate identical API using different patches to request issuing modules.
  */
 export function createSetupServer(...interceptors: Interceptor[]) {
+  const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
+
   return function setupServer(
     ...requestHandlers: RequestHandlersList
   ): SetupServerApi {
@@ -62,8 +65,9 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           )
           const requestCookieString = requestHeaders.get('cookie')
 
+          const requestId = uuidv4()
           const mockedRequest: MockedRequest = {
-            id: uuidv4(),
+            id: requestId,
             url: req.url,
             method: req.method,
             // Parse the request's body based on the "Content-Type" header.
@@ -83,6 +87,8 @@ export function createSetupServer(...interceptors: Interceptor[]) {
             credentials: 'same-origin',
           }
 
+          emitter.emit('request:start', mockedRequest)
+
           if (requestCookieString) {
             // Set mocked request cookies from the `cookie` header of the original request.
             // No need to take `credentials` into account, because in NodeJS requests are intercepted
@@ -92,12 +98,26 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           }
 
           if (mockedRequest.headers.get('x-msw-bypass')) {
+            /**
+             * @todo Support "response:bypass" event by extending "node-request-interceptor"
+             * to signal back the actual response.
+             */
+            emitter.emit('request:end', mockedRequest)
             return
           }
 
-          const { response } = await getResponse(mockedRequest, currentHandlers)
+          const { response, handler } = await getResponse(
+            mockedRequest,
+            currentHandlers,
+          )
+
+          if (!handler) {
+            emitter.emit('request:unhandled', mockedRequest)
+          }
 
           if (!response) {
+            emitter.emit('request:end', mockedRequest)
+
             onUnhandledRequest(
               mockedRequest,
               resolvedOptions.onUnhandledRequest,
@@ -105,17 +125,24 @@ export function createSetupServer(...interceptors: Interceptor[]) {
             return
           }
 
+          emitter.emit('request:match', mockedRequest)
+
           return new Promise<MockedInterceptedResponse>((resolve) => {
+            const mockedResponse = {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers.getAllHeaders(),
+              body: response.body as string,
+            }
+
             // the node build will use the timers module to ensure @sinon/fake-timers or jest fake timers
             // don't affect this timeout.
             setTimeout(() => {
-              resolve({
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers.getAllHeaders(),
-                body: response.body as string,
-              })
+              resolve(mockedResponse)
             }, response.delay ?? 0)
+
+            emitter.emit('request:end', mockedRequest)
+            emitter.emit('response:mocked', mockedResponse, requestId)
           })
         })
       },
@@ -135,9 +162,6 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
       },
 
-      /**
-       * Prints the list of currently active request handlers.
-       */
       printHandlers() {
         currentHandlers.forEach((handler) => {
           const meta = handler.getMetaInfo()
@@ -149,10 +173,12 @@ ${bold(meta.header)}
         })
       },
 
-      /**
-       * Stops requests interception by restoring all augmented modules.
-       */
+      on(eventType, listener) {
+        emitter.addEventListener(eventType, listener)
+      },
+
       close() {
+        emitter.removeAllListeners()
         interceptor.restore()
       },
     }

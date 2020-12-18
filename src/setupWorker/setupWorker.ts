@@ -1,3 +1,4 @@
+import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   SetupWorkerInternalContext,
   RequestHandlersList,
@@ -8,7 +9,6 @@ import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
-import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { jsonParse } from '../utils/internal/jsonParse'
 
@@ -166,7 +166,7 @@ export function setupWorker(
     },
 
     on(eventType, listener) {
-      context.emitter.addEventListener(eventType, listener)
+      context.emitter.addListener(eventType, listener)
     },
   }
 }

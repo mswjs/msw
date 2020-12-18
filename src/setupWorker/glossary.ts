@@ -1,11 +1,8 @@
 import { HeadersList } from 'headers-utils'
+import { StrictEventEmitter } from 'strict-event-emitter'
 import { MockedRequest, RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
-import {
-  StrictEventEmitter,
-  StrictEventsMap,
-} from '../utils/lifecycle/StrictEventEmitter'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
@@ -79,7 +76,7 @@ export type ServiceWorkerFetchEventTypes =
   | 'NETWORK_ERROR'
   | 'INTERNAL_ERROR'
 
-export interface WorkerLifecycleEventsMap extends StrictEventsMap {
+export interface WorkerLifecycleEventsMap {
   'request:start': (req: MockedRequest) => void
   'request:match': (req: MockedRequest) => void
   'request:unhandled': (req: MockedRequest) => void

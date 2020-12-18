@@ -1,6 +1,7 @@
 import * as cookieUtils from 'cookie'
 import { bold } from 'chalk'
 import { Headers, flattenHeadersObject } from 'headers-utils'
+import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   RequestInterceptor,
   MockedResponse as MockedInterceptedResponse,
@@ -16,7 +17,6 @@ import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
-import { StrictEventEmitter } from '../utils/lifecycle/StrictEventEmitter'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -174,7 +174,7 @@ ${bold(meta.header)}
       },
 
       on(eventType, listener) {
-        emitter.addEventListener(eventType, listener)
+        emitter.addListener(eventType, listener)
       },
 
       close() {

@@ -86,7 +86,7 @@ Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/i
 
     // Fallback error message for any other registration errors.
     console.error(
-      `[MSW] Failed to register a Service Worker:\n\m${error.message}`,
+      `[MSW] Failed to register a Service Worker:\n\n${error.message}`,
     )
     return null
   }

@@ -159,7 +159,7 @@ const buildIife = {
   },
   plugins: [
     replace({
-      'process.env.NODE_ENV': JSON.stringify('development'),
+      'process.env.NODE_ENV': JSON.stringify('production'),
     }),
     ...plugins,
     terser(),

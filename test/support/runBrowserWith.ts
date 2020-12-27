@@ -101,7 +101,7 @@ export const runBrowserWith = async (
       return null
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       browser
         .close()
         .then(() => {

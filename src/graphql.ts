@@ -144,9 +144,10 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
             return null
           }
 
-          const { query, variables } = req.body as GraphQLRequestPayload<
-            VariablesType
-          >
+          const {
+            query,
+            variables,
+          } = req.body as GraphQLRequestPayload<VariablesType>
 
           const { operationType, operationName } = parseQuery(
             query,

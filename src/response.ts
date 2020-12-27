@@ -48,9 +48,7 @@ export const defaultResponseTransformers: ResponseTransformer<any>[] = []
 
 export function createResponseComposition<BodyType>(
   responseOverrides?: Partial<MockedResponse<BodyType>>,
-  defaultTransformers: ResponseTransformer<
-    BodyType
-  >[] = defaultResponseTransformers,
+  defaultTransformers: ResponseTransformer<BodyType>[] = defaultResponseTransformers,
 ): ResponseFunction {
   return async (...transformers) => {
     const initialResponse: MockedResponse = Object.assign(

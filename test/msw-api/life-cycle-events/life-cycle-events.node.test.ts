@@ -4,6 +4,7 @@
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
+import { sleep } from '../../support/utils'
 
 const server = setupServer(
   rest.get('https://mswjs.io/user', (req, res, ctx) => {
@@ -47,6 +48,10 @@ beforeAll(() => {
   server.on('response:mocked', (res, reqId) => {
     listener(`[response:mocked] ${res.body} ${reqId}`)
   })
+
+  server.on('response:bypass', (res, reqId) => {
+    listener(`[response:bypass] ${res.headers.server} ${reqId}`)
+  })
 })
 
 afterEach(() => {
@@ -72,14 +77,13 @@ test('emits events for a handler request and mocked response', async () => {
 test('emits events for a handled request with no response', async () => {
   await fetch('https://mswjs.io/no-response', { method: 'POST' })
   const requestId = getRequestId(listener)
+  await sleep(500)
 
-  /**
-   * @todo `response:bypass` is not yet supported by `node-request-interceptor`.
-   */
   expect(listener.mock.calls).toEqual([
     [`[request:start] POST https://mswjs.io/no-response ${requestId}`],
     [`[request:unhandled] POST https://mswjs.io/no-response ${requestId}`],
     [`[request:end] POST https://mswjs.io/no-response ${requestId}`],
+    [`[response:bypass] Vercel ${requestId}`],
   ])
 })
 

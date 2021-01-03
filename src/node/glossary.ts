@@ -9,6 +9,7 @@ export interface ServerLifecycleEventsMap {
   'request:unhandled': (req: MockedRequest) => void
   'request:end': (req: MockedRequest) => void
   'response:mocked': (res: MockedInterceptedResponse, requestId: string) => void
+  'response:bypass': (res: MockedInterceptedResponse, requestId: string) => void
 }
 
 export interface SetupServerApi {

@@ -17,6 +17,7 @@ import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
+import { request } from 'express'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -51,6 +52,16 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     // so it could be modified at a runtime.
     let currentHandlers: RequestHandlersList = [...requestHandlers]
 
+    interceptor.on('response', (req, res) => {
+      const requestId = req.headers?.['x-msw-request-id'] as string
+
+      if (res.headers['x-powered-by'] === 'msw') {
+        emitter.emit('response:mocked', res, requestId)
+      } else {
+        emitter.emit('response:bypass', res, requestId)
+      }
+    })
+
     return {
       listen(options) {
         const resolvedOptions = Object.assign(
@@ -60,12 +71,18 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
 
         interceptor.use(async (req) => {
+          const requestId = uuidv4()
+
           const requestHeaders = new Headers(
             flattenHeadersObject(req.headers || {}),
           )
+
+          if (req.headers) {
+            req.headers['x-msw-request-id'] = requestId
+          }
+
           const requestCookieString = requestHeaders.get('cookie')
 
-          const requestId = uuidv4()
           const mockedRequest: MockedRequest = {
             id: requestId,
             url: req.url,
@@ -98,10 +115,6 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           }
 
           if (mockedRequest.headers.get('x-msw-bypass')) {
-            /**
-             * @todo Support "response:bypass" event by extending "node-request-interceptor"
-             * to signal back the actual response.
-             */
             emitter.emit('request:end', mockedRequest)
             return
           }
@@ -142,7 +155,6 @@ export function createSetupServer(...interceptors: Interceptor[]) {
             }, response.delay ?? 0)
 
             emitter.emit('request:end', mockedRequest)
-            emitter.emit('response:mocked', mockedResponse, requestId)
           })
         })
       },

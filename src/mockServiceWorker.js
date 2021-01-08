@@ -200,7 +200,8 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
             ok: clonedResponse.ok,
             status: clonedResponse.status,
             statusText: clonedResponse.statusText,
-            body: await clonedResponse.text(),
+            body:
+              clonedResponse.body === null ? null : await clonedResponse.text(),
             headers: serializeHeaders(clonedResponse.headers),
             redirected: clonedResponse.redirected,
           },

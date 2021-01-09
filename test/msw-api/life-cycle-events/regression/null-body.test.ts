@@ -8,15 +8,19 @@ function createRuntime() {
 }
 
 test('lifecycle mothod should support null body', async () => {
+  let error
   const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
+
+  runtime.page.on('pageerror', (err) => {
+    error = err
+  })
 
   await runtime.request({
     url: 'https://test.mswjs.io/api/books',
   })
   await sleep(500)
 
-  expect(messages.warning).toEqual([`[response:mocked] null`])
+  expect(error).not.toBeDefined()
 
   return runtime.cleanup()
 })

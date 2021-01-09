@@ -6,8 +6,4 @@ const worker = setupWorker(
   }),
 )
 
-worker.on('response:mocked', async (res) => {
-  console.warn(`[response:mocked] ${res.body}`)
-})
-
 worker.start()

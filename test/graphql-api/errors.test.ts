@@ -1,20 +1,29 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith, TestAPI } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
-test('mocks a GraphQL error response', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'errors.mocks.ts'),
-  )
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'errors.mocks.ts'))
+}
 
+let runtime: TestAPI
+
+beforeAll(async () => {
+  runtime = await createRuntime()
+})
+afterAll(async () => {
+  await runtime.cleanup()
+})
+
+test('mocks a GraphQL error response', async () => {
   const res = await executeOperation(runtime.page, {
     query: `
-      query Login {
-        user {
-          id
+        query Login {
+          user {
+            id
+          }
         }
-      }
-    `,
+      `,
   })
   const status = res.status()
   const body = await res.json()
@@ -32,6 +41,4 @@ test('mocks a GraphQL error response', async () => {
       ],
     },
   ])
-
-  return runtime.cleanup()
 })

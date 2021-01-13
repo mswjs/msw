@@ -27,6 +27,8 @@ interface GraphQLRequestPayload {
 interface GraphQLOperationOptions {
   uri?: string
   method?: 'GET' | 'POST'
+  map?: Record<string, [string]>
+  fileContents?: string[]
 }
 
 /**
@@ -37,7 +39,7 @@ export const executeOperation = async (
   payload: GraphQLRequestPayload,
   options?: GraphQLOperationOptions,
 ) => {
-  const { uri = HOSTNAME, method = 'POST' } = options || {}
+  const { uri = HOSTNAME, method = 'POST', map, fileContents } = options || {}
   const { query, variables } = payload
   const url = new URL(uri)
 
@@ -51,21 +53,45 @@ export const executeOperation = async (
 
   const urlString = url.toString()
 
+  // Cannot pass files because of Puppeteer's limitation.
   const responsePromise = page.evaluate(
-    (url, method, query, variables) => {
+    (
+      url,
+      method,
+      query,
+      variables,
+      map,
+      fileContents: string[] | undefined,
+    ) => {
+      const operations = JSON.stringify({
+        query,
+        variables,
+      })
+
+      const isMultipart = Boolean(map && fileContents)
+      const headers = isMultipart ? {} : { 'Content-Type': 'application/json' }
+      let body: string | FormData
+      if (!isMultipart) {
+        body = operations
+      } else {
+        body = new FormData()
+        body.append('operations', operations)
+        body.append('map', JSON.stringify(map))
+        const files = fileContents.map(
+          (f: string, i: number) => new File([f], `file${i}.txt`),
+        )
+        for (const [index, file] of files.entries()) {
+          body.append(index.toString(), file)
+        }
+      }
       return fetch(
         url,
         Object.assign(
           {},
           method === 'POST' && {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              query,
-              variables,
-            }),
+            headers,
+            body,
           },
         ),
       )
@@ -74,6 +100,8 @@ export const executeOperation = async (
     method,
     payload.query,
     payload.variables,
+    map,
+    fileContents,
   )
 
   return new Promise<Response>((resolve, reject) => {

@@ -1,15 +1,12 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, DelayMode } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
-    const delay = req.url.searchParams.get('delay')
-    const delayMs = delay ? Number(delay) : undefined
-
+  rest.get('/delay', (req, res, ctx) => {
+    const mode = req.url.searchParams.get('mode') as DelayMode
+    const duration = req.url.searchParams.get('duration')
     return res(
-      ctx.delay(delayMs),
-      ctx.json({
-        mocked: true,
-      }),
+      ctx.delay(duration ? Number(duration) : mode || undefined),
+      ctx.json({ mocked: true }),
     )
   }),
 )

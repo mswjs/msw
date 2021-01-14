@@ -46,3 +46,4 @@ export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 
 /* Utils */
 export { compose } from './utils/internal/compose'
+export { DelayMode } from './context/delay'

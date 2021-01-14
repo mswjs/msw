@@ -17,7 +17,7 @@ const getRandomServerResponseTime = () => {
   )
 }
 
-type DelayMode = 'real' | 'infinite'
+export type DelayMode = 'real' | 'infinite'
 
 /**
  * Delays the response by the given duration (ms).

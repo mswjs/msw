@@ -14,7 +14,10 @@ export const defaultContext = {
 }
 
 export type DefaultRequestBodyType = 
-  | Record<string, any> | string | any | undefined
+  | Record<string, any>
+  | string
+  | any
+  | undefined
 
 export interface MockedRequest<
   BodyType = DefaultRequestBodyType,

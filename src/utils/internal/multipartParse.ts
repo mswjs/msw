@@ -44,8 +44,9 @@ export function multipartParse<T extends DefaultMultipartBodyType>(
   if (!boundary) {
     return undefined
   }
+  const boundaryRegExp = new RegExp(`--+${boundary}`)
   const fields = str
-    .split(boundary)
+    .split(boundaryRegExp)
     .filter((s) => s.startsWith('\r\n') && s.endsWith('\r\n'))
     .map((s) => s.trimStart().replace(/\r\n$/, ''))
   if (!fields.length) {

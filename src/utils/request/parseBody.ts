@@ -9,19 +9,19 @@ export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
   if (body) {
     const contentType = headers?.get('content-type')
 
+    // If the body has a Multipart Content-Type
+    // parse it into an object.
+    const hasMultipartContent = contentType?.startsWith('multipart/form-data')
+    if (hasMultipartContent && typeof body !== 'object') {
+      return multipartParse(body, headers) || body
+    }
+
     // If the intercepted request's body has a JSON Content-Type
     // parse it into an object.
     const hasJsonContent = contentType?.includes('json')
 
     if (hasJsonContent && typeof body !== 'object') {
       return jsonParse(body) || body
-    }
-
-    // If the body has a Multipart Content-Type
-    // parse it into an object.
-    const hasMultipartContent = contentType?.startsWith('multipart/form-data')
-    if (hasMultipartContent && typeof body !== 'object') {
-      return multipartParse(body, headers) || body
     }
 
     // Otherwise leave as-is.

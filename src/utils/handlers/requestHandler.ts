@@ -13,7 +13,15 @@ export const defaultContext = {
   fetch,
 }
 
-export type DefaultRequestBodyType = Record<string, any> | string | undefined
+export type DefaultMultipartBodyType = Record<
+  string,
+  string | File | (string | File)[]
+>
+export type DefaultRequestBodyType =
+  | Record<string, any>
+  | DefaultMultipartBodyType
+  | string
+  | undefined
 
 export interface MockedRequest<
   BodyType = DefaultRequestBodyType,

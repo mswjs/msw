@@ -13,7 +13,7 @@ export const defaultContext = {
   fetch,
 }
 
-export type DefaultRequestBodyType = 
+export type DefaultRequestBodyType =
   | Record<string, any>
   | string
   | any

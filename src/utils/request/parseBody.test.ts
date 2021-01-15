@@ -62,7 +62,7 @@ another text content 2\r
 `.trim()
   const headers = new Headers({
     'content-type':
-      'multipart/form-data; boundary=------WebKitFormBoundaryvZ1cVXWyK0ilQdab',
+      'multipart/form-data; boundary=--WebKitFormBoundaryvZ1cVXWyK0ilQdab',
   })
   const parsed = parseBody(body, headers)
 

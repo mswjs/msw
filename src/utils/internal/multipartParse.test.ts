@@ -23,7 +23,7 @@ another text content 2\r
 `.trim()
   const headers = new Headers({
     'content-type':
-      'multipart/form-data; boundary=------WebKitFormBoundaryvZ1cVXWyK0ilQdab',
+      'multipart/form-data; boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',
   })
   const parsed = multipartParse(body, headers)
 
@@ -40,7 +40,7 @@ another text content 2\r
 
 test('returns undefined without an error given an invalid multipart string', () => {
   const headers = new Headers({
-    'content-type': 'multipart/form-data; boundary=------dummyBoundary',
+    'content-type': 'multipart/form-data; boundary=dummyBoundary',
   })
   const parse = () => multipartParse(`{"invalid": ["multipart"]}`, headers)
   expect(parse).not.toThrow()

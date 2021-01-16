@@ -21,6 +21,7 @@ import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getCallFrame } from './utils/internal/getCallFrame'
+import { body } from './context'
 
 type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 
@@ -61,10 +62,19 @@ export type GraphQLResponseResolver<QueryType, VariablesType> = (
   context: GraphQLMockedContext,
 ) => AsyncResponseResolverReturnType<MockedResponse>
 
-export interface GraphQLRequestPayload<VariablesType> {
+export type GraphQLJSONRequestPayload<VariablesType> = {
   query: string
   variables?: VariablesType
 }
+
+export type GraphQLMultipartRequestPayload = {
+  operations: string
+  map?: string
+} & Record<string, File | undefined>
+
+export type GraphQLRequestPayload<VariablesType> =
+  | GraphQLJSONRequestPayload<VariablesType>
+  | GraphQLMultipartRequestPayload
 
 export interface GraphQLRequestParsedResult<VariablesType> {
   operationType: OperationTypeNode
@@ -140,25 +150,65 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
         }
 
         case 'POST': {
-          if (!req.body?.query) {
-            return null
+          if (req.body?.query) {
+            const { query, variables } = req.body
+            const { operationType, operationName } = parseQuery(
+              query,
+              expectedOperationType,
+            )
+
+            return {
+              operationType,
+              operationName,
+              variables,
+            }
           }
+          if (req.body?.operations) {
+            const { operations, map, ...others } = req.body
+            const parsedOperations =
+              jsonParse<{
+                query?: string
+                variables?: VariablesType
+              }>(operations) || {}
+            if (!parsedOperations.query) {
+              return null
+            }
+            const parsedMap = jsonParse<Record<string, string[]>>(map) || {}
 
-          const {
-            query,
-            variables,
-          } = req.body as GraphQLRequestPayload<VariablesType>
+            const { operationType, operationName } = parseQuery(
+              parsedOperations.query,
+              expectedOperationType,
+            )
+            const files = others as Record<string, File>
+            for (const [key, pathArray] of Object.entries(parsedMap)) {
+              if (!(key in files)) {
+                return null
+              }
+              for (const dotPath of pathArray) {
+                const [lastPath, ...reversedPaths] = dotPath
+                  .split('.')
+                  .reverse()
+                const paths = reversedPaths.reverse()
 
-          const { operationType, operationName } = parseQuery(
-            query,
-            expectedOperationType,
-          )
+                let target: Record<string, any> = parsedOperations
 
-          return {
-            operationType,
-            operationName,
-            variables,
+                for (const path of paths) {
+                  if (!(path in target)) {
+                    return null
+                  }
+                  target = target[path]
+                }
+                target[lastPath] = files[key]
+              }
+            }
+            const variables = parsedOperations.variables || {}
+            return {
+              operationType,
+              operationName,
+              variables,
+            }
           }
+          return null
         }
 
         default:

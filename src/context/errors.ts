@@ -10,7 +10,7 @@ import { json } from './json'
  * @see {@link https://mswjs.io/docs/api/context/errors}
  */
 export const errors = <
-  ErrorsType extends Partial<GraphQLError>[] | null | undefined
+  ErrorsType extends readonly Partial<GraphQLError>[] | null | undefined
 >(
   errorsList: ErrorsType,
 ): ResponseTransformer<string> => {

@@ -18,7 +18,9 @@ another text content\r
 ------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
 Content-Disposition: form-data; name="text2"\r
 \r
+\r
 another text content 2\r
+\r
 ------WebKitFormBoundaryvZ1cVXWyK0ilQdab--
 `.trim()
   const headers = new Headers({
@@ -34,7 +36,7 @@ another text content 2\r
   expect(parsed).toHaveProperty('text', 'text content')
   expect(parsed).toHaveProperty('text2', [
     'another text content',
-    'another text content 2',
+    '\r\nanother text content 2\r\n',
   ])
 })
 

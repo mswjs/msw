@@ -9,7 +9,7 @@ test('handles a GET request without a body', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
   })
   const body = await res.json()
   expect(body).toEqual({ body: undefined })
@@ -21,7 +21,7 @@ test('handles a GET request without a body and "Content-Type: application/json" 
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ test('handles a POST request with an explicit empty body', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
       body: '',
@@ -54,7 +54,7 @@ test('handles a POST request with a textual body', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
       body: 'text-body',
@@ -70,7 +70,7 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
       headers: {

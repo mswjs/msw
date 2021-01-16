@@ -142,7 +142,7 @@ test('bypasses a GraphQL operation to an unknown endpoint', async () => {
       },
     },
     {
-      uri: `${runtime.origin}/graphql`,
+      uri: runtime.makeUrl('/graphql'),
     },
   )
 

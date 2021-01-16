@@ -47,7 +47,7 @@ test('uses explicit server response delay', async () => {
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request({
-    url: `${runtime.origin}/delay?duration=1200`,
+    url: runtime.makeUrl('/delay?duration=1200'),
   })
   const endPerf = await performanceNow(runtime.page)
 
@@ -69,7 +69,7 @@ test('uses realistic server response delay when no delay value is provided', asy
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request({
-    url: `${runtime.origin}/delay`,
+    url: runtime.makeUrl('/delay'),
   })
   const endPerf = await performanceNow(runtime.page)
 
@@ -95,7 +95,7 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request({
-    url: `${runtime.origin}/delay?mode=real`,
+    url: runtime.makeUrl('/delay?mode=real'),
   })
   const endPerf = await performanceNow(runtime.page)
 

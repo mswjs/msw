@@ -32,7 +32,7 @@ test('warns when a request handler URL contains a single query parameter', async
   expect(findQueryParametersWarning(messages.warning)).toBeUndefined()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user?id=123`,
+    url: runtime.makeUrl('/user?id=123'),
   })
   expect(res.status()).toBe(200)
 
@@ -56,7 +56,7 @@ test('warns when a request handler URL contains multiple query parameters', asyn
   expect(findQueryParametersWarning(messages.warning)).toBeUndefined()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/login?id=123`,
+    url: runtime.makeUrl('/login?id=123'),
     fetchOptions: {
       method: 'POST',
     },

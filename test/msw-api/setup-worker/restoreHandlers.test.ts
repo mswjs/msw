@@ -29,7 +29,7 @@ test('returns a mocked response from the used one-time request handler when rest
   // One-time request handler hasn't been used yet,
   // so expect its response upon first request hit.
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
@@ -39,7 +39,7 @@ test('returns a mocked response from the used one-time request handler when rest
   // One-time request handler has been used, so expect
   // the original response.
   const secondBookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const secondBookStatus = secondBookResponse.status()
   const secondBookBody = await secondBookResponse.json()
@@ -55,7 +55,7 @@ test('returns a mocked response from the used one-time request handler when rest
 
   // Once restored, one-time request handler affect network again.
   const thirdBookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const thirdBookStatus = thirdBookResponse.status()
   const thirdBookBody = await thirdBookResponse.json()

@@ -8,7 +8,7 @@ test('uses a custom transformer to parse BigInt in response body', async () => {
   )
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
   const body = await res.text()
 

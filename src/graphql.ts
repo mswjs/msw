@@ -106,6 +106,34 @@ function parseQuery(
   }
 }
 
+function buildMultipartVariables<VariablesType>(
+  variables: VariablesType,
+  map: Record<string, string[]>,
+  files: Record<string, File>,
+): VariablesType {
+  const operations = { variables }
+  for (const [key, pathArray] of Object.entries(map)) {
+    if (!(key in files)) {
+      throw new Error(`Given files do not have a key '${key}' .`)
+    }
+    for (const dotPath of pathArray) {
+      const [lastPath, ...reversedPaths] = dotPath.split('.').reverse()
+      const paths = reversedPaths.reverse()
+
+      let target: Record<string, any> = operations
+
+      for (const path of paths) {
+        if (!(path in target)) {
+          throw new Error(`Property '${paths}' is not in operations.`)
+        }
+        target = target[path]
+      }
+      target[lastPath] = files[key]
+    }
+  }
+  return operations.variables
+}
+
 function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
   expectedOperationType: ExpectedOperationTypeNode,
   expectedOperationName: GraphQLRequestHandlerSelector,
@@ -180,28 +208,20 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
               expectedOperationType,
             )
             const files = others as Record<string, File>
-            for (const [key, pathArray] of Object.entries(parsedMap)) {
-              if (!(key in files)) {
-                return null
-              }
-              for (const dotPath of pathArray) {
-                const [lastPath, ...reversedPaths] = dotPath
-                  .split('.')
-                  .reverse()
-                const paths = reversedPaths.reverse()
 
-                let target: Record<string, any> = parsedOperations
-
-                for (const path of paths) {
-                  if (!(path in target)) {
-                    return null
-                  }
-                  target = target[path]
-                }
-                target[lastPath] = files[key]
-              }
+            let variables: VariablesType | Record<string, never>
+            try {
+              variables = parsedOperations.variables
+                ? buildMultipartVariables<VariablesType>(
+                    parsedOperations.variables,
+                    parsedMap,
+                    files,
+                  )
+                : {}
+            } catch (error) {
+              return null
             }
-            const variables = parsedOperations.variables || {}
+
             return {
               operationType,
               operationName,

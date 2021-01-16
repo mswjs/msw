@@ -16,9 +16,22 @@ afterAll(async () => {
 })
 
 test('accepts a file from a GraphQL mutation', async () => {
+  // TODO: add File[], file2
   const UPLOAD_MUTATION = `
-    mutation UploadFile($file: Upload!) {
-      file
+    mutation UploadFile(
+      $file1: Upload
+      $file2: Upload
+      $plainText: String
+      ) {
+      multipart(
+        file1: $file1
+        file2: $file2
+        plainText: $plainText
+        ){
+        file1
+        file2
+        plainText
+      }
     }
   `
   const res = await executeOperation(
@@ -26,16 +39,30 @@ test('accepts a file from a GraphQL mutation', async () => {
     {
       query: UPLOAD_MUTATION,
       variables: {
-        file: null,
+        file1: null,
+        file2: null,
+        files: [null, null],
+        plainText: 'text',
       },
     },
-    { map: { '0': ['variables.file'] }, fileContents: ['file content'] },
+    {
+      map: {
+        '0': ['variables.file1', 'variables.files.0'],
+        '1': ['variables.file2', 'variables.files.1'],
+      },
+      fileContents: ['file1 content', 'file2 content'],
+    },
   )
   const body = await res.json()
   expect(res.status()).toEqual(200)
   expect(body).toEqual({
     data: {
-      file: 'file content',
+      multipart: {
+        file1: 'file1 content',
+        file2: 'file2 content',
+        files: ['file1 content', 'file2 content'],
+        plainText: 'text',
+      },
     },
   })
 })

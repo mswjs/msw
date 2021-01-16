@@ -27,7 +27,7 @@ interface GraphQLRequestPayload {
 interface GraphQLOperationOptions {
   uri?: string
   method?: 'GET' | 'POST'
-  map?: Record<string, [string]>
+  map?: Record<string, string[]>
   fileContents?: string[]
 }
 

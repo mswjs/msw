@@ -5,6 +5,7 @@ import {
   runBrowserWith,
   createRequestHelper,
 } from '../../support/runBrowserWith'
+import { sleep } from '../../support/utils'
 
 declare namespace window {
   export const msw: {
@@ -21,9 +22,7 @@ const stopWorkerOn = async (page: Page) => {
     return window.msw.worker.stop()
   })
 
-  return new Promise((resolve) => {
-    setTimeout(resolve, 1000)
-  })
+  return sleep(1000)
 }
 
 test('disables the mocking when the worker is stopped', async () => {

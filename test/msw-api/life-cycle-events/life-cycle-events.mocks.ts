@@ -4,7 +4,7 @@ const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => {
     return res(ctx.text('response-body'))
   }),
-  rest.post('/no-response', (req, res, ctx) => {
+  rest.post('/no-response', () => {
     return
   }),
 )
@@ -35,5 +35,8 @@ worker.on('response:bypass', (res, reqId) => {
 })
 
 worker.start()
+
 // @ts-ignore
-window.worker = worker
+window.msw = {
+  worker,
+}

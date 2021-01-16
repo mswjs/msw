@@ -7,7 +7,9 @@ const worker = setupWorker(
 )
 
 // @ts-ignore
-window.__MSW_REGISTRATION__ = worker.start().then((reg) => {
-  console.log('Registration Promise resolved')
-  return reg.constructor.name
-})
+window.msw = {
+  registration: worker.start().then((reg) => {
+    console.log('Registration Promise resolved')
+    return reg.constructor.name
+  }),
+}

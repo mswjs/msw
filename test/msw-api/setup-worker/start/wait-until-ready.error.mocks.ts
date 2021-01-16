@@ -11,7 +11,7 @@ const worker = setupWorker(
 
 worker.start({
   // Force an exception during Service Worker registration.
-  // @ts-ignore
+  // @ts-expect-error Providing invalid option value.
   serviceWorker: 'invalid-value',
 })
 

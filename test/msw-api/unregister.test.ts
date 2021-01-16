@@ -1,5 +1,13 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { runBrowserWith } from '../support/runBrowserWith'
+import { sleep } from '../support/utils'
+
+declare namespace window {
+  export const msw: {
+    worker: SetupWorkerApi
+  }
+}
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'unregister.mocks.ts'))
@@ -8,12 +16,9 @@ function createRuntime() {
 test('unregisters itself when not prompted to be activated again', async () => {
   const runtime = await createRuntime()
   await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__mswStart()
+    return window.msw.worker.start()
   })
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000)
-  })
+  await sleep(1000)
 
   // Should have the mocking enabled.
   const firstResponse = await runtime.request({

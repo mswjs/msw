@@ -16,12 +16,6 @@ afterAll(() => {
 
 test('respects a custom "scope" Service Worker option', async () => {
   const { messages } = captureConsole(runtime.page)
-
-  await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
-  })
-
   await runtime.reload()
 
   const activationMessage = messages.startGroupCollapsed.find((text) => {

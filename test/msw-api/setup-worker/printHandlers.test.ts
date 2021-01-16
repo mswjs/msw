@@ -4,7 +4,6 @@ import { runBrowserWith } from '../../support/runBrowserWith'
 import { captureConsole } from '../../support/captureConsole'
 
 declare namespace window {
-  // Annotate global references to the worker and rest request handlers.
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest

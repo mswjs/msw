@@ -1,6 +1,13 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
+
+declare namespace window {
+  export const msw: {
+    registration: ReturnType<SetupWorkerApi['start']>
+  }
+}
 
 let runtime: TestAPI
 
@@ -16,8 +23,7 @@ test('does not log the captured request when the "quiet" option is set to "true"
   const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
+    return window.msw.registration
   })
 
   await runtime.reload()

@@ -9,4 +9,6 @@ const worker = setupWorker(
 worker.start()
 
 // @ts-ignore
-window.__mswStop = worker.stop
+window.msw = {
+  worker,
+}

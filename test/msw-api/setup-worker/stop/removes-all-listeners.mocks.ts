@@ -9,4 +9,6 @@ const createWorker = () => {
 }
 
 // @ts-ignore
-window.__MSW_CREATE_WORKER__ = createWorker
+window.msw = {
+  createWorker,
+}

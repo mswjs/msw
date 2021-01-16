@@ -1,6 +1,13 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
+
+declare namespace window {
+  export const msw: {
+    worker: SetupWorkerApi
+  }
+}
 
 let runtime: TestAPI
 
@@ -14,8 +21,7 @@ test('prints a custom error message when given a non-existing worker script', as
   const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.window.__MSW_START__({
+    return window.msw.worker.start({
       serviceWorker: {
         url: 'invalidServiceWorker',
       },

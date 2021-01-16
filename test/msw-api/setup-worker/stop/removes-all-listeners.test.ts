@@ -1,6 +1,13 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
+
+declare namespace window {
+  export const msw: {
+    createWorker(): SetupWorkerApi
+  }
+}
 
 let runtime: TestAPI
 
@@ -16,10 +23,8 @@ test.skip('removes all listeners when the worker is stopped', async () => {
   const { messages } = captureConsole(runtime.page)
 
   await runtime.page.evaluate(() => {
-    // @ts-ignore
-    const worker1 = window.window.__MSW_CREATE_WORKER__()
-    // @ts-ignore
-    const worker2 = window.window.__MSW_CREATE_WORKER__()
+    const worker1 = window.msw.createWorker()
+    const worker2 = window.msw.createWorker()
 
     return worker1.start().then(() => {
       worker1.stop()

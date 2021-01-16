@@ -1,6 +1,13 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
 import { captureConsole } from '../../../support/captureConsole'
+
+declare namespace window {
+  export const msw: {
+    registration: ReturnType<SetupWorkerApi['start']>
+  }
+}
 
 let runtime: TestAPI
 
@@ -14,8 +21,7 @@ afterAll(() => {
 
 test('resolves the "start" Promise after the worker has been activated', async () => {
   const resolvedPayload = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
+    return window.msw.registration
   })
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')

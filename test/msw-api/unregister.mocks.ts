@@ -11,4 +11,6 @@ const worker = setupWorker(
 )
 
 // @ts-ignore
-window.__mswStart = worker.start
+window.msw = {
+  worker,
+}

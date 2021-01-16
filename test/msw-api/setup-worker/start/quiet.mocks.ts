@@ -12,7 +12,9 @@ const worker = setupWorker(
 )
 
 // @ts-ignore
-window.__MSW_REGISTRATION__ = worker.start({
-  // Disable logging of matched requests into browser's console
-  quiet: true,
-})
+window.msw = {
+  registration: worker.start({
+    // Disable logging of matched requests into browser's console
+    quiet: true,
+  }),
+}

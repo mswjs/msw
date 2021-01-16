@@ -5,7 +5,9 @@ import { captureConsole } from '../../support/captureConsole'
 import { sleep } from '../../support/utils'
 
 declare namespace window {
-  export const worker: SetupWorkerApi
+  export const msw: {
+    worker: SetupWorkerApi
+  }
 }
 
 function createRuntime() {
@@ -91,7 +93,7 @@ test('stops emitting events once the worker is stopped', async () => {
   const endpointUrl = `${runtime.origin}/unknown-route`
 
   await runtime.page.evaluate(() => {
-    return window.worker.stop()
+    return window.msw.worker.stop()
   })
   await runtime.request({
     url: endpointUrl,

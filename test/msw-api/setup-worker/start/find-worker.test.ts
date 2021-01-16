@@ -1,9 +1,16 @@
 import * as path from 'path'
+import { SetupWorkerApi } from 'msw'
 import { runBrowserWith } from '../../../support/runBrowserWith'
 import {
   captureConsole,
   filterLibraryLogs,
 } from '../../../support/captureConsole'
+
+declare namespace window {
+  export const msw: {
+    registration: ReturnType<SetupWorkerApi['start']>
+  }
+}
 
 test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async () => {
   const runtime = await runBrowserWith(
@@ -11,8 +18,7 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
   )
 
   const resolvedPayload = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
+    return window.msw.registration
   })
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
@@ -44,8 +50,7 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
   )
 
   const resolvedPayload = await runtime.page.evaluate(() => {
-    // @ts-ignore
-    return window.__MSW_REGISTRATION__
+    return window.msw.registration
   })
 
   expect(resolvedPayload).toBe(undefined)

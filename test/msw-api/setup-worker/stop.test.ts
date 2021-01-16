@@ -1,9 +1,16 @@
 import * as path from 'path'
 import { Page } from 'puppeteer'
+import { SetupWorkerApi } from 'msw'
 import {
   runBrowserWith,
   createRequestHelper,
 } from '../../support/runBrowserWith'
+
+declare namespace window {
+  export const msw: {
+    worker: SetupWorkerApi
+  }
+}
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'stop.mocks.ts'))
@@ -11,8 +18,7 @@ function createRuntime() {
 
 const stopWorkerOn = async (page: Page) => {
   await page.evaluate(() => {
-    // @ts-ignore
-    return window.__mswStop()
+    return window.msw.worker.stop()
   })
 
   return new Promise((resolve) => {

@@ -7,17 +7,20 @@ const worker = setupWorker(
 )
 
 // @ts-ignore
-window.__MSW_REGISTRATION__ = worker
-  .start({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    findWorker: (scriptURL, _mockServiceWorkerUrl) => {
-      return scriptURL.includes('some-bad-filename-that-does-not-exist.js')
-    },
-  })
-  .then((reg) => {
-    console.log('Registration Promise resolved')
-    return reg.constructor.name // This will throw as as there is no instance returned with a non-matching worker name
-  })
-  .catch((error) => {
-    console.error('Error - no worker instance after starting', error)
-  })
+window.msw = {
+  registration: worker
+    .start({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      findWorker: (scriptURL, _mockServiceWorkerUrl) => {
+        return scriptURL.includes('some-bad-filename-that-does-not-exist.js')
+      },
+    })
+    .then((reg) => {
+      console.log('Registration Promise resolved')
+      // This will throw as as there is no instance returned with a non-matching worker name.
+      return reg.constructor.name
+    })
+    .catch((error) => {
+      console.error('Error - no worker instance after starting', error)
+    }),
+}

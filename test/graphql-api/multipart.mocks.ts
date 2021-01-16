@@ -1,11 +1,35 @@
 import { setupWorker, graphql } from 'msw'
 
 const worker = setupWorker(
-  graphql.mutation('UploadFile', async (req, res, ctx) => {
-    const file: File = req.variables.file
+  graphql.mutation<
+    {
+      multipart: {
+        file1?: string
+        file2?: string
+        files?: string[]
+        plainText?: string
+      }
+    },
+    {
+      file1?: File
+      file2?: File
+      files?: File[]
+      plainText?: string
+    }
+  >('UploadFile', async (req, res, ctx) => {
+    const { file1, file2, files, plainText } = req.variables
+    const filesResponse: string[] = []
+    for (const file of files ?? []) {
+      filesResponse.push(await file.text())
+    }
     return res(
       ctx.data({
-        file: await file.text(),
+        multipart: {
+          file1: await file1?.text(),
+          file2: await file2?.text(),
+          files: filesResponse,
+          plainText,
+        },
       }),
     )
   }),

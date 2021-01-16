@@ -10,7 +10,7 @@ test('allows setting cookies on the mocked response', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
 
   const headers = res.headers()

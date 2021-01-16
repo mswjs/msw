@@ -24,7 +24,7 @@ function getRequestId(messages: ReturnType<typeof captureConsole>['messages']) {
 test('emits events for a handled request and mocked response', async () => {
   const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
-  const endpointUrl = `${runtime.origin}/user`
+  const endpointUrl = runtime.makeUrl('/user')
 
   await runtime.request({
     url: endpointUrl,
@@ -45,7 +45,7 @@ test('emits events for a handled request and mocked response', async () => {
 test('emits events for a handled request with no response', async () => {
   const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
-  const endpointUrl = `${runtime.origin}/no-response`
+  const endpointUrl = runtime.makeUrl('/no-response')
 
   await runtime.request({
     url: endpointUrl,
@@ -69,7 +69,7 @@ test('emits events for a handled request with no response', async () => {
 test('emits events for an unhandled request', async () => {
   const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
-  const endpointUrl = `${runtime.origin}/unknown-route`
+  const endpointUrl = runtime.makeUrl('/unknown-route')
 
   await runtime.request({
     url: endpointUrl,
@@ -90,7 +90,7 @@ test('emits events for an unhandled request', async () => {
 test('stops emitting events once the worker is stopped', async () => {
   const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
-  const endpointUrl = `${runtime.origin}/unknown-route`
+  const endpointUrl = runtime.makeUrl('/unknown-route')
 
   await runtime.page.evaluate(() => {
     return window.msw.worker.stop()

@@ -8,7 +8,7 @@ test('responds with a given binary body', async () => {
   )
 
   const res = await runtime.request({
-    url: `${runtime.origin}/images/abc-123`,
+    url: runtime.makeUrl('/images/abc-123'),
   })
   const status = res.status()
   const headers = res.headers()

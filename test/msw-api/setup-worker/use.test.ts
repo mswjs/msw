@@ -23,7 +23,7 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   })
 
   const loginResponse = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
     },
@@ -35,7 +35,7 @@ test('returns a mocked response from a runtime request handler upon match', asyn
 
   // Other request handlers are preserved, if there are no overlaps.
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
@@ -59,7 +59,7 @@ test('returns a mocked response from a persistent request handler override', asy
   })
 
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
@@ -67,7 +67,7 @@ test('returns a mocked response from a persistent request handler override', asy
   expect(bookBody).toEqual({ title: 'Permanent override' })
 
   const anotherBookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const anotherBookStatus = anotherBookResponse.status()
   const anotherBookBody = await anotherBookResponse.json()
@@ -91,7 +91,7 @@ test('returns a mocked response from a one-time request handler override only up
   })
 
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
@@ -99,7 +99,7 @@ test('returns a mocked response from a one-time request handler override only up
   expect(bookBody).toEqual({ title: 'One-time override' })
 
   const anotherBookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const anotherBookStatus = anotherBookResponse.status()
   const anotherBookBody = await anotherBookResponse.json()

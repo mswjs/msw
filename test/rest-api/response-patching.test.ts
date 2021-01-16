@@ -112,7 +112,7 @@ test('supports patching a HEAD request', async () => {
     },
     responsePredicate(res, url) {
       return (
-        match(`${runtime.origin}${url}`, res.url()).matches &&
+        match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
@@ -143,7 +143,7 @@ test('supports patching a GET request', async () => {
     },
     responsePredicate(res, url) {
       return (
-        match(`${runtime.origin}${url}`, res.url()).matches &&
+        match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
@@ -177,7 +177,7 @@ test('supports patching a POST request', async () => {
     },
     responsePredicate(res, url) {
       return (
-        match(`${runtime.origin}${url}`, res.url()).matches &&
+        match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },

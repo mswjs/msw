@@ -60,8 +60,9 @@ export interface TestAPI {
   origin: string
   browser: puppeteer.Browser
   page: puppeteer.Page
-  reload: () => Promise<void>
-  cleanup: () => Promise<unknown>
+  makeUrl(chunk: string): string
+  reload(): Promise<void>
+  cleanup(): Promise<unknown>
 
   /* Helpers */
   request: RequestHelper
@@ -76,7 +77,6 @@ export const runBrowserWith = async (
   options?: RunBrowserOptions,
 ): Promise<TestAPI> => {
   const { server, origin } = await spawnServer(mockDefinitionPath, options)
-
   const browser = await puppeteer.launch({
     headless: !process.env.DEBUG,
     devtools: !!process.env.DEBUG,
@@ -84,42 +84,43 @@ export const runBrowserWith = async (
   })
   const page = await browser.newPage()
 
-  const reload = async () => {
-    await page.goto(origin, {
-      waitUntil: 'networkidle0',
-    })
-  }
-
-  if (!options?.preventInitialLoad) {
-    await reload()
-  }
-
-  const cleanup = () => {
-    // Do not close browser/server when running tests in debug mode.
-    // This leaves the browser open, so its state could be observed.
-    if (!!process.env.DEBUG) {
-      return null
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      browser
-        .close()
-        .then(() => {
-          server.close(resolve)
-        })
-        .catch(reject)
-    })
-  }
-
-  process.on('exit', cleanup)
-
-  return {
+  const api: TestAPI = {
     server,
     origin,
     browser,
     page,
-    cleanup,
-    reload,
+    makeUrl(chunk) {
+      return new URL(chunk, origin).toString()
+    },
+    cleanup() {
+      // Do not close browser/server when running tests in debug mode.
+      // This leaves the browser open, so its state could be observed.
+      if (!!process.env.DEBUG) {
+        return null
+      }
+
+      return new Promise<void>((resolve, reject) => {
+        browser
+          .close()
+          .then(() => {
+            server.close(resolve)
+          })
+          .catch(reject)
+      })
+    },
+    async reload() {
+      await page.goto(origin, {
+        waitUntil: 'networkidle0',
+      })
+    },
     request: createRequestHelper(page),
   }
+
+  if (!options?.preventInitialLoad) {
+    await api.reload()
+  }
+
+  process.on('exit', api.cleanup)
+
+  return api
 }

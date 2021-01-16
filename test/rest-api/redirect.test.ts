@@ -6,7 +6,7 @@ test('supports redirect in a mocked response', async () => {
     path.resolve(__dirname, 'redirect.mocks.ts'),
   )
   const res = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
   })
 
   // Assert the original response returns redirect.
@@ -15,7 +15,7 @@ test('supports redirect in a mocked response', async () => {
   expect(res.status()).toBe(307)
 
   const redirectRes = await runtime.page.waitForResponse(
-    `${runtime.origin}/user`,
+    runtime.makeUrl('/user'),
   )
   const redirectStatus = redirectRes.status()
   const redirectHeaders = redirectRes.headers()

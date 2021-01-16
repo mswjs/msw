@@ -30,7 +30,7 @@ test('removes all runtime request handlers when resetting without explicit next 
 
   // Request handlers added on runtime affect the network communication.
   const loginResponse = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
     },
@@ -49,7 +49,7 @@ test('removes all runtime request handlers when resetting without explicit next 
 
   // Any runtime request handlers are removed upon reset.
   const secondLoginResponse = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
     },
@@ -59,7 +59,7 @@ test('removes all runtime request handlers when resetting without explicit next 
 
   // Initial request handlers (given to `setupWorker`) are not affected.
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
@@ -96,7 +96,7 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
 
   // Any runtime request handlers must be removed.
   const loginResponse = await runtime.request({
-    url: `${runtime.origin}/login`,
+    url: runtime.makeUrl('/login'),
     fetchOptions: {
       method: 'POST',
     },
@@ -106,14 +106,14 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
 
   // Any initial request handler must be removed.
   const bookResponse = await runtime.request({
-    url: `${runtime.origin}/book/abc-123`,
+    url: runtime.makeUrl('/book/abc-123'),
   })
   const bookStatus = bookResponse.status()
   expect(bookStatus).toEqual(404)
 
   // Should leave only explicit reset request handlers.
   const productsResponse = await runtime.request({
-    url: `${runtime.origin}/products`,
+    url: runtime.makeUrl('/products'),
   })
   const productsStatus = productsResponse.status()
   const productsBody = await productsResponse.json()

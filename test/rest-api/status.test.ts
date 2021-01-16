@@ -9,7 +9,7 @@ test('sets given status code on the mocked response', async () => {
   const runtime = await prepareRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/posts`,
+    url: runtime.makeUrl('/posts'),
   })
   const status = res.status()
   const statusText = res.statusText()
@@ -24,7 +24,7 @@ test('supports custom status text on the mocked response', async () => {
   const runtime = await prepareRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
   const status = res.status()
   const statusText = res.statusText()

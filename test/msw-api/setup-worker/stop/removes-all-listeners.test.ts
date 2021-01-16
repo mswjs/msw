@@ -37,7 +37,7 @@ test.skip('removes all listeners when the worker is stopped', async () => {
   expect(activationMessages).toHaveLength(2)
 
   await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
 
   const requestLogs = messages.startGroupCollapsed.filter((text) => {

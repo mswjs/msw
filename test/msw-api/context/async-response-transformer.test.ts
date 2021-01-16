@@ -8,7 +8,7 @@ test('supports asynchronous response transformer', async () => {
   )
 
   const res = await runtime.request({
-    url: `${runtime.origin}/image`,
+    url: runtime.makeUrl('/image'),
   })
   const body = await res.buffer()
   const expectedBuffer = fs.readFileSync(
@@ -34,7 +34,7 @@ test('supports asynchronous default response transformer', async () => {
   )
 
   const res = await runtime.request({
-    url: `${runtime.origin}/search`,
+    url: runtime.makeUrl('/search'),
     fetchOptions: {
       method: 'POST',
     },

@@ -24,7 +24,7 @@ test('respects a custom "scope" Service Worker option', async () => {
   expect(activationMessage).toBeTruthy()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
   const status = res.status()
 

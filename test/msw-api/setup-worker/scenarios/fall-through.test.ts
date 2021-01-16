@@ -11,7 +11,7 @@ test('falls through all relevant request handlers until response is returned', a
   const { messages } = captureConsole(runtime.page)
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
   const body = await res.json()
 
@@ -44,7 +44,7 @@ test('falls through all relevant handler even if none returns response', async (
   const { messages } = captureConsole(runtime.page)
 
   const res = await runtime.request({
-    url: `${runtime.origin}/blog/article`,
+    url: runtime.makeUrl('/blog/article'),
     fetchOptions: {
       method: 'POST',
     },

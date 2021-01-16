@@ -42,7 +42,7 @@ test('warns on an absolute unhandled request', async () => {
 test('warns on a relative unhandled request', async () => {
   const { messages } = captureConsole(runtime.page)
 
-  const url = `${runtime.origin}/user-details`
+  const url = runtime.makeUrl('/user-details')
   const res = await runtime.request({
     url,
   })

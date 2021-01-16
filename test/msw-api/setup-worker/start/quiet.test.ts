@@ -34,7 +34,7 @@ test('does not log the captured request when the "quiet" option is set to "true"
   expect(activationMessage).toBeFalsy()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
   })
 
   const headers = res.headers()

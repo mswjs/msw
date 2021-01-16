@@ -16,7 +16,7 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
     fetchOptions: {
       credentials: 'include',
     },
@@ -39,7 +39,7 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
     fetchOptions: {
       credentials: 'same-origin',
     },
@@ -82,7 +82,7 @@ test('returns no cookies in "req.cookies" for "omit" credentials', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request({
-    url: `${runtime.origin}/user`,
+    url: runtime.makeUrl('/user'),
     fetchOptions: {
       credentials: 'omit',
     },

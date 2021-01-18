@@ -63,18 +63,12 @@ export const executeOperation = async (
       map,
       fileContents: string[] | undefined,
     ) => {
-      const operations = JSON.stringify({
-        query,
-        variables,
-      })
-
-      const isMultipart = Boolean(map && fileContents)
-      const headers = isMultipart ? {} : { 'Content-Type': 'application/json' }
-      let body: string | FormData
-      if (!isMultipart) {
-        body = operations
-      } else {
-        body = new FormData()
+      const getMultipartGraphQLBody = (
+        operations: string,
+        map: Record<string, string[]>,
+        fileContents: string[],
+      ): FormData => {
+        const body = new FormData()
         body.append('operations', operations)
         body.append('map', JSON.stringify(map))
         const files = fileContents.map(
@@ -83,7 +77,22 @@ export const executeOperation = async (
         for (const [index, file] of files.entries()) {
           body.append(index.toString(), file)
         }
+        return body
       }
+
+      const operations = JSON.stringify({
+        query,
+        variables,
+      })
+
+      const isMultipartData = map && fileContents
+      const headers = isMultipartData
+        ? {}
+        : { 'Content-Type': 'application/json' }
+      const body = isMultipartData
+        ? getMultipartGraphQLBody(operations, map, fileContents)
+        : operations
+
       return fetch(
         url,
         Object.assign(

@@ -1,21 +1,12 @@
 import * as path from 'path'
-import { runBrowserWith, TestAPI } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
-function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'mutation.mocks.ts'))
-}
-
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await createRuntime()
-})
-afterAll(async () => {
-  await runtime.cleanup()
-})
-
 test('sends a mocked response to a GraphQL mutation', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'mutation.mocks.ts'),
+  )
+
   const res = await executeOperation(runtime.page, {
     query: `
       mutation Logout {
@@ -37,4 +28,6 @@ test('sends a mocked response to a GraphQL mutation', async () => {
       },
     },
   })
+
+  return runtime.cleanup()
 })

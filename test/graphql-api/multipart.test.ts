@@ -1,22 +1,13 @@
 import * as path from 'path'
-import { runBrowserWith, TestAPI } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'multipart.mocks.ts'))
 }
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await createRuntime()
-})
-afterAll(async () => {
-  await runtime.cleanup()
-})
-
 test('accepts a file from a GraphQL mutation', async () => {
-  // TODO: add File[], file2
+  const runtime = await createRuntime()
   const UPLOAD_MUTATION = `
     mutation UploadFile(
       $file1: Upload
@@ -65,4 +56,5 @@ test('accepts a file from a GraphQL mutation', async () => {
       },
     },
   })
+  await runtime.cleanup()
 })

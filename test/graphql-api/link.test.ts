@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { executeOperation } from './utils/executeOperation'
-import { runBrowserWith, TestAPI } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'link.mocks.ts'), {
@@ -12,16 +12,9 @@ function createRuntime() {
   })
 }
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await createRuntime()
-})
-afterAll(async () => {
-  await runtime.cleanup()
-})
-
 test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
+  const runtime = await createRuntime()
+
   const res = await executeOperation(
     runtime.page,
     {
@@ -55,9 +48,13 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
       },
     },
   })
+
+  await runtime.cleanup()
 })
 
 test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
+  const runtime = await createRuntime()
+
   const res = await executeOperation(
     runtime.page,
     {
@@ -89,9 +86,13 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
       },
     },
   })
+
+  await runtime.cleanup()
 })
 
 test('falls through to the matching GraphQL operation to an unknown endpoint', async () => {
+  const runtime = await createRuntime()
+
   const res = await executeOperation(runtime.page, {
     query: `
       query GetUser($username: String!) {
@@ -119,9 +120,13 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
       },
     },
   })
+
+  await runtime.cleanup()
 })
 
 test('bypasses a GraphQL operation to an unknown endpoint', async () => {
+  const runtime = await createRuntime()
+
   const res = await executeOperation(
     runtime.page,
     {
@@ -143,4 +148,6 @@ test('bypasses a GraphQL operation to an unknown endpoint', async () => {
 
   const status = res.status()
   expect(status).toBe(500)
+
+  await runtime.cleanup()
 })

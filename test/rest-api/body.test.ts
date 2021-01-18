@@ -94,7 +94,7 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
 test('handles a POST request with a multipart body and "Content-Type: multipart/form-data" header', async () => {
   const runtime = await createRuntime()
   // WORKAROUND: `FormData` is not available in `puppeteer.page.evaluate`
-  const body = `
+  const body = `\
 ------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
 Content-Disposition: form-data; name="file"; filename="file1.txt"\r
 Content-Type: application/octet-stream\r
@@ -112,7 +112,7 @@ another text content\r
 Content-Disposition: form-data; name="text2"\r
 \r
 another text content 2\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab--\r\n`.trimStart()
+------WebKitFormBoundaryvZ1cVXWyK0ilQdab--\r\n`
   const headers = new Headers({
     'content-type':
       'multipart/form-data; boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',

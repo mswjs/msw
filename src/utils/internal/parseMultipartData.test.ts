@@ -1,7 +1,7 @@
 import { parseMultipartData } from './parseMultipartData'
 
 test('parses a given valid multipart string', async () => {
-  const body = `
+  const body = `\
 ------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
 Content-Disposition: form-data; name="file"; filename="file1.txt"\r
 Content-Type: application/octet-stream\r
@@ -21,8 +21,7 @@ Content-Disposition: form-data; name="text2"\r
 \r
 another text content 2\r
 \r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab--
-`.trim()
+------WebKitFormBoundaryvZ1cVXWyK0ilQdab--`
   const headers = new Headers({
     'content-type':
       'multipart/form-data; boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',

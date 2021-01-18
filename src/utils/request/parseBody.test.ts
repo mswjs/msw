@@ -40,7 +40,7 @@ test('returns an invalid JSON body as-is even if the "Content-Type:*/json" heade
 })
 
 test('parses a body if the "Content-Type: multipart/form-data" header is set', () => {
-  const body = `
+  const body = `\
 ------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
 Content-Disposition: form-data; name="file"; filename="file1.txt"\r
 Content-Type: application/octet-stream\r
@@ -58,8 +58,7 @@ another text content\r
 Content-Disposition: form-data; name="text2"\r
 \r
 another text content 2\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab--
-`.trim()
+------WebKitFormBoundaryvZ1cVXWyK0ilQdab--`
   const headers = new Headers({
     'content-type':
       'multipart/form-data; boundary=--WebKitFormBoundaryvZ1cVXWyK0ilQdab',

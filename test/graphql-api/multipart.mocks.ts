@@ -17,11 +17,8 @@ const worker = setupWorker(
       plainText?: string
     }
   >('UploadFile', async (req, res, ctx) => {
-    const { file1, file2, files, plainText } = req.variables
-    const filesResponse: string[] = []
-    for (const file of files ?? []) {
-      filesResponse.push(await file.text())
-    }
+    const { file1, file2, files = [], plainText } = req.variables
+    const filesResponse = await Promise.all(files.map((file) => file.text()))
     return res(
       ctx.data({
         multipart: {

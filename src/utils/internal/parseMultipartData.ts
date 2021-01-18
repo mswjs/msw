@@ -29,7 +29,7 @@ function parseContentHeaders(
  * Parses a given string as a multipart/form-data.
  * Does not throw an exception on an invalid multipart string.
  */
-export function multipartParse<T extends DefaultMultipartBodyType>(
+export function parseMultipartData<T extends DefaultMultipartBodyType>(
   str: string,
   headers?: Headers,
 ): T | undefined {

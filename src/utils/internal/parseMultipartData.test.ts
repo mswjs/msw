@@ -1,4 +1,4 @@
-import { multipartParse } from './multipartParse'
+import { parseMultipartData } from './parseMultipartData'
 
 test('parses a given valid multipart string', async () => {
   const body = `
@@ -27,7 +27,7 @@ another text content 2\r
     'content-type':
       'multipart/form-data; boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',
   })
-  const parsed = multipartParse(body, headers)
+  const parsed = parseMultipartData(body, headers)
 
   // Workaround: JSDOM does not have `Blob.text` implementation.
   // see https://github.com/jsdom/jsdom/issues/2555
@@ -44,7 +44,7 @@ test('returns undefined without an error given an invalid multipart string', () 
   const headers = new Headers({
     'content-type': 'multipart/form-data; boundary=dummyBoundary',
   })
-  const parse = () => multipartParse(`{"invalid": ["multipart"]}`, headers)
+  const parse = () => parseMultipartData(`{"invalid": ["multipart"]}`, headers)
   expect(parse).not.toThrow()
   expect(parse()).toBeUndefined()
 })

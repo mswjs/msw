@@ -32,11 +32,13 @@ export function onUnhandledRequest(
 
   switch (handler) {
     case 'error': {
-      throw new Error(`[MSW] Error: ${message}`)
+      console.error(`[MSW] Error: ${message}`)
+      break
     }
 
     case 'warn': {
       console.warn(`[MSW] Warning: ${message}`)
+      break
     }
 
     default:

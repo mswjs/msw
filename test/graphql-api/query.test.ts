@@ -1,21 +1,12 @@
 import * as path from 'path'
-import { runBrowserWith, TestAPI } from '../support/runBrowserWith'
+import { runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
-function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'query.mocks.ts'))
-}
-
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await createRuntime()
-})
-afterAll(async () => {
-  await runtime.cleanup()
-})
-
 test('mocks a GraphQL query issued with a GET request', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'query.mocks.ts'),
+  )
+
   const res = await executeOperation(
     runtime.page,
     {
@@ -46,9 +37,15 @@ test('mocks a GraphQL query issued with a GET request', async () => {
       },
     },
   })
+
+  await runtime.cleanup()
 })
 
 test('mocks a GraphQL query issued with a POST request', async () => {
+  const runtime = await runBrowserWith(
+    path.resolve(__dirname, 'query.mocks.ts'),
+  )
+
   const res = await executeOperation(runtime.page, {
     query: `
       query GetUserDetail {
@@ -72,4 +69,6 @@ test('mocks a GraphQL query issued with a POST request', async () => {
       },
     },
   })
+
+  await runtime.cleanup()
 })

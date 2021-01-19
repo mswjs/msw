@@ -71,9 +71,7 @@ export const executeOperation = async (
         const body = new FormData()
         body.append('operations', operations)
         body.append('map', JSON.stringify(map))
-        const files = fileContents.map(
-          (f: string, i: number) => new File([f], `file${i}.txt`),
-        )
+        const files = fileContents.map((f, i) => new File([f], `file${i}.txt`))
         for (const [index, file] of files.entries()) {
           body.append(index.toString(), file)
         }

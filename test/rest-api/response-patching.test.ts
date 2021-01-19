@@ -85,7 +85,7 @@ test('bypasses the original request when it equals the mocked request', async ()
 test('forwards custom request headers to the original request', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
+  const reqPromise = runtime.request({
     url: 'https://test.mswjs.io/headers',
     fetchOptions: {
       headers: {
@@ -93,6 +93,13 @@ test('forwards custom request headers to the original request', async () => {
       },
     },
   })
+
+  const req = await runtime.page.waitForRequest('https://test.mswjs.io/headers')
+  const res = await reqPromise
+
+  expect(req.headers()).toHaveProperty('authorization', 'token')
+  expect(req.headers()).not.toHaveProperty('map')
+
   const status = res.status()
   const body = await res.json()
 

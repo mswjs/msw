@@ -1,9 +1,13 @@
+/**
+ * @jest-environment node
+ */
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
+import fetch from 'cross-fetch'
 import { graphql as executeGraphql } from 'graphql'
 import { buildSchema } from 'graphql/utilities'
-import { createApolloFetch } from 'apollo-fetch'
 import { ServerApi, createServer } from '@open-draft/test-server'
+import { createGraphQLClient, gql } from '../support/graphql'
 
 let prodServer: ServerApi
 
@@ -35,14 +39,24 @@ beforeAll(async () => {
   prodServer = await createServer((app) => {
     app.post('/graphql', async (req, res) => {
       const result = await executeGraphql({
-        schema: buildSchema(`
+        schema: buildSchema(gql`
           type User {
             firstName: String!
             lastName: String!
           }
 
+          # Describing an additional type to return
+          # the request headers back to the request handler.
+          # Apollo will strip off any extra data that
+          # doesn't match the query.
+          type RequestHeader {
+            name: String!
+            value: String!
+          }
+
           type Query {
             user: User!
+            requestHeaders: [RequestHeader!]
           }
         `),
         operationName: 'GetUser',
@@ -69,16 +83,21 @@ afterAll(async () => {
 })
 
 test('patches a GraphQL response', async () => {
-  const fetch = createApolloFetch({
+  const client = createGraphQLClient({
     uri: prodServer.http.makeUrl('/graphql'),
+    fetch,
   })
 
-  const res = await fetch({
-    query: `
+  const res = await client({
+    query: gql`
       query GetUser {
         user {
           firstName
           lastName
+        }
+        requestHeaders {
+          name
+          value
         }
       }
     `,

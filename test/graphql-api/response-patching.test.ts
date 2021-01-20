@@ -1,14 +1,12 @@
 import * as path from 'path'
-import { buildSchema, graphql } from 'graphql'
-import { ApolloQueryResult } from '@apollo/client'
+import { ExecutionResult, buildSchema, graphql } from 'graphql'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { SetupWorkerApi } from 'msw'
 import { runBrowserWith } from '../support/runBrowserWith'
+import { gql } from '../support/graphql'
 
 declare namespace window {
-  export const dispatchGraphQLQUery: (
-    uri: string,
-  ) => Promise<ApolloQueryResult<any>>
+  export const dispatchGraphQLQUery: (uri: string) => Promise<ExecutionResult>
 
   export const msw: {
     registration: SetupWorkerApi['start']
@@ -24,16 +22,16 @@ beforeAll(async () => {
   prodServer = await createServer((app) => {
     app.post('/graphql', async (req, res) => {
       const result = await graphql({
-        schema: buildSchema(`
-            type User {
-              firstName: String!
-              lastName: String!
-            }
+        schema: buildSchema(gql`
+          type User {
+            firstName: String!
+            lastName: String!
+          }
 
-            type Query {
-              user: User!
-            }
-          `),
+          type Query {
+            user: User!
+          }
+        `),
         source: req.body.query,
         rootValue: {
           user: {

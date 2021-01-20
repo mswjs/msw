@@ -21,8 +21,13 @@ self.addEventListener('activate', async function (event) {
 })
 
 self.addEventListener('message', async function (event) {
+  if (!event.source.id) return
   const clientId = event.source.id
+
+  if (!event.currentTarget.clients) return
   const client = await event.currentTarget.clients.get(clientId)
+
+  if (!client) return
   const allClients = await self.clients.matchAll()
   const allClientIds = allClients.map((client) => client.id)
 

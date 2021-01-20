@@ -47,8 +47,7 @@ export const fetch = (
   }
 
   const requestParameters: RequestInit = createFetchRequestParameters(input)
+  const derivedRequestInit: RequestInit = augmentRequestInit(requestParameters)
 
-  const compliantRequest: RequestInit = augmentRequestInit(requestParameters)
-
-  return useFetch(input.url.href, compliantRequest)
+  return useFetch(input.url.href, derivedRequestInit)
 }

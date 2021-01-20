@@ -1,5 +1,5 @@
 import { setupWorker, graphql } from 'msw'
-import { getClient, gql } from '../support/graphql'
+import { createGraphQLClient, gql } from '../support/graphql'
 
 const worker = setupWorker(
   graphql.query('GetUser', async (req, res, ctx) => {
@@ -27,9 +27,9 @@ window.msw = {
 
 // @ts-ignore
 window.dispatchGraphQLQUery = (uri: string) => {
-  const client = getClient({ uri })
+  const client = createGraphQLClient({ uri })
 
-  return client.query({
+  return client({
     query: gql`
       query GetUser {
         user {

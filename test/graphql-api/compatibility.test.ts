@@ -1,31 +1,31 @@
-import { graphql as executeGraphql, GraphQLError } from 'graphql'
+import fetch from 'cross-fetch'
+import { graphql as executeGraphql } from 'graphql'
 import { buildSchema } from 'graphql/utilities'
-import { createApolloFetch } from 'apollo-fetch'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
+import { createGraphQLClient, gql } from '../support/graphql'
 
-const schema = `
-type User {
-  firstName: String!
-}
+const schema = gql`
+  type User {
+    firstName: String!
+  }
 
-type Query {
-  user: User!
-}
+  type Query {
+    user: User!
+  }
 `
 
 const server = setupServer(
   graphql.query('GetUser', async (req, res, ctx) => {
-    const executionResult = await executeGraphql(
-      buildSchema(schema),
-      req.body.query,
-      {
+    const executionResult = await executeGraphql({
+      schema: buildSchema(schema),
+      source: req.body.query,
+      rootValue: {
         user: {
           firstName: 'John',
         },
       },
-      req.variables,
-    )
+    })
 
     return res(
       ctx.data(executionResult.data),
@@ -34,8 +34,9 @@ const server = setupServer(
   }),
 )
 
-const client = createApolloFetch({
+const client = createGraphQLClient({
   uri: 'https://api.mswjs.io',
+  fetch,
 })
 
 beforeAll(() => {
@@ -48,7 +49,7 @@ afterAll(() => {
 
 test('fetches the data from a GraphQL schema', async () => {
   const res = await client({
-    query: `
+    query: gql`
       query GetUser {
         user {
           firstName
@@ -57,16 +58,22 @@ test('fetches the data from a GraphQL schema', async () => {
     `,
   })
 
-  expect(res.data).toEqual({ user: { firstName: 'John' } })
+  expect(res.data).toEqual({
+    user: {
+      firstName: 'John',
+    },
+  })
   expect(res.errors).toBeUndefined()
 })
 
 test('propagates the GraphQL execution errors', async () => {
   const res = await client({
-    query: `
+    query: gql`
       query GetUser {
         user {
           firstName
+          # Intentionally querying a non-existing field
+          # to cause a GraphQL error upon execution.
           lastName
         }
       }

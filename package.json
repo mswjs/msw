@@ -78,6 +78,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
+    "@open-draft/test-server": "^0.2.2",
     "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-inject": "^4.0.2",
     "@rollup/plugin-json": "^4.1.0",

@@ -41,7 +41,11 @@ export const createRequestListener = (
       // Handle a scenario when there is no request handler
       // found for a given request.
       if (!handler) {
-        onUnhandledRequest(req, options.onUnhandledRequest)
+        onUnhandledRequest(
+          req,
+          context.requestHandlers,
+          options.onUnhandledRequest,
+        )
         context.emitter.emit('request:unhandled', req)
         context.emitter.emit('request:end', req)
 

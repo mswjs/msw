@@ -27,11 +27,9 @@ test('warns on unhandled request when using the "warn" value', async () => {
 
   expect(res).toHaveProperty('status', 404)
   expect(console.warn).toBeCalledWith(`\
-[MSW] Warning: captured a GET https://test.mswjs.io/ request without a corresponding request handler.
+[MSW] Warning: captured a request without a matching request handler:
 
-  If you wish to intercept this request, consider creating a request handler for it:
+  • GET https://test.mswjs.io/
 
-  rest.get('https://test.mswjs.io/', (req, res, ctx) => {
-    return res(ctx.text('body'))
-  })`)
+If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
 })

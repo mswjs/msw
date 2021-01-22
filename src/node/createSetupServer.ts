@@ -179,7 +179,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           const meta = handler.getMetaInfo()
 
           console.log(`\
-${bold(meta.header)}
+${bold(`[${meta.type}] ${meta.header}`)}
   Declaration: ${meta.callFrame}
 `)
         })

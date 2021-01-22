@@ -3,7 +3,7 @@ import { runBrowserWith } from '../support/runBrowserWith'
 import { executeOperation } from './utils/executeOperation'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'multipart.mocks.ts'))
+  return runBrowserWith(path.resolve(__dirname, 'multipart-data.mocks.ts'))
 }
 
 test('accepts a file from a GraphQL mutation', async () => {

@@ -133,6 +133,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
             onUnhandledRequest(
               mockedRequest,
+              currentHandlers,
               resolvedOptions.onUnhandledRequest,
             )
             return

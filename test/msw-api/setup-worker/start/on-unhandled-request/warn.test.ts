@@ -1,21 +1,16 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../../../support/runBrowserWith'
+import { runBrowserWith } from '../../../../support/runBrowserWith'
 import {
   captureConsole,
   filterLibraryLogs,
 } from '../../../../support/captureConsole'
 
-let runtime: TestAPI
+function createRuntime() {
+  return runBrowserWith(path.resolve(__dirname, 'warn.mocks.ts'))
+}
 
-beforeEach(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'warn.mocks.ts'))
-})
-
-afterEach(async () => {
-  await runtime.cleanup()
-})
-
-test('warns on an absolute unhandled request', async () => {
+test('warns on an unhandled REST API request with an absolute URL', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
 
   const res = await runtime.request({
@@ -30,16 +25,17 @@ test('warns on an absolute unhandled request', async () => {
 
   expect(libraryErrors).toHaveLength(0)
   expect(libraryWarnings).toContain(`\
-[MSW] Warning: captured a GET https://mswjs.io/non-existing-page request without a corresponding request handler.
+[MSW] Warning: captured a request without a matching request handler:
 
-  If you wish to intercept this request, consider creating a request handler for it:
+  • GET https://mswjs.io/non-existing-page
 
-  rest.get('https://mswjs.io/non-existing-page', (req, res, ctx) => {
-    return res(ctx.text('body'))
-  })`)
+If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+
+  return runtime.cleanup()
 })
 
-test('warns on a relative unhandled request', async () => {
+test('warns on an unhandled REST API request with a relative URL', async () => {
+  const runtime = await createRuntime()
   const { messages } = captureConsole(runtime.page)
 
   const url = runtime.makeUrl('/user-details')
@@ -53,7 +49,7 @@ test('warns on a relative unhandled request', async () => {
   const libraryErrors = messages.error.filter(filterLibraryLogs)
   const libraryWarnings = messages.warning.filter(filterLibraryLogs)
   const requestHandlerWarning = libraryWarnings.find((text) => {
-    return /\[MSW\] Warning: captured a GET .+? request without a corresponding request handler/.test(
+    return /\[MSW\] Warning: captured a request without a matching request handler/.test(
       text,
     )
   })
@@ -61,11 +57,41 @@ test('warns on a relative unhandled request', async () => {
   expect(libraryErrors).toHaveLength(0)
   expect(requestHandlerWarning).toBeTruthy()
   expect(requestHandlerWarning).toMatch(`\
-[MSW] Warning: captured a GET ${url} request without a corresponding request handler.
+[MSW] Warning: captured a request without a matching request handler:
 
-  If you wish to intercept this request, consider creating a request handler for it:
+  • GET /user-details
 
-  rest.get('/user-details', (req, res, ctx) => {
-    return res(ctx.text('body'))
-  })`)
+If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+
+  return runtime.cleanup()
+})
+
+test('suggests a similar request handler to an unhandled REST API request', async () => {
+  const runtime = await createRuntime()
+  const { messages } = captureConsole(runtime.page)
+  const url = runtime.makeUrl('/users')
+  await runtime.request({
+    url,
+  })
+
+  const libraryErrors = messages.error.filter(filterLibraryLogs)
+  const libraryWarnings = messages.warning.filter(filterLibraryLogs)
+  const unhandledRequestWarning = libraryWarnings.find((text) => {
+    return /\[MSW\] Warning: captured a request without a matching request handler/.test(
+      text,
+    )
+  })
+
+  expect(libraryErrors).toHaveLength(0)
+  expect(unhandledRequestWarning).toBeTruthy()
+  expect(unhandledRequestWarning).toMatch(`\
+[MSW] Warning: captured a request without a matching request handler:
+
+  • GET /users
+
+Did you mean to request "GET /user" instead?
+
+If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+
+  return runtime.cleanup()
 })

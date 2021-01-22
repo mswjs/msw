@@ -1,6 +1,6 @@
 import { MockedResponse as MockedInterceptedResponse } from 'node-request-interceptor'
 import { SharedOptions } from '../sharedOptions'
-import { RequestHandlersList } from '../setupWorker/glossary'
+import { RequestApplicator } from '../setupWorker/glossary'
 import { MockedRequest } from '../utils/handlers/requestHandler'
 
 export interface ServerLifecycleEventsMap {
@@ -29,7 +29,7 @@ export interface SetupServerApi {
    * Prepends given request handlers to the list of existing handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/use `server.use()`}
    */
-  use(...handlers: RequestHandlersList): void
+  use(...handlers: RequestApplicator[]): void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -41,7 +41,7 @@ export interface SetupServerApi {
    * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
    * @see {@link https://mswjs.io/docs/api/setup-server/reset-handlers `server.reset-handlers()`}
    */
-  resetHandlers(...nextHandlers: RequestHandlersList): void
+  resetHandlers(...nextHandlers: RequestApplicator[]): void
 
   /**
    * Lists all active request handlers.

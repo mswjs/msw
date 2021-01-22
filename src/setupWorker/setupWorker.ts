@@ -1,9 +1,9 @@
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   SetupWorkerInternalContext,
-  RequestHandlersList,
   SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
+  RequestApplicator,
 } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
@@ -11,6 +11,7 @@ import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { jsonParse } from '../utils/internal/jsonParse'
+import { RestHandler } from '../utils/handlers/2.0/RestHandler'
 
 interface Listener {
   target: EventTarget
@@ -29,7 +30,7 @@ let listeners: Listener[] = []
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
  */
 export function setupWorker(
-  ...requestHandlers: RequestHandlersList
+  ...requestHandlers: RequestApplicator[]
 ): SetupWorkerApi {
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
@@ -143,6 +144,7 @@ export function setupWorker(
     stop: createStop(context),
 
     use(...handlers) {
+      console.log('adding new handlers', handlers)
       requestHandlerUtils.use(context.requestHandlers, ...handlers)
     },
 
@@ -159,14 +161,23 @@ export function setupWorker(
 
     printHandlers() {
       context.requestHandlers.forEach((handler) => {
-        const meta = handler.getMetaInfo()
+        const { header, callFrame } = handler.info
 
-        console.groupCollapsed(`[${meta.type}] ${meta.header}`)
-        console.log(`Declaration: ${meta.callFrame}`)
-        console.log('Resolver: %s', handler.resolver)
-        if (['rest'].includes(meta.type)) {
-          console.log('Match:', `https://mswjs.io/repl?path=${meta.mask}`)
+        console.groupCollapsed(header)
+
+        if (callFrame) {
+          console.log(`Declaration: ${callFrame}`)
         }
+
+        console.log('Handler:', handler)
+
+        if (handler instanceof RestHandler) {
+          console.log(
+            'Match:',
+            `https://mswjs.io/repl?path=${handler.info.mask}`,
+          )
+        }
+
         console.groupEnd()
       })
     },

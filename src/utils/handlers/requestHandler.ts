@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { Mask, ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
+import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
 import { ResponseComposition, MockedResponse } from '../../response'
 import { status } from '../../context/status'
 import { set } from '../../context/set'
@@ -23,10 +23,7 @@ export type DefaultRequestBodyType =
   | string
   | undefined
 
-export interface MockedRequest<
-  BodyType = DefaultRequestBodyType,
-  RequestParamsType = RequestParams
-> {
+export interface MockedRequest<BodyType = DefaultRequestBodyType> {
   id: string
   url: URL
   method: Request['method']
@@ -43,7 +40,6 @@ export interface MockedRequest<
   referrerPolicy: Request['referrerPolicy']
   body: BodyType
   bodyUsed: Request['bodyUsed']
-  params: RequestParamsType
 }
 
 export type RequestQuery = {
@@ -68,16 +64,6 @@ export type ResponseResolver<
   res: ResponseComposition<BodyType>,
   context: ContextType,
 ) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
-
-type RequestHandlerType = 'rest' | 'graphql'
-
-export interface RequestHandlerMetaInfo<Type = RequestHandlerType> {
-  [key: string]: any
-  type: Type
-  header: string
-  mask: Mask
-  callFrame: string | undefined
-}
 
 export interface RequestHandler<
   RequestType = MockedRequest,
@@ -138,12 +124,6 @@ export interface RequestHandler<
    * when dealing with any subsequent matching requests.
    */
   shouldSkip?: boolean
-
-  /**
-   * Returns request handler's meta information used
-   * when listing each current request handler.
-   */
-  getMetaInfo: () => RequestHandlerMetaInfo
 }
 
 export default null

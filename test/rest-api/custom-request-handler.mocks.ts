@@ -1,40 +1,34 @@
 import {
   setupWorker,
+  BaseRequestHandler,
   ResponseResolver,
-  RequestHandler,
   ResponseTransformer,
-  context,
   MockedRequest,
+  context,
   compose,
 } from 'msw'
-import { ResponseWithSerializedHeaders } from 'msw/lib/types/setupWorker/glossary'
-
-const defaultLogger = (
-  req: MockedRequest,
-  res: ResponseWithSerializedHeaders,
-) => {
-  console.log('%s %s', req.method, req.url.href)
-  console.log('response:', res)
-}
 
 // This is an example of a custom request handler that matches requests
 // based on the presence of a given header.
-const withHeader = (
-  headerName: string,
-  resolver: ResponseResolver,
-): RequestHandler => {
-  return {
-    // Predicate is a function that must resolve to true or false,
-    // stating whether a request should be mocked
-    predicate(req) {
-      return req.headers.has(headerName)
-    },
-    // Response resolver is a function that returns the mocked response.
-    // You usually want this to be dynamic, so it's accepted via arguments.
-    resolver,
-    log: defaultLogger,
-    // Without a custom `defineContext` property this request handler
-    // can operate with all common context utilities: set, status, fetch, delay.
+class HeaderHandler extends BaseRequestHandler<{ headerName: string }> {
+  constructor(headerName: string, resolver: ResponseResolver) {
+    super({
+      info: {
+        header: `HeaderHandler "${headerName}"`,
+        headerName,
+      },
+      resolver,
+    })
+  }
+
+  // Predicate is a function that must resolve to true or false,
+  // stating whether a captured request should be mocked.
+  predicate(req: MockedRequest) {
+    return req.headers.has(this.info.headerName)
+  }
+
+  log(req: MockedRequest) {
+    console.log(`${req.method} ${req.url.toString()}`)
   }
 }
 
@@ -42,31 +36,39 @@ interface CustomContext {
   halJson: (body: Record<string, any>) => ResponseTransformer
 }
 
-const withUrl = (
-  url: string,
-  resolver: ResponseResolver<MockedRequest, CustomContext>,
-): RequestHandler<MockedRequest, CustomContext> => {
-  return {
-    predicate(req) {
-      return req.url.href.includes(url)
-    },
-    resolver,
-    defineContext() {
-      return {
+class UrlHandler extends BaseRequestHandler<{ url: string }> {
+  constructor(
+    url: string,
+    resolver: ResponseResolver<MockedRequest, CustomContext>,
+  ) {
+    super({
+      info: {
+        header: '/',
+        url,
+      },
+      ctx: {
         halJson(body) {
           return compose(
             context.set('Content-Type', 'application/hal+json'),
             context.body(JSON.stringify(body)),
           )
         },
-      }
-    },
-    log: defaultLogger,
+      },
+      resolver,
+    })
+  }
+
+  predicate(req: MockedRequest) {
+    return req.url.href.includes(this.info.url)
+  }
+
+  log(req: MockedRequest) {
+    console.log(`${req.method} ${req.url.toString()}`)
   }
 }
 
 const worker = setupWorker(
-  withHeader('x-custom-header', (req, res, ctx) => {
+  new HeaderHandler('x-custom-header', (req, res, ctx) => {
     return res(
       ctx.status(401),
       context.json({
@@ -75,7 +77,7 @@ const worker = setupWorker(
     )
   }),
 
-  withUrl('https://test.url', (req, res, ctx) => {
+  new UrlHandler('https://test.url', (req, res, ctx) => {
     return res(
       ctx.halJson({
         age: 42,

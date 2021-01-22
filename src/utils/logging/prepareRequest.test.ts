@@ -21,7 +21,6 @@ test('converts request headers into an object', () => {
     referrerPolicy: 'no-referrer',
     body: 'text-body',
     bodyUsed: false,
-    params: {},
     cookies: {},
   })
 

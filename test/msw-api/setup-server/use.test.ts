@@ -22,6 +22,8 @@ test('returns a mocked response from a runtime request handler upon match', asyn
     }),
   )
 
+  server.printHandlers()
+
   // Request handlers added on runtime affect network communication as usual.
   const loginResponse = await fetch('https://test.mswjs.io/login', {
     method: 'POST',

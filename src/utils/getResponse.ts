@@ -1,23 +1,16 @@
-import { RequestHandlersList } from '../setupWorker/glossary'
+import { RequestApplicator } from '../setupWorker/glossary'
+import { MockedRequest } from './handlers/requestHandler'
+import { MockedResponse } from '../response'
 import {
-  RequestHandler,
-  MockedRequest,
-  defaultContext,
-} from './handlers/requestHandler'
-import { MockedResponse, response } from '../response'
+  RequestHandlerExecutionResult,
+  RequestHandler as RequestHandlerClass,
+} from './handlers/2.0/RequestHandler'
 
 interface ResponsePayload {
-  response: MockedResponse | null
-  handler: RequestHandler<any, any> | null
+  response: MockedResponse | undefined
+  handler: RequestHandlerClass | null
   publicRequest?: any
   parsedRequest?: any
-}
-
-interface ReducedHandlersPayload {
-  requestHandler?: RequestHandler<any, any>
-  parsedRequest?: any
-  mockedResponse: MockedResponse | null
-  publicRequest?: any
 }
 
 /**
@@ -25,101 +18,62 @@ interface ReducedHandlersPayload {
  */
 export const getResponse = async <
   R extends MockedRequest,
-  H extends RequestHandlersList
+  H extends RequestApplicator[]
 >(
-  req: R,
+  request: R,
   handlers: H,
 ): Promise<ResponsePayload> => {
-  const relevantHandlers = handlers
-    .filter((requestHandler) => {
-      // Skip a handler if it has been already used for a one-time response.
-      return !requestHandler.shouldSkip
-    })
-    .map<[RequestHandler<any, any>, any]>((requestHandler) => {
-      // Parse the captured request to get additional information.
-      // Make the predicate function accept all the necessary information
-      // to decide on the interception.
-      const parsedRequest = requestHandler.parse
-        ? requestHandler.parse(req)
-        : null
+  const relevantHandlers = handlers.filter((handler) => {
+    return handler.test(request)
+  })
 
-      return [requestHandler, parsedRequest]
-    })
-    .filter(([requestHandler, parsedRequest]) => {
-      return requestHandler.predicate(req, parsedRequest)
-    })
-
-  if (relevantHandlers.length == 0) {
-    // Handle a scenario when a request has no relevant request handlers.
-    // In that case it would be bypassed (performed as-is).
+  if (relevantHandlers.length === 0) {
     return {
       handler: null,
-      response: null,
+      response: undefined,
     }
   }
 
-  const {
-    requestHandler,
-    parsedRequest,
-    mockedResponse,
-    publicRequest,
-  } = await relevantHandlers.reduce<Promise<ReducedHandlersPayload>>(
-    async (asyncAcc, [requestHandler, parsedRequest]) => {
-      // Now the reduce function is async so we need to await if response was found
-      const acc = await asyncAcc
+  const result = await relevantHandlers.reduce<
+    Promise<RequestHandlerExecutionResult<any> | null>
+  >(async (acc, handler) => {
+    const previousResults = await acc
 
-      // If a first not empty response was found we'll stop evaluating other requests
-      if (acc.requestHandler) {
-        return acc
-      }
+    if (!!previousResults?.response) {
+      return acc
+    }
 
-      const { getPublicRequest, defineContext, resolver } = requestHandler
+    const result = await handler.run(request)
+    result?.handler
 
-      const publicRequest = getPublicRequest
-        ? getPublicRequest(req, parsedRequest)
-        : req
+    if (result === null || !result.response || result.handler.shouldSkip) {
+      return null
+    }
 
-      const context = defineContext
-        ? defineContext(publicRequest)
-        : defaultContext
+    if (result.response.once) {
+      handler.markAsSkipped(true)
+    }
 
-      const mockedResponse = await resolver(publicRequest, response, context)
-
-      // Check for the handler relevancy in case of multiple parallel one-time handlers.
-      if (!mockedResponse || requestHandler.shouldSkip) {
-        return acc
-      }
-
-      if (mockedResponse && mockedResponse.once) {
-        // When responded with a one-time response, match the relevant request handler
-        // as skipped, so it cannot affect the captured requests anymore.
-        requestHandler.shouldSkip = true
-      }
-
-      return {
-        requestHandler,
-        parsedRequest,
-        mockedResponse,
-        publicRequest,
-      }
-    },
-    Promise.resolve({ mockedResponse: null }),
-  )
+    return result
+  }, Promise.resolve(null))
 
   // Although reducing a list of relevant request handlers, it's possible
   // that in the end there will be no handler associted with the request
   // (i.e. if relevant handlers are fall-through).
-  if (!requestHandler) {
+  if (!result) {
     return {
       handler: null,
-      response: null,
+      response: undefined,
     }
   }
 
   return {
-    handler: requestHandler,
-    response: mockedResponse,
-    publicRequest,
-    parsedRequest,
+    parsedRequest: result.parsedResult,
+    response: result.response,
+    /**
+     * @todo This is not a public request: lacks parsed results.
+     */
+    publicRequest: request,
+    handler: result.handler,
   }
 }

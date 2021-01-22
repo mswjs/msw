@@ -1,66 +1,54 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 
-function createRuntime() {
-  return pageWith({
+test('warns when a request handler URL contains query parameters', async () => {
+  const { page, request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'query-params-warning.mocks.ts'),
   })
-}
-
-function findQueryParametersWarning(logs: string[] = []) {
-  return logs.find((text) => {
-    return text.startsWith(
-      '[MSW] Found a redundant usage of query parameters in the request handler URL',
-    )
-  })
-}
-
-function findQueryParametersSuggestions(logs: string[] = [], params: string[]) {
-  return logs.find((text) => {
-    return params.every((paramName) =>
-      text.includes(`const ${paramName} = query.get("${paramName}")`),
-    )
-  })
-}
-
-test('warns when a request handler URL contains a single query parameter', async () => {
-  const { page, request, consoleSpy } = await createRuntime()
 
   await page.reload()
-  expect(findQueryParametersWarning(consoleSpy.get('warning'))).toBeUndefined()
 
-  const res = await request('/user?id=123')
-  expect(res.status()).toBe(200)
+  expect(consoleSpy.get('warning')).toEqual([
+    `\
+[MSW] Found a redundant usage of query parameters in the request handler URL for "GET /user?name=admin". Please match against a path instead, and access query parameters in the response resolver function:
 
-  // Should produce a friendly warning.
-  expect(
-    findQueryParametersWarning(consoleSpy.get('warning')),
-  ).not.toBeUndefined()
+rest.get("/user", (req, res, ctx) => {
+  const query = req.url.searchParams
+  const name = query.get("name")
+})\
+`,
+    `\
+[MSW] Found a redundant usage of query parameters in the request handler URL for "POST /login?id=123&type=auth". Please match against a path instead, and access query parameters in the response resolver function:
 
-  // Should suggest how to reference query parameters in the response resolver.
-  expect(
-    findQueryParametersSuggestions(consoleSpy.get('warning'), ['name']),
-  ).not.toBeUndefined()
-})
+rest.post("/login", (req, res, ctx) => {
+  const query = req.url.searchParams
+  const id = query.get("id")
+  const type = query.get("type")
+})\
+`,
+  ])
 
-test('warns when a request handler URL contains multiple query parameters', async () => {
-  const { page, request, consoleSpy } = await createRuntime()
+  await request('/user?name=admin').then(async (res) => {
+    expect(res.status()).toBe(200)
+    expect(await res.text()).toBe('user-response')
+  })
 
-  await page.reload()
-  expect(findQueryParametersWarning(consoleSpy.get('warning'))).toBeUndefined()
+  await request('/user').then(async (res) => {
+    expect(res.status()).toBe(200)
+    expect(await res.text()).toBe('user-response')
+  })
 
-  const res = await request('/login?id=123', {
+  await request('/login?id=123&type=auth', {
     method: 'POST',
+  }).then(async (res) => {
+    expect(res.status()).toBe(200)
+    expect(await res.text()).toBe('login-response')
   })
-  expect(res.status()).toBe(200)
 
-  // Should produce a friendly warning.
-  expect(
-    findQueryParametersWarning(consoleSpy.get('warning')),
-  ).not.toBeUndefined()
-
-  // Should suggest how to reference query parameters in the response resolver.
-  expect(
-    findQueryParametersSuggestions(consoleSpy.get('warning'), ['id', 'type']),
-  ).not.toBeUndefined()
+  await request('/login', {
+    method: 'POST',
+  }).then(async (res) => {
+    expect(res.status()).toBe(200)
+    expect(await res.text()).toBe('login-response')
+  })
 })

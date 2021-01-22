@@ -1,23 +1,21 @@
-import { RequestHandlersList } from '../../setupWorker/glossary'
+import { RequestApplicator } from '../../setupWorker/glossary'
 
 export function use(
-  currentHandlers: RequestHandlersList,
-  ...handlers: RequestHandlersList
+  currentHandlers: RequestApplicator[],
+  ...handlers: RequestApplicator[]
 ): void {
   currentHandlers.unshift(...handlers)
 }
 
-export function restoreHandlers(handlers: RequestHandlersList): void {
+export function restoreHandlers(handlers: RequestApplicator[]): void {
   handlers.forEach((handler) => {
-    if ('shouldSkip' in handler) {
-      handler.shouldSkip = false
-    }
+    handler.markAsSkipped(false)
   })
 }
 
 export function resetHandlers(
-  initialHandlers: RequestHandlersList,
-  ...nextHandlers: RequestHandlersList
+  initialHandlers: RequestApplicator[],
+  ...nextHandlers: RequestApplicator[]
 ) {
   return nextHandlers.length > 0 ? [...nextHandlers] : [...initialHandlers]
 }

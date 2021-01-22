@@ -161,7 +161,7 @@ export function setupWorker(
       context.requestHandlers.forEach((handler) => {
         const meta = handler.getMetaInfo()
 
-        console.groupCollapsed(meta.header)
+        console.groupCollapsed(`[${meta.type}] ${meta.header}`)
         console.log(`Declaration: ${meta.callFrame}`)
         console.log('Resolver: %s', handler.resolver)
         if (['rest'].includes(meta.type)) {

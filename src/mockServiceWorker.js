@@ -197,6 +197,7 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
           type: 'RESPONSE',
           payload: {
             requestId,
+            type: clonedResponse.type,
             ok: clonedResponse.ok,
             status: clonedResponse.status,
             statusText: clonedResponse.statusText,

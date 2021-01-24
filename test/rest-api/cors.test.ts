@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { runBrowserWith } from '../support/runBrowserWith'
 
-test('TKO a cors request', async () => {
+test('handles a CORS request with an "opaque" response', async () => {
   const runtime = await runBrowserWith(path.resolve(__dirname, 'cors.mocks.ts'))
 
   const errors = []
@@ -10,17 +10,16 @@ test('TKO a cors request', async () => {
   })
 
   await runtime.page.evaluate(() => {
-    const img = document.createElement('img')
-    img.src = 'https://via.placeholder.com/150'
-    const body = document.querySelector('body')
-    body.appendChild(img)
+    const image = document.createElement('img')
+    image.src = 'https://via.placeholder.com/150'
+    document.body.appendChild(image)
+
+    return new Promise((resolve) => {
+      image.addEventListener('load', resolve)
+    })
   })
 
-  await sleep(2000)
-  expect(errors.length).toBe(0)
+  expect(errors).toEqual([])
+
   return runtime.cleanup()
 })
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}

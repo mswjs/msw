@@ -21,7 +21,7 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
      * @see https://fetch.spec.whatwg.org/#concept-filtered-response-opaque
      * @see https://github.com/mswjs/msw/issues/529
      */
-    if (responseJson.type.includes('opaque')) {
+    if (responseJson.type?.includes('opaque')) {
       return
     }
 

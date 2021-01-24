@@ -99,7 +99,7 @@ self.addEventListener('fetch', function (event) {
 
   event.respondWith(
     new Promise(async (resolve, reject) => {
-      const client = await event.target.clients.get(clientId)
+      const client = await this.clients.get(clientId)
 
       // Bypass mocking when the request client is not active.
       if (!client) {
@@ -190,7 +190,7 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
       }
     })
       .then(async (response) => {
-        const client = await event.target.clients.get(clientId)
+        const client = await this.clients.get(clientId)
         const clonedResponse = response.clone()
 
         sendToClient(client, {

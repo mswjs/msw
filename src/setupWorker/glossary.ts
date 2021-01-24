@@ -40,7 +40,10 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body: string | undefined
 }
 
-export interface ServiceWorkerIncomingResponse extends Response {
+export type ServiceWorkerIncomingResponse = Pick<
+  Response,
+  'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
+> & {
   requestId: string
 }
 

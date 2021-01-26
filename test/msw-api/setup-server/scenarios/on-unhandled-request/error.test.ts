@@ -20,10 +20,14 @@ afterAll(() => {
 })
 
 test('errors on unhandled request when using the "error" value', async () => {
+  jest.spyOn(console, 'error')
+
   const getResponse = () => fetch('https://test.mswjs.io')
 
-  await expect(getResponse()).rejects.toThrow(`\
-request to https://test.mswjs.io/ failed, reason: [MSW] Error: captured a GET https://test.mswjs.io/ request without a corresponding request handler.
+  await getResponse()
+
+  expect(console.error)
+    .toHaveBeenCalledWith(`[MSW] Error: captured a GET https://test.mswjs.io/ request without a corresponding request handler.
 
   If you wish to intercept this request, consider creating a request handler for it:
 

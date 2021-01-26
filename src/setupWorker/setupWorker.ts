@@ -49,6 +49,11 @@ export function setupWorker(
           navigator.serviceWorker,
           'message',
           (event: MessageEvent) => {
+            // Avoid messages broadcasted from unrelated workers.
+            if (event.source !== context.worker) {
+              return
+            }
+
             const message = jsonParse<
               ServiceWorkerMessage<typeof eventType, any>
             >(event.data)

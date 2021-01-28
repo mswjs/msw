@@ -1,12 +1,14 @@
 import { Headers } from 'headers-utils/lib'
 import { MockedRequest } from '../handlers/requestHandler'
-import { isGraphQLRequest } from './isGraphQLRequest'
+import { parseGraphQLRequest } from './parseGraphQLRequest'
 
 test('returns true given a GraphQL-compatible request', () => {
   const getRequest: MockedRequest = {
     id: 'abc-123',
     method: 'GET',
-    url: new URL('http://localhost:8080/graphql?query=value'),
+    url: new URL(
+      'http://localhost:8080/graphql?query=mutation Login { user { id } }',
+    ),
     headers: new Headers({ 'content-type': 'application/json' }),
     cache: 'default',
     credentials: 'same-origin',
@@ -22,7 +24,10 @@ test('returns true given a GraphQL-compatible request', () => {
     referrer: '',
     destination: 'document',
   }
-  expect(isGraphQLRequest(getRequest)).toBe(true)
+  expect(parseGraphQLRequest(getRequest)).toEqual({
+    operationType: 'mutation',
+    operationName: 'Login',
+  })
 
   const postRequest: MockedRequest = {
     id: 'abc-123',
@@ -45,7 +50,10 @@ test('returns true given a GraphQL-compatible request', () => {
     referrer: '',
     destination: 'document',
   }
-  expect(isGraphQLRequest(postRequest)).toBe(true)
+  expect(parseGraphQLRequest(postRequest)).toEqual({
+    operationType: 'query',
+    operationName: 'GetUser',
+  })
 })
 
 test('returns false given a GraphQL-incompatible request', () => {
@@ -68,7 +76,7 @@ test('returns false given a GraphQL-incompatible request', () => {
     referrer: '',
     destination: 'document',
   }
-  expect(isGraphQLRequest(getRequest)).toBe(false)
+  expect(parseGraphQLRequest(getRequest)).toBeNull()
 
   const postRequest: MockedRequest = {
     id: 'abc-123',
@@ -91,5 +99,5 @@ test('returns false given a GraphQL-incompatible request', () => {
     referrer: '',
     destination: 'document',
   }
-  expect(isGraphQLRequest(postRequest)).toBe(false)
+  expect(parseGraphQLRequest(postRequest)).toBeNull()
 })

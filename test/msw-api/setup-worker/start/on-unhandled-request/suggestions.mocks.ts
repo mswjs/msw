@@ -4,7 +4,11 @@ const resolver = () => null
 
 const worker = setupWorker(
   rest.get('/user', resolver),
+  rest.post('/payments', resolver),
+  rest.get('/payments', resolver),
   graphql.query('GetUser', resolver),
+  graphql.mutation('RegisterUser', resolver),
+  graphql.query('RegisterUser', resolver),
   graphql.mutation('SubmitCheckout', resolver),
 )
 

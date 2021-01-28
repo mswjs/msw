@@ -72,6 +72,7 @@ export type ResponseResolver<
 type RequestHandlerType = 'rest' | 'graphql'
 
 export interface RequestHandlerMetaInfo<Type = RequestHandlerType> {
+  [key: string]: any
   type: Type
   header: string
   mask: Mask

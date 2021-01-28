@@ -82,7 +82,7 @@ export interface GraphQLRequestParsedResult<VariablesType> {
   variables: VariablesType | undefined
 }
 
-interface ParsedQueryPayload {
+export interface ParsedQueryPayload {
   operationType: OperationTypeNode
   operationName: string | undefined
 }
@@ -298,6 +298,8 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
         header,
         mask,
         callFrame,
+        operationType: expectedOperationType,
+        operationName: expectedOperationName,
       }
     },
   }

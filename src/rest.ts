@@ -172,6 +172,7 @@ ${queryParams
           header: `${method} ${mask.toString()}`,
           mask,
           callFrame,
+          method,
         }
       },
     }

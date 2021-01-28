@@ -15,6 +15,7 @@ import {
   ParsedQueryPayload,
 } from '../../graphql'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
+import { isStringEqual } from '../internal/isStringEqual'
 
 type UnhandledRequestCallback = (req: MockedRequest) => void
 
@@ -58,14 +59,19 @@ type ScoreGetterFn = (request: MockedRequest, handler: RequestHandler) => number
 
 function getScoreForRestHandler(): ScoreGetterFn {
   return (request, handler) => {
-    const metaInfo = handler.getMetaInfo()
+    const { mask, method } = handler.getMetaInfo()
 
-    if (metaInfo.mask instanceof RegExp) {
+    if (mask instanceof RegExp) {
       return Infinity
     }
 
+    const hasSameMethod = isStringEqual(request.method, method)
+    // Always treat a handler with the same method as a more similar one.
+    const methodScoreDelta = hasSameMethod ? 0 : 0.25
     const requestPublicUrl = getPublicUrlFromRequest(request)
-    return getStringMatchScore(requestPublicUrl, metaInfo.mask)
+    const score = getStringMatchScore(requestPublicUrl, mask)
+
+    return score + methodScoreDelta
   }
 }
 
@@ -77,10 +83,13 @@ function getScoreForGraphQLHandler(
       return Infinity
     }
 
-    const metaInfo = handler.getMetaInfo()
-    const handlerOperationName = metaInfo.operationName
+    const { operationType, operationName } = handler.getMetaInfo()
+    const hasSameOperationType = parsedQuery.operationType === operationType
+    // Always treat a handler with the same operation type as a more similar one.
+    const operationTypeScoreDelta = hasSameOperationType ? 0 : 0.25
+    const score = getStringMatchScore(parsedQuery.operationName, operationName)
 
-    return getStringMatchScore(parsedQuery.operationName, handlerOperationName)
+    return score + operationTypeScoreDelta
   }
 }
 

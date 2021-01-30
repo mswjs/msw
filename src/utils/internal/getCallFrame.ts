@@ -6,7 +6,7 @@ export function getCallFrame() {
 
   // Get the first frame that doesn't reference the library's internal trace.
   // Assume that frame is the invocation frame.
-  const rePathIsNotUseful = /(node_modules)?\/lib\/(umd|esm)\/|^[^\/]*$/
+  const rePathIsNotUseful = /(node_modules)?[\/\\]lib[\/\\](umd|esm)[\/\\]|^[^\/\\]*$/
   const declarationFrame = frames.slice(1).find((frame) => {
     return !rePathIsNotUseful.test(frame)
   })

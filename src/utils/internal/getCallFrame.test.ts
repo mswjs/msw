@@ -7,7 +7,7 @@ jest.spyOn(window, 'Error').mockImplementation(() => ({
   stack: mockStack(),
 }))
 
-test('Node error stack', () => {
+test('Node on Linux and macOS error stack', () => {
   // version 1
   mockStack.mockImplementationOnce(() =>
     [
@@ -32,25 +32,46 @@ test('Node error stack', () => {
   mockStack.mockImplementationOnce(() =>
     [
       'Error: ',
-      '    at getCallFrame (/Users/mock/github/msw/lib/umd/index.js:3735:22)',
-      '    at graphQLRequestHandler (/Users/mock/github/msw/lib/umd/index.js:7071:25)',
-      '    at Object.query (/Users/mock/github/msw/lib/umd/index.js:7182:18)',
-      '    at Object.<anonymous> (/Users/mock/github/msw/test/msw-api/setup-server/printHandlers.test.ts:14:11)', // <-- this one
-      '    at Runtime._execModule (/Users/mock/github/msw/node_modules/jest-runtime/build/index.js:1299:24)',
-      '    at Runtime._loadModule (/Users/mock/github/msw/node_modules/jest-runtime/build/index.js:898:12)',
-      '    at Runtime.requireModule (/Users/mock/github/msw/node_modules/jest-runtime/build/index.js:746:10)',
-      '    at jasmine2 (/Users/mock/github/msw/node_modules/jest-jasmine2/build/index.js:230:13)',
-      '    at runTestInternal (/Users/mock/github/msw/node_modules/jest-runner/build/runTest.js:380:22)',
-      '    at runTest (/Users/mock/github/msw/node_modules/jest-runner/build/runTest.js:472:34)',
+      '    at getCallFrame (/Users/mock/git/msw/lib/umd/index.js:3735:22)',
+      '    at graphQLRequestHandler (/Users/mock/git/msw/lib/umd/index.js:7071:25)',
+      '    at Object.query (/Users/mock/git/msw/lib/umd/index.js:7182:18)',
+      '    at Object.<anonymous> (/Users/mock/git/msw/test/msw-api/setup-server/printHandlers.test.ts:14:11)', // <-- this one
+      '    at Runtime._execModule (/Users/mock/git/msw/node_modules/jest-runtime/build/index.js:1299:24)',
+      '    at Runtime._loadModule (/Users/mock/git/msw/node_modules/jest-runtime/build/index.js:898:12)',
+      '    at Runtime.requireModule (/Users/mock/git/msw/node_modules/jest-runtime/build/index.js:746:10)',
+      '    at jasmine2 (/Users/mock/git/msw/node_modules/jest-jasmine2/build/index.js:230:13)',
+      '    at runTestInternal (/Users/mock/git/msw/node_modules/jest-runner/build/runTest.js:380:22)',
+      '    at runTest (/Users/mock/git/msw/node_modules/jest-runner/build/runTest.js:472:34)',
     ].join('\n'),
   )
 
   expect(getCallFrame()).toBe(
-    '/Users/mock/github/msw/test/msw-api/setup-server/printHandlers.test.ts:14:11',
+    '/Users/mock/git/msw/test/msw-api/setup-server/printHandlers.test.ts:14:11',
   )
 })
 
-test('Chrome error stack', () => {
+test('Node on Windows error stack', () => {
+  mockStack.mockImplementationOnce(() =>
+    [
+      'Error: ',
+      '    at getCallFrame (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:3735:22)',
+      '    at graphQLRequestHandler (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:7071:25)',
+      '    at Object.query (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:7182:18)',
+      '    at Object.<anonymous> (C:\\Users\\mock\\git\\msw\\test\\msw-api\\setup-server\\printHandlers.test.ts:75:13)', // <-- this one
+      '    at Object.asyncJestTest (C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\jasmineAsyncInstall.js:106:37)',
+      '    at C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\queueRunner.js:45:12',
+      '    at new Promise (<anonymous>)',
+      '    at mapper (C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\queueRunner.js:28:19)',
+      '    at C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\queueRunner.js:75:41',
+    ].join('\n'),
+  )
+
+  expect(getCallFrame()).toBe(
+    'C:\\Users\\mock\\git\\msw\\test\\msw-api\\setup-server\\printHandlers.test.ts:75:13',
+  )
+})
+
+test('Chrome and Edge error stack', () => {
   mockStack.mockImplementationOnce(() =>
     [
       'Error',
@@ -72,7 +93,7 @@ test('Chrome error stack', () => {
   )
 })
 
-test('Firefox error stack', () => {
+test('Firefox on macOS and Windows error stack', () => {
   mockStack.mockImplementationOnce(() =>
     [
       'getCallFrame@webpack:///./lib/esm/getCallFrame-deps.js?:272:20',

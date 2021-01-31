@@ -1,11 +1,18 @@
 import { getCallFrame } from './getCallFrame'
 
 const mockStack = jest.fn()
-jest.spyOn(window, 'Error').mockImplementation(() => ({
-  name: 'mockError',
-  message: '',
-  stack: mockStack(),
-}))
+
+beforeAll(() => {
+  jest.spyOn(window, 'Error').mockImplementation(() => ({
+    name: 'mockError',
+    message: '',
+    stack: mockStack(),
+  }))
+})
+
+afterAll(() => {
+  jest.restoreAllMocks()
+})
 
 test('Node on Linux and macOS error stack', () => {
   // version 1

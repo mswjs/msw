@@ -1,4 +1,3 @@
-import { graphqlOperation } from 'graphql-api/utils/executeOperation'
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(

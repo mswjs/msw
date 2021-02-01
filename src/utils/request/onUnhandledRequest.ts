@@ -7,7 +7,7 @@ import {
   RequestParams,
 } from '../handlers/requestHandler'
 import { RequestHandlersList } from '../../setupWorker/glossary'
-import { ParsedRestRequest, restContext } from '../../rest'
+import { ParsedRestRequest, RestContext } from '../../rest'
 import {
   GraphQLMockedRequest,
   GraphQLMockedContext,
@@ -27,7 +27,7 @@ export type UnhandledRequestStrategy =
 
 type RestRequestHandler = RequestHandler<
   MockedRequest<DefaultRequestBodyType, RequestParams>,
-  typeof restContext,
+  RestContext,
   ParsedRestRequest
 >
 
@@ -129,7 +129,6 @@ export function onUnhandledRequest(
     ? handlerGroups.graphql
     : handlerGroups.rest
 
-  let handlerSuggestion = ''
   const suggestedHandler = getSuggestedHandler(
     request,
     relevantHandlers,
@@ -138,10 +137,11 @@ export function onUnhandledRequest(
       : getScoreForRestHandler(),
   )
 
-  if (suggestedHandler) {
-    const metaInfo = suggestedHandler.getMetaInfo()
-    handlerSuggestion = `Did you mean to request "${metaInfo.header}" instead?`
-  }
+  const handlerSuggestion = suggestedHandler
+    ? `Did you mean to request "${
+        suggestedHandler.getMetaInfo().header
+      }" instead?`
+    : ''
 
   const publicUrl = getPublicUrlFromRequest(request)
   const requestHeader = parsedGraphQLQuery
@@ -152,7 +152,10 @@ export function onUnhandledRequest(
     `captured a request without a matching request handler:`,
     `  • ${requestHeader}`,
     handlerSuggestion,
-    'If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.',
+    `\
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks\
+`,
   ].filter(Boolean)
   const message = messageTemplate.join('\n\n')
 

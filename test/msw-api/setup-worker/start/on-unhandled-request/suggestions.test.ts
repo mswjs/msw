@@ -30,7 +30,8 @@ describe('REST API', () => {
 
   • GET /user-details
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -57,7 +58,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "GET /user" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -87,7 +89,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "GET /user" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -115,7 +118,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "GET /payments" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -157,7 +161,8 @@ describe('GraphQL API', () => {
 
   • query PaymentHistory (POST /graphql)
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -199,7 +204,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "query GetUser (origin: *)" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -241,7 +247,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "mutation SubmitCheckout (origin: *)" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })
@@ -283,7 +290,8 @@ If you still wish to intercept this unhandled request, please create a request h
 
 Did you mean to request "query RegisterUser (origin: *)" instead?
 
-If you still wish to intercept this unhandled request, please create a request handler for it. Read more: https://mswjs.io/docs/getting-started/mocks.`)
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     return runtime.cleanup()
   })

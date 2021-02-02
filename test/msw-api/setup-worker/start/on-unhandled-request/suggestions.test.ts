@@ -1,9 +1,18 @@
 import * as path from 'path'
+import { SetupWorkerApi, rest, graphql } from 'msw'
 import {
   captureConsole,
   filterLibraryLogs,
 } from '../../../../support/captureConsole'
 import { runBrowserWith } from '../../../../support/runBrowserWith'
+
+declare namespace window {
+  export const msw: {
+    worker: SetupWorkerApi
+    rest: typeof rest
+    graphql: typeof graphql
+  }
+}
 
 function createRuntime() {
   return runBrowserWith(path.resolve(__dirname, 'suggestions.mocks.ts'))
@@ -13,6 +22,14 @@ describe('REST API', () => {
   test('does not suggest any handlers when there are no similar ones', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, rest } = window.msw
+      worker.use(
+        rest.get('/user', () => null),
+        rest.post('/user-contact-details', () => null),
+      )
+    })
 
     await runtime.request({
       url: runtime.makeUrl('/user-details'),
@@ -39,6 +56,11 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
   test('suggests a similar request handler of the same method', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, rest } = window.msw
+      worker.use(rest.get('/user', () => null))
+    })
 
     await runtime.request({
       url: runtime.makeUrl('/users'),
@@ -68,6 +90,14 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
 
+    runtime.page.evaluate(() => {
+      const { worker, rest } = window.msw
+      worker.use(
+        rest.get('/user', () => null),
+        rest.post('/user-contact-details', () => null),
+      )
+    })
+
     await runtime.request({
       url: runtime.makeUrl('/users'),
       fetchOptions: {
@@ -95,9 +125,17 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
     return runtime.cleanup()
   })
 
-  test('suggests a handler with the same method if multiple handlers are similar', async () => {
+  test('suggests multiple similar handlers regardless of their method', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, rest } = window.msw
+      worker.use(
+        rest.post('/payment', () => null),
+        rest.get('/payments', () => null),
+      )
+    })
 
     await runtime.request({
       // Intentional typo in the request URL.
@@ -116,7 +154,10 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 
   • GET /pamyents
 
-Did you mean to request "GET /payments" instead?
+Did you mean to request one of the following resources instead?
+
+  • GET /payments
+  • POST /payment
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
@@ -129,6 +170,14 @@ describe('GraphQL API', () => {
   test('does not suggest any handlers when there are no similar ones', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, graphql } = window.msw
+      worker.use(
+        graphql.mutation('SubmitCheckout', () => null),
+        graphql.query('GetUserPaymentHistory', () => null),
+      )
+    })
 
     await runtime.request({
       url: runtime.makeUrl('/graphql'),
@@ -170,6 +219,14 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
   test('suggests a similar request handler of the same operation type', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, graphql } = window.msw
+      worker.use(
+        graphql.mutation('GetLatestActiveUser', () => null),
+        graphql.query('GetUser', () => null),
+      )
+    })
 
     await runtime.request({
       url: runtime.makeUrl('/graphql'),
@@ -214,6 +271,14 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
 
+    runtime.page.evaluate(() => {
+      const { worker, graphql } = window.msw
+      worker.use(
+        graphql.query('GetCheckoutSummary', () => null),
+        graphql.mutation('SubmitCheckout', () => null),
+      )
+    })
+
     await runtime.request({
       url: runtime.makeUrl('/graphql'),
       fetchOptions: {
@@ -253,9 +318,17 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
     return runtime.cleanup()
   })
 
-  test('suggests a handler with of same operation type if multiple handlers are similar', async () => {
+  test('suggests multiple similar handlers regardless of their operation type', async () => {
     const runtime = await createRuntime()
     const { messages } = captureConsole(runtime.page)
+
+    runtime.page.evaluate(() => {
+      const { worker, graphql } = window.msw
+      worker.use(
+        graphql.mutation('ActivateUser', () => null),
+        graphql.query('ActiveUser', () => null),
+      )
+    })
 
     await runtime.request({
       url: runtime.makeUrl('/graphql'),
@@ -266,7 +339,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
         },
         body: JSON.stringify({
           query: `
-            query RegisterUsers {
+            query ActiveUsers {
               checkout {
                 status
               }
@@ -286,9 +359,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
     expect(unhandledRequestWarning).toMatch(`\
 [MSW] Warning: captured a request without a matching request handler:
 
-  • query RegisterUsers (POST /graphql)
+  • query ActiveUsers (POST /graphql)
 
-Did you mean to request "query RegisterUser (origin: *)" instead?
+Did you mean to request one of the following resources instead?
+
+  • query ActiveUser (origin: *)
+  • mutation ActivateUser (origin: *)
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)

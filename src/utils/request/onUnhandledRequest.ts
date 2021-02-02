@@ -17,6 +17,10 @@ import {
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 
+const MAX_MATCH_SCORE = 3
+const MAX_SUGGESTION_COUNT = 4
+const TYPE_MATCH_DELTA = 0.5
+
 type UnhandledRequestCallback = (req: MockedRequest) => void
 
 export type UnhandledRequestStrategy =
@@ -67,11 +71,11 @@ function getScoreForRestHandler(): ScoreGetterFn {
 
     const hasSameMethod = isStringEqual(request.method, method)
     // Always treat a handler with the same method as a more similar one.
-    const methodScoreDelta = hasSameMethod ? 0 : 0.25
+    const methodScoreDelta = hasSameMethod ? TYPE_MATCH_DELTA : 0
     const requestPublicUrl = getPublicUrlFromRequest(request)
     const score = getStringMatchScore(requestPublicUrl, mask)
 
-    return score + methodScoreDelta
+    return score - methodScoreDelta
   }
 }
 
@@ -86,10 +90,10 @@ function getScoreForGraphQLHandler(
     const { operationType, operationName } = handler.getMetaInfo()
     const hasSameOperationType = parsedQuery.operationType === operationType
     // Always treat a handler with the same operation type as a more similar one.
-    const operationTypeScoreDelta = hasSameOperationType ? 0 : 0.25
+    const operationTypeScoreDelta = hasSameOperationType ? TYPE_MATCH_DELTA : 0
     const score = getStringMatchScore(parsedQuery.operationName, operationName)
 
-    return score + operationTypeScoreDelta
+    return score - operationTypeScoreDelta
   }
 }
 
@@ -97,8 +101,8 @@ function getSuggestedHandler(
   request: MockedRequest,
   handlers: RequestHandlersList,
   getScore: ScoreGetterFn,
-): RequestHandler | undefined {
-  const suggestedHandler = handlers
+): RequestHandler[] {
+  const suggestedHandlers = handlers
     .reduce<RequestHandlerSuggestionList>((acc, handler) => {
       const score = getScore(request, handler)
       return acc.concat([[score, handler]])
@@ -106,11 +110,26 @@ function getSuggestedHandler(
     .sort(([leftScore], [rightScore]) => {
       return leftScore - rightScore
     })
-    .find(([score]) => {
-      return score <= 2
+    .filter(([score]) => {
+      return score <= MAX_MATCH_SCORE
     })
+    .slice(0, MAX_SUGGESTION_COUNT)
+    .map(([, handler]) => handler)
 
-  return suggestedHandler?.[1]
+  return suggestedHandlers
+}
+
+function getSuggestedHandlersMessage(handlers: RequestHandler[]) {
+  if (handlers.length > 1) {
+    return `\
+Did you mean to request one of the following resources instead?
+
+${handlers.map((handler) => `  • ${handler.getMetaInfo().header}`).join('\n')}`
+  }
+
+  return `Did you mean to request "${
+    handlers[0].getMetaInfo().header
+  }" instead?`
 }
 
 export function onUnhandledRequest(
@@ -129,7 +148,7 @@ export function onUnhandledRequest(
     ? handlerGroups.graphql
     : handlerGroups.rest
 
-  const suggestedHandler = getSuggestedHandler(
+  const suggestedHandlers = getSuggestedHandler(
     request,
     relevantHandlers,
     parsedGraphQLQuery
@@ -137,11 +156,10 @@ export function onUnhandledRequest(
       : getScoreForRestHandler(),
   )
 
-  const handlerSuggestion = suggestedHandler
-    ? `Did you mean to request "${
-        suggestedHandler.getMetaInfo().header
-      }" instead?`
-    : ''
+  const handlerSuggestion =
+    suggestedHandlers.length > 0
+      ? getSuggestedHandlersMessage(suggestedHandlers)
+      : ''
 
   const publicUrl = getPublicUrlFromRequest(request)
   const requestHeader = parsedGraphQLQuery

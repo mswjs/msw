@@ -1,6 +1,5 @@
 import * as path from 'path'
 import { runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
 import { sleep } from '../../../support/utils'
 
 function createRuntime() {

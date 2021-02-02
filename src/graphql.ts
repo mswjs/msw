@@ -21,7 +21,6 @@ import { getStatusCodeColor } from './utils/logging/getStatusCodeColor'
 import { jsonParse } from './utils/internal/jsonParse'
 import { matchRequestUrl } from './utils/matching/matchRequestUrl'
 import { getCallFrame } from './utils/internal/getCallFrame'
-import { body } from './context'
 
 type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 

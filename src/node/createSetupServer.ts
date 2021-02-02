@@ -17,7 +17,6 @@ import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
-import { request } from 'express'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',

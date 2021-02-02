@@ -1,4 +1,4 @@
-import { OnUnhandledRequest } from './utils/request/onUnhandledRequest'
+import { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {
   /**
@@ -8,5 +8,5 @@ export interface SharedOptions {
    * @example worker.start({ onUnhandledRequest: 'warn' })
    * @example server.listen({ onUnhandledRequest: 'error' })
    */
-  onUnhandledRequest?: OnUnhandledRequest
+  onUnhandledRequest?: UnhandledRequestStrategy
 }

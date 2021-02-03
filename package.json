@@ -12,7 +12,7 @@
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
     "clean": "rimraf lib node/**/*.js",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
-    "build": "yarn clean && cross-env NODE_ENV=production rollup -c rollup.config.ts",
+    "build": "yarn clean && tsc --noemit && cross-env NODE_ENV=production rollup -c rollup.config.ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --runInBand",
     "test:integration": "node --max_old_space_size=8000 node_modules/jest/bin/jest.js --config=test/jest.config.js --runInBand",

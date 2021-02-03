@@ -9,8 +9,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationDir": "lib/types",
-    "skipLibCheck": true,
-    "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
+    "lib": ["es2017", "ESNext.AsyncIterable", "dom"]
   },
   "include": ["global.d.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]

@@ -118,10 +118,10 @@ export interface SetupWorkerInternalContext {
      * Adds an event listener on the given target.
      * Returns a clean-up function that removes that listener.
      */
-    addListener<E extends Event>(
+    addListener(
       target: EventTarget,
       eventType: string,
-      listener: (event: E) => void,
+      listener: ((event: MessageEvent) => void) | EventListener,
     ): () => void
     /**
      * Removes all currently attached listeners.

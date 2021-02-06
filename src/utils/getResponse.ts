@@ -85,7 +85,8 @@ export const getResponse = async <
 
       const mockedResponse = await resolver(publicRequest, response, context)
 
-      if (!mockedResponse) {
+      // Check for the handler relevancy in case of multiple parallel one-time handlers.
+      if (!mockedResponse || requestHandler.shouldSkip) {
         return acc
       }
 

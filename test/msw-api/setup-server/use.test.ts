@@ -72,3 +72,25 @@ test('returns a mocked response from a one-time request handler override only up
   expect(anotherBookResponse.status).toBe(200)
   expect(anotherBookBody).toEqual({ title: 'Original title' })
 })
+
+test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
+  server.use(
+    rest.get('https://test.mswjs.io/book/:bookId', (req, res, ctx) => {
+      const { bookId } = req.params
+      return res.once(ctx.json({ title: 'One-time override', bookId }))
+    }),
+  )
+
+  const bookRequestPromise = fetch('https://test.mswjs.io/book/abc-123')
+  const anotherBookRequestPromise = fetch('https://test.mswjs.io/book/abc-123')
+
+  const bookResponse = await bookRequestPromise
+  const bookBody = await bookResponse.json()
+  expect(bookResponse.status).toBe(200)
+  expect(bookBody).toEqual({ title: 'One-time override', bookId: 'abc-123' })
+
+  const anotherBookResponse = await anotherBookRequestPromise
+  const anotherBookBody = await anotherBookResponse.json()
+  expect(anotherBookResponse.status).toBe(200)
+  expect(anotherBookBody).toEqual({ title: 'Original title' })
+})

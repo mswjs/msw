@@ -108,3 +108,40 @@ test('returns a mocked response from a one-time request handler override only up
 
   await runtime.cleanup()
 })
+
+test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
+  const runtime = await runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+
+  await runtime.page.evaluate(() => {
+    const { msw } = window
+
+    msw.worker.use(
+      msw.rest.get('/book/:bookId', function oneTimeOverride(req, res, ctx) {
+        const { bookId } = req.params
+        return res.once(ctx.json({ title: 'One-time override', bookId }))
+      }),
+    )
+  })
+
+  const bookPromise = runtime.request({
+    url: runtime.makeUrl('/book/abc-123'),
+  })
+
+  const anotherBookPromise = runtime.request({
+    url: runtime.makeUrl('/book/abc-123'),
+  })
+
+  const bookResponse = await bookPromise
+  const bookStatus = bookResponse.status()
+  const bookBody = await bookResponse.json()
+  expect(bookStatus).toBe(200)
+  expect(bookBody).toEqual({ title: 'One-time override', bookId: 'abc-123' })
+
+  const anotherBookResponse = await anotherBookPromise
+  const anotherBookStatus = anotherBookResponse.status()
+  const anotherBookBody = await anotherBookResponse.json()
+  expect(anotherBookStatus).toBe(200)
+  expect(anotherBookBody).toEqual({ title: 'Original title' })
+
+  await runtime.cleanup()
+})

@@ -37,7 +37,7 @@ type RestRequestHandler = RequestHandler<
 
 type GraphQLRequestHandler = RequestHandler<
   GraphQLMockedRequest<any>,
-  GraphQLMockedContext,
+  GraphQLMockedContext<any>,
   GraphQLRequestParsedResult<any>
 >
 

@@ -10,7 +10,7 @@ import { set } from './context/set'
 import { status } from './context/status'
 import { delay } from './context/delay'
 import { fetch } from './context/fetch'
-import { data } from './context/data'
+import { data, DataContext } from './context/data'
 import { errors } from './context/errors'
 
 /* Logging */
@@ -37,16 +37,16 @@ export type GraphQLMockedRequest<VariablesType = Record<string, any>> = Omit<
 // GraphQL related context should contain utility functions
 // useful for GraphQL. Functions like `xml()` bear no value
 // in the GraphQL universe.
-export interface GraphQLMockedContext {
+export interface GraphQLMockedContext<QueryType> {
   set: typeof set
   status: typeof status
   delay: typeof delay
   fetch: typeof fetch
-  data: typeof data
+  data: DataContext<QueryType>
   errors: typeof errors
 }
 
-export const graphqlContext: GraphQLMockedContext = {
+export const graphqlContext: GraphQLMockedContext<any> = {
   set,
   status,
   delay,
@@ -58,7 +58,7 @@ export const graphqlContext: GraphQLMockedContext = {
 export type GraphQLResponseResolver<QueryType, VariablesType> = (
   req: GraphQLMockedRequest<VariablesType>,
   res: ResponseComposition<any>,
-  context: GraphQLMockedContext,
+  context: GraphQLMockedContext<QueryType>,
 ) => AsyncResponseResolverReturnType<MockedResponse>
 
 export type GraphQLJSONRequestPayload<VariablesType> = {
@@ -140,7 +140,7 @@ function graphQLRequestHandler<QueryType, VariablesType = Record<string, any>>(
   resolver: GraphQLResponseResolver<QueryType, VariablesType>,
 ): RequestHandler<
   GraphQLMockedRequest<VariablesType>,
-  GraphQLMockedContext,
+  GraphQLMockedContext<QueryType>,
   GraphQLRequestParsedResult<VariablesType>
 > {
   const callFrame = getCallFrame()
@@ -313,7 +313,7 @@ const createGraphQLScopedHandler = (
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<
     GraphQLMockedRequest<VariablesType>,
-    GraphQLMockedContext,
+    GraphQLMockedContext<QueryType>,
     GraphQLRequestParsedResult<VariablesType>
   > => {
     return graphQLRequestHandler(
@@ -330,7 +330,7 @@ const createGraphQLOperationHandler = (mask: Mask) => {
     resolver: GraphQLResponseResolver<QueryType, VariablesType>,
   ): RequestHandler<
     GraphQLMockedRequest<VariablesType>,
-    GraphQLMockedContext,
+    GraphQLMockedContext<QueryType>,
     GraphQLRequestParsedResult<VariablesType>
   > => {
     return graphQLRequestHandler('all', new RegExp('.*'), mask, resolver)

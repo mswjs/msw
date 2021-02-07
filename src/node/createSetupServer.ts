@@ -39,6 +39,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
     })
     const interceptor = new RequestInterceptor(interceptors)
+    let pendingRequests: { [requestId: string]: NodeJS.Timeout } = {}
 
     // Error when attempting to run this function in a browser environment.
     if (!isNodeProcess()) {
@@ -150,10 +151,14 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
             // the node build will use the timers module to ensure @sinon/fake-timers or jest fake timers
             // don't affect this timeout.
-            setTimeout(() => {
-              resolve(mockedResponse)
+            const t = setTimeout(() => {
+              // Only resolve when the request is still relevant
+              if (pendingRequests[mockedRequest.id]) {
+                resolve(mockedResponse)
+                delete pendingRequests[mockedRequest.id]
+              }
             }, response.delay ?? 0)
-
+            pendingRequests[mockedRequest.id] = t
             emitter.emit('request:end', mockedRequest)
           })
         })
@@ -168,6 +173,10 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       },
 
       resetHandlers(...nextHandlers) {
+        // Clear pending requests so they don't resolve
+        Object.values(pendingRequests).forEach(clearTimeout)
+        pendingRequests = {}
+
         currentHandlers = requestHandlerUtils.resetHandlers(
           requestHandlers,
           ...nextHandlers,

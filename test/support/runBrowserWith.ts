@@ -1,9 +1,8 @@
 import * as puppeteer from 'puppeteer'
 import { headersToObject } from 'headers-utils'
-import { match } from 'node-match-path'
-import { getCleanUrl } from 'node-request-interceptor'
 import WebpackDevServer from 'webpack-dev-server'
 import { SpawnServerOptions, spawnServer } from './spawnServer'
+import { uuidv4 } from '../../src/utils/internal/uuidv4'
 
 /**
  * Requests a given URL within the test scenario's browser session.
@@ -17,40 +16,47 @@ type RequestHelper = (options: {
 export const createRequestHelper = (page: puppeteer.Page): RequestHelper => {
   return async ({
     url,
-    fetchOptions,
-    responsePredicate = (res) => {
-      // Remove query parameters from both URLs
-      const expectedUrl = getCleanUrl(new URL(url))
-      const actualUrl = getCleanUrl(new URL(res.url()))
-
-      // Use native matcher to preserve the standard matching behavior
-      // (i.e. disregard trailing slashes).
-      return match(expectedUrl, actualUrl).matches
-    },
+    fetchOptions: customFetchOptions,
+    responsePredicate,
   }) => {
-    const requestInit: any = Object.assign(
-      {},
-      fetchOptions && {
-        ...fetchOptions,
-        headers:
-          // Convert headers to object, because the `Headers` instance
-          // cannot be serialized during `page.evaluate()`.
-          fetchOptions.headers instanceof Headers
-            ? headersToObject(fetchOptions.headers)
-            : fetchOptions.headers,
-      },
-    )
+    const requestId = uuidv4()
+    const fetchOptions = customFetchOptions || {}
+    const initialHeaders = fetchOptions.headers || {}
+    const requestHeaders =
+      initialHeaders instanceof Headers
+        ? initialHeaders
+        : new Headers(initialHeaders)
+
+    // Store the request UUID in the `Accept-Language` header.
+    // Keep in mind that this identity header must satisfy:
+    // - Must not be stripped on the "no-cors" requests.
+    // - Must not be `X-NAME`, as such headers fail requests to actual API.
+    const identityHeaderName = 'accept-language'
+    requestHeaders.set(identityHeaderName, requestId)
+
+    const requestInit = Object.assign({}, fetchOptions, {
+      // Convert headers to object because the `Headers` instance
+      // cannot be serialized during `page.evaluate()`.
+      headers: headersToObject(requestHeaders),
+    })
 
     page.evaluate(
-      (a: string, b: RequestInit) => {
-        return fetch(a, b)
+      (input: string, init: RequestInit) => {
+        return fetch(input, init)
       },
       url,
       requestInit,
     )
 
+    function defaultResponsePredicate(res: puppeteer.Response) {
+      const requestHeaders = res.request().headers()
+      return requestHeaders[identityHeaderName] === requestId
+    }
+
     return page.waitForResponse((res) => {
-      return responsePredicate(res, url)
+      return responsePredicate
+        ? responsePredicate(res, url)
+        : defaultResponsePredicate(res)
     })
   }
 }

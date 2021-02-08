@@ -15,9 +15,9 @@ import { createResponseListener } from '../../utils/worker/createResponseListene
 const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   serviceWorker: {
     url: '/mockServiceWorker.js',
-    shared: false,
     options: null as any,
   },
+  shared: false,
   quiet: false,
   waitUntilReady: true,
   onUnhandledRequest: 'bypass',
@@ -127,7 +127,7 @@ If this message still persists after updating, please report an issue: https://g
 
       // Signal the Service Worker to enable requests interception
       const [activationError] = await until(() =>
-        activateMocking(context, options, resolvedOptions.serviceWorker.shared),
+        activateMocking(context, options),
       )
 
       if (activationError) {

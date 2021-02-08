@@ -3,19 +3,16 @@ import { StartOptions, SetupWorkerInternalContext } from '../../glossary'
 export const activateMocking = async (
   context: SetupWorkerInternalContext,
   options?: StartOptions,
-  shared = false,
 ) => {
-  const message = shared ? 'SHARED_MOCK_ACTIVATE' : 'MOCK_ACTIVATE'
-  const event = shared ? 'SHARED_MOCKING_ENABLED' : 'MOCKING_ENABLED'
-  context.worker?.postMessage(message)
+  context.workerChannel.send('MOCK_ACTIVATE', { shared: options?.shared })
 
-  return context.events.once(event).then(() => {
+  return context.events.once('MOCKING_ENABLED').then(() => {
     if (!options?.quiet) {
       console.groupCollapsed(
-        `%c[MSW] ${shared ? 'Shared ' : ''}Mocking enabled.`,
+        `%c[MSW] ${options?.shared ? 'Shared ' : ''}Mocking enabled.`,
         'color:orangered;font-weight:bold;',
       )
-      if (shared) {
+      if (options?.shared) {
         console.log('All connected clients will be served these mocks')
       }
       console.log(

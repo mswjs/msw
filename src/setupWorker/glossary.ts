@@ -52,7 +52,6 @@ export type ServiceWorkerIncomingResponse = Pick<
  */
 export interface ServiceWorkerIncomingEventsMap {
   MOCKING_ENABLED: boolean
-  SHARED_MOCKING_ENABLED: boolean
   INTEGRITY_CHECK_RESPONSE: string
   KEEPALIVE_RESPONSE: never
   REQUEST: ServiceWorkerIncomingRequest
@@ -65,7 +64,6 @@ export interface ServiceWorkerIncomingEventsMap {
  */
 export type ServiceWorkerOutgoingEventTypes =
   | 'MOCK_ACTIVATE'
-  | 'SHARED_MOCK_ACTIVATE'
   | 'MOCK_DEACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
   | 'KEEPALIVE_REQUEST'
@@ -113,6 +111,7 @@ export interface SetupWorkerInternalContext {
     ): void
     send<EventType extends ServiceWorkerOutgoingEventTypes>(
       eventType: EventType,
+      data?: Record<string, any>,
     ): void
   }
   events: {
@@ -156,9 +155,13 @@ export type StartOptions = SharedOptions & {
    */
   serviceWorker?: {
     url?: string
-    shared?: boolean
     options?: RegistrationOptions
   }
+
+  /**
+   * Shares the mocks with all clients connected
+   */
+  shared?: boolean
 
   /**
    * Disables the logging of captured requests

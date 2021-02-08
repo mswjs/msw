@@ -7,9 +7,7 @@ const worker = setupWorker(
 )
 
 worker.start({
-  serviceWorker: {
-    shared: true,
-  },
+  shared: true,
 })
 
 // @ts-ignore

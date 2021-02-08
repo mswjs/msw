@@ -68,8 +68,8 @@ export function setupWorker(
           },
         )
       },
-      send(type) {
-        context.worker?.postMessage(type)
+      send(type, payload = {}) {
+        context.worker?.postMessage({ type, ...payload })
       },
     },
     events: {

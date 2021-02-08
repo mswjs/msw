@@ -37,7 +37,7 @@ self.addEventListener('message', async function (event) {
   const allClients = await self.clients.matchAll()
   const allClientIds = allClients.map((client) => client.id)
 
-  switch (event.data) {
+  switch (event.data.type) {
     case 'KEEPALIVE_REQUEST': {
       sendToClient(client, {
         type: 'KEEPALIVE_RESPONSE',
@@ -57,20 +57,12 @@ self.addEventListener('message', async function (event) {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = true
 
+      if (event.data.shared) {
+        sharedClientId = clientId
+      }
+
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
-        payload: true,
-      })
-      break
-    }
-
-    case 'SHARED_MOCK_ACTIVATE': {
-      clients = ensureKeys(allClientIds, clients)
-      clients[clientId] = true
-      sharedClientId = clientId
-
-      sendToClient(client, {
-        type: 'SHARED_MOCKING_ENABLED',
         payload: true,
       })
       break
@@ -101,7 +93,7 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-self.addEventListener('fetch', async function (event) {
+self.addEventListener('fetch', function (event) {
   const { request } = event
   const requestId = uuidv4()
   const requestClone = request.clone()

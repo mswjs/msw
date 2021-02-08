@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { runBrowserWith } from '../../support/runBrowserWith'
 
 test('responds with a given binary body', async () => {
   const runtime = await runBrowserWith(
@@ -15,7 +15,7 @@ test('responds with a given binary body', async () => {
   const body = await res.buffer()
 
   const expectedBuffer = fs.readFileSync(
-    path.resolve(__dirname, '../fixtures/image.jpg'),
+    path.resolve(__dirname, '../../fixtures/image.jpg'),
   )
 
   expect(status).toBe(200)

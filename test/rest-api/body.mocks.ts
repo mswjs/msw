@@ -1,12 +1,25 @@
-import { setupWorker, rest } from 'msw'
+import {
+  ResponseResolver,
+  RestContext,
+  MockedRequest,
+  setupWorker,
+  rest,
+} from 'msw'
 
-function handleRequestBody(req, res, ctx) {
+const handleRequestBody: ResponseResolver<MockedRequest, RestContext> = (
+  req,
+  res,
+  ctx,
+) => {
   const { body } = req
 
   return res(ctx.json({ body }))
 }
 
-async function handleMultipartRequestBody(req, res, ctx) {
+const handleMultipartRequestBody: ResponseResolver<
+  MockedRequest,
+  RestContext
+> = async (req, res, ctx) => {
   const { body } = req
   const resBody: Record<string, string> = {}
   for (const [name, value] of Object.entries(body)) {

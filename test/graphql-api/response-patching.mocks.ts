@@ -1,8 +1,15 @@
 import { setupWorker, graphql } from 'msw'
 import { createGraphQLClient, gql } from '../support/graphql'
 
+interface GetUserQuery {
+  user: {
+    firstName: string
+    lastName: string
+  }
+}
+
 const worker = setupWorker(
-  graphql.query('GetUser', async (req, res, ctx) => {
+  graphql.query<GetUserQuery>('GetUser', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req)
     const originalJson = await originalResponse.json()
 

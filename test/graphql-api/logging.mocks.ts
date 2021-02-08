@@ -1,7 +1,20 @@
 import { setupWorker, graphql } from 'msw'
 
+interface GetUserDetailQuery {
+  user: {
+    firstName: string
+    lastName: string
+  }
+}
+
+interface LoginQuery {
+  user: {
+    id: string
+  }
+}
+
 const worker = setupWorker(
-  graphql.query('GetUserDetail', (req, res, ctx) => {
+  graphql.query<GetUserDetailQuery>('GetUserDetail', (req, res, ctx) => {
     return res(
       ctx.data({
         user: {
@@ -11,7 +24,7 @@ const worker = setupWorker(
       }),
     )
   }),
-  graphql.mutation('Login', (req, res, ctx) => {
+  graphql.mutation<LoginQuery>('Login', (req, res, ctx) => {
     return res(
       ctx.data({
         user: {

@@ -3,8 +3,28 @@ import { setupWorker, graphql } from 'msw'
 const github = graphql.link('https://api.github.com/graphql')
 const stripe = graphql.link('https://api.stripe.com/graphql')
 
+interface GetUserQuery {
+  user: {
+    id: string
+    username: string
+  }
+}
+
+interface PaymentQuery {
+  bankAccount: {
+    totalFunds: number
+  }
+}
+
+interface GetUserQuery {
+  user: {
+    id: string
+    username: string
+  }
+}
+
 const worker = setupWorker(
-  github.query('GetUser', (req, res, ctx) => {
+  github.query<GetUserQuery>('GetUser', (req, res, ctx) => {
     return res(
       ctx.data({
         user: {
@@ -14,7 +34,7 @@ const worker = setupWorker(
       }),
     )
   }),
-  stripe.mutation('Payment', (req, res, ctx) => {
+  stripe.mutation<PaymentQuery>('Payment', (req, res, ctx) => {
     return res(
       ctx.data({
         bankAccount: {
@@ -23,7 +43,7 @@ const worker = setupWorker(
       }),
     )
   }),
-  graphql.query('GetUser', (req, res, ctx) => {
+  graphql.query<GetUserQuery>('GetUser', (req, res, ctx) => {
     return res(
       ctx.set('x-request-handler', 'fallback'),
       ctx.data({

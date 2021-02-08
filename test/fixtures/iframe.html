@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Iframe</h2>
+    <script>
+      window.request = () => {
+        fetch('/user')
+          .then((res) => res.json())
+          .then((data) => {
+            const node = document.createElement('p')
+            node.setAttribute('id', 'first-name')
+            node.innerText = data.firstName
+            document.body.appendChild(node)
+          })
+      }
+
+      document.addEventListener('click', window.request)
+    </script>
+  </body>
+</html>

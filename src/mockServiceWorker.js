@@ -239,6 +239,13 @@ self.addEventListener('fetch', function (event) {
     return
   }
 
+  // Bypass all requests when there are no active client IDs.
+  // Prevents the self-unregistered worked from handling requests
+  // after it's been deleted (still remains active until the next reload).
+  if (activeClientIds.size === 0) {
+    return
+  }
+
   const requestId = uuidv4()
 
   return event.respondWith(

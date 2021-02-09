@@ -270,7 +270,7 @@ function serializeHeaders(headers) {
   return reqHeaders
 }
 
-async function sendToClient(client, message) {
+function sendToClient(client, message) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 

@@ -11,7 +11,7 @@ const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const bypassHeaderName = 'x-msw-bypass'
 
 let clients = {}
-let pendingRequests = {}
+const pendingRequests = new Map()
 
 self.addEventListener('install', function () {
   return self.skipWaiting()
@@ -80,10 +80,10 @@ self.addEventListener('message', async function (event) {
         self.registration.unregister()
       }
 
-      // Clear pending requests so they don't resolve
+      // Clear pending requests
       // Otherwise this causes previous requests to resolve after a refresh
-      Object.values(pendingRequests).forEach(clearTimeout)
-      pendingRequests = {}
+      pendingRequests.forEach(clearTimeout)
+      pendingRequests.clear()
 
       break
     }
@@ -164,13 +164,13 @@ self.addEventListener('fetch', function (event) {
 
       switch (clientMessage.type) {
         case 'MOCK_SUCCESS': {
-          const t = setTimeout(() => {
-            if (pendingRequests[requestId]) {
+          const responseTimeout = setTimeout(() => {
+            if (pendingRequests.has(requestId)) {
               resolve(createResponse(clientMessage))
-              delete pendingRequests[requestId]
+              pendingRequests.delete(requestId)
             }
           }, clientMessage.payload.delay)
-          pendingRequests[requestId] = t
+          pendingRequests.set(requestId, responseTimeout)
           break
         }
 

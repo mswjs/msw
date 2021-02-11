@@ -1,36 +1,28 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 function prepareRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'status.mocks.ts'))
+  return pageWith({ example: path.resolve(__dirname, 'status.mocks.ts') })
 }
 
 test('sets given status code on the mocked response', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/posts'),
-  })
+  const res = await runtime.request('/posts')
   const status = res.status()
   const statusText = res.statusText()
 
   expect(status).toBe(403)
   expect(statusText).toBe('Forbidden')
-
-  return runtime.cleanup()
 })
 
 test('supports custom status text on the mocked response', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-  })
+  const res = await runtime.request('/user')
   const status = res.status()
   const statusText = res.statusText()
 
   expect(status).toBe(401)
   expect(statusText).toBe('Custom text')
-
-  return runtime.cleanup()
 })

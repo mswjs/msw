@@ -1,10 +1,6 @@
 import * as path from 'path'
-import { Page } from 'puppeteer'
+import { Page, pageWith, createRequestUtil } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import {
-  runBrowserWith,
-  createRequestHelper,
-} from '../../support/runBrowserWith'
 import { sleep } from '../../support/utils'
 
 declare namespace window {
@@ -14,7 +10,9 @@ declare namespace window {
 }
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'stop.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'stop.mocks.ts'),
+  })
 }
 
 const stopWorkerOn = async (page: Page) => {
@@ -29,9 +27,7 @@ test('disables the mocking when the worker is stopped', async () => {
   const runtime = await createRuntime()
   await stopWorkerOn(runtime.page)
 
-  const res = await runtime.request({
-    url: 'https://api.github.com',
-  })
+  const res = await runtime.request('https://api.github.com')
   const headers = res.headers()
   const body = await res.json()
 
@@ -39,19 +35,17 @@ test('disables the mocking when the worker is stopped', async () => {
   expect(body).not.toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })
 
 test('keeps the mocking enabled in one tab when stopping the worker in another tab', async () => {
-  const runtime = await createRuntime()
-  const firstPage = await runtime.browser.newPage()
-  await firstPage.goto(runtime.origin, {
-    waitUntil: 'networkidle0',
+  const { context, origin, server } = await createRuntime()
+  const firstPage = await context.newPage()
+  await firstPage.goto(origin, {
+    waitUntil: 'networkidle',
   })
-  const secondPage = await runtime.browser.newPage()
-  await secondPage.goto(runtime.origin, {
-    waitUntil: 'networkidle0',
+  const secondPage = await context.newPage()
+  await secondPage.goto(origin, {
+    waitUntil: 'networkidle',
   })
 
   await stopWorkerOn(firstPage)
@@ -59,11 +53,9 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   // Switch to another page.
   await secondPage.bringToFront()
 
-  // Creating a request handler for the new page.
-  const request = createRequestHelper(secondPage)
-  const res = await request({
-    url: 'https://api.github.com',
-  })
+  // Create a request handler for the new page.
+  const request = createRequestUtil(secondPage, server)
+  const res = await request('https://api.github.com')
   const headers = res.headers()
   const body = await res.json()
 
@@ -71,6 +63,4 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

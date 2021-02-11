@@ -1,6 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest } from 'msw'
-import { runBrowserWith } from '../../support/runBrowserWith'
 
 declare namespace window {
   // Annotate global references to the worker and rest request handlers.
@@ -11,7 +11,9 @@ declare namespace window {
 }
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'use.mocks.ts'),
+  })
 }
 
 test('removes all runtime request handlers when resetting without explicit next handlers', async () => {
@@ -29,11 +31,8 @@ test('removes all runtime request handlers when resetting without explicit next 
   })
 
   // Request handlers added on runtime affect the network communication.
-  const loginResponse = await runtime.request({
-    url: runtime.makeUrl('/login'),
-    fetchOptions: {
-      method: 'POST',
-    },
+  const loginResponse = await runtime.request('/login', {
+    method: 'POST',
   })
   const loginStatus = loginResponse.status()
   const loginBody = await loginResponse.json()
@@ -48,25 +47,18 @@ test('removes all runtime request handlers when resetting without explicit next 
   })
 
   // Any runtime request handlers are removed upon reset.
-  const secondLoginResponse = await runtime.request({
-    url: runtime.makeUrl('/login'),
-    fetchOptions: {
-      method: 'POST',
-    },
+  const secondLoginResponse = await runtime.request('/login', {
+    method: 'POST',
   })
   const secondLoginStatus = secondLoginResponse.status()
   expect(secondLoginStatus).toBe(404)
 
   // Initial request handlers (given to `setupWorker`) are not affected.
-  const bookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookResponse = await runtime.request('/book/abc-123')
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
   expect(bookStatus).toBe(200)
   expect(bookBody).toEqual({ title: 'Original title' })
-
-  await runtime.cleanup()
 })
 
 test('replaces all handlers with the explicit next runtime handlers upon reset', async () => {
@@ -95,30 +87,21 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
   })
 
   // Any runtime request handlers must be removed.
-  const loginResponse = await runtime.request({
-    url: runtime.makeUrl('/login'),
-    fetchOptions: {
-      method: 'POST',
-    },
+  const loginResponse = await runtime.request('/login', {
+    method: 'POST',
   })
   const secondLoginStatus = loginResponse.status()
   expect(secondLoginStatus).toBe(404)
 
   // Any initial request handler must be removed.
-  const bookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookResponse = await runtime.request('/book/abc-123')
   const bookStatus = bookResponse.status()
   expect(bookStatus).toEqual(404)
 
   // Should leave only explicit reset request handlers.
-  const productsResponse = await runtime.request({
-    url: runtime.makeUrl('/products'),
-  })
+  const productsResponse = await runtime.request('/products')
   const productsStatus = productsResponse.status()
   const productsBody = await productsResponse.json()
   expect(productsStatus).toBe(200)
   expect(productsBody).toEqual([1, 2, 3])
-
-  await runtime.cleanup()
 })

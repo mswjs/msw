@@ -1,10 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest, graphql } from 'msw'
-import {
-  captureConsole,
-  filterLibraryLogs,
-} from '../../../../support/captureConsole'
-import { runBrowserWith } from '../../../../support/runBrowserWith'
 
 declare namespace window {
   export const msw: {
@@ -15,15 +11,16 @@ declare namespace window {
 }
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'suggestions.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'suggestions.mocks.ts'),
+  })
 }
 
 describe('REST API', () => {
   test('does not suggest any handlers when there are no similar ones', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
         rest.get('/user', () => null),
@@ -31,12 +28,9 @@ describe('REST API', () => {
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/user-details'),
-    })
+    await request('/user-details')
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -49,25 +43,19 @@ describe('REST API', () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggests a similar request handler of the same method', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(rest.get('/user', () => null))
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/users'),
-    })
+    await request('/users')
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -82,15 +70,12 @@ Did you mean to request "GET /user" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggest a handler of a different method if its URL is similar', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
         rest.get('/user', () => null),
@@ -98,15 +83,11 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/users'),
-      fetchOptions: {
-        method: 'POST',
-      },
+    await request('/users', {
+      method: 'POST',
     })
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -121,15 +102,12 @@ Did you mean to request "GET /user" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggests multiple similar handlers regardless of their method', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
         rest.post('/payment', () => null),
@@ -137,13 +115,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       )
     })
 
-    await runtime.request({
-      // Intentional typo in the request URL.
-      url: runtime.makeUrl('/pamyents'),
-    })
+    await request('/pamyents')
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -161,17 +135,14 @@ Did you mean to request one of the following resources instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 })
 
 describe('GraphQL API', () => {
   test('does not suggest any handlers when there are no similar ones', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
         graphql.mutation('SubmitCheckout', () => null),
@@ -179,27 +150,23 @@ describe('GraphQL API', () => {
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/graphql'),
-      fetchOptions: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
+    await request('/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
             query PaymentHistory {
               creditCard {
                 number
               }
             }
           `,
-        }),
-      },
+      }),
     })
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -212,15 +179,12 @@ describe('GraphQL API', () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggests a similar request handler of the same operation type', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
         graphql.mutation('GetLatestActiveUser', () => null),
@@ -228,27 +192,23 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/graphql'),
-      fetchOptions: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
+    await request('/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
             query GetUsers {
               user {
                 firstName
               }
             }
           `,
-        }),
-      },
+      }),
     })
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -263,15 +223,12 @@ Did you mean to request "query GetUser (origin: *)" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggests a handler of a different operation type if its name is similar', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
         graphql.query('GetCheckoutSummary', () => null),
@@ -279,27 +236,23 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/graphql'),
-      fetchOptions: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
+    await request('/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
             query SubmitCheckout {
               checkout {
                 status
               }
             }
           `,
-        }),
-      },
+      }),
     })
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -314,15 +267,12 @@ Did you mean to request "mutation SubmitCheckout (origin: *)" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 
   test('suggests multiple similar handlers regardless of their operation type', async () => {
-    const runtime = await createRuntime()
-    const { messages } = captureConsole(runtime.page)
+    const { page, request, consoleSpy } = await createRuntime()
 
-    runtime.page.evaluate(() => {
+    page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
         graphql.mutation('ActivateUser', () => null),
@@ -330,27 +280,23 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       )
     })
 
-    await runtime.request({
-      url: runtime.makeUrl('/graphql'),
-      fetchOptions: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
+    await request('/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
             query ActiveUsers {
               checkout {
                 status
               }
             }
           `,
-        }),
-      },
+      }),
     })
 
-    const libraryWarnings = messages.warning.filter(filterLibraryLogs)
-    const unhandledRequestWarning = libraryWarnings.find((text) => {
+    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
       return /\[MSW\] Warning: captured a request without a matching request handler/.test(
         text,
       )
@@ -368,7 +314,5 @@ Did you mean to request one of the following resources instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
-
-    return runtime.cleanup()
   })
 })

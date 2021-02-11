@@ -7,8 +7,6 @@ This directory categorizes all test suites based on the library's execution or A
 - `/rest-api`, `/graphql-api`: for tests concerning the usage of the library with the respective API type.
 - `/msw-api` for the tests concerning the library's API.
 
-> There is also the `/support` directory that contains the modules necessary for the tests to run, such as webpack configuration and Puppeteer setup files.
-
 ## Test structure
 
 Each test consists of two parts:

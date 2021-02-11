@@ -3,7 +3,7 @@
 import {
   HOSTNAME,
   graphqlOperation,
-} from '../graphql-api/utils/executeOperation'
+} from '../graphql-api/utils/executeGraphQLQuery'
 
 // @ts-ignore
 window.graphqlOperation = graphqlOperation(HOSTNAME)

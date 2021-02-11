@@ -1,25 +1,19 @@
 import * as path from 'path'
-import { runBrowserWith } from '../../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 import { sleep } from '../../../support/utils'
 
-function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'null-body.mocks.ts'))
-}
-
-test('lifecycle mothod should support null body', async () => {
-  let error
-  const runtime = await createRuntime()
-
-  runtime.page.on('pageerror', (err) => {
-    error = err
+test('gracefully handles a 204 response null body during life-cycle events', async () => {
+  let error: Error
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'null-body.mocks.ts'),
   })
 
-  await runtime.request({
-    url: 'https://test.mswjs.io/api/books',
+  runtime.page.on('pageerror', (pageError) => {
+    error = pageError
   })
+
+  await runtime.request('https://test.mswjs.io/api/books')
   await sleep(500)
 
   expect(error).not.toBeDefined()
-
-  return runtime.cleanup()
 })

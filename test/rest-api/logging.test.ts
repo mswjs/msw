@@ -1,25 +1,23 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { captureConsole } from '../support/captureConsole'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'basic.mocks.ts'))
+  return pageWith({ example: path.resolve(__dirname, 'basic.mocks.ts') })
 }
 
 test('prints a captured request info into browser console', async () => {
   const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
 
-  await runtime.request({
-    url: 'https://api.github.com/users/octocat',
-  })
+  await runtime.request('https://api.github.com/users/octocat')
 
-  const requestLog = messages.startGroupCollapsed.find((text) => {
-    // No way to assert the entire format of the log entry,
-    // because Puppeteer intercepts `console.log` calls,
-    // which contain unformatted strings (with %s, %c, styles).
-    return text.includes('https://api.github.com/users/octocat')
-  })
+  const requestLog = runtime.consoleSpy
+    .get('startGroupCollapsed')
+    .find((text) => {
+      // No way to assert the entire format of the log entry,
+      // because Puppeteer intercepts `console.log` calls,
+      // which contain unformatted strings (with %s, %c, styles).
+      return text.includes('https://api.github.com/users/octocat')
+    })
 
   // Request log must include a timestamp.
   expect(requestLog).toMatch(/\d{2}:\d{2}:\d{2}/)
@@ -29,6 +27,4 @@ test('prints a captured request info into browser console', async () => {
 
   // Request log must include the response status code.
   expect(requestLog).toContain('200')
-
-  return runtime.cleanup()
 })

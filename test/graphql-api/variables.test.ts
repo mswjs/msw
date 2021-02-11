@@ -1,15 +1,17 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'variables.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'variables.mocks.ts'),
+  })
 }
 
 test('can access variables from a GraphQL query', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
       query GetGithubUser($username: String!) {
         user(login: $username) {
@@ -34,14 +36,12 @@ test('can access variables from a GraphQL query', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('can access variables from a GraphQL mutation', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
       mutation DeletePost($postId: String!) {
         deletePost(id: $postId) {
@@ -64,14 +64,12 @@ test('can access variables from a GraphQL mutation', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('returns an empty object when accessing variables from a GraphQL operation without them', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
         query GetActiveUser {
           user {
@@ -91,6 +89,4 @@ test('returns an empty object when accessing variables from a GraphQL operation 
       },
     },
   })
-
-  return runtime.cleanup()
 })

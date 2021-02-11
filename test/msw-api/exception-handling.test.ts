@@ -1,27 +1,27 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { captureConsole } from '../support/captureConsole'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'exception-handling.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'exception-handling.mocks.ts'),
+  })
 }
 
 test('activates the worker without errors', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
-  await runtime.reload()
+  const { page, consoleSpy } = await createRuntime()
+  await page.reload()
 
-  expect(messages.error).toHaveLength(0)
-
-  return runtime.cleanup()
+  /**
+   * @fixme page-with returns undefined is there are no messages.
+   * Is empty list a more ideomatic value?
+   */
+  expect(consoleSpy.get('error')).toBeUndefined()
 })
 
 test('transforms uncaught exceptions into a 500 response', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: 'https://api.github.com/users/octocat',
-  })
+  const res = await runtime.request('https://api.github.com/users/octocat')
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -30,6 +30,4 @@ test('transforms uncaught exceptions into a 500 response', async () => {
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
   expect(body).toHaveProperty('errorType', 'ReferenceError')
   expect(body).toHaveProperty('message', 'nonExisting is not defined')
-
-  return runtime.cleanup()
 })

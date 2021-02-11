@@ -1,9 +1,11 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'multipart-data.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'multipart-data.mocks.ts'),
+  })
 }
 
 test('accepts a file from a GraphQL mutation', async () => {
@@ -25,7 +27,7 @@ test('accepts a file from a GraphQL mutation', async () => {
       }
     }
   `
-  const res = await executeOperation(
+  const res = await executeGraphQLQuery(
     runtime.page,
     {
       query: UPLOAD_MUTATION,
@@ -56,5 +58,4 @@ test('accepts a file from a GraphQL mutation', async () => {
       },
     },
   })
-  await runtime.cleanup()
 })

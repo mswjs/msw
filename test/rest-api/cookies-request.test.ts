@@ -1,10 +1,10 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 async function createRuntime() {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'cookies-request.mocks.ts'),
-  )
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'cookies-request.mocks.ts'),
+  })
   await runtime.page.evaluate(() => {
     document.cookie = 'auth-token=abc-123;'
     document.cookie = 'custom-cookie=yes;'
@@ -15,11 +15,8 @@ async function createRuntime() {
 test('returns all document cookies in "req.cookies" for "include" credentials', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-    fetchOptions: {
-      credentials: 'include',
-    },
+  const res = await runtime.request('/user', {
+    credentials: 'include',
   })
   const headers = res.headers()
   const body = await res.json()
@@ -31,18 +28,13 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
       'custom-cookie': 'yes',
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-    fetchOptions: {
-      credentials: 'same-origin',
-    },
+  const res = await runtime.request('/user', {
+    credentials: 'same-origin',
   })
   const headers = res.headers()
   const body = await res.json()
@@ -54,18 +46,13 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
       'custom-cookie': 'yes',
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('returns no cookies in "req.cookies" for "same-origin" credentials and request to a different origin', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: `https://test.mswjs.io/user`,
-    fetchOptions: {
-      credentials: 'same-origin',
-    },
+  const res = await runtime.request('https://test.mswjs.io/user', {
+    credentials: 'same-origin',
   })
   const headers = res.headers()
   const body = await res.json()
@@ -74,18 +61,13 @@ test('returns no cookies in "req.cookies" for "same-origin" credentials and requ
   expect(body).toEqual({
     cookies: {},
   })
-
-  return runtime.cleanup()
 })
 
 test('returns no cookies in "req.cookies" for "omit" credentials', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-    fetchOptions: {
-      credentials: 'omit',
-    },
+  const res = await runtime.request('/user', {
+    credentials: 'omit',
   })
   const headers = res.headers()
   const body = await res.json()
@@ -94,6 +76,4 @@ test('returns no cookies in "req.cookies" for "omit" credentials', async () => {
   expect(body).toEqual({
     cookies: {},
   })
-
-  return runtime.cleanup()
 })

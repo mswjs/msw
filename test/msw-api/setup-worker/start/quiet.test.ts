@@ -1,7 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -9,33 +8,20 @@ declare namespace window {
   }
 }
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'quiet.mocks.ts'))
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
-
 test('does not log the captured request when the "quiet" option is set to "true"', async () => {
-  const { messages } = captureConsole(runtime.page)
+  const { page, request, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'quiet.mocks.ts'),
+  })
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return window.msw.registration
   })
 
-  await runtime.reload()
+  await page.reload()
 
-  const activationMessage = messages.startGroupCollapsed.find((text) => {
-    return text.includes('[MSW] Mocking enabled.')
-  })
-  expect(activationMessage).toBeFalsy()
+  expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-  })
+  const res = await request('/user')
 
   const headers = res.headers()
   const body = await res.json()
@@ -46,9 +32,5 @@ test('does not log the captured request when the "quiet" option is set to "true"
     age: 32,
   })
 
-  const requetsLog = messages.startGroupCollapsed.find((text) => {
-    return text.includes('[MSW]') && text.includes('GET /user')
-  })
-
-  expect(requetsLog).toBeUndefined()
+  expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 })

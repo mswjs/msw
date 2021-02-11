@@ -1,8 +1,10 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'hard-reload.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'hard-reload.mocks.ts'),
+  })
 }
 
 test('keeps the mocking enabled after hard-reload of the page', async () => {
@@ -12,12 +14,10 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
   runtime.page.evaluate(() => location.reload(true))
 
   await runtime.page.waitForNavigation({
-    waitUntil: 'networkidle0',
+    waitUntil: 'networkidle',
   })
 
-  const res = await runtime.request({
-    url: 'https://api.github.com',
-  })
+  const res = await runtime.request('https://api.github.com')
   const headers = res.headers()
   const body = await res.json()
 
@@ -25,6 +25,4 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

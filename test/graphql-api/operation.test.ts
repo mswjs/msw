@@ -1,10 +1,13 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'operation.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'operation.mocks.ts'),
+  })
 }
+
 test('matches GraphQL queries', async () => {
   const runtime = await createRuntime()
   const GET_USER_QUERY = `
@@ -14,7 +17,7 @@ test('matches GraphQL queries', async () => {
     }
   `
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: GET_USER_QUERY,
     variables: {
       id: 'abc-123',
@@ -33,8 +36,6 @@ test('matches GraphQL queries', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('matches GraphQL mutations', async () => {
@@ -46,7 +47,7 @@ test('matches GraphQL mutations', async () => {
     }
   `
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: LOGIN_MUTATION,
     variables: {
       username: 'john',
@@ -67,13 +68,11 @@ test('matches GraphQL mutations', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('matches only valid GraphQL requests', async () => {
   const runtime = await createRuntime()
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: 'test',
   })
 
@@ -87,6 +86,4 @@ test('matches only valid GraphQL requests', async () => {
       query: 'test',
     },
   })
-
-  return runtime.cleanup()
 })

@@ -1,14 +1,12 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('composes various context utilities into a valid mocked response', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'context.mocks.ts'),
-  )
-
-  const res = await runtime.request({
-    url: 'https://test.mswjs.io/',
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'context.mocks.ts'),
   })
+
+  const res = await runtime.request('https://test.mswjs.io/')
   const headers = res.headers()
   const body = await res.json()
 
@@ -21,6 +19,4 @@ test('composes various context utilities into a valid mocked response', async ()
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

@@ -1,6 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { ServerApi, createServer } from '@open-draft/test-server'
-import { runBrowserWith } from '../support/runBrowserWith'
 
 let server: ServerApi
 
@@ -24,24 +24,21 @@ afterAll(async () => {
 })
 
 test('handles a CORS request with an "opaque" response', async () => {
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'cors.mocks.ts'))
-
-  const errors = []
-  runtime.page.on('pageerror', (err) => {
-    errors.push(err)
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'cors.mocks.ts'),
   })
 
-  const res = await runtime.request({
-    url: server.http.makeUrl(),
-    fetchOptions: {
-      mode: 'no-cors',
-    },
+  const errors = []
+  runtime.page.on('pageerror', (error) => {
+    errors.push(error)
+  })
+
+  const res = await runtime.request(server.http.makeUrl(), {
+    mode: 'no-cors',
   })
 
   expect(res.status()).toBe(200)
   expect(await res.text()).toBe('hello')
 
   expect(errors).toEqual([])
-
-  return runtime.cleanup()
 })

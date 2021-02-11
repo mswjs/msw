@@ -1,10 +1,11 @@
 import * as path from 'path'
 import { match } from 'node-match-path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'response-patching.mocks.ts'), {
-    withRoutes(app) {
+  return pageWith({
+    example: path.resolve(__dirname, 'response-patching.mocks.ts'),
+    routes(app) {
       app.post('/headers-proxy', (req, res) => {
         const { authorization } = req.headers
 
@@ -37,9 +38,7 @@ function createRuntime() {
 test('responds with a combination of the mocked and original responses', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: 'https://test.mswjs.io/user',
-  })
+  const res = await runtime.request('https://test.mswjs.io/user')
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -51,23 +50,22 @@ test('responds with a combination of the mocked and original responses', async (
     location: 'San Francisco',
     mocked: true,
   })
-
-  return runtime.cleanup()
 })
 
 test('bypasses the original request when it equals the mocked request', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: 'https://api.github.com/repos/mswjs/msw?mocked=true',
-    responsePredicate(res, url) {
+  const res = await runtime.request(
+    'https://api.github.com/repos/mswjs/msw?mocked=true',
+    null,
+    (res, url) => {
       return (
         // Await for the response from MSW, so that original response
         // from the same URL would not interfere.
         match(url, res.url()).matches && res.headers()['x-powered-by'] === 'msw'
       )
     },
-  })
+  )
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -78,19 +76,14 @@ test('bypasses the original request when it equals the mocked request', async ()
     name: 'msw',
     stargazers_count: 9999,
   })
-
-  return runtime.cleanup()
 })
 
 test('forwards custom request headers to the original request', async () => {
   const runtime = await createRuntime()
 
-  const reqPromise = runtime.request({
-    url: 'https://test.mswjs.io/headers',
-    fetchOptions: {
-      headers: {
-        Authorization: 'token',
-      },
+  const reqPromise = runtime.request('https://test.mswjs.io/headers', {
+    headers: {
+      Authorization: 'token',
     },
   })
 
@@ -105,25 +98,23 @@ test('forwards custom request headers to the original request', async () => {
 
   expect(status).toEqual(200)
   expect(body).toEqual({ message: 'success' })
-
-  return runtime.cleanup()
 })
 
 test('supports patching a HEAD request', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: '/posts',
-    fetchOptions: {
+  const res = await runtime.request(
+    '/posts',
+    {
       method: 'HEAD',
     },
-    responsePredicate(res, url) {
+    (res, url) => {
       return (
         match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
-  })
+  )
 
   const status = res.status()
   const headers = res.headers()
@@ -133,28 +124,26 @@ test('supports patching a HEAD request', async () => {
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(headers).toHaveProperty('x-custom', 'HEAD REQUEST PATCHED')
   expect(body).toEqual({ mocked: true })
-
-  return runtime.cleanup()
 })
 
 test('supports patching a GET request', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: '/posts',
-    fetchOptions: {
+  const res = await runtime.request(
+    '/posts',
+    {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     },
-    responsePredicate(res, url) {
+    (res, url) => {
       return (
         match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
-  })
+  )
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -162,16 +151,14 @@ test('supports patching a GET request', async () => {
   expect(status).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({ id: 101, mocked: true })
-
-  return runtime.cleanup()
 })
 
 test('supports patching a POST request', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: '/posts',
-    fetchOptions: {
+  const res = await runtime.request(
+    '/posts',
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -182,13 +169,13 @@ test('supports patching a POST request', async () => {
         userId: 1,
       }),
     },
-    responsePredicate(res, url) {
+    (res, url) => {
       return (
         match(runtime.makeUrl(url), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
-  })
+  )
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -200,6 +187,4 @@ test('supports patching a POST request', async () => {
     id: 101,
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

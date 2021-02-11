@@ -1,18 +1,16 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { runBrowserWith } from '../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('responds with a given binary body', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'body-binary.mocks.ts'),
-  )
-
-  const res = await runtime.request({
-    url: runtime.makeUrl('/images/abc-123'),
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'body-binary.mocks.ts'),
   })
+
+  const res = await runtime.request('/images/abc-123')
   const status = res.status()
   const headers = res.headers()
-  const body = await res.buffer()
+  const body = await res.body()
 
   const expectedBuffer = fs.readFileSync(
     path.resolve(__dirname, '../../fixtures/image.jpg'),
@@ -21,6 +19,4 @@ test('responds with a given binary body', async () => {
   expect(status).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(new Uint8Array(body)).toEqual(new Uint8Array(expectedBuffer))
-
-  return runtime.cleanup()
 })

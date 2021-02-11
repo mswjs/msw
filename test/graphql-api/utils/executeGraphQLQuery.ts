@@ -1,4 +1,4 @@
-import { Page, Response } from 'puppeteer'
+import { Page, Response } from 'page-with'
 
 export const HOSTNAME = 'http://localhost:8080/graphql'
 
@@ -34,7 +34,7 @@ interface GraphQLOperationOptions {
 /**
  * Executes a GraphQL operation in the given Puppeteer context.
  */
-export const executeOperation = async (
+export const executeGraphQLQuery = async (
   page: Page,
   payload: GraphQLRequestPayload,
   options?: GraphQLOperationOptions,
@@ -54,15 +54,18 @@ export const executeOperation = async (
   const urlString = url.toString()
 
   // Cannot pass files because of Puppeteer's limitation.
-  const responsePromise = page.evaluate(
-    (
-      url,
-      method,
-      query,
-      variables,
-      map,
-      fileContents: string[] | undefined,
-    ) => {
+  const responsePromise = page.evaluate<
+    globalThis.Response,
+    [
+      string,
+      string,
+      GraphQLRequestPayload['query'],
+      GraphQLRequestPayload['variables'],
+      GraphQLOperationOptions['map'],
+      GraphQLOperationOptions['fileContents'],
+    ]
+  >(
+    ([url, method, query, variables, map, fileContents]) => {
       const getMultipartGraphQLBody = (
         operations: string,
         map: Record<string, string[]>,
@@ -103,12 +106,7 @@ export const executeOperation = async (
         ),
       )
     },
-    urlString,
-    method,
-    payload.query,
-    payload.variables,
-    map,
-    fileContents,
+    [urlString, method, payload.query, payload.variables, map, fileContents],
   )
 
   return new Promise<Response>((resolve, reject) => {

@@ -1,29 +1,27 @@
 import * as path from 'path'
-import { runBrowserWith } from '../../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('restores deferred requests if the worker registration fails', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'wait-until-ready.error.mocks.ts'),
-    {
-      withRoutes(app) {
-        app.get('/numbers', (req, res) => {
-          res.status(200).json([4, 5, 6])
-        })
+  const { page } = await pageWith({
+    example: path.resolve(__dirname, 'wait-until-ready.error.mocks.ts'),
+    routes(app) {
+      app.get('/numbers', (req, res) => {
+        res.status(200).json([4, 5, 6])
+      })
 
-        app.get('/letters', (req, res) => {
-          res.status(200).json(['d', 'e', 'f'])
-        })
-      },
+      app.get('/letters', (req, res) => {
+        res.status(200).json(['d', 'e', 'f'])
+      })
     },
-  )
+  })
 
-  await runtime.page.reload()
+  await page.reload()
 
   const [numbersResponse, lettersResponse] = await Promise.all([
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/numbers')
     }),
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/letters')
     }),
   ])
@@ -39,6 +37,4 @@ test('restores deferred requests if the worker registration fails', async () => 
   const lettersBody = await lettersResponse.json()
   expect(lettersStatus).toBe(200)
   expect(lettersBody).toEqual(['d', 'e', 'f'])
-
-  await runtime.cleanup()
 })

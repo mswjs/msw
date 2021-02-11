@@ -1,14 +1,14 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('parses request URL parameters', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'params.mocks.ts'),
-  )
-
-  const res = await runtime.request({
-    url: 'https://api.github.com/users/octocat/messages/abc-123',
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'params.mocks.ts'),
   })
+
+  const res = await runtime.request(
+    'https://api.github.com/users/octocat/messages/abc-123',
+  )
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -19,6 +19,4 @@ test('parses request URL parameters', async () => {
     username: 'octocat',
     messageId: 'abc-123',
   })
-
-  return runtime.cleanup()
 })

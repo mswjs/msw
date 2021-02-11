@@ -1,10 +1,11 @@
 import * as path from 'path'
-import { executeOperation } from './utils/executeOperation'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'link.mocks.ts'), {
-    withRoutes(app) {
+  return pageWith({
+    example: path.resolve(__dirname, 'link.mocks.ts'),
+    routes(app) {
       app.post('/graphql', (req, res) => {
         res.status(500).end()
       })
@@ -15,7 +16,7 @@ function createRuntime() {
 test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(
+  const res = await executeGraphQLQuery(
     runtime.page,
     {
       query: `
@@ -48,14 +49,12 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
       },
     },
   })
-
-  await runtime.cleanup()
 })
 
 test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(
+  const res = await executeGraphQLQuery(
     runtime.page,
     {
       query: `
@@ -86,14 +85,12 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
       },
     },
   })
-
-  await runtime.cleanup()
 })
 
 test('falls through to the matching GraphQL operation to an unknown endpoint', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
       query GetUser($username: String!) {
         user(username: $username) {
@@ -120,14 +117,12 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
       },
     },
   })
-
-  await runtime.cleanup()
 })
 
 test('bypasses a GraphQL operation to an unknown endpoint', async () => {
   const runtime = await createRuntime()
 
-  const res = await executeOperation(
+  const res = await executeGraphQLQuery(
     runtime.page,
     {
       query: `
@@ -148,6 +143,4 @@ test('bypasses a GraphQL operation to an unknown endpoint', async () => {
 
   const status = res.status()
   expect(status).toBe(500)
-
-  await runtime.cleanup()
 })

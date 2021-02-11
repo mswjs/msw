@@ -1,9 +1,11 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'operation-reference.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'operation-reference.mocks.ts'),
+  })
 }
 
 test('allows referencing the request body in the request handler', async () => {
@@ -15,7 +17,7 @@ test('allows referencing the request body in the request handler', async () => {
     }
   `
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: GET_USER_QUERY,
     variables: {
       id: 'abc-123',
@@ -33,8 +35,6 @@ test('allows referencing the request body in the request handler', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })
 
 test('allows referencing the request body in the request handler', async () => {
@@ -46,7 +46,7 @@ test('allows referencing the request body in the request handler', async () => {
     }
   `
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: LOGIN_MUTATION,
     variables: {
       username: 'john',
@@ -66,6 +66,4 @@ test('allows referencing the request body in the request handler', async () => {
       },
     },
   })
-
-  return runtime.cleanup()
 })

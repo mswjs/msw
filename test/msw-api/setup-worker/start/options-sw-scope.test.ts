@@ -1,31 +1,20 @@
 import * as path from 'path'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
-
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(
-    path.resolve(__dirname, 'options-sw-scope.mocks.ts'),
-  )
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
+import { pageWith } from 'page-with'
 
 test('respects a custom "scope" Service Worker option', async () => {
-  const { messages } = captureConsole(runtime.page)
-  await runtime.reload()
-
-  const activationMessage = messages.startGroupCollapsed.find((text) => {
-    return text.includes('[MSW] Mocking enabled.')
+  const { page, request, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'options-sw-scope.mocks.ts'),
   })
+  await page.reload()
+
+  const activationMessage = consoleSpy
+    .get('startGroupCollapsed')
+    .find((text) => {
+      return text.includes('[MSW] Mocking enabled.')
+    })
   expect(activationMessage).toBeTruthy()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-  })
+  const res = await request('/user')
   const status = res.status()
 
   // Since the root "/" page lies outside of the custom worker scope,

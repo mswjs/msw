@@ -1,7 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -9,20 +8,12 @@ declare namespace window {
   }
 }
 
-let runtime: TestAPI
+test('removes all listeners when the worker is stopped', async () => {
+  const { page, request, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'removes-all-listeners.mocks.ts'),
+  })
 
-beforeAll(async () => {
-  runtime = await runBrowserWith(
-    path.resolve(__dirname, 'removes-all-listeners.mocks.ts'),
-  )
-})
-
-afterAll(() => runtime.cleanup())
-
-test.skip('removes all listeners when the worker is stopped', async () => {
-  const { messages } = captureConsole(runtime.page)
-
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const worker1 = window.msw.createWorker()
     const worker2 = window.msw.createWorker()
 
@@ -31,16 +22,16 @@ test.skip('removes all listeners when the worker is stopped', async () => {
       return worker2.start()
     })
   })
-  const activationMessages = messages.startGroupCollapsed.filter((text) => {
-    return text.includes('[MSW] Mocking enabled.')
-  })
+  const activationMessages = consoleSpy
+    .get('startGroupCollapsed')
+    .filter((text) => {
+      return text.includes('[MSW] Mocking enabled.')
+    })
   expect(activationMessages).toHaveLength(2)
 
-  await runtime.request({
-    url: runtime.makeUrl('/user'),
-  })
+  await request('/user')
 
-  const requestLogs = messages.startGroupCollapsed.filter((text) => {
+  const requestLogs = consoleSpy.get('startGroupCollapsed').filter((text) => {
     return text.includes('[MSW]') && text.includes('GET /user')
   })
 

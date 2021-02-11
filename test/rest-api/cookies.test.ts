@@ -1,17 +1,15 @@
 import * as path from 'path'
 import * as cookieUtils from 'cookie'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'cookies.mocks.ts'))
+  return pageWith({ example: path.resolve(__dirname, 'cookies.mocks.ts') })
 }
 
 test('allows setting cookies on the mocked response', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/user'),
-  })
+  const res = await runtime.request('/user')
 
   const headers = res.headers()
   const body = await res.json()
@@ -28,6 +26,4 @@ test('allows setting cookies on the mocked response', async () => {
   })
   const allCookies = cookieUtils.parse(cookieString)
   expect(allCookies).toHaveProperty('my-cookie', 'value')
-
-  return runtime.cleanup()
 })

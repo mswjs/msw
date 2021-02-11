@@ -1,6 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest } from 'msw'
-import { runBrowserWith } from '../../support/runBrowserWith'
 
 declare namespace window {
   export const msw: {
@@ -10,7 +10,9 @@ declare namespace window {
 }
 
 test('returns a mocked response from a runtime request handler upon match', async () => {
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'use.mocks.ts'),
+  })
 
   await runtime.page.evaluate(() => {
     const { msw } = window
@@ -22,11 +24,8 @@ test('returns a mocked response from a runtime request handler upon match', asyn
     )
   })
 
-  const loginResponse = await runtime.request({
-    url: runtime.makeUrl('/login'),
-    fetchOptions: {
-      method: 'POST',
-    },
+  const loginResponse = await runtime.request('/login', {
+    method: 'POST',
   })
   const loginStatus = loginResponse.status()
   const loginBody = await loginResponse.json()
@@ -34,19 +33,17 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   expect(loginBody).toEqual({ accepted: true })
 
   // Other request handlers are preserved, if there are no overlaps.
-  const bookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookResponse = await runtime.request('/book/abc-123')
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
   expect(bookStatus).toBe(200)
   expect(bookBody).toEqual({ title: 'Original title' })
-
-  await runtime.cleanup()
 })
 
 test('returns a mocked response from a persistent request handler override', async () => {
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'use.mocks.ts'),
+  })
 
   await runtime.page.evaluate(() => {
     const { msw } = window
@@ -58,27 +55,23 @@ test('returns a mocked response from a persistent request handler override', asy
     )
   })
 
-  const bookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookResponse = await runtime.request('/book/abc-123')
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
   expect(bookStatus).toBe(200)
   expect(bookBody).toEqual({ title: 'Permanent override' })
 
-  const anotherBookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const anotherBookResponse = await runtime.request('/book/abc-123')
   const anotherBookStatus = anotherBookResponse.status()
   const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookStatus).toBe(200)
   expect(anotherBookBody).toEqual({ title: 'Permanent override' })
-
-  await runtime.cleanup()
 })
 
 test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'use.mocks.ts'),
+  })
 
   await runtime.page.evaluate(() => {
     const { msw } = window
@@ -90,27 +83,23 @@ test('returns a mocked response from a one-time request handler override only up
     )
   })
 
-  const bookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookResponse = await runtime.request('/book/abc-123')
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
   expect(bookStatus).toBe(200)
   expect(bookBody).toEqual({ title: 'One-time override' })
 
-  const anotherBookResponse = await runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const anotherBookResponse = await runtime.request('/book/abc-123')
   const anotherBookStatus = anotherBookResponse.status()
   const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookStatus).toBe(200)
   expect(anotherBookBody).toEqual({ title: 'Original title' })
-
-  await runtime.cleanup()
 })
 
 test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
-  const runtime = await runBrowserWith(path.resolve(__dirname, 'use.mocks.ts'))
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'use.mocks.ts'),
+  })
 
   await runtime.page.evaluate(() => {
     const { msw } = window
@@ -123,13 +112,9 @@ test('returns a mocked response from a one-time request handler override only up
     )
   })
 
-  const bookPromise = runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const bookPromise = runtime.request('/book/abc-123')
 
-  const anotherBookPromise = runtime.request({
-    url: runtime.makeUrl('/book/abc-123'),
-  })
+  const anotherBookPromise = runtime.request('/book/abc-123')
 
   const bookResponse = await bookPromise
   const bookStatus = bookResponse.status()
@@ -142,6 +127,4 @@ test('returns a mocked response from a one-time request handler override only up
   const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookStatus).toBe(200)
   expect(anotherBookBody).toEqual({ title: 'Original title' })
-
-  await runtime.cleanup()
 })

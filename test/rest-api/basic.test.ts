@@ -1,14 +1,12 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('mocks response to a basic GET request', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'basic.mocks.ts'),
-  )
-
-  const res = await runtime.request({
-    url: 'https://api.github.com/users/octocat',
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'basic.mocks.ts'),
   })
+
+  const res = await runtime.request('https://api.github.com/users/octocat')
   const body = await res.json()
 
   expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
@@ -17,6 +15,4 @@ test('mocks response to a basic GET request', async () => {
     name: 'John Maverick',
     originalUsername: 'octocat',
   })
-
-  return runtime.cleanup()
 })

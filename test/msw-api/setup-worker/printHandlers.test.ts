@@ -1,7 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest, graphql } from 'msw'
-import { runBrowserWith } from '../../support/runBrowserWith'
-import { captureConsole } from '../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -12,18 +11,20 @@ declare namespace window {
 }
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'printHandlers.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'printHandlers.mocks.ts'),
+  })
 }
 
 test('lists rest request handlers', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
+  const { page, consoleSpy } = await createRuntime()
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     window.msw.worker.printHandlers()
   })
 
-  const { startGroupCollapsed, log } = messages
+  const startGroupCollapsed = consoleSpy.get('startGroupCollapsed')
+  const log = consoleSpy.get('log')
 
   expect(startGroupCollapsed).toHaveLength(6)
   expect(startGroupCollapsed).toContain(
@@ -49,15 +50,12 @@ test('lists rest request handlers', async () => {
 
   const resolvers = log.filter((message) => message.startsWith('Resolver:'))
   expect(resolvers).toHaveLength(6)
-
-  return runtime.cleanup()
 })
 
 test('respects runtime request handlers', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
+  const { page, consoleSpy } = await createRuntime()
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { worker, rest, graphql } = window.msw
     worker.use(
       rest.post('/profile', () => null),
@@ -67,7 +65,8 @@ test('respects runtime request handlers', async () => {
     worker.printHandlers()
   })
 
-  const { startGroupCollapsed, log } = messages
+  const startGroupCollapsed = consoleSpy.get('startGroupCollapsed')
+  const log = consoleSpy.get('log')
 
   expect(startGroupCollapsed).toHaveLength(8)
 
@@ -84,6 +83,4 @@ test('respects runtime request handlers', async () => {
 
   const resolvers = log.filter((message) => message.startsWith('Resolver:'))
   expect(resolvers).toHaveLength(8)
-
-  return runtime.cleanup()
 })

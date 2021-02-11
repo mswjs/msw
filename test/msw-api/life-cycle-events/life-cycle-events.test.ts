@@ -1,7 +1,6 @@
 import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
-import { runBrowserWith } from '../../support/runBrowserWith'
-import { captureConsole } from '../../support/captureConsole'
+import { ScenarioApi, pageWith } from 'page-with'
 import { sleep } from '../../support/utils'
 
 declare namespace window {
@@ -11,96 +10,76 @@ declare namespace window {
 }
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'life-cycle-events.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'life-cycle-events.mocks.ts'),
+  })
 }
 
-function getRequestId(messages: ReturnType<typeof captureConsole>['messages']) {
-  const requestStartMessage = messages.warning.find((message) => {
+function getRequestId(messages: ScenarioApi['consoleSpy']) {
+  const requestStartMessage = messages.get('warning').find((message) => {
     return message.startsWith('[request:start]')
   })
   return requestStartMessage.split(' ')[3]
 }
 
 test('emits events for a handled request and mocked response', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
-  const endpointUrl = runtime.makeUrl('/user')
+  const { request, makeUrl, consoleSpy } = await createRuntime()
+  const endpointUrl = makeUrl('/user')
 
-  await runtime.request({
-    url: endpointUrl,
-  })
+  await request(endpointUrl)
   await sleep(500)
 
-  const requestId = getRequestId(messages)
-  expect(messages.warning).toEqual([
+  const requestId = getRequestId(consoleSpy)
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${endpointUrl} ${requestId}`,
     `[request:match] GET ${endpointUrl} ${requestId}`,
     `[request:end] GET ${endpointUrl} ${requestId}`,
     `[response:mocked] response-body ${requestId}`,
   ])
-
-  return runtime.cleanup()
 })
 
 test('emits events for a handled request with no response', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
-  const endpointUrl = runtime.makeUrl('/no-response')
+  const { request, makeUrl, consoleSpy } = await createRuntime()
+  const endpointUrl = makeUrl('/no-response')
 
-  await runtime.request({
-    url: endpointUrl,
-    fetchOptions: {
-      method: 'POST',
-    },
+  await request(endpointUrl, {
+    method: 'POST',
   })
   await sleep(500)
 
-  const requestId = getRequestId(messages)
-  expect(messages.warning).toEqual([
+  const requestId = getRequestId(consoleSpy)
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${endpointUrl} ${requestId}`,
     `[request:unhandled] POST ${endpointUrl} ${requestId}`,
     `[request:end] POST ${endpointUrl} ${requestId}`,
     `[response:bypass] ${requestId}`,
   ])
-
-  return runtime.cleanup()
 })
 
 test('emits events for an unhandled request', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
-  const endpointUrl = runtime.makeUrl('/unknown-route')
+  const { request, makeUrl, consoleSpy } = await createRuntime()
+  const endpointUrl = makeUrl('/unknown-route')
 
-  await runtime.request({
-    url: endpointUrl,
-  })
+  await request(endpointUrl)
   await sleep(500)
 
-  const requestId = getRequestId(messages)
-  expect(messages.warning).toEqual([
+  const requestId = getRequestId(consoleSpy)
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${endpointUrl} ${requestId}`,
     `[request:unhandled] GET ${endpointUrl} ${requestId}`,
     `[request:end] GET ${endpointUrl} ${requestId}`,
     `[response:bypass] ${requestId}`,
   ])
-
-  return runtime.cleanup()
 })
 
 test('stops emitting events once the worker is stopped', async () => {
-  const runtime = await createRuntime()
-  const { messages } = captureConsole(runtime.page)
-  const endpointUrl = runtime.makeUrl('/unknown-route')
+  const { page, request, consoleSpy } = await createRuntime()
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return window.msw.worker.stop()
   })
-  await runtime.request({
-    url: endpointUrl,
-  })
+  await request('/unknown-route')
   await sleep(500)
 
-  expect(messages.warning).toEqual([])
-
-  return runtime.cleanup()
+  expect(consoleSpy.get('warning')).toBeUndefined()
 })

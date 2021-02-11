@@ -1,10 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { runBrowserWith } from '../../../support/runBrowserWith'
-import {
-  captureConsole,
-  filterLibraryLogs,
-} from '../../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -13,74 +9,70 @@ declare namespace window {
 }
 
 test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'find-worker.mocks.ts'),
-  )
+  const { page, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'find-worker.mocks.ts'),
+  })
 
-  const resolvedPayload = await runtime.page.evaluate(() => {
+  const resolvedPayload = await page.evaluate(() => {
     return window.msw.registration
   })
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
 
-  const { messages } = captureConsole(runtime.page)
+  await page.reload()
 
-  await runtime.reload()
-
-  const activationMessageIndex = messages.startGroupCollapsed.findIndex(
-    (text) => {
+  const activationMessageIndex = consoleSpy
+    .get('startGroupCollapsed')
+    ?.findIndex((text) => {
       return text.includes('[MSW] Mocking enabled')
-    },
-  )
+    })
 
-  const customMessageIndex = messages.log.findIndex((text) => {
+  const customMessageIndex = consoleSpy.get('log').findIndex((text) => {
     return text.includes('Registration Promise resolved')
   })
 
   expect(activationMessageIndex).toBeGreaterThan(-1)
   expect(customMessageIndex).toBeGreaterThan(-1)
   expect(customMessageIndex).toBeGreaterThan(activationMessageIndex)
-
-  await runtime.cleanup()
 })
 
 test('fails to return a ServiceWorkerRegistration when using a findWorker that returns false', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'find-worker.error.mocks.ts'),
-  )
+  const { page, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'find-worker.error.mocks.ts'),
+  })
 
-  const resolvedPayload = await runtime.page.evaluate(() => {
+  const resolvedPayload = await page.evaluate(() => {
     return window.msw.registration
   })
 
-  expect(resolvedPayload).toBe(undefined)
+  expect(resolvedPayload).toBeUndefined()
 
-  const { messages } = captureConsole(runtime.page)
+  await page.reload()
 
-  await runtime.reload()
-
-  const activationMessageIndex = messages.startGroupCollapsed.findIndex(
-    (text) => {
+  const activationMessage = consoleSpy
+    .get('startGroupCollapsed')
+    ?.findIndex((text) => {
       return text.includes('[MSW] Mocking enabled')
-    },
-  )
+    })
 
-  const errorMessageIndex = messages.error.findIndex((text) => {
+  const errorMessageIndex = consoleSpy.get('error').findIndex((text) => {
     return text.includes('Error - no worker instance after starting')
   })
 
-  const libraryErrors = messages.error.filter(filterLibraryLogs)
+  const libraryErrors = consoleSpy.get('error')
+  const mswErrorMessage = consoleSpy.get('error').find((text) => {
+    return /\[MSW\] Failed to locate the Service Worker registration using a custom "findWorker" predicate/.test(
+      text,
+    )
+  })
 
-  expect(libraryErrors).toContain(`\
+  expect(mswErrorMessage).toMatch(`\
 [MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
 Please ensure that the custom predicate properly locates the Service Worker registration at "/mockServiceWorker.js".
 More details: https://mswjs.io/docs/api/setup-worker/start#findworker\
 `)
 
-  expect(activationMessageIndex).toEqual(-1)
+  expect(activationMessage).toBeUndefined()
   expect(errorMessageIndex).toBeGreaterThan(-1)
-  expect(errorMessageIndex).toBeGreaterThan(activationMessageIndex)
-
-  await runtime.cleanup()
 })

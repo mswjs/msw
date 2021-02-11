@@ -1,13 +1,17 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+
+function createRuntime() {
+  return pageWith({
+    example: path.resolve(__dirname, 'query.mocks.ts'),
+  })
+}
 
 test('mocks a GraphQL query issued with a GET request', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'query.mocks.ts'),
-  )
+  const runtime = await createRuntime()
 
-  const res = await executeOperation(
+  const res = await executeGraphQLQuery(
     runtime.page,
     {
       query: `
@@ -37,16 +41,12 @@ test('mocks a GraphQL query issued with a GET request', async () => {
       },
     },
   })
-
-  await runtime.cleanup()
 })
 
 test('mocks a GraphQL query issued with a POST request', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'query.mocks.ts'),
-  )
+  const runtime = await createRuntime()
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
       query GetUserDetail {
         user {
@@ -69,6 +69,4 @@ test('mocks a GraphQL query issued with a POST request', async () => {
       },
     },
   })
-
-  await runtime.cleanup()
 })

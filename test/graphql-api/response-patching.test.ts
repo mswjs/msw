@@ -1,8 +1,8 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { ExecutionResult, buildSchema, graphql } from 'graphql'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { SetupWorkerApi } from 'msw'
-import { runBrowserWith } from '../support/runBrowserWith'
 import { gql } from '../support/graphql'
 
 declare namespace window {
@@ -51,7 +51,9 @@ afterAll(async () => {
 })
 
 function createRuntime() {
-  return runBrowserWith(path.join(__dirname, 'response-patching.mocks.ts'))
+  return pageWith({
+    example: path.join(__dirname, 'response-patching.mocks.ts'),
+  })
 }
 
 test('patches a GraphQL response', async () => {
@@ -63,7 +65,7 @@ test('patches a GraphQL response', async () => {
   })
 
   const res = await runtime.page.evaluate(
-    (url) => {
+    ([url]) => {
       return window.dispatchGraphQLQUery(url)
     },
     [prodServerUrl],
@@ -74,6 +76,4 @@ test('patches a GraphQL response', async () => {
     firstName: 'Christian',
     lastName: 'Maverick',
   })
-
-  return runtime.cleanup()
 })

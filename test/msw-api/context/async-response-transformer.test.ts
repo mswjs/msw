@@ -1,16 +1,14 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { runBrowserWith } from '../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 test('supports asynchronous response transformer', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
-  )
-
-  const res = await runtime.request({
-    url: runtime.makeUrl('/image'),
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
   })
-  const body = await res.buffer()
+
+  const res = await runtime.request('/image')
+  const body = await res.body()
   const expectedBuffer = fs.readFileSync(
     path.resolve(__dirname, '../../fixtures/image.jpg'),
   )
@@ -24,20 +22,15 @@ test('supports asynchronous response transformer', async () => {
     expectedBuffer.byteLength.toString(),
   )
   expect(new Uint8Array(body)).toEqual(new Uint8Array(expectedBuffer))
-
-  return runtime.cleanup()
 })
 
 test('supports asynchronous default response transformer', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
-  )
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
+  })
 
-  const res = await runtime.request({
-    url: runtime.makeUrl('/search'),
-    fetchOptions: {
-      method: 'POST',
-    },
+  const res = await runtime.request('/search', {
+    method: 'POST',
   })
   const status = res.status()
   const statusText = res.statusText()
@@ -46,6 +39,4 @@ test('supports asynchronous default response transformer', async () => {
   expect(status).toBe(301)
   expect(statusText).toBe('Custom Status Text')
   expect(headers).toHaveProperty('x-custom', 'yes')
-
-  return runtime.cleanup()
 })

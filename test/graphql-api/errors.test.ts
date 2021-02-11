@@ -1,13 +1,13 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
-import { executeOperation } from './utils/executeOperation'
+import { pageWith } from 'page-with'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 
 test('mocks a GraphQL error response', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'errors.mocks.ts'),
-  )
+  const runtime = await pageWith({
+    example: path.resolve(__dirname, 'errors.mocks.ts'),
+  })
 
-  const res = await executeOperation(runtime.page, {
+  const res = await executeGraphQLQuery(runtime.page, {
     query: `
       query Login {
         user {
@@ -32,6 +32,4 @@ test('mocks a GraphQL error response', async () => {
       ],
     },
   ])
-
-  return runtime.cleanup()
 })

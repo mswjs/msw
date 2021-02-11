@@ -10,7 +10,7 @@ worker.start({
   serviceWorker: {
     // Use custom Service Worker URL for the purpose of intentionally
     // registering an outdated worker. Please do not use this as an example.
-    url: '/tmp/mockServiceWorker-outdated.js',
+    url: '/mockServiceWorker-outdated.js',
     options: {
       scope: '/',
     },

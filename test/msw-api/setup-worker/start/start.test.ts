@@ -1,7 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -9,34 +8,25 @@ declare namespace window {
   }
 }
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'start.mocks.ts'))
-})
-
-afterAll(() => {
-  return runtime.cleanup()
-})
-
 test('resolves the "start" Promise after the worker has been activated', async () => {
-  const resolvedPayload = await runtime.page.evaluate(() => {
+  const { page, consoleSpy } = await pageWith({
+    example: path.resolve(__dirname, 'start.mocks.ts'),
+  })
+  const resolvedPayload = await page.evaluate(() => {
     return window.msw.registration
   })
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
 
-  const { messages } = captureConsole(runtime.page)
+  await page.reload()
 
-  await runtime.reload()
-
-  const activationMessageIndex = messages.startGroupCollapsed.findIndex(
-    (text) => {
+  const activationMessageIndex = consoleSpy
+    .get('startGroupCollapsed')
+    .findIndex((text) => {
       return text.includes('[MSW] Mocking enabled')
-    },
-  )
+    })
 
-  const customMessageIndex = messages.log.findIndex((text) => {
+  const customMessageIndex = consoleSpy.get('log').findIndex((text) => {
     return text.includes('Registration Promise resolved')
   })
 

@@ -1,8 +1,10 @@
 import * as path from 'path'
-import { runBrowserWith } from '../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'headers-multiple.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'headers-multiple.mocks.ts'),
+  })
 }
 
 test('receives all headers from the request header with multiple values', async () => {
@@ -11,12 +13,9 @@ test('receives all headers from the request header with multiple values', async 
   const headers = new Headers({ 'x-header': 'application/json' })
   headers.append('x-header', 'application/hal+json')
 
-  const res = await runtime.request({
-    url: 'https://test.mswjs.io',
-    fetchOptions: {
-      method: 'POST',
-      headers,
-    },
+  const res = await runtime.request('https://test.mswjs.io', {
+    method: 'POST',
+    headers,
   })
   const status = res.status()
   const body = await res.json()
@@ -25,16 +24,12 @@ test('receives all headers from the request header with multiple values', async 
   expect(body).toEqual({
     'x-header': 'application/json,application/hal+json',
   })
-
-  return runtime.cleanup()
 })
 
 test('supports setting a header with multiple values on the mocked response', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request({
-    url: 'https://test.mswjs.io',
-  })
+  const res = await runtime.request('https://test.mswjs.io')
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -44,6 +39,4 @@ test('supports setting a header with multiple values on the mocked response', as
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

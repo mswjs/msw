@@ -117,13 +117,13 @@ $ yarn test:integration test/rest-api/basic.mock.ts
 
 #### Running a usage scenario
 
-When working on a feature or a bug fix it's useful to interact with your usage example. There's a dedicated command that can run a given usage scenario in a local server for you to work with:
+When working on a feature or a bug fix it's useful to interact with your usage example in the browser. There's a dedicated command that can run a given usage scenario in a local server for you to work with:
 
 ```bash
-$ yarn test:focused test/rest-api/basic.mocks.ts
+$ DEBUG=pageWith yarn test:integration test/rest-api/basic.test.ts
 ```
 
-> Navigate to the URL in the terminal to preview and interact with the usage scenario.
+> An automated browser window will pop for you to experiment with.
 
 ## Build
 

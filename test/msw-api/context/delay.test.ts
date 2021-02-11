@@ -1,6 +1,5 @@
 import * as path from 'path'
-import { Page } from 'puppeteer'
-import { runBrowserWith } from '../../support/runBrowserWith'
+import { Page, pageWith } from 'page-with'
 
 declare global {
   namespace jest {
@@ -36,7 +35,9 @@ expect.extend({
 })
 
 function createRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'delay.mocks.ts'))
+  return pageWith({
+    example: path.resolve(__dirname, 'delay.mocks.ts'),
+  })
 }
 
 function performanceNow(page: Page) {
@@ -46,9 +47,7 @@ function performanceNow(page: Page) {
 test('uses explicit server response delay', async () => {
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
-  const res = await runtime.request({
-    url: runtime.makeUrl('/delay?duration=1200'),
-  })
+  const res = await runtime.request('/delay?duration=1200')
   const endPerf = await performanceNow(runtime.page)
 
   const responseTime = endPerf - startPerf
@@ -61,16 +60,12 @@ test('uses explicit server response delay', async () => {
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(status).toBe(200)
   expect(body).toEqual({ mocked: true })
-
-  return runtime.cleanup()
 })
 
 test('uses realistic server response delay when no delay value is provided', async () => {
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
-  const res = await runtime.request({
-    url: runtime.makeUrl('/delay'),
-  })
+  const res = await runtime.request('/delay')
   const endPerf = await performanceNow(runtime.page)
 
   // Actual response time should lie within min/max boundaries
@@ -87,16 +82,12 @@ test('uses realistic server response delay when no delay value is provided', asy
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })
 
 test('uses realistic server response delay when "real" delay mode is provided', async () => {
   const runtime = await createRuntime()
   const startPerf = await performanceNow(runtime.page)
-  const res = await runtime.request({
-    url: runtime.makeUrl('/delay?mode=real'),
-  })
+  const res = await runtime.request('/delay?mode=real')
   const endPerf = await performanceNow(runtime.page)
 
   // Actual response time should lie within min/max boundaries
@@ -113,6 +104,4 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   expect(body).toEqual({
     mocked: true,
   })
-
-  return runtime.cleanup()
 })

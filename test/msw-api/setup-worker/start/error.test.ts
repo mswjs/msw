@@ -1,7 +1,6 @@
 import * as path from 'path'
+import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { TestAPI, runBrowserWith } from '../../../support/runBrowserWith'
-import { captureConsole } from '../../../support/captureConsole'
 
 declare namespace window {
   export const msw: {
@@ -9,18 +8,15 @@ declare namespace window {
   }
 }
 
-let runtime: TestAPI
-
-beforeAll(async () => {
-  runtime = await runBrowserWith(path.resolve(__dirname, 'error.mocks.ts'))
-})
-
-afterAll(() => runtime.cleanup())
+function createRuntime() {
+  return pageWith({
+    example: path.resolve(__dirname, 'error.mocks.ts'),
+  })
+}
 
 test('prints a custom error message when given a non-existing worker script', async () => {
-  const { messages } = captureConsole(runtime.page)
-
-  await runtime.page.evaluate(() => {
+  const { page, consoleSpy } = await createRuntime()
+  await page.evaluate(() => {
     return window.msw.worker.start({
       serviceWorker: {
         url: 'invalidServiceWorker',
@@ -28,11 +24,10 @@ test('prints a custom error message when given a non-existing worker script', as
     })
   })
 
-  const workerNotFoundMessage = messages.error.find((text) => {
+  const workerNotFoundMessage = consoleSpy.get('error').find((text) => {
     return (
-      text.startsWith(
-        `[MSW] Failed to register a Service Worker for scope ('${runtime.page.url()}')`,
-      ) && text.includes('Did you forget to run "npx msw init <PUBLIC_DIR>"?')
+      text.startsWith('[MSW] Failed to register a Service Worker for scope') &&
+      text.includes('Did you forget to run "npx msw init <PUBLIC_DIR>"?')
     )
   })
 

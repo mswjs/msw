@@ -25,15 +25,12 @@ export {
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
 } from './utils/handlers/requestHandler'
+export { graphql } from './graphql'
 export {
-  graphql,
+  GraphQLHandler,
+  GraphQLContext,
   graphqlContext,
-  GraphQLMockedRequest,
-  GraphQLMockedContext,
-  GraphQLRequestPayload,
-  GraphQLResponseResolver,
-  GraphQLRequestParsedResult,
-} from './graphql'
+} from './utils/handlers/2.0/GraphQLHandler'
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 
 /* Utils */

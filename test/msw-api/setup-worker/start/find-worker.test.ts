@@ -19,8 +19,6 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
 
-  await page.reload()
-
   const activationMessageIndex = consoleSpy
     .get('startGroupCollapsed')
     ?.findIndex((text) => {
@@ -47,8 +45,6 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
 
   expect(resolvedPayload).toBeUndefined()
 
-  await page.reload()
-
   const activationMessage = consoleSpy
     .get('startGroupCollapsed')
     ?.findIndex((text) => {
@@ -59,7 +55,6 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
     return text.includes('Error - no worker instance after starting')
   })
 
-  const libraryErrors = consoleSpy.get('error')
   const mswErrorMessage = consoleSpy.get('error').find((text) => {
     return /\[MSW\] Failed to locate the Service Worker registration using a custom "findWorker" predicate/.test(
       text,

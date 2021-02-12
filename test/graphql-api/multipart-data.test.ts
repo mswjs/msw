@@ -46,7 +46,9 @@ test('accepts a file from a GraphQL mutation', async () => {
       fileContents: ['file1 content', 'file2 content'],
     },
   )
+
   const body = await res.json()
+
   expect(res.status()).toEqual(200)
   expect(body).toEqual({
     data: {

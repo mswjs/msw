@@ -18,8 +18,6 @@ test('resolves the "start" Promise after the worker has been activated', async (
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
 
-  await page.reload()
-
   const activationMessageIndex = consoleSpy
     .get('startGroupCollapsed')
     .findIndex((text) => {

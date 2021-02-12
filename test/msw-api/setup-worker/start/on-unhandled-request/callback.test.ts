@@ -2,10 +2,9 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 test('executes a given callback on an unhandled request', async () => {
-  const { page, request, consoleSpy } = await pageWith({
+  const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'callback.mocks.ts'),
   })
-  await page.reload()
 
   const res = await request('https://mswjs.io/non-existing-page')
   const status = res.status()

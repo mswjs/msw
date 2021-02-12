@@ -9,12 +9,6 @@ function createRuntime() {
 
 test('activates the worker without errors', async () => {
   const { page, consoleSpy } = await createRuntime()
-  await page.reload()
-
-  /**
-   * @fixme page-with returns undefined is there are no messages.
-   * Is empty list a more ideomatic value?
-   */
   expect(consoleSpy.get('error')).toBeUndefined()
 })
 

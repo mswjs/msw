@@ -8,7 +8,7 @@ import {
   RESTMethods,
   RestContext,
   RestHandler,
-  RestPublicRequestType,
+  RestRequestType,
 } from './utils/handlers/2.0/RestHandler'
 
 function createRestHandler(method: RESTMethods) {
@@ -22,7 +22,7 @@ function createRestHandler(method: RESTMethods) {
       /**
        * @todo Pass params type.
        */
-      RestPublicRequestType<RequestParamsType>,
+      RestRequestType<RequestParamsType>,
       RestContext,
       ResponseBodyType
     >,

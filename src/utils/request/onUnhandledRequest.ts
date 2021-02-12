@@ -1,21 +1,12 @@
 import getStringMatchScore from 'js-levenshtein'
 import { parseGraphQLRequest } from '../internal/parseGraphQLRequest'
-import {
-  DefaultRequestBodyType,
-  MockedRequest,
-  RequestHandler,
-  RequestParams,
-} from '../handlers/requestHandler'
-import { RequestHandlersList } from '../../setupWorker/glossary'
-import { ParsedRestRequest, RestContext } from '../../rest'
-import {
-  GraphQLMockedRequest,
-  GraphQLMockedContext,
-  GraphQLRequestParsedResult,
-  ParsedQueryPayload,
-} from '../../graphql'
+import { MockedRequest } from '../handlers/requestHandler'
+import { GraphQLMockedRequest, ParsedQueryPayload } from '../../graphql'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
+import { RequestApplicator } from '../../setupWorker/glossary'
+import { RequestHandler } from '../handlers/2.0/RequestHandler'
+import { RestHandler } from '../handlers/2.0/RestHandler'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
@@ -29,26 +20,16 @@ export type UnhandledRequestStrategy =
   | 'error'
   | UnhandledRequestCallback
 
-type RestRequestHandler = RequestHandler<
-  MockedRequest<DefaultRequestBodyType, RequestParams>,
-  RestContext,
-  ParsedRestRequest
->
+type GraphQLRequestHandler = RequestHandler<GraphQLMockedRequest<any>>
 
-type GraphQLRequestHandler = RequestHandler<
-  GraphQLMockedRequest<any>,
-  GraphQLMockedContext<any>,
-  GraphQLRequestParsedResult<any>
->
-
-function groupHandlersByType(handlers: RequestHandlersList) {
+function groupHandlersByType(handlers: RequestApplicator[]) {
   return handlers.reduce<{
-    rest: RestRequestHandler[]
+    rest: RestHandler[]
     graphql: GraphQLRequestHandler[]
   }>(
     (groups, handler) => {
-      const metaInfo = handler.getMetaInfo()
-      groups[metaInfo.type].push(handler)
+      const { type } = handler.info
+      type.push(handler)
       return groups
     },
     {
@@ -58,12 +39,15 @@ function groupHandlersByType(handlers: RequestHandlersList) {
   )
 }
 
-type RequestHandlerSuggestionList = [number, RequestHandler][]
-type ScoreGetterFn = (request: MockedRequest, handler: RequestHandler) => number
+type RequestHandlerSuggestionList = [number, RequestApplicator][]
+type ScoreGetterFn = (
+  request: MockedRequest,
+  handler: RequestApplicator,
+) => number
 
 function getScoreForRestHandler(): ScoreGetterFn {
   return (request, handler) => {
-    const { mask, method } = handler.getMetaInfo()
+    const { mask, method } = handler.info
 
     if (mask instanceof RegExp) {
       return Infinity
@@ -87,7 +71,7 @@ function getScoreForGraphQLHandler(
       return Infinity
     }
 
-    const { operationType, operationName } = handler.getMetaInfo()
+    const { operationType, operationName } = handler.info
     const hasSameOperationType = parsedQuery.operationType === operationType
     // Always treat a handler with the same operation type as a more similar one.
     const operationTypeScoreDelta = hasSameOperationType ? TYPE_MATCH_DELTA : 0
@@ -99,9 +83,9 @@ function getScoreForGraphQLHandler(
 
 function getSuggestedHandler(
   request: MockedRequest,
-  handlers: RequestHandlersList,
+  handlers: RequestApplicator[],
   getScore: ScoreGetterFn,
-): RequestHandler[] {
+): RequestApplicator[] {
   const suggestedHandlers = handlers
     .reduce<RequestHandlerSuggestionList>((acc, handler) => {
       const score = getScore(request, handler)
@@ -119,22 +103,20 @@ function getSuggestedHandler(
   return suggestedHandlers
 }
 
-function getSuggestedHandlersMessage(handlers: RequestHandler[]) {
+function getSuggestedHandlersMessage(handlers: RequestApplicator[]) {
   if (handlers.length > 1) {
     return `\
 Did you mean to request one of the following resources instead?
 
-${handlers.map((handler) => `  • ${handler.getMetaInfo().header}`).join('\n')}`
+${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
   }
 
-  return `Did you mean to request "${
-    handlers[0].getMetaInfo().header
-  }" instead?`
+  return `Did you mean to request "${handlers[0].info.header}" instead?`
 }
 
 export function onUnhandledRequest(
   request: MockedRequest,
-  handlers: RequestHandlersList,
+  handlers: RequestApplicator[],
   strategy: UnhandledRequestStrategy = 'bypass',
 ): void {
   if (typeof strategy === 'function') {

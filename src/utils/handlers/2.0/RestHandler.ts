@@ -83,7 +83,7 @@ export interface RestRequestType<
 type ParsedResult = Match
 
 export class RestHandler<
-  RequestType extends MockedRequest<DefaultRequestBodyType>
+  RequestType extends MockedRequest<DefaultRequestBodyType> = MockedRequest<DefaultRequestBodyType>
 > extends RequestHandler<
   RestHandlerInfo,
   RequestType,

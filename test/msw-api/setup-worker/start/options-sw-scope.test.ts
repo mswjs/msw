@@ -2,10 +2,9 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 test('respects a custom "scope" Service Worker option', async () => {
-  const { page, request, consoleSpy } = await pageWith({
+  const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'options-sw-scope.mocks.ts'),
   })
-  await page.reload()
 
   const activationMessage = consoleSpy
     .get('startGroupCollapsed')

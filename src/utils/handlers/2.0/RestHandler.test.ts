@@ -14,11 +14,9 @@ const resolver: ResponseResolver<
 describe('info', () => {
   test('exposes request handler information', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
-    expect(handler.info).toEqual({
-      header: 'GET /user/:userId',
-      method: 'GET',
-      mask: '/user/:userId',
-    })
+    expect(handler.info).toHaveProperty('header', 'GET /user/:userId')
+    expect(handler.info).toHaveProperty('method', 'GET')
+    expect(handler.info).toHaveProperty('mask', '/user/:userId')
   })
 })
 

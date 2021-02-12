@@ -17,8 +17,6 @@ test('does not log the captured request when the "quiet" option is set to "true"
     return window.msw.registration
   })
 
-  await page.reload()
-
   expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 
   const res = await request('/user')

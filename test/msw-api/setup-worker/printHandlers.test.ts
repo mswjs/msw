@@ -47,9 +47,6 @@ test('lists rest request handlers', async () => {
   expect(matchSuggestions).toEqual([
     'Match: https://mswjs.io/repl?path=https://test.mswjs.io/book/:bookId',
   ])
-
-  const resolvers = log.filter((message) => message.startsWith('Resolver:'))
-  expect(resolvers).toHaveLength(6)
 })
 
 test('respects runtime request handlers', async () => {
@@ -80,7 +77,4 @@ test('respects runtime request handlers', async () => {
   expect(matchSuggestions).toContain(
     'Match: https://mswjs.io/repl?path=/profile',
   )
-
-  const resolvers = log.filter((message) => message.startsWith('Resolver:'))
-  expect(resolvers).toHaveLength(8)
 })

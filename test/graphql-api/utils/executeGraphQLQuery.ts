@@ -104,7 +104,7 @@ export const executeGraphQLQuery = async (
             body,
           },
         ),
-      )
+      ).catch(() => null)
     },
     [urlString, method, payload.query, payload.variables, map, fileContents],
   )
@@ -113,6 +113,6 @@ export const executeGraphQLQuery = async (
     // Propagate `fetch` exceptions to the parent Promise.
     responsePromise.catch(reject)
 
-    return page.waitForResponse(urlString).then(resolve)
+    return page.waitForResponse(urlString).then(resolve).catch(resolve)
   })
 }

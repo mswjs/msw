@@ -162,8 +162,11 @@ export function setupWorker(
     printHandlers() {
       context.requestHandlers.forEach((handler) => {
         const { header, callFrame } = handler.info
+        const pragma = handler.info.hasOwnProperty('operationType')
+          ? '[graphql]'
+          : '[rest]'
 
-        console.groupCollapsed(header)
+        console.groupCollapsed(`${pragma} ${header}`)
 
         if (callFrame) {
           console.log(`Declaration: ${callFrame}`)

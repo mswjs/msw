@@ -5,10 +5,9 @@ import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import copyServiceWorker from '../../config/copyServiceWorker'
 
 test('activates the worker without errors given the latest integrity', async () => {
-  const { page, request, consoleSpy } = await pageWith({
+  const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'integrity-check-valid.mocks.ts'),
   })
-  await page.reload()
 
   expect(consoleSpy.get('error')).toBeUndefined()
 
@@ -36,7 +35,7 @@ test('errors when activating the worker with an outdated integrity', async () =>
     'intentionally-invalid-checksum',
   )
 
-  const { page, request, consoleSpy } = await pageWith({
+  const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'integrity-check-invalid.mocks.ts'),
     routes(app) {
       app.get('/mockServiceWorker-outdated.js', (req, res) => {
@@ -46,7 +45,6 @@ test('errors when activating the worker with an outdated integrity', async () =>
       })
     },
   })
-  await page.reload()
 
   // Produces a meaningful error in the browser's console.
   const integrityError = consoleSpy.get('error').find((text) => {

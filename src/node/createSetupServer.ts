@@ -7,7 +7,7 @@ import {
   MockedResponse as MockedInterceptedResponse,
   Interceptor,
 } from 'node-request-interceptor'
-import { RequestApplicator, RequestHandlersList } from '../setupWorker/glossary'
+import { RequestApplicator } from '../setupWorker/glossary'
 import { MockedRequest } from '../utils/handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseBody } from '../utils/request/parseBody'
@@ -176,9 +176,12 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       printHandlers() {
         currentHandlers.forEach((handler) => {
           const { header, callFrame } = handler.info
+          const pragma = handler.info.hasOwnProperty('operationType')
+            ? '[graphql]'
+            : '[rest]'
 
           console.log(`\
-${bold(header)}
+${bold(`${pragma} ${header}`)}
   Declaration: ${callFrame}
 `)
         })

@@ -11,4 +11,6 @@ const worker = setupWorker(
   }),
 )
 
-worker.start()
+worker.start({
+  onUnhandledRequest: 'warn',
+})

@@ -1,10 +1,16 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { sleep } from '../support/utils'
 
 function createRuntime() {
   return pageWith({
     example: path.resolve(__dirname, 'operation.mocks.ts'),
+    routes(app) {
+      app.post('/search', (req, res) => {
+        return res.json({ results: [1, 2, 3] })
+      })
+    },
   })
 }
 
@@ -70,20 +76,49 @@ test('matches GraphQL mutations', async () => {
   })
 })
 
-test('matches only valid GraphQL requests', async () => {
-  const runtime = await createRuntime()
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: 'test',
+test('propagates parsing errors from the invalid GraphQL requests', async () => {
+  const { page, consoleSpy } = await createRuntime()
+
+  const INVALID_QUERY = `
+# Intentionally invalid GraphQL query.
+query GetUser() {
+  user { id
+}
+  `
+
+  executeGraphQLQuery(page, {
+    query: INVALID_QUERY,
   })
+
+  // Await the console message, because you cannot await a failed response.
+  await sleep(250)
+
+  expect(consoleSpy.get('error')).toEqual(
+    expect.arrayContaining([
+      '[MSW] Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.',
+    ]),
+  )
+})
+
+test('bypasses seemingly compatible REST requests', async () => {
+  const { page, makeUrl } = await createRuntime()
+
+  const res = await executeGraphQLQuery(
+    page,
+    {
+      query: 'favorite books',
+    },
+    {
+      uri: makeUrl('/search'),
+    },
+  )
 
   const headers = res.headers()
   const body = await res.json()
 
-  expect(res.status()).not.toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
-  expect(body).not.toEqual({
-    data: {
-      query: 'test',
-    },
+  expect(body).toEqual({
+    results: [1, 2, 3],
   })
 })

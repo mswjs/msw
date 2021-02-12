@@ -2,11 +2,9 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 test('warns when a request handler URL contains query parameters', async () => {
-  const { page, request, consoleSpy } = await pageWith({
+  const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'query-params-warning.mocks.ts'),
   })
-
-  await page.reload()
 
   expect(consoleSpy.get('warning')).toEqual([
     `\

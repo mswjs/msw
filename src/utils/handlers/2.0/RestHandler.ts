@@ -46,7 +46,7 @@ export enum RESTMethods {
 
 // Declaring a context interface infers
 // JSDoc description of the referenced utils.
-export interface RestContext {
+export type RestContext = {
   set: typeof set
   status: typeof status
   cookie: typeof cookie
@@ -101,7 +101,7 @@ export class RestHandler<
         mask,
         method,
       },
-      ctx: restContext as any,
+      ctx: restContext,
       resolver,
     })
 
@@ -118,7 +118,7 @@ export class RestHandler<
         queryParams.push(paramName)
       })
 
-      console.warn(`
+      console.warn(`\
 [MSW] Found a redundant usage of query parameters in the request handler URL for "${method} ${mask}". Please match against a path instead, and access query parameters in the response resolver function:
 
 rest.${method.toLowerCase()}("${resolvedMask.pathname}", (req, res, ctx) => {
@@ -148,8 +148,10 @@ ${queryParams
     }
   }
 
-  predicate(req: RequestType, parsedResult: ParsedResult) {
-    return isStringEqual(this.info.method, req.method) && parsedResult.matches
+  predicate(request: RequestType, parsedResult: ParsedResult) {
+    return (
+      isStringEqual(this.info.method, request.method) && parsedResult.matches
+    )
   }
 
   log(request: RequestType, response: ResponseWithSerializedHeaders<any>) {

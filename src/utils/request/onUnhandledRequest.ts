@@ -1,12 +1,14 @@
 import getStringMatchScore from 'js-levenshtein'
-import { parseGraphQLRequest } from '../internal/parseGraphQLRequest'
+import {
+  ParsedGraphQLQuery,
+  parseGraphQLRequest,
+} from '../internal/parseGraphQLRequest'
 import { MockedRequest } from '../handlers/requestHandler'
-import { GraphQLMockedRequest, ParsedQueryPayload } from '../../graphql'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { RequestApplicator } from '../../setupWorker/glossary'
-import { RequestHandler } from '../handlers/2.0/RequestHandler'
 import { RestHandler } from '../handlers/2.0/RestHandler'
+import { GraphQLHandler } from '../handlers/2.0/GraphQLHandler'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
@@ -20,16 +22,20 @@ export type UnhandledRequestStrategy =
   | 'error'
   | UnhandledRequestCallback
 
-type GraphQLRequestHandler = RequestHandler<GraphQLMockedRequest<any>>
-
 function groupHandlersByType(handlers: RequestApplicator[]) {
   return handlers.reduce<{
     rest: RestHandler[]
-    graphql: GraphQLRequestHandler[]
+    graphql: GraphQLHandler[]
   }>(
     (groups, handler) => {
-      const { type } = handler.info
-      type.push(handler)
+      if (handler instanceof RestHandler) {
+        groups.rest.push(handler)
+      }
+
+      if (handler instanceof GraphQLHandler) {
+        groups.graphql.push(handler)
+      }
+
       return groups
     },
     {
@@ -64,7 +70,7 @@ function getScoreForRestHandler(): ScoreGetterFn {
 }
 
 function getScoreForGraphQLHandler(
-  parsedQuery: ParsedQueryPayload,
+  parsedQuery: ParsedGraphQLQuery,
 ): ScoreGetterFn {
   return (_, handler) => {
     if (typeof parsedQuery.operationName === 'undefined') {

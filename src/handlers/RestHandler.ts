@@ -76,8 +76,9 @@ export type RequestQuery = {
 }
 
 export interface RestRequestType<
+  BodyType extends DefaultRequestBodyType = DefaultRequestBodyType,
   ParamsType extends RequestParams = Record<string, any>
-> extends MockedRequest {
+> extends MockedRequest<BodyType> {
   params: ParamsType
 }
 
@@ -146,7 +147,7 @@ ${queryParams
   protected getPublicRequest(
     request: RequestType,
     parsedResult: ParsedResult,
-  ): RestRequestType<RequestParams> {
+  ): RestRequestType<any, RequestParams> {
     return {
       ...request,
       params: parsedResult.params,

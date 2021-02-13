@@ -22,6 +22,6 @@ export const errors = <
     const prevBody = jsonParse(res.body) || {}
     const nextBody = mergeRight(prevBody, { errors: errorsList })
 
-    return json(nextBody)(res)
+    return json(nextBody)(res as any) as any
   }
 }

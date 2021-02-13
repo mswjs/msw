@@ -14,7 +14,7 @@ function createScopedGraphQLHandler(
   url: Mask,
 ) {
   return <
-    QueryType,
+    QueryType extends Record<string, any>,
     VariablesType extends GraphQLVariablesType = GraphQLVariablesType
   >(
     operationName: GraphQLHandlerNameSelector,
@@ -29,7 +29,7 @@ function createScopedGraphQLHandler(
 
 function createGraphQLOperationHandler(url: Mask) {
   return <
-    QueryType,
+    QueryType extends Record<string, any>,
     VariablesType extends GraphQLVariablesType = GraphQLVariablesType
   >(
     resolver: ResponseResolver<

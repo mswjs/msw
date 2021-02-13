@@ -38,6 +38,10 @@ export { graphql } from './graphql'
 export {
   GraphQLHandler,
   GraphQLContext,
+  GraphQLVariablesType,
+  GraphQLRequestType,
+  GraphQLRequestBodyType,
+  GraphQLJsonRequestBody,
   graphqlContext,
 } from './handlers/GraphQLHandler'
 

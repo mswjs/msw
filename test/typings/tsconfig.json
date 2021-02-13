@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+    "lib": ["dom"],
+    "baseUrl": ".",
+    "paths": {
+      "msw": ["../../"]
+    }
+  },
+  "include": ["../../global.d.ts", "**/*.test-d.ts"],
+  "exclude": ["node_modules"]
+}

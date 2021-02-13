@@ -13,16 +13,13 @@ import {
 
 function createRestHandler(method: RESTMethods) {
   return <
-    /**
-     * @fixme Propagate request body type generic to the handler.
-     */
-    RequestBodyType = DefaultRequestBodyType,
-    ResponseBodyType = any,
+    RequestBodyType extends DefaultRequestBodyType = DefaultRequestBodyType,
+    ResponseBodyType extends DefaultRequestBodyType = any,
     RequestParamsType extends RequestParams = RequestParams
   >(
     mask: Mask,
     resolver: ResponseResolver<
-      RestRequestType<RequestParamsType>,
+      RestRequestType<RequestBodyType, RequestParamsType>,
       RestContext,
       ResponseBodyType
     >,

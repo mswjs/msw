@@ -16,31 +16,32 @@ export {
 
 /* Request handlers */
 export {
-  defaultContext,
-  MockedRequest,
   RequestHandler,
-  RequestParams,
-  RequestQuery,
+  MockedRequest,
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
-} from './utils/handlers/requestHandler'
+  DefaultRequestBodyType,
+  DefaultMultipartBodyType,
+  defaultContext,
+} from './handlers/RequestHandler'
+export { rest } from './rest'
+export {
+  RESTMethods,
+  RestContext,
+  RequestParams,
+  RequestQuery,
+  RestRequestType,
+  restContext,
+} from './handlers/RestHandler'
 export { graphql } from './graphql'
 export {
   GraphQLHandler,
   GraphQLContext,
   graphqlContext,
-} from './utils/handlers/2.0/GraphQLHandler'
-export { matchRequestUrl } from './utils/matching/matchRequestUrl'
+} from './handlers/GraphQLHandler'
 
 /* Utils */
+export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export { compose } from './utils/internal/compose'
 export { DelayMode } from './context/delay'
-
-export { RequestHandler as BaseRequestHandler } from './utils/handlers/2.0/RequestHandler'
-export { rest } from './rest'
-export {
-  RESTMethods,
-  RestContext,
-  restContext,
-} from './utils/handlers/2.0/RestHandler'

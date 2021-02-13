@@ -1,11 +1,11 @@
-import { MockedRequest } from '../handlers/requestHandler'
+import { MockedRequest } from '../../handlers/RequestHandler'
 
 /**
  * Formats a mocked request for introspection in browser's console.
  */
-export function prepareRequest(req: MockedRequest) {
+export function prepareRequest(request: MockedRequest) {
   return {
-    ...req,
-    headers: req.headers.getAllHeaders(),
+    ...request,
+    headers: request.headers.getAllHeaders(),
   }
 }

@@ -1,27 +1,27 @@
 import { OperationTypeNode } from 'graphql'
+import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
+import { set } from '../context/set'
+import { status } from '../context/status'
+import { delay } from '../context/delay'
+import { fetch } from '../context/fetch'
+import { data, DataContext } from '../context/data'
+import { errors } from '../context/errors'
 import {
-  Mask,
-  ResponseWithSerializedHeaders,
-} from '../../../setupWorker/glossary'
-import { MockedRequest, ResponseResolver } from '../requestHandler'
-import { set } from '../../../context/set'
-import { status } from '../../../context/status'
-import { delay } from '../../../context/delay'
-import { fetch } from '../../../context/fetch'
-import { data, DataContext } from '../../../context/data'
-import { errors } from '../../../context/errors'
-import { RequestHandler } from './RequestHandler'
-import { getTimestamp } from '../../logging/getTimestamp'
-import { getStatusCodeColor } from '../../logging/getStatusCodeColor'
-import { prepareRequest } from '../../logging/prepareRequest'
-import { prepareResponse } from '../../logging/prepareResponse'
-import { matchRequestUrl } from '../../matching/matchRequestUrl'
+  MockedRequest,
+  RequestHandler,
+  ResponseResolver,
+} from './RequestHandler'
+import { getTimestamp } from '../utils/logging/getTimestamp'
+import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
+import { prepareRequest } from '../utils/logging/prepareRequest'
+import { prepareResponse } from '../utils/logging/prepareResponse'
+import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
   parseGraphQLRequest,
-} from '../../internal/parseGraphQLRequest'
-import { getPublicUrlFromRequest } from '../../request/getPublicUrlFromRequest'
+} from '../utils/internal/parseGraphQLRequest'
+import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = RegExp | string

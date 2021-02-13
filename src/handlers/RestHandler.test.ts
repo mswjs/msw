@@ -1,8 +1,8 @@
 import { RestHandler, RestRequestType, RestContext } from './RestHandler'
-import { ResponseResolver } from '../requestHandler'
-import { createMockedRequest } from '../../../../test/support/utils'
-import { response } from '../../../response'
-import { context } from '../../..'
+import { createMockedRequest } from '../../test/support/utils'
+import { response } from '../response'
+import { context } from '..'
+import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
   RestRequestType<{ userId: string }>,

@@ -1,6 +1,6 @@
 import { OperationDefinitionNode, OperationTypeNode, parse } from 'graphql'
-import { GraphQLVariablesType } from '../handlers/2.0/GraphQLHandler'
-import { MockedRequest } from '../handlers/requestHandler'
+import { GraphQLVariablesType } from '../../handlers/GraphQLHandler'
+import { MockedRequest } from '../../handlers/RequestHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
 import { jsonParse } from './jsonParse'
 

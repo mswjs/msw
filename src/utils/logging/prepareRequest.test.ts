@@ -2,7 +2,7 @@ import { Headers } from 'headers-utils'
 import { prepareRequest } from './prepareRequest'
 
 test('converts request headers into an object', () => {
-  const req = prepareRequest({
+  const request = prepareRequest({
     id: 'ac72d720-baad-4ef3-9b3d-b1bcf8b0609f',
     url: new URL('http://test.mswjs.io/user'),
     method: 'GET',
@@ -25,7 +25,7 @@ test('converts request headers into an object', () => {
   })
 
   // Converts `Headers` instance into inspectable object
-  expect(req).toHaveProperty('headers', {
+  expect(request).toHaveProperty('headers', {
     'content-type': 'application/json',
     'x-header': 'secret',
   })

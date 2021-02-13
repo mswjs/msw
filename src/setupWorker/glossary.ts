@@ -1,12 +1,11 @@
 import { HeadersList } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
-import { MockedRequest, RequestHandler } from '../utils/handlers/requestHandler'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
-import { RequestHandler as RequestHandlerClass } from '../utils/handlers/2.0/RequestHandler'
+import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
@@ -81,19 +80,19 @@ export type ServiceWorkerFetchEventTypes =
   | 'INTERNAL_ERROR'
 
 export interface WorkerLifecycleEventsMap {
-  'request:start': (req: MockedRequest) => void
-  'request:match': (req: MockedRequest) => void
-  'request:unhandled': (req: MockedRequest) => void
-  'request:end': (req: MockedRequest) => void
-  'response:mocked': (res: Response, requestId: string) => void
-  'response:bypass': (res: Response, requestId: string) => void
+  'request:start': (request: MockedRequest) => void
+  'request:match': (request: MockedRequest) => void
+  'request:unhandled': (request: MockedRequest) => void
+  'request:end': (request: MockedRequest) => void
+  'response:mocked': (response: Response, requestId: string) => void
+  'response:bypass': (response: Response, requestId: string) => void
 }
 
 export interface SetupWorkerInternalContext {
   startOptions: StartOptions | undefined
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  requestHandlers: RequestApplicator[]
+  requestHandlers: RequestHandler[]
   emitter: StrictEventEmitter<WorkerLifecycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {
@@ -177,9 +176,6 @@ export type StartOptions = SharedOptions & {
   findWorker?: FindWorker
 }
 
-export type RequestApplicator = RequestHandlerClass
-export type RequestHandlersList = RequestHandler<any, any, any, any, any>[]
-
 export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
   MockedResponse<BodyType>,
   'headers'
@@ -205,7 +201,7 @@ export interface SetupWorkerApi {
    * @param {RequestHandler[]} handlers List of runtime request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()`}
    */
-  use: (...handlers: RequestApplicator[]) => void
+  use: (...handlers: RequestHandler[]) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -218,7 +214,7 @@ export interface SetupWorkerApi {
    * @param {RequestHandler[]} nextHandlers List of the new initial request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()`}
    */
-  resetHandlers: (...nextHandlers: RequestApplicator[]) => void
+  resetHandlers: (...nextHandlers: RequestHandler[]) => void
 
   /**
    * Lists all active request handlers.

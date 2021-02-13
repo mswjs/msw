@@ -1,14 +1,52 @@
+import { Headers } from 'headers-utils'
 import {
   ResponseTransformer,
-  response,
   MockedResponse,
-} from '../../../response'
-import { getCallFrame } from '../../internal/getCallFrame'
-import {
-  defaultContext,
-  MockedRequest,
-  ResponseResolver,
-} from '../requestHandler'
+  response,
+  ResponseComposition,
+} from '../response'
+import { getCallFrame } from '../utils/internal/getCallFrame'
+import { status } from '../context/status'
+import { set } from '../context/set'
+import { delay } from '../context/delay'
+import { fetch } from '../context/fetch'
+
+export const defaultContext = {
+  status,
+  set,
+  delay,
+  fetch,
+}
+
+export type DefaultMultipartBodyType = Record<
+  string,
+  string | File | (string | File)[]
+>
+
+export type DefaultRequestBodyType =
+  | Record<string, any>
+  | DefaultMultipartBodyType
+  | string
+  | undefined
+
+export interface MockedRequest<BodyType = DefaultRequestBodyType> {
+  id: string
+  url: URL
+  method: Request['method']
+  headers: Headers
+  cookies: Record<string, string>
+  mode: Request['mode']
+  keepalive: Request['keepalive']
+  cache: Request['cache']
+  destination: Request['destination']
+  integrity: Request['integrity']
+  credentials: Request['credentials']
+  redirect: Request['redirect']
+  referrer: Request['referrer']
+  referrerPolicy: Request['referrerPolicy']
+  body: BodyType
+  bodyUsed: Request['bodyUsed']
+}
 
 interface RequestHandlerDefaultInfo {
   callFrame?: string
@@ -19,6 +57,21 @@ type RequestHandlerInfo<ExtraInfo extends Record<string, any>> = {
 } & ExtraInfo
 
 type ContextMap = Record<string, (...args: any) => ResponseTransformer>
+
+export type ResponseResolverReturnType<R> = R | undefined | void
+export type AsyncResponseResolverReturnType<R> =
+  | Promise<ResponseResolverReturnType<R>>
+  | ResponseResolverReturnType<R>
+
+export type ResponseResolver<
+  RequestType = MockedRequest,
+  ContextType = typeof defaultContext,
+  BodyType = any
+> = (
+  req: RequestType,
+  res: ResponseComposition<BodyType>,
+  context: ContextType,
+) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
 
 export interface RequestHandlerOptions<HandlerInfo> {
   info: RequestHandlerInfo<HandlerInfo>

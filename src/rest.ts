@@ -1,15 +1,15 @@
 import { Mask } from './setupWorker/glossary'
 import {
   DefaultRequestBodyType,
-  RequestParams,
   ResponseResolver,
-} from './utils/handlers/requestHandler'
+} from './handlers/RequestHandler'
 import {
   RESTMethods,
   RestContext,
   RestHandler,
   RestRequestType,
-} from './utils/handlers/2.0/RestHandler'
+  RequestParams,
+} from './handlers/RestHandler'
 
 function createRestHandler(method: RESTMethods) {
   return <

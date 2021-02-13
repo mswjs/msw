@@ -3,15 +3,15 @@ import {
   SetupWorkerInternalContext,
   SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
-  RequestApplicator,
 } from './glossary'
 import { createStart } from './start/createStart'
 import { createStop } from './stop/createStop'
-import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
+import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { jsonParse } from '../utils/internal/jsonParse'
-import { RestHandler } from '../utils/handlers/2.0/RestHandler'
+import { RequestHandler } from '../handlers/RequestHandler'
+import { RestHandler } from '../handlers/RestHandler'
 
 interface Listener {
   target: EventTarget
@@ -30,7 +30,7 @@ let listeners: Listener[] = []
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
  */
 export function setupWorker(
-  ...requestHandlers: RequestApplicator[]
+  ...requestHandlers: RequestHandler[]
 ): SetupWorkerApi {
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))

@@ -7,16 +7,15 @@ import {
   MockedResponse as MockedInterceptedResponse,
   Interceptor,
 } from 'node-request-interceptor'
-import { RequestApplicator } from '../setupWorker/glossary'
-import { MockedRequest } from '../utils/handlers/requestHandler'
 import { getResponse } from '../utils/getResponse'
 import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
-import * as requestHandlerUtils from '../utils/handlers/requestHandlerUtils'
+import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
+import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -30,7 +29,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
   const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
 
   return function setupServer(
-    ...requestHandlers: RequestApplicator[]
+    ...requestHandlers: RequestHandler[]
   ): SetupServerApi {
     requestHandlers.forEach((handler) => {
       if (Array.isArray(handler))
@@ -49,15 +48,15 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
     // Store the list of request handlers for the current server instance,
     // so it could be modified at a runtime.
-    let currentHandlers: RequestApplicator[] = [...requestHandlers]
+    let currentHandlers: RequestHandler[] = [...requestHandlers]
 
-    interceptor.on('response', (req, res) => {
-      const requestId = req.headers?.['x-msw-request-id'] as string
+    interceptor.on('response', (request, response) => {
+      const requestId = request.headers?.['x-msw-request-id'] as string
 
-      if (res.headers['x-powered-by'] === 'msw') {
-        emitter.emit('response:mocked', res, requestId)
+      if (response.headers['x-powered-by'] === 'msw') {
+        emitter.emit('response:mocked', response, requestId)
       } else {
-        emitter.emit('response:bypass', res, requestId)
+        emitter.emit('response:bypass', response, requestId)
       }
     })
 
@@ -69,25 +68,25 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           options,
         )
 
-        interceptor.use(async (req) => {
+        interceptor.use(async (request) => {
           const requestId = uuidv4()
 
           const requestHeaders = new Headers(
-            flattenHeadersObject(req.headers || {}),
+            flattenHeadersObject(request.headers || {}),
           )
 
-          if (req.headers) {
-            req.headers['x-msw-request-id'] = requestId
+          if (request.headers) {
+            request.headers['x-msw-request-id'] = requestId
           }
 
           const requestCookieString = requestHeaders.get('cookie')
 
           const mockedRequest: MockedRequest = {
             id: requestId,
-            url: req.url,
-            method: req.method,
+            url: request.url,
+            method: request.method,
             // Parse the request's body based on the "Content-Type" header.
-            body: parseBody(req.body, requestHeaders),
+            body: parseBody(request.body, requestHeaders),
             headers: requestHeaders,
             cookies: {},
             redirect: 'manual',

@@ -1,6 +1,6 @@
 import { Headers } from 'headers-utils'
+import { MockedRequest } from '../../handlers/RequestHandler'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
-import { MockedRequest } from '../handlers/requestHandler'
 import { getRequestCookies } from './getRequestCookies'
 import { parseBody } from './parseBody'
 import { pruneGetRequestBody } from './pruneGetRequestBody'

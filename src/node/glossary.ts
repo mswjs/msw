@@ -1,15 +1,20 @@
 import { MockedResponse as MockedInterceptedResponse } from 'node-request-interceptor'
+import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { SharedOptions } from '../sharedOptions'
-import { RequestApplicator } from '../setupWorker/glossary'
-import { MockedRequest } from '../utils/handlers/requestHandler'
 
 export interface ServerLifecycleEventsMap {
-  'request:start': (req: MockedRequest) => void
-  'request:match': (req: MockedRequest) => void
-  'request:unhandled': (req: MockedRequest) => void
-  'request:end': (req: MockedRequest) => void
-  'response:mocked': (res: MockedInterceptedResponse, requestId: string) => void
-  'response:bypass': (res: MockedInterceptedResponse, requestId: string) => void
+  'request:start': (request: MockedRequest) => void
+  'request:match': (request: MockedRequest) => void
+  'request:unhandled': (request: MockedRequest) => void
+  'request:end': (request: MockedRequest) => void
+  'response:mocked': (
+    response: MockedInterceptedResponse,
+    requestId: string,
+  ) => void
+  'response:bypass': (
+    response: MockedInterceptedResponse,
+    requestId: string,
+  ) => void
 }
 
 export interface SetupServerApi {
@@ -29,7 +34,7 @@ export interface SetupServerApi {
    * Prepends given request handlers to the list of existing handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/use `server.use()`}
    */
-  use(...handlers: RequestApplicator[]): void
+  use(...handlers: RequestHandler[]): void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -41,7 +46,7 @@ export interface SetupServerApi {
    * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
    * @see {@link https://mswjs.io/docs/api/setup-server/reset-handlers `server.reset-handlers()`}
    */
-  resetHandlers(...nextHandlers: RequestApplicator[]): void
+  resetHandlers(...nextHandlers: RequestHandler[]): void
 
   /**
    * Lists all active request handlers.

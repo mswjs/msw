@@ -28,31 +28,31 @@ export const createRequestListener = (
     const channel = createBroadcastChannel(event)
 
     try {
-      const req = parseWorkerRequest(message.payload)
-      context.emitter.emit('request:start', req)
+      const request = parseWorkerRequest(message.payload)
+      context.emitter.emit('request:start', request)
 
       const {
         response,
         handler,
         publicRequest,
         parsedRequest,
-      } = await getResponse(req, context.requestHandlers)
+      } = await getResponse(request, context.requestHandlers)
 
       // Handle a scenario when there is no request handler
       // found for a given request.
       if (!handler) {
         onUnhandledRequest(
-          req,
+          request,
           context.requestHandlers,
           options.onUnhandledRequest,
         )
-        context.emitter.emit('request:unhandled', req)
-        context.emitter.emit('request:end', req)
+        context.emitter.emit('request:unhandled', request)
+        context.emitter.emit('request:end', request)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
 
-      context.emitter.emit('request:match', req)
+      context.emitter.emit('request:match', request)
 
       // Handle a scenario when there is a request handler,
       // but it doesn't return any mocked response.
@@ -62,7 +62,7 @@ export const createRequestListener = (
           response,
         )
 
-        context.emitter.emit('request:end', req)
+        context.emitter.emit('request:end', request)
 
         return channel.send({ type: 'MOCK_NOT_FOUND' })
       }
@@ -83,7 +83,7 @@ export const createRequestListener = (
         }, response.delay)
       }
 
-      context.emitter.emit('request:end', req)
+      context.emitter.emit('request:end', request)
 
       channel.send({
         type: 'MOCK_SUCCESS',

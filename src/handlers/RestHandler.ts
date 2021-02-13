@@ -9,25 +9,22 @@ import {
   status,
   text,
   xml,
-} from '../../../context'
-import {
-  Mask,
-  ResponseWithSerializedHeaders,
-} from '../../../setupWorker/glossary'
-import { isStringEqual } from '../../internal/isStringEqual'
-import { getStatusCodeColor } from '../../logging/getStatusCodeColor'
-import { getTimestamp } from '../../logging/getTimestamp'
-import { prepareRequest } from '../../logging/prepareRequest'
-import { prepareResponse } from '../../logging/prepareResponse'
-import { matchRequestUrl } from '../../matching/matchRequestUrl'
-import { getPublicUrlFromRequest } from '../../request/getPublicUrlFromRequest'
-import { getUrlByMask } from '../../url/getUrlByMask'
+} from '../context'
+import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
+import { isStringEqual } from '../utils/internal/isStringEqual'
+import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
+import { getTimestamp } from '../utils/logging/getTimestamp'
+import { prepareRequest } from '../utils/logging/prepareRequest'
+import { prepareResponse } from '../utils/logging/prepareResponse'
+import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
+import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { getUrlByMask } from '../utils/url/getUrlByMask'
 import {
   DefaultRequestBodyType,
   MockedRequest,
+  RequestHandler,
   ResponseResolver,
-} from '../requestHandler'
-import { RequestHandler } from './RequestHandler'
+} from './RequestHandler'
 
 interface RestHandlerInfo {
   method: string
@@ -74,6 +71,10 @@ export type RequestParams = {
   [paramName: string]: any
 }
 
+export type RequestQuery = {
+  [queryName: string]: any
+}
+
 export interface RestRequestType<
   ParamsType extends RequestParams = Record<string, any>
 > extends MockedRequest {
@@ -82,6 +83,10 @@ export interface RestRequestType<
 
 type ParsedResult = Match
 
+/**
+ * Request handler for REST API requests.
+ * Provides request matching based on method and URL.
+ */
 export class RestHandler<
   RequestType extends MockedRequest<DefaultRequestBodyType> = MockedRequest<DefaultRequestBodyType>
 > extends RequestHandler<

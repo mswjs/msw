@@ -1,14 +1,13 @@
-import { RequestApplicator } from '../setupWorker/glossary'
-import { MockedRequest } from './handlers/requestHandler'
 import { MockedResponse } from '../response'
 import {
+  MockedRequest,
+  RequestHandler,
   RequestHandlerExecutionResult,
-  RequestHandler as RequestHandlerClass,
-} from './handlers/2.0/RequestHandler'
+} from '../handlers/RequestHandler'
 
 interface ResponsePayload {
   response: MockedResponse | undefined
-  handler: RequestHandlerClass | null
+  handler: RequestHandler | null
   publicRequest?: any
   parsedRequest?: any
 }
@@ -17,11 +16,11 @@ interface ResponsePayload {
  * Returns a mocked response for a given request using following request handlers.
  */
 export const getResponse = async <
-  R extends MockedRequest,
-  H extends RequestApplicator[]
+  Request extends MockedRequest,
+  Handler extends RequestHandler[]
 >(
-  request: R,
-  handlers: H,
+  request: Request,
+  handlers: Handler,
 ): Promise<ResponsePayload> => {
   const relevantHandlers = handlers.filter((handler) => {
     return handler.test(request)
@@ -71,7 +70,7 @@ export const getResponse = async <
     parsedRequest: result.parsedResult,
     response: result.response,
     /**
-     * @todo This is not a public request: lacks parsed results.
+     * @fixme This is not a public request: lacks parsed results.
      */
     publicRequest: request,
     handler: result.handler,

@@ -1,4 +1,5 @@
 import { Mask } from './setupWorker/glossary'
+import { ResponseResolver } from './handlers/RequestHandler'
 import {
   ExpectedOperationTypeNode,
   GraphQLHandler,
@@ -6,8 +7,7 @@ import {
   GraphQLRequestType,
   GraphQLHandlerNameSelector,
   GraphQLVariablesType,
-} from './utils/handlers/2.0/GraphQLHandler'
-import { ResponseResolver } from './utils/handlers/requestHandler'
+} from './handlers/GraphQLHandler'
 
 function createScopedGraphQLHandler(
   operationType: ExpectedOperationTypeNode,

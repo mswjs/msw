@@ -1,5 +1,5 @@
 import { stringToHeaders } from 'headers-utils'
-import { DefaultMultipartBodyType } from '../handlers/requestHandler'
+import { DefaultMultipartBodyType } from '../../handlers/RequestHandler'
 
 interface ParsedContentHeaders {
   name: string

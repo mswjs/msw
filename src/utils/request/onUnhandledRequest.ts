@@ -3,18 +3,17 @@ import {
   ParsedGraphQLQuery,
   parseGraphQLRequest,
 } from '../internal/parseGraphQLRequest'
-import { MockedRequest } from '../handlers/requestHandler'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
-import { RequestApplicator } from '../../setupWorker/glossary'
-import { RestHandler } from '../handlers/2.0/RestHandler'
-import { GraphQLHandler } from '../handlers/2.0/GraphQLHandler'
+import { RestHandler } from '../../handlers/RestHandler'
+import { GraphQLHandler } from '../../handlers/GraphQLHandler'
+import { MockedRequest, RequestHandler } from '../../handlers/RequestHandler'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
 const TYPE_MATCH_DELTA = 0.5
 
-type UnhandledRequestCallback = (req: MockedRequest) => void
+type UnhandledRequestCallback = (request: MockedRequest) => void
 
 export type UnhandledRequestStrategy =
   | 'bypass'
@@ -22,7 +21,7 @@ export type UnhandledRequestStrategy =
   | 'error'
   | UnhandledRequestCallback
 
-function groupHandlersByType(handlers: RequestApplicator[]) {
+function groupHandlersByType(handlers: RequestHandler[]) {
   return handlers.reduce<{
     rest: RestHandler[]
     graphql: GraphQLHandler[]
@@ -45,11 +44,8 @@ function groupHandlersByType(handlers: RequestApplicator[]) {
   )
 }
 
-type RequestHandlerSuggestionList = [number, RequestApplicator][]
-type ScoreGetterFn = (
-  request: MockedRequest,
-  handler: RequestApplicator,
-) => number
+type RequestHandlerSuggestionList = [number, RequestHandler][]
+type ScoreGetterFn = (request: MockedRequest, handler: RequestHandler) => number
 
 function getScoreForRestHandler(): ScoreGetterFn {
   return (request, handler) => {
@@ -89,9 +85,9 @@ function getScoreForGraphQLHandler(
 
 function getSuggestedHandler(
   request: MockedRequest,
-  handlers: RequestApplicator[],
+  handlers: RequestHandler[],
   getScore: ScoreGetterFn,
-): RequestApplicator[] {
+): RequestHandler[] {
   const suggestedHandlers = handlers
     .reduce<RequestHandlerSuggestionList>((acc, handler) => {
       const score = getScore(request, handler)
@@ -109,7 +105,7 @@ function getSuggestedHandler(
   return suggestedHandlers
 }
 
-function getSuggestedHandlersMessage(handlers: RequestApplicator[]) {
+function getSuggestedHandlersMessage(handlers: RequestHandler[]) {
   if (handlers.length > 1) {
     return `\
 Did you mean to request one of the following resources instead?
@@ -122,7 +118,7 @@ ${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
 
 export function onUnhandledRequest(
   request: MockedRequest,
-  handlers: RequestApplicator[],
+  handlers: RequestHandler[],
   strategy: UnhandledRequestStrategy = 'bypass',
 ): void {
   if (typeof strategy === 'function') {

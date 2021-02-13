@@ -7,11 +7,15 @@ type Input = Pick<ServiceWorkerIncomingRequest, 'method' | 'body'>
  * Ensures that an empty GET request body is always represented as `undefined`.
  */
 export function pruneGetRequestBody(
-  req: Input,
+  request: Input,
 ): ServiceWorkerIncomingRequest['body'] {
-  if (req.method && isStringEqual(req.method, 'GET') && req.body === '') {
+  if (
+    request.method &&
+    isStringEqual(request.method, 'GET') &&
+    request.body === ''
+  ) {
     return undefined
   }
 
-  return req.body
+  return request.body
 }

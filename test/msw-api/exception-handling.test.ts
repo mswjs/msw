@@ -8,7 +8,7 @@ function createRuntime() {
 }
 
 test('activates the worker without errors', async () => {
-  const { page, consoleSpy } = await createRuntime()
+  const { consoleSpy } = await createRuntime()
   expect(consoleSpy.get('error')).toBeUndefined()
 })
 

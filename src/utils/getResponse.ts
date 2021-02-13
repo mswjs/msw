@@ -6,10 +6,10 @@ import {
 } from '../handlers/RequestHandler'
 
 interface ResponsePayload {
-  response: MockedResponse | undefined
-  handler: RequestHandler | null
+  handler?: RequestHandler
   publicRequest?: any
   parsedRequest?: any
+  response?: MockedResponse
 }
 
 /**
@@ -28,7 +28,7 @@ export const getResponse = async <
 
   if (relevantHandlers.length === 0) {
     return {
-      handler: null,
+      handler: undefined,
       response: undefined,
     }
   }
@@ -43,7 +43,6 @@ export const getResponse = async <
     }
 
     const result = await handler.run(request)
-    result?.handler
 
     if (result === null || !result.response || result.handler.shouldSkip) {
       return null
@@ -61,18 +60,15 @@ export const getResponse = async <
   // (i.e. if relevant handlers are fall-through).
   if (!result) {
     return {
-      handler: null,
+      handler: undefined,
       response: undefined,
     }
   }
 
   return {
+    handler: result.handler,
+    publicRequest: result.request,
     parsedRequest: result.parsedResult,
     response: result.response,
-    /**
-     * @fixme This is not a public request: lacks parsed results.
-     */
-    publicRequest: request,
-    handler: result.handler,
   }
 }

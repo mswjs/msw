@@ -9,7 +9,6 @@ const worker = setupWorker(
 // @ts-ignore
 window.msw = {
   worker,
-  name: 'what',
   createIframe: (id: string, src: string) => {
     // Append an iframe to the body and issue a request from it.
     const iframe = document.createElement('iframe')

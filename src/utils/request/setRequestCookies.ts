@@ -2,19 +2,20 @@ import { store } from 'virtual-cookies'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { getRequestCookies } from './getRequestCookies'
 
-export function setRequestCookies(req: MockedRequest) {
+export function setRequestCookies(request: MockedRequest) {
   store.hydrate()
-  req.cookies = {
-    ...getRequestCookies(req),
+  request.cookies = {
+    ...getRequestCookies(request),
     ...Object.fromEntries(
       Array.from(
-        store.get({ ...req, url: req.url.toString() })?.entries(),
+        store.get({ ...request, url: request.url.toString() })?.entries(),
       ).map(([name, { value }]) => [name, value]),
     ),
   }
-  req.headers.set(
+
+  request.headers.set(
     'cookie',
-    Object.entries(req.cookies)
+    Object.entries(request.cookies)
       .map(([name, value]) => `${name}=${value}`)
       .join('; '),
   )

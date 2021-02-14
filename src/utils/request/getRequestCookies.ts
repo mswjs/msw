@@ -9,6 +9,13 @@ function getAllCookies() {
  * Returns relevant document cookies based on the request `credentials` option.
  */
 export function getRequestCookies(request: MockedRequest) {
+  /**
+   * @note No cookies persist on the document in NodeJS: no document.
+   */
+  if (typeof location === 'undefined') {
+    return {}
+  }
+
   switch (request.credentials) {
     case 'same-origin': {
       // Return document cookies only when requested a resource

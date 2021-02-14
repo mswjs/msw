@@ -6,9 +6,15 @@ const worker = setupWorker(
   }),
 )
 
-worker.start()
-
-// Append an iframe to the body and issue a request from it.
-const iframe = document.createElement('iframe')
-iframe.setAttribute('src', '/test/fixtures/iframe.html')
-document.body.appendChild(iframe)
+// @ts-ignore
+window.msw = {
+  worker,
+  name: 'what',
+  createIframe: (id: string, src: string) => {
+    // Append an iframe to the body and issue a request from it.
+    const iframe = document.createElement('iframe')
+    iframe.id = id
+    iframe.setAttribute('src', src)
+    document.body.appendChild(iframe)
+  },
+}

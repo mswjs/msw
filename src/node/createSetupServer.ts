@@ -16,6 +16,9 @@ import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { uuidv4 } from '../utils/internal/uuidv4'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
+import { setRequestCookies } from '../utils/request/setRequestCookies'
+import { readResponseCookies } from '../utils/request/readResponseCookies'
+import { MockedResponse } from '../response'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',
@@ -101,7 +104,8 @@ export function createSetupServer(...interceptors: Interceptor[]) {
             credentials: 'same-origin',
           }
 
-          emitter.emit('request:start', mockedRequest)
+          // Attach all the cookies stored in the virtual cookie store.
+          setRequestCookies(mockedRequest)
 
           if (requestCookieString) {
             // Set mocked request cookies from the `cookie` header of the original request.
@@ -110,6 +114,8 @@ export function createSetupServer(...interceptors: Interceptor[]) {
             // Unlike browser, where interception is on the worker level, _before_ the request happens.
             mockedRequest.cookies = cookieUtils.parse(requestCookieString)
           }
+
+          emitter.emit('request:start', mockedRequest)
 
           if (mockedRequest.headers.get('x-msw-bypass')) {
             emitter.emit('request:end', mockedRequest)
@@ -145,6 +151,9 @@ export function createSetupServer(...interceptors: Interceptor[]) {
               headers: response.headers.getAllHeaders(),
               body: response.body as string,
             }
+
+            // Store all the received response cookies in the virtual cookie store.
+            readResponseCookies(mockedRequest, response)
 
             // the node build will use the timers module to ensure @sinon/fake-timers or jest fake timers
             // don't affect this timeout.

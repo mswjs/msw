@@ -22,7 +22,7 @@ test('intercepts a request made in an iframe (nested client)', async () => {
   const { messages } = captureConsole(runtime.page)
 
   runtime.page.evaluate(() => {
-    window.msw.createIframe('middle', window.location.href)
+    window.msw.createIframe('middle', `window.location.href?name=middle`)
   })
 
   const middle = await runtime.page.waitForSelector('#middle')

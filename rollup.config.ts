@@ -26,9 +26,7 @@ const plugins = [
     input: SERVICE_WORKER_SOURCE_PATH,
     output: SERVICE_WORKER_BUILD_PATH,
   }),
-  typescript({
-    useTsconfigDeclarationDir: true,
-  }),
+  typescript(),
   commonjs(),
 ]
 
@@ -96,6 +94,10 @@ const buildNode = {
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     }),
     typescript({
+      /**
+       * @fixme Export only "msw/node" relevant type declarations
+       * to enable auto-imports from "msw/node".
+       */
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
         outDir: './node',

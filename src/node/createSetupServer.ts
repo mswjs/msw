@@ -18,7 +18,6 @@ import { uuidv4 } from '../utils/internal/uuidv4'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { setRequestCookies } from '../utils/request/setRequestCookies'
 import { readResponseCookies } from '../utils/request/readResponseCookies'
-import { MockedResponse } from '../response'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'bypass',

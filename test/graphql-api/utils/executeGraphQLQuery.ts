@@ -32,7 +32,7 @@ interface GraphQLOperationOptions {
 }
 
 /**
- * Executes a GraphQL operation in the given Puppeteer context.
+ * Executes a GraphQL operation in the given Playwright context.
  */
 export const executeGraphQLQuery = async (
   page: Page,
@@ -53,7 +53,7 @@ export const executeGraphQLQuery = async (
 
   const urlString = url.toString()
 
-  // Cannot pass files because of Puppeteer's limitation.
+  // Cannot pass files because of Playwright's limitation.
   const responsePromise = page.evaluate<
     globalThis.Response,
     [

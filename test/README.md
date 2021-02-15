@@ -1,15 +1,16 @@
 # Integration tests
 
-This directory contains a list of integration tests for the Mock Service Worker library. An integration test usually runs in a browser (via Puppeteer + WDS), allowing us to target and assert the actual library's behavior in a developer's browser.
+This directory contains a list of integration tests for the Mock Service Worker library. Our integration tests are example-driven, meaning that each test features a specific usage example and asserts its behavior. We use the [`page-with`](https://github.com/kettanaito/page-with) package to compile and run a usage example within an automated browser environment.
 
 This directory categorizes all test suites based on the library's execution or API domain:
 
-- `/rest-api`, `/graphql-api`: for tests concerning the usage of the library with the respective API type.
-- `/msw-api` for the tests concerning the library's API.
+- `/rest-api`, tests for RESTful API mocking.
+- `/graphql-api`, rests for GraphQL API mocking.
+- `/msw-api`, tests for the library's API.
 
 ## Test structure
 
-Each test consists of two parts:
+Example-driven test consists of two parts:
 
 - `*.mocks.ts`, a usage example and also a code snippet to test.
 - `*.test.ts`, an actual test suite for Jest.

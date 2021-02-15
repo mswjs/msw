@@ -13,7 +13,7 @@ test('responds with a given binary body', async () => {
   const body = await res.body()
 
   const expectedBuffer = fs.readFileSync(
-    path.resolve(__dirname, '../../fixtures/image.jpg'),
+    path.resolve(__dirname, '../../../fixtures/image.jpg'),
   )
 
   expect(status).toBe(200)

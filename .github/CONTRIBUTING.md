@@ -90,7 +90,7 @@ $ yarn test:unit path/to/suite.test.ts
 ### Integration tests
 
 - [Jest][jest-url], a test runner.
-- [Puppeteer][puppeteer-url], a Chromium automation tool.
+- [`page-with`][page-with-url], a Chromium automation tool.
 
 > Note: make sure that you [build](#build) MSW before you run the integration tests
 
@@ -135,4 +135,4 @@ $ yarn build
 
 [yarn-url]: https://classic.yarnpkg.com/en/
 [jest-url]: https://jestjs.io
-[puppeteer-url]: https://pptr.dev
+[page-with-url]: https://github.com/kettanaito/page-with

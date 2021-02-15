@@ -14,7 +14,7 @@ test('prints a captured request info into browser console', async () => {
     .get('startGroupCollapsed')
     .find((text) => {
       // No way to assert the entire format of the log entry,
-      // because Puppeteer intercepts `console.log` calls,
+      // because Playwright intercepts `console.log` calls,
       // which contain unformatted strings (with %s, %c, styles).
       return text.includes('https://api.github.com/users/octocat')
     })

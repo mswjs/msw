@@ -6065,10 +6065,10 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-page-with@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.2.2.tgz#6a5bcf35dab26894ab112a7218f41ec36ffc1d76"
-  integrity sha512-YLEbrXFwnE0APbnOav/3O8rNNn+d1Qqvm6JGahJ5i3nwID8CQOWsvxnR8f4LhQWmQp6jXZohdhneCQHA1e1rYQ==
+page-with@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.2.3.tgz#a32eaa6ec4e9533c7a2587194eb0c2c657ebf3cd"
+  integrity sha512-BhZZFKUMUvQ7zW8aYhd75tBxk6fWnLOnVKcJGHyrP+/neG/WLDH7euNaOqKbTWh6jcYZZGfA7Ut1JPTKAH4YJQ==
   dependencies:
     "@types/debug" "^4.1.5"
     "@types/express" "^4.17.11"

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <form id="sign-in-form">
+      <input name="username" value="john.maverick" />
+      <input name="password" type="password" value="secret123" />
+      <button>Sign in</button>
+    </form>
+
+    <script>
+      const form = document.getElementById('sign-in-form')
+      form.addEventListener('submit', (event) => {
+        event.preventDefault()
+        const formData = new FormData(form)
+
+        fetch('/sign-in', {
+          method: 'POST',
+          body: formData,
+        })
+      })
+    </script>
+  </body>
+</html>

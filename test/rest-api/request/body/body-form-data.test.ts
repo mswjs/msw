@@ -2,7 +2,7 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 test('handles FormData as a request body', async () => {
-  const { page, makeUrl, debug } = await pageWith({
+  const { page, makeUrl } = await pageWith({
     example: path.resolve(__dirname, 'body-form-data.mocks.ts'),
     template: path.resolve(__dirname, 'body-form-data.page.html'),
   })

@@ -4,13 +4,13 @@
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.",
   "main": "lib/umd/index.js",
   "module": "lib/esm/index.js",
-  "types": "lib/umd",
+  "types": "lib/types/index.d.ts",
   "bin": {
     "msw": "cli/index.js"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",
-    "clean": "rimraf lib node/**/*.js",
+    "clean": "rimraf lib {native,node}/lib",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "yarn clean && yarn lint && cross-env NODE_ENV=production rollup -c rollup.config.ts && yarn test:ts",
     "test": "yarn test:unit && yarn test:integration",

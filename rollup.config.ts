@@ -26,7 +26,9 @@ const plugins = [
     input: SERVICE_WORKER_SOURCE_PATH,
     output: SERVICE_WORKER_BUILD_PATH,
   }),
-  typescript(),
+  typescript({
+    useTsconfigDeclarationDir: true,
+  }),
   commonjs(),
 ]
 
@@ -35,17 +37,17 @@ const plugins = [
  */
 const buildEsm = {
   input: [
-    // Split modules so they can be tree-shaken
+    // Split modules so they can be tree-shaken.
     'src/index.ts',
     'src/rest.ts',
     'src/graphql.ts',
     'src/context/index.ts',
   ],
   output: {
+    format: 'esm',
     entryFileNames: '[name].js',
     chunkFileNames: '[name]-deps.js',
     dir: path.dirname(packageJson.module),
-    format: 'esm',
   },
   plugins,
 }
@@ -56,9 +58,9 @@ const buildEsm = {
 const buildUmd = {
   input: 'src/index.ts',
   output: {
+    format: 'umd',
     file: packageJson.main,
     name: 'MockServiceWorker',
-    format: 'umd',
     esModule: false,
   },
   plugins,
@@ -83,8 +85,8 @@ const buildNode = {
     'node-request-interceptor/lib/interceptors/XMLHttpRequest',
   ],
   output: {
-    file: 'node/index.js',
     format: 'cjs',
+    file: 'node/lib/index.js',
   },
   plugins: [
     json(),
@@ -94,14 +96,9 @@ const buildNode = {
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     }),
     typescript({
-      /**
-       * @fixme Export only "msw/node" relevant type declarations
-       * to enable auto-imports from "msw/node".
-       */
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
-        outDir: './node',
-        declarationDir: './node',
+        outDir: './node/lib',
       },
     }),
     inject({
@@ -127,7 +124,7 @@ const buildNative = {
     'node-request-interceptor/lib/interceptors/XMLHttpRequest',
   ],
   output: {
-    file: 'native/index.js',
+    file: 'native/lib/index.js',
     format: 'cjs',
   },
   plugins: [
@@ -140,8 +137,7 @@ const buildNative = {
     typescript({
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
-        outDir: './native',
-        declarationDir: './native',
+        outDir: './native/lib',
       },
     }),
     commonjs(),

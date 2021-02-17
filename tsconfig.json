@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationDir": "lib/umd",
+    "declarationDir": "lib/types",
     "lib": [
       "es2017",
       "ES2019.Object",

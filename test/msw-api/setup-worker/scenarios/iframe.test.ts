@@ -1,16 +1,16 @@
 import * as path from 'path'
-import { runBrowserWith } from '../../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
 declare namespace window {
   export const request: () => Promise<any>
 }
 
 test('intercepts a request made in an iframe (nested client)', async () => {
-  const runtime = await runBrowserWith(
-    path.resolve(__dirname, 'iframe.mocks.ts'),
-  )
+  const { page } = await pageWith({
+    example: path.resolve(__dirname, 'iframe.mocks.ts'),
+  })
 
-  const frame = runtime.page
+  const frame = page
     .mainFrame()
     .childFrames()
     .find((frame) => frame.name() === '')
@@ -20,6 +20,4 @@ test('intercepts a request made in an iframe (nested client)', async () => {
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
-
-  return runtime.cleanup()
 })

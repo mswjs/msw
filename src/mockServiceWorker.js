@@ -82,22 +82,26 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-async function resolveClient(event) {
+async function resolveMasterClient(event) {
   const client = await self.clients.get(event.clientId)
+
+  if (client.frameType === 'top-level') {
+    return client
+  }
+
   const allClients = await self.clients.matchAll()
-  return client.frameType === 'top-level'
-    ? client
-    : allClients.find((parentClient) => {
-        return (
-          parentClient.frameType === 'top-level' &&
-          parentClient.visibilityState === 'visible' &&
-          client.url.startsWith(parentClient.url)
-        )
-      })
+
+  return allClients
+    .filter((client) => {
+      return client.visibilityState === 'visible'
+    })
+    .find((client) => {
+      return activeClientIds.has(client.id)
+    })
 }
 
 async function handleRequest(event, requestId) {
-  const client = await resolveClient(event)
+  const client = await resolveMasterClient(event)
   const response = await getResponse(event, client, requestId)
 
   // Send back the response clone for the "response:*" lyfe-cycle events.

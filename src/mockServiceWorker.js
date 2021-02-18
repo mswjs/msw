@@ -115,21 +115,23 @@ async function handleRequest(event, requestId) {
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
   if (activeClientIds.has(client.id)) {
-    const clonedResponse = response.clone()
-
-    sendToClient(client, {
-      type: 'RESPONSE',
-      payload: {
-        requestId,
-        type: clonedResponse.type,
-        ok: clonedResponse.ok,
-        status: clonedResponse.status,
-        statusText: clonedResponse.statusText,
-        body: clonedResponse.body === null ? null : await clonedResponse.text(),
-        headers: serializeHeaders(clonedResponse.headers),
-        redirected: clonedResponse.redirected,
-      },
-    })
+    ;(async function () {
+      const clonedResponse = response.clone()
+      sendToClient(client, {
+        type: 'RESPONSE',
+        payload: {
+          requestId,
+          type: clonedResponse.type,
+          ok: clonedResponse.ok,
+          status: clonedResponse.status,
+          statusText: clonedResponse.statusText,
+          body:
+            clonedResponse.body === null ? null : await clonedResponse.text(),
+          headers: serializeHeaders(clonedResponse.headers),
+          redirected: clonedResponse.redirected,
+        },
+      })
+    })()
   }
 
   return response

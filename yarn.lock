@@ -5790,11 +5790,12 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-page-with@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.2.4.tgz#648dd09cee505c73a594ac11964b5f92ff6889d8"
-  integrity sha512-zIVZOUlgsE2CO7pA2pnarSlw7l9UG/vAC8KgJWeD3gW0jHv6x5BaSGZKcCFDx4W9NEH0AMXg+kd1lfAIWxbctw==
+page-with@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.2.5.tgz#c47a11b57b831314ed60ab1efa8bf2bd48a50363"
+  integrity sha512-7UpOM5tZR5nKSG1g1qZwEz6LHZHK0oeMntwYbtNsN4z4HuDAQrcqzqYPPBuM9O3Rq6fTh7AG1DvIYG5OyNPgjw==
   dependencies:
+    "@open-draft/until" "^1.0.3"
     "@types/debug" "^4.1.5"
     "@types/express" "^4.17.11"
     "@types/uuid" "^8.3.0"

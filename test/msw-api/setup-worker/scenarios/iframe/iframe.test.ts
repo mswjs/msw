@@ -41,7 +41,28 @@ test('intercepts a request from a deeply nested iframe', async () => {
     .find(findFrame)
 
   await deepFrame.evaluate(() => window.request())
+  const firstNameElement = await deepFrame.waitForSelector('#first-name')
+  const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
+  expect(firstName).toBe('John')
+})
+
+test('intercepts a request from a deeply nested iframe given MSW is registered in a parent nested iframe', async () => {
+  const nestedFrame = await pageWith({
+    title: 'MSW frame',
+    example: path.resolve(__dirname, 'iframe.mocks.ts'),
+    markup: path.resolve(__dirname, 'iframe.page.html'),
+    contentBase: path.resolve(__dirname),
+  })
+
+  await pageWith({
+    title: 'Top frame (no MSW)',
+    example: null,
+    markup: `<iframe src="${nestedFrame.page.url()}"></iframe>`,
+  })
+
+  const deepFrame = nestedFrame.page.mainFrame().childFrames().find(findFrame)
+  await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 

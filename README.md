@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" width="300" />
+  <img src="media/msw-banner.png" width="300" alt="Mock Service Worker logo" />
 </p>
 
 <p align="center">

@@ -13,7 +13,7 @@ function findFrame(frame: Frame) {
 test('intercepts a request from an iframe (nested client)', async () => {
   const { page } = await pageWith({
     example: path.resolve(__dirname, 'iframe.mocks.ts'),
-    markup: path.resolve(__dirname, 'iframe.page.html'),
+    markup: path.resolve(__dirname, 'page-in-iframe.html'),
     contentBase: path.resolve(__dirname),
   })
 
@@ -29,7 +29,7 @@ test('intercepts a request from an iframe (nested client)', async () => {
 test('intercepts a request from a deeply nested iframe', async () => {
   const { page } = await pageWith({
     example: path.resolve(__dirname, 'iframe.mocks.ts'),
-    markup: path.resolve(__dirname, 'iframe-deep.page.html'),
+    markup: path.resolve(__dirname, 'page-in-nested-iframe.html'),
     contentBase: path.resolve(__dirname),
   })
 
@@ -51,7 +51,7 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
   const nestedFrame = await pageWith({
     title: 'MSW frame',
     example: path.resolve(__dirname, 'iframe.mocks.ts'),
-    markup: path.resolve(__dirname, 'iframe.page.html'),
+    markup: path.resolve(__dirname, 'page-in-iframe.html'),
     contentBase: path.resolve(__dirname),
   })
 

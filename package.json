@@ -19,7 +19,8 @@
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "test:focused": "node node_modules/ts-node/dist/bin.js --project=test/tsconfig.json test/focusedTest.ts",
-    "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration"
+    "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
+    "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "husky": {
     "hooks": {
@@ -43,6 +44,7 @@
   "license": "MIT",
   "files": [
     "config/constants.js",
+    "config/scripts/postinstall.js",
     "cli",
     "lib",
     "native",

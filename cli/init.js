@@ -8,7 +8,11 @@ const cwd = process.cwd()
 
 module.exports = function init(args) {
   const { publicDir } = args
-  const resolvedPublicDir = path.resolve(cwd, publicDir)
+  // When running as a part of "postinstall" script, CWD equals the library's directory.
+  // The "postinstall" script resolves the right absolute public directory path.
+  const resolvedPublicDir = path.isAbsolute(publicDir)
+    ? publicDir
+    : path.resolve(cwd, publicDir)
   const dirExists = fs.existsSync(resolvedPublicDir)
 
   invariant(

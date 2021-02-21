@@ -22,5 +22,6 @@ window.msw = {
     })
     .catch((error) => {
       console.error('Error - no worker instance after starting', error)
+      throw error
     }),
 }

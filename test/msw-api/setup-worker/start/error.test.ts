@@ -14,22 +14,15 @@ function createRuntime() {
   })
 }
 
-test('prints a custom error message when given a non-existing worker script', async () => {
-  const { page, consoleSpy } = await createRuntime()
-  await page.evaluate(() => {
-    return window.msw.worker.start({
-      serviceWorker: {
-        url: 'invalidServiceWorker',
-      },
-    })
-  })
-
-  const workerNotFoundMessage = consoleSpy.get('error').find((text) => {
-    return (
-      text.startsWith('[MSW] Failed to register a Service Worker for scope') &&
-      text.includes('Did you forget to run "npx msw init <PUBLIC_DIR>"?')
-    )
-  })
-
-  expect(workerNotFoundMessage).toBeTruthy()
+test('rejects with a custom error message when given a non-existing worker script', async () => {
+  const { page } = await createRuntime()
+  await expect(
+    page.evaluate(() => {
+      return window.msw.worker.start({
+        serviceWorker: {
+          url: 'invalidServiceWorker',
+        },
+      })
+    }),
+  ).rejects.toThrowError(/\[MSW\] Failed/)
 })

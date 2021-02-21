@@ -37,10 +37,9 @@ export const createStart = (context: SetupWorkerInternalContext) => {
 
     const startWorkerInstance = async () => {
       if (!('serviceWorker' in navigator)) {
-        console.error(
+        throw new Error(
           `[MSW] Failed to register a Service Worker: this browser does not support Service Workers (see https://caniuse.com/serviceworkers), or your application is running on an insecure host (consider using HTTPS for custom hostnames).`,
         )
-        return null
       }
 
       // Remove all previously existing event listeners.
@@ -65,29 +64,25 @@ export const createStart = (context: SetupWorkerInternalContext) => {
       )
 
       if (!instance) {
-        return null
+        throw new Error('[MSW] Failed to find locate service worker instance')
       }
 
       const [worker, registration] = instance
 
       if (!worker) {
-        if (options?.findWorker) {
-          console.error(`\
-[MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
+        const missingWorkerMessage = options?.findWorker
+          ? `[MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
 Please ensure that the custom predicate properly locates the Service Worker registration at "${resolvedOptions.serviceWorker.url}".
 More details: https://mswjs.io/docs/api/setup-worker/start#findworker
-`)
-        } else {
-          console.error(`\
-[MSW] Failed to locate the Service Worker registration.
+`
+          : `[MSW] Failed to locate the Service Worker registration.
 
 This most likely means that the worker script URL "${resolvedOptions.serviceWorker.url}" cannot resolve against the actual public hostname (${location.host}). This may happen if your application runs behind a proxy, or has a dynamic hostname.
 
-Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`)
-        }
+Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`
 
-        return null
+        throw new Error(missingWorkerMessage)
       }
 
       context.worker = worker
@@ -130,8 +125,7 @@ If this message still persists after updating, please report an issue: https://g
       )
 
       if (activationError) {
-        console.error('Failed to enable mocking', activationError)
-        return null
+        throw new Error(`Failed to enable mocking ${activationError}`)
       }
 
       context.keepAliveInterval = window.setInterval(

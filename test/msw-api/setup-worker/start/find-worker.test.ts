@@ -39,11 +39,9 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
     example: path.resolve(__dirname, 'find-worker.error.mocks.ts'),
   })
 
-  const resolvedPayload = await page.evaluate(() => {
-    return window.msw.registration
+  const workerStartError = await page.evaluate(() => {
+    return window.msw.registration.catch((err) => err)
   })
-
-  expect(resolvedPayload).toBeUndefined()
 
   const activationMessage = consoleSpy
     .get('startGroupCollapsed')
@@ -55,13 +53,7 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
     return text.includes('Error - no worker instance after starting')
   })
 
-  const mswErrorMessage = consoleSpy.get('error').find((text) => {
-    return /\[MSW\] Failed to locate the Service Worker registration using a custom "findWorker" predicate/.test(
-      text,
-    )
-  })
-
-  expect(mswErrorMessage).toMatch(`\
+  expect(workerStartError).toMatch(`\
 [MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
 Please ensure that the custom predicate properly locates the Service Worker registration at "/mockServiceWorker.js".

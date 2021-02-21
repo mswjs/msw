@@ -82,6 +82,10 @@ self.addEventListener('message', async function (event) {
   }
 })
 
+// Resolve the "master" client for the given event.
+// Client that issues a request doesn't necessarily equal the client
+// that registered the worker. It's with the latter the worker should
+// communicate with during the response resolving phase.
 async function resolveMasterClient(event) {
   const client = await self.clients.get(event.clientId)
 
@@ -93,9 +97,12 @@ async function resolveMasterClient(event) {
 
   return allClients
     .filter((client) => {
+      // Get only those clients that are currently visible.
       return client.visibilityState === 'visible'
     })
     .find((client) => {
+      // Find the client ID that's recorded in the
+      // set of clients that have registered the worker.
       return activeClientIds.has(client.id)
     })
 }
@@ -104,8 +111,9 @@ async function handleRequest(event, requestId) {
   const client = await resolveMasterClient(event)
   const response = await getResponse(event, client, requestId)
 
-  // Send back the response clone for the "response:*" lyfe-cycle events.
-  // Ensure MSW is active and ready to handle the message, otherwise this will hang.
+  // Send back the response clone for the "response:*" life-cycle events.
+  // Ensure MSW is active and ready to handle the message, otherwise
+  // this message will pend indefinitely.
   if (activeClientIds.has(client.id)) {
     const clonedResponse = response.clone()
 
@@ -243,7 +251,7 @@ self.addEventListener('fetch', function (event) {
     return
   }
 
-  // Bypass all requests when there are no active client IDs.
+  // Bypass all requests when there are no active clients.
   // Prevents the self-unregistered worked from handling requests
   // after it's been deleted (still remains active until the next reload).
   if (activeClientIds.size === 0) {

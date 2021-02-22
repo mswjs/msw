@@ -15,6 +15,10 @@ yargs
           normalize: true,
         })
         .example('init', 'msw init public')
+        .option('save', {
+          type: 'boolean',
+          description: 'Save the worker directory in your package.json',
+        })
     },
     require('./init'),
   )

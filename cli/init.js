@@ -1,44 +1,136 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
+const inquirer = require('inquirer')
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 
-const cwd = process.cwd()
+const CWD = process.env.INIT_CWD || process.cwd()
 
 module.exports = function init(args) {
-  const { publicDir } = args
+  const { publicDir, save } = args
+
   // When running as a part of "postinstall" script, CWD equals the library's directory.
   // The "postinstall" script resolves the right absolute public directory path.
-  const resolvedPublicDir = path.isAbsolute(publicDir)
+  const absolutePublicDir = path.isAbsolute(publicDir)
     ? publicDir
-    : path.resolve(cwd, publicDir)
-  const dirExists = fs.existsSync(resolvedPublicDir)
+    : path.resolve(CWD, publicDir)
+  const relativePublicDir = path.relative(CWD, absolutePublicDir)
+  const dirExists = fs.existsSync(absolutePublicDir)
 
   invariant(
     dirExists,
-    'Provided directory does not exist under "%s".\nMake sure to include a relative path to the root directory of your server.',
-    cwd,
+    'Failed to create a Service Worker at "%s": directory does not exist.\nMake sure to include a relative path to the root directory of your server.',
+    absolutePublicDir,
   )
 
   console.log(
     'Initializing the Mock Service Worker at "%s"...',
-    resolvedPublicDir,
+    absolutePublicDir,
   )
 
-  const swFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
-  const swDestFilepath = path.resolve(resolvedPublicDir, swFilename)
+  const serviceWorkerFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
+  const swDestFilepath = path.resolve(absolutePublicDir, serviceWorkerFilename)
 
-  fs.copyFile(SERVICE_WORKER_BUILD_PATH, swDestFilepath, (error) => {
-    invariant(error == null, 'Failed to copy Service Worker. %s', error)
+  fs.copyFileSync(SERVICE_WORKER_BUILD_PATH, swDestFilepath)
 
-    console.log(`
+  console.log(`
 ${chalk.green('Service Worker successfully created!')}
 ${chalk.gray(swDestFilepath)}
 
 Continue by creating a mocking definition module in your application:
 
-  ${chalk.cyan.bold('https://mswjs.io/docs/getting-started/mocks')}
+${chalk.cyan.bold('https://mswjs.io/docs/getting-started/mocks')}
 `)
+
+  const packageJsonPath = path.resolve(CWD, 'package.json')
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+  const { msw: mswConfig } = packageJson
+
+  if (mswConfig && mswConfig.workerDirectory === relativePublicDir) {
+    return
+  }
+
+  // When called `msw init --no-save` do not show the save suggestions.
+  if (save === false) {
+    return
+  }
+
+  if (!mswConfig) {
+    console.log(`\
+${chalk.cyan('INFO')} In order to ease the future updates to the worker script,
+we recommend saving the path to the worker directory in your package.json.
+        `)
+
+    if (save) {
+      return saveWorkerDirectory(packageJsonPath, relativePublicDir)
+    }
+
+    return promptWorkerDirectoryUpdate(
+      `Do you wish to save "${relativePublicDir}" as the worker directory?`,
+      packageJsonPath,
+      relativePublicDir,
+    )
+  }
+
+  if (mswConfig.workerDirectory !== relativePublicDir) {
+    console.log(
+      `\
+${chalk.yellowBright(
+  'WARN',
+)} The "msw.workerDirectory" in your package.json ("%s")
+is different from the worker directory used right now ("%s").
+    `,
+      mswConfig.workerDirectory,
+      relativePublicDir,
+    )
+
+    if (save) {
+      return saveWorkerDirectory(packageJsonPath, relativePublicDir)
+    }
+
+    return promptWorkerDirectoryUpdate(
+      `Do you wish to use "${relativePublicDir}" instead of "${mswConfig.workerDirectory}" as the worker directory?`,
+      packageJsonPath,
+      relativePublicDir,
+    )
+  }
+}
+
+function saveWorkerDirectory(packageJsonPath, publicDir) {
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+
+  console.log(
+    chalk.gray('Writing "msw.workerDirectory" to "%s"...'),
+    packageJsonPath,
+  )
+
+  const nextPackageJson = Object.assign({}, packageJson, {
+    msw: {
+      workerDirectory: publicDir,
+    },
   })
+
+  fs.writeFileSync(
+    packageJsonPath,
+    JSON.stringify(nextPackageJson, null, 2),
+    'utf8',
+  )
+}
+
+function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
+  return inquirer
+    .prompt({
+      type: 'confirm',
+      name: 'saveWorkerDirectory',
+      prefix: chalk.yellowBright('?'),
+      message,
+    })
+    .then((answers) => {
+      if (!answers.saveWorkerDirectory) {
+        return
+      }
+
+      saveWorkerDirectory(packageJsonPath, publicDir)
+    })
 }

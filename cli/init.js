@@ -5,12 +5,12 @@ const inquirer = require('inquirer')
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 
-const CWD = process.env.INIT_CWD || process.cwd()
+const CWD = process.cwd()
 
 module.exports = function init(args) {
   const { publicDir, save } = args
 
-  // When running as a part of "postinstall" script, CWD equals the library's directory.
+  // When running as a part of "postinstall" script, "cwd" equals the library's directory.
   // The "postinstall" script resolves the right absolute public directory path.
   const absolutePublicDir = path.isAbsolute(publicDir)
     ? publicDir

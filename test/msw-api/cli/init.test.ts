@@ -74,10 +74,8 @@ test('saves the worker directory in package.json when none are present', async (
   await prepare()
 
   const { stderr, stdout } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('public')} --save`, {
-      env: {
-        INIT_CWD: getPath('.'),
-      },
+    exec(`node ../../../../cli/index.js init ${getPath('public')} --save`, {
+      cwd: getPath('.'),
     }),
   )
 
@@ -113,10 +111,8 @@ test('warns when current public directory does not match the saved directory fro
   await prepare()
 
   const { stderr, stdout } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('public')} --save`, {
-      env: {
-        INIT_CWD: getPath('.'),
-      },
+    exec(`node ../../../../cli/index.js init ${getPath('public')} --save`, {
+      cwd: getPath('.'),
     }),
   )
 

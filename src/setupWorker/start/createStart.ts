@@ -55,17 +55,11 @@ export const createStart = (context: SetupWorkerInternalContext) => {
 
       context.workerChannel.on('RESPONSE', createResponseListener(context))
 
-      const [, instance] = await until<ServiceWorkerInstanceTuple | null>(() =>
-        getWorkerInstance(
-          resolvedOptions.serviceWorker.url,
-          resolvedOptions.serviceWorker.options,
-          resolvedOptions.findWorker,
-        ),
+      const instance = await getWorkerInstance(
+        resolvedOptions.serviceWorker.url,
+        resolvedOptions.serviceWorker.options,
+        resolvedOptions.findWorker,
       )
-
-      if (!instance) {
-        throw new Error('[MSW] Failed to find locate service worker instance')
-      }
 
       const [worker, registration] = instance
 
@@ -120,13 +114,9 @@ If this message still persists after updating, please report an issue: https://g
       }
 
       // Signal the Service Worker to enable requests interception
-      const [activationError] = await until(() =>
-        activateMocking(context, options),
-      )
-
-      if (activationError) {
-        throw new Error(`Failed to enable mocking ${activationError}`)
-      }
+      await activateMocking(context, options).catch((err) => {
+        throw new Error(`Failed to enable mocking: ${err?.message}`)
+      })
 
       context.keepAliveInterval = window.setInterval(
         () => context.workerChannel.send('KEEPALIVE_REQUEST'),

@@ -11,21 +11,17 @@ export const getWorkerInstance = async (
   url: string,
   options: RegistrationOptions = {},
   findWorker: FindWorker,
-): Promise<ServiceWorkerInstanceTuple | null> => {
+): Promise<ServiceWorkerInstanceTuple> => {
   // Resolve the absolute Service Worker URL.
   const absoluteWorkerUrl = getAbsoluteWorkerUrl(url)
 
-  const [, mockRegistrations] = await until(async () => {
-    const registrations = await navigator.serviceWorker.getRegistrations()
-    return registrations.filter((registration) => {
-      return getWorkerByRegistration(
-        registration,
-        absoluteWorkerUrl,
-        findWorker,
-      )
-    })
-  })
-
+  const mockRegistrations = await navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) =>
+      registrations.filter((registration) =>
+        getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker),
+      ),
+    )
   if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
     // Reload the page when it has associated workers, but no active controller.
     // The absence of a controller can mean either:
@@ -74,21 +70,17 @@ export const getWorkerInstance = async (
     if (isWorkerMissing) {
       const scopeUrl = new URL(options?.scope || '/', location.href)
 
-      console.error(`\
-[MSW] Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
+      throw new Error(`[MSW] Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
 
 Did you forget to run "npx msw init <PUBLIC_DIR>"?
 
 Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`)
-
-      return null
     }
 
     // Fallback error message for any other registration errors.
-    console.error(
+    throw new Error(
       `[MSW] Failed to register a Service Worker:\n\n${error.message}`,
     )
-    return null
   }
 
   return instance

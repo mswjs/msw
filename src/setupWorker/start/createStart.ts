@@ -1,11 +1,7 @@
 import { until } from '@open-draft/until'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { activateMocking } from './utils/activateMocking'
-import {
-  SetupWorkerInternalContext,
-  ServiceWorkerInstanceTuple,
-  StartOptions,
-} from '../glossary'
+import { SetupWorkerInternalContext, StartOptions } from '../glossary'
 import { createRequestListener } from '../../utils/worker/createRequestListener'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'

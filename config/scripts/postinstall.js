@@ -28,11 +28,10 @@ if (!fs.existsSync(absoluteWorkerDirectory)) {
 }
 
 // 3. Update the worker script.
-const cliExecutable = path.resolve(process.cwd(), '../../cli/index.js')
-const relativeCliExecutable = path.relative(parentPackageCwd, cliExecutable)
+const cliExecutable = path.resolve(process.cwd(), 'cli/index.js')
 
 try {
-  execSync(`node ${relativeCliExecutable} init ${absoluteWorkerDirectory}`, {
+  execSync(`node ${cliExecutable} init ${absoluteWorkerDirectory}`, {
     cwd: parentPackageCwd,
   })
 } catch (error) {

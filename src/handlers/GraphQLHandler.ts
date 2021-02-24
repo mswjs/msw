@@ -47,40 +47,36 @@ export const graphqlContext: GraphQLContext<any> = {
   errors,
 }
 
-export type GraphQLVariablesType = Record<string, any>
+export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo {
   operationType: ExpectedOperationTypeNode
   operationName: GraphQLHandlerNameSelector
 }
 
-export type GraphQLRequestBodyType<
-  VariablesType extends GraphQLVariablesType
-> =
+export type GraphQLRequestBody<VariablesType extends GraphQLVariables> =
   | GraphQLJsonRequestBody<VariablesType>
   | GraphQLMultipartRequestBody
   | Record<string, any>
   | undefined
 
-export interface GraphQLJsonRequestBody<
-  VariablesType extends GraphQLVariablesType
-> {
+export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   query: string
-  variables?: VariablesType
+  variables?: Variables
 }
 
-export interface GraphQLRequestType<VariablesType extends GraphQLVariablesType>
-  extends MockedRequest<GraphQLRequestBodyType<VariablesType>> {
-  variables: VariablesType
+export interface GraphQLRequest<Variables extends GraphQLVariables>
+  extends MockedRequest<GraphQLRequestBody<Variables>> {
+  variables: Variables
 }
 
 export class GraphQLHandler<
-  RequestType extends GraphQLRequestType<any> = GraphQLRequestType<any>
+  Request extends GraphQLRequest<any> = GraphQLRequest<any>
 > extends RequestHandler<
   GraphQLHandlerInfo,
-  RequestType,
+  Request,
   ParsedGraphQLRequest | null,
-  GraphQLRequestType<any>
+  GraphQLRequest<any>
 > {
   private endpoint: Mask
 
@@ -108,21 +104,21 @@ export class GraphQLHandler<
     this.endpoint = endpoint
   }
 
-  parse(request: RequestType) {
+  parse(request: Request) {
     return parseGraphQLRequest(request)
   }
 
   protected getPublicRequest(
-    request: RequestType,
+    request: Request,
     parsedResult: ParsedGraphQLRequest,
-  ): GraphQLRequestType<any> {
+  ): GraphQLRequest<any> {
     return {
       ...request,
       variables: parsedResult?.variables || {},
     }
   }
 
-  predicate(request: RequestType, parsedResult: ParsedGraphQLRequest) {
+  predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
     if (!parsedResult) {
       return false
     }
@@ -153,7 +149,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     )
   }
 
-  log(request: RequestType, response: ResponseWithSerializedHeaders<any>) {
+  log(request: Request, response: ResponseWithSerializedHeaders<any>) {
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
 

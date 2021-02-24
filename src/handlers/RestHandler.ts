@@ -20,7 +20,7 @@ import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { getUrlByMask } from '../utils/url/getUrlByMask'
 import {
-  DefaultRequestBodyType,
+  DefaultRequestBody,
   MockedRequest,
   RequestHandler,
   ResponseResolver,
@@ -75,26 +75,26 @@ export type RequestQuery = {
   [queryName: string]: any
 }
 
-export interface RestRequestType<
-  BodyType extends DefaultRequestBodyType = DefaultRequestBodyType,
+export interface RestRequest<
+  BodyType extends DefaultRequestBody = DefaultRequestBody,
   ParamsType extends RequestParams = Record<string, any>
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }
 
-type ParsedResult = Match
+export type ParsedRestRequest = Match
 
 /**
  * Request handler for REST API requests.
  * Provides request matching based on method and URL.
  */
 export class RestHandler<
-  RequestType extends MockedRequest<DefaultRequestBodyType> = MockedRequest<DefaultRequestBodyType>
+  RequestType extends MockedRequest<DefaultRequestBody> = MockedRequest<DefaultRequestBody>
 > extends RequestHandler<
   RestHandlerInfo,
   RequestType,
-  ParsedResult,
-  RestRequestType<RequestParams>
+  ParsedRestRequest,
+  RestRequest<RequestParams>
 > {
   constructor(
     method: string,
@@ -146,15 +146,15 @@ ${queryParams
 
   protected getPublicRequest(
     request: RequestType,
-    parsedResult: ParsedResult,
-  ): RestRequestType<any, RequestParams> {
+    parsedResult: ParsedRestRequest,
+  ): RestRequest<any, RequestParams> {
     return {
       ...request,
       params: parsedResult.params,
     }
   }
 
-  predicate(request: RequestType, parsedResult: ParsedResult) {
+  predicate(request: RequestType, parsedResult: ParsedRestRequest) {
     return (
       isStringEqual(this.info.method, request.method) && parsedResult.matches
     )

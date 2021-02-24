@@ -21,8 +21,8 @@ export {
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
-  DefaultRequestBodyType,
-  DefaultMultipartBodyType,
+  DefaultRequestBody,
+  DefaultRequestMultipartBody,
   defaultContext,
 } from './handlers/RequestHandler'
 export { rest } from './rest'
@@ -31,16 +31,17 @@ export {
   RestContext,
   RequestParams,
   RequestQuery,
-  RestRequestType,
+  RestRequest,
+  ParsedRestRequest,
   restContext,
 } from './handlers/RestHandler'
 export { graphql } from './graphql'
 export {
   GraphQLHandler,
   GraphQLContext,
-  GraphQLVariablesType,
-  GraphQLRequestType,
-  GraphQLRequestBodyType,
+  GraphQLVariables,
+  GraphQLRequest,
+  GraphQLRequestBody,
   GraphQLJsonRequestBody,
   graphqlContext,
 } from './handlers/GraphQLHandler'
@@ -49,3 +50,4 @@ export {
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export { compose } from './utils/internal/compose'
 export { DelayMode } from './context/delay'
+export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'

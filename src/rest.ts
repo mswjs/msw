@@ -1,27 +1,24 @@
 import { Mask } from './setupWorker/glossary'
-import {
-  DefaultRequestBodyType,
-  ResponseResolver,
-} from './handlers/RequestHandler'
+import { DefaultRequestBody, ResponseResolver } from './handlers/RequestHandler'
 import {
   RESTMethods,
   RestContext,
   RestHandler,
-  RestRequestType,
+  RestRequest,
   RequestParams,
 } from './handlers/RestHandler'
 
 function createRestHandler(method: RESTMethods) {
   return <
-    RequestBodyType extends DefaultRequestBodyType = DefaultRequestBodyType,
-    ResponseBodyType extends DefaultRequestBodyType = any,
-    RequestParamsType extends RequestParams = RequestParams
+    RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
+    ResponseBody extends DefaultRequestBody = any,
+    Params extends RequestParams = RequestParams
   >(
     mask: Mask,
     resolver: ResponseResolver<
-      RestRequestType<RequestBodyType, RequestParamsType>,
+      RestRequest<RequestBodyType, Params>,
       RestContext,
-      ResponseBodyType
+      ResponseBody
     >,
   ) => {
     return new RestHandler(method, mask, resolver)

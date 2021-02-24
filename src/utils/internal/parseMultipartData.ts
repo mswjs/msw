@@ -1,5 +1,5 @@
 import { stringToHeaders } from 'headers-utils'
-import { DefaultMultipartBodyType } from '../../handlers/RequestHandler'
+import { DefaultRequestMultipartBody } from '../../handlers/RequestHandler'
 
 interface ParsedContentHeaders {
   name: string
@@ -43,7 +43,7 @@ function parseContentHeaders(headersString: string): ParsedContentHeaders {
  * Parses a given string as a multipart/form-data.
  * Does not throw an exception on an invalid multipart string.
  */
-export function parseMultipartData<T extends DefaultMultipartBodyType>(
+export function parseMultipartData<T extends DefaultRequestMultipartBody>(
   data: string,
   headers?: Headers,
 ): T | undefined {
@@ -72,7 +72,7 @@ export function parseMultipartData<T extends DefaultMultipartBodyType>(
     return undefined
   }
 
-  const parsedBody: DefaultMultipartBodyType = {}
+  const parsedBody: DefaultRequestMultipartBody = {}
 
   try {
     for (const field of fields) {

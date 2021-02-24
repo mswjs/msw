@@ -1,12 +1,12 @@
 import { Mask } from './setupWorker/glossary'
 import { ResponseResolver } from './handlers/RequestHandler'
 import {
-  ExpectedOperationTypeNode,
   GraphQLHandler,
   GraphQLContext,
-  GraphQLRequestType,
+  GraphQLRequest,
+  GraphQLVariables,
+  ExpectedOperationTypeNode,
   GraphQLHandlerNameSelector,
-  GraphQLVariablesType,
 } from './handlers/GraphQLHandler'
 
 function createScopedGraphQLHandler(
@@ -14,13 +14,13 @@ function createScopedGraphQLHandler(
   url: Mask,
 ) {
   return <
-    QueryType extends Record<string, any>,
-    VariablesType extends GraphQLVariablesType = GraphQLVariablesType
+    Query extends Record<string, any>,
+    Variables extends GraphQLVariables = GraphQLVariables
   >(
     operationName: GraphQLHandlerNameSelector,
     resolver: ResponseResolver<
-      GraphQLRequestType<VariablesType>,
-      GraphQLContext<QueryType>
+      GraphQLRequest<Variables>,
+      GraphQLContext<Query>
     >,
   ) => {
     return new GraphQLHandler(operationType, operationName, url, resolver)
@@ -29,12 +29,12 @@ function createScopedGraphQLHandler(
 
 function createGraphQLOperationHandler(url: Mask) {
   return <
-    QueryType extends Record<string, any>,
-    VariablesType extends GraphQLVariablesType = GraphQLVariablesType
+    Query extends Record<string, any>,
+    Variables extends GraphQLVariables = GraphQLVariables
   >(
     resolver: ResponseResolver<
-      GraphQLRequestType<VariablesType>,
-      GraphQLContext<QueryType>
+      GraphQLRequest<Variables>,
+      GraphQLContext<Query>
     >,
   ) => {
     return new GraphQLHandler('all', new RegExp('.*'), url, resolver)

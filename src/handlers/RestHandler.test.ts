@@ -1,11 +1,11 @@
-import { RestHandler, RestRequestType, RestContext } from './RestHandler'
+import { RestHandler, RestRequest, RestContext } from './RestHandler'
 import { createMockedRequest } from '../../test/support/utils'
 import { response } from '../response'
 import { context } from '..'
 import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
-  RestRequestType<{ userId: string }>,
+  RestRequest<{ userId: string }>,
   RestContext
 > = (req, res, ctx) => {
   return res(ctx.json({ userId: req.params.userId }))

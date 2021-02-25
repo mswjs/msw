@@ -10,7 +10,7 @@
     <img src="https://img.shields.io/circleci/project/github/mswjs/msw/master.svg" alt="Build status" />
   </a>
   <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/dw/msw" alt="Download rate" />
+    <img src="https://img.shields.io/npm/dm/msw" alt="Downloads per month" />
   </a>
   <img alt="Libraries.io dependency status for latest release" src="https://img.shields.io/librariesio/release/npm/msw"/ >
    <a href="https://kcd.im/discord" target="_blank">

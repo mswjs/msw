@@ -35,7 +35,7 @@ test('returns false given a GraphQL-incompatible request', () => {
     url: new URL('http://localhost:8080/query'),
     headers: new Headers({ 'content-type': 'application/json' }),
   })
-  expect(parseGraphQLRequest(getRequest)).toBeNull()
+  expect(parseGraphQLRequest(getRequest)).toBeUndefined()
 
   const postRequest = createMockedRequest({
     method: 'POST',
@@ -45,5 +45,5 @@ test('returns false given a GraphQL-incompatible request', () => {
       queryUser: true,
     },
   })
-  expect(parseGraphQLRequest(postRequest)).toBeNull()
+  expect(parseGraphQLRequest(postRequest)).toBeUndefined()
 })

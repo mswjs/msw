@@ -113,7 +113,10 @@ export abstract class RequestHandler<
   /**
    * Determine if the captured request should be mocked.
    */
-  abstract predicate(request: Request, parsedResult: ParsedResult): boolean
+  abstract predicate(
+    request: MockedRequest,
+    parsedResult: ParsedResult,
+  ): boolean
 
   /**
    * Print out the successfully handled request.
@@ -129,14 +132,14 @@ export abstract class RequestHandler<
    * Parse the captured request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  parse(request: Request): ParsedResult {
+  parse(request: MockedRequest): ParsedResult {
     return null as any
   }
 
   /**
    * Test if this handler matches the given request.
    */
-  public test(request: Request): boolean {
+  public test(request: MockedRequest): boolean {
     return this.predicate(request, this.parse(request))
   }
 
@@ -145,10 +148,10 @@ export abstract class RequestHandler<
    * from the captured request and its parsed result.
    */
   protected getPublicRequest(
-    request: Request,
+    request: MockedRequest,
     parsedResult: ParsedResult,
-  ): PublicRequest {
-    return request as any
+  ) {
+    return request as PublicRequest
   }
 
   public markAsSkipped(shouldSkip = true) {
@@ -160,7 +163,7 @@ export abstract class RequestHandler<
    * using the given resolver function.
    */
   public async run(
-    request: Request,
+    request: MockedRequest,
   ): Promise<RequestHandlerExecutionResult<PublicRequest> | null> {
     if (this.shouldSkip) {
       return null

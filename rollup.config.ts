@@ -33,7 +33,7 @@ const plugins = [
 ]
 
 /**
- * Configuration for the ESM build
+ * Configuration for the ESM build.
  */
 const buildEsm = {
   input: [
@@ -53,7 +53,7 @@ const buildEsm = {
 }
 
 /**
- * Configuration for the UMD build
+ * Configuration for the UMD build.
  */
 const buildUmd = {
   input: 'src/index.ts',
@@ -66,6 +66,9 @@ const buildUmd = {
   plugins,
 }
 
+/**
+ * Configuration for the NodeJS (CJS) build.
+ */
 const buildNode = {
   input: 'src/node/index.ts',
   external: [
@@ -108,6 +111,9 @@ const buildNode = {
   ],
 }
 
+/**
+ * Configuration for the React Native (CJS) build.
+ */
 const buildNative = {
   input: 'src/native/index.ts',
   external: [
@@ -145,7 +151,7 @@ const buildNative = {
 }
 
 /**
- * Configuration for the iife build
+ * Configuration for the iife build.
  */
 const buildIife = {
   input: 'src/index.ts',
@@ -157,6 +163,7 @@ const buildIife = {
   },
   plugins: [
     replace({
+      preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
     ...plugins,

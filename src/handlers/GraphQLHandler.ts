@@ -104,7 +104,7 @@ export class GraphQLHandler<
     this.endpoint = endpoint
   }
 
-  parse(request: Request) {
+  parse(request: MockedRequest) {
     return parseGraphQLRequest(request)
   }
 
@@ -118,7 +118,7 @@ export class GraphQLHandler<
     }
   }
 
-  predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
+  predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {
     if (!parsedResult) {
       return false
     }

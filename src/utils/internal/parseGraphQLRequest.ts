@@ -142,11 +142,11 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
  */
 export function parseGraphQLRequest(
   request: MockedRequest<any>,
-): ParsedGraphQLRequest | null {
+): ParsedGraphQLRequest {
   const input = getGraphQLInput(request)
 
   if (!input || !input.query) {
-    return null
+    return undefined
   }
 
   const { query, variables } = input
@@ -161,7 +161,7 @@ export function parseGraphQLRequest(
       `[MSW] Failed to intercept a GraphQL request to "${request.method} ${requestPublicUrl}": cannot parse query. See the error message from the parser below.`,
     )
     console.error(parsedResult)
-    return null
+    return undefined
   }
 
   return {

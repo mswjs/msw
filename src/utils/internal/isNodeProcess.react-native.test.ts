@@ -50,6 +50,6 @@ afterAll(() => {
   global.navigator = originalNavigator
 })
 
-test('treats React Native as a NodeJS environment', () => {
+test('treats React Native as a Node.js environment', () => {
   expect(isNodeProcess()).toBe(true)
 })

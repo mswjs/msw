@@ -3,7 +3,7 @@
  */
 import { setupWorker } from './setupWorker'
 
-test('returns an error when run in a NodeJS environment', () => {
+test('returns an error when run in a Node.js environment', () => {
   expect(setupWorker).toThrow(
     '[MSW] Failed to execute `setupWorker` in a non-browser environment',
   )

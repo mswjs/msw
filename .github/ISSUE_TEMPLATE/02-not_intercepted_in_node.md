@@ -1,6 +1,6 @@
 ---
-name: 'Issue: NodeJS interception'
-about: My request is not intercepted/mocked in NodeJS (tests)
+name: 'Issue: Node.js interception'
+about: My request is not intercepted/mocked in Node.js (tests)
 title: ''
 labels: bug, scope:node
 assignees: ''

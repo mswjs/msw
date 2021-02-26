@@ -44,7 +44,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     // Error when attempting to run this function in a browser environment.
     if (!isNodeProcess()) {
       throw new Error(
-        '[MSW] Failed to execute `setupServer` in the environment that is not NodeJS (i.e. a browser). Consider using `setupWorker` instead.',
+        '[MSW] Failed to execute `setupServer` in the environment that is not Node.js (i.e. a browser). Consider using `setupWorker` instead.',
       )
     }
 
@@ -108,7 +108,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
           if (requestCookieString) {
             // Set mocked request cookies from the `cookie` header of the original request.
-            // No need to take `credentials` into account, because in NodeJS requests are intercepted
+            // No need to take `credentials` into account, because in Node.js requests are intercepted
             // _after_ they happen. Request issuer should have already taken care of sending relevant cookies.
             // Unlike browser, where interception is on the worker level, _before_ the request happens.
             mockedRequest.cookies = cookieUtils.parse(requestCookieString)

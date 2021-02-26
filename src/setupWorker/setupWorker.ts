@@ -132,10 +132,10 @@ export function setupWorker(
     },
   }
 
-  // Error when attempting to run this function in a NodeJS environment.
+  // Error when attempting to run this function in a Node.js environment.
   if (isNodeProcess()) {
     throw new Error(
-      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for NodeJS environment instead.',
+      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
     )
   }
 

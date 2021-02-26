@@ -4,7 +4,7 @@
 import { delay, NODE_SERVER_RESPONSE_TIME } from './delay'
 import { response } from '../response'
 
-test('sets a NodeJS-specific response delay when not provided', async () => {
+test('sets a Node.js-specific response delay when not provided', async () => {
   const resolvedResponse = await response(delay())
   expect(resolvedResponse).toHaveProperty('delay', NODE_SERVER_RESPONSE_TIME)
 })

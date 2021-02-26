@@ -95,12 +95,12 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ## Node
 
-- [Learn more about the NodeJS integration](https://mswjs.io/docs/getting-started/integrate/node)
+- [Learn more about the Node.js integration](https://mswjs.io/docs/getting-started/integrate/node)
 - [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
 ### How does it work?
 
-Although Service Worker is a browser-specific API, this library allows to reuse the same mock definition to have API mocking in NodeJS through augmenting native request issuing modules.
+Although Service Worker is a browser-specific API, this library allows to reuse the same mock definition to have API mocking in Node.js through augmenting native request issuing modules.
 
 ### How is it different?
 

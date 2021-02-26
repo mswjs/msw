@@ -27,6 +27,7 @@ export {
 } from './handlers/RequestHandler'
 export { rest } from './rest'
 export {
+  RestHandler,
   RESTMethods,
   RestContext,
   RequestParams,

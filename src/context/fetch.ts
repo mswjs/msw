@@ -2,7 +2,10 @@ import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/RequestHandler'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
-const useFetch = isNodeProcess() ? require('node-fetch') : window.fetch
+const useFetch: (
+  input: RequestInfo,
+  init?: RequestInit,
+) => Promise<Response> = isNodeProcess() ? require('node-fetch') : window.fetch
 
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)
@@ -14,7 +17,7 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   }
 }
 
-const createFetchRequestParameters = (input: MockedRequest) => {
+const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
   const { body, method } = input
   const requestParameters: RequestInit = {
     ...input,
@@ -40,14 +43,13 @@ const createFetchRequestParameters = (input: MockedRequest) => {
 export const fetch = (
   input: string | MockedRequest,
   requestInit: RequestInit = {},
-) => {
-  // Keep the default `window.fetch()` call signature
+): Promise<Response> => {
   if (typeof input === 'string') {
     return useFetch(input, augmentRequestInit(requestInit))
   }
 
-  const requestParameters: RequestInit = createFetchRequestParameters(input)
-  const derivedRequestInit: RequestInit = augmentRequestInit(requestParameters)
+  const requestParameters = createFetchRequestParameters(input)
+  const derivedRequestInit = augmentRequestInit(requestParameters)
 
   return useFetch(input.url.href, derivedRequestInit)
 }

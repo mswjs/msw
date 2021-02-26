@@ -56,7 +56,7 @@ type RequestHandlerInfo<ExtraInfo extends Record<string, any>> = {
   header: string
 } & ExtraInfo
 
-type ContextMap = Record<string, (...args: any) => ResponseTransformer>
+type ContextMap = Record<string, (...args: any[]) => any>
 
 export type ResponseResolverReturnType<R> = R | undefined | void
 export type AsyncResponseResolverReturnType<R> =

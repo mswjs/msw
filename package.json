@@ -1,7 +1,7 @@
 {
   "name": "msw",
   "version": "0.27.0",
-  "description": "Seamless REST/GraphQL API mocking library for browser and Node.",
+  "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "lib/umd/index.js",
   "module": "lib/esm/index.js",
   "types": "lib/types/index.d.ts",

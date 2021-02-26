@@ -67,7 +67,7 @@ const buildUmd = {
 }
 
 /**
- * Configuration for the NodeJS (CJS) build.
+ * Configuration for the Node.js (CJS) build.
  */
 const buildNode = {
   input: 'src/node/index.ts',
@@ -81,7 +81,7 @@ const buildNode = {
     'timers',
     'node-request-interceptor',
     /**
-     * Exclude NodeJS request interceptors from being compiled.
+     * Exclude Node.js request interceptors from being compiled.
      * @see https://github.com/mswjs/node-request-interceptor/issues/52
      */
     'node-request-interceptor/lib/interceptors/ClientRequest',
@@ -123,7 +123,7 @@ const buildNative = {
     'events',
     'node-request-interceptor',
     /**
-     * Exclude NodeJS request interceptors from being compiled.
+     * Exclude Node.js request interceptors from being compiled.
      * @see https://github.com/mswjs/node-request-interceptor/issues/52
      */
     'node-request-interceptor/lib/interceptors/ClientRequest',

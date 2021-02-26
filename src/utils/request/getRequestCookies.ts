@@ -10,7 +10,7 @@ function getAllCookies() {
  */
 export function getRequestCookies(request: MockedRequest) {
   /**
-   * @note No cookies persist on the document in NodeJS: no document.
+   * @note No cookies persist on the document in Node.js: no document.
    */
   if (typeof location === 'undefined') {
     return {}

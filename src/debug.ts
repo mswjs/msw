@@ -1,37 +1,31 @@
-import { RequestHandler } from './utils/handlers/requestHandler'
+import { MockedRequest, RequestHandler } from './handlers/requestHandler'
+import { ResponseWithSerializedHeaders } from './setupWorker/glossary'
 import { getPublicUrlFromRequest } from './utils/request/getPublicUrlFromRequest'
 
 /**
  * Creates a permissive request handler for debugging purposes.
  */
-export const debug: RequestHandler = {
-  predicate(req) {
-    const publicUrl = getPublicUrlFromRequest(req)
+class DebugHandler extends RequestHandler {
+  constructor() {
+    super({
+      info: {
+        header: '[debug]',
+      },
+      resolver: () => {},
+    })
+  }
 
-    console.groupCollapsed(`[MSW] DEBUG ${req.method} ${publicUrl}`)
-    console.log('Request:', req)
-    console.groupEnd()
-
+  predicate() {
     return true
-  },
-  resolver(req) {
-    const publicUrl = getPublicUrlFromRequest(req)
+  }
 
-    console.warn(`\
-[MSW] No mocks found for ${req.method} ${publicUrl}
+  log(request: MockedRequest, response: ResponseWithSerializedHeaders) {
+    const publicUrl = getPublicUrlFromRequest(request)
 
-Create a request handler to capture this request:
-
-rest.${req.method.toLowerCase()}('${publicUrl}', (req, res, ctx) => {
-  return res(ctx.body('test'))
-})\
-`)
-    return
-  },
-  log() {
-    return
-  },
-  getMetaInfo() {
-    return {} as any
-  },
+    console.warn(`
+[MSW] No mocks found for ${request.method} ${publicUrl}!
+    `)
+  }
 }
+
+export const debug = new DebugHandler()

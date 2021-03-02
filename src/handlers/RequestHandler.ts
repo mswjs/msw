@@ -125,7 +125,7 @@ export abstract class RequestHandler<
     request: Request,
     res: any,
     handler: this,
-    parsedResilt: ParsedResult,
+    parsedResult: ParsedResult,
   ): void
 
   /**

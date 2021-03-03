@@ -21,6 +21,10 @@ const plugins = [
     mainFields: ['module', 'main', 'jsnext:main', 'browser'],
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
   }),
+  replace({
+    preventAssignment: true,
+    'process.env.NODE_ENV': JSON.stringify('development'),
+  }),
   integrityCheck({
     checksumPlaceholder: '<INTEGRITY_CHECKSUM>',
     input: SERVICE_WORKER_SOURCE_PATH,

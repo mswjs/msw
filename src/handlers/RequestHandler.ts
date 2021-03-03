@@ -1,10 +1,5 @@
 import { Headers } from 'headers-utils'
-import {
-  ResponseTransformer,
-  MockedResponse,
-  response,
-  ResponseComposition,
-} from '../response'
+import { MockedResponse, response, ResponseComposition } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { status } from '../context/status'
 import { set } from '../context/set'

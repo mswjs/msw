@@ -23,7 +23,7 @@ export type DelayMode = 'real' | 'infinite'
  * Delays the response by the given duration (ms).
  * @example
  * res(ctx.delay(1200)) // delay response by 1200ms
- * res(ctx.delay()) // emilate realistic server response time
+ * res(ctx.delay()) // emulate realistic server response time
  * res(ctx.delay('infinite')) // delay response infinitely
  * @see {@link https://mswjs.io/docs/api/context/delay `ctx.delay()`}
  */

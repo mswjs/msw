@@ -1,23 +1,38 @@
-type ArityOneFn = (arg: any) => any
-type PickLastInTuple<T extends any[]> = T extends [
-  ...rest: infer U,
-  argn: infer L,
-]
+type ArityOneFunction = (arg: any) => any
+
+type LengthOfTuple<Tuple extends any[]> = Tuple extends { length: infer L }
   ? L
   : never
-type FirstFnParameterType<T extends any[]> = Parameters<PickLastInTuple<T>>[any]
-type LastFnParameterType<T extends any[]> = ReturnType<T[0]>
+
+type DropFirstInTuple<Tuple extends any[]> = Tuple extends [
+  arg: any,
+  ...rest: infer LastArg
+]
+  ? LastArg
+  : Tuple
+
+type LastInTuple<Tuple extends any[]> = Tuple[LengthOfTuple<
+  DropFirstInTuple<Tuple>
+>]
+
+type FirstFnParameterType<Functions extends ArityOneFunction[]> = Parameters<
+  LastInTuple<Functions>
+>[any]
+
+type LastFnParameterType<Functions extends ArityOneFunction[]> = ReturnType<
+  Functions[0]
+>
 
 /**
  * Composes a given list of functions into a new function that
  * executes from right to left.
  */
 export function compose<
-  T extends ArityOneFn[],
-  LeftReturnType extends FirstFnParameterType<T>,
-  RightReturnType extends LastFnParameterType<T>
+  Functions extends ArityOneFunction[],
+  LeftReturnType extends FirstFnParameterType<Functions>,
+  RightReturnType extends LastFnParameterType<Functions>
 >(
-  ...fns: T
+  ...fns: Functions
 ): (
   ...args: LeftReturnType extends never ? never[] : [LeftReturnType]
 ) => RightReturnType {

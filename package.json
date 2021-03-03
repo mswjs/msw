@@ -127,7 +127,7 @@
     "ts-jest": "^26.5.2",
     "ts-loader": "^8.0.14",
     "ts-node": "^9.1.1",
-    "typescript": "4.0.5",
+    "typescript": "^4.2.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.24.2",
     "webpack-dev-server": "^3.11.2"

@@ -6,10 +6,11 @@ export function setRequestCookies(request: MockedRequest) {
   store.hydrate()
   request.cookies = {
     ...getRequestCookies(request),
-    ...Object.fromEntries(
-      Array.from(
-        store.get({ ...request, url: request.url.toString() })?.entries(),
-      ).map(([name, { value }]) => [name, value]),
+    ...Array.from(
+      store.get({ ...request, url: request.url.toString() })?.entries(),
+    ).reduce(
+      (cookies, [name, { value }]) => Object.assign(cookies, { [name]: value }),
+      {},
     ),
   }
 

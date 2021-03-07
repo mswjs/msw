@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
 import { ScenarioApi, pageWith } from 'page-with'
-import { sleep } from '../../support/utils'
+import { sleep, waitUntil } from '../../support/utils'
 
 declare namespace window {
   export const msw: {
@@ -30,12 +30,14 @@ test('emits events for a handled request and mocked response', async () => {
   await sleep(500)
 
   const requestId = getRequestId(consoleSpy)
-  expect(consoleSpy.get('warning')).toEqual([
-    `[request:start] GET ${endpointUrl} ${requestId}`,
-    `[request:match] GET ${endpointUrl} ${requestId}`,
-    `[request:end] GET ${endpointUrl} ${requestId}`,
-    `[response:mocked] response-body ${requestId}`,
-  ])
+  waitUntil(() =>
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] GET ${endpointUrl} ${requestId}`,
+      `[request:match] GET ${endpointUrl} ${requestId}`,
+      `[request:end] GET ${endpointUrl} ${requestId}`,
+      `[response:mocked] response-body ${requestId}`,
+    ]),
+  )
 })
 
 test('emits events for a handled request with no response', async () => {
@@ -48,12 +50,14 @@ test('emits events for a handled request with no response', async () => {
   await sleep(500)
 
   const requestId = getRequestId(consoleSpy)
-  expect(consoleSpy.get('warning')).toEqual([
-    `[request:start] POST ${endpointUrl} ${requestId}`,
-    `[request:unhandled] POST ${endpointUrl} ${requestId}`,
-    `[request:end] POST ${endpointUrl} ${requestId}`,
-    `[response:bypass] ${requestId}`,
-  ])
+  waitUntil(() =>
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] POST ${endpointUrl} ${requestId}`,
+      `[request:unhandled] POST ${endpointUrl} ${requestId}`,
+      `[request:end] POST ${endpointUrl} ${requestId}`,
+      `[response:bypass] ${requestId}`,
+    ]),
+  )
 })
 
 test('emits events for an unhandled request', async () => {
@@ -64,12 +68,14 @@ test('emits events for an unhandled request', async () => {
   await sleep(500)
 
   const requestId = getRequestId(consoleSpy)
-  expect(consoleSpy.get('warning')).toEqual([
-    `[request:start] GET ${endpointUrl} ${requestId}`,
-    `[request:unhandled] GET ${endpointUrl} ${requestId}`,
-    `[request:end] GET ${endpointUrl} ${requestId}`,
-    `[response:bypass] ${requestId}`,
-  ])
+  waitUntil(() =>
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] GET ${endpointUrl} ${requestId}`,
+      `[request:unhandled] GET ${endpointUrl} ${requestId}`,
+      `[request:end] GET ${endpointUrl} ${requestId}`,
+      `[response:bypass] ${requestId}`,
+    ]),
+  )
 })
 
 test('stops emitting events once the worker is stopped', async () => {

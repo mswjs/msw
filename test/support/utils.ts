@@ -3,6 +3,9 @@ import { MockedRequest } from './../../src'
 import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'
 
+const TIMEOUT = 3000
+const RETRY_INTERVAL = 1000
+
 export function sleep(duration: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, duration)
@@ -57,5 +60,28 @@ export function promisifyChildProcess(
     child.addListener('exit', () => {
       resolve({ stdout, stderr })
     })
+  })
+}
+
+export function waitUntil(expectation: () => void) {
+  const maxTries = Math.ceil(TIMEOUT / RETRY_INTERVAL)
+  let tries = 0
+  return new Promise((resolve, reject) => {
+    const rejectOrRerun = (error: unknown) => {
+      if (tries > maxTries) {
+        reject(error)
+        return
+      }
+      setTimeout(runExpectation, RETRY_INTERVAL)
+    }
+    function runExpectation() {
+      tries += 1
+      try {
+        Promise.resolve<void>(expectation()).then(resolve).catch(rejectOrRerun)
+      } catch (error) {
+        rejectOrRerun(error)
+      }
+    }
+    setTimeout(runExpectation, 0)
   })
 }

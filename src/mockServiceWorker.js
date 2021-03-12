@@ -114,7 +114,7 @@ async function handleRequest(event, requestId) {
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
-  if (activeClientIds.has(client.id)) {
+  if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const clonedResponse = response.clone()
       sendToClient(client, {

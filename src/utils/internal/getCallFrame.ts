@@ -2,6 +2,7 @@
  * Return the stack trace frame of a function's invocation.
  */
 export function getCallFrame() {
+  // In <IE11, new Error may return an undefined stack
   const frames: string[] = ((new Error().stack || '') as string).split('\n')
 
   // Get the first frame that doesn't reference the library's internal trace.

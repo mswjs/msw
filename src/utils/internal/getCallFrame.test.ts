@@ -169,14 +169,10 @@ test('Safari on macOS error stack', () => {
   )
 })
 
-test('handles the undefined stack trace', () => {
-  // version 1
+test('Handles the undefined stack trace', () => {
   mockStack.mockImplementationOnce(() => undefined)
-
   expect(() => getCallFrame()).not.toThrow(TypeError)
 
-  // version 2
   mockStack.mockImplementationOnce(() => null)
-
   expect(() => getCallFrame()).not.toThrow(TypeError)
 })

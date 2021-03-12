@@ -169,7 +169,7 @@ test('Safari on macOS error stack', () => {
   )
 })
 
-test('IE11 undefined or null error stack', () => {
+test('handles the undefined stack trace', () => {
   // version 1
   mockStack.mockImplementationOnce(() => undefined)
 

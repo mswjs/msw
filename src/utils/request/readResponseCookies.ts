@@ -1,4 +1,4 @@
-import { store } from 'virtual-cookies'
+import { store } from '@mswjs/cookies'
 import { MockedResponse } from '../../response'
 import { MockedRequest } from '../../handlers/RequestHandler'
 

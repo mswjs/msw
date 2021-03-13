@@ -64,6 +64,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
+    "@mswjs/cookies": "^0.1.4",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.0",
     "@types/inquirer": "^7.3.1",
@@ -80,7 +81,6 @@
     "node-request-interceptor": "^0.6.3",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.1.0",
-    "virtual-cookies": "^0.1.2",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

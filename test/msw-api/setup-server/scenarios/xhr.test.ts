@@ -1,8 +1,8 @@
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { stringToHeaders } from 'headers-utils'
+import { Headers, stringToHeaders } from 'headers-utils'
 
-describe('setupServer / XHR', () => {
+describe('setupServer / XMLHttpRequest', () => {
   const server = setupServer(
     rest.get('http://test.mswjs.io', (req, res, ctx) => {
       return res(

@@ -1,9 +1,5 @@
 import { MockedResponse } from '../response'
-import {
-  MockedRequest,
-  RequestHandler,
-  RequestHandlerExecutionResult,
-} from '../handlers/RequestHandler'
+import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 
 interface ResponsePayload {
   handler?: RequestHandler
@@ -12,15 +8,35 @@ interface ResponsePayload {
   response?: MockedResponse
 }
 
+const getResult = async <
+  Request extends MockedRequest,
+  Handlers extends RequestHandler[]
+>(
+  handlers: Handlers,
+  request: Request,
+) => {
+  for (const handler of handlers) {
+    const result = await handler.run(request)
+    if (result && result.response && !result.handler.shouldSkip) {
+      if (result.response.once) {
+        handler.markAsSkipped(true)
+      }
+      return result
+    }
+  }
+
+  return null
+}
+
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
 export const getResponse = async <
   Request extends MockedRequest,
-  Handler extends RequestHandler[]
+  Handlers extends RequestHandler[]
 >(
   request: Request,
-  handlers: Handler,
+  handlers: Handlers,
 ): Promise<ResponsePayload> => {
   const relevantHandlers = handlers.filter((handler) => {
     return handler.test(request)
@@ -33,27 +49,7 @@ export const getResponse = async <
     }
   }
 
-  const result = await relevantHandlers.reduce<
-    Promise<RequestHandlerExecutionResult<any> | null>
-  >(async (acc, handler) => {
-    const previousResults = await acc
-
-    if (!!previousResults?.response) {
-      return acc
-    }
-
-    const result = await handler.run(request)
-
-    if (result === null || !result.response || result.handler.shouldSkip) {
-      return null
-    }
-
-    if (result.response.once) {
-      handler.markAsSkipped(true)
-    }
-
-    return result
-  }, Promise.resolve(null))
+  const result = await getResult(relevantHandlers, request)
 
   // Although reducing a list of relevant request handlers, it's possible
   // that in the end there will be no handler associted with the request

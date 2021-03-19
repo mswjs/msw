@@ -4,10 +4,10 @@ type LengthOfTuple<Tuple extends any[]> = Tuple extends { length: infer L }
   ? L
   : never
 
-type DropFirstInTuple<Tuple extends any[]> = Tuple extends [
+type DropFirstInTuple<Tuple extends any[]> = ((...args: Tuple) => any) extends (
   arg: any,
   ...rest: infer LastArg
-]
+) => any
   ? LastArg
   : Tuple
 
@@ -34,7 +34,7 @@ export function compose<
 >(
   ...fns: Functions
 ): (
-  ...args: LeftReturnType extends never ? never[] : [LeftReturnType]
+  ...args: [LeftReturnType] extends [never] ? never[] : [LeftReturnType]
 ) => RightReturnType {
   return (...args) => {
     return fns.reduceRight((leftFn: any, rightFn) => {

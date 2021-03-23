@@ -1,5 +1,5 @@
-import { interceptClientRequest } from 'node-request-interceptor/lib/interceptors/ClientRequest'
-import { interceptXMLHttpRequest } from 'node-request-interceptor/lib/interceptors/XMLHttpRequest'
+import { interceptClientRequest } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
+import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
 import { createSetupServer } from './createSetupServer'
 
 /**
@@ -8,6 +8,8 @@ import { createSetupServer } from './createSetupServer'
  * @see {@link https://mswjs.io/docs/api/setup-server `setupServer`}
  */
 export const setupServer = createSetupServer(
+  // List each interceptor separately instead of using the "node" preset
+  // so that MSW wouldn't bundle the unnecessary classes (i.e. "SocketPolyfill").
   interceptClientRequest,
   interceptXMLHttpRequest,
 )

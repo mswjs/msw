@@ -36,7 +36,7 @@ const worker = setupWorker(
   rest.get('https://test.mswjs.io/headers', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch('/headers-proxy', {
       method: 'POST',
-      headers: req.headers.getAllHeaders(),
+      headers: req.headers.all(),
     })
     const body = await originalResponse.json()
 

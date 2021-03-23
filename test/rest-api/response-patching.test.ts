@@ -60,7 +60,7 @@ test('bypasses the original request when it equals the mocked request', async ()
     null,
     (res, url) => {
       return (
-        // Await for the response from MSW, so that original response
+        // Await the response from MSW so that the original response
         // from the same URL would not interfere.
         match(url, res.url()).matches && res.headers()['x-powered-by'] === 'msw'
       )
@@ -91,7 +91,8 @@ test('forwards custom request headers to the original request', async () => {
   const res = await reqPromise
 
   expect(req.headers()).toHaveProperty('authorization', 'token')
-  expect(req.headers()).not.toHaveProperty('map')
+  expect(req.headers()).not.toHaveProperty('_headers')
+  expect(req.headers()).not.toHaveProperty('_names')
 
   const status = res.status()
   const body = await res.json()

@@ -33,7 +33,7 @@ window.msw = {
 }
 
 // @ts-ignore
-window.dispatchGraphQLQUery = (uri: string) => {
+window.dispatchGraphQLQuery = (uri: string) => {
   const client = createGraphQLClient({ uri })
 
   return client({

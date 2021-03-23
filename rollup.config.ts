@@ -83,13 +83,13 @@ const buildNode = {
     'tty',
     'os',
     'timers',
-    'node-request-interceptor',
+    '@mswjs/interceptors',
     /**
      * Exclude Node.js request interceptors from being compiled.
-     * @see https://github.com/mswjs/node-request-interceptor/issues/52
+     * @see https://github.com/mswjs/interceptors/issues/52
      */
-    'node-request-interceptor/lib/interceptors/ClientRequest',
-    'node-request-interceptor/lib/interceptors/XMLHttpRequest',
+    '@mswjs/interceptors/lib/interceptors/ClientRequest',
+    '@mswjs/interceptors/lib/interceptors/XMLHttpRequest',
   ],
   output: {
     format: 'cjs',
@@ -125,13 +125,13 @@ const buildNative = {
     'os',
     'util',
     'events',
-    'node-request-interceptor',
+    '@mswjs/interceptors',
     /**
      * Exclude Node.js request interceptors from being compiled.
-     * @see https://github.com/mswjs/node-request-interceptor/issues/52
+     * @see https://github.com/mswjs/interceptors/issues/52
      */
-    'node-request-interceptor/lib/interceptors/ClientRequest',
-    'node-request-interceptor/lib/interceptors/XMLHttpRequest',
+    '@mswjs/interceptors/lib/interceptors/ClientRequest',
+    '@mswjs/interceptors/lib/interceptors/XMLHttpRequest',
   ],
   output: {
     file: 'native/lib/index.js',

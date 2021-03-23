@@ -1,5 +1,5 @@
 import { match } from 'node-match-path'
-import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
+import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { Mask } from '../../setupWorker/glossary'
 import { getUrlByMask } from '../url/getUrlByMask'
 import { getCleanMask } from './getCleanMask'

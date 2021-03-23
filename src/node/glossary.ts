@@ -1,4 +1,4 @@
-import { MockedResponse as MockedInterceptedResponse } from 'node-request-interceptor'
+import { IsomorphicResponse } from '@mswjs/interceptors'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { SharedOptions } from '../sharedOptions'
 
@@ -7,14 +7,8 @@ export interface ServerLifecycleEventsMap {
   'request:match': (request: MockedRequest) => void
   'request:unhandled': (request: MockedRequest) => void
   'request:end': (request: MockedRequest) => void
-  'response:mocked': (
-    response: MockedInterceptedResponse,
-    requestId: string,
-  ) => void
-  'response:bypass': (
-    response: MockedInterceptedResponse,
-    requestId: string,
-  ) => void
+  'response:mocked': (response: IsomorphicResponse, requestId: string) => void
+  'response:bypass': (response: IsomorphicResponse, requestId: string) => void
 }
 
 export interface SetupServerApi {

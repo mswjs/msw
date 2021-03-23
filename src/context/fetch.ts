@@ -13,7 +13,7 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
 
   return {
     ...requestInit,
-    headers: headers.getAllHeaders(),
+    headers: headers.all(),
   }
 }
 

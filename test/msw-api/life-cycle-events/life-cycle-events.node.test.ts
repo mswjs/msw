@@ -50,7 +50,7 @@ beforeAll(() => {
   })
 
   server.on('response:bypass', (res, reqId) => {
-    listener(`[response:bypass] ${res.headers.server} ${reqId}`)
+    listener(`[response:bypass] ${res.headers.get('server')} ${reqId}`)
   })
 })
 

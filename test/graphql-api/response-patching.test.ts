@@ -6,20 +6,19 @@ import { SetupWorkerApi } from 'msw'
 import { gql } from '../support/graphql'
 
 declare namespace window {
-  export const dispatchGraphQLQUery: (uri: string) => Promise<ExecutionResult>
-
+  export const dispatchGraphQLQuery: (uri: string) => Promise<ExecutionResult>
   export const msw: {
     registration: SetupWorkerApi['start']
   }
 }
 
-let prodServer: ServerApi
+let httpServer: ServerApi
 
 beforeAll(async () => {
   // This test server simulates a production GraphQL server
   // and uses a hard-coded `rootValue` to resolve queries
   // against the schema.
-  prodServer = await createServer((app) => {
+  httpServer = await createServer((app) => {
     app.post('/graphql', async (req, res) => {
       const result = await graphql({
         schema: buildSchema(gql`
@@ -47,7 +46,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await prodServer.close()
+  await httpServer.close()
 })
 
 function createRuntime() {
@@ -58,7 +57,7 @@ function createRuntime() {
 
 test('patches a GraphQL response', async () => {
   const runtime = await createRuntime()
-  const prodServerUrl = prodServer.http.makeUrl('/graphql')
+  const endpointUrl = httpServer.http.makeUrl('/graphql')
 
   await runtime.page.evaluate(() => {
     return window.msw.registration
@@ -66,9 +65,9 @@ test('patches a GraphQL response', async () => {
 
   const res = await runtime.page.evaluate(
     ([url]) => {
-      return window.dispatchGraphQLQUery(url)
+      return window.dispatchGraphQLQuery(url)
     },
-    [prodServerUrl],
+    [endpointUrl],
   )
 
   expect(res.errors).toBeUndefined()

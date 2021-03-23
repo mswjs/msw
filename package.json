@@ -65,6 +65,7 @@
   "sideEffects": false,
   "dependencies": {
     "@mswjs/cookies": "^0.1.4",
+    "@mswjs/interceptors": "^0.8.0",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.0",
     "@types/inquirer": "^7.3.1",
@@ -73,12 +74,11 @@
     "chokidar": "^3.4.2",
     "cookie": "^0.4.1",
     "graphql": "^15.4.0",
-    "headers-utils": "^1.2.0",
+    "headers-utils": "^3.0.2",
     "inquirer": "^7.3.3",
     "js-levenshtein": "^1.1.6",
     "node-fetch": "^2.6.1",
     "node-match-path": "^0.6.1",
-    "node-request-interceptor": "^0.6.3",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.1.0",
     "yargs": "^16.2.0"

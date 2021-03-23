@@ -9,7 +9,7 @@ import { buildSchema } from 'graphql/utilities'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { createGraphQLClient, gql } from '../support/graphql'
 
-let prodServer: ServerApi
+let httpServer: ServerApi
 
 const server = setupServer(
   graphql.query('GetUser', async (req, res, ctx) => {
@@ -36,7 +36,7 @@ beforeAll(async () => {
 
   // This test server acts as a production server MSW will be hitting
   // when performing a request patching with `ctx.fetch()`.
-  prodServer = await createServer((app) => {
+  httpServer = await createServer((app) => {
     app.post('/graphql', async (req, res) => {
       const result = await executeGraphql({
         schema: buildSchema(gql`
@@ -79,12 +79,12 @@ beforeAll(async () => {
 
 afterAll(async () => {
   server.close()
-  await prodServer.close()
+  await httpServer.close()
 })
 
 test('patches a GraphQL response', async () => {
   const client = createGraphQLClient({
-    uri: prodServer.http.makeUrl('/graphql'),
+    uri: httpServer.http.makeUrl('/graphql'),
     fetch,
   })
 
@@ -109,5 +109,6 @@ test('patches a GraphQL response', async () => {
     lastName: 'Maverick',
   })
   expect(res.data.requestHeaders).toHaveProperty('x-msw-bypass', 'true')
-  expect(res.data.requestHeaders).not.toHaveProperty('map')
+  expect(res.data.requestHeaders).not.toHaveProperty('_headers')
+  expect(res.data.requestHeaders).not.toHaveProperty('_names')
 })

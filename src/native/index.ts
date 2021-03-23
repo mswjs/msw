@@ -1,4 +1,4 @@
-import { interceptXMLHttpRequest } from 'node-request-interceptor/lib/interceptors/XMLHttpRequest'
+import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
 import { createSetupServer } from '../node/createSetupServer'
 
 // Provision request interception via patching the `XMLHttpRequest` class only

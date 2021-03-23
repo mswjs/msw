@@ -1,4 +1,4 @@
-import { getCleanUrl } from 'node-request-interceptor/lib/utils/getCleanUrl'
+import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { Mask, ResolvedMask } from '../../setupWorker/glossary'
 import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
 

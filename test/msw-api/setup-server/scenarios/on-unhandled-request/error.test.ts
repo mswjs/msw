@@ -38,7 +38,7 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/getting-started/mocks`)
 })
 
-test('not erroros on handled request with no response', async () => {
+test('not errors on handled request with no response', async () => {
   jest.spyOn(console, 'error')
 
   const getResponse = () => fetch('https://test.mswjs.io/handled')

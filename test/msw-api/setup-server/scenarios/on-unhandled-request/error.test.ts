@@ -9,6 +9,9 @@ const server = setupServer(
   rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
     return res(ctx.json({ mocked: true }))
   }),
+  rest.get('https://test.mswjs.io/handled', (req, res, ctx) => {
+    return
+  }),
 )
 
 beforeAll(() => {
@@ -33,4 +36,14 @@ test('errors on unhandled request when using the "error" value', async () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
+})
+
+test('not erroros on handled request with no response', async () => {
+  jest.spyOn(console, 'error')
+
+  const getResponse = () => fetch('https://test.mswjs.io/handled')
+
+  await getResponse()
+
+  expect(console.error).not.toHaveBeenCalledWith()
 })

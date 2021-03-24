@@ -23,3 +23,17 @@ test('error on an unhandled REST API request', async () => {
 
   expect(unhandledRequestError).toBeDefined()
 })
+
+test('not print error on an handled REST API request with no response', async () => {
+  const { request, consoleSpy } = await createRuntime()
+
+  await request('/user/undefined_response')
+
+  const unhandledRequestError = (consoleSpy.get('error') || []).find((text) => {
+    return /\[MSW\] Error: captured a request without a matching request handler/.test(
+      text,
+    )
+  })
+
+  expect(unhandledRequestError).not.toBeDefined()
+})

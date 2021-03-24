@@ -1,7 +1,10 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
+  rest.get('/user/:id', (req, res, ctx) => {
+    if (req.params.id === 'undefined_response') {
+      return
+    }
     return res(ctx.json({ firstName: 'John' }))
   }),
 )

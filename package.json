@@ -18,7 +18,6 @@
     "test:integration": "node --max_old_space_size=8000 node_modules/jest/bin/jest.js --config=test/jest.config.js --runInBand",
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
-    "test:focused": "node node_modules/ts-node/dist/bin.js --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },

@@ -44,8 +44,12 @@ export const getResponse = async <
 
     const result = await handler.run(request)
 
-    if (result === null || !result.response || result.handler.shouldSkip) {
+    if (result === null) {
       return null
+    } else {
+      if (!result.response || result.handler.shouldSkip) {
+        return result
+      }
     }
 
     if (result.response.once) {

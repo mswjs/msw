@@ -81,7 +81,6 @@ test('emits events for a handled request with no response', async () => {
 
   expect(listener.mock.calls).toEqual([
     [`[request:start] POST https://mswjs.io/no-response ${requestId}`],
-    [`[request:unhandled] POST https://mswjs.io/no-response ${requestId}`],
     [`[request:end] POST https://mswjs.io/no-response ${requestId}`],
     [`[response:bypass] Vercel ${requestId}`],
   ])

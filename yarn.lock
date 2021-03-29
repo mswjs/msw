@@ -1640,13 +1640,6 @@
     "@types/serve-static" "*"
     "@types/webpack" "*"
 
-"@types/webpack-merge@^4.1.5":
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/@types/webpack-merge/-/webpack-merge-4.1.5.tgz#265fbee4810474860d0f4c17e0107032881eed47"
-  integrity sha512-cbDo592ljSHeaVe5Q39JKN6Z4vMhmo4+C3JbksOIg+kjhKQYN2keGN7dvr/i18+dughij98Qrsfn1mU9NgVoCA==
-  dependencies:
-    "@types/webpack" "*"
-
 "@types/webpack-sources@*":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-2.1.0.tgz#8882b0bd62d1e0ce62f183d0d01b72e6e82e8c10"
@@ -1656,7 +1649,7 @@
     "@types/source-list-map" "*"
     source-map "^0.7.3"
 
-"@types/webpack@*", "@types/webpack@^4.41.26":
+"@types/webpack@*":
   version "4.41.26"
   resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.26.tgz#27a30d7d531e16489f9c7607c747be6bc1a459ef"
   integrity sha512-7ZyTfxjCRwexh+EJFwRUM+CDB2XvgHl4vfuqf1ZKrgGvcS5BrNvPQqJh3tsZ0P6h6Aa1qClVHaJZszLPzpqHeA==
@@ -4214,12 +4207,7 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-headers-utils@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/headers-utils/-/headers-utils-1.2.0.tgz#5e10d1bc9d2bccf789547afca5b991a3167241e8"
-  integrity sha512-4/BMXcWrJErw7JpM87gF8MNEXcIMLzepYZjNRv/P9ctgupl2Ywa3u1PgHtNhSRq84bHH9Ndlkdy7bSi+bZ9I9A==
-
-headers-utils@^3.0.2:
+headers-utils@^3.0.0, headers-utils@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/headers-utils/-/headers-utils-3.0.2.tgz#dfc65feae4b0e34357308aefbcafa99c895e59ef"
   integrity sha512-xAxZkM1dRyGV2Ou5bzMxBPNLoRCjcX+ya7KSWybQD2KwLphxsapUVK6x/02o7f4VU6GPSXch9vNY2+gkU8tYWQ==
@@ -6047,25 +6035,24 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-page-with@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.2.6.tgz#0239cffe4c7c47bb4f4c7e6b45c8bf8c391bc7a7"
-  integrity sha512-S0EBCrErtOIAl27bqW3/J96LhvUtIwGWt0KSVldo98OYM4THdMv16qZrLSHPffrH/O40lJc1XusAZ3musi7XfQ==
+page-with@^0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.3.4.tgz#36888aa0728ecf6ac8b04d43c69530f7bbcd97fe"
+  integrity sha512-lBc0Vp0miZ3jtTJ7/e308uIxHxwWaKU0Bm+5U0T9cMzz5qdIl1j6bKlciUnbcAow2yyB9C12trOJUGuhPF3/hw==
   dependencies:
     "@open-draft/until" "^1.0.3"
     "@types/debug" "^4.1.5"
     "@types/express" "^4.17.11"
     "@types/mustache" "^4.1.1"
     "@types/uuid" "^8.3.0"
-    "@types/webpack" "^4.41.26"
-    "@types/webpack-merge" "^4.1.5"
     debug "^4.3.1"
     express "^4.17.1"
-    headers-utils "^1.2.0"
+    headers-utils "^3.0.0"
     memfs "^3.2.0"
     mustache "^4.1.0"
     playwright "^1.8.0"
     uuid "^8.3.2"
+    webpack "^5.24.2"
     webpack-merge "^5.7.3"
 
 parent-module@^1.0.0:

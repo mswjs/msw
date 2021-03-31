@@ -7,12 +7,19 @@ test('parses a given valid multipart string', async () => {
   )
 })
 
-test('parses a given valid multipart string give non-pretty content-type', async () => {
+test('parses a given valid multipart string given non-pretty content-type', async () => {
   expect.assertions(3)
   // node-fetch will serialize content-type in this format, which is valid according to HTTP
   // https://github.com/node-fetch/node-fetch/blob/d8fc32d6b29bd43d1ad377e80b3e439fe37f2904/test/main.js#L1438
   await testMultipartDataWithContentType(
     'multipart/form-data;boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',
+  )
+})
+
+test('parses a given valid multipart string given content-type with extra spaces', async () => {
+  expect.assertions(3)
+  await testMultipartDataWithContentType(
+    'multipart/form-data;   boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',
   )
 })
 

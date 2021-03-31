@@ -53,7 +53,7 @@ export function parseMultipartData<T extends DefaultRequestMultipartBody>(
     return undefined
   }
 
-  const [, ...directives] = contentType.split('; ')
+  const [, ...directives] = contentType.split(/; */)
   const boundary = directives
     .filter((d) => d.startsWith('boundary='))
     .map((s) => s.replace(/^boundary=/, ''))[0]

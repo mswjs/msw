@@ -103,16 +103,16 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
         if (!handler) {
           emitter.emit('request:unhandled', mockedRequest)
-        }
-
-        if (!response) {
-          emitter.emit('request:end', mockedRequest)
 
           onUnhandledRequest(
             mockedRequest,
             currentHandlers,
             resolvedOptions.onUnhandledRequest,
           )
+        }
+
+        if (!response) {
+          emitter.emit('request:end', mockedRequest)
           return
         }
 

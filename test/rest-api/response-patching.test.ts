@@ -6,6 +6,17 @@ function createRuntime() {
   return pageWith({
     example: path.resolve(__dirname, 'response-patching.mocks.ts'),
     routes(app) {
+      app.get('/user', (req, res) => {
+        res.status(200).json({
+          name: 'The Octocat',
+          location: 'San Francisco',
+        })
+      })
+
+      app.get('/repos/:owner/:name', (req, res) => {
+        res.status(200).json({ name: req.params.name })
+      })
+
       app.post('/headers-proxy', (req, res) => {
         const { authorization } = req.headers
 
@@ -38,7 +49,7 @@ function createRuntime() {
 test('responds with a combination of the mocked and original responses', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('https://test.mswjs.io/user')
+  const res = await runtime.request('/user')
   const status = res.status()
   const headers = res.headers()
   const body = await res.json()
@@ -56,7 +67,7 @@ test('bypasses the original request when it equals the mocked request', async ()
   const runtime = await createRuntime()
 
   const res = await runtime.request(
-    'https://api.github.com/repos/mswjs/msw?mocked=true',
+    '/repos/mswjs/msw?mocked=true',
     null,
     (res, url) => {
       return (
@@ -80,15 +91,14 @@ test('bypasses the original request when it equals the mocked request', async ()
 
 test('forwards custom request headers to the original request', async () => {
   const runtime = await createRuntime()
-
-  const reqPromise = runtime.request('https://test.mswjs.io/headers', {
+  const requestPromise = runtime.request('/headers', {
     headers: {
       Authorization: 'token',
     },
   })
 
-  const req = await runtime.page.waitForRequest('https://test.mswjs.io/headers')
-  const res = await reqPromise
+  const req = await runtime.page.waitForRequest(runtime.makeUrl('/headers'))
+  const res = await requestPromise
 
   expect(req.headers()).toHaveProperty('authorization', 'token')
   expect(req.headers()).not.toHaveProperty('_headers')

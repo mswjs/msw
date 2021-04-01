@@ -1,24 +1,16 @@
 /**
  * @jest-environment node
  */
-import * as http from 'http'
-import { AddressInfo } from 'net'
-import * as express from 'express'
 import fetch from 'node-fetch'
+import { createServer, ServerApi } from '@open-draft/test-server'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-let actualServer: http.Server
-
-function getServerUrl() {
-  const { port } = actualServer.address() as AddressInfo
-  return `http://localhost:${port}`
-}
+let httpServer: ServerApi
 
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async (req, res, ctx) => {
-    const actualServerUrl = getServerUrl()
-    const originalResponse = await ctx.fetch(`${actualServerUrl}/user`)
+    const originalResponse = await ctx.fetch(httpServer.http.makeUrl('/user'))
     const body = await originalResponse.json()
     return res(
       ctx.json({
@@ -28,13 +20,12 @@ const server = setupServer(
     )
   }),
   rest.get('https://test.mswjs.io/complex-request', async (req, res, ctx) => {
-    const actualServerUrl = getServerUrl()
     const bypass = req.url.searchParams.get('bypass')
     const shouldBypass = bypass === 'true'
     const performRequest = shouldBypass
       ? () =>
           ctx
-            .fetch(`${actualServerUrl}/user`, { method: 'POST' })
+            .fetch(httpServer.http.makeUrl('/user'), { method: 'POST' })
             .then((response) => response.json())
       : () =>
           fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
@@ -54,27 +45,26 @@ const server = setupServer(
   }),
 )
 
-beforeAll((done) => {
-  server.listen()
+beforeAll(async () => {
+  httpServer = await createServer((app) => {
+    app.get('/user', (req, res) => {
+      res.status(200).json({ id: 101 }).end()
+    })
+    app.post('/user', (req, res) => {
+      res.status(200).json({ id: 202 }).end()
+    })
+  })
 
-  // Establish an actual local server.
-  const app = express()
-  app.get('/user', (req, res) => {
-    res.status(200).json({ id: 101 }).end()
-  })
-  app.post('/user', (req, res) => {
-    res.status(200).json({ id: 202 }).end()
-  })
-  actualServer = app.listen(done)
+  server.listen()
 })
 
 afterEach(() => {
   server.resetHandlers()
 })
 
-afterAll((done) => {
+afterAll(async () => {
   server.close()
-  actualServer.close(done)
+  await httpServer.close()
 })
 
 test('returns a combination of mocked and original responses', async () => {

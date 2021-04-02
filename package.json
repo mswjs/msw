@@ -80,7 +80,7 @@
     "node-fetch": "^2.6.1",
     "node-match-path": "^0.6.1",
     "statuses": "^2.0.0",
-    "strict-event-emitter": "^0.1.0",
+    "strict-event-emitter": "^0.2.0",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

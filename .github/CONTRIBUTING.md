@@ -1,26 +1,47 @@
 # Contributing
 
-This document is going to take you through the process of contributing to the Mock Service Worker library. Please make sure you read it before landing your first contribution. Thank you.
+Hey! Thank you for deciding to contribute to Mock Service Worker! This page will help you land your first contribution by giving you a better understanding about the project's structure, dependencies, and development workflow.
+
+## Tools
+
+Getting yourself familiar with the tools below will substantially ease your contribution experience.
+
+- [TypeScript](typescriptlang.org)
+- [Jest](https://jestjs.io/)
+
+## Dependencies
+
+Mock Service Worker depends on multiple other libraries.
+
+| Library name                                                | Purpose                                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [cookies](https://github.com/mswjs/cookies)                 | Enables cookies persistance and inference between environments.          |
+| [headers-utils](https://github.com/mswjs/headers-utils)     | `Headers` polyfill to manage request/response headers.                   |
+| [interceptors](https://github.com/mswjs/interceptors)       | Provisions request interception in Node.js (internals of `setupServer`). |
+| [node-match-path](https://github.com/mswjs/node-match-path) | Matches a request URL against a path.                                    |
+
+There are cases when an issue originates from one of the said dependencies. Don't hesitate to address it in the respective repository, as they all are governed by the same team.
 
 ## Getting started
 
 ### Fork the repository
 
-Please use the GitHub UI to **fork this repository**. Mock Service Worker has a forked builds enabled on the CI, so you will see the test status of your fork's branch.
+Please use the GitHub UI to [fork this repository](https://github.com/mswjs/msw) (_read more about [Forking a repository](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)_). Mock Service Worker has forked builds enabled in the CI, so you will see the build status of your fork's branch.
 
 ### Install
 
 ```bash
 $ cd msw
 $ yarn install
+$ yarn start
 ```
 
-> Please use the [**Yarn**][yarn-url] package manager while working on this project. Thank you for respecting our internal decisions.
+> Please use [Yarn][yarn-url] while working on this project.
 
 ## Git workflow
 
 ```bash
-# Navigate to the `master` branch and ensure it's up-to-date
+# Navigate to the "master" branch and ensure it's up-to-date
 $ git checkout master
 $ git pull --rebase
 
@@ -35,45 +56,53 @@ $ git commit -m 'Adds support for GraphQL subscriptions'
 $ git push -u origin feature/rest-api-support
 ```
 
-Once you have pushed the changes to your remote feature branch, [Create a pull request](https://github.com/open-draft/msw/compare) to the `msw` repository in GitHub. Undergo the process of code review, where the maintainers of the library will help you to get the changes from great to awesome, and enjoy your implementation merged to `master`.
+Once you have pushed the changes to your remote feature branch, [Create a pull request](https://github.com/open-draft/msw/compare) on GitHub. Undergo the process of code review, where the maintainers of the library will help you get the changes from good to great, and enjoy your implementation merged to `master`.
+
+> Please be respectful when requesting and going through the code review. Everyone on the team is interested in merging quality, tested code, and so should you. It may take some time and iterations to get it right, and we will assist you throughout the process.
 
 ## Tests
 
-Make sure to cover the introduced changes with relevant tests.
+### Testing levels
 
-- [Jest][jest-url], a test runner.
+There are two levels of tests on the project:
+
+- [Unit tests](#unit-tests), cover small independent functions.
+- [Integration tests](#integration-tests), test in-browser usage scenarios.
+
+**Always begin your implementation from tests**. When tackling an issue, a test for it must be missing, or is incomplete. When working on a feature, starting with a test allows you to model the feature's usage before diving into implementation.
 
 ### Unit tests
 
 #### Writing a unit test
 
-Create a test suite next to the function you would like to test:
+Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiple.test.ts` file next to where the function is located:
 
 ```bash
-$ touch src/multiply.test
+$ touch src/utils/multiply.test.ts
 ```
 
-> In this example we are creating a unit test for the existing `multiply` function.
-
-Write a test file and provide your assertions:
+Proceed by writing a unit test that resembles the usage of the function. Make sure to cover all the scenarios
 
 ```ts
+// src/utils/multiply.test.ts
 import { multiply } from './multiply'
 
-describe('multiply', () => {
-  describe('given two numbers' () => {
-    let result: ReturnType<typeof multiply>
-
-    beforeAll(() => {
-      result = multiply(3, 4)
-    })
-
-    it('should return the result of their multiplication', () => {
-      expect(result).toBe(12)
-    })
-  })
+test('multiplies two given numbers', () => {
+  expect(multiply(2, 3)).toEqual(6)
 })
 ```
+
+> Please [avoid nesting](https://kentcdodds.com/blog/avoid-nesting-when-youre-testing/) while you're testing.
+
+#### Running a single unit test
+
+Once your test is written, run it in isolation.
+
+```bash
+$ yarn test:unit src/utils/multiply.test.ts
+```
+
+The actual implementation may not be ready yet, so you'll se your test failing. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases becoming green.
 
 #### Running all unit tests
 
@@ -81,27 +110,86 @@ describe('multiply', () => {
 $ yarn test:unit
 ```
 
-#### Running a single unit test
-
-```bash
-$ yarn test:unit path/to/suite.test.ts
-```
-
 ### Integration tests
 
-- [Jest][jest-url], a test runner.
-- [`page-with`][page-with-url], a Chromium automation tool.
+We follow example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
 
-> Note: make sure that you [build](#build) MSW before you run the integration tests
+> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`yarn start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
 
-#### Writing an integration test
+#### Browser integration tests
 
-Each integration test consists of two parts:
+In-browser integration tests are powered by the [page-with][page-with-url] library (Chrome automation tool) and still run in Jest. Such test usually consists of two parts:
 
-- `test-name.mocks.ts`, a client-side usage scenario. This is a mock definition file that showcases how the library is used in this test scenario.
-- `test-name.test.ts`, an actual test suite. This is where you interact with a test scenario and write your assertions.
+- `[test-name].mocks.ts`, the actual usage example.
+- `[test-name].test.ts`, the test suite that loads the usage example, does actions and performs assertions.
 
-> Please refer to the [existing integration tests](https://github.com/open-draft/msw/tree/master/test) for more details on how a test suite must be structured and what interaction commands are available.
+Let's write an integration test that assertions the interception of a GET request. First, start with the `*.mocks.ts` file:
+
+```js
+// test/rest-api/basic.mocks.ts
+import { rest, setupWorker } from 'msw'
+
+const worker = setupWorker(
+  rest.get('/numbers', (req, res, ctx) => {
+    return res(ctx.json([1, 2, 3]))
+  }),
+)
+
+worker.start()
+```
+
+> Notice how there's nothing test-specific in the example. The `basic.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
+
+Once the `*.mocks.ts` file is written, proceed by creating a test file itself:
+
+```ts
+// test/rest-api/basic.test.ts
+import * as path from 'path'
+import { pageWith } from 'page-with'
+
+test('returns a mocked response', async () => {
+  // Create a Chrome instance with the usage example loaded.
+  const runtime = await pageWith({
+    example: path(__dirname, 'basic.mocks.ts'),
+  })
+
+  // Dispatch a "GET /books" request.
+  const res = await runtime.request('/books')
+
+  expect(await res.json()).toEqual([1, 2, 3])
+})
+```
+
+> Read more about all the `page-with` features in its [documentation](https://github.com/kettanaito/page-with).
+
+#### Node.js integration test
+
+Integration tests showcase a usage example in Node.js are often placed next to the in-browser tests. A Node.js integration test file has the `*.node.test.ts` suffix.
+
+Similar to the browser tests, these are going to contain a usage example and the assertions over it. However, for Node.js tests there is no need to create a separate `*.mocks.ts` file. Instead, keep the usage example in the test file directly.
+
+Let's replicate the same `GET /books` integration test in Node.js.
+
+```ts
+// test/setup-server/basic.test.ts
+import fetch from 'node-fetch'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+
+const server = setupServer(
+  rest.get('/books', (req, res, ctx) => {
+    return res(ctx.json([1, 2, 3]))
+  }),
+)
+
+beforeAll(() => server.listen())
+afterAll(() => server.close())
+
+test('returns a mocked response', async () => {
+  const res = await fetch('/books')
+  expect(await res.json()).toEqual([1, 2, 3])
+})
+```
 
 #### Running all integration tests
 
@@ -112,26 +200,18 @@ $ yarn test:integration
 #### Running a single integration test
 
 ```bash
-$ yarn test:integration test/rest-api/basic.mock.ts
+$ yarn test:integration test/rest-api/basic.test.ts
 ```
-
-#### Running a usage scenario
-
-When working on a feature or a bug fix it's useful to interact with your usage example in the browser. There's a dedicated command that can run a given usage scenario in a local server for you to work with:
-
-```bash
-$ DEBUG=pageWith yarn test:integration test/rest-api/basic.test.ts
-```
-
-> An automated browser window will pop for you to experiment with.
 
 ## Build
 
-To perform a production build of the library run the following command:
+Build the library with the following command:
 
 ```bash
 $ yarn build
 ```
+
+> Learn more about the build in the [Rollup configuration file](../rollup.config.ts).
 
 [yarn-url]: https://classic.yarnpkg.com/en/
 [jest-url]: https://jestjs.io

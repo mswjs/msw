@@ -150,7 +150,7 @@ ${queryParams
   ): RestRequest<any, RequestParams> {
     return {
       ...request,
-      params: parsedResult.params,
+      params: parsedResult.params || {},
     }
   }
 

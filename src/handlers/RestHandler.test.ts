@@ -163,4 +163,16 @@ describe('run', () => {
 
     expect(result).toBeNull()
   })
+
+  test('request params defaults to empty object', async () => {
+    const handler = new RestHandler('GET', '/users', (req, res, ctx) => {
+      res(ctx.status(200))
+    })
+    const request = createMockedRequest({
+      url: new URL('/users', location.href),
+    })
+    const result = await handler.run(request)
+
+    expect(result?.request.params).toEqual({})
+  })
 })

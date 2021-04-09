@@ -53,12 +53,12 @@ $ git add .
 $ git commit -m 'Adds support for GraphQL subscriptions'
 
 # Push
-$ git push -u origin feature/rest-api-support
+$ git push -u origin feature/gql-subscriptions
 ```
 
 Once you have pushed the changes to your remote feature branch, [Create a pull request](https://github.com/open-draft/msw/compare) on GitHub. Undergo the process of code review, where the maintainers of the library will help you get the changes from good to great, and enjoy your implementation merged to `master`.
 
-> Please be respectful when requesting and going through the code review. Everyone on the team is interested in merging quality, tested code, and so should you. It may take some time and iterations to get it right, and we will assist you throughout the process.
+> Please be respectful when requesting and going through the code review. Everyone on the team is interested in merging quality and well tested code, and we're hopeful that you have the same goal. It may take some time and iterations to get it right, and we will assist you throughout the process.
 
 ## Tests
 
@@ -102,7 +102,7 @@ Once your test is written, run it in isolation.
 $ yarn test:unit src/utils/multiply.test.ts
 ```
 
-The actual implementation may not be ready yet, so you'll se your test failing. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases becoming green.
+At this point, the actual implementation is not ready yet, so you can expect your test to fail. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases pass.
 
 #### Running all unit tests
 
@@ -112,35 +112,43 @@ $ yarn test:unit
 
 ### Integration tests
 
-We follow example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
+We follow an example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
 
 > **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`yarn start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
 
 #### Browser integration tests
 
-In-browser integration tests are powered by the [page-with][page-with-url] library (Chrome automation tool) and still run in Jest. Such test usually consists of two parts:
+In-browser integration tests are powered by the [page-with][page-with-url] library (Chrome automation tool) and still run in Jest. These tests usually consists of two parts:
 
 - `[test-name].mocks.ts`, the actual usage example.
 - `[test-name].test.ts`, the test suite that loads the usage example, does actions and performs assertions.
 
-Let's write an integration test that assertions the interception of a GET request. First, start with the `*.mocks.ts` file:
+Let's write an integration test that asserts the interception of a GET request. First, start with the `*.mocks.ts` file:
 
 ```js
 // test/rest-api/basic.mocks.ts
 import { rest, setupWorker } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/numbers', (req, res, ctx) => {
-    return res(ctx.json([1, 2, 3]))
+  rest.get('/books', (req, res, ctx) => {
+    return res(
+      ctx.json([
+        {
+          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+          title: 'The Lord of the Rings',
+          publishedAt: -486867600,
+        },
+      ]),
+    )
   }),
 )
 
 worker.start()
 ```
 
-> Notice how there's nothing test-specific in the example. The `basic.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
+> Notice how there's nothing test-specific in the example? The `basic.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
 
-Once the `*.mocks.ts` file is written, proceed by creating a test file itself:
+Once the `*.mocks.ts` file is written, proceed by creating a test file:
 
 ```ts
 // test/rest-api/basic.test.ts
@@ -156,7 +164,13 @@ test('returns a mocked response', async () => {
   // Dispatch a "GET /books" request.
   const res = await runtime.request('/books')
 
-  expect(await res.json()).toEqual([1, 2, 3])
+  expect(await res.json()).toEqual([
+    {
+      id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+      title: 'The Lord of the Rings',
+      publishedAt: -486867600,
+    },
+  ])
 })
 ```
 
@@ -164,7 +178,7 @@ test('returns a mocked response', async () => {
 
 #### Node.js integration test
 
-Integration tests showcase a usage example in Node.js are often placed next to the in-browser tests. A Node.js integration test file has the `*.node.test.ts` suffix.
+Integration tests showcase a usage example in Node.js and are often placed next to the in-browser tests. A Node.js integration test file has the `*.node.test.ts` suffix.
 
 Similar to the browser tests, these are going to contain a usage example and the assertions over it. However, for Node.js tests there is no need to create a separate `*.mocks.ts` file. Instead, keep the usage example in the test file directly.
 
@@ -178,7 +192,15 @@ import { setupServer } from 'msw/node'
 
 const server = setupServer(
   rest.get('/books', (req, res, ctx) => {
-    return res(ctx.json([1, 2, 3]))
+    return res(
+      ctx.json([
+        {
+          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+          title: 'The Lord of the Rings',
+          publishedAt: -486867600,
+        },
+      ]),
+    )
   }),
 )
 
@@ -187,7 +209,13 @@ afterAll(() => server.close())
 
 test('returns a mocked response', async () => {
   const res = await fetch('/books')
-  expect(await res.json()).toEqual([1, 2, 3])
+  expect(await res.json()).toEqual([
+    {
+      id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+      title: 'The Lord of the Rings',
+      publishedAt: -486867600,
+    },
+  ])
 })
 ```
 

@@ -164,14 +164,13 @@ describe('run', () => {
     expect(result).toBeNull()
   })
 
-  test('request params defaults to empty object', async () => {
-    const handler = new RestHandler('GET', '/users', (req, res, ctx) => {
-      res(ctx.status(200))
-    })
-    const request = createMockedRequest({
-      url: new URL('/users', location.href),
-    })
-    const result = await handler.run(request)
+  test('returns an empty object as "req.params" given request with no URL parameters', async () => {
+    const handler = new RestHandler('GET', '/users', resolver)
+    const result = await handler.run(
+      createMockedRequest({
+        url: new URL('/users', location.href),
+      }),
+    )
 
     expect(result?.request.params).toEqual({})
   })

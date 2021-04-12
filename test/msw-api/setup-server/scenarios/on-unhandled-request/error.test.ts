@@ -25,7 +25,8 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
-  jest.spyOn(console, 'error').mockImplementation()
+  jest.spyOn(global.console, 'error').mockImplementation()
+  jest.spyOn(global.console, 'warn').mockImplementation()
 })
 
 afterEach(() => {
@@ -48,6 +49,7 @@ test('errors on unhandled request when using the "error" value', async () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
+  expect(console.warn).not.toHaveBeenCalled()
 })
 
 test('does not error on request which handler explicitly returns no mocked response', async () => {

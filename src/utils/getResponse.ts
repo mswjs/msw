@@ -5,7 +5,7 @@ import {
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
 
-interface ResponsePayload {
+export interface ResponseLookupResult {
   handler?: RequestHandler
   publicRequest?: any
   parsedRequest?: any
@@ -21,7 +21,7 @@ export const getResponse = async <
 >(
   request: Request,
   handlers: Handler,
-): Promise<ResponsePayload> => {
+): Promise<ResponseLookupResult> => {
   const relevantHandlers = handlers.filter((handler) => {
     return handler.test(request)
   })

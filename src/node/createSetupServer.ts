@@ -1,22 +1,17 @@
 import { bold } from 'chalk'
-import * as cookieUtils from 'cookie'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   createInterceptor,
   MockedResponse as MockedInterceptedResponse,
   Interceptor,
 } from '@mswjs/interceptors'
-import { getResponse } from '../utils/getResponse'
-import { parseBody } from '../utils/request/parseBody'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
-import { onUnhandledRequest } from '../utils/request/onUnhandledRequest'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
-import { uuidv4 } from '../utils/internal/uuidv4'
-import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
-import { setRequestCookies } from '../utils/request/setRequestCookies'
-import { readResponseCookies } from '../utils/request/readResponseCookies'
+import { RequestHandler } from '../handlers/RequestHandler'
+import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
+import { handleRequest } from '../utils/handleRequest'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'warn',
@@ -39,6 +34,10 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         )
     })
 
+    // Store the list of request handlers for the current server instance,
+    // so it could be modified at a runtime.
+    let currentHandlers: RequestHandler[] = [...requestHandlers]
+
     // Error when attempting to run this function in a browser environment.
     if (!isNodeProcess()) {
       throw new Error(
@@ -47,102 +46,29 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     }
 
     let resolvedOptions: SharedOptions = {}
+
     const interceptor = createInterceptor({
       modules: interceptors,
       async resolver(request) {
-        const requestId = uuidv4()
-
-        if (request.headers) {
-          request.headers.set('x-msw-request-id', requestId)
-        }
-
-        const requestCookieString = request.headers.get('cookie')
-
-        const mockedRequest: MockedRequest = {
-          id: requestId,
-          url: request.url,
-          method: request.method,
-          // Parse the request's body based on the "Content-Type" header.
-          body: parseBody(request.body, request.headers),
-          headers: request.headers,
-          cookies: {},
-          redirect: 'manual',
-          referrer: '',
-          keepalive: false,
-          cache: 'default',
-          mode: 'cors',
-          referrerPolicy: 'no-referrer',
-          integrity: '',
-          destination: 'document',
-          bodyUsed: false,
-          credentials: 'same-origin',
-        }
-
-        // Attach all the cookies stored in the virtual cookie store.
-        setRequestCookies(mockedRequest)
-
-        if (requestCookieString) {
-          // Set mocked request cookies from the `cookie` header of the original request.
-          // No need to take `credentials` into account, because in Node.js requests are intercepted
-          // _after_ they happen. Request issuer should have already taken care of sending relevant cookies.
-          // Unlike browser, where interception is on the worker level, _before_ the request happens.
-          mockedRequest.cookies = cookieUtils.parse(requestCookieString)
-        }
-
-        emitter.emit('request:start', mockedRequest)
-
-        if (mockedRequest.headers.get('x-msw-bypass')) {
-          emitter.emit('request:end', mockedRequest)
-          return
-        }
-
-        const { response, handler } = await getResponse(
+        const mockedRequest = parseIsomorphicRequest(request)
+        return handleRequest<MockedInterceptedResponse>(
           mockedRequest,
           currentHandlers,
+          resolvedOptions,
+          emitter,
+          {
+            transformResponse(response) {
+              return {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers.all(),
+                body: response.body,
+              }
+            },
+          },
         )
-
-        if (!handler) {
-          emitter.emit('request:unhandled', mockedRequest)
-
-          onUnhandledRequest(
-            mockedRequest,
-            currentHandlers,
-            resolvedOptions.onUnhandledRequest,
-          )
-        }
-
-        if (!response) {
-          emitter.emit('request:end', mockedRequest)
-          return
-        }
-
-        emitter.emit('request:match', mockedRequest)
-
-        return new Promise<MockedInterceptedResponse>((resolve) => {
-          const mockedResponse = {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers.all(),
-            body: response.body as string,
-          }
-
-          // Store all the received response cookies in the virtual cookie store.
-          readResponseCookies(mockedRequest, response)
-
-          // the node build will use the "timers" module to ensure @sinon/fake-timers
-          // or jest fake timers don't affect this timeout.
-          setTimeout(() => {
-            resolve(mockedResponse)
-          }, response.delay ?? 0)
-
-          emitter.emit('request:end', mockedRequest)
-        })
       },
     })
-
-    // Store the list of request handlers for the current server instance,
-    // so it could be modified at a runtime.
-    let currentHandlers: RequestHandler[] = [...requestHandlers]
 
     interceptor.on('response', (request, response) => {
       const requestId = request.headers.get('x-msw-request-id')

@@ -12,7 +12,7 @@ export async function requestIntegrityCheck(
   )
 
   // Compare the response from the Service Worker and the
-  // global variable set by webpack upon build.
+  // global variable set by Rollup during the build.
   if (actualChecksum !== SERVICE_WORKER_CHECKSUM) {
     throw new Error(
       `Currently active Service Worker (${actualChecksum}) is behind the latest published one (${SERVICE_WORKER_CHECKSUM}).`,

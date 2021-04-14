@@ -133,3 +133,40 @@ test('warns when current public directory does not match the saved directory fro
 
   await cleanup()
 })
+
+test('does not cause ESLint errors or warnings', async () => {
+  const { prepare, getPath, cleanup } = createTeardown(
+    './tmp/cli/init/eslint',
+    addFile('package.json', {
+      name: 'package-name',
+    }),
+    // intentionally degenerate config to cause a warning in the initial comment
+    addFile('.eslintrc.json', {
+      rules: {
+        'no-warning-comments': [
+          'warn',
+          { terms: ['mock'], location: 'anywhere' },
+        ],
+      },
+    }),
+    addDirectory('public'),
+  )
+  await prepare()
+
+  const { stderr: initStderr } = await promisifyChildProcess(
+    exec(`node cli/index.js init ${getPath('public')} --no-save`),
+  )
+  expect(initStderr).toBe('')
+  expect(fs.existsSync(getPath('public/mockServiceWorker.js'))).toBe(true)
+
+  console.log(fs.readFileSync(getPath('public/mockServiceWorker.js'), 'utf-8'))
+
+  const {
+    stdout: eslintStdout,
+    stderr: eslintStderr,
+  } = await promisifyChildProcess(exec(`npx --no-install eslint ${getPath()}`))
+  expect(eslintStdout).toBe('')
+  expect(eslintStderr).toBe('')
+
+  await cleanup()
+})

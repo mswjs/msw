@@ -1,13 +1,14 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
+const { until } = require('@open-draft/until')
 const inquirer = require('inquirer')
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 
 const CWD = process.cwd()
 
-module.exports = function init(args) {
+module.exports = async function init(args) {
   const { publicDir, save } = args
 
   // When running as a part of "postinstall" script, "cwd" equals the library's directory.
@@ -18,11 +19,18 @@ module.exports = function init(args) {
   const relativePublicDir = path.relative(CWD, absolutePublicDir)
   const dirExists = fs.existsSync(absolutePublicDir)
 
-  invariant(
-    dirExists,
-    'Failed to create a Service Worker at "%s": directory does not exist.\nMake sure to include a relative path to the root directory of your server.',
-    absolutePublicDir,
-  )
+  if (!dirExists) {
+    // Try to create the directory if it doesn't exist
+    const [createDirectoryError] = await until(() =>
+      fs.promises.mkdir(absolutePublicDir, { recursive: true }),
+    )
+    invariant(
+      createDirectoryError == null,
+      'Failed to create a Service Worker at "%s": directory does not exist and could not be created.\nMake sure to include a relative path to the root directory of your server.\n\nSee the original error below:\n%s',
+      absolutePublicDir,
+      createDirectoryError,
+    )
+  }
 
   console.log(
     'Initializing the Mock Service Worker at "%s"...',

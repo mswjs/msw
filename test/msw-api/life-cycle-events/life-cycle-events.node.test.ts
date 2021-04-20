@@ -52,6 +52,8 @@ beforeAll(() => {
   server.on('response:bypass', (res, reqId) => {
     listener(`[response:bypass] ${res.headers.get('server')} ${reqId}`)
   })
+
+  jest.spyOn(global.console, 'warn').mockImplementation()
 })
 
 afterEach(() => {
@@ -59,6 +61,7 @@ afterEach(() => {
 })
 
 afterAll(() => {
+  jest.restoreAllMocks()
   server.close()
 })
 

@@ -119,7 +119,7 @@ ${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
 export function onUnhandledRequest(
   request: MockedRequest,
   handlers: RequestHandler[],
-  strategy: UnhandledRequestStrategy = 'bypass',
+  strategy: UnhandledRequestStrategy = 'warn',
 ): void {
   if (typeof strategy === 'function') {
     strategy(request)
@@ -172,7 +172,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
       break
     }
 
+    case 'bypass':
+      break
+
     default:
-      return
+      throw new Error(
+        `[MSW] Failed to react to an unhandled request: unknown strategy "${strategy}". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function.`,
+      )
   }
 }

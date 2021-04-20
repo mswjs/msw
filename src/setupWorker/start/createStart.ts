@@ -15,7 +15,7 @@ const DEFAULT_START_OPTIONS: DeepRequired<StartOptions> = {
   },
   quiet: false,
   waitUntilReady: true,
-  onUnhandledRequest: 'bypass',
+  onUnhandledRequest: 'warn',
   findWorker: (scriptURL, mockServiceWorkerUrl) =>
     scriptURL === mockServiceWorkerUrl,
 }

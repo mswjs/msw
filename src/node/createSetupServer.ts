@@ -19,7 +19,7 @@ import { setRequestCookies } from '../utils/request/setRequestCookies'
 import { readResponseCookies } from '../utils/request/readResponseCookies'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
-  onUnhandledRequest: 'bypass',
+  onUnhandledRequest: 'warn',
 }
 
 /**

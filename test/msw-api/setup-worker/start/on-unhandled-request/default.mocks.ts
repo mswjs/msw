@@ -6,6 +6,6 @@ const worker = setupWorker(
   }),
 )
 
-worker.start({
-  onUnhandledRequest: 'bypass',
-})
+// By default any unhandled requests are preformed as-is
+// but produce warnings.
+worker.start()

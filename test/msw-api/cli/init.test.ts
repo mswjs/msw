@@ -157,14 +157,11 @@ test('does not cause ESLint errors or warnings', async () => {
     exec(`node cli/index.js init ${getPath('public')} --no-save`),
   )
   expect(initStderr).toBe('')
-  expect(fs.existsSync(getPath('public/mockServiceWorker.js'))).toBe(true)
-
-  console.log(fs.readFileSync(getPath('public/mockServiceWorker.js'), 'utf-8'))
 
   const {
     stdout: eslintStdout,
     stderr: eslintStderr,
-  } = await promisifyChildProcess(exec(`npx --no-install eslint ${getPath()}`))
+  } = await promisifyChildProcess(exec(`node_modules/.bin/eslint ${getPath()}`))
   expect(eslintStdout).toBe('')
   expect(eslintStderr).toBe('')
 

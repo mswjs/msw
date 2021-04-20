@@ -4,6 +4,14 @@ import { pageWith } from 'page-with'
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import copyServiceWorker from '../../config/copyServiceWorker'
 
+beforeAll(() => {
+  jest.spyOn(global.console, 'log').mockImplementation()
+})
+
+afterAll(() => {
+  jest.restoreAllMocks()
+})
+
 test('activates the worker without errors given the latest integrity', async () => {
   const { request, consoleSpy } = await pageWith({
     example: path.resolve(__dirname, 'integrity-check-valid.mocks.ts'),

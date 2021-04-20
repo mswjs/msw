@@ -13,6 +13,7 @@ const server = setupServer(
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'warn' })
+  jest.spyOn(global.console, 'warn').mockImplementation()
 })
 
 afterAll(() => {
@@ -21,8 +22,6 @@ afterAll(() => {
 })
 
 test('warns on unhandled request when using the "warn" value', async () => {
-  jest.spyOn(global.console, 'warn')
-
   const res = await fetch('https://test.mswjs.io')
 
   expect(res).toHaveProperty('status', 404)

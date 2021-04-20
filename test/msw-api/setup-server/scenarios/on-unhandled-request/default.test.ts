@@ -12,10 +12,9 @@ const server = setupServer(
 )
 
 beforeAll(() => {
+  server.listen()
   jest.spyOn(global.console, 'error').mockImplementation()
   jest.spyOn(global.console, 'warn').mockImplementation()
-
-  server.listen({ onUnhandledRequest: 'bypass' })
 })
 
 afterAll(() => {
@@ -23,13 +22,18 @@ afterAll(() => {
   jest.restoreAllMocks()
 })
 
-test('bypasses unhandled requests', async () => {
+test('warns on unhandled requests by default', async () => {
   const res = await fetch('https://test.mswjs.io')
 
   // Request should be performed as-is
   expect(res).toHaveProperty('status', 404)
 
-  // No warnings/errors should be printed
   expect(console.error).not.toBeCalled()
-  expect(console.warn).not.toBeCalled()
+  expect(console.warn).toBeCalledWith(`\
+[MSW] Warning: captured a request without a matching request handler:
+
+  • GET https://test.mswjs.io/
+
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 })

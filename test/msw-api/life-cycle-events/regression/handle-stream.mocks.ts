@@ -7,4 +7,4 @@ worker.on('response:bypass', async (res) => {
   console.warn(`[response:bypass] ${textResponse}`)
 })
 
-worker.start()
+worker.start({ onUnhandledRequest: 'bypass' })

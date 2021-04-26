@@ -144,7 +144,6 @@ export function setupWorker(
     stop: createStop(context),
 
     use(...handlers) {
-      console.log('adding new handlers', handlers)
       requestHandlerUtils.use(context.requestHandlers, ...handlers)
     },
 

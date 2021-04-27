@@ -12,6 +12,7 @@ import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
 import { handleRequest } from '../utils/handleRequest'
+import { mergeRight } from '../utils/internal/mergeRight'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'warn',
@@ -45,7 +46,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       )
     }
 
-    let resolvedOptions: SharedOptions = {}
+    let resolvedOptions: SharedOptions = {} as SharedOptions
 
     const interceptor = createInterceptor({
       modules: interceptors,
@@ -86,7 +87,10 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
     return {
       listen(options) {
-        resolvedOptions = Object.assign({}, DEFAULT_LISTEN_OPTIONS, options)
+        resolvedOptions = mergeRight(
+          DEFAULT_LISTEN_OPTIONS,
+          options || {},
+        ) as SharedOptions
         interceptor.apply()
       },
 

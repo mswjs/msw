@@ -1,10 +1,9 @@
+import { PartialDeep } from 'type-fest'
 import { HeadersList } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
-import { createStart } from './start/createStart'
-import { createStop } from './stop/createStop'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 
 export type Mask = RegExp | string
@@ -89,7 +88,7 @@ export interface WorkerLifecycleEventsMap {
 }
 
 export interface SetupWorkerInternalContext {
-  startOptions: StartOptions | undefined
+  startOptions?: StartOptions
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler[]
@@ -148,32 +147,32 @@ export type FindWorker = (
   mockServiceWorkerUrl: string,
 ) => boolean
 
-export type StartOptions = SharedOptions & {
+export interface StartOptions extends SharedOptions {
   /**
    * Service Worker instance options.
    */
-  serviceWorker?: {
-    url?: string
-    options?: RegistrationOptions
+  serviceWorker: {
+    url: string
+    options: RegistrationOptions
   }
 
   /**
    * Disables the logging of captured requests
    * into browser's console.
    */
-  quiet?: boolean
+  quiet: boolean
 
   /**
    * Defers any network requests until the Service Worker
    * instance is ready. Defaults to `true`.
    */
-  waitUntilReady?: boolean
+  waitUntilReady: boolean
 
   /**
    * A custom lookup function to find a Mock Service Worker in the list
    * of all registered Service Workers on the page.
    */
-  findWorker?: FindWorker
+  findWorker: FindWorker
 }
 
 export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
@@ -183,18 +182,24 @@ export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
   headers: HeadersList
 }
 
+export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
+export type StartHandler = (
+  options: StartOptions,
+  initialOptions: PartialDeep<StartOptions>,
+) => StartReturnType
+
 export interface SetupWorkerApi {
   /**
    * Registers and activates the mock Service Worker.
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}
    */
-  start: ReturnType<typeof createStart>
+  start: (options?: PartialDeep<StartOptions>) => StartReturnType
 
   /**
    * Stops requests interception for the current client.
    * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()`}
    */
-  stop: ReturnType<typeof createStop>
+  stop(): void
 
   /**
    * Prepends given request handlers to the list of existing handlers.

@@ -1,3 +1,4 @@
+import { PartialDeep } from 'type-fest'
 import { IsomorphicResponse } from '@mswjs/interceptors'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { SharedOptions } from '../sharedOptions'
@@ -16,7 +17,7 @@ export interface SetupServerApi {
    * Starts requests interception based on the previously provided request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()`}
    */
-  listen(options?: SharedOptions): void
+  listen(options?: PartialDeep<SharedOptions>): void
 
   /**
    * Stops requests interception by restoring all augmented modules.

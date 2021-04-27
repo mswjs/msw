@@ -81,6 +81,7 @@
     "node-match-path": "^0.6.1",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",
+    "type-fest": "^1.0.2",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ import {
   SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
 } from './glossary'
-import { createStart } from './start/createStart'
+import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
@@ -12,6 +12,7 @@ import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { jsonParse } from '../utils/internal/jsonParse'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { RestHandler } from '../handlers/RestHandler'
+import { prepareStartHandler } from './start/utils/prepareStartHandler'
 
 interface Listener {
   target: EventTarget
@@ -38,6 +39,14 @@ export function setupWorker(
         `[MSW] Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).`,
       )
   })
+
+  // Error when attempting to run this function in a Node.js environment.
+  if (isNodeProcess()) {
+    throw new Error(
+      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
+    )
+  }
+
   const context: SetupWorkerInternalContext = {
     startOptions: undefined,
     worker: null,
@@ -132,16 +141,12 @@ export function setupWorker(
     },
   }
 
-  // Error when attempting to run this function in a Node.js environment.
-  if (isNodeProcess()) {
-    throw new Error(
-      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
-    )
-  }
+  const startHandler = createStartHandler(context)
+  const stopHandler = createStop(context)
 
   return {
-    start: createStart(context),
-    stop: createStop(context),
+    start: prepareStartHandler(startHandler, context),
+    stop: stopHandler,
 
     use(...handlers) {
       requestHandlerUtils.use(context.requestHandlers, ...handlers)

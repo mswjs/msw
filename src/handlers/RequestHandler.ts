@@ -118,7 +118,7 @@ export abstract class RequestHandler<
    */
   abstract log(
     request: Request,
-    res: any,
+    response: any,
     handler: this,
     parsedResult: ParsedResult,
   ): void

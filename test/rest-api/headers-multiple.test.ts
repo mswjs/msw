@@ -35,7 +35,7 @@ test('supports setting a header with multiple values on the mocked response', as
   const body = await res.json()
 
   expect(status).toEqual(200)
-  expect(headers).toHaveProperty('accept', 'application/json,image/png')
+  expect(headers).toHaveProperty('accept', 'application/json, image/png')
   expect(body).toEqual({
     mocked: true,
   })

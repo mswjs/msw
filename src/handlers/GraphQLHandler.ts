@@ -1,5 +1,5 @@
 import { OperationTypeNode } from 'graphql'
-import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
+import { Mask, SerializedResponse } from '../setupWorker/glossary'
 import { set } from '../context/set'
 import { status } from '../context/status'
 import { delay } from '../context/delay'
@@ -149,7 +149,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     )
   }
 
-  log(request: Request, response: ResponseWithSerializedHeaders<any>) {
+  log(request: Request, response: SerializedResponse<any>) {
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
 

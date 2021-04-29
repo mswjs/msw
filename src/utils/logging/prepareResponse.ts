@@ -1,12 +1,12 @@
-import { listToHeaders } from 'headers-utils'
-import { ResponseWithSerializedHeaders } from '../../setupWorker/glossary'
+import { objectToHeaders } from 'headers-utils'
+import { SerializedResponse } from '../../setupWorker/glossary'
 import { parseBody } from '../request/parseBody'
 
 /**
  * Formats a mocked response for introspection in browser's console.
  */
-export function prepareResponse(res: ResponseWithSerializedHeaders<any>) {
-  const responseHeaders = listToHeaders(res.headers)
+export function prepareResponse(res: SerializedResponse<any>) {
+  const responseHeaders = objectToHeaders(res.headers)
 
   return {
     ...res,

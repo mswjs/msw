@@ -1,5 +1,5 @@
 import { PartialDeep } from 'type-fest'
-import { HeadersList } from 'headers-utils'
+import { FlatHeadersObject } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
@@ -175,11 +175,11 @@ export interface StartOptions extends SharedOptions {
   findWorker: FindWorker
 }
 
-export type ResponseWithSerializedHeaders<BodyType = any> = Omit<
+export type SerializedResponse<BodyType = any> = Omit<
   MockedResponse<BodyType>,
   'headers'
 > & {
-  headers: HeadersList
+  headers: FlatHeadersObject
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>

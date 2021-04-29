@@ -10,7 +10,7 @@ import {
   text,
   xml,
 } from '../context'
-import { Mask, ResponseWithSerializedHeaders } from '../setupWorker/glossary'
+import { Mask, SerializedResponse } from '../setupWorker/glossary'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
@@ -160,7 +160,7 @@ ${queryParams
     )
   }
 
-  log(request: RequestType, response: ResponseWithSerializedHeaders<any>) {
+  log(request: RequestType, response: SerializedResponse<any>) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)

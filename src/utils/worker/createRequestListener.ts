@@ -1,7 +1,6 @@
-import { headersToList } from 'headers-utils'
 import {
   StartOptions,
-  ResponseWithSerializedHeaders,
+  SerializedResponse,
   SetupWorkerInternalContext,
   ServiceWorkerIncomingEventsMap,
 } from '../../setupWorker/glossary'
@@ -29,7 +28,7 @@ export const createRequestListener = (
 
     try {
       const request = parseWorkerRequest(message.payload)
-      await handleRequest<ResponseWithSerializedHeaders>(
+      await handleRequest<SerializedResponse>(
         request,
         context.requestHandlers,
         options,
@@ -38,7 +37,7 @@ export const createRequestListener = (
           transformResponse(response) {
             return {
               ...response,
-              headers: headersToList(response.headers),
+              headers: response.headers.all(),
             }
           },
           onBypassResponse() {

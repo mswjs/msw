@@ -4,7 +4,9 @@ test('parses a JSON response body given a "Content-Type:*/json" header', () => {
   const res = prepareResponse({
     status: 200,
     statusText: 'OK',
-    headers: [['Content-Type', 'application/json']],
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: `{"property":2}`,
     once: false,
     delay: 0,
@@ -13,7 +15,7 @@ test('parses a JSON response body given a "Content-Type:*/json" header', () => {
   // Preserves all the properties
   expect(res).toHaveProperty('status', 200)
   expect(res).toHaveProperty('statusText', 'OK')
-  expect(res).toHaveProperty('headers', [['Content-Type', 'application/json']])
+  expect(res).toHaveProperty('headers', { 'Content-Type': 'application/json' })
   expect(res).toHaveProperty('once', false)
   expect(res).toHaveProperty('delay', 0)
 
@@ -25,7 +27,7 @@ test('returns a stringified valid JSON body given a non-JSON "Content-Type" head
   const res = prepareResponse({
     status: 200,
     statusText: 'OK',
-    headers: [],
+    headers: {},
     body: `{"property":2}`,
     once: false,
     delay: 0,
@@ -33,7 +35,7 @@ test('returns a stringified valid JSON body given a non-JSON "Content-Type" head
 
   expect(res).toHaveProperty('status', 200)
   expect(res).toHaveProperty('statusText', 'OK')
-  expect(res).toHaveProperty('headers', [])
+  expect(res).toHaveProperty('headers', {})
   expect(res).toHaveProperty('once', false)
   expect(res).toHaveProperty('delay', 0)
 
@@ -45,7 +47,7 @@ test('returns a non-JSON response body as-is', () => {
   const res = prepareResponse({
     status: 200,
     statusText: 'OK',
-    headers: [],
+    headers: {},
     body: `text-body`,
     once: false,
     delay: 0,
@@ -53,7 +55,7 @@ test('returns a non-JSON response body as-is', () => {
 
   expect(res).toHaveProperty('status', 200)
   expect(res).toHaveProperty('statusText', 'OK')
-  expect(res).toHaveProperty('headers', [])
+  expect(res).toHaveProperty('headers', {})
   expect(res).toHaveProperty('once', false)
   expect(res).toHaveProperty('delay', 0)
 

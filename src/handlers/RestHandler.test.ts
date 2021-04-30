@@ -11,6 +11,18 @@ const resolver: ResponseResolver<
   return res(ctx.json({ userId: req.params.userId }))
 }
 
+const generatorResolver: ResponseResolver<
+  RestRequest<'pending' | 'complete'>,
+  RestContext
+> = function* (req, res, ctx) {
+  let count = 0
+  while (count < 5) {
+    count += 1
+    yield res(ctx.body('pending'))
+  }
+  return res(ctx.body('complete'))
+}
+
 describe('info', () => {
   test('exposes request handler information', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
@@ -173,5 +185,29 @@ describe('run', () => {
     )
 
     expect(result?.request.params).toEqual({})
+  })
+})
+
+describe('run with generator', () => {
+  test('Resolver runs until generator completes', async () => {
+    const handler = new RestHandler('GET', '/users', generatorResolver)
+    const run = async () => {
+      const result = await handler.run(
+        createMockedRequest({
+          url: new URL('/users', location.href),
+        }),
+      )
+      return result?.response?.body
+    }
+
+    expect(await run()).toBe('pending')
+    expect(await run()).toBe('pending')
+    expect(await run()).toBe('pending')
+    expect(await run()).toBe('pending')
+    expect(await run()).toBe('pending')
+    expect(await run()).toBe('complete')
+    expect(handler.shouldSkip).toBe(false)
+    await run()
+    expect(handler.shouldSkip).toBe(true)
   })
 })

@@ -152,7 +152,7 @@ export function onUnhandledRequest(
 
   const messageTemplate = [
     `captured a request without a matching request handler:`,
-    `  • ${requestHeader}`,
+    `  \u2022 ${requestHeader}`,
     handlerSuggestion,
     `\
 If you still wish to intercept this unhandled request, please create a request handler for it.

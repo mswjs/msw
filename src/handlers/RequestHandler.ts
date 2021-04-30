@@ -57,6 +57,26 @@ export type ResponseResolverReturnType<R> = R | undefined | void
 export type AsyncResponseResolverReturnType<R> =
   | Promise<ResponseResolverReturnType<R>>
   | ResponseResolverReturnType<R>
+  | Generator<
+      ResponseResolverReturnType<R> | Promise<ResponseResolverReturnType<R>>,
+      ResponseResolverReturnType<R> | Promise<ResponseResolverReturnType<R>>,
+      ResponseResolverReturnType<R> | Promise<ResponseResolverReturnType<R>>
+    >
+
+/**
+ * Check an AsyncResponseResolverReturnType to see if
+ * it is actually an iterable, which indicates it's a generator.
+ */
+function resolverResultIsGenerator<R>(
+  resolver: AsyncResponseResolverReturnType<R>,
+): resolver is Generator<
+  ResponseResolverReturnType<R>,
+  ResponseResolverReturnType<R>,
+  ResponseResolverReturnType<R>
+> {
+  if (!resolver) return false
+  return typeof (resolver as Generator<unknown>)[Symbol.iterator] == 'function'
+}
 
 export type ResponseResolver<
   RequestType = MockedRequest,
@@ -89,11 +109,19 @@ export abstract class RequestHandler<
 > {
   public info: RequestHandlerDefaultInfo & RequestHandlerInfo<HandlerInfo>
   private ctx: ContextMap
+  private resolverGenerator: null | Generator<
+    ResponseResolverReturnType<any> | Promise<ResponseResolverReturnType<any>>,
+    ResponseResolverReturnType<any> | Promise<ResponseResolverReturnType<any>>,
+    ResponseResolverReturnType<any> | Promise<ResponseResolverReturnType<any>>
+  >
+  private resolverGeneratorIsDone: boolean
   public shouldSkip: boolean
   protected resolver: ResponseResolver<any, any>
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
     this.shouldSkip = false
+    this.resolverGenerator = null
+    this.resolverGeneratorIsDone = false
     this.ctx = options.ctx || defaultContext
     this.resolver = options.resolver
 
@@ -127,7 +155,7 @@ export abstract class RequestHandler<
    * Parse the captured request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  parse(request: MockedRequest): ParsedResult {
+  parse(_request: MockedRequest): ParsedResult {
     return null as any
   }
 
@@ -144,7 +172,7 @@ export abstract class RequestHandler<
    */
   protected getPublicRequest(
     request: MockedRequest,
-    parsedResult: ParsedResult,
+    _parsedResult: ParsedResult,
   ) {
     return request as PublicRequest
   }
@@ -160,6 +188,9 @@ export abstract class RequestHandler<
   public async run(
     request: MockedRequest,
   ): Promise<RequestHandlerExecutionResult<PublicRequest> | null> {
+    if (this.resolverGeneratorIsDone) {
+      this.shouldSkip = true
+    }
     if (this.shouldSkip) {
       return null
     }
@@ -172,11 +203,28 @@ export abstract class RequestHandler<
     }
 
     const publicRequest = this.getPublicRequest(request, parsedResult)
-    const mockedResponse = await this.resolver(
-      publicRequest,
-      response,
-      this.ctx,
-    )
+
+    let mockedResponse
+
+    const res =
+      this.resolverGenerator ||
+      (await this.resolver(publicRequest, response, this.ctx))
+
+    // Check to see if the resolver is a generator (or any other iterable).
+    // If it is, stash it and call `next` on it instead of running `this.resolver` again.
+    if (resolverResultIsGenerator<AsyncResponseResolverReturnType<any>>(res)) {
+      const { done, value } = res[Symbol.iterator]().next()
+      mockedResponse = await value
+      if (done) {
+        // We want to set `this.shouldSkip` true *next time*, so we don't throw away
+        // the final result.
+        this.resolverGeneratorIsDone = true
+      } else if (!this.resolverGenerator) {
+        this.resolverGenerator = res
+      }
+    } else {
+      mockedResponse = res
+    }
 
     return this.createExecutionResult(
       parsedResult,

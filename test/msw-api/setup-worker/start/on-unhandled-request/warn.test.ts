@@ -13,14 +13,13 @@ test('warns on an unhandled REST API request with an absolute URL', async () => 
   const status = res.status()
 
   expect(status).toBe(404)
+  expect(consoleSpy.get('warning')).toContain(`\
+[MSW] Warning: captured a request without a matching request handler:
 
-  const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-    return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-      text,
-    )
-  })
+  • GET https://mswjs.io/non-existing-page
 
-  expect(unhandledRequestWarning).toBeDefined()
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 })
 
 test('warns on an unhandled REST API request with a relative URL', async () => {
@@ -29,14 +28,13 @@ test('warns on an unhandled REST API request with a relative URL', async () => {
   const status = res.status()
 
   expect(status).toBe(404)
+  expect(consoleSpy.get('warning')).toContain(`\
+[MSW] Warning: captured a request without a matching request handler:
 
-  const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-    return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-      text,
-    )
-  })
+  • GET /user-details
 
-  expect(unhandledRequestWarning).toBeDefined()
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`)
 })
 
 test('does not warn on request which handler explicitly returns no mocked response', async () => {

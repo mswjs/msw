@@ -63,33 +63,6 @@ test('creates the directory if it does not exist', async () => {
   await cleanup()
 })
 
-test('throws an exception and does not copy the worker script if creating the non-existing directory fails', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    'tmp/cli/init/non-existing',
-    addFile('.tmp'), // The folder isn't actually created before we add a file
-  )
-  await prepare()
-
-  // Ensure the path exists so we can make it readonly
-  expect(fs.existsSync('tmp/cli/init')).toBe(true)
-  fs.chmodSync(getPath(), '0444')
-
-  const { stderr } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('non-existing-public')} --no-save`),
-  )
-
-  // Reset the permissions
-  fs.chmodSync(getPath(), '777')
-
-  expect(stderr).not.toBe('')
-  expect(stderr).toContain('directory does not exist and could not be created')
-  expect(
-    fs.existsSync(getPath('non-existing-public/mockServiceWorker.js')),
-  ).toBe(false)
-
-  await cleanup()
-})
-
 test('saves the worker directory in package.json when none are present', async () => {
   const { prepare, getPath, cleanup } = createTeardown(
     'tmp/cli/init/save-directory-new',

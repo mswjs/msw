@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import * as fs from 'fs-extra'
 import { exec } from 'child_process'
 import { createTeardown, addFile, addDirectory } from 'fs-teardown'
@@ -12,6 +15,10 @@ function getFileContent(filePath: string) {
     return rawContent
   }
 }
+
+afterAll(() => {
+  jest.restoreAllMocks()
+})
 
 test('copies the worker script into an existing directory without errors', async () => {
   const { prepare, getPath, cleanup } = createTeardown(
@@ -134,7 +141,7 @@ test('warns when current public directory does not match the saved directory fro
   await cleanup()
 })
 
-test('does not cause ESLint errors or warnings', async () => {
+test('does not cause eslint errors or warnings', async () => {
   const { prepare, getPath, cleanup } = createTeardown(
     './tmp/cli/init/eslint',
     addFile('package.json', {
@@ -166,4 +173,29 @@ test('does not cause ESLint errors or warnings', async () => {
   expect(eslintStderr).toBe('')
 
   await cleanup()
+})
+
+test('errors and shuts down if creating a directory fails', async () => {
+  const init = require('../../../cli/init')
+  const error = new Error('Could not create this directory')
+  jest.spyOn(fs.promises, 'mkdir').mockRejectedValue(error)
+
+  const exitSpy = jest.spyOn(process, 'exit').mockImplementationOnce(() => {
+    throw error
+  })
+
+  const consoleSpy = jest
+    .spyOn(console, 'error')
+    .mockImplementationOnce(jest.fn())
+
+  const publicDir = 'public'
+
+  await expect(init({ publicDir, save: false })).rejects.not.toBeUndefined()
+
+  expect(consoleSpy).toHaveBeenCalledWith(
+    expect.stringContaining('Failed to create a Service Worker'),
+    expect.stringContaining(publicDir),
+    error,
+  )
+  expect(exitSpy).toHaveBeenCalledWith(1)
 })

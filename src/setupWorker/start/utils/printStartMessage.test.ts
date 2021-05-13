@@ -13,7 +13,7 @@ afterAll(() => {
   jest.restoreAllMocks()
 })
 
-test('prints out a mocking activation message into console', () => {
+test('prints out a default start message into console', () => {
   printStartMessage()
 
   expect(console.groupCollapsed).toHaveBeenCalledWith(
@@ -34,8 +34,17 @@ test('prints out a mocking activation message into console', () => {
   )
 })
 
-test('does not print any messages ', () => {
-  printStartMessage(true)
+test('supports printing a custom start message', () => {
+  printStartMessage({ message: 'Custom start message' })
+
+  expect(console.groupCollapsed).toHaveBeenCalledWith(
+    '%c[MSW] Custom start message',
+    expect.anything(),
+  )
+})
+
+test('does not print any messages when log level is quiet', () => {
+  printStartMessage({ quiet: true })
 
   expect(console.groupCollapsed).not.toHaveBeenCalled()
   expect(console.log).not.toHaveBeenCalled()

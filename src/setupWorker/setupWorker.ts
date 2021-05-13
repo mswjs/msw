@@ -13,6 +13,8 @@ import { jsonParse } from '../utils/internal/jsonParse'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { RestHandler } from '../handlers/RestHandler'
 import { prepareStartHandler } from './start/utils/prepareStartHandler'
+import { createFallbackStart } from './start/createFallbackStart'
+import { createFallbackStop } from './stop/createFallbackStop'
 
 interface Listener {
   target: EventTarget
@@ -139,10 +141,16 @@ export function setupWorker(
         })
       },
     },
+    useFallbackMode:
+      !('serviceWorker' in navigator) || location.protocol === 'file:',
   }
 
-  const startHandler = createStartHandler(context)
-  const stopHandler = createStop(context)
+  const startHandler = context.useFallbackMode
+    ? createFallbackStart(context)
+    : createStartHandler(context)
+  const stopHandler = context.useFallbackMode
+    ? createFallbackStop(context)
+    : createStop(context)
 
   return {
     start: prepareStartHandler(startHandler, context),

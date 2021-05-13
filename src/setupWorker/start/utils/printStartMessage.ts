@@ -1,13 +1,17 @@
 /**
  * Prints a worker activation message in the browser's console.
  */
-export function printStartMessage(quiet?: boolean) {
-  if (quiet) {
+export function printStartMessage(
+  args: { quiet?: boolean; message?: string } = {},
+) {
+  if (args.quiet) {
     return
   }
 
+  const message = args.message || 'Mocking enabled.'
+
   console.groupCollapsed(
-    '%c[MSW] Mocking enabled.',
+    `%c[MSW] ${message}`,
     'color:orangered;font-weight:bold;',
   )
   console.log(

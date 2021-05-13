@@ -1,6 +1,9 @@
-import { SetupWorkerInternalContext } from '../glossary'
+import { SetupWorkerInternalContext, StopHandler } from '../glossary'
+import { printStopMessage } from './utils/printStopMessage'
 
-export const createStop = (context: SetupWorkerInternalContext) => {
+export const createStop = (
+  context: SetupWorkerInternalContext,
+): StopHandler => {
   /**
    * Signal the Service Worker to disable mocking for this client.
    * Use this an an explicit way to stop the mocking, while preserving
@@ -11,12 +14,6 @@ export const createStop = (context: SetupWorkerInternalContext) => {
     context.events.removeAllListeners()
     context.emitter.removeAllListeners()
     window.clearInterval(context.keepAliveInterval)
-
-    if (!context.startOptions?.quiet) {
-      console.log(
-        '%c[MSW] Mocking disabled.',
-        'color:orangered;font-weight:bold;',
-      )
-    }
+    printStopMessage({ quiet: context.startOptions?.quiet })
   }
 }

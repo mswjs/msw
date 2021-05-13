@@ -5,6 +5,7 @@ import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
+import { InterceptorApi } from '@mswjs/interceptors'
 
 export type Mask = RegExp | string
 export type ResolvedMask = Mask | URL
@@ -135,6 +136,8 @@ export interface SetupWorkerInternalContext {
       ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
     >
   }
+  useFallbackMode: boolean
+  fallbackInterceptor?: InterceptorApi
 }
 
 export type ServiceWorkerInstanceTuple = [
@@ -187,6 +190,7 @@ export type StartHandler = (
   options: StartOptions,
   initialOptions: PartialDeep<StartOptions>,
 ) => StartReturnType
+export type StopHandler = () => void
 
 export interface SetupWorkerApi {
   /**
@@ -199,7 +203,7 @@ export interface SetupWorkerApi {
    * Stops requests interception for the current client.
    * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()`}
    */
-  stop(): void
+  stop: StopHandler
 
   /**
    * Prepends given request handlers to the list of existing handlers.

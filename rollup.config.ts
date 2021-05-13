@@ -47,6 +47,7 @@ const buildEsm = {
     'src/graphql.ts',
     'src/context/index.ts',
   ],
+  external: ['debug'],
   output: {
     format: 'esm',
     entryFileNames: '[name].js',

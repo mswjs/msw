@@ -6030,10 +6030,10 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-page-with@^0.3.4:
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.3.4.tgz#36888aa0728ecf6ac8b04d43c69530f7bbcd97fe"
-  integrity sha512-lBc0Vp0miZ3jtTJ7/e308uIxHxwWaKU0Bm+5U0T9cMzz5qdIl1j6bKlciUnbcAow2yyB9C12trOJUGuhPF3/hw==
+page-with@^0.3.6:
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.3.6.tgz#9fc8313745745aa0012e39ef2d3351988383f393"
+  integrity sha512-5/Mo8GDSSEqnltpLNTo9+FzNizM+D3aPbSCcds0lmsXcBbQCkgUSLAWnuSpj8dJk/J6vHC7xW4Q5VsJ6uYgGkA==
   dependencies:
     "@open-draft/until" "^1.0.3"
     "@types/debug" "^4.1.5"

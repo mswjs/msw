@@ -37,3 +37,13 @@ rest.get<
   // @ts-expect-error `null` is not a valid response body type.
   null
 >('/user', () => null)
+
+rest.get<any, { label: boolean }>('/user', (req, res, ctx) =>
+  // allow ResponseTransformer to contain a more specific type
+  res(ctx.json({ label: true })),
+)
+
+rest.get<any, string | string[]>('/user', (req, res, ctx) =>
+  // allow ResponseTransformer to return a narrower type than a given union
+  res(ctx.json('hello')),
+)

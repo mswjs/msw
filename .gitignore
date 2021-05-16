@@ -12,3 +12,4 @@ tmp
 stats.html
 .vscode
 msw-*.tgz
+.husky/_

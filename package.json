@@ -20,12 +20,8 @@
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "test:focused": "node node_modules/ts-node/dist/bin.js --project=test/tsconfig.json test/focusedTest.ts",
     "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
+    "prepare": "husky install",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "*.ts": [

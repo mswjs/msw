@@ -116,6 +116,17 @@ ${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
   return `Did you mean to request "${handlers[0].info.header}" instead?`
 }
 
+export function tryAndSilenceIfThrows<Payload>(
+  fn: () => Payload,
+): Payload | null {
+  try {
+    const payload = fn()
+    return payload
+  } catch (error) {
+    return null
+  }
+}
+
 export function onUnhandledRequest(
   request: MockedRequest,
   handlers: RequestHandler[],
@@ -126,7 +137,10 @@ export function onUnhandledRequest(
     return
   }
 
-  const parsedGraphQLQuery = parseGraphQLRequest(request)
+  // TODO: comment and exlain why we don't want to ignore the error if parsing fails here
+  const parsedGraphQLQuery = tryAndSilenceIfThrows(() =>
+    parseGraphQLRequest(request),
+  )
   const handlerGroups = groupHandlersByType(handlers)
   const relevantHandlers = parsedGraphQLQuery
     ? handlerGroups.graphql

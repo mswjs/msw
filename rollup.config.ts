@@ -14,27 +14,13 @@ const {
   SERVICE_WORKER_BUILD_PATH,
 } = require('./config/constants')
 
-const plugins = [
-  json(),
-  resolve({
-    preferBuiltins: false,
-    mainFields: ['module', 'main', 'jsnext:main', 'browser'],
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
-  }),
-  replace({
-    preventAssignment: true,
-    'process.env.NODE_ENV': JSON.stringify('development'),
-  }),
-  integrityCheck({
-    checksumPlaceholder: '<INTEGRITY_CHECKSUM>',
-    input: SERVICE_WORKER_SOURCE_PATH,
-    output: SERVICE_WORKER_BUILD_PATH,
-  }),
-  typescript({
-    useTsconfigDeclarationDir: true,
-  }),
-  commonjs(),
-]
+const extensions = ['.js', '.ts']
+
+const integrityOptions = {
+  checksumPlaceholder: '<INTEGRITY_CHECKSUM>',
+  input: SERVICE_WORKER_SOURCE_PATH,
+  output: SERVICE_WORKER_BUILD_PATH,
+}
 
 /**
  * Configuration for the ESM build.
@@ -54,7 +40,23 @@ const buildEsm = {
     chunkFileNames: '[name]-deps.js',
     dir: path.dirname(packageJson.module),
   },
-  plugins,
+  plugins: [
+    json(),
+    resolve({
+      preferBuiltins: false,
+      mainFields: ['module', 'main', 'jsnext:main'],
+      extensions,
+    }),
+    replace({
+      preventAssignment: true,
+      'process.env.NODE_ENV': JSON.stringify('development'),
+    }),
+    integrityCheck(integrityOptions),
+    typescript({
+      useTsconfigDeclarationDir: true,
+    }),
+    commonjs(),
+  ],
 }
 
 /**
@@ -68,7 +70,24 @@ const buildUmd = {
     name: 'MockServiceWorker',
     esModule: false,
   },
-  plugins,
+  plugins: [
+    json(),
+    replace({
+      preventAssignment: false,
+      'process.env.NODE_ENV': JSON.stringify('development'),
+    }),
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+      mainFields: ['browser', 'main', 'module'],
+      extensions,
+    }),
+    integrityCheck(integrityOptions),
+    typescript({
+      useTsconfigDeclarationDir: true,
+    }),
+    commonjs(),
+  ],
 }
 
 /**
@@ -101,7 +120,7 @@ const buildNode = {
     resolve({
       browser: false,
       preferBuiltins: true,
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      extensions,
     }),
     typescript({
       useTsconfigDeclarationDir: true,
@@ -143,7 +162,7 @@ const buildNative = {
     resolve({
       browser: false,
       preferBuiltins: true,
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      extensions,
     }),
     typescript({
       useTsconfigDeclarationDir: true,
@@ -156,7 +175,7 @@ const buildNative = {
 }
 
 /**
- * Configuration for the iife build.
+ * Configuration for the IIFE build.
  */
 const buildIife = {
   input: 'src/index.ts',
@@ -167,11 +186,22 @@ const buildIife = {
     esModule: false,
   },
   plugins: [
+    json(),
     replace({
       preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    ...plugins,
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+      mainFields: ['browser', 'module', 'main', 'jsnext:main'],
+      extensions,
+    }),
+    integrityCheck(integrityOptions),
+    typescript({
+      useTsconfigDeclarationDir: true,
+    }),
+    commonjs(),
     terser(),
   ],
 }

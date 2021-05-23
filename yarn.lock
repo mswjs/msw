@@ -1171,15 +1171,16 @@
     "@types/set-cookie-parser" "^2.4.0"
     set-cookie-parser "^2.4.6"
 
-"@mswjs/interceptors@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.9.0.tgz#4c38741095d03021d1af578f76e5fa68463d0982"
-  integrity sha512-FJRKedTv3ZOav0uFxAkDchtG6wyDmWyIKju84wfxAy0jBhdjYJPWV/T37N/zatgscLXRviGjcG+Gah+qu410ow==
+"@mswjs/interceptors@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.10.0.tgz#f5aad03c2c0591d164e3ed178b21942f1c2f8061"
+  integrity sha512-/M0GGpid5q2EDI+Keas1sLYF3VZFXHDE5gCmX/jHdp+OJFruVNca3PUk7A8KnGdPpuycZogdPsmRBSOXwjyA7A==
   dependencies:
     "@open-draft/until" "^1.0.3"
     debug "^4.3.0"
     headers-utils "^3.0.2"
     strict-event-emitter "^0.2.0"
+    xmldom "^0.6.0"
 
 "@nodelib/fs.scandir@2.1.4":
   version "2.1.4"
@@ -8061,6 +8062,11 @@ xmlchars@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
   integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
+
+xmldom@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xmldom/-/xmldom-0.6.0.tgz#43a96ecb8beece991cef382c08397d82d4d0c46f"
+  integrity sha512-iAcin401y58LckRZ0TkI4k0VSM1Qg0KGSc3i8rU+xrxe19A/BN1zHyVSJY7uoutVlaTSzYyk/v5AmkewAP7jtg==
 
 y18n@^4.0.0:
   version "4.0.1"

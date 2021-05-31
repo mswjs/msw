@@ -1,3 +1,4 @@
 {
+  "node": "12",
   "sandboxes": ["msw-react-xx1c8"]
 }

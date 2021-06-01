@@ -1,15 +1,22 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 
-test('mocks response with a generator as request resolver', async () => {
+type ExpectedResponseBody =
+  | {
+      status: 'pending' | 'complete'
+      count: number
+    }
+  | {
+      status: 'done'
+    }
+
+test('supports a generator function as the response resolver', async () => {
   const runtime = await pageWith({
     example: path.resolve(__dirname, 'generator.mocks.ts'),
   })
 
-  const assertRequest = async (expectedBody: any) => {
-    const res = await runtime.request(
-      'https://test.mswjs.io/polling-endpoint/3',
-    )
+  const assertRequest = async (expectedBody: ExpectedResponseBody) => {
+    const res = await runtime.request('/polling/3')
     const body = await res.json()
     expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
     expect(res.status()).toBe(200)

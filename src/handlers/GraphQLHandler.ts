@@ -6,6 +6,7 @@ import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
 import { data, DataContext } from '../context/data'
 import { errors } from '../context/errors'
+import { cookie } from '../context/cookie'
 import {
   MockedRequest,
   RequestHandler,
@@ -36,6 +37,7 @@ export type GraphQLContext<QueryType> = {
   fetch: typeof fetch
   data: DataContext<QueryType>
   errors: typeof errors
+  cookie: typeof cookie
 }
 
 export const graphqlContext: GraphQLContext<any> = {
@@ -45,6 +47,7 @@ export const graphqlContext: GraphQLContext<any> = {
   fetch,
   data,
   errors,
+  cookie,
 }
 
 export type GraphQLVariables = Record<string, any>

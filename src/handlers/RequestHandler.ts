@@ -1,6 +1,7 @@
 import { Headers } from 'headers-utils'
 import { MockedResponse, response, ResponseComposition } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
+import { isIterable } from '../utils/internal/isIterable'
 import { status } from '../context/status'
 import { set } from '../context/set'
 import { delay } from '../context/delay'
@@ -53,10 +54,22 @@ type RequestHandlerInfo<ExtraInfo extends Record<string, any>> = {
 
 type ContextMap = Record<string, (...args: any[]) => any>
 
-export type ResponseResolverReturnType<R> = R | undefined | void
-export type AsyncResponseResolverReturnType<R> =
-  | Promise<ResponseResolverReturnType<R>>
-  | ResponseResolverReturnType<R>
+export type ResponseResolverReturnType<ReturnType> =
+  | ReturnType
+  | undefined
+  | void
+
+export type MaybeAsyncResponseResolverReturnType<ReturnType> =
+  | ResponseResolverReturnType<ReturnType>
+  | Promise<ResponseResolverReturnType<ReturnType>>
+
+export type AsyncResponseResolverReturnType<ReturnType> =
+  | MaybeAsyncResponseResolverReturnType<ReturnType>
+  | Generator<
+      MaybeAsyncResponseResolverReturnType<ReturnType>,
+      MaybeAsyncResponseResolverReturnType<ReturnType>,
+      MaybeAsyncResponseResolverReturnType<ReturnType>
+    >
 
 export type ResponseResolver<
   RequestType = MockedRequest,
@@ -88,8 +101,16 @@ export abstract class RequestHandler<
   PublicRequest extends MockedRequest = Request
 > {
   public info: RequestHandlerDefaultInfo & RequestHandlerInfo<HandlerInfo>
-  private ctx: ContextMap
   public shouldSkip: boolean
+
+  private ctx: ContextMap
+  private resolverGenerator?: Generator<
+    MaybeAsyncResponseResolverReturnType<any>,
+    MaybeAsyncResponseResolverReturnType<any>,
+    MaybeAsyncResponseResolverReturnType<any>
+  >
+  private resolverGeneratorResult?: MaybeAsyncResponseResolverReturnType<any>
+
   protected resolver: ResponseResolver<any, any>
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
@@ -127,7 +148,7 @@ export abstract class RequestHandler<
    * Parse the captured request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  parse(request: MockedRequest): ParsedResult {
+  parse(_request: MockedRequest): ParsedResult {
     return null as any
   }
 
@@ -144,7 +165,7 @@ export abstract class RequestHandler<
    */
   protected getPublicRequest(
     request: MockedRequest,
-    parsedResult: ParsedResult,
+    _parsedResult: ParsedResult,
   ) {
     return request as PublicRequest
   }
@@ -172,7 +193,11 @@ export abstract class RequestHandler<
     }
 
     const publicRequest = this.getPublicRequest(request, parsedResult)
-    const mockedResponse = await this.resolver(
+
+    // Create a response extraction wrapper around the resolver
+    // since it can be both an async function and a generator.
+    const executeResolver = this.wrapResolver(this.resolver)
+    const mockedResponse = await executeResolver(
       publicRequest,
       response,
       this.ctx,
@@ -183,6 +208,34 @@ export abstract class RequestHandler<
       publicRequest,
       mockedResponse,
     )
+  }
+
+  private wrapResolver(
+    resolver: ResponseResolver<any, any>,
+  ): ResponseResolver<AsyncResponseResolverReturnType<any>, any> {
+    return async (req, res, ctx) => {
+      const result = this.resolverGenerator || (await resolver(req, res, ctx))
+
+      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
+        const { value, done } = result[Symbol.iterator]().next()
+        const nextResponse = await value
+
+        // If the generator is done and there is no next value,
+        // return the previous generator's value.
+        if (!nextResponse && done) {
+          return this.resolverGeneratorResult
+        }
+
+        if (!this.resolverGenerator) {
+          this.resolverGenerator = result
+        }
+
+        this.resolverGeneratorResult = nextResponse
+        return nextResponse
+      }
+
+      return result
+    }
   }
 
   private createExecutionResult(

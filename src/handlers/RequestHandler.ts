@@ -1,7 +1,7 @@
 import { Headers } from 'headers-utils'
 import { MockedResponse, response, ResponseComposition } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { isGenerator } from '../utils/internal/isGenerator'
+import { isIterable } from '../utils/internal/isIterable'
 import { status } from '../context/status'
 import { set } from '../context/set'
 import { delay } from '../context/delay'
@@ -109,14 +109,12 @@ export abstract class RequestHandler<
     MaybeAsyncResponseResolverReturnType<any>,
     MaybeAsyncResponseResolverReturnType<any>
   >
-  private resolverGeneratorIsDone: boolean
+  private resolverGeneratorResult?: MaybeAsyncResponseResolverReturnType<any>
 
   protected resolver: ResponseResolver<any, any>
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
     this.shouldSkip = false
-    this.resolverGenerator = undefined
-    this.resolverGeneratorIsDone = false
     this.ctx = options.ctx || defaultContext
     this.resolver = options.resolver
 
@@ -183,10 +181,6 @@ export abstract class RequestHandler<
   public async run(
     request: MockedRequest,
   ): Promise<RequestHandlerExecutionResult<PublicRequest> | null> {
-    if (this.resolverGeneratorIsDone) {
-      this.shouldSkip = true
-    }
-
     if (this.shouldSkip) {
       return null
     }
@@ -200,35 +194,48 @@ export abstract class RequestHandler<
 
     const publicRequest = this.getPublicRequest(request, parsedResult)
 
-    let mockedResponse
-
-    const res =
-      this.resolverGenerator ||
-      (await this.resolver(publicRequest, response, this.ctx))
-
-    // Check to see if the resolver is a generator (or any other iterable).
-    // If it is, stash it and call `next` on it instead of running `this.resolver` again.
-    if (isGenerator<AsyncResponseResolverReturnType<any>>(res)) {
-      const { done, value } = res[Symbol.iterator]().next()
-
-      mockedResponse = await value
-
-      if (done) {
-        // We want to set `this.shouldSkip` true *next time*, so we don't throw away
-        // the final result.
-        this.resolverGeneratorIsDone = true
-      } else if (!this.resolverGenerator) {
-        this.resolverGenerator = res
-      }
-    } else {
-      mockedResponse = res
-    }
+    // Create a response extraction wrapper around the resolver
+    // since it can be both an async function and a generator.
+    const executeResolver = this.wrapResolver(this.resolver)
+    const mockedResponse = await executeResolver(
+      publicRequest,
+      response,
+      this.ctx,
+    )
 
     return this.createExecutionResult(
       parsedResult,
       publicRequest,
       mockedResponse,
     )
+  }
+
+  private wrapResolver(
+    resolver: ResponseResolver<any, any>,
+  ): ResponseResolver<AsyncResponseResolverReturnType<any>, any> {
+    return async (req, res, ctx) => {
+      const result = this.resolverGenerator || (await resolver(req, res, ctx))
+
+      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
+        const { value, done } = result[Symbol.iterator]().next()
+        const nextResponse = await value
+
+        // If the generator is done and there is no next value,
+        // return the previous generator's value.
+        if (!nextResponse && done) {
+          return this.resolverGeneratorResult
+        }
+
+        if (!this.resolverGenerator) {
+          this.resolverGenerator = result
+        }
+
+        this.resolverGeneratorResult = nextResponse
+        return nextResponse
+      }
+
+      return result
+    }
   }
 
   private createExecutionResult(

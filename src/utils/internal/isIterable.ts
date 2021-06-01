@@ -1,7 +1,7 @@
 /**
- * Determines if the given function is a generator function.
+ * Determines if the given function is an iterator.
  */
-export function isGenerator<IteratorType>(
+export function isIterable<IteratorType>(
   fn: any,
 ): fn is Generator<IteratorType, IteratorType, IteratorType> {
   if (!fn) {

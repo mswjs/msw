@@ -2,18 +2,19 @@ import * as path from 'path'
 import * as cookieUtils from 'cookie'
 import { pageWith } from 'page-with'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { gql } from '../support/graphql'
 
 function createRuntime() {
   return pageWith({ example: path.resolve(__dirname, 'cookies.mocks.ts') })
 }
 
-test('sets cookie on the mocked response', async () => {
+test('sets cookie on the mocked GraphQL response', async () => {
   const runtime = await createRuntime()
 
   const res = await executeGraphQLQuery(runtime.page, {
-    query: `
-      query me {
-        id
+    query: gql`
+      query GetUser {
+        firstName
       }
     `,
   })
@@ -25,7 +26,7 @@ test('sets cookie on the mocked response', async () => {
   expect(headers).not.toHaveProperty('set-cookie')
   expect(body).toEqual({
     data: {
-      id: '00000000-0000-0000-0000-000000000000',
+      firstName: 'John',
     },
   })
 

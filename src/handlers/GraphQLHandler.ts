@@ -23,6 +23,7 @@ import {
   parseGraphQLRequest,
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { tryCatch } from '../utils/internal/tryCatch'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = RegExp | string
@@ -108,7 +109,10 @@ export class GraphQLHandler<
   }
 
   parse(request: MockedRequest) {
-    return parseGraphQLRequest(request)
+    return tryCatch(
+      () => parseGraphQLRequest(request),
+      (error) => console.error(error.message),
+    )
   }
 
   protected getPublicRequest(

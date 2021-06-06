@@ -2,6 +2,7 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 import { sleep } from '../support/utils'
+import { gql } from '../support/graphql'
 
 function createRuntime() {
   return pageWith({
@@ -16,7 +17,7 @@ function createRuntime() {
 
 test('matches GraphQL queries', async () => {
   const runtime = await createRuntime()
-  const GET_USER_QUERY = `
+  const GET_USER_QUERY = gql`
     query GetUser($id: String!) {
       query
       variables
@@ -46,7 +47,7 @@ test('matches GraphQL queries', async () => {
 
 test('matches GraphQL mutations', async () => {
   const runtime = await createRuntime()
-  const LOGIN_MUTATION = `
+  const LOGIN_MUTATION = gql`
     mutation Login($username: String!, $password: String!) {
       mutation
       variables
@@ -78,12 +79,11 @@ test('matches GraphQL mutations', async () => {
 
 test('propagates parsing errors from the invalid GraphQL requests', async () => {
   const { page, consoleSpy } = await createRuntime()
-
   const INVALID_QUERY = `
-# Intentionally invalid GraphQL query.
-query GetUser() {
-  user { id
-}
+  # Intentionally invalid GraphQL query.
+  query GetUser() {
+    user { id
+  }
   `
 
   executeGraphQLQuery(page, {
@@ -91,13 +91,15 @@ query GetUser() {
   })
 
   // Await the console message, because you cannot await a failed response.
-  await sleep(250)
+  await sleep(500)
 
-  expect(consoleSpy.get('error')).toEqual(
-    expect.arrayContaining([
-      '[MSW] Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.',
-    ]),
-  )
+  const parsingError = consoleSpy.get('error').find((message) => {
+    return message.startsWith(
+      '[MSW] Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
+    )
+  })
+
+  expect(parsingError).toBeDefined()
 })
 
 test('bypasses seemingly compatible REST requests', async () => {

@@ -155,10 +155,8 @@ export function parseGraphQLRequest(
   if (parsedResult instanceof Error) {
     const requestPublicUrl = getPublicUrlFromRequest(request)
 
-    // Encountered a matching GraphQL request that is syntactically invalid.
-    // We may consider getting the parsing error and propagating it to the user.
     throw new Error(
-      `[MSW] Failed to intercept a GraphQL request to "${request.method} ${requestPublicUrl}": cannot parse query. See the error message from the parser below.`,
+      `[MSW] Failed to intercept a GraphQL request to "${request.method} ${requestPublicUrl}": cannot parse query. See the error message from the parser below.\n\n${parsedResult}`,
     )
   }
 

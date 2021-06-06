@@ -11,8 +11,15 @@ const server = setupServer(
   }),
 )
 
-beforeAll(() => server.listen())
-afterAll(() => server.close())
+beforeAll(() => {
+  jest.spyOn(global.console, 'warn').mockImplementation()
+  server.listen()
+})
+
+afterAll(() => {
+  jest.restoreAllMocks()
+  server.close()
+})
 
 test('removes all runtime request handlers when resetting without explicit next handlers', async () => {
   server.use(

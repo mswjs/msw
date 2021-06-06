@@ -20,10 +20,12 @@ const server = setupServer(
 )
 
 beforeAll(() => {
+  jest.spyOn(global.console, 'warn').mockImplementation()
   server.listen()
 })
 
 afterAll(() => {
+  jest.restoreAllMocks()
   server.close()
 })
 

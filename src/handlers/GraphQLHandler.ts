@@ -1,4 +1,4 @@
-import { OperationTypeNode } from 'graphql'
+import { DocumentNode, OperationTypeNode } from 'graphql'
 import { Path } from 'node-match-path'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { set } from '../context/set'
@@ -22,13 +22,14 @@ import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
   parseGraphQLRequest,
+  parseDocumentNode,
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { tryCatch } from '../utils/internal/tryCatch'
 import { devUtils } from '../utils/internal/devUtils'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
-export type GraphQLHandlerNameSelector = RegExp | string
+export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
 // GraphQL related context should contain utility functions
 // useful for GraphQL. Functions like `xml()` bear no value
@@ -76,6 +77,16 @@ export interface GraphQLRequest<Variables extends GraphQLVariables>
   variables: Variables
 }
 
+export function isDocumentNode(
+  value: DocumentNode | any,
+): value is DocumentNode {
+  if (value == null) {
+    return false
+  }
+
+  return typeof value === 'object' && 'kind' in value && 'definitions' in value
+}
+
 export class GraphQLHandler<
   Request extends GraphQLRequest<any> = GraphQLRequest<any>,
 > extends RequestHandler<
@@ -92,16 +103,36 @@ export class GraphQLHandler<
     endpoint: Path,
     resolver: ResponseResolver<any, any>,
   ) {
+    let resolvedOperationName = operationName
+
+    if (isDocumentNode(operationName)) {
+      const parsedNode = parseDocumentNode(operationName)
+
+      if (parsedNode.operationType !== operationType) {
+        throw new Error(
+          `Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "${operationType}", but got "${parsedNode.operationType}").`,
+        )
+      }
+
+      if (!parsedNode.operationName) {
+        throw new Error(
+          `Failed to create a GraphQL handler: provided a DocumentNode with no operation name.`,
+        )
+      }
+
+      resolvedOperationName = parsedNode.operationName
+    }
+
     const header =
       operationType === 'all'
         ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType} ${operationName} (origin: ${endpoint.toString()})`
+        : `${operationType} ${resolvedOperationName} (origin: ${endpoint.toString()})`
 
     super({
       info: {
         header,
         operationType,
-        operationName,
+        operationName: resolvedOperationName,
       },
       ctx: graphqlContext,
       resolver,

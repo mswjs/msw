@@ -1,4 +1,9 @@
-import { OperationDefinitionNode, OperationTypeNode, parse } from 'graphql'
+import {
+  DocumentNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
+  parse,
+} from 'graphql'
 import { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
@@ -23,18 +28,21 @@ export type ParsedGraphQLRequest<
     })
   | undefined
 
+export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
+  const operationDef = node.definitions.find((def) => {
+    return def.kind === 'OperationDefinition'
+  }) as OperationDefinitionNode
+
+  return {
+    operationType: operationDef?.operation,
+    operationName: operationDef?.name?.value,
+  }
+}
+
 function parseQuery(query: string): ParsedGraphQLQuery | Error {
   try {
     const ast = parse(query)
-
-    const operationDef = ast.definitions.find((def) => {
-      return def.kind === 'OperationDefinition'
-    }) as OperationDefinitionNode
-
-    return {
-      operationType: operationDef?.operation,
-      operationName: operationDef?.name?.value,
-    }
+    return parseDocumentNode(ast)
   } catch (error) {
     return error
   }

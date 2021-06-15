@@ -16,8 +16,9 @@ const {
 
 const extensions = ['.js', '.ts']
 
-const integrityOptions = {
+const integrityPluginOptions = {
   checksumPlaceholder: '<INTEGRITY_CHECKSUM>',
+  packageVersionPlaceholder: '<PACKAGE_VERSION>',
   input: SERVICE_WORKER_SOURCE_PATH,
   output: SERVICE_WORKER_BUILD_PATH,
 }
@@ -51,7 +52,7 @@ const buildEsm = {
       preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify('development'),
     }),
-    integrityCheck(integrityOptions),
+    integrityCheck(integrityPluginOptions),
     typescript({
       useTsconfigDeclarationDir: true,
     }),
@@ -82,7 +83,7 @@ const buildUmd = {
       mainFields: ['browser', 'main', 'module'],
       extensions,
     }),
-    integrityCheck(integrityOptions),
+    integrityCheck(integrityPluginOptions),
     typescript({
       useTsconfigDeclarationDir: true,
     }),
@@ -197,7 +198,7 @@ const buildIife = {
       mainFields: ['browser', 'module', 'main', 'jsnext:main'],
       extensions,
     }),
-    integrityCheck(integrityOptions),
+    integrityCheck(integrityPluginOptions),
     typescript({
       useTsconfigDeclarationDir: true,
     }),

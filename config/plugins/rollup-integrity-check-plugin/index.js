@@ -3,15 +3,21 @@ const path = require('path')
 const chalk = require('chalk')
 const replace = require('@rollup/plugin-replace')
 const getChecksum = require('./getChecksum')
+const packageJson = require('../../../package.json')
 
-module.exports = function integrityCheck(options) {
-  const { input, output, checksumPlaceholder } = options
-
-  function injectChecksum(checksum) {
-    return {
-      SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
-    }
+function injectChecksum(checksum) {
+  return {
+    SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
   }
+}
+
+module.exports = function integrityCheckPlugin(options) {
+  const {
+    input,
+    output,
+    checksumPlaceholder,
+    packageVersionPlaceholder,
+  } = options
 
   return {
     name: 'integrity-check',
@@ -29,10 +35,9 @@ module.exports = function integrityCheck(options) {
       this.checksum = getChecksum(input)
 
       const workerContent = fs.readFileSync(input, 'utf8')
-      const publicWorkerContent = workerContent.replace(
-        checksumPlaceholder,
-        this.checksum,
-      )
+      const publicWorkerContent = workerContent
+        .replace(checksumPlaceholder, this.checksum)
+        .replace(packageVersionPlaceholder, packageJson.version)
 
       this.emitFile({
         type: 'asset',

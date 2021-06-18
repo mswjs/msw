@@ -10,6 +10,14 @@ function findFrame(frame: Frame) {
   return frame.name() === ''
 }
 
+beforeAll(() => {
+  jest.spyOn(global.console, 'warn')
+})
+
+afterAll(() => {
+  jest.restoreAllMocks()
+})
+
 test('intercepts a request from an iframe (nested client)', async () => {
   const { page } = await pageWith({
     example: path.resolve(__dirname, 'iframe.mocks.ts'),
@@ -24,6 +32,7 @@ test('intercepts a request from an iframe (nested client)', async () => {
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
+  expect(console.warn).not.toHaveBeenCalled()
 })
 
 test('intercepts a request from a deeply nested iframe', async () => {
@@ -45,6 +54,7 @@ test('intercepts a request from a deeply nested iframe', async () => {
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
+  expect(console.warn).not.toHaveBeenCalled()
 })
 
 test('intercepts a request from a deeply nested iframe given MSW is registered in a parent nested iframe', async () => {
@@ -67,6 +77,7 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
+  expect(console.warn).not.toHaveBeenCalled()
 })
 
 test('intercepts a request from an iframe given MSW is registered in a sibling iframe', async () => {
@@ -109,4 +120,5 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
+  expect(console.warn).not.toHaveBeenCalled()
 })

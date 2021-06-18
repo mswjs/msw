@@ -8,6 +8,9 @@ beforeAll(async () => {
   browser = await createBrowser({
     serverOptions: {
       router(app) {
+        // Prevent Express from responding with cached 304 responses.
+        app.set('etag', false)
+
         app.get('/mockServiceWorker.js', (req, res) => {
           res.sendFile(SERVICE_WORKER_BUILD_PATH)
         })

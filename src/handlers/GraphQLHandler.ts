@@ -125,6 +125,11 @@ export class GraphQLHandler<
     }
   }
 
+  public test(request: MockedRequest): boolean {
+    const hasMatchingUrl = matchRequestUrl(request.url, this.endpoint)
+    return hasMatchingUrl.matches && super.test(request)
+  }
+
   predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {
     if (!parsedResult) {
       return false

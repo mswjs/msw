@@ -325,6 +325,29 @@ describe('test', () => {
     expect(handler.test(request)).toBe(true)
     expect(handler.test(alienRequest)).toBe(false)
   })
+
+  test('does not parse requests sent to the different endpoints', () => {
+    jest.spyOn(console, 'error')
+
+    const handler = new GraphQLHandler(
+      'query',
+      'GetUser',
+      'https://api.github.com/graphql',
+      resolver,
+    )
+
+    const request = createMockedRequest({
+      method: 'POST',
+      url: new URL('/some-other-endpoint', location.href),
+      body: {
+        query: { message: 'I gonna cause troubles!' },
+      },
+    })
+
+    handler.test(request)
+
+    expect(console.error).not.toHaveBeenCalled()
+  })
 })
 
 describe('run', () => {

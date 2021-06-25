@@ -6,6 +6,7 @@ import { createRequestListener } from '../../utils/worker/createRequestListener'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { createResponseListener } from '../../utils/worker/createResponseListener'
+import { validateWorkerScope } from './utils/validateWorkerScope'
 
 export const createStartHandler = (
   context: SetupWorkerInternalContext,
@@ -91,6 +92,10 @@ If this message still persists after updating, please report an issue: https://g
         () => context.workerChannel.send('KEEPALIVE_REQUEST'),
         5000,
       )
+
+      // Warn the user when loading the page that lies outside
+      // of the worker's scope.
+      validateWorkerScope(registration, context.startOptions)
 
       return registration
     }

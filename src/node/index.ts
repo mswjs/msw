@@ -1,2 +1,2 @@
-export { setupServer } from './setupServer'
-export { SetupServerApi } from './glossary'
+export { SetupServerApi, SetupRemoteServerApi } from './glossary'
+export { setupServer, setupRemoteServer } from './setupServer'

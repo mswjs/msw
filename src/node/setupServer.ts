@@ -1,6 +1,7 @@
 import { interceptClientRequest } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
 import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
 import { createSetupServer } from './createSetupServer'
+import { createSetupRemoteServer } from './createSetupRemoteServer'
 
 /**
  * Sets up a requests interception in Node.js with the given request handlers.
@@ -10,6 +11,11 @@ import { createSetupServer } from './createSetupServer'
 export const setupServer = createSetupServer(
   // List each interceptor separately instead of using the "node" preset
   // so that MSW wouldn't bundle the unnecessary classes (i.e. "SocketPolyfill").
+  interceptClientRequest,
+  interceptXMLHttpRequest,
+)
+
+export const setupRemoteServer = createSetupRemoteServer(
   interceptClientRequest,
   interceptXMLHttpRequest,
 )

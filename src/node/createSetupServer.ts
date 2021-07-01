@@ -2,12 +2,20 @@ import { bold } from 'chalk'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   createInterceptor,
+  createRemoteResolver,
   MockedResponse as MockedInterceptedResponse,
+  Resolver,
   Interceptor,
+  InterceptorApi,
+  InterceptorEventsMap,
 } from '@mswjs/interceptors'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
-import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
+import {
+  ServerLifecycleEventsMap,
+  SetupServerApi,
+  SetupServerListenOptions,
+} from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
@@ -36,7 +44,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     })
 
     // Store the list of request handlers for the current server instance,
-    // so it could be modified at a runtime.
+    // so it could be modified at a runtime using "server.use()".
     let currentHandlers: RequestHandler[] = [...requestHandlers]
 
     // Error when attempting to run this function in a browser environment.
@@ -46,32 +54,32 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       )
     }
 
-    let resolvedOptions: SharedOptions = {} as SharedOptions
+    let resolvedOptions = {} as SetupServerListenOptions
 
-    const interceptor = createInterceptor({
-      modules: interceptors,
-      async resolver(request) {
-        const mockedRequest = parseIsomorphicRequest(request)
-        return handleRequest<MockedInterceptedResponse>(
-          mockedRequest,
-          currentHandlers,
-          resolvedOptions,
-          emitter,
-          {
-            transformResponse(response) {
-              return {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers.all(),
-                body: response.body,
-              }
-            },
+    const resolver: Resolver = async (request) => {
+      const mockedRequest = parseIsomorphicRequest(request)
+      return handleRequest<MockedInterceptedResponse>(
+        mockedRequest,
+        currentHandlers,
+        resolvedOptions as SharedOptions,
+        emitter,
+        {
+          transformResponse(response) {
+            return {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers.all(),
+              body: response.body,
+            }
           },
-        )
-      },
-    })
+        },
+      )
+    }
 
-    interceptor.on('response', (request, response) => {
+    const handleResponseEvent: InterceptorEventsMap['response'] = (
+      request,
+      response,
+    ) => {
       const requestId = request.headers.get('x-msw-request-id')
 
       if (!requestId) {
@@ -83,14 +91,30 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       } else {
         emitter.emit('response:bypass', response, requestId)
       }
-    })
+    }
+
+    let interceptor: InterceptorApi | null
 
     return {
       listen(options) {
-        resolvedOptions = mergeRight(
-          DEFAULT_LISTEN_OPTIONS,
-          options || {},
-        ) as SharedOptions
+        resolvedOptions = mergeRight(DEFAULT_LISTEN_OPTIONS, options || {})
+
+        if (resolvedOptions.process) {
+          const remoteResolver = createRemoteResolver({
+            process: resolvedOptions.process,
+            resolver,
+          })
+
+          remoteResolver.on('response', handleResponseEvent)
+          return
+        }
+
+        interceptor = createInterceptor({
+          modules: interceptors,
+          resolver,
+        })
+
+        interceptor.on('response', handleResponseEvent)
         interceptor.apply()
       },
 
@@ -129,7 +153,7 @@ ${bold(`${pragma} ${header}`)}
 
       close() {
         emitter.removeAllListeners()
-        interceptor.restore()
+        interceptor?.restore()
       },
     }
   }

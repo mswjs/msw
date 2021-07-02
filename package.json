@@ -65,7 +65,7 @@
   "sideEffects": false,
   "dependencies": {
     "@mswjs/cookies": "^0.1.5",
-    "@mswjs/interceptors": "^0.11.1",
+    "@mswjs/interceptors": "^0.12.0",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.0",
     "@types/inquirer": "^7.3.1",

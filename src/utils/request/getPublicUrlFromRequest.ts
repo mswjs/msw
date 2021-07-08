@@ -1,4 +1,3 @@
-import { format } from 'url'
 import { MockedRequest } from '../../handlers/RequestHandler'
 
 /**
@@ -8,9 +7,8 @@ import { MockedRequest } from '../../handlers/RequestHandler'
 export const getPublicUrlFromRequest = (request: MockedRequest) => {
   return request.referrer.startsWith(request.url.origin)
     ? request.url.pathname
-    : format({
-        protocol: request.url.protocol,
-        host: request.url.host,
-        pathname: request.url.pathname,
-      })
+    : new URL(
+        request.url.pathname,
+        `${request.url.protocol}//${request.url.host}`,
+      ).href
 }

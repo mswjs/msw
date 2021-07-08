@@ -142,8 +142,7 @@ const buildNode = {
 const buildNative = {
   input: 'src/native/index.ts',
   external: [
-    'tty',
-    'os',
+    'chalk',
     'util',
     'events',
     '@mswjs/interceptors',

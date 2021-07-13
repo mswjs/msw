@@ -5,7 +5,7 @@ import {
 
 export interface ServiceWorkerMessage<
   EventType extends keyof ServiceWorkerIncomingEventsMap,
-  EventPayload
+  EventPayload,
 > {
   type: EventType
   payload: EventPayload

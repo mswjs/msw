@@ -15,7 +15,7 @@ export interface ParsedGraphQLQuery {
 }
 
 export type ParsedGraphQLRequest<
-  VariablesType extends GraphQLVariables = GraphQLVariables
+  VariablesType extends GraphQLVariables = GraphQLVariables,
 > =
   | (ParsedGraphQLQuery & {
       variables?: VariablesType
@@ -101,11 +101,8 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
 
       // Handle multipart body operations.
       if (request.body?.operations) {
-        const {
-          operations,
-          map,
-          ...files
-        } = request.body as GraphQLMultipartRequestBody
+        const { operations, map, ...files } =
+          request.body as GraphQLMultipartRequestBody
         const parsedOperations =
           jsonParse<{ query?: string; variables?: GraphQLVariables }>(
             operations,

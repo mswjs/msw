@@ -78,9 +78,8 @@ export function parseMultipartData<T extends DefaultRequestMultipartBody>(
     for (const field of fields) {
       const [contentHeaders, ...rest] = field.split('\r\n\r\n')
       const contentBody = rest.join('\r\n\r\n')
-      const { contentType, filename, name } = parseContentHeaders(
-        contentHeaders,
-      )
+      const { contentType, filename, name } =
+        parseContentHeaders(contentHeaders)
 
       const value =
         filename === undefined

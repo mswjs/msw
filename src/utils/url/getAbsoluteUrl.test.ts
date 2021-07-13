@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getAbsoluteUrl } from './getAbsoluteUrl'
 
 test('returns an absolute URL from the given relative URL', () => {

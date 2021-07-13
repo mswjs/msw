@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { body } from './body'
 import { set } from './set'
 import { response } from '../response'

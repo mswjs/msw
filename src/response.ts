@@ -16,7 +16,7 @@ export interface MockedResponse<BodyType = any> {
 
 export type ResponseTransformer<
   BodyType extends TransformerBodyType = any,
-  TransformerBodyType = any
+  TransformerBodyType = any,
 > = (
   res: MockedResponse<TransformerBodyType>,
 ) => MockedResponse<BodyType> | Promise<MockedResponse<BodyType>>

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { createMockedRequest } from '../../../test/support/utils'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 

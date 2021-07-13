@@ -77,7 +77,7 @@ export type RequestQuery = {
 
 export interface RestRequest<
   BodyType extends DefaultRequestBody = DefaultRequestBody,
-  ParamsType extends RequestParams = Record<string, any>
+  ParamsType extends RequestParams = Record<string, any>,
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }
@@ -89,7 +89,7 @@ export type ParsedRestRequest = Match
  * Provides request matching based on method and URL.
  */
 export class RestHandler<
-  RequestType extends MockedRequest<DefaultRequestBody> = MockedRequest<DefaultRequestBody>
+  RequestType extends MockedRequest<DefaultRequestBody> = MockedRequest<DefaultRequestBody>,
 > extends RequestHandler<
   RestHandlerInfo,
   RequestType,

@@ -8,7 +8,7 @@ import { ResponseTransformer } from '../response'
  * @see {@link https://mswjs.io/docs/api/context/body `ctx.body()`}
  */
 export const body = <
-  BodyType extends string | Blob | BufferSource | ReadableStream | FormData
+  BodyType extends string | Blob | BufferSource | ReadableStream | FormData,
 >(
   value: BodyType,
 ): ResponseTransformer<BodyType> => {

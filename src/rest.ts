@@ -12,7 +12,7 @@ function createRestHandler(method: RESTMethods) {
   return <
     RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
     ResponseBody extends DefaultRequestBody = any,
-    Params extends RequestParams = RequestParams
+    Params extends RequestParams = RequestParams,
   >(
     mask: Mask,
     resolver: ResponseResolver<

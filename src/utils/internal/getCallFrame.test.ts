@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getCallFrame } from './getCallFrame'
 
 const mockStack = jest.fn()

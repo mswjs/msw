@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as cookieUtils from 'cookie'
 import { cookie } from './cookie'
 import { response } from '../response'

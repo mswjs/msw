@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { json } from './json'
 import { response } from '../response'
 

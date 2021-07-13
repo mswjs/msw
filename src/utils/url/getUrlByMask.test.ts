@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getUrlByMask } from './getUrlByMask'
 
 test('returns regular expression as-is', () => {

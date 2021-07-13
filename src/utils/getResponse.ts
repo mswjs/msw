@@ -17,7 +17,7 @@ export interface ResponseLookupResult {
  */
 export const getResponse = async <
   Request extends MockedRequest,
-  Handler extends RequestHandler[]
+  Handler extends RequestHandler[],
 >(
   request: Request,
   handlers: Handler,

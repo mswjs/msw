@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { status } from './status'
 import { response } from '../response'
 

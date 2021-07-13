@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 
 test('sets empty GET request body to undefined', () => {

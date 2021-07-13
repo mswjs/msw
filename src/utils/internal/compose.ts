@@ -30,7 +30,7 @@ type LastFnParameterType<Functions extends ArityOneFunction[]> = ReturnType<
 export function compose<
   Functions extends ArityOneFunction[],
   LeftReturnType extends FirstFnParameterType<Functions>,
-  RightReturnType extends LastFnParameterType<Functions>
+  RightReturnType extends LastFnParameterType<Functions>,
 >(
   ...fns: Functions
 ): (

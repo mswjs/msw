@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { augmentRequestInit } from './fetch'
 
 test('augments RequestInit with the Headers instance', () => {

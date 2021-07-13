@@ -75,7 +75,7 @@ export interface GraphQLRequest<Variables extends GraphQLVariables>
 }
 
 export class GraphQLHandler<
-  Request extends GraphQLRequest<any> = GraphQLRequest<any>
+  Request extends GraphQLRequest<any> = GraphQLRequest<any>,
 > extends RequestHandler<
   GraphQLHandlerInfo,
   Request,

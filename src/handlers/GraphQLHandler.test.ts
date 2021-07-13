@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Headers } from 'headers-utils/lib'
 import { context } from '..'
 import { createMockedRequest } from '../../test/support/utils'

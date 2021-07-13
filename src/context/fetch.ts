@@ -2,10 +2,8 @@ import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/RequestHandler'
 import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
-const useFetch: (
-  input: RequestInfo,
-  init?: RequestInit,
-) => Promise<Response> = isNodeProcess() ? require('node-fetch') : window.fetch
+const useFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> =
+  isNodeProcess() ? require('node-fetch') : window.fetch
 
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)

@@ -38,7 +38,7 @@ export interface HandleRequestOptions<ResponseType> {
 }
 
 export async function handleRequest<
-  ResponseType extends Record<string, any> = MockedResponse<string>
+  ResponseType extends Record<string, any> = MockedResponse<string>,
 >(
   request: MockedRequest,
   handlers: RequestHandler[],
@@ -88,10 +88,11 @@ export async function handleRequest<
   emitter.emit('request:match', request)
 
   return new Promise((resolve) => {
-    const requiredLookupResult = lookupResult as DeepRequired<ResponseLookupResult>
+    const requiredLookupResult =
+      lookupResult as DeepRequired<ResponseLookupResult>
     const transformedResponse =
       handleRequestOptions?.transformResponse?.(response) ||
-      ((response as any) as ResponseType)
+      (response as any as ResponseType)
 
     handleRequestOptions?.onMockedResponse?.(
       transformedResponse,

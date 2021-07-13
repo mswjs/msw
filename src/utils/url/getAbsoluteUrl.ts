@@ -10,6 +10,6 @@ export const getAbsoluteUrl = <T extends Mask>(mask: T): T => {
   const hasLocation = typeof location !== 'undefined'
 
   return typeof mask === 'string' && mask.startsWith('/')
-    ? ((`${hasLocation ? location.origin : ''}${mask}` as string) as T)
+    ? (`${hasLocation ? location.origin : ''}${mask}` as string as T)
     : mask
 }

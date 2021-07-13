@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { parseBody } from './parseBody'
 
 test('parses a body if the "Content-Type:application/json" header is set', () => {

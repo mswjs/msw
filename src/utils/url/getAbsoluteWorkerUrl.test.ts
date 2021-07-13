@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getAbsoluteWorkerUrl } from './getAbsoluteWorkerUrl'
 
 describe('getAbsoluteWorkerUrl', () => {

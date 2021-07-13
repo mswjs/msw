@@ -74,7 +74,7 @@ export type AsyncResponseResolverReturnType<ReturnType> =
 export type ResponseResolver<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
-  BodyType = any
+  BodyType = any,
 > = (
   req: RequestType,
   res: ResponseComposition<BodyType>,
@@ -98,7 +98,7 @@ export abstract class RequestHandler<
   HandlerInfo extends Record<string, any> = Record<string, any>,
   Request extends MockedRequest = MockedRequest,
   ParsedResult = any,
-  PublicRequest extends MockedRequest = Request
+  PublicRequest extends MockedRequest = Request,
 > {
   public info: RequestHandlerDefaultInfo & RequestHandlerInfo<HandlerInfo>
   public shouldSkip: boolean

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { RestHandler, RestRequest, RestContext } from './RestHandler'
 import { createMockedRequest } from '../../test/support/utils'
 import { response } from '../response'

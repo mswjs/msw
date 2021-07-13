@@ -165,10 +165,8 @@ test('does not cause eslint errors or warnings', async () => {
   )
   expect(initStderr).toBe('')
 
-  const {
-    stdout: eslintStdout,
-    stderr: eslintStderr,
-  } = await promisifyChildProcess(exec(`node_modules/.bin/eslint ${getPath()}`))
+  const { stdout: eslintStdout, stderr: eslintStderr } =
+    await promisifyChildProcess(exec(`node_modules/.bin/eslint ${getPath()}`))
   expect(eslintStdout).toBe('')
   expect(eslintStderr).toBe('')
 

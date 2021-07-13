@@ -1341,14 +1341,15 @@
     "@types/set-cookie-parser" "^2.4.0"
     set-cookie-parser "^2.4.6"
 
-"@mswjs/interceptors@^0.11.1":
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.11.1.tgz#a8806f9f245d605d02dae6d20e18bd6b867872bf"
-  integrity sha512-ReZg+Pp5GbSrDrVZTXeV4pHC385ImHTZ7he/n3f+uRiuB9eLifdLU0xvBl9NPuy7qrMgFGvrs6k2QsiB204xaQ==
+"@mswjs/interceptors@^0.12.1":
+  version "0.12.2"
+  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.12.2.tgz#c4c9695ff54feffed93f03db371dd508a104cc0b"
+  integrity sha512-JHo5Gvm1Oy2jucYP+kXj9dHRelE3gbYrgAFmpgIzIyjTavYsHO5OTW3IxY3uSHKaDnGrddlEbSHdHIvw4JOZUw==
   dependencies:
     "@open-draft/until" "^1.0.3"
     debug "^4.3.0"
     headers-utils "^3.0.2"
+    outvariant "^1.0.4"
     strict-event-emitter "^0.2.0"
     xmldom "^0.6.0"
 
@@ -6211,6 +6212,11 @@ os-tmpdir@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
+
+outvariant@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/outvariant/-/outvariant-1.0.4.tgz#d33d7fa70922e9488dfffd27d1451a8124c2bfec"
+  integrity sha512-2+ax7EEnAxi+g+HN4VrFE5qfLnCb7OQJiJ2LS4K+PQ6lTeHbLpF/AvVTilt7FnTCQuXksQI7lPV1C91oOKeKXg==
 
 p-each-series@^2.1.0:
   version "2.2.0"

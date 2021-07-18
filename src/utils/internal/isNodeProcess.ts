@@ -4,7 +4,7 @@
  */
 export function isNodeProcess() {
   // Check browser environment.
-  if (typeof global !== 'object') {
+  if (typeof global !== 'object' || typeof window !== 'undefined') {
     return false
   }
 

@@ -1,11 +1,11 @@
 import { bold } from 'chalk'
+import { isNodeProcess } from 'is-node-process'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   createInterceptor,
   MockedResponse as MockedInterceptedResponse,
   Interceptor,
 } from '@mswjs/interceptors'
-import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'

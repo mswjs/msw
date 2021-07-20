@@ -52,3 +52,5 @@ export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export { compose } from './utils/internal/compose'
 export { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
+
+export { ws } from './ws/ws'

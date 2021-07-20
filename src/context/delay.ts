@@ -1,5 +1,5 @@
+import { isNodeProcess } from 'is-node-process'
 import { ResponseTransformer } from '../response'
-import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
 export const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
 export const MIN_SERVER_RESPONSE_TIME = 100

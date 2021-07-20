@@ -1,6 +1,6 @@
+import { isNodeProcess } from 'is-node-process'
 import { Headers } from 'headers-utils'
 import { MockedRequest } from '../handlers/RequestHandler'
-import { isNodeProcess } from '../utils/internal/isNodeProcess'
 
 const useFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> =
   isNodeProcess() ? require('node-fetch') : window.fetch

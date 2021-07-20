@@ -1,3 +1,4 @@
+import { isNodeProcess } from 'is-node-process'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   SetupWorkerInternalContext,
@@ -7,7 +8,6 @@ import {
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
-import { isNodeProcess } from '../utils/internal/isNodeProcess'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { jsonParse } from '../utils/internal/jsonParse'
 import { RequestHandler } from '../handlers/RequestHandler'

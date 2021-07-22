@@ -24,6 +24,7 @@ import {
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { tryCatch } from '../utils/internal/tryCatch'
+import { devUtils } from '../utils/internal/devUtils'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = RegExp | string
@@ -132,8 +133,8 @@ export class GraphQLHandler<
 
     if (!parsedResult.operationName) {
       const publicUrl = getPublicUrlFromRequest(request)
-      console.warn(`\
-[MSW] Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": unnamed GraphQL operations are not supported.
+      devUtils.warn(`\
+Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": unnamed GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation\
       `)
@@ -161,7 +162,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     const loggedResponse = prepareResponse(response)
 
     console.groupCollapsed(
-      '[MSW] %s %s (%c%s%c)',
+      devUtils.formatMessage('%s %s (%c%s%c)'),
       getTimestamp(),
       this.info.operationName,
       `color:${getStatusCodeColor(response.status)}`,

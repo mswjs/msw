@@ -9,6 +9,7 @@ import { RestHandler } from '../../handlers/RestHandler'
 import { GraphQLHandler } from '../../handlers/GraphQLHandler'
 import { MockedRequest, RequestHandler } from '../../handlers/RequestHandler'
 import { tryCatch } from '../internal/tryCatch'
+import { devUtils } from '../internal/devUtils'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
@@ -169,12 +170,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
 
   switch (strategy) {
     case 'error': {
-      console.error(`[MSW] Error: ${message}`)
+      devUtils.error('Error: %s', message)
       break
     }
 
     case 'warn': {
-      console.warn(`[MSW] Warning: ${message}`)
+      devUtils.warn('Warning: %s', message)
       break
     }
 
@@ -183,7 +184,10 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
 
     default:
       throw new Error(
-        `[MSW] Failed to react to an unhandled request: unknown strategy "${strategy}". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function.`,
+        devUtils.formatMessage(
+          'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+          strategy,
+        ),
       )
   }
 }

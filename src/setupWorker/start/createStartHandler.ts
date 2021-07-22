@@ -7,6 +7,7 @@ import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityChec
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { createResponseListener } from '../../utils/worker/createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
+import { devUtils } from '../../utils/internal/devUtils'
 
 export const createStartHandler = (
   context: SetupWorkerInternalContext,
@@ -36,16 +37,23 @@ export const createStartHandler = (
 
       if (!worker) {
         const missingWorkerMessage = customOptions?.findWorker
-          ? `[MSW] Failed to locate the Service Worker registration using a custom "findWorker" predicate.
+          ? devUtils.formatMessage(
+              `Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
-Please ensure that the custom predicate properly locates the Service Worker registration at "${options.serviceWorker.url}".
+Please ensure that the custom predicate properly locates the Service Worker registration at "%s".
 More details: https://mswjs.io/docs/api/setup-worker/start#findworker
-`
-          : `[MSW] Failed to locate the Service Worker registration.
+`,
+              options.serviceWorker.url,
+            )
+          : devUtils.formatMessage(
+              `Failed to locate the Service Worker registration.
 
-This most likely means that the worker script URL "${options.serviceWorker.url}" cannot resolve against the actual public hostname (${location.host}). This may happen if your application runs behind a proxy, or has a dynamic hostname.
+This most likely means that the worker script URL "%s" cannot resolve against the actual public hostname (%s). This may happen if your application runs behind a proxy, or has a dynamic hostname.
 
-Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`
+Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`,
+              options.serviceWorker.url,
+              location.host,
+            )
 
         throw new Error(missingWorkerMessage)
       }
@@ -72,8 +80,8 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       )
 
       if (integrityError) {
-        console.error(`\
-[MSW] Detected outdated Service Worker: ${integrityError.message}
+        devUtils.error(`\
+Detected outdated Service Worker: ${integrityError.message}
 
 The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:
 

@@ -5,6 +5,7 @@ import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { DeepRequired } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
+import { devUtils } from './internal/devUtils'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
@@ -73,8 +74,8 @@ export async function handleRequest<
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {
-    console.warn(
-      '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
+    devUtils.warn(
+      'Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
       response,
     )
 

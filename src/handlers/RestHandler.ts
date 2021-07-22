@@ -11,6 +11,7 @@ import {
   xml,
 } from '../context'
 import { Mask, SerializedResponse } from '../setupWorker/glossary'
+import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
@@ -124,8 +125,8 @@ export class RestHandler<
         queryParams.push(paramName)
       })
 
-      console.warn(`\
-[MSW] Found a redundant usage of query parameters in the request handler URL for "${method} ${mask}". Please match against a path instead, and access query parameters in the response resolver function:
+      devUtils.warn(`\
+Found a redundant usage of query parameters in the request handler URL for "${method} ${mask}". Please match against a path instead, and access query parameters in the response resolver function:
 
 rest.${method.toLowerCase()}("${resolvedMask.pathname}", (req, res, ctx) => {
   const query = req.url.searchParams
@@ -166,7 +167,7 @@ ${queryParams
     const loggedResponse = prepareResponse(response)
 
     console.groupCollapsed(
-      '[MSW] %s %s %s (%c%s%c)',
+      devUtils.formatMessage('%s %s %s (%c%s%c)'),
       getTimestamp(),
       request.method,
       publicUrl,

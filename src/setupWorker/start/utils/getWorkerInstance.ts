@@ -2,6 +2,7 @@ import { until } from '@open-draft/until'
 import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { ServiceWorkerInstanceTuple, FindWorker } from '../../glossary'
 import { getAbsoluteWorkerUrl } from '../../../utils/url/getAbsoluteWorkerUrl'
+import { devUtils } from '../../../utils/internal/devUtils'
 
 /**
  * Returns an active Service Worker instance.
@@ -70,16 +71,22 @@ export const getWorkerInstance = async (
     if (isWorkerMissing) {
       const scopeUrl = new URL(options?.scope || '/', location.href)
 
-      throw new Error(`[MSW] Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
+      throw new Error(
+        devUtils.formatMessage(`\
+Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
 
 Did you forget to run "npx msw init <PUBLIC_DIR>"?
 
-Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`)
+Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`),
+      )
     }
 
     // Fallback error message for any other registration errors.
     throw new Error(
-      `[MSW] Failed to register a Service Worker:\n\n${error.message}`,
+      devUtils.formatMessage(
+        'Failed to register the Service Worker:\n\n%s',
+        error.message,
+      ),
     )
   }
 

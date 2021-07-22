@@ -15,6 +15,7 @@ import { RestHandler } from '../handlers/RestHandler'
 import { prepareStartHandler } from './start/utils/prepareStartHandler'
 import { createFallbackStart } from './start/createFallbackStart'
 import { createFallbackStop } from './stop/createFallbackStop'
+import { devUtils } from '../utils/internal/devUtils'
 
 interface Listener {
   target: EventTarget
@@ -38,14 +39,18 @@ export function setupWorker(
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
       throw new Error(
-        `[MSW] Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).`,
+        devUtils.formatMessage(
+          'Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).',
+        ),
       )
   })
 
   // Error when attempting to run this function in a Node.js environment.
   if (isNodeProcess()) {
     throw new Error(
-      '[MSW] Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
+      devUtils.formatMessage(
+        'Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
+      ),
     )
   }
 

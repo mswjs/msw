@@ -2,6 +2,7 @@ import { OperationDefinitionNode, OperationTypeNode, parse } from 'graphql'
 import { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
+import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
 
 interface GraphQLInput {
@@ -153,7 +154,12 @@ export function parseGraphQLRequest(
     const requestPublicUrl = getPublicUrlFromRequest(request)
 
     throw new Error(
-      `[MSW] Failed to intercept a GraphQL request to "${request.method} ${requestPublicUrl}": cannot parse query. See the error message from the parser below.\n\n${parsedResult}`,
+      devUtils.formatMessage(
+        'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%o',
+        request.method,
+        requestPublicUrl,
+        parsedResult.message,
+      ),
     )
   }
 

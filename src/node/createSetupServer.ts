@@ -13,6 +13,7 @@ import { RequestHandler } from '../handlers/RequestHandler'
 import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
 import { handleRequest } from '../utils/handleRequest'
 import { mergeRight } from '../utils/internal/mergeRight'
+import { devUtils } from '../utils/internal/devUtils'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'warn',
@@ -31,7 +32,9 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     requestHandlers.forEach((handler) => {
       if (Array.isArray(handler))
         throw new Error(
-          `[MSW] Failed to call "setupServer" given an Array of request handlers (setupServer([a, b])), expected to receive each handler individually: setupServer(a, b).`,
+          devUtils.formatMessage(
+            'Failed to call "setupServer" given an Array of request handlers (setupServer([a, b])), expected to receive each handler individually: setupServer(a, b).',
+          ),
         )
     })
 
@@ -42,7 +45,9 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     // Error when attempting to run this function in a browser environment.
     if (!isNodeProcess()) {
       throw new Error(
-        '[MSW] Failed to execute `setupServer` in the environment that is not Node.js (i.e. a browser). Consider using `setupWorker` instead.',
+        devUtils.formatMessage(
+          'Failed to execute `setupServer` in the environment that is not Node.js (i.e. a browser). Consider using `setupWorker` instead.',
+        ),
       )
     }
 

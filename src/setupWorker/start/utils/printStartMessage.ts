@@ -1,9 +1,14 @@
+import { devUtils } from '../../../utils/internal/devUtils'
+
+interface PrintStartMessageArgs {
+  quiet?: boolean
+  message?: string
+}
+
 /**
  * Prints a worker activation message in the browser's console.
  */
-export function printStartMessage(
-  args: { quiet?: boolean; message?: string } = {},
-) {
+export function printStartMessage(args: PrintStartMessageArgs = {}) {
   if (args.quiet) {
     return
   }
@@ -11,7 +16,7 @@ export function printStartMessage(
   const message = args.message || 'Mocking enabled.'
 
   console.groupCollapsed(
-    `%c[MSW] ${message}`,
+    `%c${devUtils.formatMessage(message)}`,
     'color:orangered;font-weight:bold;',
   )
   console.log(

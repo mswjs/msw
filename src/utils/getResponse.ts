@@ -40,11 +40,11 @@ export const getResponse = async <
 
   const result = await relevantHandlers.reduce<
     Promise<RequestHandlerExecutionResult<any> | null>
-  >(async (acc, handler) => {
-    const previousResults = await acc
+  >(async (executionResult, handler) => {
+    const previousResults = await executionResult
 
     if (!!previousResults?.response) {
-      return acc
+      return executionResult
     }
 
     const result = await handler.run(request, resolutionContext)

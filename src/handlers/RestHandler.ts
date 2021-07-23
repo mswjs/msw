@@ -1,4 +1,4 @@
-import { Match } from 'node-match-path'
+import { Match, Path } from 'node-match-path'
 import {
   body,
   cookie,
@@ -10,7 +10,8 @@ import {
   text,
   xml,
 } from '../context'
-import { Mask, SerializedResponse } from '../setupWorker/glossary'
+import { SerializedResponse } from '../setupWorker/glossary'
+import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
@@ -19,7 +20,7 @@ import { prepareRequest } from '../utils/logging/prepareRequest'
 import { prepareResponse } from '../utils/logging/prepareResponse'
 import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
-import { getUrlByMask } from '../utils/url/getUrlByMask'
+import { getUrlByPath } from '../utils/url/getUrlByPath'
 import {
   DefaultRequestBody,
   MockedRequest,
@@ -29,7 +30,7 @@ import {
 
 interface RestHandlerInfo {
   method: string
-  mask: Mask
+  path: Path
 }
 
 export enum RESTMethods {
@@ -99,13 +100,13 @@ export class RestHandler<
 > {
   constructor(
     method: string,
-    mask: Mask,
+    path: Path,
     resolver: ResponseResolver<any, any>,
   ) {
     super({
       info: {
-        header: `${method} ${mask}`,
-        mask,
+        header: `${method} ${path}`,
+        path,
         method,
       },
       ctx: restContext,
@@ -116,19 +117,19 @@ export class RestHandler<
   }
 
   private checkRedundantQueryParameters() {
-    const { method, mask } = this.info
-    const resolvedMask = getUrlByMask(mask)
+    const { method, path } = this.info
+    const resolvedPath = getUrlByPath(path)
 
-    if (resolvedMask instanceof URL && resolvedMask.search !== '') {
+    if (resolvedPath instanceof URL && resolvedPath.search !== '') {
       const queryParams: string[] = []
-      resolvedMask.searchParams.forEach((_, paramName) => {
+      resolvedPath.searchParams.forEach((_, paramName) => {
         queryParams.push(paramName)
       })
 
       devUtils.warn(`\
-Found a redundant usage of query parameters in the request handler URL for "${method} ${mask}". Please match against a path instead, and access query parameters in the response resolver function:
+Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead, and access query parameters in the response resolver function:
 
-rest.${method.toLowerCase()}("${resolvedMask.pathname}", (req, res, ctx) => {
+rest.${method.toLowerCase()}("${resolvedPath.pathname}", (req, res, ctx) => {
   const query = req.url.searchParams
 ${queryParams
   .map(
@@ -141,8 +142,12 @@ ${queryParams
     }
   }
 
-  parse(request: RequestType) {
-    return matchRequestUrl(request.url, this.info.mask)
+  parse(request: RequestType, resolutionContext?: ResponseResolutionContext) {
+    return matchRequestUrl(
+      request.url,
+      this.info.path,
+      resolutionContext?.baseUrl,
+    )
   }
 
   protected getPublicRequest(
@@ -177,7 +182,7 @@ ${queryParams
     )
     console.log('Request', loggedRequest)
     console.log('Handler:', {
-      mask: this.info.mask,
+      mask: this.info.path,
       resolver: this.resolver,
     })
     console.log('Response', loggedResponse)

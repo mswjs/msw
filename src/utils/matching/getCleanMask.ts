@@ -1,11 +1,15 @@
+import { Path } from 'node-match-path'
 import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
-import { Mask, ResolvedMask } from '../../setupWorker/glossary'
+import { ResolvedMask } from '../../setupWorker/glossary'
 import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
 
-export function getCleanMask(resolvedMask: ResolvedMask): Mask {
+export function getCleanMask(
+  resolvedMask: ResolvedMask,
+  baseUrl?: string,
+): Path {
   return resolvedMask instanceof URL
     ? getCleanUrl(resolvedMask)
     : resolvedMask instanceof RegExp
     ? resolvedMask
-    : getAbsoluteUrl(resolvedMask)
+    : getAbsoluteUrl(resolvedMask, baseUrl)
 }

@@ -51,9 +51,9 @@ type ScoreGetterFn = (request: MockedRequest, handler: RequestHandler) => number
 
 function getScoreForRestHandler(): ScoreGetterFn {
   return (request, handler) => {
-    const { mask, method } = handler.info
+    const { path, method } = handler.info
 
-    if (mask instanceof RegExp) {
+    if (path instanceof RegExp) {
       return Infinity
     }
 
@@ -61,7 +61,7 @@ function getScoreForRestHandler(): ScoreGetterFn {
     // Always treat a handler with the same method as a more similar one.
     const methodScoreDelta = hasSameMethod ? TYPE_MATCH_DELTA : 0
     const requestPublicUrl = getPublicUrlFromRequest(request)
-    const score = getStringMatchScore(requestPublicUrl, mask)
+    const score = getStringMatchScore(requestPublicUrl, path)
 
     return score - methodScoreDelta
   }

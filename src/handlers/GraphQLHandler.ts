@@ -1,5 +1,6 @@
 import { OperationTypeNode } from 'graphql'
-import { Mask, SerializedResponse } from '../setupWorker/glossary'
+import { Path } from 'node-match-path'
+import { SerializedResponse } from '../setupWorker/glossary'
 import { set } from '../context/set'
 import { status } from '../context/status'
 import { delay } from '../context/delay'
@@ -83,12 +84,12 @@ export class GraphQLHandler<
   ParsedGraphQLRequest | null,
   GraphQLRequest<any>
 > {
-  private endpoint: Mask
+  private endpoint: Path
 
   constructor(
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
-    endpoint: Mask,
+    endpoint: Path,
     resolver: ResponseResolver<any, any>,
   ) {
     const header =

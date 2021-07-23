@@ -6,6 +6,7 @@ import { status } from '../context/status'
 import { set } from '../context/set'
 import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
+import { ResponseResolutionContext } from '../utils/getResponse'
 
 export const defaultContext = {
   status,
@@ -132,6 +133,7 @@ export abstract class RequestHandler<
   abstract predicate(
     request: MockedRequest,
     parsedResult: ParsedResult,
+    resolutionContext?: ResponseResolutionContext,
   ): boolean
 
   /**
@@ -148,15 +150,25 @@ export abstract class RequestHandler<
    * Parse the captured request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  parse(_request: MockedRequest): ParsedResult {
+  parse(
+    _request: MockedRequest,
+    _resolutionContext?: ResponseResolutionContext,
+  ): ParsedResult {
     return null as any
   }
 
   /**
    * Test if this handler matches the given request.
    */
-  public test(request: MockedRequest): boolean {
-    return this.predicate(request, this.parse(request))
+  public test(
+    request: MockedRequest,
+    resolutionContext?: ResponseResolutionContext,
+  ): boolean {
+    return this.predicate(
+      request,
+      this.parse(request, resolutionContext),
+      resolutionContext,
+    )
   }
 
   /**
@@ -180,13 +192,18 @@ export abstract class RequestHandler<
    */
   public async run(
     request: MockedRequest,
+    resolutionContext?: ResponseResolutionContext,
   ): Promise<RequestHandlerExecutionResult<PublicRequest> | null> {
     if (this.shouldSkip) {
       return null
     }
 
-    const parsedResult = this.parse(request)
-    const shouldIntercept = this.predicate(request, parsedResult)
+    const parsedResult = this.parse(request, resolutionContext)
+    const shouldIntercept = this.predicate(
+      request,
+      parsedResult,
+      resolutionContext,
+    )
 
     if (!shouldIntercept) {
       return null

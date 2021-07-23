@@ -70,17 +70,17 @@ describe('info', () => {
   test('exposes request handler information for query', () => {
     const handler = new GraphQLHandler('query', 'GetUser', '*', resolver)
 
-    expect(handler.info).toHaveProperty('header', 'query GetUser (origin: *)')
-    expect(handler.info).toHaveProperty('operationType', 'query')
-    expect(handler.info).toHaveProperty('operationName', 'GetUser')
+    expect(handler.info.header).toEqual('query GetUser (origin: *)')
+    expect(handler.info.operationType).toEqual('query')
+    expect(handler.info.operationName).toEqual('GetUser')
   })
 
   test('exposes request handler information for mutation', () => {
     const handler = new GraphQLHandler('mutation', 'Login', '*', resolver)
 
-    expect(handler.info).toHaveProperty('header', 'mutation Login (origin: *)')
-    expect(handler.info).toHaveProperty('operationType', 'mutation')
-    expect(handler.info).toHaveProperty('operationName', 'Login')
+    expect(handler.info.header).toEqual('mutation Login (origin: *)')
+    expect(handler.info.operationType).toEqual('mutation')
+    expect(handler.info.operationName).toEqual('Login')
   })
 })
 

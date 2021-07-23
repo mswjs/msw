@@ -12,6 +12,10 @@ export interface ResponseLookupResult {
   response?: MockedResponse
 }
 
+export interface ResponseResolutionContext {
+  baseUrl?: string
+}
+
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
@@ -21,9 +25,10 @@ export const getResponse = async <
 >(
   request: Request,
   handlers: Handler,
+  resolutionContext?: ResponseResolutionContext,
 ): Promise<ResponseLookupResult> => {
   const relevantHandlers = handlers.filter((handler) => {
-    return handler.test(request)
+    return handler.test(request, resolutionContext)
   })
 
   if (relevantHandlers.length === 0) {
@@ -42,7 +47,7 @@ export const getResponse = async <
       return acc
     }
 
-    const result = await handler.run(request)
+    const result = await handler.run(request, resolutionContext)
 
     if (result === null || result.handler.shouldSkip) {
       return null

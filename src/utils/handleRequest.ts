@@ -10,6 +10,9 @@ import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
 export interface HandleRequestOptions<ResponseType> {
+  /**
+   * Options for the response resolution process.
+   */
   resolutionContext?: {
     baseUrl?: string
   }

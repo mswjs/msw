@@ -8,7 +8,7 @@ import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { InterceptorApi } from '@mswjs/interceptors'
 
-export type ResolvedMask = Path | URL
+export type ResolvedPath = Path | URL
 
 type RequestWithoutMethods = Omit<
   Request,

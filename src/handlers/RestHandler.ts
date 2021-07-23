@@ -20,7 +20,7 @@ import { prepareRequest } from '../utils/logging/prepareRequest'
 import { prepareResponse } from '../utils/logging/prepareResponse'
 import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
-import { getUrlByPath } from '../utils/url/getUrlByPath'
+import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
   DefaultRequestBody,
   MockedRequest,
@@ -118,18 +118,29 @@ export class RestHandler<
 
   private checkRedundantQueryParameters() {
     const { method, path } = this.info
-    const resolvedPath = getUrlByPath(path)
 
-    if (resolvedPath instanceof URL && resolvedPath.search !== '') {
-      const queryParams: string[] = []
-      resolvedPath.searchParams.forEach((_, paramName) => {
-        queryParams.push(paramName)
-      })
+    if (path instanceof RegExp) {
+      return
+    }
 
-      devUtils.warn(`\
+    const url = cleanUrl(path)
+
+    // Bypass request handler URLs that have no redundant characters.
+    if (url === path) {
+      return
+    }
+
+    const searchParams = getSearchParams(path)
+    const queryParams: string[] = []
+
+    searchParams.forEach((_, paramName) => {
+      queryParams.push(paramName)
+    })
+
+    devUtils.warn(`\
 Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead, and access query parameters in the response resolver function:
 
-rest.${method.toLowerCase()}("${resolvedPath.pathname}", (req, res, ctx) => {
+rest.${method.toLowerCase()}("${url}", (req, res, ctx) => {
   const query = req.url.searchParams
 ${queryParams
   .map(
@@ -139,7 +150,6 @@ ${queryParams
   .join('\n')}
 })\
       `)
-    }
   }
 
   parse(request: RequestType, resolutionContext?: ResponseResolutionContext) {

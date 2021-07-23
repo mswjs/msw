@@ -10,6 +10,10 @@ import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
 export interface HandleRequestOptions<ResponseType> {
+  resolutionContext?: {
+    baseUrl?: string
+  }
+
   /**
    * Transforms a `MockedResponse` instance returned from a handler
    * to a response instance
@@ -58,7 +62,11 @@ export async function handleRequest<
   }
 
   // Resolve a mocked response from the list of request handlers.
-  const lookupResult = await getResponse(request, handlers)
+  const lookupResult = await getResponse(
+    request,
+    handlers,
+    handleRequestOptions?.resolutionContext,
+  )
   const { handler, response } = lookupResult
 
   // When there's no handler for the request, consider it unhandled.

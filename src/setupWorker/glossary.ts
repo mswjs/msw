@@ -1,3 +1,4 @@
+import { Path } from 'node-match-path'
 import { PartialDeep } from 'type-fest'
 import { FlatHeadersObject } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
@@ -7,8 +8,7 @@ import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { InterceptorApi } from '@mswjs/interceptors'
 
-export type Mask = RegExp | string
-export type ResolvedMask = Mask | URL
+export type ResolvedMask = Path | URL
 
 type RequestWithoutMethods = Omit<
   Request,

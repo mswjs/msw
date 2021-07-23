@@ -1,4 +1,4 @@
-import { Mask } from './setupWorker/glossary'
+import { Path } from 'node-match-path'
 import { DefaultRequestBody, ResponseResolver } from './handlers/RequestHandler'
 import {
   RESTMethods,
@@ -14,14 +14,14 @@ function createRestHandler(method: RESTMethods) {
     ResponseBody extends DefaultRequestBody = any,
     Params extends RequestParams = RequestParams,
   >(
-    mask: Mask,
+    path: Path,
     resolver: ResponseResolver<
       RestRequest<RequestBodyType, Params>,
       RestContext,
       ResponseBody
     >,
   ) => {
-    return new RestHandler(method, mask, resolver)
+    return new RestHandler(method, path, resolver)
   }
 }
 

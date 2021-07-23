@@ -1,4 +1,4 @@
-import { Mask } from './setupWorker/glossary'
+import { Path } from 'node-match-path'
 import { ResponseResolver } from './handlers/RequestHandler'
 import {
   GraphQLHandler,
@@ -11,7 +11,7 @@ import {
 
 function createScopedGraphQLHandler(
   operationType: ExpectedOperationTypeNode,
-  url: Mask,
+  url: Path,
 ) {
   return <
     Query extends Record<string, any>,
@@ -27,7 +27,7 @@ function createScopedGraphQLHandler(
   }
 }
 
-function createGraphQLOperationHandler(url: Mask) {
+function createGraphQLOperationHandler(url: Path) {
   return <
     Query extends Record<string, any>,
     Variables extends GraphQLVariables = GraphQLVariables,
@@ -73,7 +73,7 @@ const standardGraphQLHandlers = {
   mutation: createScopedGraphQLHandler('mutation', '*'),
 }
 
-function createGraphQLLink(url: Mask): typeof standardGraphQLHandlers {
+function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
   return {
     operation: createGraphQLOperationHandler(url),
     query: createScopedGraphQLHandler('query', url),

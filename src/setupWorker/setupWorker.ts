@@ -194,7 +194,7 @@ export function setupWorker(
         if (handler instanceof RestHandler) {
           console.log(
             'Match:',
-            `https://mswjs.io/repl?path=${handler.info.mask}`,
+            `https://mswjs.io/repl?path=${handler.info.path}`,
           )
         }
 

@@ -243,6 +243,11 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
 self.addEventListener('fetch', function (event) {
   const { request } = event
 
+  // Bypass server-sent events.
+  if (request.headers.get('accept') === 'text/event-stream') {
+    return
+  }
+
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
     return

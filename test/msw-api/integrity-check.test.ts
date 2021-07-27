@@ -55,11 +55,11 @@ test('errors when activating the worker with an outdated integrity', async () =>
   })
 
   // Produces a meaningful error in the browser's console.
-  const integrityError = consoleSpy.get('error').find((text) => {
-    return text.includes('[MSW] Detected outdated Service Worker')
-  })
-
-  expect(integrityError).toBeTruthy()
+  expect(consoleSpy.get('error')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining('[MSW] Detected outdated Service Worker'),
+    ]),
+  )
 
   // Should still keep the mocking enabled.
   const res = await request('https://api.github.com/users/octocat')

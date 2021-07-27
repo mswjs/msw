@@ -6,12 +6,9 @@ test('respects a custom "scope" Service Worker option', async () => {
     example: path.resolve(__dirname, 'options-sw-scope.mocks.ts'),
   })
 
-  const activationMessage = consoleSpy
-    .get('startGroupCollapsed')
-    .find((text) => {
-      return text.includes('[MSW] Mocking enabled.')
-    })
-  expect(activationMessage).toBeTruthy()
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([expect.stringContaining('[MSW] Mocking enabled.')]),
+  )
 
   const res = await request('/user')
   const status = res.status()

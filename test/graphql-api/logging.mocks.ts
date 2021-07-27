@@ -33,6 +33,14 @@ const worker = setupWorker(
       }),
     )
   }),
+  graphql.operation((req, res, ctx) => {
+    return res(
+      ctx.status(301),
+      ctx.data({
+        ok: true,
+      }),
+    )
+  }),
 )
 
 worker.start()

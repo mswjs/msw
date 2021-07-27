@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 import { pageWith } from 'page-with'
+import { gql } from '../support/graphql'
 
 function createRuntime() {
   return pageWith({
@@ -8,11 +9,10 @@ function createRuntime() {
   })
 }
 
-test('logs out GraphQL queries', async () => {
+test('prints a log for a GraphQL query', async () => {
   const { page, consoleSpy } = await createRuntime()
-
   await executeGraphQLQuery(page, {
-    query: `
+    query: gql`
       query GetUserDetail {
         user {
           firstName
@@ -22,20 +22,19 @@ test('logs out GraphQL queries', async () => {
     `,
   })
 
-  const queryMessage = consoleSpy.get('startGroupCollapsed').find((text) => {
-    return text.includes('GetUserDetail')
-  })
-
-  expect(queryMessage).toMatch(/\d{2}:\d{2}:\d{2}/)
-  expect(queryMessage).toContain('GetUserDetail')
-  expect(queryMessage).toContain('200')
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /\[MSW\] \d{2}:\d{2}:\d{2} query GetUserDetail 200 OK/,
+      ),
+    ]),
+  )
 })
 
-test('logs out GraphQL mutations', async () => {
+test('prints a log for a GraphQL mutation', async () => {
   const { page, consoleSpy } = await createRuntime()
-
   await executeGraphQLQuery(page, {
-    query: `
+    query: gql`
       mutation Login {
         user {
           id
@@ -44,11 +43,51 @@ test('logs out GraphQL mutations', async () => {
     `,
   })
 
-  const mutationMessage = consoleSpy.get('startGroupCollapsed').find((text) => {
-    return text.includes('Login')
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} mutation Login 200 OK/),
+    ]),
+  )
+})
+
+test('prints a log for a GraphQL query intercepted via "graphql.operation"', async () => {
+  const { page, consoleSpy } = await createRuntime()
+  await executeGraphQLQuery(page, {
+    query: gql`
+      query GetLatestPosts {
+        posts {
+          title
+        }
+      }
+    `,
   })
 
-  expect(mutationMessage).toMatch(/\d{2}:\d{2}:\d{2}/)
-  expect(mutationMessage).toContain('Login')
-  expect(mutationMessage).toContain('200')
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /\[MSW\] \d{2}:\d{2}:\d{2} query GetLatestPosts 301 Moved Permanently/,
+      ),
+    ]),
+  )
+})
+
+test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async () => {
+  const { page, consoleSpy } = await createRuntime()
+  await executeGraphQLQuery(page, {
+    query: gql`
+      mutation CreatePost {
+        post {
+          id
+        }
+      }
+    `,
+  })
+
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /\[MSW\] \d{2}:\d{2}:\d{2} mutation CreatePost 301 Moved Permanently/,
+      ),
+    ]),
+  )
 })

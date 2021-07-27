@@ -158,16 +158,22 @@ Consider naming this operation or using "graphql.operation" request handler to i
     )
   }
 
-  log(request: Request, response: SerializedResponse<any>) {
+  log(
+    request: Request,
+    response: SerializedResponse<any>,
+    handler: this,
+    parsedRequest: ParsedGraphQLRequest,
+  ) {
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s (%c%s%c)'),
       getTimestamp(),
-      this.info.operationName,
-      `color:${getStatusCodeColor(response.status)}`,
+      `${parsedRequest?.operationType} ${parsedRequest?.operationName}`,
+      `color:${getStatusCodeColor(response.status)} %s`,
       response.status,
+      response.statusText,
       'color:inherit',
     )
     console.log('Request:', loggedRequest)

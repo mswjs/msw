@@ -1,4 +1,7 @@
-export function getTimestamp() {
+/**
+ * Returns a timestamp string in a "HH:MM:SS" format.
+ */
+export function getTimestamp(): string {
   const now = new Date()
 
   return [now.getHours(), now.getMinutes(), now.getSeconds()]

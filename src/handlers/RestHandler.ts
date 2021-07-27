@@ -186,8 +186,9 @@ ${queryParams
       getTimestamp(),
       request.method,
       publicUrl,
-      `color:${getStatusCodeColor(response.status)}`,
+      `color:${getStatusCodeColor(response.status)} %s`,
       response.status,
+      response.statusText,
       'color:inherit',
     )
     console.log('Request', loggedRequest)

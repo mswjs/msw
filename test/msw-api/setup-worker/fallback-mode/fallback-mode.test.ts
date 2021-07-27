@@ -81,13 +81,12 @@ test('responds with a mocked response to a handled request', async () => {
   const response = await request('https://api.github.com/users/octocat')
 
   // Prints the request message group in the console.
-  const requestMessage = runtime.consoleSpy
-    .get('startGroupCollapsed')
-    .find((message) => {
-      return message.includes('GET https://api.github.com/users/octocat')
-    })
-  expect(requestMessage).toMatch(
-    /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200/,
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK/,
+      ),
+    ]),
   )
 
   // Responds with a mocked response.
@@ -104,13 +103,17 @@ test('warns on the unhandled request by default', async () => {
   const request = createRequestHelper(runtime.page)
   await request('https://example.com')
 
-  expect(runtime.consoleSpy.get('warning')).toContain(`\
+  expect(runtime.consoleSpy.get('warning')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • GET https://example.com/
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+    ]),
+  )
 })
 
 test('stops the fallback interceptor when called "worker.stop()"', async () => {

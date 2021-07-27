@@ -13,11 +13,11 @@ test('throws an error given an Array of request handlers to "setupWorker"', asyn
   })
   await page.reload({ waitUntil: 'networkidle' })
 
-  const nodeMessage = exceptions.find((message) => {
-    return message.startsWith(
-      `[MSW] Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).`,
-    )
-  })
-
-  expect(nodeMessage).toBeTruthy()
+  expect(exceptions).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining(
+        '[MSW] Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).',
+      ),
+    ]),
+  )
 })

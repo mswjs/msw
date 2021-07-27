@@ -30,19 +30,17 @@ describe('REST API', () => {
 
     await request('/user-details')
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • GET /user-details
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggests a similar request handler of the same method', async () => {
@@ -55,13 +53,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     await request('/users')
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • GET /users
@@ -69,7 +63,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 Did you mean to request "GET /user" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggest a handler of a different method if its URL is similar', async () => {
@@ -87,13 +83,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       method: 'POST',
     })
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • POST /users
@@ -101,7 +93,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 Did you mean to request "GET /user" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggests multiple similar handlers regardless of their method', async () => {
@@ -117,13 +111,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 
     await request('/pamyents')
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • GET /pamyents
@@ -134,7 +124,9 @@ Did you mean to request one of the following resources instead?
   • POST /payment
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 })
 
@@ -166,19 +158,17 @@ describe('GraphQL API', () => {
       }),
     })
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • query PaymentHistory (POST /graphql)
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggests a similar request handler of the same operation type', async () => {
@@ -208,13 +198,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       }),
     })
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • query GetUsers (POST /graphql)
@@ -222,7 +208,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 Did you mean to request "query GetUser (origin: *)" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggests a handler of a different operation type if its name is similar', async () => {
@@ -252,13 +240,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       }),
     })
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • query SubmitCheckout (POST /graphql)
@@ -266,7 +250,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 Did you mean to request "mutation SubmitCheckout (origin: *)" instead?
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 
   test('suggests multiple similar handlers regardless of their operation type', async () => {
@@ -296,13 +282,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
       }),
     })
 
-    const unhandledRequestWarning = consoleSpy.get('warning').find((text) => {
-      return /\[MSW\] Warning: captured a request without a matching request handler/.test(
-        text,
-      )
-    })
-
-    expect(unhandledRequestWarning).toMatch(`\
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
   • query ActiveUsers (POST /graphql)
@@ -313,6 +295,8 @@ Did you mean to request one of the following resources instead?
   • mutation ActivateUser (origin: *)
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/getting-started/mocks`),
+      ]),
+    )
   })
 })

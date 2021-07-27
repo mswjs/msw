@@ -176,7 +176,7 @@ ${queryParams
     )
   }
 
-  log(request: RequestType, response: SerializedResponse<any>) {
+  log(request: RequestType, response: SerializedResponse) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)

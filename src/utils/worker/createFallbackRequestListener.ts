@@ -7,6 +7,7 @@ import { interceptFetch } from '@mswjs/interceptors/lib/interceptors/fetch'
 import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import {
+  SerializedResponse,
   SetupWorkerInternalContext,
   StartOptions,
 } from '../../setupWorker/glossary'
@@ -21,7 +22,7 @@ export function createFallbackRequestListener(
     modules: [interceptFetch, interceptXMLHttpRequest],
     async resolver(request) {
       const mockedRequest = parseIsomorphicRequest(request)
-      return handleRequest<MockedResponse>(
+      return handleRequest<SerializedResponse>(
         mockedRequest,
         context.requestHandlers,
         options,

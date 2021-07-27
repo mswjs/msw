@@ -160,7 +160,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
 
   log(
     request: Request,
-    response: SerializedResponse<any>,
+    response: SerializedResponse,
     handler: this,
     parsedRequest: ParsedGraphQLRequest,
   ) {

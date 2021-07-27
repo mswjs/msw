@@ -2,7 +2,6 @@ import { Path } from 'node-match-path'
 import { PartialDeep } from 'type-fest'
 import { FlatHeadersObject } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
-import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
@@ -178,11 +177,11 @@ export interface StartOptions extends SharedOptions {
   findWorker: FindWorker
 }
 
-export type SerializedResponse<BodyType = any> = Omit<
-  MockedResponse<BodyType>,
-  'headers'
-> & {
+export interface SerializedResponse<BodyType = any> {
+  status: number
+  statusText: string
   headers: FlatHeadersObject
+  body: BodyType
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>

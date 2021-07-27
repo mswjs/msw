@@ -7,6 +7,7 @@ import { set } from '../context/set'
 import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
 import { ResponseResolutionContext } from '../utils/getResponse'
+import { SerializedResponse } from '../setupWorker/glossary'
 
 export const defaultContext = {
   status,
@@ -141,7 +142,7 @@ export abstract class RequestHandler<
    */
   abstract log(
     request: Request,
-    response: any,
+    response: SerializedResponse<any>,
     handler: this,
     parsedResult: ParsedResult,
   ): void

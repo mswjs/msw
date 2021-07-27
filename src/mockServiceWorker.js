@@ -242,9 +242,10 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
 
 self.addEventListener('fetch', function (event) {
   const { request } = event
+  const accept = request.headers.get('accept') || ''
 
   // Bypass server-sent events.
-  if (request.headers.get('accept') === 'text/event-stream') {
+  if (accept.includes('text/event-stream')) {
     return
   }
 

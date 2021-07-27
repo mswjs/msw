@@ -15,7 +15,7 @@ function createRuntime() {
   })
 }
 
-test('matches GraphQL queries', async () => {
+test('intercepts and mocks a GraphQL query', async () => {
   const runtime = await createRuntime()
   const GET_USER_QUERY = gql`
     query GetUser($id: String!) {
@@ -43,9 +43,14 @@ test('matches GraphQL queries', async () => {
       },
     },
   })
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} query GetUser 200 OK/),
+    ]),
+  )
 })
 
-test('matches GraphQL mutations', async () => {
+test('intercepts and mocks a GraphQL mutation', async () => {
   const runtime = await createRuntime()
   const LOGIN_MUTATION = gql`
     mutation Login($username: String!, $password: String!) {
@@ -80,10 +85,10 @@ test('matches GraphQL mutations', async () => {
 test('propagates parsing errors from the invalid GraphQL requests', async () => {
   const { page, consoleSpy } = await createRuntime()
   const INVALID_QUERY = `
-  # Intentionally invalid GraphQL query.
-  query GetUser() {
-    user { id
-  }
+    # Intentionally invalid GraphQL query.
+    query GetUser() {
+      user { id
+    }
   `
 
   executeGraphQLQuery(page, {
@@ -93,13 +98,13 @@ test('propagates parsing errors from the invalid GraphQL requests', async () => 
   // Await the console message, because you cannot await a failed response.
   await sleep(500)
 
-  const parsingError = consoleSpy.get('error').find((message) => {
-    return message.startsWith(
-      '[MSW] Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
-    )
-  })
-
-  expect(parsingError).toBeDefined()
+  expect(consoleSpy.get('error')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining(
+        'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
+      ),
+    ]),
+  )
 })
 
 test('bypasses seemingly compatible REST requests', async () => {

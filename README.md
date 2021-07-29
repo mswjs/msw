@@ -24,9 +24,9 @@
 
 ## Features
 
-- **Seamless**. Dedicated layer of requests interception at your disposal. Keep your application's code and tests unaware whether something is mocked or not.
+- **Seamless**. A dedicated layer of requests interception at your disposal. Keep your application's code and tests unaware of whether something is mocked or not.
 - **Deviation-free**. Request the same production resources and test the actual behavior of your app. Augment an existing API, or design it as you go, when there is none.
-- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture outgoing requests. Use parameters, wildcards and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
+- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture outgoing requests. Use parameters, wildcards, and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
 
 ---
 
@@ -93,7 +93,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
 
-> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes on the client side? That way you can use the same language (i.e. TypeScript), third-party libraries, and internal logic in mocks.
+> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes on the client-side? That way you can use the same languages (i.e. TypeScript), third-party libraries, and internal logic in mocks.
 
 ## Node
 
@@ -102,7 +102,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ### How does it work?
 
-Although Service Worker is a browser-specific API, this library allows to reuse the same mock definition to have API mocking in Node.js through augmenting native request issuing modules.
+Although Service Worker is a browser-specific API, this library allows reusing of the same mock definition to have API mocking in Node.js through augmenting native request issuing modules.
 
 ### How is it different?
 

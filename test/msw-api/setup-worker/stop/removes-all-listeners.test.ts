@@ -22,18 +22,17 @@ test('removes all listeners when the worker is stopped', async () => {
       return worker2.start()
     })
   })
-  const activationMessages = consoleSpy
-    .get('startGroupCollapsed')
-    .filter((text) => {
-      return text.includes('[MSW] Mocking enabled.')
-    })
-  expect(activationMessages).toHaveLength(2)
+
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining('[MSW] Mocking enabled.'),
+      expect.stringContaining('[MSW] Mocking enabled.'),
+    ]),
+  )
 
   await request('/user')
 
-  const requestLogs = consoleSpy.get('startGroupCollapsed').filter((text) => {
-    return text.includes('[MSW]') && text.includes('GET /user')
-  })
-
-  expect(requestLogs).toHaveLength(1)
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([expect.stringContaining('GET /user')]),
+  )
 })

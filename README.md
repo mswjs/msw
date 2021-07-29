@@ -56,7 +56,7 @@ Browser usage is what sets Mock Service Worker apart from other tools. Utilizing
 
 **Watch a 30 seconds explanation on how Mock Service Worker works in a browser:**
 
-[![What is Mock Service Worker?](https://img.youtube.com/vi/HcQCqboatZk/maxresdefault.jpg)](https://youtu.be/HcQCqboatZk)
+[![What is Mock Service Worker?](./media/msw-video-thumbnail.jpg)](https://youtu.be/HcQCqboatZk)
 
 ### How is it different?
 

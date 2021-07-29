@@ -1,24 +1,26 @@
 <p align="center">
-  <img src="media/msw-banner.png" width="300" alt="Mock Service Worker logo" />
+  <img src="media/msw-logo.svg" width="120" alt="Mock Service Worker logo" />
 </p>
+
+<h1 align="center">Mock Service Worker</h1>
+<p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node.js.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/v/msw.svg" alt="Package version" />
+    <img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" />
   </a>
   <a href="https://circleci.com/gh/mswjs/msw" target="_blank">
-    <img src="https://img.shields.io/circleci/project/github/mswjs/msw/master.svg" alt="Build status" />
+    <img src="https://img.shields.io/circleci/project/github/mswjs/msw/master.svg?style=for-the-badge&color=black" alt="Build status" />
   </a>
   <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/dm/msw" alt="Downloads per month" />
+    <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
   </a>
-  <img alt="Libraries.io dependency status for latest release" src="https://img.shields.io/librariesio/release/npm/msw"/ >
    <a href="https://kcd.im/discord" target="_blank">
-    <img src="https://img.shields.io/badge/chat-online-green" alt="Discord server" />
+    <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
   </a>
 </p>
 
-<p align="center">Mock Service Worker (MSW) is an API mocking library for browser and Node.</p>
+<br />
 
 ## Features
 
@@ -45,12 +47,12 @@
 
 ## Browser
 
-- [Learn more about the browser integration](https://mswjs.io/docs/getting-started/integrate/browser)
+- [Learn more about using MSW in a browser](https://mswjs.io/docs/getting-started/integrate/browser)
 - [`setupWorker` API](https://mswjs.io/docs/api/setup-worker)
 
 ### How does it work?
 
-Browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) that intercepts requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
+Browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), which can intercept requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
 
 **Watch a 30 seconds explanation on how Mock Service Worker works in a browser:**
 
@@ -95,7 +97,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ## Node
 
-- [Learn more about the Node.js integration](https://mswjs.io/docs/getting-started/integrate/node)
+- [Learn more about using MSW in Node.js](https://mswjs.io/docs/getting-started/integrate/node)
 - [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
 ### How does it work?
@@ -184,7 +186,7 @@ test('handles login exception', () => {
 })
 ```
 
-> **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers established? The name is kept for familiarity, and API is designed to resemble operating with an actual server.
+> **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers involved? The name is chosen for familiarity, and the API is designed to resemble operating with an actual server.
 
 ## Awards & Mentions
 

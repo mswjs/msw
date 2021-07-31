@@ -72,8 +72,8 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
 })
 
 test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async () => {
-  const { page, consoleSpy } = await createRuntime()
-  await executeGraphQLQuery(page, {
+  const runtime = await createRuntime()
+  await executeGraphQLQuery(runtime.page, {
     query: gql`
       mutation CreatePost {
         post {
@@ -83,10 +83,10 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
     `,
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /\[MSW\] \d{2}:\d{2}:\d{2} mutation CreatePost 301 Moved Permanently/,
+        /^\[MSW\] \d{2}:\d{2}:\d{2} mutation CreatePost 301 Moved Permanently$/,
       ),
     ]),
   )

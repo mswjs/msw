@@ -197,14 +197,14 @@ Consider naming this operation or using "graphql.operation" request handler to i
   ) {
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
+    const statusColor = getStatusCodeColor(response.status)
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s (%c%s%c)'),
       getTimestamp(),
       `${parsedRequest?.operationType} ${parsedRequest?.operationName}`,
-      `color:${getStatusCodeColor(response.status)} %s`,
-      response.status,
-      response.statusText,
+      `color:${statusColor}`,
+      `${response.status} ${response.statusText}`,
       'color:inherit',
     )
     console.log('Request:', loggedRequest)

@@ -180,15 +180,15 @@ ${queryParams
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
+    const statusColor = getStatusCodeColor(response.status)
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s %s (%c%s%c)'),
       getTimestamp(),
       request.method,
       publicUrl,
-      `color:${getStatusCodeColor(response.status)} %s`,
-      response.status,
-      response.statusText,
+      `color:${statusColor}`,
+      `${response.status} ${response.statusText}`,
       'color:inherit',
     )
     console.log('Request', loggedRequest)

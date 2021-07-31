@@ -12,7 +12,7 @@ test('prints a captured request info into browser console', async () => {
   expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK/,
+        /^\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK$/,
       ),
     ]),
   )

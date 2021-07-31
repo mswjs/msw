@@ -6393,10 +6393,10 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-page-with@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.4.0.tgz#f7e17469da35e328d5f08a8fd296a10fc3cf7975"
-  integrity sha512-jgLoc4F1I821FYh/Az+rAbN5C2YWd251GwVhCxjIhPPEL5RMsjFMxU/FauvSBeyRY75W7hY5JOaTS2H13Vgxkw==
+page-with@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/page-with/-/page-with-0.4.1.tgz#7ee139ce70fabcda0d6f9bf0537f964ae838ff57"
+  integrity sha512-Z+ABO4XFzksPRbLrfI07lFCx99G7l98NZdK06angIojZm6pNn166pUbBENDoRhdabJeSGw1mB4f4JXAanpk9ow==
   dependencies:
     "@open-draft/until" "^1.0.3"
     "@types/debug" "^4.1.5"

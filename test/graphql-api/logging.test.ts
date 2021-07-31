@@ -2,6 +2,7 @@ import * as path from 'path'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 import { pageWith } from 'page-with'
 import { gql } from '../support/graphql'
+import { StatusCodeColor } from '../../src/utils/logging/getStatusCodeColor'
 
 function createRuntime() {
   return pageWith({
@@ -22,10 +23,12 @@ test('prints a log for a GraphQL query', async () => {
     `,
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /\[MSW\] \d{2}:\d{2}:\d{2} query GetUserDetail 200 OK/,
+        new RegExp(
+          `^\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetUserDetail color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+        ),
       ),
     ]),
   )
@@ -43,9 +46,13 @@ test('prints a log for a GraphQL mutation', async () => {
     `,
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} mutation Login 200 OK/),
+      expect.stringMatching(
+        new RegExp(
+          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation Login color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+        ),
+      ),
     ]),
   )
 })
@@ -62,10 +69,12 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
     `,
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /\[MSW\] \d{2}:\d{2}:\d{2} query GetLatestPosts 301 Moved Permanently/,
+        new RegExp(
+          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetLatestPosts color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+        ),
       ),
     ]),
   )
@@ -83,10 +92,12 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
     `,
   })
 
-  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(runtime.consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /^\[MSW\] \d{2}:\d{2}:\d{2} mutation CreatePost 301 Moved Permanently$/,
+        new RegExp(
+          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation CreatePost color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+        ),
       ),
     ]),
   )

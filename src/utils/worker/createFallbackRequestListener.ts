@@ -1,8 +1,4 @@
-import {
-  MockedResponse,
-  createInterceptor,
-  InterceptorApi,
-} from '@mswjs/interceptors'
+import { createInterceptor, InterceptorApi } from '@mswjs/interceptors'
 import { interceptFetch } from '@mswjs/interceptors/lib/interceptors/fetch'
 import { interceptXMLHttpRequest } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'

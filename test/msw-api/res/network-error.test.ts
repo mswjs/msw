@@ -20,7 +20,7 @@ test('throws a network error', async () => {
 
   // Assert a network error message printed into the console
   // before `fetch` rejects.
-  expect(consoleSpy.get('error')).toContain(
+  expect(consoleSpy.get('error')).toEqual([
     'Failed to load resource: net::ERR_FAILED',
-  )
+  ])
 })

@@ -221,13 +221,11 @@ async function getResponse(event, client, requestId) {
 
       console.error(
         `\
-[MSW] Request handler function for "%s %s" has thrown the following exception:
+[MSW] Uncaught exception in the request handler for "%s %s":
 
-${parsedBody.errorType}: ${parsedBody.message}
-(see more detailed error stack trace in the mocked response body)
+${parsedBody.location}
 
-This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error.
-If you wish to mock an error response, please refer to this guide: https://mswjs.io/docs/recipes/mocking-error-responses\
+This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/recipes/mocking-error-responses\
 `,
         request.method,
         request.url,
@@ -271,11 +269,22 @@ self.addEventListener('fetch', function (event) {
 
   return event.respondWith(
     handleRequest(event, requestId).catch((error) => {
+      if (error.name === 'NetworkError') {
+        console.warn(
+          '[MSW] Successfully emulated a network error for the "%s %s" request.',
+          request.method,
+          request.url,
+        )
+        return
+      }
+
+      // At this point, any exception indicates an issue with the original request/response.
       console.error(
-        '[MSW] Failed to mock a "%s" request to "%s": %s',
+        `\
+[MSW] Caught an exception from the "%s %s" request (%s). This is probably not a problem with Mock Service Worker. There is likely an additional logging output above.`,
         request.method,
         request.url,
-        error,
+        `${error.name}: ${error.message}`,
       )
     }),
   )

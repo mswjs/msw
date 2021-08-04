@@ -163,7 +163,7 @@ export function parseGraphQLRequest(
 
     throw new Error(
       devUtils.formatMessage(
-        'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%o',
+        'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%s',
         request.method,
         requestPublicUrl,
         parsedResult.message,

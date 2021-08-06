@@ -5,8 +5,6 @@ const MAX_RETRIES = 5
 
 export async function waitFor(fn: () => unknown): Promise<void> {
   for (let retryCount = 1; retryCount <= MAX_RETRIES; retryCount++) {
-    await sleep(RETRY_INTERVAL)
-
     try {
       await fn()
       return
@@ -14,6 +12,8 @@ export async function waitFor(fn: () => unknown): Promise<void> {
       if (retryCount === MAX_RETRIES) {
         throw error
       }
+
+      await sleep(RETRY_INTERVAL)
     }
   }
 }

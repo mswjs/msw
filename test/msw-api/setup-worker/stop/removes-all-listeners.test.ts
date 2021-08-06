@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
+import { waitFor } from '../../../support/waitFor'
 
 declare namespace window {
   export const msw: {
@@ -14,25 +15,27 @@ test('removes all listeners when the worker is stopped', async () => {
   })
 
   await page.evaluate(() => {
-    const worker1 = window.msw.createWorker()
-    const worker2 = window.msw.createWorker()
+    const firstWorker = window.msw.createWorker()
+    const secondWorker = window.msw.createWorker()
 
-    return worker1.start().then(() => {
-      worker1.stop()
-      return worker2.start()
+    return firstWorker.start().then(() => {
+      firstWorker.stop()
+      return secondWorker.start()
     })
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining('[MSW] Mocking enabled.'),
-      expect.stringContaining('[MSW] Mocking enabled.'),
-    ]),
-  )
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+    '[MSW] Mocking enabled.',
+  ])
 
   await request('/user')
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([expect.stringContaining('GET /user')]),
-  )
+  await waitFor(() => {
+    expect(consoleSpy.get('startGroupCollapsed')).toEqual([
+      '[MSW] Mocking enabled.',
+      '[MSW] Mocking enabled.',
+      expect.stringContaining('GET /user'),
+    ])
+  })
 })

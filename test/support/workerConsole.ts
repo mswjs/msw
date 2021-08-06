@@ -1,6 +1,6 @@
 import { ConsoleMessageType } from 'page-with/lib/utils/spyOnConsole'
 import { ServerApi, createServer } from '@open-draft/test-server'
-import { interpolate } from 'outvariant'
+import { format } from 'outvariant'
 
 let workerConsoleServer: ServerApi
 export const workerConsoleSpy = new Map<ConsoleMessageType, string[]>()
@@ -35,7 +35,7 @@ export async function createWorkerConsoleServer() {
       const resolvedMessageType =
         consoleMessageTypeOverrides[messageType] || messageType
       const [template, ...positionals] = req.body
-      const resolvedMessage = interpolate(template, ...positionals)
+      const resolvedMessage = format(template, ...positionals)
 
       workerConsoleSpy.set(
         resolvedMessageType,

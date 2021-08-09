@@ -170,8 +170,13 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
 
   switch (strategy) {
     case 'error': {
+      // Print a developer-friendly error.
       devUtils.error('Error: %s', message)
-      break
+
+      // Throw an exception to halt request processing and not perform the original request.
+      throw new Error(
+        'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+      )
     }
 
     case 'warn': {

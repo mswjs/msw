@@ -40,8 +40,10 @@ afterAll(() => {
 
 test('errors on unhandled request when using the "error" value', async () => {
   const makeRequest = () => fetch('https://test.mswjs.io')
-  await makeRequest()
 
+  await expect(() => makeRequest()).rejects.toThrow(
+    'request to https://test.mswjs.io/ failed, reason: Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+  )
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: captured a request without a matching request handler:
 
@@ -53,16 +55,18 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 })
 
 test('does not error on request which handler explicitly returns no mocked response', async () => {
-  const makeRequest = () =>
-    fetch('https://test.mswjs.io/explicit-return', { method: 'POST' })
+  const makeRequest = () => {
+    return fetch('https://test.mswjs.io/explicit-return', { method: 'POST' })
+  }
   await makeRequest()
 
   expect(console.error).not.toHaveBeenCalled()
 })
 
 test('does not error on request which handler implicitly returns no mocked response', async () => {
-  const makeRequest = () =>
-    fetch('https://test.mswjs.io/implicit-return', { method: 'POST' })
+  const makeRequest = () => {
+    return fetch('https://test.mswjs.io/implicit-return', { method: 'POST' })
+  }
   await makeRequest()
 
   expect(console.error).not.toHaveBeenCalled()

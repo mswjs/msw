@@ -33,11 +33,11 @@ const worker = setupWorker(
   ),
 
   rest.get(/(.+?)\.google\.com\/path/, (req, res, ctx) => {
-    return res(
-      ctx.json({
-        mocked: true,
-      }),
-    )
+    return res(ctx.json({ mocked: true }))
+  }),
+
+  rest.get(`/resource\\('id'\\)`, (req, res, ctx) => {
+    return res(ctx.json({ mocked: true }))
   }),
 )
 

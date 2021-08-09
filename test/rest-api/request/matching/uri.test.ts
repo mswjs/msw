@@ -2,20 +2,19 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return pageWith({ example: path.resolve(__dirname, 'uri.mocks.ts') })
+  return pageWith({
+    example: path.resolve(__dirname, 'uri.mocks.ts'),
+  })
 }
 
 test('matches an exact string with the same request URL with a trailing slash', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('https://api.github.com/made-up/')
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(body).toEqual({
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
     mocked: true,
   })
 })
@@ -34,13 +33,10 @@ test('matches an exact string with the same request URL without a trailing slash
   const runtime = await createRuntime()
 
   const res = await runtime.request('https://api.github.com/made-up')
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(body).toEqual({
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
     mocked: true,
   })
 })
@@ -59,13 +55,10 @@ test('matches a mask against a matching request URL', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('https://test.mswjs.io/messages/abc-123')
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(body).toEqual({
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
     messageId: 'abc-123',
   })
 })
@@ -76,13 +69,10 @@ test('ignores query parameters when matching a mask against a matching request U
   const res = await runtime.request(
     'https://test.mswjs.io/messages/abc-123/items?hello=true',
   )
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(body).toEqual({
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
     messageId: 'abc-123',
   })
 })
@@ -101,13 +91,10 @@ test('matches a RegExp against a matching request URL', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('https://mswjs.google.com/path')
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(body).toEqual({
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
     mocked: true,
   })
 })
@@ -120,4 +107,16 @@ test('does not match a RegExp against a non-matching request URL', async () => {
   )
 
   expect(res).toBeNull()
+})
+
+test('supports escaped parentheses in the request URL', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request(`/resource('id')`)
+
+  expect(res.status()).toEqual(200)
+  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.json()).toEqual({
+    mocked: true,
+  })
 })

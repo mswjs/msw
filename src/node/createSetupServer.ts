@@ -112,6 +112,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           requestHandlers,
           ...nextHandlers,
         )
+        emitter.removeAllListeners()
       },
 
       printHandlers() {

@@ -174,6 +174,7 @@ export function setupWorker(
         requestHandlers,
         ...nextHandlers,
       )
+      context.emitter.removeAllListeners()
     },
 
     printHandlers() {

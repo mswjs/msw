@@ -2,6 +2,7 @@ import { PartialDeep } from 'type-fest'
 import { IsomorphicResponse } from '@mswjs/interceptors'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { SharedOptions } from '../sharedOptions'
+import { StrictEventEmitter } from 'strict-event-emitter'
 
 export interface ServerLifecycleEventsMap {
   'request:start': (request: MockedRequest) => void
@@ -49,11 +50,5 @@ export interface SetupServerApi {
    */
   printHandlers(): void
 
-  /**
-   * Attaches a listener to one of the life-cycle events.
-   */
-  on<EventType extends keyof ServerLifecycleEventsMap>(
-    eventType: EventType,
-    listener: ServerLifecycleEventsMap[EventType],
-  ): void
+  events: StrictEventEmitter<ServerLifecycleEventsMap>
 }

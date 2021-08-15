@@ -112,7 +112,6 @@ export function createSetupServer(...interceptors: Interceptor[]) {
           requestHandlers,
           ...nextHandlers,
         )
-        emitter.removeAllListeners()
       },
 
       printHandlers() {
@@ -129,9 +128,7 @@ ${bold(`${pragma} ${header}`)}
         })
       },
 
-      on(eventType, listener) {
-        emitter.addListener(eventType, listener)
-      },
+      events: emitter,
 
       close() {
         emitter.removeAllListeners()

@@ -230,11 +230,15 @@ export interface SetupWorkerApi {
    */
   printHandlers: () => void
 
-  /**
-   * Attaches a listener to one of the life-cycle events.
-   */
-  on<EventType extends keyof WorkerLifecycleEventsMap>(
-    eventType: EventType,
-    listener: WorkerLifecycleEventsMap[EventType],
-  ): void
+  events: StrictEventEmitter<WorkerLifecycleEventsMap>
+
+  // events: {
+  //   /**
+  //    * Attaches a listener to one of the life-cycle events.
+  //    */
+  //   on<EventType extends keyof WorkerLifecycleEventsMap>(
+  //     eventType: EventType,
+  //     listener: WorkerLifecycleEventsMap[EventType],
+  //   ): void
+  // }
 }

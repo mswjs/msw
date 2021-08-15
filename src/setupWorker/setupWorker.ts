@@ -174,7 +174,6 @@ export function setupWorker(
         requestHandlers,
         ...nextHandlers,
       )
-      context.emitter.removeAllListeners()
     },
 
     printHandlers() {
@@ -203,8 +202,6 @@ export function setupWorker(
       })
     },
 
-    on(eventType, listener) {
-      context.emitter.addListener(eventType, listener)
-    },
+    events: context.emitter,
   }
 }

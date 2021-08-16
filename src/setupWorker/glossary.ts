@@ -2,9 +2,13 @@ import { Path } from 'node-match-path'
 import { PartialDeep } from 'type-fest'
 import { FlatHeadersObject } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
-import { SharedOptions } from '../sharedOptions'
+import {
+  LifeCycleEventEmitter,
+  LifeCycleEventsMap,
+  SharedOptions,
+} from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
-import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
+import { RequestHandler } from '../handlers/RequestHandler'
 import { InterceptorApi } from '@mswjs/interceptors'
 
 export type ResolvedPath = Path | URL
@@ -78,14 +82,7 @@ export type ServiceWorkerFetchEventTypes =
   | 'NETWORK_ERROR'
   | 'INTERNAL_ERROR'
 
-export interface WorkerLifecycleEventsMap {
-  'request:start': (request: MockedRequest) => void
-  'request:match': (request: MockedRequest) => void
-  'request:unhandled': (request: MockedRequest) => void
-  'request:end': (request: MockedRequest) => void
-  'response:mocked': (response: Response, requestId: string) => void
-  'response:bypass': (response: Response, requestId: string) => void
-}
+export type WorkerLifecycleEventsMap = LifeCycleEventsMap<Response>
 
 export interface SetupWorkerInternalContext {
   startOptions?: StartOptions
@@ -230,11 +227,5 @@ export interface SetupWorkerApi {
    */
   printHandlers: () => void
 
-  /**
-   * Attaches a listener to one of the life-cycle events.
-   */
-  on<EventType extends keyof WorkerLifecycleEventsMap>(
-    eventType: EventType,
-    listener: WorkerLifecycleEventsMap[EventType],
-  ): void
+  events: LifeCycleEventEmitter<WorkerLifecycleEventsMap>
 }

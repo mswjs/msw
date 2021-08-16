@@ -202,8 +202,10 @@ export function setupWorker(
       })
     },
 
-    on(eventType, listener) {
-      context.emitter.addListener(eventType, listener)
+    events: {
+      on: context.emitter.on,
+      removeListener: context.emitter.removeListener,
+      removeAllListeners: context.emitter.removeAllListeners,
     },
   }
 }

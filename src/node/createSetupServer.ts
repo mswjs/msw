@@ -128,8 +128,10 @@ ${bold(`${pragma} ${header}`)}
         })
       },
 
-      on(eventType, listener) {
-        emitter.addListener(eventType, listener)
+      events: {
+        on: emitter.on,
+        removeListener: emitter.removeListener,
+        removeAllListeners: emitter.removeAllListeners,
       },
 
       close() {

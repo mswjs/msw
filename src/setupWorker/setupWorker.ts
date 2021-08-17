@@ -4,6 +4,7 @@ import {
   SetupWorkerInternalContext,
   SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
+  WorkerLifecycleEventsMap,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
@@ -16,6 +17,7 @@ import { prepareStartHandler } from './start/utils/prepareStartHandler'
 import { createFallbackStart } from './start/createFallbackStart'
 import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '../utils/internal/devUtils'
+import { pipeEvents } from '../utils/internal/pipeEvents'
 
 interface Listener {
   target: EventTarget
@@ -54,12 +56,16 @@ export function setupWorker(
     )
   }
 
+  const emitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
+  const publicEmitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
+  pipeEvents(emitter, publicEmitter)
+
   const context: SetupWorkerInternalContext = {
     startOptions: undefined,
     worker: null,
     registration: null,
     requestHandlers: [...requestHandlers],
-    emitter: new StrictEventEmitter(),
+    emitter,
     workerChannel: {
       on(eventType, callback) {
         context.events.addListener(
@@ -159,7 +165,12 @@ export function setupWorker(
 
   return {
     start: prepareStartHandler(startHandler, context),
-    stop: stopHandler,
+    stop() {
+      context.events.removeAllListeners()
+      context.emitter.removeAllListeners()
+      publicEmitter.removeAllListeners()
+      stopHandler()
+    },
 
     use(...handlers) {
       requestHandlerUtils.use(context.requestHandlers, ...handlers)
@@ -203,9 +214,15 @@ export function setupWorker(
     },
 
     events: {
-      on: context.emitter.on,
-      removeListener: context.emitter.removeListener,
-      removeAllListeners: context.emitter.removeAllListeners,
+      on(...args) {
+        return publicEmitter.on(...args)
+      },
+      removeListener(...args) {
+        return publicEmitter.removeListener(...args)
+      },
+      removeAllListeners(...args) {
+        return publicEmitter.removeAllListeners(...args)
+      },
     },
   }
 }

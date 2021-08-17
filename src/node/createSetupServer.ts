@@ -14,6 +14,7 @@ import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
 import { handleRequest } from '../utils/handleRequest'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { devUtils } from '../utils/internal/devUtils'
+import { pipeEvents } from '../utils/internal/pipeEvents'
 
 const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
   onUnhandledRequest: 'warn',
@@ -25,6 +26,8 @@ const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
  */
 export function createSetupServer(...interceptors: Interceptor[]) {
   const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
+  const publicEmitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
+  pipeEvents(emitter, publicEmitter)
 
   return function setupServer(
     ...requestHandlers: RequestHandler[]
@@ -51,7 +54,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       )
     }
 
-    let resolvedOptions: SharedOptions = {} as SharedOptions
+    let resolvedOptions = {} as SharedOptions
 
     const interceptor = createInterceptor({
       modules: interceptors,
@@ -129,13 +132,20 @@ ${bold(`${pragma} ${header}`)}
       },
 
       events: {
-        on: emitter.on,
-        removeListener: emitter.removeListener,
-        removeAllListeners: emitter.removeAllListeners,
+        on(...args) {
+          return publicEmitter.on(...args)
+        },
+        removeListener(...args) {
+          return publicEmitter.removeListener(...args)
+        },
+        removeAllListeners(...args) {
+          return publicEmitter.removeAllListeners(...args)
+        },
       },
 
       close() {
         emitter.removeAllListeners()
+        publicEmitter.removeAllListeners()
         interceptor.restore()
       },
     }

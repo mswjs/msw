@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// prettier-ignore
 
 /**
  * Mock Service Worker (<PACKAGE_VERSION>).

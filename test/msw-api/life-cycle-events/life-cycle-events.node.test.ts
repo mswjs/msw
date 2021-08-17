@@ -29,27 +29,27 @@ function getRequestId(requestStartListener: jest.Mock) {
 beforeAll(() => {
   server.listen()
 
-  server.on('request:start', (req) => {
+  server.events.on('request:start', (req) => {
     listener(`[request:start] ${req.method} ${req.url.href} ${req.id}`)
   })
 
-  server.on('request:match', (req) => {
+  server.events.on('request:match', (req) => {
     listener(`[request:match] ${req.method} ${req.url.href} ${req.id}`)
   })
 
-  server.on('request:unhandled', (req) => {
+  server.events.on('request:unhandled', (req) => {
     listener(`[request:unhandled] ${req.method} ${req.url.href} ${req.id}`)
   })
 
-  server.on('request:end', (req) => {
+  server.events.on('request:end', (req) => {
     listener(`[request:end] ${req.method} ${req.url.href} ${req.id}`)
   })
 
-  server.on('response:mocked', (res, reqId) => {
+  server.events.on('response:mocked', (res, reqId) => {
     listener(`[response:mocked] ${res.body} ${reqId}`)
   })
 
-  server.on('response:bypass', (res, reqId) => {
+  server.events.on('response:bypass', (res, reqId) => {
     listener(`[response:bypass] ${res.headers.get('server')} ${reqId}`)
   })
 

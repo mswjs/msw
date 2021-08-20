@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { waitUntil } from '../../../support/utils'
+import { waitFor } from '../../../support/waitFor'
 
 function createRuntime() {
   return pageWith({
@@ -50,7 +50,7 @@ test('handles a stream response without throwing a timeout error', async () => {
 
   const response = await getStreamResponse()
 
-  await waitUntil(() => {
+  await waitFor(() => {
     expect(runtime.consoleSpy.get('warning')).toEqual([
       `[response:bypass] first-chunk last-chunk`,
     ])

@@ -1,4 +1,5 @@
 import { rest, setupWorker } from 'msw'
+import { ServerLifecycleEventsMap } from 'msw/src/node/glossary'
 
 const worker = setupWorker(
   rest.get('/user', (req, res, ctx) => {
@@ -21,22 +22,27 @@ worker.events.on('request:unhandled', (req) => {
   console.warn(`[request:unhandled] ${req.method} ${req.url.href} ${req.id}`)
 })
 
-worker.events.on('request:end', (req) => {
+const requestEndListner: ServerLifecycleEventsMap['request:end'] = (req) => {
   console.warn(`[request:end] ${req.method} ${req.url.href} ${req.id}`)
-})
+}
+worker.events.on('request:end', requestEndListner)
 
-worker.events.on('response:mocked', async (res, reqId) => {
+worker.events.on('response:mocked', async (res, requestId) => {
   const body = await res.text()
-  console.warn(`[response:mocked] ${body} ${reqId}`)
+  console.warn(`[response:mocked] ${body} ${requestId}`)
 })
 
-worker.events.on('response:bypass', (res, reqId) => {
-  console.warn(`[response:bypass] ${reqId}`)
+worker.events.on('response:bypass', async (res, requestId) => {
+  const body = await res.text()
+  console.warn(`[response:bypass] ${body} ${requestId}`)
 })
 
-worker.start()
+worker.start({
+  onUnhandledRequest: 'bypass',
+})
 
 // @ts-ignore
 window.msw = {
   worker,
+  requestEndListner,
 }

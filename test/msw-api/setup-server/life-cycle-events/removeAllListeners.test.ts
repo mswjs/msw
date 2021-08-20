@@ -54,7 +54,7 @@ test('removes all listeners attached to the server instance', async () => {
   expect(listeners.requestEnd).not.toHaveBeenCalled()
 })
 
-test('removes of the listeners by the event name', async () => {
+test('removes all the listeners by the event name', async () => {
   const listeners = {
     requestStart: jest.fn(),
     requestEnd: jest.fn(),

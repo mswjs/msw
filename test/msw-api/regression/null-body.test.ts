@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { sleep } from '../../../support/utils'
+import { sleep } from '../../support/utils'
 
 test('gracefully handles a 204 response null body during life-cycle events', async () => {
   let error: Error

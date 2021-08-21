@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { waitFor } from '../../../support/waitFor'
+import { waitFor } from '../../support/waitFor'
 
 function createRuntime() {
   return pageWith({

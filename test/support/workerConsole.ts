@@ -12,12 +12,12 @@ const consoleMessageTypeOverrides = {
 }
 
 /**
- * Create a designated HTTP server to propagate "console" calls from the worker script
+ * Create a designated HTTP server to propagate `console` calls from the worker script
  * to the test runtime. This allows assertions on the console messages from the worker.
  *
  * @why Service Worker lives in a separate thread and doesn't trigger
  * the Playwright's page console events. No way to access console events
- * issues in the worker.
+ * issued in the worker.
  * @see https://github.com/microsoft/playwright/issues/6559
  * @see https://stackoverflow.com/questions/54339039/puppeteer-can-not-listen-service-workers-console
  */

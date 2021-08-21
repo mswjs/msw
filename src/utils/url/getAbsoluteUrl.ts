@@ -11,5 +11,8 @@ export function getAbsoluteUrl(path: string, baseUrl?: string): string {
   // or the current location (in the case of browser/browser-like environments).
   const origin = baseUrl || (typeof location !== 'undefined' && location.origin)
 
-  return origin ? new URL(path, origin).href : path
+  return origin
+    ? // Encode and decode the path to preserve escaped characters.
+      decodeURI(new URL(encodeURI(path), origin).href)
+    : path
 }

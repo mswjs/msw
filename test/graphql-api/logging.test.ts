@@ -2,6 +2,7 @@ import * as path from 'path'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 import { pageWith } from 'page-with'
 import { gql } from '../support/graphql'
+import { waitFor } from '../support/waitFor'
 import { StatusCodeColor } from '../../src/utils/logging/getStatusCodeColor'
 
 function createRuntime() {
@@ -23,15 +24,17 @@ test('prints a log for a GraphQL query', async () => {
     `,
   })
 
-  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringMatching(
-        new RegExp(
-          `^\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetUserDetail color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+  await waitFor(() => {
+    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          new RegExp(
+            `^\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetUserDetail color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+          ),
         ),
-      ),
-    ]),
-  )
+      ]),
+    )
+  })
 })
 
 test('prints a log for a GraphQL mutation', async () => {
@@ -46,15 +49,17 @@ test('prints a log for a GraphQL mutation', async () => {
     `,
   })
 
-  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringMatching(
-        new RegExp(
-          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation Login color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+  await waitFor(() => {
+    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          new RegExp(
+            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation Login color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+          ),
         ),
-      ),
-    ]),
-  )
+      ]),
+    )
+  })
 })
 
 test('prints a log for a GraphQL query intercepted via "graphql.operation"', async () => {
@@ -69,15 +74,17 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
     `,
   })
 
-  expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringMatching(
-        new RegExp(
-          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetLatestPosts color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+  await waitFor(() => {
+    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          new RegExp(
+            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetLatestPosts color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+          ),
         ),
-      ),
-    ]),
-  )
+      ]),
+    )
+  })
 })
 
 test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async () => {
@@ -92,13 +99,15 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
     `,
   })
 
-  expect(runtime.consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringMatching(
-        new RegExp(
-          `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation CreatePost color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+  await waitFor(() => {
+    expect(runtime.consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          new RegExp(
+            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation CreatePost color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+          ),
         ),
-      ),
-    ]),
-  )
+      ]),
+    )
+  })
 })

@@ -7,7 +7,7 @@ import { WebSocketServer } from './WebSocketServer'
 export function logger(server: WebSocketServer) {
   const { mask } = server
 
-  server.addEventListener('connection', (connection) => {
+  server.addListener('connection', (connection) => {
     const { client } = connection
 
     console.groupCollapsed(`[MSW] ${getTimestamp()} WS client connected`)
@@ -33,7 +33,7 @@ export function logger(server: WebSocketServer) {
     })
   })
 
-  server.addEventListener('message', (client, data) => {
+  server.addListener('message', (client, data) => {
     console.groupCollapsed(`[MSW] ${getTimestamp()} WS outgoing message event`)
     console.log('URL:', mask)
     console.log('Data:', data)
@@ -41,7 +41,7 @@ export function logger(server: WebSocketServer) {
     console.groupEnd()
   })
 
-  server.addEventListener('close', () => {
+  server.addListener('close', () => {
     console.groupCollapsed(`[MSW] ${getTimestamp()} WS server closed`)
     console.log('URL:', mask)
     console.groupEnd()

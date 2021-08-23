@@ -1,35 +1,32 @@
 import * as path from 'path'
-import { captureConsole } from '../../support/captureConsole'
-import { runBrowserWith } from '../../support/runBrowserWith'
+import { pageWith } from 'page-with'
 
-function prepareRuntime() {
-  return runBrowserWith(path.resolve(__dirname, 'message.mocks.ts'))
+function createRuntime() {
+  return pageWith({
+    example: path.resolve(__dirname, 'message.mocks.ts'),
+  })
 }
 
 test('receives the data sent from the client', async () => {
-  const runtime = await prepareRuntime()
-  const { messages } = captureConsole(runtime.page)
+  const runtime = await createRuntime()
 
-  await runtime.reload()
-
-  const callbackMessage = messages.log.find((message) => {
-    return message === '[server] received data from client: from-client'
-  })
-  expect(callbackMessage).toBeTruthy()
-
-  return runtime.cleanup()
+  expect(runtime.consoleSpy.get('log')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining(
+        '[server] received data from client: from-client',
+      ),
+    ]),
+  )
 })
 
-test('logs out the outgoing WebSocket message event ', async () => {
-  const runtime = await prepareRuntime()
-  const { messages } = captureConsole(runtime.page)
+test('logs the outgoing WebSocket message event ', async () => {
+  const runtime = await createRuntime()
 
-  await runtime.reload()
-
-  const outgoingMessageLog = messages.startGroupCollapsed.find((message) => {
-    return /^\[MSW\] \d{2}:\d{2}:\d{2} WS incoming message event$/.test(message)
-  })
-  expect(outgoingMessageLog).toBeTruthy()
-
-  return runtime.cleanup()
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /^\[MSW\] \d{2}:\d{2}:\d{2} WS incoming message event$/,
+      ),
+    ]),
+  )
 })

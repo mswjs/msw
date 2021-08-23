@@ -13,9 +13,9 @@ export interface WebSocketServerEventMap {
   /**
    * Handle a new connection to a WebSocket client has been established.
    */
-  connection: (ws: WebSocketConnection) => any
+  connection: (ws: WebSocketConnection) => void
 
-  message: (ws: WebSocket, data: WebSocketMessageData) => any
+  message: (ws: WebSocket, data: WebSocketMessageData) => void
 
   /**
    * Handle an error on the server.
@@ -25,19 +25,19 @@ export interface WebSocketServerEventMap {
   /**
    * Handle a WebSocket server being closed.
    */
-  close: () => any
+  close: () => void
 }
 
 export interface WebSocketConnectionEventMap {
   /**
    * Handle a message from a WebSocket client has been received.
    */
-  message: (data: WebSocketMessageData) => any
+  message: (data: WebSocketMessageData) => void
 
   /**
    * Handle a WebSocket connection being closed.
    */
-  close: (code: number, reason: string) => any
+  close: (code: number, reason: string) => void
 }
 
 export interface WebSocketLinkOptions {

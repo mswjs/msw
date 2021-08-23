@@ -3,12 +3,8 @@
  */
 import { ws } from 'msw'
 
-const server = ws.link('wss://mswjs.io/ws', {
-  quiet: true,
-})
-
-async function createClient(url: string) {
-  const client = new WebSocket('wss://mswjs.io/ws')
+async function createWebSocketClient(url: string) {
+  const client = new WebSocket(url)
 
   await new Promise((resolve, reject) => {
     client.addEventListener('open', resolve)
@@ -18,9 +14,11 @@ async function createClient(url: string) {
   return client
 }
 
-beforeAll(() => {
-  jest.spyOn(global.console, 'log').mockImplementation()
+const server = ws.link('wss://example.com', {
+  quiet: true,
+})
 
+beforeAll(() => {
   server.on('connection', (ws) => {
     ws.on('message', (data) => {
       console.log('[server] incoming:', data)
@@ -34,32 +32,35 @@ afterAll(() => {
   server.close()
 })
 
-test('sends text to the server', async () => {
-  const client = await createClient('wss://mswjs.io/ws')
+test.skip('sends text to the server', async () => {
+  const client = await createWebSocketClient('wss://example.com')
   client.send('abc-123')
 
-  expect(console.log).toBeCalledWith('[server] incoming:', 'abc-123')
+  expect(console.log).toHaveBeenCalledWith('[server] incoming:', 'abc-123')
 })
 
-test('sends ArrayBuffer to the server', async () => {
-  const client = await createClient('wss://mswjs.io/ws')
+test.skip('sends ArrayBuffer to the server', async () => {
+  const client = await createWebSocketClient('wss://example.com')
   client.send(new ArrayBuffer(2))
 
-  expect(console.log).toBeCalledWith('[server] incoming:', new ArrayBuffer(2))
+  expect(console.log).toHaveBeenCalledWith(
+    '[server] incoming:',
+    new ArrayBuffer(2),
+  )
 })
 
-test('sends Blob to the server', async () => {
-  const client = await createClient('wss://mswjs.io/ws')
+test.skip('sends Blob to the server', async () => {
+  const client = await createWebSocketClient('wss://example.com')
   client.send(new Blob(['abc-123']))
 
-  expect(console.log).toBeCalledWith(
+  expect(console.log).toHaveBeenCalledWith(
     '[server] incoming:',
     new Blob(['abc-123']),
   )
 })
 
-test('receives data from the server', async () => {
-  const client = await createClient('wss://mswjs.io/ws')
+test.skip('receives data from the server', async () => {
+  const client = await createWebSocketClient('wss://mswjs.io/ws')
 
   let serverData: string
   const handleMessageFromServer = (event: MessageEvent) => {
@@ -69,5 +70,5 @@ test('receives data from the server', async () => {
   client.addEventListener('message', handleMessageFromServer)
   client.send('abc-123')
 
-  expect(serverData).toBe('hello from server')
+  expect(serverData).toEqual('hello from server')
 })

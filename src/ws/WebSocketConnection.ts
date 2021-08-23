@@ -3,7 +3,8 @@ import { WebSocketConnectionEventMap, WebSocketMessageData } from './glossary'
 import { WebSocketServer } from './WebSocketServer'
 
 export class WebSocketConnection {
-  client: WebSocket
+  public client: WebSocket
+
   private server: WebSocketServer
   private emitter: EventEmitter
 
@@ -48,28 +49,28 @@ export class WebSocketConnection {
   /**
    * Handles events from the WebSocket client.
    */
-  on<EventType extends keyof WebSocketConnectionEventMap>(
+  public on<EventType extends keyof WebSocketConnectionEventMap>(
     eventType: EventType,
     listener: WebSocketConnectionEventMap[EventType],
-  ) {
+  ): void {
     this.emitter.addListener(eventType, listener)
   }
 
-  emit<EventType extends keyof WebSocketConnectionEventMap>(
+  public emit<EventType extends keyof WebSocketConnectionEventMap>(
     eventType: EventType,
     ...args: Parameters<WebSocketConnectionEventMap[EventType]>
-  ) {
+  ): void {
     this.emitter.emit(eventType, ...args)
   }
 
   /**
    * Sends data to the WebSocket client.
    */
-  send(data: WebSocketMessageData) {
+  public send(data: WebSocketMessageData): void {
     this.server.sendToClient(this.client, data)
   }
 
-  terminate() {
+  public terminate(): void {
     this.client.close()
     this.emitter.removeAllListeners()
   }

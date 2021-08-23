@@ -2,10 +2,7 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { WebSocketLinkOptions, WebSocketServerEventMap } from './glossary'
 import { logger } from './logger'
 import { WebSocketServer } from './WebSocketServer'
-import {
-  MSW_WEBSOCKET_OVERRIDE_FLAG,
-  setupWebSocketEnvironment,
-} from './ws-env'
+import { setupWebSocketEnvironment } from './ws-env'
 
 // Create a broadcast channel that synchronizes events originated from a single tab
 // across multiple tabs of the same origin.
@@ -14,8 +11,7 @@ export const channel =
     ? undefined
     : new BroadcastChannel('ws-channel')
 
-// @ts-ignore
-if (!WebSocket[MSW_WEBSOCKET_OVERRIDE_FLAG]) {
+if (!window.WebSocket.__mswOverride) {
   setupWebSocketEnvironment()
 }
 
@@ -26,7 +22,7 @@ const WEBSOCKET_LINK_DEFAULT_OPTIONS: WebSocketLinkOptions = {
 export const ws = {
   /**
    * Creates a WebSocket server that can intercept any client-side events
-   * to the given URL and dispatch events to all subscribed clients.
+   * to the given URL and send events to all subscribed clients.
    */
   link(mask: string, options?: WebSocketLinkOptions) {
     const server = new WebSocketServer(mask, channel)
@@ -36,7 +32,7 @@ export const ws = {
       options || {},
     ) as WebSocketLinkOptions
 
-    // Attach logging to events.
+    // Events logger.
     if (!resolvedOptions.quiet) {
       logger(server)
     }
@@ -53,11 +49,11 @@ export const ws = {
         eventType: EventType,
         listener: WebSocketServerEventMap[EventType],
       ) {
-        server.addEventListener(eventType, listener)
+        server.addListener(eventType, listener)
       },
 
       /**
-       * Closes a WebSocket server, preventing it from sending or receiving events.
+       * Closes a WebSocket server so it can no longer receive or send events.
        */
       close() {
         server.close()

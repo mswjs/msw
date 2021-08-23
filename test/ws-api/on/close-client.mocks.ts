@@ -1,6 +1,6 @@
 import { ws } from 'msw'
 
-const server = ws.link('wss://api.mswjs.io')
+const server = ws.link('wss://example.com')
 
 server.on('connection', (ws) => {
   ws.on('close', (code, reason) => {
@@ -10,7 +10,7 @@ server.on('connection', (ws) => {
   })
 })
 
-const client = new WebSocket('wss://api.mswjs.io')
+const client = new WebSocket('wss://example.com')
 
 client.addEventListener('close', () => {
   console.log('[client] closed')

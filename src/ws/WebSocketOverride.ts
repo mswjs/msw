@@ -1,12 +1,12 @@
+import { WebSocketServer } from './WebSocketServer'
+import { WebSocketConnection } from './WebSocketConnection'
 import { webSocketStorage } from './WebSocketStorage'
 import { createCloseEvent } from './utils/createCloseEvent'
 import { getDataLength } from './utils/getDataLength'
-import { WebSocketServer } from './WebSocketServer'
-import { WebSocketConnection } from './WebSocketConnection'
 import { WebSocketMessageData } from './glossary'
 
 export class WebSocketOverride extends EventTarget implements WebSocket {
-  private _realSocket: WebSocket | null = null
+  private _originalSocket?: WebSocket
   private _server: WebSocketServer = null as any
   private _connection: WebSocketConnection = null as any
 
@@ -39,7 +39,7 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
     const urlRecord = new URL(url)
 
     // Validate WebSocket URL protocol.
-    if (!['wss:', 'ws:'].includes(urlRecord.protocol)) {
+    if (urlRecord.protocol !== 'wss:' && urlRecord.protocol !== 'ws:') {
       throw new Error(
         `SyntaxError: Failed to construct 'WebSocket': The URL's scheme must be either 'ws' or 'wss'. '${urlRecord.protocol}' is not allowed.`,
       )
@@ -58,24 +58,23 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
      * @todo This constructor is not finished.
      */
 
-    // Look up if there is a WebSocket link created to intercept
-    // events to this WebSocket URL.
+    // Find a relevant "ws" mock server created with MSW
+    // that should control this particular client connection.
     const server = webSocketStorage.findServer(url)
 
     if (!server) {
       // Create an actual WebSocket instance.
-      const UnpatchedWebSocket = (window as any)
-        .UnpatchedWebSocket as typeof WebSocket
-      this._realSocket = new UnpatchedWebSocket(url, protocols)
+      const OriginalWebSocket = window.OriginalWebSocket
+      this._originalSocket = new OriginalWebSocket(url, protocols)
 
       // Return the actual WebSocket instance for clients to continue
       // operate with it, instead of the override instance.
-      return this._realSocket as any
+      return this._originalSocket as WebSocketOverride
     }
 
     this._server = server
 
-    setImmediate(() => {
+    setTimeout(() => {
       // Signal the server that a new client has connected.
       this._connection = new WebSocketConnection(this, this._server)
       this._server.emit('connection', this._connection)
@@ -88,7 +87,7 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
       })
 
       this.dispatchEvent(openEvent)
-    })
+    }, 0)
   }
 
   get url() {
@@ -175,13 +174,16 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
     }
   }
 
-  send(data: WebSocketMessageData) {
-    if ([WebSocket.CONNECTING].includes(this.readyState)) {
+  public send(data: WebSocketMessageData): void {
+    if (this.readyState === WebSocket.CONNECTING) {
       this.close()
       throw new Error('InvalidStateError')
     }
 
-    if ([WebSocket.CLOSING, WebSocket.CLOSED].includes(this.readyState)) {
+    if (
+      this.readyState === WebSocket.CLOSING ||
+      this.readyState === WebSocket.CLOSED
+    ) {
       const dataLength = getDataLength(data)
       this._bufferedAmount += dataLength
       return
@@ -192,7 +194,7 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
     this._connection.emit('message', data)
   }
 
-  close(code = 1000, reason?: string) {
+  public close(code = 1000, reason?: string): void {
     if (!code || !(code === 1000 || (code >= 3000 && code < 5000))) {
       throw new Error(
         'InvalidAccessError: close code out of user configurable range',
@@ -205,7 +207,7 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
 
     this._readyState = WebSocket.CLOSING
 
-    setImmediate(() => {
+    setTimeout(() => {
       this._readyState = WebSocket.CLOSED
 
       const closeEvent = createCloseEvent({
@@ -219,6 +221,6 @@ export class WebSocketOverride extends EventTarget implements WebSocket {
       // Dispatch the "close" event to the WebSocket server
       // to notify about a closing client.
       this._connection.emit('close', code, reason || '')
-    })
+    }, 0)
   }
 }

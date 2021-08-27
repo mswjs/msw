@@ -1,5 +1,4 @@
 import { DocumentNode, OperationTypeNode } from 'graphql'
-import { Path } from 'node-match-path'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { set } from '../context/set'
 import { status } from '../context/status'
@@ -17,7 +16,7 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { prepareRequest } from '../utils/logging/prepareRequest'
 import { prepareResponse } from '../utils/logging/prepareResponse'
-import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
+import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,

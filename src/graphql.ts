@@ -1,5 +1,4 @@
 import { DocumentNode } from 'graphql'
-import { Path } from 'node-match-path'
 import { ResponseResolver } from './handlers/RequestHandler'
 import {
   GraphQLHandler,
@@ -9,6 +8,7 @@ import {
   ExpectedOperationTypeNode,
   GraphQLHandlerNameSelector,
 } from './handlers/GraphQLHandler'
+import { Path } from './utils/matching/matchRequestUrl'
 
 export interface TypedDocumentNode<
   Result = { [key: string]: any },

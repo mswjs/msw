@@ -73,7 +73,7 @@ describe('parse', () => {
 
     expect(handler.parse(request)).toEqual({
       matches: false,
-      params: null,
+      params: {},
     })
   })
 })

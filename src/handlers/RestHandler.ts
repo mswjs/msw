@@ -1,4 +1,3 @@
-import { Match, Path } from 'node-match-path'
 import {
   body,
   cookie,
@@ -18,7 +17,12 @@ import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { prepareRequest } from '../utils/logging/prepareRequest'
 import { prepareResponse } from '../utils/logging/prepareResponse'
-import { matchRequestUrl } from '../utils/matching/matchRequestUrl'
+import {
+  Match,
+  matchRequestUrl,
+  Path,
+  PathParams,
+} from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
@@ -79,7 +83,7 @@ export type RequestQuery = {
 
 export interface RestRequest<
   BodyType extends DefaultRequestBody = DefaultRequestBody,
-  ParamsType extends RequestParams = Record<string, any>,
+  ParamsType extends RequestParams = PathParams,
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }

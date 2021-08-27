@@ -1,4 +1,4 @@
-import { Path } from 'node-match-path'
+import type { Path } from './matchRequestUrl'
 import { cleanUrl } from '../url/cleanUrl'
 import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
 

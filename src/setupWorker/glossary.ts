@@ -1,4 +1,3 @@
-import { Path } from 'node-match-path'
 import { PartialDeep } from 'type-fest'
 import { FlatHeadersObject } from 'headers-utils'
 import { StrictEventEmitter } from 'strict-event-emitter'
@@ -10,6 +9,7 @@ import {
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { InterceptorApi } from '@mswjs/interceptors'
+import { Path } from '../utils/matching/matchRequestUrl'
 
 export type ResolvedPath = Path | URL
 
@@ -114,10 +114,10 @@ export interface SetupWorkerInternalContext {
      * Adds an event listener on the given target.
      * Returns a clean-up function that removes that listener.
      */
-    addListener<E extends Event>(
+    addListener<EventType extends Event = Event>(
       target: EventTarget,
       eventType: string,
-      listener: (event: E) => void,
+      listener: (event: EventType) => void,
     ): () => void
     /**
      * Removes all currently attached listeners.

@@ -79,7 +79,7 @@
     "is-node-process": "^1.0.1",
     "js-levenshtein": "^1.1.6",
     "node-fetch": "^2.6.1",
-    "node-match-path": "^0.6.3",
+    "path-to-regexp": "^6.2.0",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",
     "type-fest": "^1.2.2",

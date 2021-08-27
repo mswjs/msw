@@ -1,4 +1,3 @@
-import { Path } from 'node-match-path'
 import { DefaultRequestBody, ResponseResolver } from './handlers/RequestHandler'
 import {
   RESTMethods,
@@ -7,6 +6,7 @@ import {
   RestRequest,
   RequestParams,
 } from './handlers/RestHandler'
+import { Path } from './utils/matching/matchRequestUrl'
 
 function createRestHandler(method: RESTMethods) {
   return <

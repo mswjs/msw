@@ -2,32 +2,46 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
+import { createServer, ServerApi } from '@open-draft/test-server'
 import { setupServer } from 'msw/node'
 import { rest } from 'msw'
 
-const server = setupServer(
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
-  }),
-)
+let httpServer: ServerApi
+const server = setupServer()
 
-beforeAll(() => {
+beforeAll(async () => {
+  httpServer = await createServer((app) => {
+    app.get('/', (req, res) => {
+      res.send('root')
+    })
+    app.get('/user', (req, res) => {
+      res.json({ firstName: 'Miranda' })
+    })
+  })
+
+  server.use(
+    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
+      return res(ctx.json({ firstName: 'John' }))
+    }),
+  )
+  server.listen({ onUnhandledRequest: 'bypass' })
+
   jest.spyOn(global.console, 'error').mockImplementation()
   jest.spyOn(global.console, 'warn').mockImplementation()
-
-  server.listen({ onUnhandledRequest: 'bypass' })
 })
 
-afterAll(() => {
-  server.close()
+afterAll(async () => {
   jest.restoreAllMocks()
+  server.close()
+  await httpServer.close()
 })
 
 test('bypasses unhandled requests', async () => {
-  const res = await fetch('https://test.mswjs.io')
+  const res = await fetch(httpServer.http.makeUrl('/'))
 
   // Request should be performed as-is
-  expect(res).toHaveProperty('status', 404)
+  expect(res.status).toEqual(200)
+  expect(await res.text()).toEqual('root')
 
   // No warnings/errors should be printed
   expect(console.error).not.toBeCalled()

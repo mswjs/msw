@@ -20,6 +20,7 @@ const server = setupServer(
 )
 
 beforeAll(() => {
+  // Supress the "Expeted mocking resolver function to return a mocked response" warnings.
   jest.spyOn(global.console, 'warn').mockImplementation()
   server.listen()
 })
@@ -36,20 +37,18 @@ test('falls through all relevant request handlers until response is returned', a
   expect(body).toEqual({
     firstName: 'John',
   })
-
   expect(log).toBeCalledWith('[get] first')
   expect(log).toBeCalledWith('[get] second')
   expect(log).not.toBeCalledWith('[get] third')
 })
 
-test('falls through all relevant handler even if none returns response', async () => {
+test('falls through all relevant handlers even if none return response', async () => {
   const res = await fetch('https://test.mswjs.io/blog/article', {
     method: 'POST',
   })
   const { status } = res
 
   expect(status).toBe(404)
-
   expect(log).toBeCalledWith('[post] first')
   expect(log).toBeCalledWith('[post] second')
 })

@@ -1,6 +1,6 @@
 import * as path from 'path'
-import { match } from 'node-match-path'
 import { pageWith } from 'page-with'
+import { matchRequestUrl } from 'msw'
 
 function createRuntime() {
   return pageWith({
@@ -18,9 +18,7 @@ function createRuntime() {
       })
 
       app.post('/headers-proxy', (req, res) => {
-        const { authorization } = req.headers
-
-        if (!authorization) {
+        if (!req.headers.authorization) {
           return res.status(403).json({ message: 'error' }).end()
         }
 
@@ -73,7 +71,8 @@ test('bypasses the original request when it equals the mocked request', async ()
       return (
         // Await the response from MSW so that the original response
         // from the same URL would not interfere.
-        match(url, res.url()).matches && res.headers()['x-powered-by'] === 'msw'
+        matchRequestUrl(new URL(url), res.url()).matches &&
+        res.headers()['x-powered-by'] === 'msw'
       )
     },
   )
@@ -121,7 +120,7 @@ test('supports patching a HEAD request', async () => {
     },
     (res, url) => {
       return (
-        match(runtime.makeUrl(url), res.url()).matches &&
+        matchRequestUrl(new URL(runtime.makeUrl(url)), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
@@ -150,7 +149,7 @@ test('supports patching a GET request', async () => {
     },
     (res, url) => {
       return (
-        match(runtime.makeUrl(url), res.url()).matches &&
+        matchRequestUrl(new URL(runtime.makeUrl(url)), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },
@@ -182,7 +181,7 @@ test('supports patching a POST request', async () => {
     },
     (res, url) => {
       return (
-        match(runtime.makeUrl(url), res.url()).matches &&
+        matchRequestUrl(new URL(runtime.makeUrl(url)), res.url()).matches &&
         res.headers()['x-powered-by'] === 'msw'
       )
     },

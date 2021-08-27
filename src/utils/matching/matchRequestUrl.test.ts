@@ -1,12 +1,14 @@
 /**
  * @jest-environment jsdom
  */
-import { matchRequestUrl } from './matchRequestUrl'
+import { coercePath, matchRequestUrl } from './matchRequestUrl'
 
 test('returns true when matched against a wildcard', () => {
   const match = matchRequestUrl(new URL('https://test.mswjs.io'), '*')
   expect(match).toHaveProperty('matches', true)
-  expect(match).toHaveProperty('params', null)
+  expect(match).toHaveProperty('params', {
+    '0': 'https://test.mswjs.io/',
+  })
 })
 
 test('returns true when matches against an exact URL', () => {
@@ -15,7 +17,7 @@ test('returns true when matches against an exact URL', () => {
     'https://test.mswjs.io',
   )
   expect(match).toHaveProperty('matches', true)
-  expect(match).toHaveProperty('params', null)
+  expect(match).toHaveProperty('params', {})
 })
 
 test('returns true when matched against a RegExp', () => {
@@ -24,7 +26,7 @@ test('returns true when matched against a RegExp', () => {
     /test\.mswjs\.io/,
   )
   expect(match).toHaveProperty('matches', true)
-  expect(match).toHaveProperty('params', null)
+  expect(match).toHaveProperty('params', {})
 })
 
 test('returns request parameters when matched', () => {
@@ -44,5 +46,33 @@ test('returns false when does not match against the request URL', () => {
     'https://google.com',
   )
   expect(match).toHaveProperty('matches', false)
-  expect(match).toHaveProperty('params', null)
+  expect(match).toHaveProperty('params', {})
+})
+
+describe('coercePath', () => {
+  test('escapes semicolor in a protocol', () => {
+    expect(coercePath('https://example.com')).toEqual('https\\://example.com')
+    expect(coercePath('https://example.com/:userId')).toEqual(
+      'https\\://example.com/:userId',
+    )
+    expect(coercePath('http://localhost:3000')).toEqual(
+      'http\\://localhost:3000',
+    )
+  })
+
+  test('replaces wildcard with an unnnamed capturing group', () => {
+    expect(coercePath('*')).toEqual('(.*)')
+    expect(coercePath('**')).toEqual('(.*)')
+    expect(coercePath('/user/*')).toEqual('/user/(.*)')
+    expect(coercePath('https://example.com/user/*')).toEqual(
+      'https\\://example.com/user/(.*)',
+    )
+  })
+
+  test('preserves "*" parameter modifier', () => {
+    expect(coercePath(':name*')).toEqual(':name*')
+    expect(coercePath('/foo/:name*')).toEqual('/foo/:name*')
+    expect(coercePath('/foo/**:name*')).toEqual('/foo/(.*):name*')
+    expect(coercePath('**/foo/*/:name*')).toEqual('(.*)/foo/(.*)/:name*')
+  })
 })

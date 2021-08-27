@@ -48,7 +48,12 @@ export {
 } from './handlers/GraphQLHandler'
 
 /* Utils */
-export { matchRequestUrl } from './utils/matching/matchRequestUrl'
+export {
+  Path,
+  PathParams,
+  Match,
+  matchRequestUrl,
+} from './utils/matching/matchRequestUrl'
 export { compose } from './utils/internal/compose'
 export { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'

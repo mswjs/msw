@@ -146,7 +146,7 @@ test('returns the mocked response for a request with a matching request handler'
     handler: handlers[0],
     response: mockedResponse,
     publicRequest: { ...request, params: {} },
-    parsedRequest: { matches: true, params: null },
+    parsedRequest: { matches: true, params: {} },
   }
 
   const result = await handleRequest(
@@ -194,7 +194,7 @@ test('returns a transformed response if the "transformResponse" option is provid
     handler: handlers[0],
     response: mockedResponse,
     publicRequest: { ...request, params: {} },
-    parsedRequest: { matches: true, params: null },
+    parsedRequest: { matches: true, params: {} },
   }
 
   const result = await handleRequest(request, handlers, options, emitter, {

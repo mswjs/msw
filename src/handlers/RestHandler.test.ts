@@ -89,6 +89,25 @@ describe('predicate', () => {
     expect(handler.predicate(request, handler.parse(request))).toBe(true)
   })
 
+  test('respects RegExp as the request method', () => {
+    const handler = new RestHandler(/.+/, '/login', resolver)
+    const requests = [
+      createMockedRequest({ url: new URL('/login', location.href) }),
+      createMockedRequest({
+        method: 'POST',
+        url: new URL('/login', location.href),
+      }),
+      createMockedRequest({
+        method: 'DELETE',
+        url: new URL('/login', location.href),
+      }),
+    ]
+
+    for (const request of requests) {
+      expect(handler.predicate(request, handler.parse(request))).toBe(true)
+    }
+  })
+
   test('returns false given a non-matching request', () => {
     const handler = new RestHandler('POST', '/login', resolver)
     const request = createMockedRequest({

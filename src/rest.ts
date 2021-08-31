@@ -8,7 +8,7 @@ import {
 } from './handlers/RestHandler'
 import { Path } from './utils/matching/matchRequestUrl'
 
-function createRestHandler(method: RESTMethods) {
+function createRestHandler(method: RESTMethods | RegExp) {
   return <
     RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
     ResponseBody extends DefaultRequestBody = any,
@@ -26,6 +26,7 @@ function createRestHandler(method: RESTMethods) {
 }
 
 export const rest = {
+  all: createRestHandler(/.+/),
   head: createRestHandler(RESTMethods.HEAD),
   get: createRestHandler(RESTMethods.GET),
   post: createRestHandler(RESTMethods.POST),

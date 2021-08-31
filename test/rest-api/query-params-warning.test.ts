@@ -7,23 +7,8 @@ test('warns when a request handler URL contains query parameters', async () => {
   })
 
   expect(consoleSpy.get('warning')).toEqual([
-    `\
-[MSW] Found a redundant usage of query parameters in the request handler URL for "GET /user?name=admin". Please match against a path instead, and access query parameters in the response resolver function:
-
-rest.get("/user", (req, res, ctx) => {
-  const query = req.url.searchParams
-  const name = query.get("name")
-})\
-`,
-    `\
-[MSW] Found a redundant usage of query parameters in the request handler URL for "POST /login?id=123&type=auth". Please match against a path instead, and access query parameters in the response resolver function:
-
-rest.post("/login", (req, res, ctx) => {
-  const query = req.url.searchParams
-  const id = query.get("id")
-  const type = query.get("type")
-})\
-`,
+    `[MSW] Found a redundant usage of query parameters in the request handler URL for "GET /user?name=admin". Please match against a path instead and access query parameters in the response resolver function using "req.url.searchParams".`,
+    `[MSW] Found a redundant usage of query parameters in the request handler URL for "POST /login?id=123&type=auth". Please match against a path instead and access query parameters in the response resolver function using "req.url.searchParams".`,
   ])
 
   await request('/user?name=admin').then(async (res) => {

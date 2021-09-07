@@ -67,6 +67,14 @@ const LOGIN = `
     }
   }
 `
+const UNNAMED_QUERY = `
+  query {
+    unnamedQuery {
+      query
+      variables
+    }
+  }
+`
 
 describe('info', () => {
   test('exposes request handler information for query', () => {
@@ -296,6 +304,15 @@ describe('predicate', () => {
     expect(handler.predicate(alienRequest, handler.parse(alienRequest))).toBe(
       false,
     )
+  })
+
+  test('respects graphql.operation endpoint', () => {
+    const handler = new GraphQLHandler('all', new RegExp('.*'), '*', resolver)
+    const request = createPostGraphQLRequest({
+      query: UNNAMED_QUERY,
+    })
+
+    expect(handler.predicate(request, handler.parse(request))).toBe(true)
   })
 
   test('respects custom endpoint', () => {

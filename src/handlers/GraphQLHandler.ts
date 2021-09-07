@@ -162,7 +162,7 @@ export class GraphQLHandler<
       return false
     }
 
-    if (!parsedResult.operationName) {
+    if (!parsedResult.operationName && this.info.operationType !== 'all') {
       const publicUrl = getPublicUrlFromRequest(request)
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": unnamed GraphQL operations are not supported.
@@ -176,9 +176,10 @@ Consider naming this operation or using "graphql.operation" request handler to i
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       parsedResult.operationType === this.info.operationType
+
     const hasMatchingOperationName =
       this.info.operationName instanceof RegExp
-        ? this.info.operationName.test(parsedResult.operationName)
+        ? this.info.operationName.test(parsedResult.operationName || '')
         : parsedResult.operationName === this.info.operationName
 
     return (
@@ -197,11 +198,14 @@ Consider naming this operation or using "graphql.operation" request handler to i
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
     const statusColor = getStatusCodeColor(response.status)
+    const requestInfo = parsedRequest?.operationName
+      ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`
+      : `unnamed ${parsedRequest?.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s (%c%s%c)'),
       getTimestamp(),
-      `${parsedRequest?.operationType} ${parsedRequest?.operationName}`,
+      `${requestInfo}`,
       `color:${statusColor}`,
       `${response.status} ${response.statusText}`,
       'color:inherit',

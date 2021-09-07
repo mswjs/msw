@@ -43,9 +43,52 @@ test('intercepts and mocks a GraphQL query', async () => {
       },
     },
   })
+
   expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} query GetUser 200 OK/),
+    ]),
+  )
+})
+
+test('intercepts and mocks an unnamed GraphQL query', async () => {
+  const runtime = await createRuntime()
+  const UNNAMED_QUERY = gql`
+    query {
+      unnamedQuery {
+        query
+        variables
+      }
+    }
+  `
+
+  const res = await executeGraphQLQuery(runtime.page, {
+    query: UNNAMED_QUERY,
+    variables: {
+      id: 'abc-123',
+    },
+  })
+
+  expect(runtime.consoleSpy.get('warning')).toBeUndefined()
+
+  expect(res.status()).toEqual(200)
+
+  const headers = res.headers()
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+
+  const body = await res.json()
+  expect(body).toEqual({
+    data: {
+      query: UNNAMED_QUERY,
+      variables: {
+        id: 'abc-123',
+      },
+    },
+  })
+
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} unnamed query 200 OK/),
     ]),
   )
 })

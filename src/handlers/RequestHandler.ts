@@ -120,7 +120,7 @@ export abstract class RequestHandler<
     this.ctx = options.ctx || defaultContext
     this.resolver = options.resolver
 
-    const callFrame = getCallFrame()
+    const callFrame = getCallFrame(new Error())
 
     this.info = {
       ...options.info,

@@ -126,10 +126,14 @@ test('returns undefined and warns on a request handler that returns no response'
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 
-  expect(console.warn).toHaveBeenNthCalledWith(
-    1,
-    '[MSW] Expected a mocking resolver function to return a mocked response Object, but got: undefined. Original response is going to be used instead.',
+  expect(console.warn).toHaveBeenCalledTimes(1)
+  const warning = (console.warn as unknown as jest.SpyInstance).mock.calls[0][0]
+
+  expect(warning).toContain(
+    '[MSW] Expected response resolver to return a mocked response Object, but got undefined. The original response is going to be used instead.',
   )
+  expect(warning).toContain('GET /user')
+  expect(warning).toMatch(/\d+:\d+/)
 })
 
 test('returns the mocked response for a request with a matching request handler', async () => {

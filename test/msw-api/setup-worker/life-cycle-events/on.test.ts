@@ -65,7 +65,7 @@ test('emits events for a handled request with no response', async () => {
   expect(runtime.consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
     expect.stringContaining(
-      '[MSW] Expected a mocking resolver function to return a mocked response',
+      '[MSW] Expected response resolver to return a mocked response Object',
     ),
     `[request:end] POST ${url} ${requestId}`,
     `[response:bypass] original-response ${requestId}`,

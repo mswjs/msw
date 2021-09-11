@@ -86,8 +86,15 @@ export async function handleRequest<
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {
     devUtils.warn(
-      'Expected a mocking resolver function to return a mocked response Object, but got: %s. Original response is going to be used instead.',
+      `\
+Expected response resolver to return a mocked response Object, but got %s. The original response is going to be used instead.\
+\n
+  \u2022 %s
+    %s\
+`,
       response,
+      handler.info.header,
+      handler.info.callFrame,
     )
 
     emitter.emit('request:end', request)

@@ -34,7 +34,7 @@ const buildEsm = {
     'src/graphql.ts',
     'src/context/index.ts',
   ],
-  external: ['debug'],
+  external: ['debug', /@mswjs\/interceptors/],
   output: {
     format: 'esm',
     entryFileNames: '[name].js',

@@ -1,6 +1,6 @@
 import { Page, Response } from 'page-with'
 
-export const HOSTNAME = 'http://localhost:8080/graphql'
+export const GRAPHQL_TEST_URL = 'http://localhost:8080/graphql'
 
 /**
  * Standalone GraphQL operations dispatcher.
@@ -39,7 +39,12 @@ export const executeGraphQLQuery = async (
   payload: GraphQLRequestPayload,
   options?: GraphQLOperationOptions,
 ) => {
-  const { uri = HOSTNAME, method = 'POST', map, fileContents } = options || {}
+  const {
+    uri = GRAPHQL_TEST_URL,
+    method = 'POST',
+    map,
+    fileContents,
+  } = options || {}
   const { query, variables } = payload
   const url = new URL(uri)
 

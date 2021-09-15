@@ -28,7 +28,7 @@ const integrityPluginOptions = {
  * (and any relative paths under these packages).
  * @see https://github.com/mswjs/interceptors/issues/52
  */
-const mswjsRegex = /^@mswjs\/(interceptors|cookies)/
+const ecosystemDependencies = /^@mswjs\/(interceptors|cookies)/
 
 /**
  * Configuration for the ESM build.
@@ -41,7 +41,7 @@ const buildEsm = {
     'src/graphql.ts',
     'src/context/index.ts',
   ],
-  external: ['debug', mswjsRegex],
+  external: ['debug', ecosystemDependencies],
   output: {
     format: 'esm',
     entryFileNames: '[name].js',
@@ -111,7 +111,7 @@ const buildNode = {
     'tty',
     'os',
     'timers',
-    mswjsRegex,
+    ecosystemDependencies,
   ],
   output: {
     format: 'cjs',
@@ -142,7 +142,7 @@ const buildNode = {
  */
 const buildNative = {
   input: 'src/native/index.ts',
-  external: ['chalk', 'util', 'events', mswjsRegex],
+  external: ['chalk', 'util', 'events', ecosystemDependencies],
   output: {
     file: 'native/lib/index.js',
     format: 'cjs',

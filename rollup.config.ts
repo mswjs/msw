@@ -24,6 +24,13 @@ const integrityPluginOptions = {
 }
 
 /**
+ * Exclude @mswjs/interceptors and @mswjw/cookies
+ * (and any relative paths under these packages).
+ * @see https://github.com/mswjs/interceptors/issues/52
+ */
+const mswjsRegex = /^@mswjs\/(interceptors|cookies)/
+
+/**
  * Configuration for the ESM build.
  */
 const buildEsm = {
@@ -34,7 +41,7 @@ const buildEsm = {
     'src/graphql.ts',
     'src/context/index.ts',
   ],
-  external: ['debug', /@mswjs\/interceptors/],
+  external: ['debug', mswjsRegex],
   output: {
     format: 'esm',
     entryFileNames: '[name].js',
@@ -104,13 +111,7 @@ const buildNode = {
     'tty',
     'os',
     'timers',
-    '@mswjs/interceptors',
-    /**
-     * Exclude Node.js request interceptors from being compiled.
-     * @see https://github.com/mswjs/interceptors/issues/52
-     */
-    '@mswjs/interceptors/lib/interceptors/ClientRequest',
-    '@mswjs/interceptors/lib/interceptors/XMLHttpRequest',
+    mswjsRegex,
   ],
   output: {
     format: 'cjs',
@@ -141,18 +142,7 @@ const buildNode = {
  */
 const buildNative = {
   input: 'src/native/index.ts',
-  external: [
-    'chalk',
-    'util',
-    'events',
-    '@mswjs/interceptors',
-    /**
-     * Exclude Node.js request interceptors from being compiled.
-     * @see https://github.com/mswjs/interceptors/issues/52
-     */
-    '@mswjs/interceptors/lib/interceptors/ClientRequest',
-    '@mswjs/interceptors/lib/interceptors/XMLHttpRequest',
-  ],
+  external: ['chalk', 'util', 'events', mswjsRegex],
   output: {
     file: 'native/lib/index.js',
     format: 'cjs',

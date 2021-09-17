@@ -165,7 +165,7 @@ export class GraphQLHandler<
     if (!parsedResult.operationName && this.info.operationType !== 'all') {
       const publicUrl = getPublicUrlFromRequest(request)
       devUtils.warn(`\
-Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": unnamed GraphQL operations are not supported.
+Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation\
       `)
@@ -200,7 +200,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     const statusColor = getStatusCodeColor(response.status)
     const requestInfo = parsedRequest?.operationName
       ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`
-      : `unnamed ${parsedRequest?.operationType}`
+      : `anonymous ${parsedRequest?.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s (%c%s%c)'),

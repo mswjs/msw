@@ -37,7 +37,7 @@ test('sends a mocked response to a GraphQL mutation', async () => {
   })
 })
 
-test('prints a warning when captured an unnamed GraphQL mutation', async () => {
+test('prints a warning when captured an anonymous GraphQL mutation', async () => {
   const runtime = await createRuntime()
 
   const res = await executeGraphQLQuery(runtime.page, {
@@ -54,7 +54,7 @@ test('prints a warning when captured an unnamed GraphQL mutation', async () => {
     expect.arrayContaining([
       expect.stringContaining(
         `\
-[MSW] Failed to intercept a GraphQL request at "POST ${GRAPHQL_TEST_URL}": unnamed GraphQL operations are not supported.
+[MSW] Failed to intercept a GraphQL request at "POST ${GRAPHQL_TEST_URL}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation\
 `,

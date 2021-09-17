@@ -51,11 +51,11 @@ test('intercepts and mocks a GraphQL query', async () => {
   )
 })
 
-test('intercepts and mocks an unnamed GraphQL query', async () => {
+test('intercepts and mocks an anonymous GraphQL query', async () => {
   const runtime = await createRuntime()
-  const UNNAMED_QUERY = gql`
+  const ANONYMOUS_QUERY = gql`
     query {
-      unnamedQuery {
+      anonymousQuery {
         query
         variables
       }
@@ -63,7 +63,7 @@ test('intercepts and mocks an unnamed GraphQL query', async () => {
   `
 
   const res = await executeGraphQLQuery(runtime.page, {
-    query: UNNAMED_QUERY,
+    query: ANONYMOUS_QUERY,
     variables: {
       id: 'abc-123',
     },
@@ -79,7 +79,7 @@ test('intercepts and mocks an unnamed GraphQL query', async () => {
   const body = await res.json()
   expect(body).toEqual({
     data: {
-      query: UNNAMED_QUERY,
+      query: ANONYMOUS_QUERY,
       variables: {
         id: 'abc-123',
       },
@@ -88,7 +88,7 @@ test('intercepts and mocks an unnamed GraphQL query', async () => {
 
   expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} unnamed query 200 OK/),
+      expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} anonymous query 200 OK/),
     ]),
   )
 })

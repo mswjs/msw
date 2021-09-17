@@ -67,14 +67,6 @@ const LOGIN = `
     }
   }
 `
-const UNNAMED_QUERY = `
-  query {
-    unnamedQuery {
-      query
-      variables
-    }
-  }
-`
 
 describe('info', () => {
   test('exposes request handler information for query', () => {
@@ -306,10 +298,17 @@ describe('predicate', () => {
     )
   })
 
-  test('respects graphql.operation endpoint', () => {
+  test('allows anonymous GraphQL opertaions when using "all" expected operation type', () => {
     const handler = new GraphQLHandler('all', new RegExp('.*'), '*', resolver)
     const request = createPostGraphQLRequest({
-      query: UNNAMED_QUERY,
+      query: `
+        query {
+          anonymousQuery {
+            query
+            variables
+          }
+        }
+      `,
     })
 
     expect(handler.predicate(request, handler.parse(request))).toBe(true)

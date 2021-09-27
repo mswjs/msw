@@ -91,3 +91,7 @@ test('returns a falsy body as-is', () => {
   expect(parseBody('')).toBe('')
   expect(parseBody(undefined)).toBeUndefined()
 })
+
+test('parse a single number as valid JSON body', () => {
+  expect(parseBody('1')).toBe('1')
+})

@@ -17,7 +17,7 @@ export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
   // parse it into an object.
   const hasMultipartContent = contentType?.startsWith('multipart/form-data')
   if (hasMultipartContent && typeof body !== 'object') {
-    return parseMultipartData(body, headers) || body
+    return parseMultipartData(body.toString(), headers) || body
   }
 
   // If the intercepted request's body has a JSON Content-Type
@@ -25,7 +25,7 @@ export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
   const hasJsonContent = contentType?.includes('json')
 
   if (hasJsonContent && typeof body !== 'object') {
-    return jsonParse(body) || body
+    return jsonParse(body.toString()) || body
   }
 
   // Otherwise leave as-is.

@@ -26,8 +26,11 @@ const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
     return requestParameters
   }
 
-  requestParameters.body =
-    typeof body === 'object' ? JSON.stringify(body) : body
+  if (typeof body === 'object' || typeof body === 'number') {
+    requestParameters.body = JSON.stringify(body)
+  } else {
+    requestParameters.body = body
+  }
 
   return requestParameters
 }

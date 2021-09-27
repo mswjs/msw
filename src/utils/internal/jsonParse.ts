@@ -3,10 +3,10 @@
  * Does not throw an exception on an invalid JSON string.
  */
 export function jsonParse<T extends Record<string, any>>(
-  str: string,
+  value: any,
 ): T | undefined {
   try {
-    return JSON.parse(str)
+    return JSON.parse(value)
   } catch (error) {
     return undefined
   }

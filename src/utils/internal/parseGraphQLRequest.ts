@@ -44,7 +44,7 @@ function parseQuery(query: string): ParsedGraphQLQuery | Error {
     const ast = parse(query)
     return parseDocumentNode(ast)
   } catch (error) {
-    return error
+    return error as Error
   }
 }
 

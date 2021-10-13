@@ -1,8 +1,13 @@
 import * as cookieUtils from 'cookie'
+import { isNodeProcess } from 'is-node-process'
 import { MockedRequest } from '../../handlers/RequestHandler'
 
 function getAllCookies() {
   return cookieUtils.parse(document.cookie)
+}
+
+function isJSDOMEnvironment() {
+  return global.navigator?.userAgent?.includes('jsdom')
 }
 
 /**
@@ -12,7 +17,7 @@ export function getRequestCookies(request: MockedRequest) {
   /**
    * @note No cookies persist on the document in Node.js: no document.
    */
-  if (typeof location === 'undefined') {
+  if (isNodeProcess() && !isJSDOMEnvironment()) {
     return {}
   }
 

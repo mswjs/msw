@@ -17,7 +17,7 @@ self.addEventListener('install', function () {
 })
 
 self.addEventListener('activate', async function (event) {
-  console.log('worker activated! should see this')
+  console.log('THIS MUST BE SEEN!')
   return self.clients.claim()
 })
 

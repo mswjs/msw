@@ -83,11 +83,11 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-// Resolve the "master" client for the given event.
+// Resolve the "main" client for the given event.
 // Client that issues a request doesn't necessarily equal the client
 // that registered the worker. It's with the latter the worker should
 // communicate with during the response resolving phase.
-async function resolveMasterClient(event) {
+async function resolveMainClient(event) {
   const client = await self.clients.get(event.clientId)
 
   if (client.frameType === 'top-level') {
@@ -109,7 +109,7 @@ async function resolveMasterClient(event) {
 }
 
 async function handleRequest(event, requestId) {
-  const client = await resolveMasterClient(event)
+  const client = await resolveMainClient(event)
   const response = await getResponse(event, client, requestId)
 
   // Send back the response clone for the "response:*" life-cycle events.

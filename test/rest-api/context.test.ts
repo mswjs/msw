@@ -10,7 +10,7 @@ test('composes various context utilities into a valid mocked response', async ()
   const headers = res.headers()
   const body = await res.json()
 
-  expect(res.status()).toEqual(305)
+  expect(res.status()).toEqual(201)
   expect(res.statusText()).toEqual('Yahoo!')
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(headers).toHaveProperty('content-type', 'application/json')

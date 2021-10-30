@@ -78,6 +78,9 @@ Object.keys(console).forEach((methodName) => {
         },
       },
     },
+  }).catch((error) => {
+    console.error('Failed to create browser:', error)
+    return null
   })
 })
 

@@ -8,7 +8,7 @@ const worker = setupWorker(
         Accept: 'foo/bar',
         'Custom-Header': 'arbitrary-value',
       }),
-      ctx.status(305, 'Yahoo!'),
+      ctx.status(201, 'Yahoo!'),
       ctx.json({
         mocked: true,
       }),

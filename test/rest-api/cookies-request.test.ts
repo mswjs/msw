@@ -18,7 +18,7 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   const res = await runtime.request('/user', {
     credentials: 'include',
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -36,7 +36,7 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   const res = await runtime.request('/user', {
     credentials: 'same-origin',
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -54,7 +54,7 @@ test('returns no cookies in "req.cookies" for "same-origin" credentials and requ
   const res = await runtime.request('https://test.mswjs.io/user', {
     credentials: 'same-origin',
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -69,7 +69,7 @@ test('returns no cookies in "req.cookies" for "omit" credentials', async () => {
   const res = await runtime.request('/user', {
     credentials: 'omit',
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

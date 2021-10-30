@@ -23,7 +23,7 @@ test('intercepts a GraphQL query based on its DocumentNode', async () => {
   })
 
   expect(res.status()).toEqual(200)
-  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
 
   const json = await res.json()
   expect(json).toEqual({
@@ -52,7 +52,7 @@ test('intercepts a GraphQL mutation based on its DocumentNode', async () => {
   })
 
   expect(res.status()).toEqual(200)
-  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
 
   const json = await res.json()
   expect(json).toEqual({
@@ -87,7 +87,7 @@ test('intercepts a scoped GraphQL query based on its DocumentNode', async () => 
   )
 
   expect(res.status()).toEqual(200)
-  expect(res.headers()).toHaveProperty('x-powered-by', 'msw')
+  expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
 
   const json = await res.json()
   expect(json).toEqual({

@@ -10,7 +10,7 @@ test('parses request URL parameters', async () => {
     'https://api.github.com/users/octocat/messages/abc-123',
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)

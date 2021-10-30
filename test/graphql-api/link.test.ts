@@ -36,7 +36,7 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
     },
   )
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)
@@ -73,7 +73,7 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
     },
   )
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)
@@ -104,7 +104,7 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
     },
   })
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-request-handler', 'fallback')

@@ -23,7 +23,7 @@ test('allows referencing the request body in the request handler', async () => {
       id: 'abc-123',
     },
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -53,7 +53,7 @@ test('allows referencing the request body in the request handler', async () => {
       password: 'super-secret',
     },
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

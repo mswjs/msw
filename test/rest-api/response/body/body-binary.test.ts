@@ -9,7 +9,7 @@ test('responds with a given binary body', async () => {
 
   const res = await runtime.request('/images/abc-123')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.body()
 
   const expectedBuffer = fs.readFileSync(

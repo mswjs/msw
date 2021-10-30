@@ -28,7 +28,7 @@ test('disables the mocking when the worker is stopped', async () => {
   await stopWorkerOn(runtime.page)
 
   const res = await runtime.request('https://api.github.com')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
@@ -56,7 +56,7 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   // Create a request handler for the new page.
   const request = createRequestUtil(secondPage, server)
   const res = await request('https://api.github.com')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

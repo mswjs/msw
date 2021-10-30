@@ -14,7 +14,7 @@ test('retrieves a single request URL query parameter', async () => {
     'https://test.mswjs.io/api/books?id=abc-123',
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -34,7 +34,7 @@ test('retrieves multiple request URL query parameters', async () => {
     },
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)

@@ -8,7 +8,7 @@ test('responds with an XML response body', async () => {
 
   const res = await request('/user')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const text = await res.text()
 
   expect(status).toBe(200)

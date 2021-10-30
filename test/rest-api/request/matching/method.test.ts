@@ -12,7 +12,7 @@ test('sends a mocked response to a POST request on the matching URL', async () =
     method: 'POST',
   })
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -27,7 +27,7 @@ test('does not send a mocked response to a GET request on the matching URL', asy
 
   const res = await runtime.request('https://api.github.com/users/octocat')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)

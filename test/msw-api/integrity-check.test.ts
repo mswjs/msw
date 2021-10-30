@@ -20,7 +20,7 @@ test('activates the worker without errors given the latest integrity', async () 
   expect(consoleSpy.get('error')).toBeUndefined()
 
   const res = await request('https://api.github.com/users/octocat')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -63,7 +63,7 @@ test('errors when activating the worker with an outdated integrity', async () =>
 
   // Should still keep the mocking enabled.
   const res = await request('https://api.github.com/users/octocat')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

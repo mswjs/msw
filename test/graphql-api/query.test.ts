@@ -31,7 +31,7 @@ test('mocks a GraphQL query issued with a GET request', async () => {
     },
   )
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)
@@ -59,7 +59,7 @@ test('mocks a GraphQL query issued with a POST request', async () => {
       }
     `,
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)

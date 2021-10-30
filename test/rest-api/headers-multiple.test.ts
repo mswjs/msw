@@ -34,7 +34,7 @@ test('supports setting a header with multiple values on the mocked response', as
 
   const res = await runtime.request('https://test.mswjs.io')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toEqual(200)

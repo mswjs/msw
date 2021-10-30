@@ -30,7 +30,7 @@ test('intercepts and mocks a GraphQL query', async () => {
       id: 'abc-123',
     },
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)
@@ -73,7 +73,7 @@ test('intercepts and mocks an anonymous GraphQL query', async () => {
 
   expect(res.status()).toEqual(200)
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   expect(headers).toHaveProperty('x-powered-by', 'msw')
 
   const body = await res.json()
@@ -109,7 +109,7 @@ test('intercepts and mocks a GraphQL mutation', async () => {
       password: 'super-secret',
     },
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)
@@ -163,7 +163,7 @@ test('bypasses seemingly compatible REST requests', async () => {
     },
   )
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)

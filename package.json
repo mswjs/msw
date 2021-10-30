@@ -73,6 +73,7 @@
     "chalk": "^4.1.1",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.1",
+    "debug": "^4.3.2",
     "graphql": "^15.5.1",
     "headers-utils": "^3.0.2",
     "inquirer": "^8.1.5",

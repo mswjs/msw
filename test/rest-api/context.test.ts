@@ -7,7 +7,7 @@ test('composes various context utilities into a valid mocked response', async ()
   })
 
   const res = await runtime.request('https://test.mswjs.io/')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(201)

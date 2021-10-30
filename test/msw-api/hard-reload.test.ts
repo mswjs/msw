@@ -18,7 +18,7 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
   })
 
   const res = await runtime.request('https://api.github.com')
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

@@ -8,7 +8,7 @@ test('responds with a JSON response body', async () => {
 
   const res = await runtime.request('/json')
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   expect(headers).toHaveProperty('content-type', 'application/json')
 
   const json = await res.json()

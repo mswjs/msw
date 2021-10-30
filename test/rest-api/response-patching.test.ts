@@ -49,7 +49,7 @@ test('responds with a combination of the mocked and original responses', async (
 
   const res = await runtime.request('/user')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -77,7 +77,7 @@ test('bypasses the original request when it equals the mocked request', async ()
     },
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -127,7 +127,7 @@ test('supports patching a HEAD request', async () => {
   )
 
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -155,7 +155,7 @@ test('supports patching a GET request', async () => {
     },
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
@@ -187,7 +187,7 @@ test('supports patching a POST request', async () => {
     },
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)

@@ -8,7 +8,7 @@ test('responds with a text response body', async () => {
 
   const res = await runtime.request('/text')
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   expect(headers).toHaveProperty('content-type', 'text/plain')
 
   const text = await res.text()

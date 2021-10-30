@@ -16,7 +16,7 @@ test('intercepts a request with a custom request handler with default context', 
     },
   })
   const body = await res.json()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
 
   expect(res.status()).toBe(401)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -30,7 +30,7 @@ test('intercepts a request with a custom request handler with custom context', a
 
   const res = await runtime.request('https://test.url/')
   const body = await res.json()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
 
   expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')

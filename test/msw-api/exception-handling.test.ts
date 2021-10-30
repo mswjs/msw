@@ -17,7 +17,7 @@ test('transforms uncaught exceptions into a 500 response', async () => {
 
   const res = await runtime.request('https://api.github.com/users/octocat')
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toEqual(500)

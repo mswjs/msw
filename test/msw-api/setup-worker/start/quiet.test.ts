@@ -21,7 +21,7 @@ test('does not log the captured request when the "quiet" option is set to "true"
 
   const res = await request('/user')
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

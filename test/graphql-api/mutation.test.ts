@@ -23,7 +23,7 @@ test('sends a mocked response to a GraphQL mutation', async () => {
       }
     `,
   })
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toEqual(200)

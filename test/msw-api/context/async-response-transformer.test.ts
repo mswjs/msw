@@ -13,7 +13,7 @@ test('supports asynchronous response transformer', async () => {
     path.resolve(__dirname, '../../fixtures/image.jpg'),
   )
   const status = res.status()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
 
   expect(status).toBe(201)
   expect(headers).toHaveProperty('content-type', 'image/jpeg')
@@ -34,7 +34,7 @@ test('supports asynchronous default response transformer', async () => {
   })
   const status = res.status()
   const statusText = res.statusText()
-  const headers = res.headers()
+  const headers = await res.allHeaders()
 
   expect(status).toBe(301)
   expect(statusText).toBe('Custom Status Text')

@@ -11,7 +11,7 @@ test('allows setting cookies on the mocked response', async () => {
 
   const res = await runtime.request('/user')
 
-  const headers = res.headers()
+  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'msw')

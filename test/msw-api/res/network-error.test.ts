@@ -15,7 +15,7 @@ test('throws a network error', async () => {
   await expect(requestPromise).rejects.toThrow(
     // The `fetch` call itself rejects with the "Failed to fetch" error,
     // the same error that happens on a regular network error.
-    'Evaluation failed: TypeError: Failed to fetch',
+    'TypeError: Failed to fetch',
   )
 
   // Assert a network error message printed into the console

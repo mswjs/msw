@@ -82,6 +82,12 @@ export async function handleRequest<
     return
   }
 
+  if (response?.forward) {
+    emitter.emit('request:end', request)
+    handleRequestOptions?.onBypassResponse?.(request)
+    return
+  }
+
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {

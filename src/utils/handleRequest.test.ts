@@ -136,6 +136,37 @@ test('returns undefined and warns on a request handler that returns no response'
   expect(warning).toMatch(/\d+:\d+/)
 })
 
+test('returns undefined for a request using ctx.forward', async () => {
+  const request = createMockedRequest({
+    url: new URL('http://localhost/user'),
+  })
+  const handlers: RequestHandler[] = [
+    rest.get('/user', () => {
+      return response(context.forward())
+    }),
+  ]
+
+  const result = await handleRequest(
+    request,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(result).toBeUndefined()
+  expect(getEmittedEvents()).toEqual([
+    ['request:start', request],
+    ['request:end', request],
+  ])
+  expect(options.onUnhandledRequest).not.toHaveBeenCalled()
+  expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
+  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
+
+  expect(console.warn).not.toHaveBeenCalled()
+})
+
 test('returns the mocked response for a request with a matching request handler', async () => {
   const request = createMockedRequest({
     url: new URL('http://localhost/user'),

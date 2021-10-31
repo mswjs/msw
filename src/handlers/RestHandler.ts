@@ -8,6 +8,7 @@ import {
   status,
   text,
   xml,
+  forward,
 } from '../context'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { ResponseResolutionContext } from '../utils/getResponse'
@@ -61,6 +62,7 @@ export type RestContext = {
   xml: typeof xml
   delay: typeof delay
   fetch: typeof fetch
+  forward: typeof forward
 }
 
 export const restContext: RestContext = {
@@ -73,6 +75,7 @@ export const restContext: RestContext = {
   xml,
   delay,
   fetch,
+  forward,
 }
 
 export type RequestParams = {

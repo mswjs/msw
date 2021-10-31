@@ -12,6 +12,7 @@ export interface MockedResponse<BodyType = any> {
   headers: Headers
   once: boolean
   delay?: number
+  forward?: boolean
 }
 
 export type ResponseTransformer<

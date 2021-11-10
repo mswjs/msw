@@ -28,35 +28,33 @@ afterAll(async () => {
 })
 
 test('has access to request cookies', (done) => {
-  let resBody = ''
+  let responseBody = ''
   const url = new URL(httpServer.https.makeUrl('/user'))
 
-  https
-    .get(
-      {
-        method: 'GET',
-        protocol: url.protocol,
-        host: url.host,
-        path: url.pathname,
-        headers: {
-          Cookie: 'auth-token=abc-123',
-        },
+  https.get(
+    {
+      method: 'GET',
+      protocol: url.protocol,
+      host: url.host,
+      path: url.pathname,
+      headers: {
+        Cookie: 'auth-token=abc-123',
       },
-      (res) => {
-        res.setEncoding('utf8')
-        res.on('error', done)
-        res.on('data', (chunk) => (resBody += chunk))
-        res.on('end', () => {
-          const resJsonBody = JSON.parse(resBody)
-          expect(resJsonBody).toEqual({
-            cookies: {
-              'auth-token': 'abc-123',
-            },
-          })
-
-          done()
+    },
+    (res) => {
+      res.setEncoding('utf8')
+      res.on('error', done)
+      res.on('data', (chunk) => (responseBody += chunk))
+      res.on('end', () => {
+        const json = JSON.parse(responseBody)
+        expect(json).toEqual({
+          cookies: {
+            'auth-token': 'abc-123',
+          },
         })
-      },
-    )
-    .end()
+
+        done()
+      })
+    },
+  )
 })

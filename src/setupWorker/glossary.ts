@@ -78,6 +78,9 @@ export type ServiceWorkerOutgoingEventTypes =
  */
 export type ServiceWorkerFetchEventTypes =
   | 'MOCK_SUCCESS'
+  | 'MOCK_STREAM_START'
+  | 'MOCK_STREAM_CHUNK'
+  | 'MOCK_STREAM_END'
   | 'MOCK_NOT_FOUND'
   | 'NETWORK_ERROR'
   | 'INTERNAL_ERROR'

@@ -46,6 +46,35 @@ export const createRequestListener = (
             })
           },
           onMockedResponse(response) {
+            if (response.body instanceof ReadableStream) {
+              channel.send({
+                type: 'MOCK_STREAM_START',
+                payload: { ...response, body: '__mocked_stream__' },
+              })
+
+              const reader = response.body.getReader()
+              const sendChunk = () => {
+                reader.read().then(({ done, value }) => {
+                  if (done) {
+                    channel.send({
+                      type: 'MOCK_STREAM_END',
+                    })
+                  } else {
+                    channel.send({
+                      type: 'MOCK_STREAM_CHUNK',
+                      payload: {
+                        chunk: value,
+                      },
+                    })
+                    sendChunk()
+                  }
+                })
+              }
+              sendChunk()
+
+              return
+            }
+
             channel.send({
               type: 'MOCK_SUCCESS',
               payload: response,

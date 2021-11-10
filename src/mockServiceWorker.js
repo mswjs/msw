@@ -203,6 +203,10 @@ async function getResponse(event, client, requestId) {
       )
     }
 
+    case 'MOCK_STREAM_START': {
+      return respondWithStream(clientMessage)
+    }
+
     case 'MOCK_NOT_FOUND': {
       return getOriginalResponse()
     }
@@ -305,8 +309,28 @@ function sendToClient(client, message) {
     const channel = new MessageChannel()
 
     channel.port1.onmessage = (event) => {
-      if (event.data && event.data.error) {
-        return reject(event.data.error)
+      if (event.data) {
+        if (event.data.error) {
+          return reject(event.data.error)
+        }
+
+        switch (event.data.type) {
+          // message 'MOCK_STREAM_START' resolves the Promise, but then the client sends
+          // more messages from a ReadableStream (see issue #581)
+          case 'MOCK_STREAM_CHUNK': {
+            if (event.data.payload) {
+              globalThis.currentStreamController.enqueue(
+                event.data.payload.chunk,
+              )
+            }
+            return
+          }
+
+          case 'MOCK_STREAM_END': {
+            globalThis.currentStreamController.close()
+            return
+          }
+        }
       }
 
       resolve(event.data)
@@ -324,6 +348,23 @@ function delayPromise(cb, duration) {
 
 function respondWithMock(clientMessage) {
   return new Response(clientMessage.payload.body, {
+    ...clientMessage.payload,
+    headers: clientMessage.payload.headers,
+  })
+}
+
+function respondWithStream(clientMessage) {
+  const stream = new ReadableStream({
+    start(controller) {
+      globalThis.currentStreamController = controller
+    },
+  }).pipeThrough(
+    // from https://web.dev/fetch-upload-streaming/#streaming-request-bodies
+    // > Each chunk of a [response] body needs to be a Uint8Array
+    new TextEncoderStream(),
+  )
+
+  return new Response(stream, {
     ...clientMessage.payload,
     headers: clientMessage.payload.headers,
   })

@@ -4,8 +4,10 @@ import { set } from '../context/set'
 import { status } from '../context/status'
 import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
-import { data, DataContext } from '../context/data'
+import { data } from '../context/data'
+import { extensions } from '../context/extensions'
 import { errors } from '../context/errors'
+import { GraphQLPayloadContext } from '../context/types'
 import { cookie } from '../context/cookie'
 import {
   MockedRequest,
@@ -38,7 +40,8 @@ export type GraphQLContext<QueryType> = {
   status: typeof status
   delay: typeof delay
   fetch: typeof fetch
-  data: DataContext<QueryType>
+  data: GraphQLPayloadContext<QueryType>
+  extensions: GraphQLPayloadContext<QueryType>
   errors: typeof errors
   cookie: typeof cookie
 }
@@ -49,6 +52,7 @@ export const graphqlContext: GraphQLContext<any> = {
   delay,
   fetch,
   data,
+  extensions,
   errors,
   cookie,
 }

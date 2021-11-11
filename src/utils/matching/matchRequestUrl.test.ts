@@ -40,6 +40,18 @@ test('returns request parameters when matched', () => {
   })
 })
 
+test('decodes request parameters', () => {
+  const url = 'http://example.com:5001/example'
+  const match = matchRequestUrl(
+    new URL(`https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`),
+    'https://test.mswjs.io/reflect-url/:url',
+  )
+  expect(match).toHaveProperty('matches', true)
+  expect(match).toHaveProperty('params', {
+    url,
+  })
+})
+
 test('returns false when does not match against the request URL', () => {
   const match = matchRequestUrl(
     new URL('https://test.mswjs.io'),

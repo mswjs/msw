@@ -22,7 +22,7 @@ rest.get<{ userId: string }, { postCount: number }>(
   },
 )
 
-rest.get<any, any, { userId: string }>('/user/:userId', (req, res, ctx) => {
+rest.get<any, any, { userId: string }>('/user/:userId', (req) => {
   req.params.userId
 
   // @ts-expect-error `unknown` is not defined in the request params type.

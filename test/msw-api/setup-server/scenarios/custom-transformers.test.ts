@@ -11,7 +11,7 @@ const jsonBig = (body: Record<string, any>): ResponseTransformer => {
 }
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io/me', (req, res, ctx) => {
+  rest.get('http://test.mswjs.io/me', (req, res) => {
     return res(
       jsonBig({
         username: 'john.maverick',

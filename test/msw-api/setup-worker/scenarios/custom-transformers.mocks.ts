@@ -9,7 +9,7 @@ const jsonBig = (body: Record<string, any>): ResponseTransformer => {
 }
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
+  rest.get('/user', (req, res) => {
     return res(
       jsonBig({
         username: 'john.maverick',

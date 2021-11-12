@@ -1,5 +1,5 @@
 import { Headers } from 'headers-utils'
-import { MockedRequest } from '../../handlers/RequestHandler'
+import { RestRequest } from '../../handlers/RestHandler'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { setRequestCookies } from './setRequestCookies'
 import { parseBody } from './parseBody'
@@ -11,8 +11,8 @@ import { pruneGetRequestBody } from './pruneGetRequestBody'
  */
 export function parseWorkerRequest(
   rawRequest: ServiceWorkerIncomingRequest,
-): MockedRequest {
-  const request = {
+): RestRequest {
+  const request: RestRequest = {
     id: rawRequest.id,
     cache: rawRequest.cache,
     credentials: rawRequest.credentials,
@@ -36,7 +36,7 @@ export function parseWorkerRequest(
   setRequestCookies(request)
 
   // Parse the request's body based on the "Content-Type" header.
-  request.body = parseBody(request.body, request.headers) as any
+  request.body = parseBody(request.body, request.headers)
 
   return request
 }

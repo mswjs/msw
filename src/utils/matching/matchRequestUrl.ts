@@ -42,7 +42,7 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
       ? coercePath(normalizedPath)
       : normalizedPath
   const cleanUrl = getCleanUrl(url)
-  const result = match(cleanPath)(cleanUrl)
+  const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
   const params = (result && (result.params as PathParams)) || {}
 
   return {

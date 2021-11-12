@@ -9,6 +9,9 @@ const server = setupServer(
   rest.get('http://localhost/json', (req, res, ctx) => {
     return res(ctx.json({ firstName: 'John' }))
   }),
+  rest.get('http://localhost/number', (req, res, ctx) => {
+    return res(ctx.json(123))
+  }),
 )
 
 beforeAll(() => {
@@ -26,4 +29,13 @@ test('responds with a JSON response body', async () => {
 
   const json = await res.json()
   expect(json).toEqual({ firstName: 'John' })
+})
+
+test('responds with a single number JSON response body', async () => {
+  const res = await fetch('http://localhost/number')
+
+  expect(res.headers.get('content-type')).toBe('application/json')
+
+  const json = await res.json()
+  expect(json).toEqual(123)
 })

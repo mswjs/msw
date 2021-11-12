@@ -25,6 +25,7 @@ export type DefaultRequestBody =
   | Record<string, any>
   | DefaultRequestMultipartBody
   | string
+  | number
   | undefined
 
 export interface MockedRequest<Body = DefaultRequestBody> {

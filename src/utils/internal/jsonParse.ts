@@ -1,12 +1,12 @@
 /**
- * Parses a given string into a JSON.
+ * Parses a given value into a JSON.
  * Does not throw an exception on an invalid JSON string.
  */
-export function jsonParse<T extends Record<string, any>>(
-  str: string,
-): T | undefined {
+export function jsonParse<ValueType extends Record<string, any>>(
+  value: any,
+): ValueType | undefined {
   try {
-    return JSON.parse(str)
+    return JSON.parse(value)
   } catch (error) {
     return undefined
   }

@@ -84,14 +84,20 @@ test('returns an invalid Multipart body as-is even if the "Content-Type: multipa
     'content-type':
       'multipart/form-data; boundary=------WebKitFormBoundaryvZ1cVXWyK0ilQdab',
   })
-  expect(parseBody('text-body', headers)).toBe('text-body')
+  expect(parseBody('text-body', headers)).toEqual('text-body')
+})
+
+test('parses a single stringified number as a valid "application/json" body', () => {
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  expect(parseBody('1', headers)).toEqual(1)
+})
+
+test('preserves a single stringified number in a "multipart/form-data" body', () => {
+  const headers = new Headers({ 'Content-Type': 'multipart/form-data;' })
+  expect(parseBody('1', headers)).toEqual('1')
 })
 
 test('returns a falsy body as-is', () => {
-  expect(parseBody('')).toBe('')
+  expect(parseBody('')).toEqual('')
   expect(parseBody(undefined)).toBeUndefined()
-})
-
-test('parse a single number as valid JSON body', () => {
-  expect(parseBody('1')).toBe('1')
 })

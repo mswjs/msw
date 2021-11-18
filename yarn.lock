@@ -4225,12 +4225,13 @@ fs-readdir-recursive@^1.1.0:
   resolved "https://registry.yarnpkg.com/fs-readdir-recursive/-/fs-readdir-recursive-1.1.0.tgz#e32fc030a2ccee44a6b5371308da54be0b397d27"
   integrity sha512-GNanXlVr2pf02+sPN40XN8HG+ePaNcvM0q5mZBd668Obwb0yD5GiUbZOFgwn8kGMY6I3mdyDJzieUy3PTYyTRA==
 
-fs-teardown@^0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/fs-teardown/-/fs-teardown-0.1.3.tgz#8376c677b60f989e3de67cabfe353d1c82e2288f"
-  integrity sha512-Z84BPdaEeFI+SGiq/TKZgSVSgAsrNhbZ62cWmIpL2z9Ly40W6PKAzafnytJk0Wg2qnoXMA7gPyEXgnLjAi63iA==
+fs-teardown@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/fs-teardown/-/fs-teardown-0.3.0.tgz#327bce538393b66d54a14ee9dd58b034ce947df6"
+  integrity sha512-iA1/y4aDBHCKcinWwdzY4WecDyYkXuUuKQkIGBJpdedOLHsoxTOQaFg2B1DvIUJJnu6JKmPMaPfRPYy/CNu2UA==
   dependencies:
     fs-extra "^10.0.0"
+    outvariant "^1.2.1"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -6241,6 +6242,11 @@ outvariant@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/outvariant/-/outvariant-1.2.0.tgz#c904d30dc36d70d93902b13641aa1fda69ae8c0c"
   integrity sha512-OKEOPXtvIeSohFl9avZwm1BL/awT49PV/HQHyc0RHcdICkvj5XP+j+IHhsSoV7nT5gDtMJTlWXqVpA/F8yoi2A==
+
+outvariant@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/outvariant/-/outvariant-1.2.1.tgz#e630f6cdc1dbf398ed857e36f219de4a005ccd35"
+  integrity sha512-bcILvFkvpMXh66+Ubax/inxbKRyWTUiiFIW2DWkiS79wakrLGn3Ydy+GvukadiyfZjaL6C7YhIem4EZSM282wA==
 
 p-each-series@^2.1.0:
   version "2.2.0"

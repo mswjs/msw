@@ -1,7 +1,8 @@
 import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
-import { addFile, createTeardown } from 'fs-teardown'
+import { createTeardown } from 'fs-teardown'
 import { Page, pageWith, Response, ScenarioApi } from 'page-with'
+import { fromTemp } from '../../../support/utils'
 
 let runtime: ScenarioApi
 
@@ -10,15 +11,16 @@ declare namespace window {
 }
 
 // Create a temporary directory on the disk
-// that would be opened as a static application,
-// loading the compiled example assets.
-const { prepare, getPath, cleanup } = createTeardown(
-  'tmp/fallback-mode',
-  addFile('index.html', '<script src="index.js"></script>'),
-)
+// that would server as the public directory.
+const fsMock = createTeardown({
+  rootDir: fromTemp('fallback-mode'),
+  paths: {
+    'index.html': '<script src="index.js"></script>',
+  },
+})
 
 beforeAll(async () => {
-  await prepare()
+  await fsMock.prepare()
 
   runtime = await pageWith({
     title: 'Fallback mode',
@@ -30,19 +32,19 @@ beforeAll(async () => {
       webpackConfig: {
         output: {
           filename: 'index.js',
-          path: getPath(''),
+          path: fsMock.resolve(),
         },
       },
     },
   })
 
-  await runtime.page.goto(`file://${getPath('index.html')}`, {
+  await runtime.page.goto(`file://${fsMock.resolve('index.html')}`, {
     waitUntil: 'networkidle',
   })
 })
 
 afterAll(async () => {
-  await cleanup()
+  await fsMock.cleanup()
 })
 
 function createRequestHelper(page: Page) {
@@ -90,7 +92,7 @@ test('responds with a mocked response to a handled request', async () => {
   )
 
   // Responds with a mocked response.
-  expect(response.status).toBe(200)
+  expect(response.status).toEqual(200)
   expect(response.statusText).toEqual('OK')
   expect(response.headers['x-powered-by']).toEqual('msw')
   expect(response.body).toEqual({

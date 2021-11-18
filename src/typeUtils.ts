@@ -1,3 +1,5 @@
+import { ResponseTransformer } from './response'
+
 type Fn = (...arg: any[]) => any
 
 export type DeepRequired<
@@ -10,3 +12,7 @@ export type DeepRequired<
         : DeepRequired<NonNullable<T[P]>, U>
     }
   : T
+
+export type GraphQLPayloadContext<QueryType extends Record<string, unknown>> = (
+  payload: QueryType,
+) => ResponseTransformer

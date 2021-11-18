@@ -1,7 +1,7 @@
 import { setupWorker, graphql } from 'msw'
 
 const worker = setupWorker(
-  graphql.query('Login', (req, res, ctx) => {
+  graphql.query('Login', (_req, res, ctx) => {
     return res(
       ctx.data({
         user: {
@@ -11,7 +11,7 @@ const worker = setupWorker(
         },
       }),
       ctx.extensions({
-        message: 'This is a mocked extension ',
+        message: 'This is a mocked extension',
         tracking: {
           version: '0.1.2',
           page: '/test/',

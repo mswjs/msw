@@ -2,7 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { graphql as executeGraphql, buildSchema } from 'graphql'
+import {
+  graphql as executeGraphql,
+  buildSchema,
+  ExecutionResult,
+} from 'graphql'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
 import { gql } from '../support/graphql'
@@ -49,7 +53,7 @@ afterAll(() => {
   server.close()
 })
 
-test("adds extensions to the original response's data", async () => {
+test('adds extensions to the original response data', async () => {
   const res = await fetch('https://api.mswjs.io', {
     method: 'POST',
     headers: {
@@ -66,7 +70,9 @@ test("adds extensions to the original response's data", async () => {
       `,
     }),
   })
-  const body = await res.json()
+  const body: ExecutionResult = await res.json()
+
+  expect(res.status).toEqual(200)
   expect(body.data).toEqual({
     user: {
       firstName: 'John',

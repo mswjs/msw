@@ -6,12 +6,11 @@ import { data } from './data'
 import { extensions } from './extensions'
 import { response } from '../response'
 
-test('sets a given extensions on the response JSON body in the presence of no errors or data', async () => {
+test('sets standalone extensions on the response JSON body', async () => {
   const result = await response(extensions({ tracking: { version: 1 } }))
 
   expect(result.headers.get('content-type')).toEqual('application/json')
-  expect(result).toHaveProperty(
-    'body',
+  expect(result.body).toEqual(
     JSON.stringify({
       extensions: {
         tracking: {
@@ -22,15 +21,14 @@ test('sets a given extensions on the response JSON body in the presence of no er
   )
 })
 
-test('sets given extensions on the response JSON body in the presence of data', async () => {
+test('sets given extensions on the response JSON body with data', async () => {
   const result = await response(
     data({ hello: 'world' }),
     extensions({ tracking: { version: 1 } }),
   )
 
   expect(result.headers.get('content-type')).toEqual('application/json')
-  expect(result).toHaveProperty(
-    'body',
+  expect(result.body).toEqual(
     JSON.stringify({
       extensions: {
         tracking: {
@@ -44,7 +42,7 @@ test('sets given extensions on the response JSON body in the presence of data', 
   )
 })
 
-test('sets given extensions on the response JSON body in the presence of data and errors', async () => {
+test('sets given extensions on the response JSON body in the presence with data and errors', async () => {
   const result = await response(
     data({ hello: 'world' }),
     extensions({ tracking: { version: 1 } }),
@@ -52,8 +50,7 @@ test('sets given extensions on the response JSON body in the presence of data an
   )
 
   expect(result.headers.get('content-type')).toEqual('application/json')
-  expect(result).toHaveProperty(
-    'body',
+  expect(result.body).toEqual(
     JSON.stringify({
       errors: [
         {

@@ -1,12 +1,24 @@
 /**
  * @jest-environment node
  */
+import * as path from 'path'
 import * as fs from 'fs-extra'
 import { exec } from 'child_process'
-import { createTeardown, addFile, addDirectory } from 'fs-teardown'
-import { promisifyChildProcess } from '../../support/utils'
+import { createTeardown } from 'fs-teardown'
+import { fromTemp, promisifyChildProcess } from '../../support/utils'
 
-function getFileContent(filePath: string) {
+const fsMock = createTeardown({
+  rootDir: fromTemp('cli/init'),
+  paths: {
+    'package.json': JSON.stringify({
+      name: 'package-name',
+    }),
+  },
+})
+
+const cliPath = path.join(__dirname, '../../../cli/index.js')
+
+function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
   try {
     const content = JSON.parse(rawContent)
@@ -16,161 +28,143 @@ function getFileContent(filePath: string) {
   }
 }
 
-afterAll(() => {
+beforeAll(async () => {
+  await fsMock.prepare()
+})
+
+beforeEach(async () => {
+  await fsMock.reset()
+})
+
+afterAll(async () => {
   jest.restoreAllMocks()
+  await fsMock.cleanup()
 })
 
 test('copies the worker script into an existing directory without errors', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    './tmp/cli/init/success',
-    addFile('package.json', {
-      name: 'package-name',
-    }),
-    addDirectory('public'),
-  )
-  await prepare()
+  await fsMock.create({
+    public: null,
+  })
 
-  const { stderr, stdout } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('public')} --no-save`),
+  const init = await promisifyChildProcess(
+    exec(`node ${cliPath} init ${fsMock.resolve('public')} --no-save`),
   )
 
   // Does not produce any errors.
-  expect(stderr).toBe('')
+  expect(init.stderr).toEqual('')
 
   // Creates the worker script at the given path.
-  expect(fs.existsSync(getPath('public/mockServiceWorker.js'))).toBe(true)
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toEqual(
+    true,
+  )
 
   // Notifies the user about the created script.
-  expect(stdout).toContain('Service Worker successfully created')
+  expect(init.stdout).toContain('Service Worker successfully created')
 
   // Does not change the package.json.
-  expect(getFileContent(getPath('package.json'))).toEqual({
+  expect(readJson(fsMock.resolve('package.json'))).toEqual({
     name: 'package-name',
   })
-
-  await cleanup()
 })
 
 test('creates the directory if it does not exist', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    'tmp/cli/init/non-existing',
-  )
-  await prepare()
-
   const { stderr } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('public/nested/path')} --no-save`),
+    exec(
+      `node ${cliPath} init ${fsMock.resolve('public/nested/path')} --no-save`,
+    ),
   )
 
   // Does not produce any errors.
-  expect(stderr).toBe('')
+  expect(stderr).toEqual('')
   expect(
-    fs.existsSync(getPath('public/nested/path/mockServiceWorker.js')),
-  ).toBe(true)
-
-  await cleanup()
+    fs.existsSync(fsMock.resolve('public/nested/path/mockServiceWorker.js')),
+  ).toEqual(true)
 })
 
 test('saves the worker directory in package.json when none are present', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    'tmp/cli/init/save-directory-new',
-    addFile('package.json', {
-      name: 'package-name',
-    }),
-    addDirectory('public'),
-  )
-  await prepare()
+  await fsMock.create({
+    public: null,
+  })
 
-  const { stderr, stdout } = await promisifyChildProcess(
-    exec(`node ../../../../cli/index.js init ${getPath('public')} --save`, {
-      cwd: getPath('.'),
+  const init = await promisifyChildProcess(
+    exec(`node ${cliPath} init ${fsMock.resolve('public')} --save`, {
+      cwd: fsMock.resolve(),
     }),
   )
 
-  expect(stderr).toBe('')
-  expect(stdout).toContain(
+  expect(init.stderr).toEqual('')
+  expect(init.stdout).toContain(
     'In order to ease the future updates to the worker script,\nwe recommend saving the path to the worker directory in your package.json.',
   )
-  expect(stdout).toContain(
-    `Writing "msw.workerDirectory" to "${getPath('package.json')}"...`,
+  expect(init.stdout).toContain(
+    `Writing "msw.workerDirectory" to "${fsMock.resolve('package.json')}"...`,
   )
-  expect(fs.existsSync(getPath('public/mockServiceWorker.js')))
-  expect(getFileContent(getPath('package.json'))).toEqual({
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js')))
+  expect(readJson(fsMock.resolve('package.json'))).toEqual({
     name: 'package-name',
     msw: {
       workerDirectory: 'public',
     },
   })
-
-  await cleanup()
 })
 
 test('warns when current public directory does not match the saved directory from package.json', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    'tmp/cli/init/save-directory-override',
-    addFile('package.json', {
+  await fsMock.create({
+    'package.json': JSON.stringify({
       name: 'package-name',
       msw: {
         workerDirectory: 'dist',
       },
     }),
-    addDirectory('public'),
-  )
-  await prepare()
+    public: null,
+  })
 
-  const { stderr, stdout } = await promisifyChildProcess(
-    exec(`node ../../../../cli/index.js init ${getPath('public')} --save`, {
-      cwd: getPath('.'),
+  const init = await promisifyChildProcess(
+    exec(`node ${cliPath} init ${fsMock.resolve('public')} --save`, {
+      cwd: fsMock.resolve('.'),
     }),
   )
 
-  expect(stderr).toBe('')
-  expect(stdout).toContain(
+  expect(init.stderr).toEqual('')
+  expect(init.stdout).toContain(
     'The "msw.workerDirectory" in your package.json ("dist")\nis different from the worker directory used right now ("public").',
   )
-  expect(stdout).toContain(
-    `Writing "msw.workerDirectory" to "${getPath('package.json')}"...`,
+  expect(init.stdout).toContain(
+    `Writing "msw.workerDirectory" to "${fsMock.resolve('package.json')}"...`,
   )
-  expect(fs.existsSync(getPath('public/mockServiceWorker.js')))
-  expect(getFileContent(getPath('package.json'))).toEqual({
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js')))
+  expect(readJson(fsMock.resolve('package.json'))).toEqual({
     name: 'package-name',
     msw: {
       workerDirectory: 'public',
     },
   })
-
-  await cleanup()
 })
 
-test('does not cause eslint errors or warnings', async () => {
-  const { prepare, getPath, cleanup } = createTeardown(
-    './tmp/cli/init/eslint',
-    addFile('package.json', {
-      name: 'package-name',
-    }),
-    // intentionally degenerate config to cause a warning in the initial comment
-    addFile('.eslintrc.json', {
+test('does not produce eslint errors or warnings', async () => {
+  await fsMock.create({
+    '.eslintrc.json': JSON.stringify({
       rules: {
         'no-warning-comments': [
           'warn',
+          // intentionally degenerate config to cause a warning in the initial comment
           { terms: ['mock'], location: 'anywhere' },
         ],
       },
     }),
-    addDirectory('public'),
+    public: null,
+  })
+
+  const init = await promisifyChildProcess(
+    exec(`node ${cliPath} init ${fsMock.resolve('public')} --no-save`),
   )
-  await prepare()
+  expect(init.stderr).toEqual('')
 
-  const { stderr: initStderr } = await promisifyChildProcess(
-    exec(`node cli/index.js init ${getPath('public')} --no-save`),
+  const eslint = await promisifyChildProcess(
+    exec(`node_modules/.bin/eslint ${fsMock.resolve()}`),
   )
-  expect(initStderr).toBe('')
-
-  const { stdout: eslintStdout, stderr: eslintStderr } =
-    await promisifyChildProcess(exec(`node_modules/.bin/eslint ${getPath()}`))
-  expect(eslintStdout).toBe('')
-  expect(eslintStderr).toBe('')
-
-  await cleanup()
+  expect(eslint.stdout).toEqual('')
+  expect(eslint.stderr).toEqual('')
 })
 
 test('errors and shuts down if creating a directory fails', async () => {

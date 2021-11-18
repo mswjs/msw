@@ -110,7 +110,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "fs-extra": "^10.0.0",
-    "fs-teardown": "^0.1.3",
+    "fs-teardown": "^0.3.0",
     "husky": "^5.1.1",
     "jest": "26",
     "json-bigint": "^1.0.0",

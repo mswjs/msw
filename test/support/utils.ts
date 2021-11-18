@@ -1,3 +1,4 @@
+import * as path from 'path'
 import { Headers } from 'headers-utils'
 import { MockedRequest } from './../../src'
 import { uuidv4 } from '../../src/utils/internal/uuidv4'
@@ -7,6 +8,10 @@ export function sleep(duration: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, duration)
   })
+}
+
+export function fromTemp(...segments: string[]) {
+  return path.join(__dirname, '../..', 'tmp', ...segments)
 }
 
 export function createMockedRequest(

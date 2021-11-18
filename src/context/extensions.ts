@@ -1,7 +1,7 @@
 import { jsonParse } from '../utils/internal/jsonParse'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { json } from './json'
-import { GraphQLPayloadContext } from './types'
+import { GraphQLPayloadContext } from '../typeUtils'
 
 /**
  * Sets the GraphQL extensions on a given response.

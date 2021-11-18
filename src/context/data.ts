@@ -1,7 +1,7 @@
 import { jsonParse } from '../utils/internal/jsonParse'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { json } from './json'
-import { GraphQLPayloadContext } from './types'
+import { GraphQLPayloadContext } from '../typeUtils'
 
 /**
  * Sets a given payload as a GraphQL response body.

@@ -1,4 +1,5 @@
 import { stringToHeaders } from 'headers-utils'
+import { File as FilePolyfill } from 'formdata-node'
 import { DefaultRequestMultipartBody } from '../../handlers/RequestHandler'
 
 interface ParsedContentHeaders {
@@ -13,6 +14,8 @@ interface ContentDispositionDirective {
   filename?: string
   'form-data': string
 }
+
+const File = globalThis.File || FilePolyfill
 
 function parseContentHeaders(headersString: string): ParsedContentHeaders {
   const headers = stringToHeaders(headersString)

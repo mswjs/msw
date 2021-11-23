@@ -181,10 +181,11 @@ export interface SerializedResponse<BodyType = any> {
   body: BodyType
 }
 
+export type PartialStartOptions = PartialDeep<StartOptions>
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
 export type StartHandler = (
   options: StartOptions,
-  initialOptions: PartialDeep<StartOptions>,
+  initialOptions: PartialStartOptions,
 ) => StartReturnType
 export type StopHandler = () => void
 
@@ -193,7 +194,7 @@ export interface SetupWorkerApi {
    * Registers and activates the mock Service Worker.
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}
    */
-  start: (options?: PartialDeep<StartOptions>) => StartReturnType
+  start: (options?: PartialStartOptions) => StartReturnType
 
   /**
    * Stops requests interception for the current client.

@@ -1,10 +1,10 @@
-import { PartialDeep } from 'type-fest'
 import { mergeRight } from '../../../utils/internal/mergeRight'
 import {
   SetupWorkerApi,
   SetupWorkerInternalContext,
   StartHandler,
   StartOptions,
+  PartialStartOptions,
 } from '../../glossary'
 
 export const DEFAULT_START_OPTIONS: StartOptions = {
@@ -25,7 +25,7 @@ export const DEFAULT_START_OPTIONS: StartOptions = {
  * with the given custom options.
  */
 export function resolveStartOptions(
-  initialOptions?: PartialDeep<StartOptions>,
+  initialOptions?: PartialStartOptions,
 ): StartOptions {
   return mergeRight(DEFAULT_START_OPTIONS, initialOptions || {}) as StartOptions
 }

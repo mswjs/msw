@@ -2,7 +2,11 @@ import * as context from './context'
 export { context }
 
 export { setupWorker } from './setupWorker/setupWorker'
-export { SetupWorkerApi } from './setupWorker/glossary'
+export type {
+  SetupWorkerApi,
+  PartialStartOptions,
+} from './setupWorker/glossary'
+export type { SharedOptions } from './sharedOptions'
 export {
   response,
   defaultResponse,

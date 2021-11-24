@@ -1,6 +1,6 @@
 import { rest } from 'msw'
 
-rest.get<{ userId: string }, { postCount: number }>(
+rest.get<{ userId: string }, never, { postCount: number }>(
   '/user',
   (req, res, ctx) => {
     req.body.userId
@@ -22,7 +22,7 @@ rest.get<{ userId: string }, { postCount: number }>(
   },
 )
 
-rest.get<any, any, { userId: string }>('/user/:userId', (req) => {
+rest.get<never, { userId: string }>('/user/:userId', (req) => {
   req.params.userId
 
   // @ts-expect-error `unknown` is not defined in the request params type.
@@ -38,12 +38,31 @@ rest.get<
   null
 >('/user', () => null)
 
-rest.get<any, { label: boolean }>('/user', (req, res, ctx) =>
+rest.get<never, never, { label: boolean }>('/user', (req, res, ctx) =>
   // allow ResponseTransformer to contain a more specific type
   res(ctx.json({ label: true })),
 )
 
-rest.get<any, string | string[]>('/user', (req, res, ctx) =>
+rest.get<never, never, string | string[]>('/user', (req, res, ctx) =>
   // allow ResponseTransformer to return a narrower type than a given union
   res(ctx.json('hello')),
 )
+
+rest.get<never>('/user/:id', (req, res, ctx) => {
+  const { userId } = req.params
+
+  return res(
+    ctx.body(
+      // @ts-expect-error "userId" parameter is not annotated
+      // and is ambiguous (string | string[]).
+      userId,
+    ),
+  )
+})
+
+rest.get<
+  never,
+  // @ts-expect-error Path parameters are always strings.
+  // Parse them to numbers in the resolver if necessary.
+  { id: number }
+>('/posts/:id', () => null)

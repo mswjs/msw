@@ -75,17 +75,17 @@ export const restContext: RestContext = {
   fetch,
 }
 
-export type RequestParams = {
-  [paramName: string]: any
-}
+// Preserving for backwards-compatibility.
+// "RequestParams" must not be used in the source.
+export type RequestParams = PathParams
 
 export type RequestQuery = {
-  [queryName: string]: any
+  [queryName: string]: string
 }
 
 export interface RestRequest<
   BodyType extends DefaultRequestBody = DefaultRequestBody,
-  ParamsType extends RequestParams = PathParams,
+  ParamsType extends PathParams = PathParams,
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }
@@ -102,7 +102,12 @@ export class RestHandler<
   RestHandlerInfo,
   RequestType,
   ParsedRestRequest,
-  RestRequest<RequestParams>
+  RestRequest<
+    RequestType extends MockedRequest<infer RequestBodyType>
+      ? RequestBodyType
+      : any,
+    PathParams
+  >
 > {
   constructor(
     method: RestHandlerMethod,
@@ -159,7 +164,7 @@ export class RestHandler<
   protected getPublicRequest(
     request: RequestType,
     parsedResult: ParsedRestRequest,
-  ): RestRequest<any, RequestParams> {
+  ): RestRequest<any, PathParams> {
     return {
       ...request,
       params: parsedResult.params || {},

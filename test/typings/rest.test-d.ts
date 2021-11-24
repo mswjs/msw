@@ -1,26 +1,21 @@
 import { rest } from 'msw'
 
-rest.get<{ userId: string }, never, { postCount: number }>(
-  '/user',
-  (req, res, ctx) => {
-    req.body.userId
+rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
+  // @ts-expect-error `session` property is not defined on the request body type.
+  req.body.session
 
-    // @ts-expect-error `session` property is not defined on the request body type.
-    req.body.session
+  res(
+    // @ts-expect-error JSON doesn't match given response body generic type.
+    ctx.json({ unknown: true }),
+  )
 
-    res(
-      // @ts-expect-error JSON doesn't match given response body generic type.
-      ctx.json({ unknown: true }),
-    )
+  res(
+    // @ts-expect-error value types do not match
+    ctx.json({ postCount: 'this is not a number' }),
+  )
 
-    res(
-      // @ts-expect-error value types do not match
-      ctx.json({ postCount: 'this is not a number' }),
-    )
-
-    return res(ctx.json({ postCount: 2 }))
-  },
-)
+  return res(ctx.json({ postCount: 2 }))
+})
 
 rest.get<never, { userId: string }>('/user/:userId', (req) => {
   req.params.userId
@@ -66,3 +61,27 @@ rest.get<
   // Parse them to numbers in the resolver if necessary.
   { id: number }
 >('/posts/:id', () => null)
+
+rest.head('/user', (req) => {
+  // @ts-expect-error GET requests cannot have body.
+  req.body.toString()
+})
+
+rest.head<string>('/user', (req) => {
+  // @ts-expect-error GET requests cannot have body.
+  req.body.toString()
+})
+
+rest.get('/user', (req) => {
+  // @ts-expect-error GET requests cannot have body.
+  req.body.toString()
+})
+
+rest.get<string>('/user', (req) => {
+  // @ts-expect-error GET requests cannot have body.
+  req.body.toString()
+})
+
+rest.post<{ userId: string }>('/user', (req) => {
+  req.body.userId.toUpperCase()
+})

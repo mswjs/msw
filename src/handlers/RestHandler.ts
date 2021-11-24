@@ -75,10 +75,6 @@ export const restContext: RestContext = {
   fetch,
 }
 
-// Preserving for backwards-compatibility.
-// "RequestParams" must not be used in the source.
-export type RequestParams = PathParams
-
 export type RequestQuery = {
   [queryName: string]: string
 }

@@ -30,7 +30,6 @@ export {
   RestHandler,
   RESTMethods,
   RestContext,
-  RequestParams,
   RequestQuery,
   RestRequest,
   ParsedRestRequest,

@@ -7,7 +7,9 @@ import {
 } from './handlers/RestHandler'
 import { Path, PathParams } from './utils/matching/matchRequestUrl'
 
-function createRestHandler(method: RESTMethods | RegExp) {
+function createRestHandler<Method extends RESTMethods | RegExp>(
+  method: Method,
+) {
   return <
     RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
     Params extends PathParams = PathParams,
@@ -15,7 +17,12 @@ function createRestHandler(method: RESTMethods | RegExp) {
   >(
     path: Path,
     resolver: ResponseResolver<
-      RestRequest<RequestBodyType, Params>,
+      RestRequest<
+        Method extends RESTMethods.HEAD | RESTMethods.GET
+          ? never
+          : RequestBodyType,
+        Params
+      >,
       RestContext,
       ResponseBody
     >,

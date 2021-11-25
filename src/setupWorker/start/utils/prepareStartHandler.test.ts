@@ -1,4 +1,4 @@
-import { SetupWorkerInternalContext, PartialStartOptions } from '../../glossary'
+import { SetupWorkerInternalContext, StartOptions } from '../../glossary'
 import {
   DEFAULT_START_OPTIONS,
   resolveStartOptions,
@@ -38,7 +38,7 @@ describe('prepareStartHandler', () => {
     const startHandler = prepareStartHandler(createStartHandler, context)
     expect(startHandler).toBeInstanceOf(Function)
 
-    const initialOptions: PartialStartOptions = {
+    const initialOptions: StartOptions = {
       quiet: true,
       serviceWorker: {
         url: './custom.js',

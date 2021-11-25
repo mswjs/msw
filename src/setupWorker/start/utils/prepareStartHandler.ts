@@ -1,13 +1,13 @@
+import { RequiredDeep } from '../../../typeUtils'
 import { mergeRight } from '../../../utils/internal/mergeRight'
 import {
   SetupWorkerApi,
   SetupWorkerInternalContext,
   StartHandler,
   StartOptions,
-  PartialStartOptions,
 } from '../../glossary'
 
-export const DEFAULT_START_OPTIONS: StartOptions = {
+export const DEFAULT_START_OPTIONS: RequiredDeep<StartOptions> = {
   serviceWorker: {
     url: '/mockServiceWorker.js',
     options: null as any,
@@ -25,9 +25,12 @@ export const DEFAULT_START_OPTIONS: StartOptions = {
  * with the given custom options.
  */
 export function resolveStartOptions(
-  initialOptions?: PartialStartOptions,
-): StartOptions {
-  return mergeRight(DEFAULT_START_OPTIONS, initialOptions || {}) as StartOptions
+  initialOptions?: StartOptions,
+): RequiredDeep<StartOptions> {
+  return mergeRight(
+    DEFAULT_START_OPTIONS,
+    initialOptions || {},
+  ) as RequiredDeep<StartOptions>
 }
 
 export function prepareStartHandler(

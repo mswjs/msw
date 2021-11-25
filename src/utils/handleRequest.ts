@@ -3,7 +3,7 @@ import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { ServerLifecycleEventsMap } from '../node/glossary'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
-import { DeepRequired } from '../typeUtils'
+import { RequiredDeep } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
 import { devUtils } from './internal/devUtils'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
@@ -33,7 +33,7 @@ export interface HandleRequestOptions<ResponseType> {
    */
   onMockedResponse?(
     response: ResponseType,
-    handler: DeepRequired<ResponseLookupResult>,
+    handler: RequiredDeep<ResponseLookupResult>,
   ): void
 
   /**
@@ -42,7 +42,7 @@ export interface HandleRequestOptions<ResponseType> {
    */
   onMockedResponseSent?(
     response: ResponseType,
-    handler: DeepRequired<ResponseLookupResult>,
+    handler: RequiredDeep<ResponseLookupResult>,
   ): void
 }
 
@@ -51,7 +51,7 @@ export async function handleRequest<
 >(
   request: MockedRequest,
   handlers: RequestHandler[],
-  options: SharedOptions,
+  options: RequiredDeep<SharedOptions>,
   emitter: StrictEventEmitter<ServerLifecycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions<ResponseType>,
 ): Promise<ResponseType | undefined> {
@@ -109,7 +109,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
 
   return new Promise((resolve) => {
     const requiredLookupResult =
-      lookupResult as DeepRequired<ResponseLookupResult>
+      lookupResult as RequiredDeep<ResponseLookupResult>
     const transformedResponse =
       handleRequestOptions?.transformResponse?.(response) ||
       (response as any as ResponseType)

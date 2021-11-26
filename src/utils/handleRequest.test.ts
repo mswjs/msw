@@ -8,6 +8,7 @@ import { rest } from '../rest'
 import { handleRequest } from './handleRequest'
 import { response } from '../response'
 import { context } from '..'
+import { RequiredDeep } from '../typeUtils'
 
 const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
 const listener = jest.fn()
@@ -20,7 +21,7 @@ function getEmittedEvents() {
   return listener.mock.calls
 }
 
-const options: SharedOptions = {
+const options: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: jest.fn(),
 }
 const callbacks = {

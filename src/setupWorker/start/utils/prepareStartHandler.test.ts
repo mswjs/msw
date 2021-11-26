@@ -1,4 +1,3 @@
-import { PartialDeep } from 'type-fest'
 import { SetupWorkerInternalContext, StartOptions } from '../../glossary'
 import {
   DEFAULT_START_OPTIONS,
@@ -39,7 +38,7 @@ describe('prepareStartHandler', () => {
     const startHandler = prepareStartHandler(createStartHandler, context)
     expect(startHandler).toBeInstanceOf(Function)
 
-    const initialOptions: PartialDeep<StartOptions> = {
+    const initialOptions: StartOptions = {
       quiet: true,
       serviceWorker: {
         url: './custom.js',

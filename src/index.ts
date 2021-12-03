@@ -2,11 +2,42 @@ import * as context from './context'
 export { context }
 
 export { setupWorker } from './setupWorker/setupWorker'
-export { SetupWorkerApi } from './setupWorker/glossary'
 export {
   response,
   defaultResponse,
   createResponseComposition,
+} from './response'
+
+/* Request handlers */
+export { RequestHandler, defaultContext } from './handlers/RequestHandler'
+export { rest } from './rest'
+export { RestHandler, RESTMethods, restContext } from './handlers/RestHandler'
+export { graphql } from './graphql'
+export { GraphQLHandler, graphqlContext } from './handlers/GraphQLHandler'
+
+/* Utils */
+export { matchRequestUrl } from './utils/matching/matchRequestUrl'
+export { compose } from './utils/internal/compose'
+export * from './utils/handleRequest'
+export * from './utils/request/parseIsomorphicRequest'
+export { cleanUrl } from './utils/url/cleanUrl'
+
+/**
+ * Type definitions.
+ */
+export type { SetupWorkerApi, StartOptions } from './setupWorker/glossary'
+export type { SharedOptions } from './sharedOptions'
+
+export type {
+  MockedRequest,
+  ResponseResolver,
+  ResponseResolverReturnType,
+  AsyncResponseResolverReturnType,
+  DefaultRequestBody,
+  DefaultRequestMultipartBody,
+} from './handlers/RequestHandler'
+
+export type {
   MockedResponse,
   ResponseTransformer,
   ResponseComposition,
@@ -14,49 +45,21 @@ export {
   ResponseFunction,
 } from './response'
 
-/* Request handlers */
-export {
-  RequestHandler,
-  MockedRequest,
-  ResponseResolver,
-  ResponseResolverReturnType,
-  AsyncResponseResolverReturnType,
-  DefaultRequestBody,
-  DefaultRequestMultipartBody,
-  defaultContext,
-} from './handlers/RequestHandler'
-export { rest } from './rest'
-export {
-  RestHandler,
-  RESTMethods,
+export type {
   RestContext,
-  RequestParams,
   RequestQuery,
   RestRequest,
   ParsedRestRequest,
-  restContext,
 } from './handlers/RestHandler'
-export { graphql } from './graphql'
-export {
-  GraphQLHandler,
+
+export type {
   GraphQLContext,
   GraphQLVariables,
   GraphQLRequest,
   GraphQLRequestBody,
   GraphQLJsonRequestBody,
-  graphqlContext,
 } from './handlers/GraphQLHandler'
 
-/* Utils */
-export {
-  Path,
-  PathParams,
-  Match,
-  matchRequestUrl,
-} from './utils/matching/matchRequestUrl'
-export { compose } from './utils/internal/compose'
-export { DelayMode } from './context/delay'
+export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
+export type { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
-export * from './utils/handleRequest'
-export * from './utils/request/parseIsomorphicRequest'
-export { cleanUrl } from './utils/url/cleanUrl'

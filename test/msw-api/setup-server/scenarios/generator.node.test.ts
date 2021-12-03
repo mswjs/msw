@@ -2,49 +2,61 @@ import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
+type RequestParams = {
+  maxCount: string
+}
+
 const server = setupServer(
-  rest.get('/polling/:maxCount', function* (req, res, ctx) {
-    let count = 0
+  rest.get<never, RequestParams>(
+    '/polling/:maxCount',
+    function* (req, res, ctx) {
+      const maxCount = parseInt(req.params.maxCount)
+      let count = 0
 
-    while (count < req.params.maxCount) {
-      count += 1
-      yield res(
+      while (count < maxCount) {
+        count += 1
+        yield res(
+          ctx.json({
+            status: 'pending',
+            count,
+          }),
+        )
+      }
+
+      return res(
         ctx.json({
-          status: 'pending',
+          status: 'complete',
           count,
         }),
       )
-    }
+    },
+  ),
 
-    return res(
-      ctx.json({
-        status: 'complete',
-        count,
-      }),
-    )
-  }),
+  rest.get<never, RequestParams>(
+    '/polling/once/:maxCount',
+    function* (req, res, ctx) {
+      const maxCount = parseInt(req.params.maxCount)
+      let count = 0
 
-  rest.get('/polling/once/:maxCount', function* (req, res, ctx) {
-    let count = 0
+      while (count < maxCount) {
+        count += 1
+        yield res(
+          ctx.json({
+            status: 'pending',
+            count,
+          }),
+        )
+      }
 
-    while (count < req.params.maxCount) {
-      count += 1
-      yield res(
+      return res.once(
         ctx.json({
-          status: 'pending',
+          status: 'complete',
           count,
         }),
       )
-    }
-
-    return res.once(
-      ctx.json({
-        status: 'complete',
-        count,
-      }),
-    )
-  }),
-  rest.get('/polling/once/:maxCount', (req, res, ctx) => {
+    },
+  ),
+  rest.get<never, RequestParams>('/polling/once/:maxCount', (req, res, ctx) => {
     return res(ctx.json({ status: 'done' }))
   }),
 )

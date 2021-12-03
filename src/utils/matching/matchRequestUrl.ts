@@ -3,8 +3,8 @@ import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
-
 export type PathParams = Record<string, string | string[]>
+
 export interface Match {
   matches: boolean
   params?: PathParams

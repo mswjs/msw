@@ -15,8 +15,9 @@ import { handleRequest } from '../utils/handleRequest'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
+import { RequiredDeep } from '../typeUtils'
 
-const DEFAULT_LISTEN_OPTIONS: SharedOptions = {
+const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
@@ -54,7 +55,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       )
     }
 
-    let resolvedOptions = {} as SharedOptions
+    let resolvedOptions = {} as RequiredDeep<SharedOptions>
 
     const interceptor = createInterceptor({
       modules: interceptors,
@@ -98,7 +99,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
         resolvedOptions = mergeRight(
           DEFAULT_LISTEN_OPTIONS,
           options || {},
-        ) as SharedOptions
+        ) as RequiredDeep<SharedOptions>
         interceptor.apply()
       },
 

@@ -7,12 +7,13 @@ import {
   SetupWorkerInternalContext,
   StartOptions,
 } from '../../setupWorker/glossary'
+import { RequiredDeep } from '../../typeUtils'
 import { handleRequest } from '../handleRequest'
 import { parseIsomorphicRequest } from '../request/parseIsomorphicRequest'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
-  options: StartOptions,
+  options: RequiredDeep<StartOptions>,
 ): InterceptorApi {
   const interceptor = createInterceptor({
     modules: [interceptFetch, interceptXMLHttpRequest],

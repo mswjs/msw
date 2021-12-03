@@ -12,10 +12,11 @@ import { NetworkError } from '../NetworkError'
 import { parseWorkerRequest } from '../request/parseWorkerRequest'
 import { handleRequest } from '../handleRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'
+import { RequiredDeep } from '../../typeUtils'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
-  options: StartOptions,
+  options: RequiredDeep<StartOptions>,
 ) => {
   return async (
     event: MessageEvent,

@@ -11,7 +11,7 @@ export interface SharedOptions {
    * @example worker.start({ onUnhandledRequest: 'warn' })
    * @example server.listen({ onUnhandledRequest: 'error' })
    */
-  onUnhandledRequest: UnhandledRequestStrategy
+  onUnhandledRequest?: UnhandledRequestStrategy
 }
 
 export interface LifeCycleEventsMap<ResponseType> {

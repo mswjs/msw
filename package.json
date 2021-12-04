@@ -68,14 +68,14 @@
     "@mswjs/interceptors": "^0.12.7",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
-    "@types/inquirer": "^7.3.3",
+    "@types/inquirer": "^8.1.3",
     "@types/js-levenshtein": "^1.1.0",
-    "chalk": "^4.1.1",
+    "chalk": "4.1.1",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.1",
     "graphql": "^15.5.1",
     "headers-utils": "^3.0.2",
-    "inquirer": "^8.1.5",
+    "inquirer": "^8.2.0",
     "is-node-process": "^1.0.1",
     "js-levenshtein": "^1.1.6",
     "node-fetch": "^2.6.1",
@@ -83,7 +83,7 @@
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",
     "type-fest": "^1.2.2",
-    "yargs": "^17.0.1"
+    "yargs": "^17.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",

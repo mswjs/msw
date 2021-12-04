@@ -14,6 +14,7 @@ export interface TypedDocumentNode<
   Result = { [key: string]: any },
   Variables = { [key: string]: any },
 > extends DocumentNode {
+  __apiType?: (variables: Variables) => Result
   __resultType?: Result
   __variablesType?: Variables
 }

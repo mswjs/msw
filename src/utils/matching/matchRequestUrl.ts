@@ -18,17 +18,30 @@ export function coercePath(path: string): string {
   return (
     path
       /**
+       * Replace wildcards ("*") with unnamed capturing groups
+       * because "path-to-regexp" doesn't support wildcards.
+       * Ignore path parameter' modifiers (i.e. ":name*").
+       */
+      .replace(
+        /([:a-zA-Z_-]*)(\*{1,2})+/g,
+        (_, parameterName: string | undefined, wildcard: string) => {
+          const expression = '(.*)'
+
+          if (!parameterName) {
+            return expression
+          }
+
+          return parameterName.startsWith(':')
+            ? `${parameterName}${wildcard}`
+            : `${parameterName}${expression}`
+        },
+      )
+      /**
        * Escape the protocol so that "path-to-regexp" could match
        * absolute URL.
        * @see https://github.com/pillarjs/path-to-regexp/issues/259
        */
       .replace(/^([^\/]+)(:)(?=\/\/)/g, '$1\\$2')
-      /**
-       * Replace wildcards ("*") with unnamed capturing groups
-       * because "path-to-regexp" doesn't support wildcards.
-       * Ignore path parameter' modifiers (i.e. ":name*").
-       */
-      .replace(/(?<!(^|\/|\*+):[\w]+)(\*{1,2})/g, '(.*)')
   )
 }
 
@@ -41,6 +54,7 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
     typeof normalizedPath === 'string'
       ? coercePath(normalizedPath)
       : normalizedPath
+
   const cleanUrl = getCleanUrl(url)
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
   const params = (result && (result.params as PathParams)) || {}

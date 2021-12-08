@@ -47,13 +47,13 @@ export interface MockedRequest<Body = DefaultRequestBody> {
   bodyUsed: Request['bodyUsed']
 }
 
-interface RequestHandlerDefaultInfo {
-  callFrame?: string
+export interface RequestHandlerDefaultInfo {
+  header: string
 }
 
-type RequestHandlerInfo<ExtraInfo extends Record<string, any>> = {
-  header: string
-} & ExtraInfo
+export interface RequestHandlerInternalInfo {
+  callFrame?: string
+}
 
 type ContextMap = Record<string, (...args: any[]) => any>
 
@@ -85,7 +85,7 @@ export type ResponseResolver<
 ) => AsyncResponseResolverReturnType<MockedResponse<BodyType>>
 
 export interface RequestHandlerOptions<HandlerInfo> {
-  info: RequestHandlerInfo<HandlerInfo>
+  info: HandlerInfo
   resolver: ResponseResolver<any, any>
   ctx?: ContextMap
 }
@@ -98,12 +98,12 @@ export interface RequestHandlerExecutionResult<PublicRequestType> {
 }
 
 export abstract class RequestHandler<
-  HandlerInfo extends Record<string, any> = Record<string, any>,
+  HandlerInfo extends RequestHandlerDefaultInfo = RequestHandlerDefaultInfo,
   Request extends MockedRequest = MockedRequest,
   ParsedResult = any,
   PublicRequest extends MockedRequest = Request,
 > {
-  public info: RequestHandlerDefaultInfo & RequestHandlerInfo<HandlerInfo>
+  public info: HandlerInfo & RequestHandlerInternalInfo
   public shouldSkip: boolean
 
   private ctx: ContextMap

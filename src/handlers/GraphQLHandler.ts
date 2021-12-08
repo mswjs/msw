@@ -12,6 +12,7 @@ import { cookie } from '../context/cookie'
 import {
   MockedRequest,
   RequestHandler,
+  RequestHandlerDefaultInfo,
   ResponseResolver,
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
@@ -59,7 +60,7 @@ export const graphqlContext: GraphQLContext<any> = {
 
 export type GraphQLVariables = Record<string, any>
 
-export interface GraphQLHandlerInfo {
+export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationType: ExpectedOperationTypeNode
   operationName: GraphQLHandlerNameSelector
 }

@@ -29,12 +29,13 @@ import {
   DefaultRequestBody,
   MockedRequest,
   RequestHandler,
+  RequestHandlerDefaultInfo,
   ResponseResolver,
 } from './RequestHandler'
 
 type RestHandlerMethod = string | RegExp
 
-interface RestHandlerInfo {
+export interface RestHandlerInfo extends RequestHandlerDefaultInfo {
   method: RestHandlerMethod
   path: Path
 }
@@ -172,8 +173,6 @@ export class RestHandler<
       this.info.method instanceof RegExp
         ? this.info.method.test(request.method)
         : isStringEqual(this.info.method, request.method)
-
-    // console.log({ request, matchesMethod, parsedResult })
 
     return matchesMethod && parsedResult.matches
   }

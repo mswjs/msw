@@ -183,7 +183,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
 
       // Throw an exception to halt request processing and not perform the original request.
       throw new Error(
-        'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+        devUtils.formatMessage(
+          'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+        ),
       )
     }
 

@@ -59,7 +59,7 @@ test('errors on unhandled request when using the "error" value', async () => {
   const makeRequest = () => fetch(endpointUrl)
 
   await expect(() => makeRequest()).rejects.toThrow(
-    `request to ${endpointUrl} failed, reason: Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+    `request to ${endpointUrl} failed, reason: [MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
   )
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: captured a request without a matching request handler:

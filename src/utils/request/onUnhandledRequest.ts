@@ -15,7 +15,7 @@ const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
 const TYPE_MATCH_DELTA = 0.5
 
-type UnhandledRequestCallback = (request: MockedRequest) => void
+export type UnhandledRequestCallback = (request: MockedRequest) => void
 
 export type UnhandledRequestStrategy =
   | 'bypass'
@@ -23,11 +23,13 @@ export type UnhandledRequestStrategy =
   | 'error'
   | UnhandledRequestCallback
 
-function groupHandlersByType(handlers: RequestHandler[]) {
-  return handlers.reduce<{
-    rest: RestHandler[]
-    graphql: GraphQLHandler[]
-  }>(
+interface RequestHandlerGroups {
+  rest: RestHandler[]
+  graphql: GraphQLHandler[]
+}
+
+function groupHandlersByType(handlers: RequestHandler[]): RequestHandlerGroups {
+  return handlers.reduce<RequestHandlerGroups>(
     (groups, handler) => {
       if (handler instanceof RestHandler) {
         groups.rest.push(handler)
@@ -46,18 +48,23 @@ function groupHandlersByType(handlers: RequestHandler[]) {
   )
 }
 
-type RequestHandlerSuggestionList = [number, RequestHandler][]
-type ScoreGetterFn = (request: MockedRequest, handler: RequestHandler) => number
+type RequestHandlerSuggestion = [number, RequestHandler]
 
-function getScoreForRestHandler(): ScoreGetterFn {
+type ScoreGetterFn<RequestHandlerType extends RequestHandler> = (
+  request: MockedRequest,
+  handler: RequestHandlerType,
+) => number
+
+function getRestHandlerScore(): ScoreGetterFn<RestHandler> {
   return (request, handler) => {
     const { path, method } = handler.info
 
-    if (path instanceof RegExp) {
+    if (path instanceof RegExp || method instanceof RegExp) {
       return Infinity
     }
 
     const hasSameMethod = isStringEqual(request.method, method)
+
     // Always treat a handler with the same method as a more similar one.
     const methodScoreDelta = hasSameMethod ? TYPE_MATCH_DELTA : 0
     const requestPublicUrl = getPublicUrlFromRequest(request)
@@ -67,15 +74,20 @@ function getScoreForRestHandler(): ScoreGetterFn {
   }
 }
 
-function getScoreForGraphQLHandler(
+function getGraphQLHandlerScore(
   parsedQuery: ParsedGraphQLQuery,
-): ScoreGetterFn {
+): ScoreGetterFn<GraphQLHandler> {
   return (_, handler) => {
     if (typeof parsedQuery.operationName === 'undefined') {
       return Infinity
     }
 
     const { operationType, operationName } = handler.info
+
+    if (typeof operationName !== 'string') {
+      return Infinity
+    }
+
     const hasSameOperationType = parsedQuery.operationType === operationType
     // Always treat a handler with the same operation type as a more similar one.
     const operationTypeScoreDelta = hasSameOperationType ? TYPE_MATCH_DELTA : 0
@@ -87,20 +99,16 @@ function getScoreForGraphQLHandler(
 
 function getSuggestedHandler(
   request: MockedRequest,
-  handlers: RequestHandler[],
-  getScore: ScoreGetterFn,
+  handlers: RestHandler[] | GraphQLHandler[],
+  getScore: ScoreGetterFn<RestHandler> | ScoreGetterFn<GraphQLHandler>,
 ): RequestHandler[] {
-  const suggestedHandlers = handlers
-    .reduce<RequestHandlerSuggestionList>((acc, handler) => {
-      const score = getScore(request, handler)
-      return acc.concat([[score, handler]])
+  const suggestedHandlers = (handlers as RequestHandler[])
+    .reduce<RequestHandlerSuggestion[]>((suggestions, handler) => {
+      const score = getScore(request, handler as any)
+      return suggestions.concat([[score, handler]])
     }, [])
-    .sort(([leftScore], [rightScore]) => {
-      return leftScore - rightScore
-    })
-    .filter(([score]) => {
-      return score <= MAX_MATCH_SCORE
-    })
+    .sort(([leftScore], [rightScore]) => leftScore - rightScore)
+    .filter(([score]) => score <= MAX_MATCH_SCORE)
     .slice(0, MAX_SUGGESTION_COUNT)
     .map(([, handler]) => handler)
 
@@ -143,8 +151,8 @@ export function onUnhandledRequest(
     request,
     relevantHandlers,
     parsedGraphQLQuery
-      ? getScoreForGraphQLHandler(parsedGraphQLQuery)
-      : getScoreForRestHandler(),
+      ? getGraphQLHandlerScore(parsedGraphQLQuery)
+      : getRestHandlerScore(),
   )
 
   const handlerSuggestion =

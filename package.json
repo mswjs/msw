@@ -130,6 +130,14 @@
     "webpack": "^5.64.4",
     "webpack-dev-server": "^3.11.2"
   },
+  "peerDependencies": {
+    "typescript": "4.2.x"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "resolutions": {
     "chokidar": "3.4.1"
   }

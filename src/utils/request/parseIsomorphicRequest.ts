@@ -1,7 +1,6 @@
 import * as cookieUtils from 'cookie'
 import { IsomorphicRequest } from '@mswjs/interceptors'
 import { MockedRequest } from '../../handlers/RequestHandler'
-import { uuidv4 } from '../internal/uuidv4'
 import { parseBody } from './parseBody'
 import { setRequestCookies } from './setRequestCookies'
 
@@ -11,12 +10,8 @@ import { setRequestCookies } from './setRequestCookies'
 export function parseIsomorphicRequest(
   request: IsomorphicRequest,
 ): MockedRequest {
-  const requestId = uuidv4()
-
-  request.headers.set('x-msw-request-id', requestId)
-
   const mockedRequest: MockedRequest = {
-    id: requestId,
+    id: request.id,
     url: request.url,
     method: request.method,
     body: parseBody(request.body, request.headers),

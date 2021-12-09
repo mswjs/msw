@@ -19,7 +19,7 @@ export interface HandleRequestOptions<ResponseType> {
 
   /**
    * Transforms a `MockedResponse` instance returned from a handler
-   * to a response instance
+   * to a response instance supported by the lower tooling (i.e. interceptors).
    */
   transformResponse?(response: MockedResponse<string>): ResponseType
 

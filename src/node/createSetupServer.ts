@@ -81,16 +81,14 @@ export function createSetupServer(...interceptors: Interceptor[]) {
     })
 
     interceptor.on('response', (request, response) => {
-      const requestId = request.headers.get('x-msw-request-id')
-
-      if (!requestId) {
+      if (!request.id) {
         return
       }
 
       if (response.headers.get('x-powered-by') === 'msw') {
-        emitter.emit('response:mocked', response, requestId)
+        emitter.emit('response:mocked', response, request.id)
       } else {
-        emitter.emit('response:bypass', response, requestId)
+        emitter.emit('response:bypass', response, request.id)
       }
     })
 

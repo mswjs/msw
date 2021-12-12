@@ -24,6 +24,6 @@ test('returns an absolute URL given a relative path without a leading slash', ()
 })
 
 test('returns a path with a pattern as-is', () => {
-  expect(getAbsoluteUrl(':api/user')).toEqual(':api/user')
+  expect(getAbsoluteUrl(':api/user')).toEqual('http://localhost/:api/user')
   expect(getAbsoluteUrl('*/resource/*')).toEqual('*/resource/*')
 })

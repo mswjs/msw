@@ -9,8 +9,8 @@ export function getAbsoluteUrl(path: string, baseUrl?: string): string {
     return path
   }
 
-  // Ignore path with pattern start with :*
-  if (/^[:*]/.test(path)) {
+  // Ignore path with pattern start with *
+  if (path.startsWith('*')) {
     return path
   }
 

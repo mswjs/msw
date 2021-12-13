@@ -18,3 +18,12 @@ test('returns a given absolute URL as-is', () => {
     'https://api.mswjs.io/users',
   )
 })
+
+test('returns an absolute URL given a relative path without a leading slash', () => {
+  expect(getAbsoluteUrl('users')).toEqual('http://localhost/users')
+})
+
+test('returns a path with a pattern as-is', () => {
+  expect(getAbsoluteUrl(':api/user')).toEqual('http://localhost/:api/user')
+  expect(getAbsoluteUrl('*/resource/*')).toEqual('*/resource/*')
+})

@@ -39,10 +39,12 @@ test('removes query parameters and hashes from a relative URL', () => {
 })
 
 test('returns a path pattern string as-is', () => {
-  expect(normalizePath(':api/user')).toEqual(':api/user')
+  expect(normalizePath(':api/user')).toEqual('http://localhost/:api/user')
   expect(normalizePath('*/resource/*')).toEqual('*/resource/*')
 })
 
 test('removeß query parameters and hashes from a path pattern string', () => {
-  expect(normalizePath(':api/user?query=123#some')).toEqual(':api/user')
+  expect(normalizePath(':api/user?query=123#some')).toEqual(
+    'http://localhost/:api/user',
+  )
 })

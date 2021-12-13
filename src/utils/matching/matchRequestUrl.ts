@@ -37,6 +37,11 @@ export function coercePath(path: string): string {
         },
       )
       /**
+       * Escape the port so that "path-to-regexp" can match
+       * absolute URLs including port numbers.
+       */
+      .replace(/([^\/])(:)(?=\d+)/g, '$1\\$2')
+      /**
        * Escape the protocol so that "path-to-regexp" could match
        * absolute URL.
        * @see https://github.com/pillarjs/path-to-regexp/issues/259

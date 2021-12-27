@@ -190,6 +190,23 @@ test('handles login exception', () => {
 
 ## Awards & Mentions
 
-<br />
-
-<img src="https://raw.githubusercontent.com/open-draft/msw/master/media/os-awards-2020.png" width="160" alt="Open Source Awards 2020" />
+<table>
+  <tr valign="middle">
+    <td width="124">
+      <img src="https://raw.githubusercontent.com/open-draft/msw/master/media/tech-radar.png" width="124" alt="Technology Radar">
+    </td>
+    <td>
+      <h4>Solution Worth Pursuing</h4>
+      <p><em><a href="https://www.thoughtworks.com/radar/languages-and-frameworks/mock-service-worker">Technology Radar</a> (2020–2021)</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="124">
+      <img src="https://raw.githubusercontent.com/open-draft/msw/master/media/os-awards.png" width="124" alt="Open Source Awards 2020">
+    </td>
+    <td>
+      <h4>The Most Exciting Use of Technology</h4>
+      <p><em><a href="https://osawards.com/javascript/2020">Open Source Awards</a> (2020)</em></p>
+    </td>
+  </tr>
+</table>

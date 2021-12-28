@@ -56,7 +56,7 @@ Browser usage is what sets Mock Service Worker apart from other tools. Utilizing
 
 **Watch a 30 seconds explanation on how Mock Service Worker works in a browser:**
 
-[![What is Mock Service Worker?](https://raw.githubusercontent.com/mswjs/msw/master/media/msw-video-thumbnail.jpg)](https://youtu.be/HcQCqboatZk)
+[![What is Mock Service Worker?](https://raw.githubusercontent.com/mswjs/msw/main/media/msw-video-thumbnail.jpg)](https://youtu.be/HcQCqboatZk)
 
 ### How is it different?
 
@@ -91,7 +91,7 @@ worker.start()
 
 Performing a `GET https://github.com/octocat` request in your application will result into a mocked response that you can inspect in your browser's "Network" tab:
 
-![Chrome DevTools Network screenshot with the request mocked](https://github.com/open-draft/msw/blob/master/media/msw-quick-look-network.png?raw=true)
+![Chrome DevTools Network screenshot with the request mocked](https://github.com/mswjs/msw/blob/main/media/msw-quick-look-network.png?raw=true)
 
 > **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes on the client-side? That way you can use the same languages (i.e. TypeScript), third-party libraries, and internal logic in mocks.
 
@@ -193,7 +193,7 @@ test('handles login exception', () => {
 <table>
   <tr valign="middle">
     <td width="124">
-      <img src="https://raw.githubusercontent.com/mswjs/msw/master/media/tech-radar.png" width="124" alt="Technology Radar">
+      <img src="https://raw.githubusercontent.com/mswjs/msw/main/media/tech-radar.png" width="124" alt="Technology Radar">
     </td>
     <td>
       <h4>Solution Worth Pursuing</h4>
@@ -202,7 +202,7 @@ test('handles login exception', () => {
   </tr>
   <tr>
     <td width="124">
-      <img src="https://raw.githubusercontent.com/mswjs/msw/master/media/os-awards.png" width="124" alt="Open Source Awards 2020">
+      <img src="https://raw.githubusercontent.com/mswjs/msw/main/media/os-awards.png" width="124" alt="Open Source Awards 2020">
     </td>
     <td>
       <h4>The Most Exciting Use of Technology</h4>

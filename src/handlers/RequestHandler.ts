@@ -26,6 +26,7 @@ export type DefaultRequestBody =
   | DefaultRequestMultipartBody
   | string
   | number
+  | boolean
   | undefined
 
 export interface MockedRequest<Body = DefaultRequestBody> {

@@ -188,6 +188,26 @@ test('handles login exception', () => {
 
 > **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers involved? The name is chosen for familiarity, and the API is designed to resemble operating with an actual server.
 
+## Sponsors
+
+### Golden Sponsors
+
+> Become our first golden sponsor and get featured right here, enjoying other perks like issue prioritization and a personal consulting session with us.
+>
+> **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
+
+### Silver Sponsors
+
+> Become our first _silver sponsor_ and get your profile image and link featured right here.
+>
+> **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
+
+### Bronze Sponsors
+
+> Become our first _bronze sponsor_ and get your profile image and link featured in this section.
+>
+> **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
+
 ## Awards & Mentions
 
 <table>

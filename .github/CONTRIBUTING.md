@@ -41,22 +41,27 @@ $ yarn start
 ## Git workflow
 
 ```bash
-# Navigate to the "master" branch and ensure it's up-to-date
-$ git checkout master
+# Checkout the default branch and ensure it's up-to-date
+$ git checkout main
 $ git pull --rebase
 
 # Create a feature branch
-$ git checkout -b feature/gql-subscriptions
+$ git checkout -b feature/graphql-subscriptions
 
 # Commit the changes
 $ git add .
-$ git commit -m 'Adds support for GraphQL subscriptions'
+$ git commit
+# Follow the interactive prompt to compose a commit message
 
 # Push
-$ git push -u origin feature/gql-subscriptions
+$ git push -u origin feature/graphql-subscriptions
 ```
 
-Once you have pushed the changes to your remote feature branch, [Create a pull request](https://github.com/open-draft/msw/compare) on GitHub. Undergo the process of code review, where the maintainers of the library will help you get the changes from good to great, and enjoy your implementation merged to `master`.
+We are using [Conventional Commits](https://conventionalcommits.org/) naming convention. It helps us automate library releases and ensure clean and standardized commit tree. Please take a moment to read about the said convention before you name your commits.
+
+> **Tip:** running `git commit` will open an interactive prompt in your terminal. Follow the prompt to compose a valid commit message.
+
+Once you have pushed the changes to your remote feature branch, [create a pull request](https://github.com/open-draft/msw/compare) on GitHub. Undergo the process of code review, where the maintainers of the library will help you get the changes from good to great, and enjoy your implementation merged to the default branch.
 
 > Please be respectful when requesting and going through the code review. Everyone on the team is interested in merging quality and well tested code, and we're hopeful that you have the same goal. It may take some time and iterations to get it right, and we will assist you throughout the process.
 

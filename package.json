@@ -87,6 +87,8 @@
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
+    "@commitlint/cli": "^16.0.2",
+    "@commitlint/config-conventional": "^16.0.0",
     "@open-draft/test-server": "^0.2.3",
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-inject": "^4.0.3",

@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { invariant } from 'outvariant'
 import { CreateBrowserApi, createBrowser } from 'page-with'
 import { ServerApi } from '@open-draft/test-server'
 import { SERVICE_WORKER_BUILD_PATH } from '../config/constants'
@@ -80,8 +81,14 @@ Object.keys(console).forEach((methodName) => {
     },
   }).catch((error) => {
     console.error('Failed to create browser:', error)
-    return null
+    process.exit(1)
   })
+
+  invariant(
+    browser,
+    'Failed to run the "beforeAll" hook: the browser instance is missing or malformed.',
+    browser,
+  )
 })
 
 afterEach(() => {
@@ -89,6 +96,11 @@ afterEach(() => {
 })
 
 afterAll(async () => {
-  await browser.cleanup()
-  await workerConsoleServer.close()
+  invariant(
+    browser,
+    'Failed to run the "afterAll" hook: the browser instance does not exist.',
+    browser,
+  )
+
+  await Promise.all([browser.cleanup(), workerConsoleServer.close()])
 })

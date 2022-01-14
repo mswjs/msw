@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { Page, pageWith } from 'page-with'
+import { pageWith } from 'page-with'
 
 declare global {
   namespace jest {
@@ -40,18 +40,12 @@ function createRuntime() {
   })
 }
 
-function performanceNow(page: Page) {
-  return page.evaluate(() => new Date().getTime())
-}
-
 test('uses explicit server response delay', async () => {
   const runtime = await createRuntime()
-  const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request('/delay?duration=1200')
-  const endPerf = await performanceNow(runtime.page)
+  const timing = res.request().timing()
 
-  const responseTime = endPerf - startPerf
-  expect(responseTime).toRoughlyEqual(1200, 250)
+  expect(timing.responseStart).toRoughlyEqual(1200, 250)
 
   const status = res.status()
   const headers = await res.allHeaders()
@@ -64,14 +58,10 @@ test('uses explicit server response delay', async () => {
 
 test('uses realistic server response delay when no delay value is provided', async () => {
   const runtime = await createRuntime()
-  const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request('/delay')
-  const endPerf = await performanceNow(runtime.page)
+  const timing = res.request().timing()
 
-  // Actual response time should lie within min/max boundaries
-  // of the random realistic response time.
-  const responseTime = endPerf - startPerf
-  expect(responseTime).toRoughlyEqual(250, 200)
+  expect(timing.responseStart).toRoughlyEqual(250, 200)
 
   const status = res.status()
   const headers = await res.allHeaders()
@@ -86,14 +76,10 @@ test('uses realistic server response delay when no delay value is provided', asy
 
 test('uses realistic server response delay when "real" delay mode is provided', async () => {
   const runtime = await createRuntime()
-  const startPerf = await performanceNow(runtime.page)
   const res = await runtime.request('/delay?mode=real')
-  const endPerf = await performanceNow(runtime.page)
+  const timing = res.request().timing()
 
-  // Actual response time should lie within min/max boundaries
-  // of the random realistic response time.
-  const responseTime = endPerf - startPerf
-  expect(responseTime).toRoughlyEqual(250, 200)
+  expect(timing.responseStart).toRoughlyEqual(250, 200)
 
   const status = res.status()
   const headers = await res.allHeaders()

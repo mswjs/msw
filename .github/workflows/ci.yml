@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Unit tests
+        run: yarn test:unit
+
+      - name: Build
+        run: yarn build
+
+      - name: Integration tests
+        run: yarn test:integration
+
+  test-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Smoke tests
+        run: yarn test:smoke

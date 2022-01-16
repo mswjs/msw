@@ -115,6 +115,7 @@
     "jest": "26",
     "json-bigint": "^1.0.0",
     "lint-staged": "^11.0.1",
+    "outvariant": "^1.2.1",
     "page-with": "^0.5.0",
     "prettier": "^2.3.2",
     "regenerator-runtime": "^0.13.9",

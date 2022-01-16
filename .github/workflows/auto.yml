@@ -1,0 +1,11 @@
+name: auto
+on: [push]
+jobs:
+  cancel-previous-workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          workflow_id: ci.yml
+          access_token: ${{ github.token }}

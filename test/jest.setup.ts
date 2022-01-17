@@ -15,7 +15,7 @@ let workerConsoleServer: ServerApi
 beforeAll(async () => {
   workerConsoleServer = await createWorkerConsoleServer()
 
-  browser = await createBrowser({
+  const browserInstance = await createBrowser({
     serverOptions: {
       router(app) {
         // Prevent Express from responding with cached 304 responses.
@@ -81,14 +81,15 @@ Object.keys(console).forEach((methodName) => {
     },
   }).catch((error) => {
     console.error('Failed to create browser:', error)
-    process.exit(1)
   })
 
   invariant(
-    browser,
+    browserInstance,
     'Failed to run the "beforeAll" hook: the browser instance is missing or malformed.',
-    browser,
+    browserInstance,
   )
+
+  browser = browserInstance
 })
 
 afterEach(() => {

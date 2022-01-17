@@ -12,15 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-build-
-
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        uses: bahmutov/npm-install@v1
 
       - name: Unit tests
         run: yarn test:unit
@@ -29,22 +22,15 @@ jobs:
         run: yarn build
 
       - name: Integration tests
-        run: yarn test:integration
+        run: yarn test:integration test/rest-api/basic.test.ts
 
   test-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-build-
-
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        uses: bahmutov/npm-install@v1
 
       - name: Build
         run: yarn build

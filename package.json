@@ -18,8 +18,8 @@
     "test:integration": "jest --config=test/jest.config.js --maxWorkers=3",
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
+    "prepare": "yarn simple-git-hooks init",
     "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
-    "prepare": "husky install",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {
@@ -87,6 +87,8 @@
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
+    "@commitlint/cli": "^16.0.2",
+    "@commitlint/config-conventional": "^16.0.0",
     "@open-draft/test-server": "^0.2.3",
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-inject": "^4.0.3",
@@ -103,14 +105,15 @@
     "@typescript-eslint/parser": "^4.28.3",
     "babel-loader": "^8.2.3",
     "babel-minify": "^0.5.1",
+    "commitizen": "^4.2.4",
     "cross-env": "^7.0.3",
     "cross-fetch": "^3.1.4",
+    "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "fs-extra": "^10.0.0",
     "fs-teardown": "^0.3.0",
-    "husky": "^5.1.1",
     "jest": "26",
     "json-bigint": "^1.0.0",
     "lint-staged": "^11.0.1",
@@ -122,6 +125,7 @@
     "rollup": "^2.60.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
+    "simple-git-hooks": "^2.7.0",
     "ts-jest": "26",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.1.0",
@@ -132,5 +136,10 @@
   },
   "resolutions": {
     "chokidar": "3.4.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

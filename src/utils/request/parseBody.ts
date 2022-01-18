@@ -11,7 +11,7 @@ export function parseBody(body?: MockedRequest['body'], headers?: Headers) {
     return body
   }
 
-  const contentType = (headers?.get('content-type') || '').toLowerCase()
+  const contentType = headers?.get('content-type')?.toLowerCase() || ''
 
   // If the body has a Multipart Content-Type
   // parse it into an object.

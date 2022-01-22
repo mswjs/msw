@@ -17,4 +17,4 @@ Example-driven test consists of two parts:
 
 ## Contributing
 
-Please see the [Contribution guidelines](../.github/CONTRIBUTING.md) for the instructions on how to run and add new tests. Thank you.
+Please see the [Contribution guidelines](/CONTRIBUTING.md) for the instructions on how to run and add new tests. Thank you.

@@ -6,7 +6,7 @@ Hey! Thank you for deciding to contribute to Mock Service Worker! This page will
 
 Getting yourself familiar with the tools below will substantially ease your contribution experience.
 
-- [TypeScript](typescriptlang.org)
+- [TypeScript](https://www.typescriptlang.org/)
 - [Jest](https://jestjs.io/)
 
 ## Dependencies

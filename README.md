@@ -1,5 +1,7 @@
+<br />
+
 <p align="center">
-  <img src="media/msw-logo.svg" width="120" alt="Mock Service Worker logo" />
+  <img src="media/msw-logo.svg" width="100" alt="Mock Service Worker logo" />
 </p>
 
 <h1 align="center">Mock Service Worker</h1>

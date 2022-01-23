@@ -3,11 +3,42 @@ import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
-export type PathParams = Record<string, string | ReadonlyArray<string>>
 
-export interface Match {
+type IsUnique<
+  P extends string,
+  R extends string,
+> = R extends `${infer _Before}:${P}${infer After}`
+  ? IsUnique<P, After> extends true
+    ? false
+    : true
+  : R extends `:${P}/`
+  ? true
+  : false
+
+type StringOrArray<P extends string, R extends string> = IsUnique<
+  P,
+  R
+> extends true
+  ? string
+  : ReadonlyArray<string>
+
+export type PathParams<R extends Path> = R extends string
+  ? PathParamsString<R>
+  : unknown
+export type PathParamsString<
+  R extends string,
+  O extends string = R,
+> = R extends `${infer _Before}:${infer P}/${infer After}`
+  ? Record<P, StringOrArray<P, O>> & PathParamsString<After, O>
+  : R extends `${infer _Before}:${infer P}`
+  ? Record<P, StringOrArray<P, O>>
+  : R extends `:${infer P}`
+  ? Record<P, StringOrArray<P, O>>
+  : unknown
+
+export interface Match<R extends Path> {
   matches: boolean
-  params?: PathParams
+  params?: PathParams<R>
 }
 
 /**
@@ -53,7 +84,11 @@ export function coercePath(path: string): string {
 /**
  * Returns the result of matching given request URL against a mask.
  */
-export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
+export function matchRequestUrl(
+  url: URL,
+  path: Path,
+  baseUrl?: string,
+): Match<typeof path> {
   const normalizedPath = normalizePath(path, baseUrl)
   const cleanPath =
     typeof normalizedPath === 'string'
@@ -62,7 +97,7 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
 
   const cleanUrl = getCleanUrl(url)
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
-  const params = (result && (result.params as PathParams)) || {}
+  const params: PathParams<typeof path> = (result && (result.params)) || {}
 
   return {
     matches: result !== false,

@@ -12,7 +12,7 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
 ) {
   return <
     RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
-    Params extends PathParams = PathParams,
+    Params extends PathParams<Path> = PathParams<Path>,
     ResponseBody extends DefaultRequestBody = DefaultRequestBody,
   >(
     path: Path,

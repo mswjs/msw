@@ -82,12 +82,12 @@ export type RequestQuery = {
 
 export interface RestRequest<
   BodyType extends DefaultRequestBody = DefaultRequestBody,
-  ParamsType extends PathParams = PathParams,
+  ParamsType extends PathParams<Path> = PathParams<RegExp>,
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }
 
-export type ParsedRestRequest = Match
+export type ParsedRestRequest<P extends Path> = Match<P>
 
 /**
  * Request handler for REST API requests.
@@ -98,12 +98,12 @@ export class RestHandler<
 > extends RequestHandler<
   RestHandlerInfo,
   RequestType,
-  ParsedRestRequest,
+  ParsedRestRequest<RestHandlerInfo['path']>,
   RestRequest<
     RequestType extends MockedRequest<infer RequestBodyType>
       ? RequestBodyType
       : any,
-    PathParams
+    PathParams<RestHandlerInfo['path']>
   >
 > {
   constructor(
@@ -160,15 +160,18 @@ export class RestHandler<
 
   protected getPublicRequest(
     request: RequestType,
-    parsedResult: ParsedRestRequest,
-  ): RestRequest<any, PathParams> {
+    parsedResult: ParsedRestRequest<RestHandlerInfo['path']>,
+  ): RestRequest<any, PathParams<RestHandlerInfo['path']>> {
     return {
       ...request,
       params: parsedResult.params || {},
     }
   }
 
-  predicate(request: RequestType, parsedResult: ParsedRestRequest) {
+  predicate(
+    request: RequestType,
+    parsedResult: ParsedRestRequest<RestHandlerInfo['path']>,
+  ) {
     const matchesMethod =
       this.info.method instanceof RegExp
         ? this.info.method.test(request.method)

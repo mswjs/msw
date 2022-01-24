@@ -63,7 +63,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@mswjs/cookies": "^0.1.6",
+    "@mswjs/cookies": "^0.1.7",
     "@mswjs/interceptors": "^0.12.7",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
@@ -77,7 +77,7 @@
     "inquirer": "^8.2.0",
     "is-node-process": "^1.0.1",
     "js-levenshtein": "^1.1.6",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "path-to-regexp": "^6.2.0",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",

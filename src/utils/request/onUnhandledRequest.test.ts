@@ -88,7 +88,7 @@ test('supports custom callback function', () => {
   const request = createMockedRequest()
   onUnhandledRequest(request, [], handleRequest)
 
-  expect(handleRequest).toHaveBeenCalledWith(request)
+  expect(handleRequest).toHaveBeenCalledWith(request, expect.anything())
 })
 
 test('does not print any suggestions given no handlers to suggest', () => {

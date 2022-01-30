@@ -1,5 +1,11 @@
 import { parse } from 'graphql'
-import { graphql } from 'msw'
+import {
+  MockedRequest,
+  GraphQLRequest,
+  graphql,
+  GraphQLHandler,
+  GraphQLVariables,
+} from 'msw'
 
 graphql.query<{ key: string }>('', (req, res, ctx) => {
   return res(
@@ -109,3 +115,21 @@ graphql.mutation(createUser, (req, res, ctx) =>
     }),
   ),
 )
+
+// GraphQL request variables must be inferrable
+// via the variables generic.
+function extractVariables<Variables extends GraphQLVariables>(
+  _handler: GraphQLHandler<GraphQLRequest<Variables>>,
+): MockedRequest<GraphQLRequest<Variables>> {
+  return null as any
+}
+const handlerWithVariables = graphql.query<{ data: unknown }, { id: string }>(
+  'GetUser',
+  () => void 0,
+)
+const handler = extractVariables(handlerWithVariables)
+
+handler.body.variables.id
+
+// @ts-expect-error Property "foo" is not defined on the variables generic.
+handler.body.variables.foo

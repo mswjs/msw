@@ -17,8 +17,18 @@ rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
   return res(ctx.json({ postCount: 2 }))
 })
 
-rest.get<never, { userId: string }>('/user/:userId', (req) => {
-  req.params.userId
+rest.get('/user/:userId', (req) => {
+  // Path parameter type is inferred from the path string.
+  req.params.userId.trim()
+
+  // @ts-expect-error `unknown` is not defined in the request params type.
+  req.params.unknown
+})
+
+rest.get('/user/:id/message/:id', (req) => {
+  // Multiple same path parameters are inferred
+  // as a read-only array of strings.
+  req.params.id.map
 
   // @ts-expect-error `unknown` is not defined in the request params type.
   req.params.unknown
@@ -43,14 +53,14 @@ rest.get<never, never, string | string[]>('/user', (req, res, ctx) =>
   res(ctx.json('hello')),
 )
 
-rest.get<never>('/user/:id', (req, res, ctx) => {
-  const { userId } = req.params
+rest.get('/user/:id', (req, res, ctx) => {
+  const { id } = req.params
 
   return res(
     ctx.body(
-      // @ts-expect-error "userId" parameter is not annotated
-      // and is ambiguous (string | string[]).
-      userId,
+      // The type of the "id" path parameter
+      // is inferred from the path string.
+      id,
     ),
   )
 })

@@ -1,33 +1,38 @@
-import { DefaultRequestBody, ResponseResolver } from './handlers/RequestHandler'
+import { DefaultBodyType } from './handlers/RequestHandler'
 import {
   RESTMethods,
-  RestContext,
   RestHandler,
-  RestRequest,
+  RestResponseResolver,
 } from './handlers/RestHandler'
-import { Path, PathParams } from './utils/matching/matchRequestUrl'
+import {
+  Path,
+  ExtractPathParams,
+  DefaultParamsType,
+} from './utils/matching/matchRequestUrl'
 
-function createRestHandler<Method extends RESTMethods | RegExp>(
-  method: Method,
+function createRestHandler<MethodType extends RESTMethods | RegExp>(
+  method: MethodType,
 ) {
   return <
-    RequestBodyType extends DefaultRequestBody = DefaultRequestBody,
-    Params extends PathParams<Path> = PathParams<Path>,
-    ResponseBody extends DefaultRequestBody = DefaultRequestBody,
+    RequestBodyType extends DefaultBodyType = DefaultBodyType,
+    ParamsType extends DefaultParamsType = never,
+    ResponseBodyType extends DefaultBodyType = DefaultBodyType,
+    PathType extends Path = Path,
   >(
-    path: Path,
-    resolver: ResponseResolver<
-      RestRequest<
-        Method extends RESTMethods.HEAD | RESTMethods.GET
-          ? never
-          : RequestBodyType,
-        Params
-      >,
-      RestContext,
-      ResponseBody
+    path: PathType,
+    resolver: RestResponseResolver<
+      MethodType,
+      RequestBodyType,
+      ExtractPathParams<PathType>,
+      ResponseBodyType
     >,
   ) => {
-    return new RestHandler(method, path, resolver)
+    return new RestHandler<
+      MethodType,
+      PathType,
+      RequestBodyType,
+      ResponseBodyType
+    >(method, path, resolver as any)
   }
 }
 

@@ -22,9 +22,10 @@ type StringOrArray<P extends string, R extends string> = IsUnique<
   ? string
   : ReadonlyArray<string>
 
-export type PathParams<R extends Path> = R extends string
+export type ExtractPathParams<R extends Path> = R extends string
   ? PathParamsString<R>
-  : unknown
+  : DefaultParamsType
+
 export type PathParamsString<
   R extends string,
   O extends string = R,
@@ -34,11 +35,13 @@ export type PathParamsString<
   ? Record<P, StringOrArray<P, O>>
   : R extends `:${infer P}`
   ? Record<P, StringOrArray<P, O>>
-  : unknown
+  : DefaultParamsType
 
-export interface Match<R extends Path> {
+export type DefaultParamsType = Record<string, string | string[]>
+
+export interface Match<PathType extends Path> {
   matches: boolean
-  params?: PathParams<R>
+  params: ExtractPathParams<PathType>
 }
 
 /**
@@ -82,13 +85,13 @@ export function coercePath(path: string): string {
 }
 
 /**
- * Returns the result of matching given request URL against a mask.
+ * Matches a given URL against the path.
  */
-export function matchRequestUrl(
+export function matchRequestUrl<PathType extends Path>(
   url: URL,
-  path: Path,
+  path: PathType,
   baseUrl?: string,
-): Match<typeof path> {
+): Match<PathType> {
   const normalizedPath = normalizePath(path, baseUrl)
   const cleanPath =
     typeof normalizedPath === 'string'
@@ -97,7 +100,8 @@ export function matchRequestUrl(
 
   const cleanUrl = getCleanUrl(url)
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
-  const params: PathParams<typeof path> = (result && (result.params)) || {}
+  const params = ((result && result.params) ||
+    {}) as ExtractPathParams<PathType>
 
   return {
     matches: result !== false,

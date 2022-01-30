@@ -36,7 +36,12 @@ function createScopedGraphQLHandler(
       GraphQLContext<Query>
     >,
   ) => {
-    return new GraphQLHandler(operationType, operationName, url, resolver)
+    return new GraphQLHandler<GraphQLRequest<Variables>>(
+      operationType,
+      operationName,
+      url,
+      resolver,
+    )
   }
 }
 
@@ -50,7 +55,12 @@ function createGraphQLOperationHandler(url: Path) {
       GraphQLContext<Query>
     >,
   ) => {
-    return new GraphQLHandler('all', new RegExp('.*'), url, resolver)
+    return new GraphQLHandler<GraphQLRequest<Variables>>(
+      'all',
+      new RegExp('.*'),
+      url,
+      resolver,
+    )
   }
 }
 

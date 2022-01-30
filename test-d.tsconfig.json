@@ -9,9 +9,9 @@
     "baseUrl": ".",
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "msw": ["../../"]
+      "msw": ["."]
     }
   },
-  "include": ["../../global.d.ts", "**/*.test-d.ts"],
+  "include": ["global.d.ts", "**/*.test-d.ts"],
   "exclude": ["node_modules"]
 }

@@ -15,13 +15,14 @@ const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
 const TYPE_MATCH_DELTA = 0.5
 
-type HandleNext = () => {
-  error: (strategy: UnhandledRequestStrategy) => void
-  warn: (strategy: UnhandledRequestStrategy) => void
+export interface UnhandledRequestPrint {
+  warning(): void
+  error(): void
 }
+
 export type UnhandledRequestCallback = (
   request: MockedRequest,
-  next: HandleNext,
+  print: UnhandledRequestPrint,
 ) => void
 
 export type UnhandledRequestStrategy =
@@ -183,8 +184,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
     return messageTemplate.join('\n\n')
   }
 
-  function actionStrategy(strategy: UnhandledRequestStrategy) {
+  function applyStrategy(strategy: UnhandledRequestStrategy) {
+    // Generate handler suggestions only when applying the strategy.
+    // This saves bandwidth for scenarios when developers opt-out
+    // from the default unhandled request handling strategy.
     const message = generateUnhandledRequestMessage()
+
     switch (strategy) {
       case 'error': {
         // Print a developer-friendly error.
@@ -217,14 +222,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks\
   }
 
   if (typeof strategy === 'function') {
-    strategy(request, () => {
-      return {
-        error: () => actionStrategy('error'),
-        warn: () => actionStrategy('warn'),
-      }
+    strategy(request, {
+      warning: applyStrategy.bind(null, 'warn'),
+      error: applyStrategy.bind(null, 'error'),
     })
     return
   }
 
-  actionStrategy(strategy)
+  applyStrategy(strategy)
 }

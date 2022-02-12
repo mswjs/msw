@@ -92,7 +92,10 @@ test('reports request as unhandled when it has no matching request handlers', as
     ['request:unhandled', request],
     ['request:end', request],
   ])
-  expect(options.onUnhandledRequest).toHaveBeenNthCalledWith(1, request)
+  expect(options.onUnhandledRequest).toHaveBeenNthCalledWith(1, request, {
+    warning: expect.any(Function),
+    error: expect.any(Function),
+  })
   expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()

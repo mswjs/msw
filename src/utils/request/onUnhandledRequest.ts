@@ -15,7 +15,15 @@ const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
 const TYPE_MATCH_DELTA = 0.5
 
-export type UnhandledRequestCallback = (request: MockedRequest) => void
+export interface UnhandledRequestPrint {
+  warning(): void
+  error(): void
+}
+
+export type UnhandledRequestCallback = (
+  request: MockedRequest,
+  print: UnhandledRequestPrint,
+) => void
 
 export type UnhandledRequestStrategy =
   | 'bypass'
@@ -131,78 +139,95 @@ export function onUnhandledRequest(
   handlers: RequestHandler[],
   strategy: UnhandledRequestStrategy = 'warn',
 ): void {
-  if (typeof strategy === 'function') {
-    strategy(request)
-    return
-  }
-
-  /**
-   * @note Ignore exceptions during GraphQL request parsing because at this point
-   * we cannot assume the unhandled request is a valid GraphQL request.
-   * If the GraphQL parsing fails, just don't treat it as a GraphQL request.
-   */
   const parsedGraphQLQuery = tryCatch(() => parseGraphQLRequest(request))
-  const handlerGroups = groupHandlersByType(handlers)
-  const relevantHandlers = parsedGraphQLQuery
-    ? handlerGroups.graphql
-    : handlerGroups.rest
 
-  const suggestedHandlers = getSuggestedHandler(
-    request,
-    relevantHandlers,
-    parsedGraphQLQuery
-      ? getGraphQLHandlerScore(parsedGraphQLQuery)
-      : getRestHandlerScore(),
-  )
+  function generateHandlerSuggestion(): string {
+    /**
+     * @note Ignore exceptions during GraphQL request parsing because at this point
+     * we cannot assume the unhandled request is a valid GraphQL request.
+     * If the GraphQL parsing fails, just don't treat it as a GraphQL request.
+     */
+    const handlerGroups = groupHandlersByType(handlers)
+    const relevantHandlers = parsedGraphQLQuery
+      ? handlerGroups.graphql
+      : handlerGroups.rest
 
-  const handlerSuggestion =
-    suggestedHandlers.length > 0
+    const suggestedHandlers = getSuggestedHandler(
+      request,
+      relevantHandlers,
+      parsedGraphQLQuery
+        ? getGraphQLHandlerScore(parsedGraphQLQuery)
+        : getRestHandlerScore(),
+    )
+
+    return suggestedHandlers.length > 0
       ? getSuggestedHandlersMessage(suggestedHandlers)
       : ''
+  }
 
-  const publicUrl = getPublicUrlFromRequest(request)
-  const requestHeader = parsedGraphQLQuery
-    ? `${parsedGraphQLQuery.operationType} ${parsedGraphQLQuery.operationName} (${request.method} ${publicUrl})`
-    : `${request.method} ${publicUrl}`
+  function generateUnhandledRequestMessage(): string {
+    const publicUrl = getPublicUrlFromRequest(request)
+    const requestHeader = parsedGraphQLQuery
+      ? `${parsedGraphQLQuery.operationType} ${parsedGraphQLQuery.operationName} (${request.method} ${publicUrl})`
+      : `${request.method} ${publicUrl}`
+    const handlerSuggestion = generateHandlerSuggestion()
 
-  const messageTemplate = [
-    `captured a request without a matching request handler:`,
-    `  \u2022 ${requestHeader}`,
-    handlerSuggestion,
-    `\
+    const messageTemplate = [
+      `captured a request without a matching request handler:`,
+      `  \u2022 ${requestHeader}`,
+      handlerSuggestion,
+      `\
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks\
 `,
-  ].filter(Boolean)
-  const message = messageTemplate.join('\n\n')
-
-  switch (strategy) {
-    case 'error': {
-      // Print a developer-friendly error.
-      devUtils.error('Error: %s', message)
-
-      // Throw an exception to halt request processing and not perform the original request.
-      throw new Error(
-        devUtils.formatMessage(
-          'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-        ),
-      )
-    }
-
-    case 'warn': {
-      devUtils.warn('Warning: %s', message)
-      break
-    }
-
-    case 'bypass':
-      break
-
-    default:
-      throw new Error(
-        devUtils.formatMessage(
-          'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
-          strategy,
-        ),
-      )
+    ].filter(Boolean)
+    return messageTemplate.join('\n\n')
   }
+
+  function applyStrategy(strategy: UnhandledRequestStrategy) {
+    // Generate handler suggestions only when applying the strategy.
+    // This saves bandwidth for scenarios when developers opt-out
+    // from the default unhandled request handling strategy.
+    const message = generateUnhandledRequestMessage()
+
+    switch (strategy) {
+      case 'error': {
+        // Print a developer-friendly error.
+        devUtils.error('Error: %s', message)
+
+        // Throw an exception to halt request processing and not perform the original request.
+        throw new Error(
+          devUtils.formatMessage(
+            'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+          ),
+        )
+      }
+
+      case 'warn': {
+        devUtils.warn('Warning: %s', message)
+        break
+      }
+
+      case 'bypass':
+        break
+
+      default:
+        throw new Error(
+          devUtils.formatMessage(
+            'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+            strategy,
+          ),
+        )
+    }
+  }
+
+  if (typeof strategy === 'function') {
+    strategy(request, {
+      warning: applyStrategy.bind(null, 'warn'),
+      error: applyStrategy.bind(null, 'error'),
+    })
+    return
+  }
+
+  applyStrategy(strategy)
 }

@@ -1,4 +1,7 @@
-import { onUnhandledRequest } from './onUnhandledRequest'
+import {
+  onUnhandledRequest,
+  UnhandledRequestCallback,
+} from './onUnhandledRequest'
 import { createMockedRequest } from '../../../test/support/utils'
 import { RestHandler, RESTMethods } from '../../handlers/RestHandler'
 import { ResponseResolver } from '../../handlers/RequestHandler'
@@ -83,12 +86,57 @@ test('supports the "error" request strategy', () => {
   expect(console.error).toHaveBeenCalledWith(fixtures.errorWithoutSuggestions)
 })
 
-test('supports custom callback function', () => {
-  const handleRequest = jest.fn()
-  const request = createMockedRequest()
-  onUnhandledRequest(request, [], handleRequest)
+test('supports a custom callback function', () => {
+  const callback = jest.fn<void, Parameters<UnhandledRequestCallback>>(
+    (request) => {
+      console.warn(`callback: ${request.method} ${request.url.href}`)
+    },
+  )
+  const request = createMockedRequest({
+    url: new URL('/user', 'http://localhost:3000'),
+  })
+  onUnhandledRequest(request, [], callback)
 
-  expect(handleRequest).toHaveBeenCalledWith(request)
+  expect(callback).toHaveBeenCalledTimes(1)
+  expect(callback).toHaveBeenCalledWith(request, {
+    warning: expect.any(Function),
+    error: expect.any(Function),
+  })
+
+  // Check that the custom logic in the callback was called.
+  expect(console.warn).toHaveBeenCalledWith(
+    `callback: GET http://localhost:3000/user`,
+  )
+})
+
+test('supports calling default strategies from the custom callback function', () => {
+  const callback = jest.fn<void, Parameters<UnhandledRequestCallback>>(
+    (request, print) => {
+      console.warn(`custom callback: ${request.id}`)
+
+      // Call the default "error" strategy.
+      print.error()
+    },
+  )
+  const request = createMockedRequest({
+    id: 'request-1',
+    url: new URL('http://localhost/api'),
+  })
+  expect(() => onUnhandledRequest(request, [], callback)).toThrow(
+    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+  )
+
+  expect(callback).toHaveBeenCalledTimes(1)
+  expect(callback).toHaveBeenCalledWith(request, {
+    warning: expect.any(Function),
+    error: expect.any(Function),
+  })
+
+  // Check that the custom logic in the callback was called.
+  expect(console.warn).toHaveBeenCalledWith('custom callback: request-1')
+
+  // Check that the default strategy was called.
+  expect(console.error).toHaveBeenCalledWith(fixtures.errorWithoutSuggestions)
 })
 
 test('does not print any suggestions given no handlers to suggest', () => {

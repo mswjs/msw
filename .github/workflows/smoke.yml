@@ -1,13 +1,14 @@
 name: ci
 
 on:
-  push:
+  workflow_run:
+    workflows: ['ci']
     branches: [main]
-  pull_request:
-    branches: [main]
+    types: [completed]
 
 jobs:
-  build:
+  test-smoke:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,11 +16,8 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Unit tests
-        run: yarn test:unit
-
       - name: Build
         run: yarn build
 
-      - name: Integration tests
-        run: yarn test:integration test/rest-api/basic.test.ts
+      - name: Smoke tests
+        run: yarn test:smoke

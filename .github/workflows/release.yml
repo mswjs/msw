@@ -1,30 +1,36 @@
 name: release
 
 on:
-  schedule:
-    - cron: '0 23 * * *'
   workflow_run:
     workflows: ['ci']
     branches: [main]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: node
+          bump-minor-pre-major: true
+          bump-patch-for-minor-pre-major: true
+
       - uses: actions/checkout@v2
+        if: ${{ steps.release.outputs.release_created }}
 
       - name: Install dependencies
+        if: ${{ steps.release.outputs.release_created }}
         uses: bahmutov/npm-install@v1
 
       - name: Build
+        if: ${{ steps.release.outputs.release_created }}
         run: yarn build
 
       - name: Publish
-        if: contains(github.ref, 'refs/heads/main')
-        uses: cycjimmy/semantic-release-action@v2
+        if: ${{ steps.release.outputs.release_created }}
+        run: yarn publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

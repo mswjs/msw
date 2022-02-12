@@ -67,7 +67,6 @@
     "@mswjs/interceptors": "^0.12.7",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
-    "@types/inquirer": "^8.1.3",
     "@types/js-levenshtein": "^1.1.1",
     "chalk": "4.1.1",
     "chokidar": "^3.4.2",

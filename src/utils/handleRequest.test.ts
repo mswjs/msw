@@ -1,4 +1,4 @@
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { ServerLifecycleEventsMap } from '../node/glossary'
 import { createMockedRequest } from '../../test/support/utils'

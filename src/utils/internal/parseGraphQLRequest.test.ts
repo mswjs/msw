@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { createMockedRequest } from '../../../test/support/utils'
 import { parseGraphQLRequest } from './parseGraphQLRequest'
 

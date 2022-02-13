@@ -1,4 +1,4 @@
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { prepareRequest } from './prepareRequest'
 
 test('converts request headers into an object', () => {

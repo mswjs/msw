@@ -1,4 +1,4 @@
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { RestRequest } from '../../handlers/RestHandler'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { setRequestCookies } from './setRequestCookies'

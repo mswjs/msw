@@ -1,6 +1,6 @@
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { stringToHeaders } from 'headers-utils'
+import { stringToHeaders } from 'headers-polyfill'
 
 describe('setupServer / XHR', () => {
   const server = setupServer(

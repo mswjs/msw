@@ -1,4 +1,4 @@
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { MockedResponse, response, ResponseComposition } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'

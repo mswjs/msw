@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { OperationTypeNode, parse } from 'graphql'
-import { Headers } from 'headers-utils/lib'
+import { Headers } from 'headers-polyfill/lib'
 import { context } from '..'
 import { createMockedRequest } from '../../test/support/utils'
 import { response } from '../response'

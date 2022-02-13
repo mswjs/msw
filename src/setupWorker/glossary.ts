@@ -1,4 +1,4 @@
-import { FlatHeadersObject } from 'headers-utils'
+import { FlatHeadersObject } from 'headers-polyfill'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,

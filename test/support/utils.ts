@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { MockedRequest } from './../../src'
 import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'

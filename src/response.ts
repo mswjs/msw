@@ -1,4 +1,4 @@
-import { Headers } from 'headers-utils'
+import { Headers } from 'headers-polyfill'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 

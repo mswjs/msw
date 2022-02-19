@@ -44,7 +44,7 @@ afterEach(() => {
   emitter.removeAllListeners()
 })
 
-test('returns undefined for a request with the "x-msw-bypass" header', async () => {
+test('returns undefined for a request with the "x-msw-bypass" header equal to "true"', async () => {
   const request = createMockedRequest({
     url: new URL('http://localhost/user'),
     headers: new Headers({
@@ -70,6 +70,33 @@ test('returns undefined for a request with the "x-msw-bypass" header', async () 
   expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
+})
+
+test('does not bypass a request with "x-msw-bypass" header set to arbitrary value', async () => {
+  const request = createMockedRequest({
+    url: new URL('http://localhost/user'),
+    headers: new Headers({
+      'x-msw-bypass': 'anything',
+    }),
+  })
+  const handlers: RequestHandler[] = [
+    rest.get('/user', (req, res, ctx) => {
+      return res(ctx.text('hello world'))
+    }),
+  ]
+
+  const result = await handleRequest(
+    request,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(result).not.toBeUndefined()
+  expect(options.onUnhandledRequest).not.toHaveBeenCalled()
+  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  expect(callbacks.onMockedResponseSent).toHaveBeenCalledTimes(1)
 })
 
 test('reports request as unhandled when it has no matching request handlers', async () => {

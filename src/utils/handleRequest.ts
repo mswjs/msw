@@ -58,7 +58,7 @@ export async function handleRequest<
   emitter.emit('request:start', request)
 
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
-  if (request.headers.get('x-msw-bypass')) {
+  if (request.headers.get('x-msw-bypass') === 'true') {
     emitter.emit('request:end', request)
     handleRequestOptions?.onBypassResponse?.(request)
     return

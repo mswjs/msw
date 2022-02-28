@@ -3,27 +3,20 @@ name: release
 on:
   schedule:
     - cron: '0 23 * * *'
-  workflow_run:
-    workflows: ['ci']
-    branches: [main]
-    types:
-      - completed
+
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Build
-        run: yarn build
-
       - name: Publish
-        if: contains(github.ref, 'refs/heads/main')
         uses: cycjimmy/semantic-release-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

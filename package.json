@@ -19,7 +19,7 @@
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "prepare": "yarn simple-git-hooks init",
-    "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
+    "prepublishOnly": "yarn lint && yarn build",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {

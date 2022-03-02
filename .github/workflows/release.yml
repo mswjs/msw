@@ -16,6 +16,15 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
+      - name: Unit tests
+        run: yarn test:unit
+
+      - name: Build
+        run: yarn build
+
+      - name: Integration tests
+        run: yarn test:integration
+
       - name: Publish
         uses: cycjimmy/semantic-release-action@v2
         env:

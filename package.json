@@ -19,7 +19,8 @@
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "prepare": "yarn simple-git-hooks init",
-    "prepublishOnly": "yarn lint && yarn build",
+    "release": "semantic-release",
+    "prepublishOnly": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {
@@ -124,6 +125,7 @@
     "rollup": "^2.67.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.31.2",
+    "semantic-release": "^19.0.2",
     "simple-git-hooks": "^2.7.0",
     "ts-jest": "26",
     "ts-loader": "^9.2.6",

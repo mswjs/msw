@@ -11,15 +11,17 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: 16.14.0
+          cache: yarn
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: yarn install
 
       - name: Build
         run: yarn build

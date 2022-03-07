@@ -10,6 +10,9 @@ const worker = setupWorker(
 )
 
 worker.start({
+  serviceWorker: {
+    url: '/worker.js',
+  },
   waitUntilReady: false,
 })
 

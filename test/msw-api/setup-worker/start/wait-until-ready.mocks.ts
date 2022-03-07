@@ -11,7 +11,11 @@ const worker = setupWorker(
 
 // By default, starting the worker defers the network requests
 // until the worker is ready to intercept them.
-worker.start()
+worker.start({
+  serviceWorker: {
+    url: '/worker.js',
+  },
+})
 
 // Although this request is performed alongside an asynchronous
 // worker registration, it's being deferred by `worker.start`,

@@ -14,7 +14,7 @@ test('resolves the "start" Promise when the worker has been activated', async ()
     example: path.resolve(__dirname, 'start.mocks.ts'),
     routes(app) {
       app.get('/worker.js', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'start.worker.js'))
+        res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
       })
     },
   })

@@ -148,9 +148,13 @@ export type FindWorker = (
 
 export interface StartOptions extends SharedOptions {
   /**
-   * Service Worker instance options.
+   * Service Worker registration options.
    */
   serviceWorker?: {
+    /**
+     * Custom url to the worker script.
+     * @default "./mockServiceWorker.js"
+     */
     url?: string
     options?: RegistrationOptions
   }
@@ -158,12 +162,14 @@ export interface StartOptions extends SharedOptions {
   /**
    * Disables the logging of captured requests
    * into browser's console.
+   * @default false
    */
   quiet?: boolean
 
   /**
    * Defers any network requests until the Service Worker
-   * instance is ready. Defaults to `true`.
+   * instance is activated.
+   * @default true
    */
   waitUntilReady?: boolean
 

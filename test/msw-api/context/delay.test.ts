@@ -61,7 +61,7 @@ test('uses realistic server response delay when no delay value is provided', asy
   const res = await runtime.request('/delay')
   const timing = res.request().timing()
 
-  expect(timing.responseStart).toRoughlyEqual(250, 200)
+  expect(timing.responseStart).toRoughlyEqual(250, 300)
 
   const status = res.status()
   const headers = await res.allHeaders()
@@ -79,7 +79,7 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   const res = await runtime.request('/delay?mode=real')
   const timing = res.request().timing()
 
-  expect(timing.responseStart).toRoughlyEqual(250, 200)
+  expect(timing.responseStart).toRoughlyEqual(250, 300)
 
   const status = res.status()
   const headers = await res.allHeaders()

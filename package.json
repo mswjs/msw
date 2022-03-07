@@ -18,7 +18,7 @@
     "build": "yarn clean && yarn lint && cross-env NODE_ENV=production rollup -c rollup.config.ts && yarn test:ts",
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
-    "test:integration": "jest --config=test/jest.config.js --maxWorkers=3",
+    "test:integration": "jest --config=test/jest.config.js --maxWorkers=1",
     "test:smoke": "config/scripts/smoke.sh",
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "prepare": "yarn simple-git-hooks init",

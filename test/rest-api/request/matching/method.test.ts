@@ -2,13 +2,24 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 
 function createRuntime() {
-  return pageWith({ example: path.resolve(__dirname, 'method.mocks.ts') })
+  return pageWith({
+    example: path.resolve(__dirname, 'method.mocks.ts'),
+    routes(app) {
+      app.get('/user', (req, res) => {
+        res.json({ uses: 'original' })
+      })
+
+      app.post('/user', (req, res) => {
+        res.status(500).json({ mocked: false })
+      })
+    },
+  })
 }
 
 test('sends a mocked response to a POST request on the matching URL', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('https://api.github.com/users/octocat', {
+  const res = await runtime.request('/user', {
     method: 'POST',
   })
   const status = res.status()
@@ -25,7 +36,7 @@ test('sends a mocked response to a POST request on the matching URL', async () =
 test('does not send a mocked response to a GET request on the matching URL', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('https://api.github.com/users/octocat')
+  const res = await runtime.request('/user')
   const status = res.status()
   const headers = await res.allHeaders()
   const body = await res.json()

@@ -1,4 +1,5 @@
 import * as cookieUtils from 'cookie'
+import { Headers } from 'headers-polyfill/lib'
 import { IsomorphicRequest } from '@mswjs/interceptors'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { parseBody } from './parseBody'
@@ -15,7 +16,8 @@ export function parseIsomorphicRequest(
     url: request.url,
     method: request.method,
     body: parseBody(request.body, request.headers),
-    headers: request.headers,
+    credentials: request.credentials,
+    headers: new Headers(Array.from(request.headers.entries())),
     cookies: {},
     redirect: 'manual',
     referrer: '',
@@ -26,7 +28,6 @@ export function parseIsomorphicRequest(
     integrity: '',
     destination: 'document',
     bodyUsed: false,
-    credentials: 'same-origin',
   }
 
   // Set mocked request cookies from the `cookie` header of the original request.

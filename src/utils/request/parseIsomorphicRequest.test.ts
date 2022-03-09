@@ -9,12 +9,11 @@ function createIsomorphicRequest(
   overrides: Partial<IsomorphicRequest> = {},
 ): IsomorphicRequest {
   return {
-    id: '1',
-    url: new URL(location.origin),
-    method: 'GET',
-    headers: new Headers([]),
-    credentials: 'same-origin',
-    ...overrides,
+    id: overrides.id ?? '1',
+    url: overrides.url ?? new URL(location.origin),
+    method: overrides.method ?? 'GET',
+    headers: overrides.headers ?? new Headers([]),
+    credentials: overrides.credentials ?? 'same-origin',
   }
 }
 

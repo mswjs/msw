@@ -17,6 +17,9 @@ export function parseIsomorphicRequest(
     method: request.method,
     body: parseBody(request.body, request.headers),
     credentials: request.credentials || 'same-origin',
+
+    // The `setRequestCookies` will modify the `Headers` object but we don't want to modify the original header field.
+    // So we create new `Headers` instance here.
     headers: new Headers(Array.from(request.headers.entries())),
     cookies: {},
     redirect: 'manual',

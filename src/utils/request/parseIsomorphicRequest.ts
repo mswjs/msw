@@ -16,7 +16,7 @@ export function parseIsomorphicRequest(
     url: request.url,
     method: request.method,
     body: parseBody(request.body, request.headers),
-    credentials: request.credentials,
+    credentials: request.credentials || 'same-origin',
     headers: new Headers(Array.from(request.headers.entries())),
     cookies: {},
     redirect: 'manual',

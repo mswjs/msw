@@ -11,3 +11,6 @@ matchRequestUrl(url, '/user/:id').params.foo
 // Multiple occurrences of the same path parameter
 // are inferred as a readonly array of strings.
 matchRequestUrl(url, '/:a/chunk/:a').params.a.map
+
+// Path parameter modifiers are stripped from the path names.
+matchRequestUrl(url, '/path/:chunks+').params.chunks.trim()

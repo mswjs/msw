@@ -4,6 +4,12 @@ import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
 
+type NormalizeParamName<P extends string> = P extends
+  | `${infer N}+`
+  | `${infer N}*`
+  ? N
+  : P
+
 type IsUnique<
   P extends string,
   R extends string,
@@ -30,11 +36,12 @@ export type PathParamsString<
   R extends string,
   O extends string = R,
 > = R extends `${infer _Before}:${infer P}/${infer After}`
-  ? Record<P, StringOrArray<P, O>> & PathParamsString<After, O>
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>> &
+      PathParamsString<After, O>
   : R extends `${infer _Before}:${infer P}`
-  ? Record<P, StringOrArray<P, O>>
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>>
   : R extends `:${infer P}`
-  ? Record<P, StringOrArray<P, O>>
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>>
   : DefaultParamsType
 
 export type DefaultParamsType = Record<string, string | string[]>

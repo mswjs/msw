@@ -3,6 +3,7 @@ import { Headers } from 'headers-polyfill'
 import { MockedRequest } from './../../src'
 import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'
+import { IsomorphicRequest } from '@mswjs/interceptors'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -37,6 +38,19 @@ export function createMockedRequest(
     keepalive: true,
     cookies: {},
     ...init,
+  }
+}
+
+export function createIsomorphicRequest(
+  initialValues: Partial<IsomorphicRequest> = {},
+): IsomorphicRequest {
+  return {
+    id: uuidv4(),
+    method: 'GET',
+    url: new URL('/', location.href),
+    headers: new Headers(),
+    credentials: 'same-origin',
+    ...initialValues,
   }
 }
 

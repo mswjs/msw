@@ -1,5 +1,3 @@
-import * as cookieUtils from 'cookie'
-import { Headers } from 'headers-polyfill/lib'
 import { IsomorphicRequest } from '@mswjs/interceptors'
 import { MockedRequest } from '../../handlers/RequestHandler'
 import { parseBody } from './parseBody'
@@ -17,10 +15,7 @@ export function parseIsomorphicRequest(
     method: request.method,
     body: parseBody(request.body, request.headers),
     credentials: request.credentials || 'same-origin',
-
-    // The `setRequestCookies` will modify the `Headers` object but we don't want to modify the original header field.
-    // So we create new `Headers` instance here.
-    headers: new Headers(Array.from(request.headers.entries())),
+    headers: request.headers,
     cookies: {},
     redirect: 'manual',
     referrer: '',
@@ -33,25 +28,8 @@ export function parseIsomorphicRequest(
     bodyUsed: false,
   }
 
-  // Set mocked request cookies from the `cookie` header of the original request.
-  // No need to take `credentials` into account, because in Node.js requests are intercepted
-  // _after_ they happen. Request issuer should have already taken care of sending relevant cookies.
-  // Unlike browser, where interception is on the worker level, _before_ the request happens.
-  const requestCookiesString = request.headers.get('cookie')
-
   // Attach all the cookies from the virtual cookie store.
   setRequestCookies(mockedRequest)
-
-  const requestCookies = requestCookiesString
-    ? cookieUtils.parse(requestCookiesString)
-    : {}
-
-  // Merge both direct request cookies and the cookies inherited
-  // from other same-origin requests in the cookie store.
-  mockedRequest.cookies = {
-    ...mockedRequest.cookies,
-    ...requestCookies,
-  }
 
   return mockedRequest
 }

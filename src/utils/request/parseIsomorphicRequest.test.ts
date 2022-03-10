@@ -1,40 +1,94 @@
 /**
  * @jest-environment jsdom
  */
-import { IsomorphicRequest } from '@mswjs/interceptors'
 import { Headers } from 'headers-polyfill/lib'
 import { parseIsomorphicRequest } from './parseIsomorphicRequest'
+import { createIsomorphicRequest } from '../../../test/support/utils'
+import { MockedRequest } from '../../handlers/RequestHandler'
 
-function createIsomorphicRequest(
-  overrides: Partial<IsomorphicRequest> = {},
-): IsomorphicRequest {
-  return {
-    id: overrides.id ?? '1',
-    url: overrides.url ?? new URL(location.origin),
-    method: overrides.method ?? 'GET',
-    headers: overrides.headers ?? new Headers([]),
-    credentials: overrides.credentials ?? 'same-origin',
-  }
-}
-
-test('returns an mocked request with credentials=same-origin', () => {
-  const request = createIsomorphicRequest({
-    credentials: 'same-origin',
-    headers: new Headers({
-      Cookie: 'foo=bar',
+test('parses an isomorphic request', () => {
+  const request = parseIsomorphicRequest(
+    createIsomorphicRequest({
+      id: 'request-1',
+      method: 'POST',
+      url: new URL('https://example.com/resource'),
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        Cookie: 'token=abc-123',
+      }),
+      body: JSON.stringify({
+        id: 'user-1',
+      }),
     }),
+  )
+
+  expect(request).toStrictEqual<MockedRequest>({
+    id: 'request-1',
+    method: 'POST',
+    url: new URL('https://example.com/resource'),
+    headers: new Headers({
+      'Content-Type': 'application/json',
+      Cookie: 'token=abc-123',
+    }),
+    cookies: {
+      token: 'abc-123',
+    },
+    destination: 'document',
+    credentials: 'same-origin',
+    referrer: '',
+    referrerPolicy: 'no-referrer',
+    mode: 'cors',
+    keepalive: false,
+    integrity: '',
+    redirect: 'manual',
+    cache: 'default',
+    bodyUsed: false,
+    body: {
+      id: 'user-1',
+    },
   })
-  expect(parseIsomorphicRequest(request).credentials).toBe('same-origin')
-  expect(parseIsomorphicRequest(request).cookies).toEqual({ foo: 'bar' })
 })
 
-test('returns an mocked request with credentials=include', () => {
-  const request = createIsomorphicRequest({
-    credentials: 'include',
-    headers: new Headers({
-      Cookie: 'foo=bar',
+test('preserves cookies for request with "same-origin" credentials', () => {
+  const request = parseIsomorphicRequest(
+    createIsomorphicRequest({
+      credentials: 'same-origin',
+      headers: new Headers({
+        Cookie: 'foo=bar',
+      }),
     }),
+  )
+
+  expect(request).toMatchObject<Partial<MockedRequest>>({
+    credentials: 'same-origin',
+    cookies: { foo: 'bar' },
   })
-  expect(parseIsomorphicRequest(request).credentials).toBe('include')
-  expect(parseIsomorphicRequest(request).cookies).toEqual({ foo: 'bar' })
+})
+
+test('preserves cookies for request with "include" credentials', () => {
+  const request = parseIsomorphicRequest(
+    createIsomorphicRequest({
+      credentials: 'include',
+      headers: new Headers({
+        Cookie: 'foo=bar',
+      }),
+    }),
+  )
+
+  expect(request).toMatchObject<Partial<MockedRequest>>({
+    credentials: 'include',
+    cookies: { foo: 'bar' },
+  })
+})
+
+test('sets request "credentials" to "same-origin" when no credentials were provided', () => {
+  const request = parseIsomorphicRequest(
+    createIsomorphicRequest({
+      credentials: undefined,
+    }),
+  )
+
+  expect(request).toMatchObject<Partial<MockedRequest>>({
+    credentials: 'same-origin',
+  })
 })

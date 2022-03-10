@@ -9,7 +9,7 @@
     "msw": "cli/index.js"
   },
   "engines": {
-    "node": ">=16.x"
+    "node": ">=14"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development rollup -c rollup.config.ts -w",

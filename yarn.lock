@@ -1702,10 +1702,10 @@
     "@types/set-cookie-parser" "^2.4.0"
     set-cookie-parser "^2.4.6"
 
-"@mswjs/interceptors@^0.14.1":
-  version "0.14.1"
-  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.14.1.tgz#0beca4cd89200aaf9e067e7d14138c14152680de"
-  integrity sha512-E+0qtLySvVC4cIo5vlqDXn7BAtAgyVJe9hJjGorfbbClvTRNWMym9V70jhNB11y9txcd6ZPXbgxf2dMT73jGmw==
+"@mswjs/interceptors@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.15.0.tgz#fb815fc03530f7a7c9933369a5de6ede83cb2a0c"
+  integrity sha512-g2B8eST3MMHRNG0SpfKuo3ueI1JDLe4nq8p3qxhbFaINy9W/9hR2vnsKbIDClfQXGU1MrPc4aawQjBj41fMnFQ==
   dependencies:
     "@open-draft/until" "^1.0.3"
     "@xmldom/xmldom" "^0.7.5"

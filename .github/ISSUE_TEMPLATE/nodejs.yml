@@ -1,0 +1,64 @@
+name: Bug report (Node.js)
+description: I experience unexpected behavior using the library in Node.js.
+labels: [bug, scope:node, needs:triage]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting an issue to Mock Service Worker! Please fill in the template below to help our team tackle it in the most efficient way.
+
+  - type: checkboxes
+    attributes:
+      label: Prerequisites
+      description: Before we begin, let's make sure your issue hasn't been solved already.
+      options:
+        - label: I confirm my issue is not in the [opened issues](https://github.com/mswjs/msw/issues)
+          required: true
+        - label: I confirm the [Frequently Asked Questions](https://mswjs.io/docs/faq) didn't contain the answer to my issue
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Environment check
+      options:
+        - label: I'm using the [latest](https://github.com/mswjs/msw/releases/latest) `msw` version
+          required: true
+        - label: I'm using Node.js version 14 or higher
+          required: true
+
+  - type: input
+    attributes:
+      label: Node.js version
+      description: Specify which Node.js version you're using (`node -v`).
+      placeholder: i.e. v16.14.0
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Reproduction repository
+      description: A URL to a GitHub repository where we can reproduce your issue. Issues without a reproduction repository **will be closed**.
+      placeholder: i.e. https://github.com/you/msw-issue
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Reproduction steps
+      description: Include any steps necessary to reproduce the issue in the repository above.
+      placeholder: i.e. "npm test"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Current behavior
+      description: Share any details on what behavior you're experiencing (error messages, logs, context).
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: What do you expect to happen instead?
+    validations:
+      required: true

@@ -43,8 +43,6 @@ export function setRequestCookies(request: MockedRequest): void {
     ? cookieUtils.parse(requestCookiesString)
     : {}
 
-  console.log({ cookiesFromDocument, cookiesFromStore, ownCookies, request })
-
   request.cookies = {
     ...request.cookies,
     ...forwardedCookies,

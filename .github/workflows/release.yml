@@ -11,16 +11,16 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.14.0
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Unit tests
         run: yarn test:unit
@@ -34,5 +34,7 @@ jobs:
       - name: Publish
         run: yarn release
         env:
+          GIT_COMMITTER_NAME: kettanaito
+          GIT_COMMITTER_EMAIL: kettanaito@gmail.com
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

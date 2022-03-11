@@ -1,0 +1,32 @@
+name: 'Feature request'
+description: Propose a feature or improvement.
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for deciding to make Mock Service Worker better! Please fill in the form below so our team could understand your feature better.
+
+  - type: dropdown
+    attributes:
+      label: Scope
+      multiple: false
+      options:
+        - 'Adds a new behavior'
+        - 'Improves an existing behavior'
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: Compatibility
+      description: Check if your proposal is a breaking change. Leave this field unchecked if not sure.
+      options:
+        - label: This is a breaking change
+          required: false
+
+  - type: textarea
+    attributes:
+      label: Feature description
+      description: "Describe the feature you're suggesting. Be as detailed as possible: include behavior description, pseudo-code snippets, comparison to similar features."
+    validations:
+      required: true

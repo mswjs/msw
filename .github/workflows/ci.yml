@@ -20,7 +20,7 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Unit tests
         run: yarn test:unit

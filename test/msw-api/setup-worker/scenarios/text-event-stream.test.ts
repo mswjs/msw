@@ -2,6 +2,7 @@ import * as path from 'path'
 import { pageWith } from 'page-with'
 import { createServer, ServerApi } from '@open-draft/test-server'
 import { sleep } from '../../../support/utils'
+import { waitFor } from '../../../support/waitFor'
 
 let httpServer: ServerApi
 
@@ -40,11 +41,10 @@ test('bypasses the unhandled request with the "Accept" header containing "text/e
     })
   }, httpServer.http.makeUrl('/user'))
 
-  // Await before the client receives all the events.
-  await sleep(450)
-
-  expect(runtime.consoleSpy.get('error')).toBeUndefined()
-  expect(runtime.consoleSpy.get('log')).toEqual(
-    expect.arrayContaining(['hello', 'beautiful', 'world']),
-  )
+  await waitFor(() => {
+    expect(runtime.consoleSpy.get('error')).toBeUndefined()
+    expect(runtime.consoleSpy.get('log')).toEqual(
+      expect.arrayContaining(['hello', 'beautiful', 'world']),
+    )
+  })
 })

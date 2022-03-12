@@ -4,18 +4,13 @@ import {
   RestHandler,
   RestResponseResolver,
 } from './handlers/RestHandler'
-import {
-  Path,
-  ExtractPathParams,
-  DefaultParamsType,
-} from './utils/matching/matchRequestUrl'
+import { Path, ExtractPathParams } from './utils/matching/matchRequestUrl'
 
 function createRestHandler<MethodType extends RESTMethods | RegExp>(
   method: MethodType,
 ) {
   return <
     RequestBodyType extends DefaultBodyType = DefaultBodyType,
-    ParamsType extends DefaultParamsType = never,
     ResponseBodyType extends DefaultBodyType = DefaultBodyType,
     PathType extends Path = Path,
   >(

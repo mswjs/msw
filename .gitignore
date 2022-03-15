@@ -13,3 +13,4 @@ stats.html
 .vscode
 msw-*.tgz
 .husky/_
+.env

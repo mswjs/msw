@@ -3,11 +3,52 @@ import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
-export type PathParams = Record<string, string | ReadonlyArray<string>>
 
-export interface Match {
+type NormalizeParamName<P extends string> = P extends
+  | `${infer N}+`
+  | `${infer N}*`
+  ? N
+  : P
+
+type IsUnique<
+  P extends string,
+  R extends string,
+> = R extends `${infer _Before}:${P}${infer After}`
+  ? IsUnique<P, After> extends true
+    ? false
+    : true
+  : R extends `:${P}/`
+  ? true
+  : false
+
+type StringOrArray<P extends string, R extends string> = IsUnique<
+  P,
+  R
+> extends true
+  ? string
+  : ReadonlyArray<string>
+
+export type ExtractPathParams<R extends Path> = R extends string
+  ? PathParamsString<R>
+  : DefaultParamsType
+
+export type PathParamsString<
+  R extends string,
+  O extends string = R,
+> = R extends `${infer _Before}:${infer P}/${infer After}`
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>> &
+      PathParamsString<After, O>
+  : R extends `${infer _Before}:${infer P}`
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>>
+  : R extends `:${infer P}`
+  ? Record<NormalizeParamName<P>, StringOrArray<P, O>>
+  : DefaultParamsType
+
+export type DefaultParamsType = Record<string, string | string[]>
+
+export interface Match<PathType extends Path> {
   matches: boolean
-  params?: PathParams
+  params: ExtractPathParams<PathType>
 }
 
 /**
@@ -51,9 +92,13 @@ export function coercePath(path: string): string {
 }
 
 /**
- * Returns the result of matching given request URL against a mask.
+ * Matches a given URL against the path.
  */
-export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
+export function matchRequestUrl<PathType extends Path>(
+  url: URL,
+  path: PathType,
+  baseUrl?: string,
+): Match<PathType> {
   const normalizedPath = normalizePath(path, baseUrl)
   const cleanPath =
     typeof normalizedPath === 'string'
@@ -62,7 +107,8 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
 
   const cleanUrl = getCleanUrl(url)
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
-  const params = (result && (result.params as PathParams)) || {}
+  const params = ((result && result.params) ||
+    {}) as ExtractPathParams<PathType>
 
   return {
     matches: result !== false,

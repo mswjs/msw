@@ -1,17 +1,27 @@
 /**
  * @jest-environment jsdom
  */
-import { RestHandler, RestRequest, RestContext } from './RestHandler'
+import {
+  RestHandler,
+  RestRequest,
+  RestContext,
+  RESTMethods,
+} from './RestHandler'
 import { createMockedRequest } from '../../test/support/utils'
 import { response } from '../response'
 import { context } from '..'
 import { ResponseResolver } from './RequestHandler'
 
-const resolver: ResponseResolver<
-  RestRequest<{ userId: string }>,
-  RestContext
-> = (req, res, ctx) => {
-  return res(ctx.json({ userId: req.params.userId }))
+const resolver: ResponseResolver<RestRequest, RestContext> = (
+  req,
+  res,
+  ctx,
+) => {
+  return res(
+    ctx.json({
+      userId: req.params.userId,
+    }),
+  )
 }
 
 const generatorResolver: ResponseResolver<
@@ -28,7 +38,7 @@ const generatorResolver: ResponseResolver<
 
 describe('info', () => {
   test('exposes request handler information', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     expect(handler.info.header).toEqual('GET /user/:userId')
     expect(handler.info.method).toEqual('GET')
     expect(handler.info.path).toEqual('/user/:userId')
@@ -37,7 +47,7 @@ describe('info', () => {
 
 describe('parse', () => {
   test('parses a URL given a matching request', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const request = createMockedRequest({
       url: new URL('/user/abc-123', location.href),
     })
@@ -51,7 +61,7 @@ describe('parse', () => {
   })
 
   test('parses a URL and ignores the request method', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const request = createMockedRequest({
       method: 'POST',
       url: new URL('/user/def-456', location.href),
@@ -66,7 +76,7 @@ describe('parse', () => {
   })
 
   test('returns negative match result given a non-matching request', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const request = createMockedRequest({
       url: new URL('/login', location.href),
     })
@@ -80,7 +90,7 @@ describe('parse', () => {
 
 describe('predicate', () => {
   test('returns true given a matching request', () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new RestHandler(RESTMethods.POST, '/login', resolver)
     const request = createMockedRequest({
       method: 'POST',
       url: new URL('/login', location.href),
@@ -109,7 +119,7 @@ describe('predicate', () => {
   })
 
   test('returns false given a non-matching request', () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new RestHandler(RESTMethods.POST, '/login', resolver)
     const request = createMockedRequest({
       url: new URL('/user/abc-123', location.href),
     })
@@ -120,7 +130,7 @@ describe('predicate', () => {
 
 describe('test', () => {
   test('returns true given a matching request', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const firstTest = handler.test(
       createMockedRequest({
         url: new URL('/user/abc-123', location.href),
@@ -137,7 +147,7 @@ describe('test', () => {
   })
 
   test('returns false given a non-matching request', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const firstTest = handler.test(
       createMockedRequest({
         url: new URL('/login', location.href),
@@ -162,7 +172,7 @@ describe('test', () => {
 
 describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/user/:userId', resolver)
     const request = createMockedRequest({
       url: new URL('/user/abc-123', location.href),
     })
@@ -187,7 +197,7 @@ describe('run', () => {
   })
 
   test('returns null given a non-matching request', async () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new RestHandler(RESTMethods.POST, '/login', resolver)
     const result = await handler.run(
       createMockedRequest({
         method: 'GET',
@@ -199,7 +209,7 @@ describe('run', () => {
   })
 
   test('returns an empty object as "req.params" given request with no URL parameters', async () => {
-    const handler = new RestHandler('GET', '/users', resolver)
+    const handler = new RestHandler(RESTMethods.GET, '/users', resolver)
     const result = await handler.run(
       createMockedRequest({
         url: new URL('/users', location.href),
@@ -212,7 +222,11 @@ describe('run', () => {
 
 describe('run with generator', () => {
   test('Resolver runs until generator completes', async () => {
-    const handler = new RestHandler('GET', '/users', generatorResolver)
+    const handler = new RestHandler(
+      RESTMethods.GET,
+      '/users',
+      generatorResolver,
+    )
     const run = async () => {
       const result = await handler.run(
         createMockedRequest({

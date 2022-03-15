@@ -21,23 +21,25 @@ import {
   Match,
   matchRequestUrl,
   Path,
-  PathParams,
+  ExtractPathParams,
+  DefaultParamsType,
 } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
-  DefaultRequestBody,
+  DefaultBodyType,
   MockedRequest,
   RequestHandler,
   RequestHandlerDefaultInfo,
   ResponseResolver,
 } from './RequestHandler'
 
-type RestHandlerMethod = string | RegExp
+export type RestMethodType = RESTMethods | RegExp
 
-export interface RestHandlerInfo extends RequestHandlerDefaultInfo {
-  method: RestHandlerMethod
-  path: Path
+export interface RestHandlerInfo<ExactPath extends Path>
+  extends RequestHandlerDefaultInfo {
+  method: RestMethodType
+  path: ExactPath
 }
 
 export enum RESTMethods {
@@ -81,35 +83,54 @@ export type RequestQuery = {
 }
 
 export interface RestRequest<
-  BodyType extends DefaultRequestBody = DefaultRequestBody,
-  ParamsType extends PathParams = PathParams,
+  BodyType extends DefaultBodyType = DefaultBodyType,
+  ParamsType extends ExtractPathParams<Path> = ExtractPathParams<RegExp>,
 > extends MockedRequest<BodyType> {
   params: ParamsType
 }
 
-export type ParsedRestRequest = Match
+export type ParsedRestRequest<P extends Path> = Match<P>
+
+export type RestResponseResolver<
+  MethodType extends RestMethodType,
+  RequestBodyType extends DefaultBodyType,
+  ParamsType extends DefaultParamsType,
+  ResponseBodyType extends DefaultBodyType,
+> = ResponseResolver<
+  RestRequest<
+    MethodType extends RESTMethods.HEAD | RESTMethods.GET
+      ? never
+      : RequestBodyType,
+    ParamsType
+  >,
+  RestContext,
+  ResponseBodyType
+>
 
 /**
  * Request handler for REST API requests.
  * Provides request matching based on method and URL.
  */
 export class RestHandler<
-  RequestType extends MockedRequest<DefaultRequestBody> = MockedRequest<DefaultRequestBody>,
+  MethodType extends RESTMethods | RegExp = RESTMethods | RegExp,
+  PathType extends Path = Path,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
+  ResponseBodyType extends DefaultBodyType = DefaultBodyType,
 > extends RequestHandler<
-  RestHandlerInfo,
-  RequestType,
-  ParsedRestRequest,
-  RestRequest<
-    RequestType extends MockedRequest<infer RequestBodyType>
-      ? RequestBodyType
-      : any,
-    PathParams
-  >
+  RestHandlerInfo<PathType>,
+  MockedRequest<RequestBodyType>,
+  ParsedRestRequest<PathType>,
+  RestRequest<RequestBodyType, ExtractPathParams<PathType>>
 > {
   constructor(
-    method: RestHandlerMethod,
-    path: Path,
-    resolver: ResponseResolver<any, any>,
+    method: MethodType,
+    path: PathType,
+    resolver: RestResponseResolver<
+      MethodType,
+      RequestBodyType,
+      ExtractPathParams<PathType>,
+      ResponseBodyType
+    >,
   ) {
     super({
       info: {
@@ -150,7 +171,10 @@ export class RestHandler<
     )
   }
 
-  parse(request: RequestType, resolutionContext?: ResponseResolutionContext) {
+  parse(
+    request: MockedRequest<RequestBodyType>,
+    resolutionContext?: ResponseResolutionContext,
+  ) {
     return matchRequestUrl(
       request.url,
       this.info.path,
@@ -159,16 +183,19 @@ export class RestHandler<
   }
 
   protected getPublicRequest(
-    request: RequestType,
-    parsedResult: ParsedRestRequest,
-  ): RestRequest<any, PathParams> {
+    request: MockedRequest<RequestBodyType>,
+    parsedResult: ParsedRestRequest<PathType>,
+  ): RestRequest<any, ExtractPathParams<PathType>> {
     return {
       ...request,
-      params: parsedResult.params || {},
+      params: parsedResult.params,
     }
   }
 
-  predicate(request: RequestType, parsedResult: ParsedRestRequest) {
+  predicate(
+    request: MockedRequest<RequestBodyType>,
+    parsedResult: ParsedRestRequest<PathType>,
+  ) {
     const matchesMethod =
       this.info.method instanceof RegExp
         ? this.info.method.test(request.method)
@@ -177,7 +204,7 @@ export class RestHandler<
     return matchesMethod && parsedResult.matches
   }
 
-  log(request: RequestType, response: SerializedResponse) {
+  log(request: MockedRequest<RequestBodyType>, response: SerializedResponse) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)

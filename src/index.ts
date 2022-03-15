@@ -33,7 +33,7 @@ export type {
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
-  DefaultRequestBody,
+  DefaultBodyType,
   DefaultRequestMultipartBody,
 } from './handlers/RequestHandler'
 
@@ -46,10 +46,12 @@ export type {
 } from './response'
 
 export type {
+  RestMethodType,
   RestContext,
   RequestQuery,
   RestRequest,
   ParsedRestRequest,
+  RestResponseResolver,
 } from './handlers/RestHandler'
 
 export type {
@@ -60,6 +62,11 @@ export type {
   GraphQLJsonRequestBody,
 } from './handlers/GraphQLHandler'
 
-export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
+export type {
+  Path,
+  Match,
+  ExtractPathParams,
+  DefaultParamsType,
+} from './utils/matching/matchRequestUrl'
 export type { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'

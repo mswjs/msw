@@ -1,6 +1,6 @@
 import { rest } from 'msw'
 
-rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
+rest.get<never, { postCount: number }>('/user', (req, res, ctx) => {
   // @ts-expect-error `session` property is not defined on the request body type.
   req.body.session
 
@@ -17,50 +17,55 @@ rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
   return res(ctx.json({ postCount: 2 }))
 })
 
-rest.get<never, { userId: string }>('/user/:userId', (req) => {
-  req.params.userId
+rest.get('/user/:userId', (req) => {
+  // Path parameter type is inferred from the path string.
+  req.params.userId.trim()
 
   // @ts-expect-error `unknown` is not defined in the request params type.
   req.params.unknown
 })
 
-rest.post<// @ts-expect-error `null` is not a valid request body type.
-null>('/submit', () => null)
+rest.get('/user/:id/message/:id', (req) => {
+  // Multiple same path parameters are inferred
+  // as a read-only array of strings.
+  req.params.id.map
 
-rest.get<
-  any,
-  // @ts-expect-error `null` is not a valid response body type.
-  null
->('/user', () => null)
+  // @ts-expect-error `unknown` is not defined in the request params type.
+  req.params.unknown
+})
 
-rest.get<never, never, { label: boolean }>('/user', (req, res, ctx) =>
+rest.post<null, { a: number }>('/submit', (req, res, ctx) => {
+  // @ts-expect-error Request body is annotated as null.
+  req.body.toString()
+
+  return res(
+    // @ts-expect-error Response body is annotated as non-nullable.
+    // Ignore the "unused directive" TS error: again some "tsc" versions mismatch.
+    ctx.json(null),
+  )
+})
+
+rest.get<any, null>('/user', (req, res, ctx) => {
+  return res(
+    // @ts-expect-error Response body must be null.
+    ctx.json({ value: 'no-op' }),
+  )
+})
+
+rest.get<never, { label: boolean }>('/user', (req, res, ctx) =>
   // allow ResponseTransformer to contain a more specific type
   res(ctx.json({ label: true })),
 )
 
-rest.get<never, never, string | string[]>('/user', (req, res, ctx) =>
+rest.get<never, string | string[]>('/user', (req, res, ctx) =>
   // allow ResponseTransformer to return a narrower type than a given union
   res(ctx.json('hello')),
 )
 
-rest.get<never>('/user/:id', (req, res, ctx) => {
-  const { userId } = req.params
-
-  return res(
-    ctx.body(
-      // @ts-expect-error "userId" parameter is not annotated
-      // and is ambiguous (string | string[]).
-      userId,
-    ),
-  )
+rest.get('/user/:id', (req) => {
+  // The "id" path parameter type is inferred as string.
+  req.params.id.toUpperCase()
 })
-
-rest.get<
-  never,
-  // @ts-expect-error Path parameters are always strings.
-  // Parse them to numbers in the resolver if necessary.
-  { id: number }
->('/posts/:id', () => null)
 
 rest.head('/user', (req) => {
   // @ts-expect-error GET requests cannot have body.

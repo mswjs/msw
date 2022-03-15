@@ -21,7 +21,7 @@ export type DefaultRequestMultipartBody = Record<
   string | File | (string | File)[]
 >
 
-export type DefaultRequestBody =
+export type DefaultBodyType =
   | Record<string, any>
   | DefaultRequestMultipartBody
   | string
@@ -30,7 +30,7 @@ export type DefaultRequestBody =
   | null
   | undefined
 
-export interface MockedRequest<Body = DefaultRequestBody> {
+export interface MockedRequest<Body extends DefaultBodyType = DefaultBodyType> {
   id: string
   url: URL
   method: Request['method']
@@ -77,9 +77,9 @@ export type AsyncResponseResolverReturnType<ReturnType> =
     >
 
 export type ResponseResolver<
-  RequestType = MockedRequest,
+  RequestType extends MockedRequest = MockedRequest,
   ContextType = typeof defaultContext,
-  BodyType = any,
+  BodyType extends DefaultBodyType = any,
 > = (
   req: RequestType,
   res: ResponseComposition<BodyType>,

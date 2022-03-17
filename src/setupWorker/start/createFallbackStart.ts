@@ -11,7 +11,7 @@ export function createFallbackStart(
       options,
     )
 
-    printStartMessage({
+    printStartMessage(context, {
       message: 'Mocking enabled (fallback mode).',
       quiet: options.quiet,
     })

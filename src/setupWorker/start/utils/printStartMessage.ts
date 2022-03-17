@@ -1,14 +1,20 @@
+import { SetupWorkerInternalContext } from '../../glossary'
 import { devUtils } from '../../../utils/internal/devUtils'
 
 interface PrintStartMessageArgs {
   quiet?: boolean
   message?: string
+  scope?: string
+  workerLocation?: string
 }
 
 /**
  * Prints a worker activation message in the browser's console.
  */
-export function printStartMessage(args: PrintStartMessageArgs = {}) {
+export function printStartMessage(
+  context: SetupWorkerInternalContext,
+  args: PrintStartMessageArgs = {},
+) {
   if (args.quiet) {
     return
   }
@@ -25,5 +31,7 @@ export function printStartMessage(args: PrintStartMessageArgs = {}) {
     'font-weight:normal',
   )
   console.log('Found an issue? https://github.com/mswjs/msw/issues')
+  console.log('Scope:', context.registration?.scope)
+  console.log('Worker script location:', context.worker?.scriptURL)
   console.groupEnd()
 }

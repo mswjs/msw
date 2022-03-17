@@ -1,3 +1,4 @@
+import { SetupWorkerInternalContext } from '../../glossary'
 import { printStartMessage } from './printStartMessage'
 
 beforeAll(() => {
@@ -14,7 +15,11 @@ afterAll(() => {
 })
 
 test('prints out a default start message into console', () => {
-  printStartMessage()
+  const context = {
+    registration: { scope: 'scopeValue' },
+    worker: { scriptURL: 'scriptURLValue' },
+  } as SetupWorkerInternalContext
+  printStartMessage(context)
 
   expect(console.groupCollapsed).toHaveBeenCalledWith(
     '%c[MSW] Mocking enabled.',
@@ -32,10 +37,20 @@ test('prints out a default start message into console', () => {
   expect(console.log).toHaveBeenCalledWith(
     'Found an issue? https://github.com/mswjs/msw/issues',
   )
+
+  // Includes service worker scope.
+  expect(console.log).toHaveBeenCalledWith('Scope:', 'scopeValue')
+
+  // Includes service worker script location.
+  expect(console.log).toHaveBeenCalledWith(
+    'Worker script location:',
+    'scriptURLValue',
+  )
 })
 
 test('supports printing a custom start message', () => {
-  printStartMessage({ message: 'Custom start message' })
+  const context = {} as SetupWorkerInternalContext
+  printStartMessage(context, { message: 'Custom start message' })
 
   expect(console.groupCollapsed).toHaveBeenCalledWith(
     '%c[MSW] Custom start message',
@@ -44,7 +59,8 @@ test('supports printing a custom start message', () => {
 })
 
 test('does not print any messages when log level is quiet', () => {
-  printStartMessage({ quiet: true })
+  const context = {} as SetupWorkerInternalContext
+  printStartMessage(context, { quiet: true })
 
   expect(console.groupCollapsed).not.toHaveBeenCalled()
   expect(console.log).not.toHaveBeenCalled()

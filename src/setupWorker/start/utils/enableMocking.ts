@@ -10,6 +10,8 @@ export async function enableMocking(
 ) {
   context.workerChannel.send('MOCK_ACTIVATE')
   return context.events.once('MOCKING_ENABLED').then(() => {
-    printStartMessage({ quiet: options.quiet })
+    printStartMessage(context, {
+      quiet: options.quiet,
+    })
   })
 }

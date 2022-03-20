@@ -32,4 +32,4 @@ jobs:
         run: yarn build
 
       - name: Integration tests
-        run: yarn test:integration test/rest-api/basic.test.ts
+        run: yarn test:integration

@@ -3,6 +3,7 @@ import {
   cookie,
   delay,
   fetch,
+  forward,
   json,
   set,
   status,
@@ -64,6 +65,7 @@ export type RestContext = {
   xml: typeof xml
   delay: typeof delay
   fetch: typeof fetch
+  forward: typeof forward
 }
 
 export const restContext: RestContext = {
@@ -76,6 +78,7 @@ export const restContext: RestContext = {
   xml,
   delay,
   fetch,
+  forward,
 }
 
 export type RequestQuery = {

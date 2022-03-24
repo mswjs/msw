@@ -4,12 +4,13 @@ import {
   RequestHandler,
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
+import { RESPONSE_FORWARD } from '../context/forward'
 
 export interface ResponseLookupResult {
   handler?: RequestHandler
   publicRequest?: any
   parsedRequest?: any
-  response?: MockedResponse
+  response?: MockedResponse | typeof RESPONSE_FORWARD
 }
 
 export interface ResponseResolutionContext {

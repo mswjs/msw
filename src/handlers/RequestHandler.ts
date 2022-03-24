@@ -8,7 +8,6 @@ import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { SerializedResponse } from '../setupWorker/glossary'
-import { RESPONSE_FORWARD } from '../context/forward'
 
 export const defaultContext = {
   status,

@@ -36,5 +36,6 @@ jobs:
         env:
           GIT_COMMITTER_NAME: kettanaito
           GIT_COMMITTER_EMAIL: kettanaito@gmail.com
-          GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+          GH_TOKE: ${{ secrets.GH_ADMIN_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -10,8 +10,10 @@ export async function enableMocking(
 ) {
   context.workerChannel.send('MOCK_ACTIVATE')
   return context.events.once('MOCKING_ENABLED').then(() => {
-    printStartMessage(context, {
+    printStartMessage({
       quiet: options.quiet,
+      workerScope: context.registration?.scope,
+      workerUrl: context.worker?.scriptURL,
     })
   })
 }

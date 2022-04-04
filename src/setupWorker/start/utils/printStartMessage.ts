@@ -1,8 +1,10 @@
 import { devUtils } from '../../../utils/internal/devUtils'
 
-interface PrintStartMessageArgs {
+export interface PrintStartMessageArgs {
   quiet?: boolean
   message?: string
+  workerUrl?: string
+  workerScope?: string
 }
 
 /**
@@ -25,5 +27,14 @@ export function printStartMessage(args: PrintStartMessageArgs = {}) {
     'font-weight:normal',
   )
   console.log('Found an issue? https://github.com/mswjs/msw/issues')
+
+  if (args.workerUrl) {
+    console.log('Worker script URL:', args.workerUrl)
+  }
+
+  if (args.workerScope) {
+    console.log('Worker scope:', args.workerScope)
+  }
+
   console.groupEnd()
 }

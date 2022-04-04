@@ -14,7 +14,10 @@ afterAll(() => {
 })
 
 test('prints out a default start message into console', () => {
-  printStartMessage()
+  printStartMessage({
+    workerScope: 'http://localhost:3000/',
+    workerUrl: 'http://localhost:3000/worker.js',
+  })
 
   expect(console.groupCollapsed).toHaveBeenCalledWith(
     '%c[MSW] Mocking enabled.',
@@ -32,6 +35,18 @@ test('prints out a default start message into console', () => {
   expect(console.log).toHaveBeenCalledWith(
     'Found an issue? https://github.com/mswjs/msw/issues',
   )
+
+  // Includes service worker scope.
+  expect(console.log).toHaveBeenCalledWith(
+    'Worker scope:',
+    'http://localhost:3000/',
+  )
+
+  // Includes service worker script location.
+  expect(console.log).toHaveBeenCalledWith(
+    'Worker script URL:',
+    'http://localhost:3000/worker.js',
+  )
 })
 
 test('supports printing a custom start message', () => {
@@ -48,4 +63,26 @@ test('does not print any messages when log level is quiet', () => {
 
   expect(console.groupCollapsed).not.toHaveBeenCalled()
   expect(console.log).not.toHaveBeenCalled()
+})
+
+test('prints a worker scope in the start message', () => {
+  printStartMessage({
+    workerScope: 'http://localhost:3000/user',
+  })
+
+  expect(console.log).toHaveBeenCalledWith(
+    'Worker scope:',
+    'http://localhost:3000/user',
+  )
+})
+
+test('prints a worker script url in the start message', () => {
+  printStartMessage({
+    workerUrl: 'http://localhost:3000/mockServiceWorker.js',
+  })
+
+  expect(console.log).toHaveBeenCalledWith(
+    'Worker script URL:',
+    'http://localhost:3000/mockServiceWorker.js',
+  )
 })

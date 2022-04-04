@@ -1,8 +1,8 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
-import { sleep } from '../support/utils'
 import { gql } from '../support/graphql'
+import { waitFor } from '../support/waitFor'
 
 function createRuntime() {
   return pageWith({
@@ -128,7 +128,6 @@ test('intercepts and mocks a GraphQL mutation', async () => {
 test('propagates parsing errors from the invalid GraphQL requests', async () => {
   const { page, consoleSpy } = await createRuntime()
   const INVALID_QUERY = `
-    # Intentionally invalid GraphQL query.
     query GetUser() {
       user { id
     }
@@ -139,15 +138,15 @@ test('propagates parsing errors from the invalid GraphQL requests', async () => 
   })
 
   // Await the console message, because you cannot await a failed response.
-  await sleep(500)
-
-  expect(consoleSpy.get('error')).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining(
-        'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
-      ),
-    ]),
-  )
+  await waitFor(() => {
+    expect(consoleSpy.get('error')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(
+          'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
+        ),
+      ]),
+    )
+  })
 })
 
 test('bypasses seemingly compatible REST requests', async () => {

@@ -79,3 +79,23 @@ test('returns false given a GraphQL-incompatible request', () => {
   })
   expect(parseGraphQLRequest(postRequest)).toBeUndefined()
 })
+
+test('does not treat a REST API POST request with a "query" property as a GraphQL request', () => {
+  const postRequest = createMockedRequest({
+    method: 'POST',
+    url: new URL('http://localhost:8080/graphql'),
+    headers: new Headers({ 'Content-Type': 'application/json' }),
+    body: {
+      query: `manager:["yarn"]`,
+    },
+  })
+  expect(parseGraphQLRequest(postRequest)).toBeUndefined()
+})
+
+test('does not treat a REST API GET request with a "query" parameter as a GraphQL request', () => {
+  const getRequest = createMockedRequest({
+    method: 'GET',
+    url: new URL('http://localhost:8080/graphql?query={"manager":["yarn"]}'),
+  })
+  expect(parseGraphQLRequest(getRequest)).toBeUndefined()
+})

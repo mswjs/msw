@@ -11,7 +11,7 @@ import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
 
 interface GraphQLInput {
-  query: string | null
+  query: string | undefined
   variables?: GraphQLVariables
 }
 
@@ -86,6 +86,22 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
   return operations.variables
 }
 
+/**
+ * Check if the given GraphQL query string is potentially valid
+ * without parsing it. This returns false fast when analyzing
+ * GET/POST requests with the "query" parameter/body property
+ * which are not a GraphQL request.
+ */
+function maybeGraphQLQuery(query?: string | null): query is string {
+  const normalizedQuery = query?.toLowerCase().trim() || ''
+
+  return (
+    normalizedQuery.startsWith('query') ||
+    normalizedQuery.startsWith('mutation') ||
+    false
+  )
+}
+
 function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
   switch (request.method) {
     case 'GET': {
@@ -93,17 +109,20 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
       const variables = request.url.searchParams.get('variables') || ''
 
       return {
-        query,
+        query: maybeGraphQLQuery(query) ? query : undefined,
         variables: jsonParse(variables),
       }
     }
 
     case 'POST': {
       if (request.body?.query) {
-        const { query, variables } = request.body
+        const { query, variables } = request.body as {
+          query?: string
+          variables: Record<string, unknown>
+        }
 
         return {
-          query,
+          query: maybeGraphQLQuery(query) ? query : undefined,
           variables,
         }
       }

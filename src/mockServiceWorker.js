@@ -163,14 +163,6 @@ async function getResponse(event, client, requestId) {
     // Remove the bypass header to comply with the CORS preflight check.
     delete cleanRequestHeaders[bypassHeaderName]
 
-    // When the user made their original request, the browser added a boundary e.g.
-    // "content-type": multipart/form-data; boundary=----WebKitFormBoundarygyGKnRF8C9LT0BhB"
-    // If we now reuse this string as a user-provided header, the form-data will break and no payload will be send
-    // https://community.cloudflare.com/t/cannot-seem-to-send-multipart-form-data/163491/2
-    if(cleanRequestHeaders["content-type"].includes("multipart/form-data")) {
-      delete cleanRequestHeaders["content-type"]
-    }
-
     const originalRequest = new Request(requestClone, {
       headers: new Headers(cleanRequestHeaders),
     })

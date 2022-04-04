@@ -28,31 +28,24 @@ export const createFetchRequestParameters = (
     return requestParameters
   }
 
-  // When the user made their original request, the browser added a boundary e.g.
-  // "content-type": multipart/form-data; boundary=----WebKitFormBoundarygyGKnRF8C9LT0BhB"
-  // If we now reuse this string as a user-provided header, the form-data will break and no payload will be send
-  // https://community.cloudflare.com/t/cannot-seem-to-send-multipart-form-data/163491/2
-  if (
-    input.headers.get('content-type')?.includes('multipart/form-data') &&
-    typeof body === 'object'
-  ) {
-    input.headers.delete('content-type')
-    const formData = new FormData()
-    for (const key in body) {
-      formData.append(key, body[key])
-    }
-    requestParameters.body = formData
-    return requestParameters
-  }
-
-  if (
-    typeof body === 'object' ||
-    typeof body === 'number' ||
-    typeof body === 'boolean'
-  ) {
-    requestParameters.body = JSON.stringify(body)
-  } else {
-    requestParameters.body = body
+  switch (typeof body) {
+    case 'object':
+      if (input.headers?.get('content-type')?.includes('multipart/form-data')) {
+        const formData = new FormData()
+        for (const key in body) {
+          formData.append(key, body[key])
+        }
+        requestParameters.body = formData
+      } else {
+        requestParameters.body = JSON.stringify(body)
+      }
+      break
+    case 'number':
+    case 'boolean':
+      requestParameters.body = JSON.stringify(body)
+      break
+    default:
+      requestParameters.body = body
   }
 
   return requestParameters

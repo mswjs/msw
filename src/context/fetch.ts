@@ -15,7 +15,9 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   }
 }
 
-const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
+export const createFetchRequestParameters = (
+  input: MockedRequest,
+): RequestInit => {
   const { body, method } = input
   const requestParameters: RequestInit = {
     ...input,
@@ -23,6 +25,23 @@ const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
   }
 
   if (['GET', 'HEAD'].includes(method)) {
+    return requestParameters
+  }
+
+  // When the user made their original request, the browser added a boundary e.g.
+  // "content-type": multipart/form-data; boundary=----WebKitFormBoundarygyGKnRF8C9LT0BhB"
+  // If we now reuse this string as a user-provided header, the form-data will break and no payload will be send
+  // https://community.cloudflare.com/t/cannot-seem-to-send-multipart-form-data/163491/2
+  if (
+    input.headers.get('content-type')?.includes('multipart/form-data') &&
+    typeof body === 'object'
+  ) {
+    input.headers.delete('content-type')
+    const formData = new FormData()
+    for (const key in body) {
+      formData.append(key, body[key])
+    }
+    requestParameters.body = formData
     return requestParameters
   }
 

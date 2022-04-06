@@ -3,7 +3,7 @@
  */
 import { augmentRequestInit, createFetchRequestParameters } from './fetch'
 import { createMockedRequest } from '../../test/support/utils'
-import HeadersPolyfill from 'headers-polyfill/lib/Headers'
+import { Headers } from 'headers-polyfill'
 
 test('augments RequestInit with the Headers instance', () => {
   const result = augmentRequestInit({

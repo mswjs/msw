@@ -120,7 +120,7 @@ Here's an example of an actual integration test in Jest that uses [React Testing
 import '@testing-library/jest-dom'
 import React from 'react'
 import { rest } from 'msw'
-import { setupServer } from 'msw/node'
+import { setupServer } from 'msw/node/lib/index.js'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Login from '../src/components/Login'

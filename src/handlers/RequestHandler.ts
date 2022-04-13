@@ -9,7 +9,14 @@ import { fetch } from '../context/fetch'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { SerializedResponse } from '../setupWorker/glossary'
 
-export const defaultContext = {
+export type DefaultContext = {
+  status: typeof status
+  set: typeof set
+  delay: typeof delay
+  fetch: typeof fetch
+}
+
+export const defaultContext: DefaultContext = {
   status,
   set,
   delay,

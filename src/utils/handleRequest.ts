@@ -24,9 +24,9 @@ export interface HandleRequestOptions<ResponseType> {
   transformResponse?(response: MockedResponse<string>): ResponseType
 
   /**
-   * Invoked whenever returning a bypassed (as-is) response.
+   * Invoked whenever a request is performed as-is.
    */
-  onBypassResponse?(request: MockedRequest): void
+  onPassthroughResponse?(request: MockedRequest): void
 
   /**
    * Invoked when the mocked response is ready to be sent.
@@ -60,7 +60,7 @@ export async function handleRequest<
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
   if (request.headers.get('x-msw-bypass') === 'true') {
     emitter.emit('request:end', request)
-    handleRequestOptions?.onBypassResponse?.(request)
+    handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 
@@ -78,7 +78,7 @@ export async function handleRequest<
     onUnhandledRequest(request, handlers, options.onUnhandledRequest)
     emitter.emit('request:unhandled', request)
     emitter.emit('request:end', request)
-    handleRequestOptions?.onBypassResponse?.(request)
+    handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 
@@ -98,7 +98,15 @@ Expected response resolver to return a mocked response Object, but got %s. The o
     )
 
     emitter.emit('request:end', request)
-    handleRequestOptions?.onBypassResponse?.(request)
+    handleRequestOptions?.onPassthroughResponse?.(request)
+    return
+  }
+
+  // When the developer explicitly returned "req.passthrough()" do not warn them.
+  // Perform the request as-is.
+  if (response.passthrough) {
+    emitter.emit('request:end', request)
+    handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 

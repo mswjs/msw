@@ -4,6 +4,7 @@ import { MockedRequest } from './../../src'
 import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'
 import { IsomorphicRequest } from '@mswjs/interceptors'
+import { passthrough } from '../../src/handlers/RequestHandler'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -37,6 +38,7 @@ export function createMockedRequest(
     integrity: '',
     keepalive: true,
     cookies: {},
+    passthrough,
     ...init,
   }
 }

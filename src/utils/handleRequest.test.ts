@@ -5,7 +5,7 @@ import { createMockedRequest } from '../../test/support/utils'
 import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { rest } from '../rest'
-import { handleRequest } from './handleRequest'
+import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { response } from '../response'
 import { context } from '..'
 import { RequiredDeep } from '../typeUtils'
@@ -24,8 +24,8 @@ function getEmittedEvents() {
 const options: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: jest.fn(),
 }
-const callbacks = {
-  onBypassResponse: jest.fn(),
+const callbacks: Partial<Record<keyof HandleRequestOptions<any>, any>> = {
+  onPassthroughResponse: jest.fn(),
   onMockedResponse: jest.fn(),
   onMockedResponseSent: jest.fn(),
 }
@@ -67,7 +67,7 @@ test('returns undefined for a request with the "x-msw-bypass" header equal to "t
     ['request:end', request],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
+  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })
@@ -123,7 +123,7 @@ test('reports request as unhandled when it has no matching request handlers', as
     warning: expect.any(Function),
     error: expect.any(Function),
   })
-  expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
+  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })
@@ -153,7 +153,7 @@ test('returns undefined and warns on a request handler that returns no response'
     ['request:end', request],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onBypassResponse).toHaveBeenNthCalledWith(1, request)
+  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 
@@ -198,7 +198,7 @@ test('returns the mocked response for a request with a matching request handler'
     ['request:match', request],
     ['request:end', request],
   ])
-  expect(callbacks.onBypassResponse).not.toHaveBeenCalled()
+  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponse).toHaveBeenNthCalledWith(
     1,
     mockedResponse,
@@ -243,7 +243,7 @@ test('returns a transformed response if the "transformResponse" option is provid
     ['request:match', request],
     ['request:end', request],
   ])
-  expect(callbacks.onBypassResponse).not.toHaveBeenCalled()
+  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
   expect(transformResponse).toHaveBeenNthCalledWith(1, mockedResponse)
   expect(callbacks.onMockedResponse).toHaveBeenNthCalledWith(
     1,
@@ -255,4 +255,33 @@ test('returns a transformed response if the "transformResponse" option is provid
     finalResponse,
     lookupResult,
   )
+})
+
+it('returns undefined without warning on a passthrough request', async () => {
+  const request = createMockedRequest({
+    url: new URL('http://localhost/user'),
+  })
+  const handlers: RequestHandler[] = [
+    rest.get('/user', (req) => {
+      return req.passthrough()
+    }),
+  ]
+
+  const result = await handleRequest(
+    request,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(result).toBeUndefined()
+  expect(getEmittedEvents()).toEqual([
+    ['request:start', request],
+    ['request:end', request],
+  ])
+  expect(options.onUnhandledRequest).not.toHaveBeenCalled()
+  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
+  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })

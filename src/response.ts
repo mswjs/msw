@@ -2,6 +2,8 @@ import { Headers } from 'headers-polyfill'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 
+export type MaybePromise<ValueType = any> = ValueType | Promise<ValueType>
+
 /**
  * Internal representation of a mocked response instance.
  */
@@ -11,6 +13,7 @@ export interface MockedResponse<BodyType = any> {
   statusText: string
   headers: Headers
   once: boolean
+  passthrough: boolean
   delay?: number
 }
 
@@ -19,11 +22,11 @@ export type ResponseTransformer<
   TransformerBodyType = any,
 > = (
   res: MockedResponse<TransformerBodyType>,
-) => MockedResponse<BodyType> | Promise<MockedResponse<BodyType>>
+) => MaybePromise<MockedResponse<BodyType>>
 
 export type ResponseFunction<BodyType = any> = (
   ...transformers: ResponseTransformer<BodyType>[]
-) => MockedResponse<BodyType> | Promise<MockedResponse<BodyType>>
+) => MaybePromise<MockedResponse<BodyType>>
 
 export type ResponseComposition<BodyType = any> = ResponseFunction<BodyType> & {
   /**
@@ -40,6 +43,7 @@ export const defaultResponse: Omit<MockedResponse, 'headers'> = {
   body: null,
   delay: 0,
   once: false,
+  passthrough: false,
 }
 
 export type ResponseCompositionOptions<BodyType> = {

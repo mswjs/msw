@@ -10,6 +10,10 @@ function findFrame(frame: Frame) {
   return frame.name() === ''
 }
 
+// This has proven to be a rather flaky test.
+// Retry it a couple of times before failing the entire CI.
+jest.retryTimes(3)
+
 beforeAll(() => {
   jest.spyOn(global.console, 'warn')
 })

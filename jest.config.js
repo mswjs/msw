@@ -1,4 +1,5 @@
 module.exports = {
+  bail: true,
   roots: ['<rootDir>/src', '<rootDir>/cli'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',

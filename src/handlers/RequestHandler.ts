@@ -1,5 +1,10 @@
 import { Headers } from 'headers-polyfill'
-import { MockedResponse, response, ResponseComposition } from '../response'
+import {
+  MaybePromise,
+  MockedResponse,
+  response,
+  ResponseComposition,
+} from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import { status } from '../context/status'
@@ -9,7 +14,14 @@ import { fetch } from '../context/fetch'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { SerializedResponse } from '../setupWorker/glossary'
 
-export const defaultContext = {
+export type DefaultContext = {
+  status: typeof status
+  set: typeof set
+  delay: typeof delay
+  fetch: typeof fetch
+}
+
+export const defaultContext: DefaultContext = {
   status,
   set,
   delay,
@@ -47,6 +59,7 @@ export interface MockedRequest<Body = DefaultRequestBody> {
   referrerPolicy: Request['referrerPolicy']
   body: Body
   bodyUsed: Request['bodyUsed']
+  passthrough: typeof passthrough
 }
 
 export interface RequestHandlerDefaultInfo {
@@ -64,9 +77,9 @@ export type ResponseResolverReturnType<ReturnType> =
   | undefined
   | void
 
-export type MaybeAsyncResponseResolverReturnType<ReturnType> =
-  | ResponseResolverReturnType<ReturnType>
-  | Promise<ResponseResolverReturnType<ReturnType>>
+export type MaybeAsyncResponseResolverReturnType<ReturnType> = MaybePromise<
+  ResponseResolverReturnType<ReturnType>
+>
 
 export type AsyncResponseResolverReturnType<ReturnType> =
   | MaybeAsyncResponseResolverReturnType<ReturnType>
@@ -270,5 +283,24 @@ export abstract class RequestHandler<
       request,
       response: response || null,
     }
+  }
+}
+
+/**
+ * Bypass this intercepted request.
+ * This will make a call to the actual endpoint requested.
+ */
+export function passthrough(): MockedResponse<null> {
+  // Constructing a dummy "101 Continue" mocked response
+  // to keep the return type of the resolver consistent.
+  return {
+    status: 101,
+    statusText: 'Continue',
+    headers: new Headers(),
+    body: null,
+    // Setting "passthrough" to true will signal the response pipeline
+    // to perform this intercepted request as-is.
+    passthrough: true,
+    once: false,
   }
 }

@@ -1,4 +1,5 @@
 import { Headers } from 'headers-polyfill'
+import { passthrough } from '../../handlers/RequestHandler'
 import { prepareRequest } from './prepareRequest'
 
 test('converts request headers into an object', () => {
@@ -22,6 +23,7 @@ test('converts request headers into an object', () => {
     body: 'text-body',
     bodyUsed: false,
     cookies: {},
+    passthrough,
   })
 
   // Converts `Headers` instance into inspectable object

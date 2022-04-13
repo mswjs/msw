@@ -1,15 +1,13 @@
 import { DocumentNode, OperationTypeNode } from 'graphql'
 import { SerializedResponse } from '../setupWorker/glossary'
-import { set } from '../context/set'
-import { status } from '../context/status'
-import { delay } from '../context/delay'
-import { fetch } from '../context/fetch'
 import { data } from '../context/data'
 import { extensions } from '../context/extensions'
 import { errors } from '../context/errors'
 import { GraphQLPayloadContext } from '../typeUtils'
 import { cookie } from '../context/cookie'
 import {
+  defaultContext,
+  DefaultContext,
   MockedRequest,
   RequestHandler,
   RequestHandlerDefaultInfo,
@@ -36,22 +34,16 @@ export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 // GraphQL related context should contain utility functions
 // useful for GraphQL. Functions like `xml()` bear no value
 // in the GraphQL universe.
-export type GraphQLContext<QueryType extends Record<string, unknown>> = {
-  set: typeof set
-  status: typeof status
-  delay: typeof delay
-  fetch: typeof fetch
-  data: GraphQLPayloadContext<QueryType>
-  extensions: GraphQLPayloadContext<QueryType>
-  errors: typeof errors
-  cookie: typeof cookie
-}
+export type GraphQLContext<QueryType extends Record<string, unknown>> =
+  DefaultContext & {
+    data: GraphQLPayloadContext<QueryType>
+    extensions: GraphQLPayloadContext<QueryType>
+    errors: typeof errors
+    cookie: typeof cookie
+  }
 
 export const graphqlContext: GraphQLContext<any> = {
-  set,
-  status,
-  delay,
-  fetch,
+  ...defaultContext,
   data,
   extensions,
   errors,

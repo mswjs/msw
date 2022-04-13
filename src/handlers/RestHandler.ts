@@ -1,14 +1,4 @@
-import {
-  body,
-  cookie,
-  delay,
-  fetch,
-  json,
-  set,
-  status,
-  text,
-  xml,
-} from '../context'
+import { body, cookie, json, text, xml } from '../context'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
@@ -27,6 +17,8 @@ import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromReques
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
   DefaultRequestBody,
+  defaultContext,
+  DefaultContext,
   MockedRequest,
   RequestHandler,
   RequestHandlerDefaultInfo,
@@ -52,28 +44,21 @@ export enum RESTMethods {
 
 // Declaring a context interface infers
 // JSDoc description of the referenced utils.
-export type RestContext = {
-  set: typeof set
-  status: typeof status
+export type RestContext = DefaultContext & {
   cookie: typeof cookie
   text: typeof text
   body: typeof body
   json: typeof json
   xml: typeof xml
-  delay: typeof delay
-  fetch: typeof fetch
 }
 
 export const restContext: RestContext = {
-  set,
-  status,
+  ...defaultContext,
   cookie,
   body,
   text,
   json,
   xml,
-  delay,
-  fetch,
 }
 
 export type RequestQuery = {

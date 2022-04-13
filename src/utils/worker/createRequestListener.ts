@@ -41,7 +41,7 @@ export const createRequestListener = (
               headers: response.headers.all(),
             }
           },
-          onBypassResponse() {
+          onPassthroughResponse() {
             return channel.send({
               type: 'MOCK_NOT_FOUND',
             })

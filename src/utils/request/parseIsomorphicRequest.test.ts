@@ -4,7 +4,7 @@
 import { Headers } from 'headers-polyfill/lib'
 import { parseIsomorphicRequest } from './parseIsomorphicRequest'
 import { createIsomorphicRequest } from '../../../test/support/utils'
-import { MockedRequest } from '../../handlers/RequestHandler'
+import { MockedRequest, passthrough } from '../../handlers/RequestHandler'
 
 test('parses an isomorphic request', () => {
   const request = parseIsomorphicRequest(
@@ -46,6 +46,7 @@ test('parses an isomorphic request', () => {
     body: {
       id: 'user-1',
     },
+    passthrough,
   })
 })
 

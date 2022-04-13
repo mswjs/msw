@@ -1,5 +1,5 @@
 import { IsomorphicRequest } from '@mswjs/interceptors'
-import { MockedRequest } from '../../handlers/RequestHandler'
+import { MockedRequest, passthrough } from '../../handlers/RequestHandler'
 import { parseBody } from './parseBody'
 import { setRequestCookies } from './setRequestCookies'
 
@@ -26,6 +26,7 @@ export function parseIsomorphicRequest(
     integrity: '',
     destination: 'document',
     bodyUsed: false,
+    passthrough,
   }
 
   // Attach all the cookies from the virtual cookie store.

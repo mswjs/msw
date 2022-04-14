@@ -15,7 +15,9 @@ export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   }
 }
 
-const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
+export const createFetchRequestParameters = (
+  input: MockedRequest,
+): RequestInit => {
   const { body, method } = input
   const requestParameters: RequestInit = {
     ...input,
@@ -26,14 +28,24 @@ const createFetchRequestParameters = (input: MockedRequest): RequestInit => {
     return requestParameters
   }
 
-  if (
-    typeof body === 'object' ||
-    typeof body === 'number' ||
-    typeof body === 'boolean'
-  ) {
-    requestParameters.body = JSON.stringify(body)
-  } else {
-    requestParameters.body = body
+  switch (typeof body) {
+    case 'object':
+      if (input.headers?.get('content-type')?.includes('multipart/form-data')) {
+        const formData = new FormData()
+        for (const key in body) {
+          formData.append(key, body[key])
+        }
+        requestParameters.body = formData
+      } else {
+        requestParameters.body = JSON.stringify(body)
+      }
+      break
+    case 'number':
+    case 'boolean':
+      requestParameters.body = JSON.stringify(body)
+      break
+    default:
+      requestParameters.body = body
   }
 
   return requestParameters

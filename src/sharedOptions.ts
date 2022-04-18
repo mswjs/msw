@@ -23,7 +23,9 @@ export interface LifeCycleEventsMap<ResponseType> {
   'response:bypass': (response: ResponseType, requestId: string) => void
 }
 
-export type LifeCycleEventEmitter<ResponseType> = Pick<
+export type LifeCycleEventEmitter<
+  ResponseType extends Record<string | symbol, any>,
+> = Pick<
   StrictEventEmitter<ResponseType>,
   'on' | 'removeListener' | 'removeAllListeners'
 >

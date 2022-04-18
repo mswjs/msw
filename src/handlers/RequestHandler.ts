@@ -33,7 +33,7 @@ export type DefaultRequestMultipartBody = Record<
   string | File | (string | File)[]
 >
 
-export type DefaultRequestBody =
+export type DefaultBodyType =
   | Record<string, any>
   | DefaultRequestMultipartBody
   | string
@@ -42,7 +42,7 @@ export type DefaultRequestBody =
   | null
   | undefined
 
-export interface MockedRequest<Body = DefaultRequestBody> {
+export interface MockedRequest<Body = DefaultBodyType> {
   id: string
   url: URL
   method: Request['method']

@@ -31,11 +31,14 @@ jobs:
       - name: Integration tests
         run: yarn test:integration
 
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
       - name: Publish
         run: yarn release
         env:
-          GIT_COMMITTER_NAME: kettanaito
-          GIT_COMMITTER_EMAIL: kettanaito@gmail.com
-          GH_TOKE: ${{ secrets.GH_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

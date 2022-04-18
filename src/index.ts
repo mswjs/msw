@@ -33,7 +33,7 @@ export type {
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
-  DefaultRequestBody,
+  DefaultBodyType,
   DefaultRequestMultipartBody,
 } from './handlers/RequestHandler'
 

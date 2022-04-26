@@ -85,3 +85,11 @@ rest.get<string>('/user', (req) => {
 rest.post<{ userId: string }>('/user', (req) => {
   req.body.userId.toUpperCase()
 })
+
+interface Params {
+  userId: string
+}
+
+rest.get<never, Params>('/user', (req) => {
+  req.params
+})

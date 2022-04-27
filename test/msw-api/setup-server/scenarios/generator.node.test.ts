@@ -3,52 +3,61 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('/polling/:maxCount', function* (req, res, ctx) {
-    const maxCount = parseInt(req.params.maxCount)
-    let count = 0
+  rest.get<never, { maxCount: string }>(
+    '/polling/:maxCount',
+    function* (req, res, ctx) {
+      const maxCount = parseInt(req.params.maxCount)
+      let count = 0
 
-    while (count < maxCount) {
-      count += 1
-      yield res(
+      while (count < maxCount) {
+        count += 1
+        yield res(
+          ctx.json({
+            status: 'pending',
+            count,
+          }),
+        )
+      }
+
+      return res(
         ctx.json({
-          status: 'pending',
+          status: 'complete',
           count,
         }),
       )
-    }
+    },
+  ),
 
-    return res(
-      ctx.json({
-        status: 'complete',
-        count,
-      }),
-    )
-  }),
+  rest.get<never, { maxCount: string }>(
+    '/polling/once/:maxCount',
+    function* (req, res, ctx) {
+      const maxCount = parseInt(req.params.maxCount)
+      let count = 0
 
-  rest.get('/polling/once/:maxCount', function* (req, res, ctx) {
-    const maxCount = parseInt(req.params.maxCount)
-    let count = 0
+      while (count < maxCount) {
+        count += 1
+        yield res(
+          ctx.json({
+            status: 'pending',
+            count,
+          }),
+        )
+      }
 
-    while (count < maxCount) {
-      count += 1
-      yield res(
+      return res.once(
         ctx.json({
-          status: 'pending',
+          status: 'complete',
           count,
         }),
       )
-    }
-
-    return res.once(
-      ctx.json({
-        status: 'complete',
-        count,
-      }),
-    )
-  }),
-  rest.get('/polling/once/:maxCount', (req, res, ctx) => {
-    return res(ctx.json({ status: 'done' }))
-  }),
+    },
+  ),
+  rest.get<never, { maxCount: string }>(
+    '/polling/once/:maxCount',
+    (req, res, ctx) => {
+      return res(ctx.json({ status: 'done' }))
+    },
+  ),
 )
 
 beforeAll(() => {

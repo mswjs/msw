@@ -3,7 +3,9 @@ import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
 import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
-export type PathParams = Record<string, string | ReadonlyArray<string>>
+export type PathParams<KeyType extends keyof any = string> = {
+  [ParamName in KeyType]: string | ReadonlyArray<string>
+}
 
 export interface Match {
   matches: boolean

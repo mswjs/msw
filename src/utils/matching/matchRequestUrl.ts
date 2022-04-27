@@ -4,7 +4,7 @@ import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
 export type PathParams<K extends keyof any = string> = {
-  [P in K]?: string | ReadonlyArray<string>
+  [P in K]: string | ReadonlyArray<string>
 }
 
 export interface Match {

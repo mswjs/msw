@@ -17,13 +17,6 @@ rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
   return res(ctx.json({ postCount: 2 }))
 })
 
-rest.get<never, { userId: string }>('/user/:userId', (req) => {
-  req.params.userId
-
-  // @ts-expect-error `unknown` is not defined in the request params type.
-  req.params.unknown
-})
-
 rest.post<// @ts-expect-error `null` is not a valid request body type.
 null>('/submit', () => null)
 
@@ -42,25 +35,6 @@ rest.get<never, never, string | string[]>('/user', (req, res, ctx) =>
   // allow ResponseTransformer to return a narrower type than a given union
   res(ctx.json('hello')),
 )
-
-rest.get<never>('/user/:id', (req, res, ctx) => {
-  const { userId } = req.params
-
-  return res(
-    ctx.body(
-      // @ts-expect-error "userId" parameter is not annotated
-      // and is ambiguous (string | string[]).
-      userId,
-    ),
-  )
-})
-
-rest.get<
-  never,
-  // @ts-expect-error Path parameters are always strings.
-  // Parse them to numbers in the resolver if necessary.
-  { id: number }
->('/posts/:id', () => null)
 
 rest.head('/user', (req) => {
   // @ts-expect-error GET requests cannot have body.
@@ -84,12 +58,4 @@ rest.get<string>('/user', (req) => {
 
 rest.post<{ userId: string }>('/user', (req) => {
   req.body.userId.toUpperCase()
-})
-
-interface Params {
-  userId: string
-}
-
-rest.get<never, Params>('/user', (req) => {
-  req.params
 })

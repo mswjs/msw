@@ -8,6 +8,9 @@ const worker = setupWorker(
   rest.post('/no-response', () => {
     return
   }),
+  rest.get('/unhandled-exception', () => {
+    throw new Error('Unhandled resolver error')
+  }),
 )
 
 worker.events.on('request:start', (req) => {
@@ -35,6 +38,12 @@ worker.events.on('response:mocked', async (res, requestId) => {
 worker.events.on('response:bypass', async (res, requestId) => {
   const body = await res.text()
   console.warn(`[response:bypass] ${body} ${requestId}`)
+})
+
+worker.events.on('unhandledException', (error, req) => {
+  console.warn(
+    `[unhandledException] ${req.method} ${req.url.href} ${req.id} ${error.message}`,
+  )
 })
 
 worker.start({

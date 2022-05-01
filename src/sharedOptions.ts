@@ -21,6 +21,7 @@ export interface LifeCycleEventsMap<ResponseType> {
   'request:end': (request: MockedRequest) => void
   'response:mocked': (response: ResponseType, requestId: string) => void
   'response:bypass': (response: ResponseType, requestId: string) => void
+  unhandledException: (error: Error, request: MockedRequest) => void
 }
 
 export type LifeCycleEventEmitter<ResponseType> = Pick<

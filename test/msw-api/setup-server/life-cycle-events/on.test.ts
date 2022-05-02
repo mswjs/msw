@@ -35,6 +35,9 @@ beforeAll(async () => {
     rest.post(httpServer.http.makeUrl('/no-response'), () => {
       return
     }),
+    rest.get(httpServer.http.makeUrl('/unhandled-exception'), () => {
+      throw new Error('Unhandled resolver error')
+    }),
   )
   server.listen()
 
@@ -60,6 +63,12 @@ beforeAll(async () => {
 
   server.events.on('response:bypass', (res, requestId) => {
     listener(`[response:bypass] ${res.body} ${requestId}`)
+  })
+
+  server.events.on('unhandledException', (error, req) => {
+    listener(
+      `[unhandledException] ${req.method} ${req.url.href} ${req.id} ${error.message}`,
+    )
   })
 
   // Supress "Expected a mocking resolver function to return a mocked response"
@@ -153,6 +162,16 @@ test('emits events for an unhandled request', async () => {
   expect(listener).toHaveBeenNthCalledWith(
     4,
     `[response:bypass] majestic-unknown ${requestId}`,
+  )
+})
+
+test('emits unhandled exceptions in the request handler', async () => {
+  const url = httpServer.http.makeUrl('/unhandled-exception')
+  await fetch(url).catch(() => undefined)
+  const requestId = getRequestId(listener)
+
+  expect(listener).toHaveBeenCalledWith(
+    `[unhandledException] GET ${url} ${requestId} Unhandled resolver error`,
   )
 })
 

@@ -92,6 +92,17 @@ test('emits events for an unhandled request', async () => {
   ])
 })
 
+test('emits unhandled exceptions in the request handler', async () => {
+  const runtime = await createRuntime()
+  const url = runtime.makeUrl('/unhandled-exception')
+  await runtime.request(url)
+  const requestId = getRequestId(runtime.consoleSpy)
+
+  expect(runtime.consoleSpy.get('warning')).toContain(
+    `[unhandledException] GET ${url} ${requestId} Unhandled resolver error`,
+  )
+})
+
 test('stops emitting events once the worker is stopped', async () => {
   const runtime = await createRuntime()
 

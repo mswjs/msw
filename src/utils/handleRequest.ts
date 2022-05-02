@@ -1,3 +1,4 @@
+import { until } from '@open-draft/until'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { MockedRequest, RequestHandler } from '../handlers/RequestHandler'
 import { ServerLifecycleEventsMap } from '../node/glossary'
@@ -65,11 +66,20 @@ export async function handleRequest<
   }
 
   // Resolve a mocked response from the list of request handlers.
-  const lookupResult = await getResponse(
-    request,
-    handlers,
-    handleRequestOptions?.resolutionContext,
-  )
+  const [lookupError, lookupResult] = await until(() => {
+    return getResponse(
+      request,
+      handlers,
+      handleRequestOptions?.resolutionContext,
+    )
+  })
+
+  if (lookupError) {
+    // Allow developers to react to unhandled exceptions in request handlers.
+    emitter.emit('unhandledException', lookupError, request)
+    throw lookupError
+  }
+
   const { handler, response } = lookupResult
 
   // When there's no handler for the request, consider it unhandled.

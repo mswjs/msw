@@ -1,3 +1,4 @@
+import { devUtils } from '../../../utils/internal/devUtils'
 import { StartOptions, SetupWorkerInternalContext } from '../../glossary'
 import { printStartMessage } from './printStartMessage'
 
@@ -9,11 +10,23 @@ export async function enableMocking(
   options: StartOptions,
 ) {
   context.workerChannel.send('MOCK_ACTIVATE')
-  return context.events.once('MOCKING_ENABLED').then(() => {
-    printStartMessage({
-      quiet: options.quiet,
-      workerScope: context.registration?.scope,
-      workerUrl: context.worker?.scriptURL,
-    })
+  await context.events.once('MOCKING_ENABLED')
+
+  // Warn the developer on multiple "worker.start()" calls.
+  // While this will not affect the worker in any way,
+  // it likely indicates an issue with the developer's code.
+  if (context.isMockingEnabled) {
+    devUtils.warn(
+      `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+    )
+    return
+  }
+
+  context.isMockingEnabled = true
+
+  printStartMessage({
+    quiet: options.quiet,
+    workerScope: context.registration?.scope,
+    workerUrl: context.worker?.scriptURL,
   })
 }

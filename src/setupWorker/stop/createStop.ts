@@ -11,7 +11,9 @@ export const createStop = (
      * the worker-client relation. Does not affect the worker's lifecycle.
      */
     context.workerChannel.send('MOCK_DEACTIVATE')
+    context.isMockingEnabled = false
     window.clearInterval(context.keepAliveInterval)
+
     printStopMessage({ quiet: context.startOptions?.quiet })
   }
 }

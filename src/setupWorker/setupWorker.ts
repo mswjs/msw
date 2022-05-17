@@ -61,6 +61,9 @@ export function setupWorker(
   pipeEvents(emitter, publicEmitter)
 
   const context: SetupWorkerInternalContext = {
+    // Mocking is not considered enabled until the worker
+    // signals back the successful activation event.
+    isMockingEnabled: false,
     startOptions: undefined,
     worker: null,
     registration: null,

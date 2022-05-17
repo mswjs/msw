@@ -9,8 +9,8 @@ declare namespace window {
   }
 }
 
-test('resolves the "start" Promise when the worker has been activated', async () => {
-  const runtime = await pageWith({
+function prepareRuntime() {
+  return pageWith({
     example: path.resolve(__dirname, 'start.mocks.ts'),
     routes(app) {
       app.get('/worker.js', (req, res) => {
@@ -18,7 +18,10 @@ test('resolves the "start" Promise when the worker has been activated', async ()
       })
     },
   })
+}
 
+test('resolves the "start" Promise when the worker has been activated', async () => {
+  const runtime = await prepareRuntime()
   const events: string[] = []
 
   const untilWorkerActivated = runtime.page
@@ -59,14 +62,7 @@ test('resolves the "start" Promise when the worker has been activated', async ()
 })
 
 test('prints the start message when the worker has been registered', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'start.mocks.ts'),
-    routes(app) {
-      app.get('/worker.js', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
-      })
-    },
-  })
+  const runtime = await prepareRuntime()
 
   await runtime.page.evaluate(() => {
     return window.msw.startWorker()
@@ -78,4 +74,22 @@ test('prints the start message when the worker has been registered', async () =>
   expect(runtime.consoleSpy.get('log')).toContain(
     `Worker script URL: ${runtime.makeUrl('/worker.js')}`,
   )
+})
+
+test('prints a warning if "worker.start()" is called multiple times', async () => {
+  const runtime = await prepareRuntime()
+
+  await runtime.page.evaluate(() => {
+    return Promise.all([window.msw.startWorker(), window.msw.startWorker()])
+  })
+
+  // The activation message ise printed only once.
+  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+  ])
+
+  // The warning is printed about multiple calls of "worker.start()".
+  expect(runtime.consoleSpy.get('warning')).toEqual([
+    `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+  ])
 })

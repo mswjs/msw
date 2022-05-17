@@ -25,7 +25,7 @@
     "test:ts": "tsc -p test/typings/tsconfig.json",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
-    "release": "semantic-release",
+    "release": "release publish",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {
@@ -95,6 +95,7 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@open-draft/test-server": "^0.2.3",
+    "@ossjs/release": "^0.3.0",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-inject": "^4.0.4",
     "@rollup/plugin-json": "^4.1.0",

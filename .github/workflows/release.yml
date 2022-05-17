@@ -1,0 +1,37 @@
+name: release
+
+on:
+  schedule:
+    - cron: '0 23 * * * '
+  workflow_dispatch: true
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          always-auth: true
+          cache: yarn
+
+      - name: Setup Git
+        run: |
+          git config --local user.name "Artem Zakharchenko"
+          git config --local user.email "kettanaito@gmail.com"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Release
+        run: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

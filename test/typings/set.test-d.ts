@@ -1,4 +1,6 @@
-import { set } from '../../src/context/set'
+import { defaultContext } from 'msw'
+
+const { set } = defaultContext
 
 set('header', 'value')
 set({

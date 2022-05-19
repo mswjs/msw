@@ -7,11 +7,11 @@ on:
     branches: [main]
 
 jobs:
+  # Builds the library and persists it as an artifact.
+  # Later jobs can then reuse that build artifact, skipping
+  # the build step.
   build:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        node: [14, 16]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 16
           cache: yarn
 
       - name: Install dependencies
@@ -33,3 +33,38 @@ jobs:
 
       - name: Integration tests
         run: yarn test:integration
+
+  # Checks the library's compatibility with different
+  # TypeScript versions to discover type regressions.
+  typescript:
+    runs-on: macos-latest
+    # Skip TypeScript compatibility check on "main".
+    # A merged pull request implies passing "typescript" job.
+    if: github.ref != 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        ts: ['4.2', '4.3']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: yarn add typescript@${{ matrix.ts }}
+
+      - name: Build
+        run: yarn build
+
+      - name: Typings tests
+        run: |
+          yarn tsc --version
+          yarn test:ts

@@ -9,7 +9,8 @@
     "baseUrl": ".",
     "typeRoots": ["node_modules/@types"],
     "paths": {
-      "msw": ["../../"]
+      "msw": ["../../"],
+      "msw/*": ["../../*"]
     }
   },
   "include": ["../../global.d.ts", "**/*.test-d.ts"],

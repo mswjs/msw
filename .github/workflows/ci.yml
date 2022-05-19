@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts: ['4.2', '4.3']
+        ts: ['4.2', '4.3', '4.4', '4.5', '4.6']
     steps:
       - name: Checkout
         uses: actions/checkout@v3

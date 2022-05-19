@@ -135,13 +135,13 @@
     "ts-jest": "26",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.1.0",
-    "typescript": "^4.3.5",
+    "typescript": "^4.6.4",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
     "webpack-dev-server": "^3.11.2"
   },
   "peerDependencies": {
-    "typescript": "4.2.x || 4.3.x"
+    "typescript": ">= 4.2.x <= 4.6.x"
   },
   "peerDependenciesMeta": {
     "typescript": {

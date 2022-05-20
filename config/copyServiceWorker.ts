@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 import { until } from '@open-draft/until'
 
 /**
@@ -30,7 +30,14 @@ export default async function copyServiceWorker(
     await fs.promises.mkdir(destFileDirectory, { recursive: true })
   }
 
-  const nextFileContent = fileContent.replace('<INTEGRITY_CHECKSUM>', checksum)
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
+  )
+
+  const nextFileContent = fileContent
+    .replace('<INTEGRITY_CHECKSUM>', checksum)
+    .replace('<PACKAGE_VERSION>', packageJson.version)
+
   const [writeFileError] = await until(() =>
     fs.promises.writeFile(destFilePath, nextFileContent),
   )

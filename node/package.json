@@ -1,4 +1,5 @@
 {
-  "main": "./lib/index.js",
-  "types": "../lib/types/node"
+  "main": "../lib/node/index.js",
+  "module": "../lib/node/index.mjs",
+  "typings": "../lib/node/index.d.ts"
 }

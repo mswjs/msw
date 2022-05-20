@@ -119,6 +119,7 @@ export function createSetupServer(...interceptors: Interceptor[]) {
       printHandlers() {
         currentHandlers.forEach((handler) => {
           const { header, callFrame } = handler.info
+
           const pragma = handler.info.hasOwnProperty('operationType')
             ? '[graphql]'
             : '[rest]'

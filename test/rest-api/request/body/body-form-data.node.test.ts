@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import * as FormDataPolyfill from 'form-data'
+import FormDataPolyfill from 'form-data'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 

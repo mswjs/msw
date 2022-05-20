@@ -244,8 +244,6 @@ Build the library with the following command:
 $ yarn build
 ```
 
-> Learn more about the build in the [Rollup configuration file](../rollup.config.ts).
-
 [yarn-url]: https://classic.yarnpkg.com/en/
 [jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with

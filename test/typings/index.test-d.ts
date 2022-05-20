@@ -1,2 +1,3 @@
 export * from 'msw'
-export * from 'msw/node'
+export { setupServer } from 'msw/node'
+export { setupServer as setupNativeServer } from 'msw/native'

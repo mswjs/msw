@@ -70,6 +70,8 @@ export function workerScriptPlugin(): Plugin {
       })
 
       build.onEnd(() => {
+        console.log('worker script checksum:', checksum)
+
         // Copy the worker script on the next tick.
         setTimeout(async () => {
           await copyServiceWorker(workerSourcePath, workerOutputPath, checksum)

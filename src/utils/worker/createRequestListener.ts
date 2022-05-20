@@ -80,19 +80,21 @@ export const createRequestListener = (
         })
       }
 
-      // Treat all the other exceptions in a request handler
-      // as unintended, alerting that there is a problem needs fixing.
-      channel.send({
-        type: 'INTERNAL_ERROR',
-        payload: {
-          status: 500,
-          body: JSON.stringify({
-            errorType: error.constructor.name,
-            message: error.message,
-            location: error.stack,
-          }),
-        },
-      })
+      if (error instanceof Error) {
+        // Treat all the other exceptions in a request handler
+        // as unintended, alerting that there is a problem needs fixing.
+        channel.send({
+          type: 'INTERNAL_ERROR',
+          payload: {
+            status: 500,
+            body: JSON.stringify({
+              errorType: error.constructor.name,
+              message: error.message,
+              location: error.stack,
+            }),
+          },
+        })
+      }
     }
   }
 }

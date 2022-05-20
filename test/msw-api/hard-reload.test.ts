@@ -10,8 +10,15 @@ function createRuntime() {
 test('keeps the mocking enabled after hard-reload of the page', async () => {
   const runtime = await createRuntime()
 
-  // Passing `true` to `location.reload()` forces a hard reload
-  runtime.page.evaluate(() => location.reload(true))
+  runtime.page.evaluate(() => {
+    /**
+     * Emulate a forced reload.
+     * Since `location.reload(true)` is deprecated,
+     * use a workaround.
+     * @see https://stackoverflow.com/a/65544086/2754939
+     */
+    location.replace(location.href)
+  })
 
   await runtime.page.waitForNavigation({
     waitUntil: 'networkidle',

@@ -13,7 +13,7 @@ const packageJson = JSON.parse(
 )
 
 if (!packageJson.msw || !packageJson.msw.workerDirectory) {
-  return
+  process.exit()
 }
 
 // 2. Check if the worker directory is an existing path.
@@ -21,10 +21,11 @@ const { workerDirectory } = packageJson.msw
 const absoluteWorkerDirectory = path.resolve(parentPackageCwd, workerDirectory)
 
 if (!fs.existsSync(absoluteWorkerDirectory)) {
-  return console.error(
+  console.error(
     `[MSW] Failed to automatically update the worker script at "%s": given path does not exist.`,
     workerDirectory,
   )
+  process.exit()
 }
 
 // 3. Update the worker script.

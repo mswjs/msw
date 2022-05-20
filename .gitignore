@@ -2,10 +2,6 @@ __*
 .DS_*
 node_modules
 /lib
-/native/**/*
-/node/**/*
-!/node/package.json
-!/native/package.json
 tmp
 *-error.log
 ./package-lock.json

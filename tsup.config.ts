@@ -50,8 +50,10 @@ export default defineConfig([
       ecosystemDependencies,
     ],
     clean: true,
+    inject: ['./config/polyfills-node.ts'],
     sourcemap: true,
     dts: false,
+    esbuildPlugins: [workerScriptPlugin()],
   },
   {
     name: 'native',

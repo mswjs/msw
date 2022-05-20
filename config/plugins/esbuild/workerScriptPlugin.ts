@@ -25,12 +25,6 @@ export function workerScriptPlugin(): Plugin {
   return {
     name: 'workerScriptPlugin',
     async setup(build) {
-      if (hasRunAlready) {
-        return
-      }
-
-      hasRunAlready = true
-
       const workerSourcePath = path.resolve(
         process.cwd(),
         './src/mockServiceWorker.js',
@@ -58,6 +52,14 @@ export function workerScriptPlugin(): Plugin {
       build.initialOptions.define = {
         SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
       }
+
+      // Prevent from copying the worker script multiple times.
+      // esbuild will execute this plugin for *each* format.
+      if (hasRunAlready) {
+        return
+      }
+
+      hasRunAlready = true
 
       build.onLoad({ filter: /mockServiceWorker\.js$/ }, async () => {
         return {

@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "declaration": false,
     "noEmit": true,
     "baseUrl": ".",

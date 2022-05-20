@@ -1,9 +1,9 @@
-import fs from 'fs-extra'
 import path from 'path'
+import fs from 'fs-extra'
+import crypto from 'crypto'
+import minify from 'babel-minify'
 import { invariant } from 'outvariant'
 import type { Plugin } from 'esbuild'
-import minify from 'babel-minify'
-import crypto from 'crypto'
 import copyServiceWorker from '../../copyServiceWorker'
 
 function getChecksum(contents: string): string {
@@ -11,7 +11,7 @@ function getChecksum(contents: string): string {
     contents,
     {},
     {
-      // @ts-ignore
+      // @ts-ignore "babel-minify" has no type definitions.
       comments: false,
     },
   )
@@ -19,37 +19,55 @@ function getChecksum(contents: string): string {
   return crypto.createHash('md5').update(code, 'utf8').digest('hex')
 }
 
+let hasRunAlready = false
+
 export function workerScriptPlugin(): Plugin {
   return {
     name: 'workerScriptPlugin',
-    setup(build) {
-      build.onLoad({ filter: /\.js$/ }, async (args) => {
+    async setup(build) {
+      if (hasRunAlready) {
+        return
+      }
+
+      hasRunAlready = true
+
+      const workerSourcePath = path.resolve(
+        process.cwd(),
+        './src/mockServiceWorker.js',
+      )
+      const workerOutputPath = path.resolve(
+        process.cwd(),
+        './lib/mockServiceWorker.js',
+      )
+
+      invariant(
+        workerSourcePath,
+        'Failed to locate the worker script source file',
+      )
+      invariant(
+        workerOutputPath,
+        'Failed to locate the worker script output file',
+      )
+
+      // Generate the checksum from the worker script's contents.
+      const workerContents = await fs.readFile(workerSourcePath, 'utf8')
+      const checksum = getChecksum(workerContents)
+
+      // Inject the global "SERVICE_WORKER_CHECKSUM" variable
+      // for runtime worker integrity check.
+      build.initialOptions.define = {
+        SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
+      }
+
+      build.onLoad({ filter: /mockServiceWorker\.js$/ }, async () => {
         return {
-          // Do not emit the worker script because "tsup"
-          // transpiles it, adding extra things to the source.
-          contents: 'function hello() { world }',
+          // Prevent the worker script from being transpiled.
+          // But, generally, the worker script is not in the entrypoints.
+          contents: '',
         }
       })
 
-      build.onEnd(async (result) => {
-        const workerSourcePath = path.resolve(
-          process.cwd(),
-          build.initialOptions.entryPoints[0],
-        )
-        invariant(
-          workerSourcePath,
-          'Failed to locate the worker script source file',
-        )
-
-        const workerOutputPath = result.outputFiles[0].path
-        invariant(
-          workerOutputPath,
-          'Failed to locate the worker script output file',
-        )
-
-        const workerContents = await fs.readFile(workerSourcePath, 'utf8')
-        const checksum = getChecksum(workerContents)
-
+      build.onEnd(() => {
         // Copy the worker script on the next tick.
         setTimeout(async () => {
           await copyServiceWorker(workerSourcePath, workerOutputPath, checksum)

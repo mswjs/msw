@@ -12,7 +12,7 @@
     "node": ">=14"
   },
   "scripts": {
-    "start": "tsup",
+    "start": "tsup --watch",
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "cross-env NODE_ENV=production tsup",

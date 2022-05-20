@@ -1,3 +1,6 @@
+// Ignore the source files traces for local testing.
+const SOURCE_FRAME = /\/msw\/src\/(.+)/
+
 const BUILD_FRAME =
   /(node_modules)?[\/\\]lib[\/\\](umd|esm|iief|cjs)[\/\\]|^[^\/\\]*$/
 
@@ -17,7 +20,7 @@ export function getCallFrame(error: Error) {
   // Get the first frame that doesn't reference the library's internal trace.
   // Assume that frame is the invocation frame.
   const declarationFrame = frames.find((frame) => {
-    return !BUILD_FRAME.test(frame)
+    return !(SOURCE_FRAME.test(frame) || BUILD_FRAME.test(frame))
   })
 
   if (!declarationFrame) {

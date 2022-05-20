@@ -2,7 +2,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
 import { until } from '@open-draft/until'
-import packageJson from '../package.json'
 
 /**
  * Copies the given Service Worker source file into the destination.
@@ -30,6 +29,10 @@ export default async function copyServiceWorker(
     console.log('Destination directory does not exist, creating...')
     await fs.promises.mkdir(destFileDirectory, { recursive: true })
   }
+
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
+  )
 
   const nextFileContent = fileContent
     .replace('<INTEGRITY_CHECKSUM>', checksum)

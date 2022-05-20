@@ -1,6 +1,9 @@
 import { defineConfig } from 'tsup'
 import { workerScriptPlugin } from './config/plugins/esbuild/workerScriptPlugin'
 
+// Prevent from bunlding the "@mswjs/*" packages
+// so that the users get the latest versions without
+// having to bump them in "msw'."
 const ecosystemDependencies = /^@mswjs\/(.+)$/
 
 export default defineConfig([
@@ -8,12 +11,28 @@ export default defineConfig([
     name: 'main',
     entry: ['./src/index.ts'],
     outDir: './lib',
-    format: ['esm', 'cjs', 'iife'],
-    globalName: 'MockServiceWorker',
+    format: ['esm', 'cjs'],
     legacyOutput: true,
     sourcemap: true,
     clean: true,
+    bundle: true,
+    splitting: false,
     dts: false,
+    esbuildPlugins: [workerScriptPlugin()],
+  },
+  {
+    name: 'iife',
+    entry: ['./src/index.ts'],
+    outDir: './lib',
+    legacyOutput: true,
+    format: ['iife'],
+    platform: 'browser',
+    globalName: 'MockServiceWorker',
+    bundle: true,
+    sourcemap: true,
+    splitting: false,
+    dts: false,
+    esbuildPlugins: [workerScriptPlugin()],
   },
   {
     name: 'node',
@@ -30,6 +49,7 @@ export default defineConfig([
       'timers',
       ecosystemDependencies,
     ],
+    clean: true,
     sourcemap: true,
     dts: false,
   },
@@ -38,6 +58,7 @@ export default defineConfig([
     entry: ['./src/native/index.ts'],
     format: ['esm', 'cjs'],
     outDir: './lib/native',
+    clean: true,
     external: ['chalk', 'util', 'events', ecosystemDependencies],
   },
   {
@@ -48,11 +69,5 @@ export default defineConfig([
     dts: {
       only: true,
     },
-  },
-  {
-    name: 'worker',
-    entry: ['./src/mockServiceWorker.js'],
-    outDir: './lib',
-    esbuildPlugins: [workerScriptPlugin()],
   },
 ])

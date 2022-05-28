@@ -6,7 +6,7 @@ import {
   SharedOptions,
 } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
-import { RequestHandler } from '../handlers/RequestHandler'
+import { DefaultBodyType, RequestHandler } from '../handlers/RequestHandler'
 import { InterceptorApi } from '@mswjs/interceptors'
 import { Path } from '../utils/matching/matchRequestUrl'
 import { RequiredDeep } from '../typeUtils'
@@ -181,11 +181,12 @@ export interface StartOptions extends SharedOptions {
   findWorker?: FindWorker
 }
 
-export interface SerializedResponse<BodyType = any> {
+export interface SerializedResponse<BodyType extends DefaultBodyType = any> {
   status: number
   statusText: string
   headers: FlatHeadersObject
   body: BodyType
+  delay?: number
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>

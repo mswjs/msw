@@ -13,6 +13,7 @@ import { parseWorkerRequest } from '../request/parseWorkerRequest'
 import { handleRequest } from '../handleRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { RequiredDeep } from '../../typeUtils'
+import { MockedResponse } from '../../response'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -35,12 +36,7 @@ export const createRequestListener = (
         options,
         context.emitter,
         {
-          transformResponse(response) {
-            return {
-              ...response,
-              headers: response.headers.all(),
-            }
-          },
+          transformResponse,
           onPassthroughResponse() {
             return channel.send({
               type: 'MOCK_NOT_FOUND',
@@ -56,14 +52,16 @@ export const createRequestListener = (
             response,
             { handler, publicRequest, parsedRequest },
           ) {
-            if (!options.quiet) {
-              handler.log(
-                publicRequest,
-                response,
-                handler as RequestHandler,
-                parsedRequest,
-              )
+            if (options.quiet) {
+              return
             }
+
+            handler.log(
+              publicRequest,
+              response,
+              handler as RequestHandler,
+              parsedRequest,
+            )
           },
         },
       )
@@ -96,5 +94,17 @@ export const createRequestListener = (
         })
       }
     }
+  }
+}
+
+function transformResponse(
+  response: MockedResponse<string>,
+): SerializedResponse<string> {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers.all(),
+    body: response.body,
+    delay: response.delay,
   }
 }

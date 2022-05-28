@@ -1,4 +1,5 @@
 import { Headers } from 'headers-polyfill'
+import { DefaultBodyType } from './handlers/RequestHandler'
 import { compose } from './utils/internal/compose'
 import { NetworkError } from './utils/NetworkError'
 
@@ -7,7 +8,7 @@ export type MaybePromise<ValueType = any> = ValueType | Promise<ValueType>
 /**
  * Internal representation of a mocked response instance.
  */
-export interface MockedResponse<BodyType = any> {
+export interface MockedResponse<BodyType extends DefaultBodyType = any> {
   body: BodyType
   status: number
   statusText: string

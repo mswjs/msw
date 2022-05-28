@@ -31,6 +31,7 @@ export function createFallbackRequestListener(
               statusText: response.statusText,
               headers: response.headers.all(),
               body: response.body,
+              delay: response.delay,
             }
           },
           onMockedResponseSent(

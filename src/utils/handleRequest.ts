@@ -128,6 +128,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
   return new Promise((resolve) => {
     const requiredLookupResult =
       lookupResult as RequiredDeep<ResponseLookupResult>
+
     const transformedResponse =
       handleRequestOptions?.transformResponse?.(response) ||
       (response as any as ResponseType)

@@ -1,5 +1,5 @@
-import { PartialDeep } from 'type-fest'
-import { IsomorphicResponse } from '@mswjs/interceptors'
+import type { PartialDeep } from 'type-fest'
+import type { IsomorphicResponse } from '@mswjs/interceptors'
 import { RequestHandler } from '../handlers/RequestHandler'
 import {
   LifeCycleEventEmitter,

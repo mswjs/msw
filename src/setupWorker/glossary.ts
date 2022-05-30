@@ -7,7 +7,7 @@ import {
 } from '../sharedOptions'
 import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
 import { DefaultBodyType, RequestHandler } from '../handlers/RequestHandler'
-import { InterceptorApi } from '@mswjs/interceptors'
+import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { Path } from '../utils/matching/matchRequestUrl'
 import { RequiredDeep } from '../typeUtils'
 
@@ -40,7 +40,7 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   /**
    * Text response body.
    */
-  body: string | undefined
+  body?: string
 }
 
 export type ServiceWorkerIncomingResponse = Pick<
@@ -134,7 +134,7 @@ export interface SetupWorkerInternalContext {
     >
   }
   useFallbackMode: boolean
-  fallbackInterceptor?: InterceptorApi
+  fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 
 export type ServiceWorkerInstanceTuple = [

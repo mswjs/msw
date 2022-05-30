@@ -1,28 +1,49 @@
 import * as path from 'path'
+import { createServer, ServerApi } from '@open-draft/test-server'
 import { pageWith } from 'page-with'
-import {
-  GRAPHQL_TEST_URL,
-  executeGraphQLQuery,
-} from './utils/executeGraphQLQuery'
+import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { gql } from '../support/graphql'
 
-function createRuntime() {
+function prepareRuntime() {
   return pageWith({
     example: path.resolve(__dirname, 'mutation.mocks.ts'),
   })
 }
 
-test('sends a mocked response to a GraphQL mutation', async () => {
-  const runtime = await createRuntime()
+let server: ServerApi
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
-      mutation Logout {
-        logout {
-          userSession
-        }
-      }
-    `,
+function getEndpoint(): string {
+  return server.http.makeUrl('/graphql')
+}
+
+beforeAll(async () => {
+  server = await createServer((app) => {
+    app.use('*', (req, res) => res.status(405).end())
   })
+})
+
+afterAll(async () => {
+  await server.close()
+})
+
+test('sends a mocked response to a GraphQL mutation', async () => {
+  const runtime = await prepareRuntime()
+
+  const res = await executeGraphQLQuery(
+    runtime.page,
+    {
+      query: gql`
+        mutation Logout {
+          logout {
+            userSession
+          }
+        }
+      `,
+    },
+    {
+      uri: getEndpoint(),
+    },
+  )
   const headers = await res.allHeaders()
   const body = await res.json()
 
@@ -38,23 +59,29 @@ test('sends a mocked response to a GraphQL mutation', async () => {
 })
 
 test('prints a warning when captured an anonymous GraphQL mutation', async () => {
-  const runtime = await createRuntime()
+  const runtime = await prepareRuntime()
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
-      mutation {
-        logout {
-          userSession
+  const res = await executeGraphQLQuery(
+    runtime.page,
+    {
+      query: gql`
+        mutation {
+          logout {
+            userSession
+          }
         }
-      }
-    `,
-  })
+      `,
+    },
+    {
+      uri: getEndpoint(),
+    },
+  )
 
   expect(runtime.consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(
         `\
-[MSW] Failed to intercept a GraphQL request at "POST ${GRAPHQL_TEST_URL}": anonymous GraphQL operations are not supported.
+[MSW] Failed to intercept a GraphQL request at "POST ${getEndpoint()}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation\
 `,
@@ -62,8 +89,6 @@ Consider naming this operation or using "graphql.operation" request handler to i
     ]),
   )
 
-  expect(res.status).toBeUndefined()
-  expect(runtime.consoleSpy.get('error')).toEqual([
-    'Failed to load resource: net::ERR_FAILED',
-  ])
+  // The actual GraphQL server is hit.
+  expect(res.status()).toBe(405)
 })

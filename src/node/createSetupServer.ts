@@ -2,9 +2,10 @@ import { bold } from 'chalk'
 import { isNodeProcess } from 'is-node-process'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
-  createInterceptor,
+  BatchInterceptor,
   MockedResponse as MockedInterceptedResponse,
   Interceptor,
+  HttpRequestEventMap,
 } from '@mswjs/interceptors'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
@@ -25,7 +26,9 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
  * Creates a `setupServer` API using given request interceptors.
  * Useful to generate identical API using different patches to request issuing modules.
  */
-export function createSetupServer(...interceptors: Interceptor[]) {
+export function createSetupServer(
+  ...interceptors: Interceptor<HttpRequestEventMap>[]
+) {
   const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
   const publicEmitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
   pipeEvents(emitter, publicEmitter)
@@ -57,27 +60,35 @@ export function createSetupServer(...interceptors: Interceptor[]) {
 
     let resolvedOptions = {} as RequiredDeep<SharedOptions>
 
-    const interceptor = createInterceptor({
-      modules: interceptors,
-      async resolver(request) {
-        const mockedRequest = parseIsomorphicRequest(request)
-        return handleRequest<MockedInterceptedResponse>(
-          mockedRequest,
-          currentHandlers,
-          resolvedOptions,
-          emitter,
-          {
-            transformResponse(response) {
-              return {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers.all(),
-                body: response.body,
-              }
-            },
+    const interceptor = new BatchInterceptor({
+      name: 'setup-server',
+      interceptors,
+    })
+
+    interceptor.on('request', async function setupServerListener(request) {
+      const mockedRequest = parseIsomorphicRequest(request)
+      const response = await handleRequest<MockedInterceptedResponse>(
+        mockedRequest,
+        currentHandlers,
+        resolvedOptions,
+        emitter,
+        {
+          transformResponse(response) {
+            return {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers.all(),
+              body: response.body,
+            }
           },
-        )
-      },
+        },
+      )
+
+      if (response) {
+        request.respondWith(response)
+      }
+
+      return
     })
 
     interceptor.on('response', (request, response) => {
@@ -146,7 +157,7 @@ ${bold(`${pragma} ${header}`)}
       close() {
         emitter.removeAllListeners()
         publicEmitter.removeAllListeners()
-        interceptor.restore()
+        interceptor.dispose()
       },
     }
   }

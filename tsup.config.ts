@@ -39,6 +39,7 @@ export default defineConfig([
     entry: ['./src/node/index.ts'],
     format: ['esm', 'cjs'],
     outDir: './lib/node',
+    platform: 'node',
     external: [
       'http',
       'https',

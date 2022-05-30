@@ -1,4 +1,4 @@
-import { IsomorphicRequest } from '@mswjs/interceptors'
+import type { IsomorphicRequest } from '@mswjs/interceptors'
 import { MockedRequest, passthrough } from '../../handlers/RequestHandler'
 import { parseBody } from './parseBody'
 import { setRequestCookies } from './setRequestCookies'

@@ -5,7 +5,7 @@ export function createFallbackStop(
   context: SetupWorkerInternalContext,
 ): StopHandler {
   return function stop() {
-    context.fallbackInterceptor?.restore()
+    context.fallbackInterceptor?.dispose()
     printStopMessage({ quiet: context.startOptions?.quiet })
   }
 }

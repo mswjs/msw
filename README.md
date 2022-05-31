@@ -200,9 +200,15 @@ test('handles login exception', () => {
 
 ### Silver Sponsors
 
-> Become our first _silver sponsor_ and get your profile image and link featured right here.
+> Become our _silver sponsor_ and get your profile image and link featured right here.
 >
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
+
+<br />
+
+<a href="https://www.chromatic.com/" target="_blank">
+  <img src="media/sponsors/chromatic.svg#1" alt="Chromatic" width="75" />
+</a>
 
 ### Bronze Sponsors
 

@@ -16,7 +16,7 @@ export const field = <FieldNameType extends string, FieldValueType>(
   fieldValue: FieldValueType,
 ): ResponseTransformer<string> => {
   return (res) => {
-    assertFieldNameIsValid(fieldName)
+    validateFieldName(fieldName)
 
     const prevBody = jsonParse(res.body) || {}
     const nextBody = mergeRight(prevBody, { [fieldName]: fieldValue })
@@ -25,7 +25,7 @@ export const field = <FieldNameType extends string, FieldValueType>(
   }
 }
 
-function assertFieldNameIsValid(fieldName: string) {
+function validateFieldName(fieldName: string) {
   if (forbiddenFieldNamesList.includes(fieldName as ForbiddenFieldNames)) {
     throw new Error(
       `ctx.field() first argument must not be an element of ${JSON.stringify(

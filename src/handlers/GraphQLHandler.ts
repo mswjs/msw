@@ -50,7 +50,7 @@ export const graphqlContext: GraphQLContext<any> = {
   extensions,
   errors,
   cookie,
-  field: field,
+  field,
 }
 
 export type GraphQLVariables = Record<string, any>

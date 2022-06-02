@@ -62,11 +62,22 @@ test('throws when trying to set non-serializable values', async () => {
   )
 })
 
-test.each(['', 'data', 'errors', 'exceptions'])(
-  'throws when passing "%s" as field value',
+test('throws when passing an empty string as field name', async () => {
+  await expect(response(field('' as string, 'value'))).rejects.toThrow(
+    `[MSW] Failed to set a custom field on a GraphQL response: field name cannot be empty.`,
+  )
+})
+test('throws when passing an empty string (when trimmed) as field name', async () => {
+  await expect(response(field('   ' as string, 'value'))).rejects.toThrow(
+    `[MSW] Failed to set a custom field on a GraphQL response: field name cannot be empty.`,
+  )
+})
+
+test.each(['data', 'errors', 'extensions'])(
+  'throws when passing "%s" as field name',
   async (fieldName) => {
     await expect(response(field(fieldName, 'value'))).rejects.toThrow(
-      'ctx.field() first argument must not be an element of ["","data","errors","exceptions"]',
+      `[MSW] Failed to set a custom "${fieldName}" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.${fieldName}()" instead?`,
     )
   },
 )

@@ -1,10 +1,11 @@
+import { invariant } from 'outvariant'
 import { ResponseTransformer } from '../response'
+import { devUtils } from '../utils/internal/devUtils'
 import { jsonParse } from '../utils/internal/jsonParse'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { json } from './json'
 
-const forbiddenFieldNamesList = ['', 'data', 'errors', 'exceptions'] as const
-type ForbiddenFieldNames = typeof forbiddenFieldNamesList[number]
+type ForbiddenFieldNames = '' | 'data' | 'errors' | 'extensions'
 
 /**
  * Set a custom field on the GraphQL mocked response.
@@ -26,11 +27,31 @@ export const field = <FieldNameType extends string, FieldValueType>(
 }
 
 function validateFieldName(fieldName: string) {
-  if (forbiddenFieldNamesList.includes(fieldName as ForbiddenFieldNames)) {
-    throw new Error(
-      `ctx.field() first argument must not be an element of ${JSON.stringify(
-        forbiddenFieldNamesList,
-      )}`,
-    )
-  }
+  invariant(
+    fieldName.trim() !== '',
+    devUtils.formatMessage(
+      'Failed to set a custom field on a GraphQL response: field name cannot be empty.',
+    ),
+  )
+  invariant(
+    fieldName !== 'data',
+    devUtils.formatMessage(
+      'Failed to set a custom "%s" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.data()" instead?',
+      fieldName,
+    ),
+  )
+  invariant(
+    fieldName !== 'errors',
+    devUtils.formatMessage(
+      'Failed to set a custom "%s" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.errors()" instead?',
+      fieldName,
+    ),
+  )
+  invariant(
+    fieldName !== 'extensions',
+    devUtils.formatMessage(
+      'Failed to set a custom "%s" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.extensions()" instead?',
+      fieldName,
+    ),
+  )
 }

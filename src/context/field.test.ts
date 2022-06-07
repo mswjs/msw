@@ -67,17 +67,51 @@ test('throws when passing an empty string as field name', async () => {
     `[MSW] Failed to set a custom field on a GraphQL response: field name cannot be empty.`,
   )
 })
+
 test('throws when passing an empty string (when trimmed) as field name', async () => {
   await expect(response(field('   ' as string, 'value'))).rejects.toThrow(
     `[MSW] Failed to set a custom field on a GraphQL response: field name cannot be empty.`,
   )
 })
 
-test.each(['data', 'errors', 'extensions'])(
-  'throws when passing "%s" as field name',
-  async (fieldName) => {
-    await expect(response(field(fieldName, 'value'))).rejects.toThrow(
-      `[MSW] Failed to set a custom "${fieldName}" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.${fieldName}()" instead?`,
-    )
-  },
-)
+test('throws when using "data" as the field name', async () => {
+  await expect(
+    response(
+      field(
+        // @ts-expect-error Test runtime value.
+        'data',
+        'value',
+      ),
+    ),
+  ).rejects.toThrow(
+    '[MSW] Failed to set a custom "data" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.data()" instead?',
+  )
+})
+
+test('throws when using "errors" as the field name', async () => {
+  await expect(
+    response(
+      field(
+        // @ts-expect-error Test runtime value.
+        'errors',
+        'value',
+      ),
+    ),
+  ).rejects.toThrow(
+    '[MSW] Failed to set a custom "errors" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.errors()" instead?',
+  )
+})
+
+test('throws when using "extensions" as the field name', async () => {
+  await expect(
+    response(
+      field(
+        // @ts-expect-error Test runtime value.
+        'extensions',
+        'value',
+      ),
+    ),
+  ).rejects.toThrow(
+    '[MSW] Failed to set a custom "extensions" field on a mocked GraphQL response: forbidden field name. Did you mean to call "ctx.extensions()" instead?',
+  )
+})

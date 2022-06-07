@@ -3,6 +3,7 @@ import { SerializedResponse } from '../setupWorker/glossary'
 import { data } from '../context/data'
 import { extensions } from '../context/extensions'
 import { errors } from '../context/errors'
+import { field } from '../context/field'
 import { GraphQLPayloadContext } from '../typeUtils'
 import { cookie } from '../context/cookie'
 import {
@@ -40,6 +41,7 @@ export type GraphQLContext<QueryType extends Record<string, unknown>> =
     extensions: GraphQLPayloadContext<QueryType>
     errors: typeof errors
     cookie: typeof cookie
+    field: typeof field
   }
 
 export const graphqlContext: GraphQLContext<any> = {
@@ -48,6 +50,7 @@ export const graphqlContext: GraphQLContext<any> = {
   extensions,
   errors,
   cookie,
+  field,
 }
 
 export type GraphQLVariables = Record<string, any>

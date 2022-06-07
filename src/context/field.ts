@@ -33,6 +33,7 @@ function validateFieldName(fieldName: string) {
       'Failed to set a custom field on a GraphQL response: field name cannot be empty.',
     ),
   )
+
   invariant(
     fieldName !== 'data',
     devUtils.formatMessage(
@@ -40,6 +41,7 @@ function validateFieldName(fieldName: string) {
       fieldName,
     ),
   )
+
   invariant(
     fieldName !== 'errors',
     devUtils.formatMessage(
@@ -47,6 +49,7 @@ function validateFieldName(fieldName: string) {
       fieldName,
     ),
   )
+
   invariant(
     fieldName !== 'extensions',
     devUtils.formatMessage(

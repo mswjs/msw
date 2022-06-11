@@ -10,10 +10,10 @@ import {
   SerializedResponse,
   SetupWorkerInternalContext,
   StartOptions,
-} from '../../setupWorker/glossary'
+} from '../glossary'
 import type { RequiredDeep } from '../../typeUtils'
-import { handleRequest } from '../handleRequest'
-import { parseIsomorphicRequest } from '../request/parseIsomorphicRequest'
+import { handleRequest } from '../../utils/handleRequest'
+import { parseIsomorphicRequest } from '../../utils/request/parseIsomorphicRequest'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,

@@ -1,4 +1,4 @@
-import { createFallbackRequestListener } from '../../utils/worker/createFallbackRequestListener'
+import { createFallbackRequestListener } from './createFallbackRequestListener'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { printStartMessage } from './utils/printStartMessage'
 

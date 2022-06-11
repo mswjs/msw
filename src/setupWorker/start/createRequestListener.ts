@@ -7,10 +7,10 @@ import {
 import {
   ServiceWorkerMessage,
   createBroadcastChannel,
-} from '../createBroadcastChannel'
-import { NetworkError } from '../NetworkError'
-import { parseWorkerRequest } from '../request/parseWorkerRequest'
-import { handleRequest } from '../handleRequest'
+} from '../../utils/createBroadcastChannel'
+import { NetworkError } from '../../utils/NetworkError'
+import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
+import { handleRequest } from '../../utils/handleRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { RequiredDeep } from '../../typeUtils'
 import { MockedResponse } from '../../response'

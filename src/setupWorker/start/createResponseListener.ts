@@ -2,7 +2,7 @@ import {
   ServiceWorkerIncomingEventsMap,
   SetupWorkerInternalContext,
 } from '../../setupWorker/glossary'
-import { ServiceWorkerMessage } from '../createBroadcastChannel'
+import { ServiceWorkerMessage } from '../../utils/createBroadcastChannel'
 
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (

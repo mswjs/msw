@@ -337,8 +337,13 @@ function respondWithMockStream(operationChannel, mockResponse) {
     start: (controller) => (streamCtrl = controller),
   })
 
-  return new Promise((resolve, reject) => {
-    operationChannel.onmessage = async (event) => {
+  return new Promise(async (resolve, reject) => {
+    operationChannel.onmessageerror = (event) => {
+      operationChannel.close()
+      return reject(event.data.error)
+    }
+
+    operationChannel.onmessage = (event) => {
       if (!event.data) {
         return
       }
@@ -352,16 +357,11 @@ function respondWithMockStream(operationChannel, mockResponse) {
         case 'MOCK_RESPONSE_END': {
           streamCtrl.close()
           operationChannel.close()
-
-          await sleep(mockResponse.delay)
-          return resolve(new Response(stream, mockResponse))
         }
       }
     }
 
-    operationChannel.onmessageerror = (event) => {
-      operationChannel.close()
-      return reject(event.data.error)
-    }
+    await sleep(mockResponse.delay)
+    return resolve(new Response(stream, mockResponse))
   })
 }

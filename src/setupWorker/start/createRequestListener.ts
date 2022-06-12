@@ -3,17 +3,20 @@ import {
   SerializedResponse,
   SetupWorkerInternalContext,
   ServiceWorkerIncomingEventsMap,
-} from '../../setupWorker/glossary'
+  ServiceWorkerBroadcastChannelMessageMap,
+} from '../glossary'
 import {
   ServiceWorkerMessage,
-  createBroadcastChannel,
-} from '../../utils/createBroadcastChannel'
+  createMessageChannel,
+} from './utils/createMessageChannel'
 import { NetworkError } from '../../utils/NetworkError'
 import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
 import { handleRequest } from '../../utils/handleRequest'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { RequiredDeep } from '../../typeUtils'
 import { MockedResponse } from '../../response'
+import { streamResponse } from './utils/streamResponse'
+import { StrictBroadcastChannel } from '../../utils/internal/StrictBroadcastChannel'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -26,10 +29,15 @@ export const createRequestListener = (
       ServiceWorkerIncomingEventsMap['REQUEST']
     >,
   ) => {
-    const channel = createBroadcastChannel(event)
+    const messageChannel = createMessageChannel(event)
 
     try {
       const request = parseWorkerRequest(message.payload)
+      const operationChannel =
+        new StrictBroadcastChannel<ServiceWorkerBroadcastChannelMessageMap>(
+          `msw-response-stream-${request.id}`,
+        )
+
       await handleRequest<SerializedResponse>(
         request,
         context.requestHandlers,
@@ -38,15 +46,22 @@ export const createRequestListener = (
         {
           transformResponse,
           onPassthroughResponse() {
-            return channel.send({
+            return messageChannel.send({
               type: 'MOCK_NOT_FOUND',
             })
           },
           onMockedResponse(response) {
-            channel.send({
-              type: 'MOCK_SUCCESS',
-              payload: response,
-            })
+            // Signal the mocked responses without bodies immediately.
+            // There is nothing to stream, so no need to initiate streaming.
+            if (response.body == null) {
+              return messageChannel.send({
+                type: 'MOCK_RESPONSE',
+                payload: response,
+              })
+            }
+
+            // If the mocked response has a body, stream it to the worker.
+            streamResponse(operationChannel, messageChannel, response)
           },
           onMockedResponseSent(
             response,
@@ -69,7 +84,7 @@ export const createRequestListener = (
       if (error instanceof NetworkError) {
         // Treat emulated network error differently,
         // as it is an intended exception in a request handler.
-        return channel.send({
+        return messageChannel.send({
           type: 'NETWORK_ERROR',
           payload: {
             name: error.name,
@@ -81,7 +96,7 @@ export const createRequestListener = (
       if (error instanceof Error) {
         // Treat all the other exceptions in a request handler
         // as unintended, alerting that there is a problem needs fixing.
-        channel.send({
+        messageChannel.send({
           type: 'INTERNAL_ERROR',
           payload: {
             status: 500,

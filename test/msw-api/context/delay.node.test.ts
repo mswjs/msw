@@ -53,7 +53,6 @@ test('uses realistic server response time when no duration is provided', async (
 
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
-  expect(responseTime).toBeLessThan(100)
   expect(await res.text()).toBe('john')
 })
 

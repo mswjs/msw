@@ -5,7 +5,7 @@ import {
   LifeCycleEventsMap,
   SharedOptions,
 } from '../sharedOptions'
-import { ServiceWorkerMessage } from '../utils/createBroadcastChannel'
+import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { DefaultBodyType, RequestHandler } from '../handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { Path } from '../utils/matching/matchRequestUrl'
@@ -76,11 +76,19 @@ export type ServiceWorkerOutgoingEventTypes =
  * Map of the events that can be sent to the Service Worker
  * only as a part of a single `fetch` event handler.
  */
-export type ServiceWorkerFetchEventTypes =
-  | 'MOCK_SUCCESS'
-  | 'MOCK_NOT_FOUND'
-  | 'NETWORK_ERROR'
-  | 'INTERNAL_ERROR'
+export interface ServiceWorkerFetchEventMap {
+  MOCK_RESPONSE(payload: SerializedResponse): void
+  MOCK_RESPONSE_START(payload: SerializedResponse): void
+
+  MOCK_NOT_FOUND(): void
+  NETWORK_ERROR(payload: { name: string; message: string }): void
+  INTERNAL_ERROR(payload: { status: number; body: string }): void
+}
+
+export interface ServiceWorkerBroadcastChannelMessageMap {
+  MOCK_RESPONSE_CHUNK(payload: Uint8Array): void
+  MOCK_RESPONSE_END(): void
+}
 
 export type WorkerLifecycleEventsMap = LifeCycleEventsMap<Response>
 

@@ -27,7 +27,7 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
  * Useful to generate identical API using different patches to request issuing modules.
  */
 export function createSetupServer(
-  ...interceptors: Interceptor<HttpRequestEventMap>[]
+  ...interceptors: { new (): Interceptor<HttpRequestEventMap> }[]
 ) {
   const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
   const publicEmitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
@@ -62,7 +62,7 @@ export function createSetupServer(
 
     const interceptor = new BatchInterceptor({
       name: 'setup-server',
-      interceptors,
+      interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
     interceptor.on('request', async function setupServerListener(request) {

@@ -10,6 +10,6 @@ import { createSetupServer } from './createSetupServer'
 export const setupServer = createSetupServer(
   // List each interceptor separately instead of using the "node" preset
   // so that MSW wouldn't bundle the unnecessary classes (i.e. "SocketPolyfill").
-  new ClientRequestInterceptor(),
-  new XMLHttpRequestInterceptor(),
+  ClientRequestInterceptor,
+  XMLHttpRequestInterceptor,
 )

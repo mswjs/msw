@@ -125,27 +125,23 @@ Expected response resolver to return a mocked response Object, but got %s. The o
 
   emitter.emit('request:match', request)
 
-  return new Promise((resolve) => {
-    const requiredLookupResult =
-      lookupResult as RequiredDeep<ResponseLookupResult>
+  const requiredLookupResult =
+    lookupResult as RequiredDeep<ResponseLookupResult>
 
-    const transformedResponse =
-      handleRequestOptions?.transformResponse?.(response) ||
-      (response as any as ResponseType)
+  const transformedResponse =
+    handleRequestOptions?.transformResponse?.(response) ||
+    (response as any as ResponseType)
 
-    handleRequestOptions?.onMockedResponse?.(
-      transformedResponse,
-      requiredLookupResult,
-    )
+  handleRequestOptions?.onMockedResponse?.(
+    transformedResponse,
+    requiredLookupResult,
+  )
 
-    setTimeout(() => {
-      handleRequestOptions?.onMockedResponseSent?.(
-        transformedResponse,
-        requiredLookupResult,
-      )
-      emitter.emit('request:end', request)
+  handleRequestOptions?.onMockedResponseSent?.(
+    transformedResponse,
+    requiredLookupResult,
+  )
+  emitter.emit('request:end', request)
 
-      resolve(transformedResponse as ResponseType)
-    }, response.delay ?? 0)
-  })
+  return transformedResponse
 }

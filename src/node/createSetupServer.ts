@@ -67,24 +67,30 @@ export function createSetupServer(
 
     interceptor.on('request', async function setupServerListener(request) {
       const mockedRequest = parseIsomorphicRequest(request)
-      const response = await handleRequest<MockedInterceptedResponse>(
-        mockedRequest,
-        currentHandlers,
-        resolvedOptions,
-        emitter,
-        {
-          transformResponse(response) {
-            return {
-              status: response.status,
-              statusText: response.statusText,
-              headers: response.headers.all(),
-              body: response.body,
-            }
-          },
+      const response = await handleRequest<
+        MockedInterceptedResponse & { delay?: number }
+      >(mockedRequest, currentHandlers, resolvedOptions, emitter, {
+        transformResponse(response) {
+          return {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers.all(),
+            body: response.body,
+            delay: response.delay,
+          }
         },
-      )
+      })
 
       if (response) {
+        // Delay Node.js responses in the listener so that
+        // the response lookup logic is not concerned with responding
+        // in any way. The same delay is implemented in the worker.
+        if (response.delay) {
+          await new Promise((resolve) => {
+            setTimeout(resolve, response.delay)
+          })
+        }
+
         request.respondWith(response)
       }
 

@@ -198,6 +198,15 @@ test('handles login exception', () => {
 >
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
 
+<br />
+
+<a href="https://www.github.com/" target="_blank">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
+    <img src="media/sponsors/github.svg" alt="GitHub" width="75" />
+  </picture>
+</a>
+
 ### Silver Sponsors
 
 > Become our _silver sponsor_ and get your profile image and link featured right here.
@@ -207,7 +216,7 @@ test('handles login exception', () => {
 <br />
 
 <a href="https://www.chromatic.com/" target="_blank">
-  <img src="media/sponsors/chromatic.svg#1" alt="Chromatic" width="75" />
+  <img src="media/sponsors/chromatic.svg" alt="Chromatic" width="75" />
 </a>
 
 ### Bronze Sponsors

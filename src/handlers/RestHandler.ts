@@ -1,5 +1,4 @@
 import { body, cookie, json, text, xml } from '../context'
-import { stream } from '../context/stream'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
@@ -51,7 +50,6 @@ export type RestContext = DefaultContext & {
   body: typeof body
   json: typeof json
   xml: typeof xml
-  stream: typeof stream
 }
 
 export const restContext: RestContext = {
@@ -61,7 +59,6 @@ export const restContext: RestContext = {
   text,
   json,
   xml,
-  stream,
 }
 
 export type RequestQuery = {

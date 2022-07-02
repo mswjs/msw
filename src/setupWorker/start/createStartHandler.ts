@@ -2,10 +2,10 @@ import { until } from '@open-draft/until'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
-import { createRequestListener } from '../../utils/worker/createRequestListener'
+import { createRequestListener } from './createRequestListener'
 import { requestIntegrityCheck } from '../../utils/internal/requestIntegrityCheck'
 import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
-import { createResponseListener } from '../../utils/worker/createResponseListener'
+import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
 import { devUtils } from '../../utils/internal/devUtils'
 
@@ -25,6 +25,7 @@ export const createStartHandler = (
         createRequestListener(context, options),
       )
 
+      // Handle responses signaled by the worker.
       context.workerChannel.on('RESPONSE', createResponseListener(context))
 
       const instance = await getWorkerInstance(

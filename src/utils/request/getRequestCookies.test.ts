@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { getRequestCookies } from './getRequestCookies'
-import { createMockedRequest } from '../../../test/support/utils'
+import { clearCookies, createMockedRequest } from '../../../test/support/utils'
 
 beforeAll(() => {
   // Emulate some `document.cookie` value.
@@ -11,8 +11,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  // Clean up the `document.cookie` value.
-  document.cookie = ''
+  clearCookies()
 })
 
 test('returns all document cookies given "include" credentials', () => {

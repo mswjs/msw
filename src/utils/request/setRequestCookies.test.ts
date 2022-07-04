@@ -3,14 +3,14 @@
  */
 import { Headers } from 'headers-polyfill/lib'
 import { setRequestCookies } from './setRequestCookies'
-import { createMockedRequest } from '../../../test/support/utils'
+import { clearCookies, createMockedRequest } from '../../../test/support/utils'
 
 beforeAll(() => {
-  document.cookie = ''
+  clearCookies()
 })
 
 afterEach(() => {
-  document.cookie = ''
+  clearCookies()
 })
 
 test('preserves request cookies when there are no document cookies to infer', () => {

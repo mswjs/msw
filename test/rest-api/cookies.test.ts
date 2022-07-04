@@ -10,7 +10,6 @@ test('allows setting cookies on the mocked response', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('/user')
-
   const headers = await res.allHeaders()
   const body = await res.json()
 
@@ -25,5 +24,24 @@ test('allows setting cookies on the mocked response', async () => {
     return document.cookie
   })
   const allCookies = cookieUtils.parse(cookieString)
-  expect(allCookies).toHaveProperty('my-cookie', 'value')
+  expect(allCookies).toEqual({ myCookie: 'value' })
+})
+
+test('allows setting multiple response cookies', async () => {
+  const runtime = await createRuntime()
+
+  const res = await runtime.request('/order')
+  const headers = await res.allHeaders()
+
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(headers).not.toHaveProperty('set-cookie')
+
+  const cookieString = await runtime.page.evaluate(() => {
+    return document.cookie
+  })
+  const allCookies = cookieUtils.parse(cookieString)
+  expect(allCookies).toEqual({
+    firstCookie: 'yes',
+    secondCookie: 'no',
+  })
 })

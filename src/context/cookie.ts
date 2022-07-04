@@ -12,7 +12,7 @@ export const cookie = (
 ): ResponseTransformer => {
   return (res) => {
     const serializedCookie = cookieUtils.serialize(name, value, options)
-    res.headers.set('Set-Cookie', serializedCookie)
+    res.headers.append('Set-Cookie', serializedCookie)
 
     if (typeof document !== 'undefined') {
       document.cookie = serializedCookie

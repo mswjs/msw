@@ -120,7 +120,7 @@ graphql.mutation(createUser, (req, res, ctx) =>
 // via the variables generic.
 function extractVariables<Variables extends GraphQLVariables>(
   _handler: GraphQLHandler<GraphQLRequest<Variables>>,
-): MockedRequest<GraphQLRequest<Variables>> {
+): MockedRequest {
   return null as any
 }
 const handlerWithVariables = graphql.query<{ data: unknown }, { id: string }>(

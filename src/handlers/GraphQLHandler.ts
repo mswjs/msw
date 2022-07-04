@@ -71,9 +71,12 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   variables?: Variables
 }
 
-export interface GraphQLRequest<Variables extends GraphQLVariables>
-  extends MockedRequest<GraphQLRequestBody<Variables>> {
-  variables: Variables
+export class GraphQLRequest<
+  Variables extends GraphQLVariables,
+> extends MockedRequest {
+  constructor(request: MockedRequest, public variables: Variables) {
+    super(request)
+  }
 }
 
 export function isDocumentNode(
@@ -151,10 +154,7 @@ export class GraphQLHandler<
     request: Request,
     parsedResult: ParsedGraphQLRequest,
   ): GraphQLRequest<any> {
-    return {
-      ...request,
-      variables: parsedResult?.variables || {},
-    }
+    return new GraphQLRequest(request, parsedResult?.variables || {})
   }
 
   predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {

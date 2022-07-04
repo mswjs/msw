@@ -1,30 +1,21 @@
+import { IsomorphicRequest } from '@mswjs/interceptors'
+import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 import { Headers } from 'headers-polyfill'
-import { passthrough } from '../../handlers/RequestHandler'
+import { MockedRequest } from '../../handlers/RequestHandler'
 import { prepareRequest } from './prepareRequest'
 
 test('converts request headers into an object', () => {
-  const request = prepareRequest({
-    id: 'ac72d720-baad-4ef3-9b3d-b1bcf8b0609f',
-    url: new URL('http://test.mswjs.io/user'),
-    method: 'GET',
-    headers: new Headers({
-      'Content-Type': 'application/json',
-      'X-Header': 'secret',
-    }),
-    mode: 'same-origin',
-    keepalive: true,
-    cache: 'default',
-    destination: 'document',
-    integrity: '',
-    credentials: 'same-origin',
-    redirect: 'follow',
-    referrer: '',
-    referrerPolicy: 'no-referrer',
-    body: 'text-body',
-    bodyUsed: false,
-    cookies: {},
-    passthrough,
-  })
+  const isomorphicRequest = new IsomorphicRequest(
+    new URL('http://test.mswjs.io/user'),
+    {
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'X-Header': 'secret',
+      }),
+      body: encodeBuffer('text-body'),
+    },
+  )
+  const request = prepareRequest(new MockedRequest(isomorphicRequest))
 
   // Converts `Headers` instance into inspectable object
   expect(request).toHaveProperty('headers', {

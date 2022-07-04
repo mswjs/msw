@@ -11,21 +11,11 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
   method: Method,
 ) {
   return <
-    RequestBodyType extends DefaultBodyType = DefaultBodyType,
     Params extends PathParams<keyof Params> = PathParams,
     ResponseBody extends DefaultBodyType = DefaultBodyType,
   >(
     path: Path,
-    resolver: ResponseResolver<
-      RestRequest<
-        Method extends RESTMethods.HEAD | RESTMethods.GET
-          ? never
-          : RequestBodyType,
-        Params
-      >,
-      RestContext,
-      ResponseBody
-    >,
+    resolver: ResponseResolver<RestRequest<Params>, RestContext, ResponseBody>,
   ) => {
     return new RestHandler(method, path, resolver)
   }

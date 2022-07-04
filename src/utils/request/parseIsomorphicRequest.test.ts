@@ -5,24 +5,25 @@ import { Headers } from 'headers-polyfill/lib'
 import { parseIsomorphicRequest } from './parseIsomorphicRequest'
 import { createIsomorphicRequest } from '../../../test/support/utils'
 import { MockedRequest, passthrough } from '../../handlers/RequestHandler'
+import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 
 test('parses an isomorphic request', () => {
   const request = parseIsomorphicRequest(
-    createIsomorphicRequest({
-      id: 'request-1',
-      method: 'POST',
-      url: new URL('https://example.com/resource'),
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        Cookie: 'token=abc-123',
-      }),
-      body: JSON.stringify({
-        id: 'user-1',
-      }),
-    }),
+    createIsomorphicRequest(
+      {
+        id: 'request-1',
+        method: 'POST',
+        url: new URL('https://example.com/resource'),
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Cookie: 'token=abc-123',
+        }),
+      },
+      encodeBuffer(JSON.stringify({ id: 'user-1' })),
+    ),
   )
 
-  expect(request).toStrictEqual<MockedRequest>({
+  expect(request).toMatchObject({
     id: 'request-1',
     method: 'POST',
     url: new URL('https://example.com/resource'),
@@ -43,9 +44,7 @@ test('parses an isomorphic request', () => {
     redirect: 'manual',
     cache: 'default',
     bodyUsed: false,
-    body: {
-      id: 'user-1',
-    },
+    _body: encodeBuffer(JSON.stringify({ id: 'user-1' })),
     passthrough,
   })
 })

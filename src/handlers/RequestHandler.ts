@@ -13,6 +13,9 @@ import { delay } from '../context/delay'
 import { fetch } from '../context/fetch'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { SerializedResponse } from '../setupWorker/glossary'
+import { IsomorphicRequest } from '@mswjs/interceptors'
+import { decodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { parseBody } from '../utils/request/parseBody'
 
 export type DefaultContext = {
   status: typeof status
@@ -42,24 +45,52 @@ export type DefaultBodyType =
   | null
   | undefined
 
-export interface MockedRequest<Body = DefaultBodyType> {
-  id: string
-  url: URL
-  method: Request['method']
-  headers: Headers
-  cookies: Record<string, string>
-  mode: Request['mode']
-  keepalive: Request['keepalive']
-  cache: Request['cache']
-  destination: Request['destination']
-  integrity: Request['integrity']
-  credentials: Request['credentials']
-  redirect: Request['redirect']
-  referrer: Request['referrer']
-  referrerPolicy: Request['referrerPolicy']
-  body: Body
-  bodyUsed: Request['bodyUsed']
-  passthrough: typeof passthrough
+export interface MockRequestInit {
+  mode?: Request['mode']
+  keepalive?: Request['keepalive']
+  cache?: Request['cache']
+  destination?: Request['destination']
+  integrity?: Request['integrity']
+  redirect?: Request['redirect']
+  referrer?: Request['referrer']
+  referrerPolicy?: Request['referrerPolicy']
+}
+
+export class MockedRequest extends IsomorphicRequest {
+  public cookies: Record<string, string> = {}
+  public passthrough = passthrough
+
+  public mode: Request['mode'] = 'same-origin'
+  public keepalive: Request['keepalive'] = false
+  public cache: Request['cache'] = 'default'
+  public destination: Request['destination'] = 'document'
+  public integrity: Request['integrity'] = ''
+  public redirect: Request['redirect'] = 'manual'
+  public referrer: Request['referrer'] = ''
+  public referrerPolicy: Request['referrerPolicy'] = 'no-referrer'
+
+  constructor(
+    isomorphicRequest: IsomorphicRequest,
+    init: MockRequestInit = {},
+  ) {
+    super(isomorphicRequest)
+    this.mode = init.mode || 'cors'
+    this.keepalive = init.keepalive || false
+    this.cache = init.cache || 'default'
+    this.destination = init.destination || 'document'
+    this.integrity = init.integrity || ''
+    this.redirect = init.redirect || 'manual'
+    this.referrer = init.referrer || ''
+    this.referrerPolicy = init.referrerPolicy || 'no-referrer'
+  }
+
+  /**
+   * @deprecated - use `json()`, `text()` or `arrayBuffer()` method
+   */
+  public get body(): DefaultBodyType {
+    const text = decodeBuffer(this['_body'])
+    return parseBody(text, this.headers)
+  }
 }
 
 export interface RequestHandlerDefaultInfo {

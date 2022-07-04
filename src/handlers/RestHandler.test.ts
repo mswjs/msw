@@ -14,17 +14,15 @@ const resolver: ResponseResolver<
   return res(ctx.json({ userId: req.params.userId }))
 }
 
-const generatorResolver: ResponseResolver<
-  RestRequest<'pending' | 'complete'>,
-  RestContext
-> = function* (req, res, ctx) {
-  let count = 0
-  while (count < 5) {
-    count += 1
-    yield res(ctx.body('pending'))
+const generatorResolver: ResponseResolver<RestRequest, RestContext> =
+  function* (req, res, ctx) {
+    let count = 0
+    while (count < 5) {
+      count += 1
+      yield res(ctx.body('pending'))
+    }
+    return res(ctx.body('complete'))
   }
-  return res(ctx.body('complete'))
-}
 
 describe('info', () => {
   test('exposes request handler information', () => {

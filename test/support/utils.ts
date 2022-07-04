@@ -1,10 +1,8 @@
 import * as path from 'path'
-import { Headers } from 'headers-polyfill'
-import { MockedRequest } from './../../src'
-import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'
 import { IsomorphicRequest } from '@mswjs/interceptors'
-import { passthrough } from '../../src/handlers/RequestHandler'
+import { MockedRequest } from '../../src/handlers/RequestHandler'
+import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -17,43 +15,22 @@ export function fromTemp(...segments: string[]) {
 }
 
 export function createMockedRequest(
-  init: Partial<MockedRequest> = {},
+  init: Partial<MockedRequest>,
 ): MockedRequest {
-  return {
-    id: uuidv4(),
-    method: 'GET',
-    url: new URL('/', location.href),
-    headers: new Headers({
-      'x-origin': 'msw-test',
-    }),
-    body: '',
-    bodyUsed: false,
-    mode: 'same-origin',
-    destination: 'document',
-    redirect: 'manual',
-    referrer: '',
-    referrerPolicy: 'origin',
-    credentials: 'same-origin',
-    cache: 'default',
-    integrity: '',
-    keepalive: true,
-    cookies: {},
-    passthrough,
-    ...init,
-  }
+  const body = encodeBuffer(JSON.stringify(init.body))
+  const isomorphicRequest = createIsomorphicRequest(init, body)
+  const mockedRequest = new MockedRequest(isomorphicRequest, init)
+  return mockedRequest
 }
 
 export function createIsomorphicRequest(
-  initialValues: Partial<IsomorphicRequest> = {},
+  init: Partial<IsomorphicRequest>,
+  body = new ArrayBuffer(0),
 ): IsomorphicRequest {
-  return {
-    id: uuidv4(),
-    method: 'GET',
-    url: new URL('/', location.href),
-    headers: new Headers(),
-    credentials: 'same-origin',
-    ...initialValues,
-  }
+  const url = init.url || new URL('/', location.href)
+  const request = new IsomorphicRequest(url, { ...init, body })
+  request.id = init.id || request.id
+  return request
 }
 
 export function promisifyChildProcess(

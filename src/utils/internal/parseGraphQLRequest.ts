@@ -1,3 +1,4 @@
+import { decodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 import {
   DocumentNode,
   OperationDefinitionNode,
@@ -86,7 +87,7 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
   return operations.variables
 }
 
-function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
+function getGraphQLInput(request: MockedRequest): GraphQLInput | null {
   switch (request.method) {
     case 'GET': {
       const query = request.url.searchParams.get('query')
@@ -99,8 +100,9 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
     }
 
     case 'POST': {
-      if (request.body?.query) {
-        const { query, variables } = request.body
+      const json = JSON.parse(decodeBuffer(request['_body']))
+      if (json?.query) {
+        const { query, variables } = json
 
         return {
           query,
@@ -109,9 +111,9 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
       }
 
       // Handle multipart body operations.
-      if (request.body?.operations) {
+      if (json?.operations) {
         const { operations, map, ...files } =
-          request.body as GraphQLMultipartRequestBody
+          json as GraphQLMultipartRequestBody
         const parsedOperations =
           jsonParse<{ query?: string; variables?: GraphQLVariables }>(
             operations,
@@ -147,7 +149,7 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
  * Does not parse the query and does not guarantee its validity.
  */
 export function parseGraphQLRequest(
-  request: MockedRequest<any>,
+  request: MockedRequest,
 ): ParsedGraphQLRequest {
   const input = getGraphQLInput(request)
 

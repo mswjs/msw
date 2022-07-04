@@ -52,7 +52,7 @@ afterAll(() => {
 })
 
 test('supports the "bypass" request strategy', () => {
-  onUnhandledRequest(createMockedRequest(), [], 'bypass')
+  onUnhandledRequest(createMockedRequest({}), [], 'bypass')
 
   expect(console.warn).not.toHaveBeenCalled()
   expect(console.error).not.toHaveBeenCalled()
@@ -218,7 +218,7 @@ test('does not print more than 4 suggestions', () => {
 test('throws an exception given unknown request strategy', () => {
   expect(() =>
     onUnhandledRequest(
-      createMockedRequest(),
+      createMockedRequest({}),
       [],
       // @ts-expect-error Intentional unknown strategy.
       'arbitrary-strategy',

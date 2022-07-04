@@ -16,7 +16,6 @@ import {
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
-  DefaultBodyType,
   defaultContext,
   DefaultContext,
   MockedRequest,
@@ -65,11 +64,12 @@ export type RequestQuery = {
   [queryName: string]: string
 }
 
-export interface RestRequest<
-  BodyType extends DefaultBodyType = DefaultBodyType,
+export class RestRequest<
   ParamsType extends PathParams = PathParams,
-> extends MockedRequest<BodyType> {
-  params: ParamsType
+> extends MockedRequest {
+  constructor(request: MockedRequest, public params: ParamsType) {
+    super(request)
+  }
 }
 
 export type ParsedRestRequest = Match
@@ -79,17 +79,12 @@ export type ParsedRestRequest = Match
  * Provides request matching based on method and URL.
  */
 export class RestHandler<
-  RequestType extends MockedRequest<DefaultBodyType> = MockedRequest<DefaultBodyType>,
+  RequestType extends MockedRequest = MockedRequest,
 > extends RequestHandler<
   RestHandlerInfo,
   RequestType,
   ParsedRestRequest,
-  RestRequest<
-    RequestType extends MockedRequest<infer RequestBodyType>
-      ? RequestBodyType
-      : any,
-    PathParams
-  >
+  RestRequest<PathParams>
 > {
   constructor(
     method: RestHandlerMethod,
@@ -146,7 +141,7 @@ export class RestHandler<
   protected getPublicRequest(
     request: RequestType,
     parsedResult: ParsedRestRequest,
-  ): RestRequest<any, PathParams> {
+  ): RestRequest<PathParams> {
     return {
       ...request,
       params: parsedResult.params || {},

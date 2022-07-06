@@ -14,11 +14,11 @@ describe('setupServer / fetch', () => {
         }),
       )
     }),
-    rest.post('https://test.mswjs.io', (req, res, ctx) => {
+    rest.post('https://test.mswjs.io', async (req, res, ctx) => {
       return res(
         ctx.status(403),
         ctx.set('x-header', 'yes'),
-        ctx.json(req.body as Record<string, any>),
+        ctx.json(await req.json()),
       )
     }),
   )

@@ -14,21 +14,18 @@ interface ResponseBody {
 }
 
 const server = setupServer(
-  rest.get<never, never, ResponseBody>(
-    'https://test.mswjs.io/user',
-    async (req, res, ctx) => {
-      const originalResponse = await ctx.fetch(httpServer.http.makeUrl('/user'))
-      const body = await originalResponse.json()
+  rest.get<never>('https://test.mswjs.io/user', async (req, res, ctx) => {
+    const originalResponse = await ctx.fetch(httpServer.http.makeUrl('/user'))
+    const body = await originalResponse.json()
 
-      return res(
-        ctx.json({
-          id: body.id,
-          mocked: true,
-        }),
-      )
-    },
-  ),
-  rest.get<never, never, ResponseBody>(
+    return res(
+      ctx.json({
+        id: body.id,
+        mocked: true,
+      }),
+    )
+  }),
+  rest.get<never>(
     'https://test.mswjs.io/complex-request',
     async (req, res, ctx) => {
       const shouldBypass = req.url.searchParams.get('bypass') === 'true'

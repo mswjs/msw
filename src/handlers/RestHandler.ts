@@ -142,10 +142,7 @@ export class RestHandler<
     request: RequestType,
     parsedResult: ParsedRestRequest,
   ): RestRequest<PathParams> {
-    return {
-      ...request,
-      params: parsedResult.params || {},
-    }
+    return new RestRequest(request, parsedResult.params || {})
   }
 
   predicate(request: RequestType, parsedResult: ParsedRestRequest) {

@@ -3,7 +3,7 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<never, { maxCount: string }>(
+  rest.get<{ maxCount: string }>(
     '/polling/:maxCount',
     function* (req, res, ctx) {
       const maxCount = parseInt(req.params.maxCount)
@@ -28,7 +28,7 @@ const server = setupServer(
     },
   ),
 
-  rest.get<never, { maxCount: string }>(
+  rest.get<{ maxCount: string }>(
     '/polling/once/:maxCount',
     function* (req, res, ctx) {
       const maxCount = parseInt(req.params.maxCount)
@@ -52,12 +52,9 @@ const server = setupServer(
       )
     },
   ),
-  rest.get<never, { maxCount: string }>(
-    '/polling/once/:maxCount',
-    (req, res, ctx) => {
-      return res(ctx.json({ status: 'done' }))
-    },
-  ),
+  rest.get<{ maxCount: string }>('/polling/once/:maxCount', (req, res, ctx) => {
+    return res(ctx.json({ status: 'done' }))
+  }),
 )
 
 beforeAll(() => {

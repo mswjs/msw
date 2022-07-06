@@ -33,7 +33,7 @@ export function setRequestCookies(request: MockedRequest): void {
   }
 
   // Ensure the persisted (document) cookies are propagated to the request.
-  // Propagated the cookies persisted in the Cookuie Store to the request headers.
+  // Propagated the cookies persisted in the Cookie Store to the request headers.
   // This forwards relevant request cookies based on the request's credentials.
   for (const [name, value] of Object.entries(forwardedCookies)) {
     request.headers.append('cookie', `${name}=${value}`)

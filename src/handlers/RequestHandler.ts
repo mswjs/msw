@@ -57,17 +57,17 @@ export interface MockRequestInit {
 }
 
 export class MockedRequest extends IsomorphicRequest {
-  public cookies: Record<string, string> = {}
-  public passthrough = passthrough
+  public readonly cookies: Record<string, string> = {}
+  public readonly passthrough = passthrough
 
-  public mode: Request['mode'] = 'same-origin'
-  public keepalive: Request['keepalive'] = false
-  public cache: Request['cache'] = 'default'
-  public destination: Request['destination'] = 'document'
-  public integrity: Request['integrity'] = ''
-  public redirect: Request['redirect'] = 'manual'
-  public referrer: Request['referrer'] = ''
-  public referrerPolicy: Request['referrerPolicy'] = 'no-referrer'
+  public readonly mode: Request['mode']
+  public readonly keepalive: Request['keepalive']
+  public readonly cache: Request['cache']
+  public readonly destination: Request['destination']
+  public readonly integrity: Request['integrity']
+  public readonly redirect: Request['redirect']
+  public readonly referrer: Request['referrer']
+  public readonly referrerPolicy: Request['referrerPolicy']
 
   constructor(
     isomorphicRequest: IsomorphicRequest,

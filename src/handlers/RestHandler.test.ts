@@ -2,9 +2,8 @@
  * @jest-environment jsdom
  */
 import { RestHandler, RestRequest, RestContext } from './RestHandler'
-import { createMockedRequest } from '../../test/support/utils'
 import { response } from '../response'
-import { context } from '..'
+import { context, MockedRequest } from '..'
 import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
@@ -38,9 +37,7 @@ describe('info', () => {
 describe('parse', () => {
   test('parses a URL given a matching request', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
-    const request = createMockedRequest({
-      url: new URL('/user/abc-123', location.href),
-    })
+    const request = new MockedRequest(new URL('/user/abc-123', location.href))
 
     expect(handler.parse(request)).toEqual({
       matches: true,
@@ -52,9 +49,8 @@ describe('parse', () => {
 
   test('parses a URL and ignores the request method', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
-    const request = createMockedRequest({
+    const request = new MockedRequest(new URL('/user/def-456', location.href), {
       method: 'POST',
-      url: new URL('/user/def-456', location.href),
     })
 
     expect(handler.parse(request)).toEqual({
@@ -67,9 +63,7 @@ describe('parse', () => {
 
   test('returns negative match result given a non-matching request', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
-    const request = createMockedRequest({
-      url: new URL('/login', location.href),
-    })
+    const request = new MockedRequest(new URL('/login', location.href))
 
     expect(handler.parse(request)).toEqual({
       matches: false,
@@ -81,9 +75,8 @@ describe('parse', () => {
 describe('predicate', () => {
   test('returns true given a matching request', () => {
     const handler = new RestHandler('POST', '/login', resolver)
-    const request = createMockedRequest({
+    const request = new MockedRequest(new URL('/login', location.href), {
       method: 'POST',
-      url: new URL('/login', location.href),
     })
 
     expect(handler.predicate(request, handler.parse(request))).toBe(true)
@@ -92,15 +85,9 @@ describe('predicate', () => {
   test('respects RegExp as the request method', () => {
     const handler = new RestHandler(/.+/, '/login', resolver)
     const requests = [
-      createMockedRequest({ url: new URL('/login', location.href) }),
-      createMockedRequest({
-        method: 'POST',
-        url: new URL('/login', location.href),
-      }),
-      createMockedRequest({
-        method: 'DELETE',
-        url: new URL('/login', location.href),
-      }),
+      new MockedRequest(new URL('/login', location.href)),
+      new MockedRequest(new URL('/login', location.href), { method: 'POST' }),
+      new MockedRequest(new URL('/login', location.href), { method: 'DELETE' }),
     ]
 
     for (const request of requests) {
@@ -110,9 +97,7 @@ describe('predicate', () => {
 
   test('returns false given a non-matching request', () => {
     const handler = new RestHandler('POST', '/login', resolver)
-    const request = createMockedRequest({
-      url: new URL('/user/abc-123', location.href),
-    })
+    const request = new MockedRequest(new URL('/user/abc-123', location.href))
 
     expect(handler.predicate(request, handler.parse(request))).toBe(false)
   })
@@ -122,14 +107,10 @@ describe('test', () => {
   test('returns true given a matching request', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
     const firstTest = handler.test(
-      createMockedRequest({
-        url: new URL('/user/abc-123', location.href),
-      }),
+      new MockedRequest(new URL('/user/abc-123', location.href)),
     )
     const secondTest = handler.test(
-      createMockedRequest({
-        url: new URL('/user/def-456', location.href),
-      }),
+      new MockedRequest(new URL('/user/def-456', location.href)),
     )
 
     expect(firstTest).toBe(true)
@@ -139,19 +120,13 @@ describe('test', () => {
   test('returns false given a non-matching request', () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
     const firstTest = handler.test(
-      createMockedRequest({
-        url: new URL('/login', location.href),
-      }),
+      new MockedRequest(new URL('/login', location.href)),
     )
     const secondTest = handler.test(
-      createMockedRequest({
-        url: new URL('/user/', location.href),
-      }),
+      new MockedRequest(new URL('/user/', location.href)),
     )
     const thirdTest = handler.test(
-      createMockedRequest({
-        url: new URL('/user/abc-123/extra', location.href),
-      }),
+      new MockedRequest(new URL('/user/abc-123/extra', location.href)),
     )
 
     expect(firstTest).toBe(false)
@@ -163,9 +138,7 @@ describe('test', () => {
 describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
     const handler = new RestHandler('GET', '/user/:userId', resolver)
-    const request = createMockedRequest({
-      url: new URL('/user/abc-123', location.href),
-    })
+    const request = new MockedRequest(new URL('/user/abc-123', location.href))
     const result = await handler.run(request)
 
     expect(result).toEqual({
@@ -189,10 +162,7 @@ describe('run', () => {
   test('returns null given a non-matching request', async () => {
     const handler = new RestHandler('POST', '/login', resolver)
     const result = await handler.run(
-      createMockedRequest({
-        method: 'GET',
-        url: new URL('/users', location.href),
-      }),
+      new MockedRequest(new URL('/users', location.href)),
     )
 
     expect(result).toBeNull()
@@ -201,9 +171,7 @@ describe('run', () => {
   test('returns an empty object as "req.params" given request with no URL parameters', async () => {
     const handler = new RestHandler('GET', '/users', resolver)
     const result = await handler.run(
-      createMockedRequest({
-        url: new URL('/users', location.href),
-      }),
+      new MockedRequest(new URL('/users', location.href)),
     )
 
     expect(result?.request.params).toEqual({})
@@ -215,9 +183,7 @@ describe('run with generator', () => {
     const handler = new RestHandler('GET', '/users', generatorResolver)
     const run = async () => {
       const result = await handler.run(
-        createMockedRequest({
-          url: new URL('/users', location.href),
-        }),
+        new MockedRequest(new URL('/users', location.href)),
       )
       return result?.response?.body
     }

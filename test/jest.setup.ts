@@ -8,6 +8,7 @@ import {
   createWorkerConsoleServer,
   workerConsoleSpy,
 } from './support/workerConsole'
+import { workers } from 'cluster'
 
 let browser: CreateBrowserApi
 let workerConsoleServer: ServerApi

@@ -1,5 +1,5 @@
 import { StrictEventEmitter } from 'strict-event-emitter'
-import { MockedRequest } from './handlers/RequestHandler'
+import { MockedRequest } from './utils/request/MockedRequest'
 import { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {

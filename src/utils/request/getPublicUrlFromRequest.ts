@@ -1,4 +1,4 @@
-import { MockedRequest } from '../../handlers/RequestHandler'
+import { MockedRequest } from './MockedRequest'
 
 /**
  * Returns a relative URL if the given request URL is relative to the current origin.

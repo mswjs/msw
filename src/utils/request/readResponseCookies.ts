@@ -1,6 +1,6 @@
 import { store } from '@mswjs/cookies'
 import { MockedResponse } from '../../response'
-import { MockedRequest } from '../../handlers/RequestHandler'
+import { MockedRequest } from './MockedRequest'
 
 export function readResponseCookies(
   request: MockedRequest,

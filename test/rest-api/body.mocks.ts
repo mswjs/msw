@@ -19,6 +19,13 @@ const handleRequestBody: ResponseResolver<MockedRequest, RestContext> = (
 const handleMultipartRequestBody: ResponseResolver<MockedRequest, RestContext> =
   async (req, res, ctx) => {
     const { body } = req
+
+    if (typeof body !== 'object') {
+      throw new Error(
+        'Expected multipart request body to be parsed but got string',
+      )
+    }
+
     const resBody: Record<string, string> = {}
     for (const [name, value] of Object.entries(body)) {
       if (value instanceof File) {

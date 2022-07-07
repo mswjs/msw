@@ -9,7 +9,6 @@ import { cookie } from '../context/cookie'
 import {
   defaultContext,
   DefaultContext,
-  MockedRequest,
   RequestHandler,
   RequestHandlerDefaultInfo,
   ResponseResolver,
@@ -28,6 +27,7 @@ import {
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { tryCatch } from '../utils/internal/tryCatch'
 import { devUtils } from '../utils/internal/devUtils'
+import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -71,11 +71,6 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   variables?: Variables
 }
 
-export interface GraphQLRequest<Variables extends GraphQLVariables>
-  extends MockedRequest<GraphQLRequestBody<Variables>> {
-  variables: Variables
-}
-
 export function isDocumentNode(
   value: DocumentNode | any,
 ): value is DocumentNode {
@@ -84,6 +79,14 @@ export function isDocumentNode(
   }
 
   return typeof value === 'object' && 'kind' in value && 'definitions' in value
+}
+
+export class GraphQLRequest<
+  Variables extends GraphQLVariables,
+> extends MockedRequest<GraphQLRequestBody<Variables>> {
+  constructor(request: MockedRequest, public readonly variables: Variables) {
+    super(request.url, request)
+  }
 }
 
 export class GraphQLHandler<

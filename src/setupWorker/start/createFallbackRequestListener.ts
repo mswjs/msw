@@ -13,7 +13,7 @@ import {
 } from '../glossary'
 import type { RequiredDeep } from '../../typeUtils'
 import { handleRequest } from '../../utils/handleRequest'
-import { parseIsomorphicRequest } from '../../utils/request/parseIsomorphicRequest'
+import { MockedRequest } from '../../utils/request/MockedRequest'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
@@ -25,7 +25,7 @@ export function createFallbackRequestListener(
   })
 
   interceptor.on('request', async (request) => {
-    const mockedRequest = parseIsomorphicRequest(request)
+    const mockedRequest = MockedRequest.from(request)
 
     const response = await handleRequest<SerializedResponse>(
       mockedRequest,

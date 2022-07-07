@@ -7,9 +7,10 @@ import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { RestHandler } from '../../handlers/RestHandler'
 import { GraphQLHandler } from '../../handlers/GraphQLHandler'
-import { MockedRequest, RequestHandler } from '../../handlers/RequestHandler'
+import { RequestHandler } from '../../handlers/RequestHandler'
 import { tryCatch } from '../internal/tryCatch'
 import { devUtils } from '../internal/devUtils'
+import { MockedRequest } from './MockedRequest'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4

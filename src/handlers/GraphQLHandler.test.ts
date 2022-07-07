@@ -3,8 +3,7 @@
  */
 import { OperationTypeNode, parse } from 'graphql'
 import { Headers } from 'headers-polyfill/lib'
-import { context } from '..'
-import { createMockedRequest } from '../../test/support/utils'
+import { context, MockedRequest, MockedRequestInit } from '..'
 import { response } from '../response'
 import {
   GraphQLContext,
@@ -13,7 +12,7 @@ import {
   GraphQLRequestBody,
   isDocumentNode,
 } from './GraphQLHandler'
-import { MockedRequest, ResponseResolver } from './RequestHandler'
+import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
   GraphQLRequest<{ userId: string }>,
@@ -33,21 +32,18 @@ function createGetGraphQLRequest(
   const requestUrl = new URL(hostname)
   requestUrl.searchParams.set('query', body?.query)
   requestUrl.searchParams.set('variables', JSON.stringify(body?.variables))
-  return createMockedRequest({
-    url: requestUrl,
-  })
+  return new MockedRequest(requestUrl)
 }
 
 function createPostGraphQLRequest(
   body: GraphQLRequestBody<any>,
   hostname = 'https://example.com',
-  initMockedRequest: Partial<MockedRequest> = {},
+  requestInit: MockedRequestInit = {},
 ) {
-  return createMockedRequest({
+  return new MockedRequest(new URL(hostname), {
     method: 'POST',
-    url: new URL(hostname),
-    ...initMockedRequest,
-    headers: new Headers({ 'Content-Type': 'application/json ' }),
+    ...requestInit,
+    headers: new Headers({ 'Content-Type': 'application/json' }),
     body,
   })
 }

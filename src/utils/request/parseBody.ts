@@ -1,6 +1,6 @@
-import { MockedRequest } from '../../handlers/RequestHandler'
 import { jsonParse } from '../internal/jsonParse'
 import { parseMultipartData } from '../internal/parseMultipartData'
+import { MockedRequest } from './MockedRequest'
 
 /**
  * Parses a given request/response body based on the "Content-Type" header.

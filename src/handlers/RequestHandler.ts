@@ -57,7 +57,7 @@ export interface MockRequestInit {
 }
 
 export class MockedRequest extends IsomorphicRequest {
-  public readonly cookies: Record<string, string> = {}
+  public cookies: Record<string, string> = {}
   public readonly passthrough = passthrough
 
   public readonly mode: Request['mode']

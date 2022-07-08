@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 import { Headers } from 'headers-polyfill'
 import { MockedRequest } from '../request/MockedRequest'
 import { parseGraphQLRequest } from './parseGraphQLRequest'
@@ -21,9 +22,11 @@ test('returns true given a GraphQL-compatible request', () => {
     {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: {
-        query: `query GetUser { user { firstName } }`,
-      },
+      body: encodeBuffer(
+        JSON.stringify({
+          query: `query GetUser { user { firstName } }`,
+        }),
+      ),
     },
   )
 
@@ -46,9 +49,11 @@ test('throws an exception given an invalid GraphQL request', () => {
     {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: {
-        query: `query GetUser() { user {{}`,
-      },
+      body: encodeBuffer(
+        JSON.stringify({
+          query: `query GetUser() { user {{}`,
+        }),
+      ),
     },
   )
   expect(() => parseGraphQLRequest(postRequest)).toThrowError(
@@ -70,9 +75,11 @@ test('returns false given a GraphQL-incompatible request', () => {
     {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: {
-        queryUser: true,
-      },
+      body: encodeBuffer(
+        JSON.stringify({
+          queryUser: true,
+        }),
+      ),
     },
   )
   expect(parseGraphQLRequest(postRequest)).toBeUndefined()

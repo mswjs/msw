@@ -1,10 +1,7 @@
 import * as cookieUtils from 'cookie'
 import { store } from '@mswjs/cookies'
-import { IsomorphicRequest, RequestCredentials } from '@mswjs/interceptors'
-import {
-  encodeBuffer,
-  decodeBuffer,
-} from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { IsomorphicRequest, RequestInit } from '@mswjs/interceptors'
+import { decodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 import { Headers } from 'headers-polyfill/lib'
 import { DefaultBodyType } from '../../handlers/RequestHandler'
 import { MockedResponse } from '../../response'
@@ -59,13 +56,9 @@ export type RequestReferrerPolicy =
   | 'strict-origin-when-cross-origin'
   | 'unsafe-url'
 
-export interface MockedRequestInit {
+export interface MockedRequestInit extends RequestInit {
   id?: string
-  method?: string
-  headers?: Headers
-  body?: DefaultBodyType
   cache?: RequestCache
-  credentials?: RequestCredentials
   redirect?: RequestRedirect
   integrity?: string
   keepalive?: boolean
@@ -74,6 +67,7 @@ export interface MockedRequestInit {
   destination?: RequestDestination
   referrer?: string
   referrerPolicy?: RequestReferrerPolicy
+  cookies?: Record<string, string>
 }
 
 export class MockedRequest<
@@ -90,26 +84,17 @@ export class MockedRequest<
   public readonly referrer: string
   public readonly referrerPolicy: RequestReferrerPolicy
 
-  static from(request: IsomorphicRequest): MockedRequest {
-    return new MockedRequest(request.url, request)
-  }
-
-  constructor(public readonly url: URL, init: MockedRequestInit = {}) {
-    /**
-     * @@deprecated
-     */
-    // Normalize variadic request body input (string/number/boolean/JSON)
-    // to the ArrayBuffer how the body is stored internally.
-    // This keeps "MockedRequest" less strict before we ditch this
-    // kind of input and force it to accept ArrayBuffer only.
-    const body = normalizeBodyInit(init.body)
-
-    super(url, { ...init, body })
-
+  constructor(request: IsomorphicRequest)
+  constructor(url: URL, init: MockedRequestInit)
+  constructor(input: URL | IsomorphicRequest, init: MockedRequestInit = {}) {
+    if (input instanceof IsomorphicRequest) {
+      super(input)
+    } else {
+      super(input, init)
+    }
     if (init.id) {
       this.id = init.id
     }
-
     this.cache = init.cache || 'default'
     this.destination = init.destination || ''
     this.integrity = init.integrity || ''
@@ -130,7 +115,7 @@ export class MockedRequest<
      * and since it does "super()", it triggers this constructor,
      * which triggers the same cookie parsing on the already parsed cookies.
      */
-    this.cookies = this.getCookies()
+    this.cookies = init.cookies || this.getCookies()
   }
 
   /**
@@ -208,33 +193,9 @@ export class MockedRequest<
       this.headers.append('cookie', `${name}=${value}`)
     }
 
-    console.warn(JSON.stringify({ forwardedCookies, ownCookies }, null, 2))
-
     return {
       ...forwardedCookies,
       ...ownCookies,
     }
   }
-}
-
-function normalizeBodyInit(
-  body: MockedRequestInit['body'],
-): ArrayBuffer | undefined {
-  if (typeof body === 'undefined') {
-    return body
-  }
-
-  if (body instanceof ArrayBuffer) {
-    return body
-  }
-
-  if (body === null) {
-    return new ArrayBuffer(0)
-  }
-
-  if (typeof body === 'object') {
-    return encodeBuffer(JSON.stringify(body))
-  }
-
-  return encodeBuffer(body.toString())
 }

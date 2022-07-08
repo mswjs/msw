@@ -18,33 +18,4 @@ export function parseWorkerRequest(
     body: encodeBuffer(rawRequest.body || ''),
     headers,
   })
-
-  // const request: RestRequest = {
-  //   id: rawRequest.id,
-  //   cache: rawRequest.cache,
-  //   credentials: rawRequest.credentials,
-  //   method: rawRequest.method,
-  //   url: new URL(rawRequest.url),
-  //   referrer: rawRequest.referrer,
-  //   referrerPolicy: rawRequest.referrerPolicy,
-  //   redirect: rawRequest.redirect,
-  //   mode: rawRequest.mode,
-  //   params: {},
-  //   cookies: {},
-  //   integrity: rawRequest.integrity,
-  //   keepalive: rawRequest.keepalive,
-  //   destination: rawRequest.destination,
-  //   body: pruneGetRequestBody(rawRequest),
-  //   bodyUsed: rawRequest.bodyUsed,
-  //   headers: new Headers(rawRequest.headers),
-  //   passthrough,
-  // }
-
-  // // Set document cookies on the request.
-  // flushRequestCookies(request)
-
-  // // Parse the request's body based on the "Content-Type" header.
-  // request.body = parseBody(request.body, request.headers)
-
-  // return request
 }

@@ -30,7 +30,7 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   })
 })
 
-test.only('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async () => {
+test('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('/user', {

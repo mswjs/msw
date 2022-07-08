@@ -85,7 +85,7 @@ export class GraphQLRequest<
   Variables extends GraphQLVariables,
 > extends MockedRequest<GraphQLRequestBody<Variables>> {
   constructor(request: MockedRequest, public readonly variables: Variables) {
-    super(request.url, request)
+    super(request.url, { ...request, body: request['_body'] })
   }
 }
 
@@ -154,10 +154,7 @@ export class GraphQLHandler<
     request: Request,
     parsedResult: ParsedGraphQLRequest,
   ): GraphQLRequest<any> {
-    return {
-      ...request,
-      variables: parsedResult?.variables || {},
-    }
+    return new GraphQLRequest(request, parsedResult?.variables || {})
   }
 
   predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {

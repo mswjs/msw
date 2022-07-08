@@ -25,7 +25,7 @@ export function createFallbackRequestListener(
   })
 
   interceptor.on('request', async (request) => {
-    const mockedRequest = MockedRequest.from(request)
+    const mockedRequest = new MockedRequest(request)
 
     const response = await handleRequest<SerializedResponse>(
       mockedRequest,

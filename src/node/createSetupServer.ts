@@ -66,7 +66,7 @@ export function createSetupServer(
     })
 
     interceptor.on('request', async function setupServerListener(request) {
-      const mockedRequest = MockedRequest.from(request)
+      const mockedRequest = new MockedRequest(request)
 
       const response = await handleRequest<
         MockedInterceptedResponse & { delay?: number }

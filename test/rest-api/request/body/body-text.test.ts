@@ -1,6 +1,5 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { encodeBuffer } from '@mswjs/interceptors'
 
 function prepareRuntime() {
   return pageWith({
@@ -40,10 +39,14 @@ test('reads json request body as text', async () => {
 
 test('reads array buffer request body as text', async () => {
   const runtime = await prepareRuntime()
-  const res = await runtime.request('/text', {
-    method: 'POST',
-    body: encodeBuffer('hello-world'),
+
+  runtime.page.evaluate(() => {
+    return fetch('/text', {
+      method: 'POST',
+      body: new TextEncoder().encode('hello-world'),
+    })
   })
+  const res = await runtime.page.waitForResponse(runtime.makeUrl('/text'))
   const body = await res.text()
 
   expect(res.status()).toBe(200)

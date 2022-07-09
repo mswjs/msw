@@ -85,7 +85,13 @@ export class GraphQLRequest<
   Variables extends GraphQLVariables,
 > extends MockedRequest<GraphQLRequestBody<Variables>> {
   constructor(request: MockedRequest, public readonly variables: Variables) {
-    super(request.url, { ...request, body: request['_body'] })
+    super(request.url, {
+      ...request,
+      /**
+       * TODO(https://github.com/mswjs/msw/issues/1318): Cleanup
+       */
+      body: request['_body'],
+    })
   }
 }
 

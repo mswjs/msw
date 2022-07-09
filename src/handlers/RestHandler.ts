@@ -78,7 +78,7 @@ export class RestRequest<
     super(request.url, {
       ...request,
       /**
-       * @deprecated
+       * @deprecated https://github.com/mswjs/msw/issues/1318
        * @note Use internal request body buffer as the body init
        * because "request.body" is a getter that will trigger
        * request body parsing at this step.

@@ -104,22 +104,11 @@ export class MockedRequest<
     this.redirect = init.redirect || 'follow'
     this.referrer = init.referrer || ''
     this.referrerPolicy = init.referrerPolicy || 'no-referrer'
-
-    /**
-     * @todo @fixme This is also triggered twice because of RestRequest
-     * extending MockedRequest.
-     *
-     * 1. MockedRequest created in "parseWorkerRequest", request cookies
-     * parsed and hydrated.
-     * 2. Then, RestRequest is created during request handler lookup,
-     * and since it does "super()", it triggers this constructor,
-     * which triggers the same cookie parsing on the already parsed cookies.
-     */
     this.cookies = init.cookies || this.getCookies()
   }
 
   /**
-   * Get plain string request body.
+   * Get parsed request body. The type is inferred from the content type.
    *
    * @deprecated - Use `req.text()`, `req.json()` or `req.arrayBuffer()`
    * to read the request body as a plain text, JSON, or ArrayBuffer.
@@ -128,7 +117,7 @@ export class MockedRequest<
     const text = decodeBuffer(this['_body'])
 
     /**
-     * @deprecated
+     * @deprecated https://github.com/mswjs/msw/issues/1318
      * @fixme Remove this assumption and let the users read
      * request body explicitly using ".json()"/".text()"/".arrayBuffer()".
      */

@@ -1,34 +1,28 @@
+import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
 import { Headers } from 'headers-polyfill'
-import { passthrough } from '../../handlers/RequestHandler'
+import { MockedRequest } from '../request/MockedRequest'
 import { prepareRequest } from './prepareRequest'
 
 test('converts request headers into an object', () => {
-  const request = prepareRequest({
-    id: 'ac72d720-baad-4ef3-9b3d-b1bcf8b0609f',
-    url: new URL('http://test.mswjs.io/user'),
-    method: 'GET',
-    headers: new Headers({
-      'Content-Type': 'application/json',
-      'X-Header': 'secret',
+  const request = prepareRequest(
+    new MockedRequest(new URL('http://test.mswjs.io/user'), {
+      headers: new Headers({
+        'Content-Type': 'text/plain',
+        'X-Header': 'secret',
+      }),
+      body: encodeBuffer('text-body'),
     }),
-    mode: 'same-origin',
-    keepalive: true,
-    cache: 'default',
-    destination: 'document',
-    integrity: '',
-    credentials: 'same-origin',
-    redirect: 'follow',
-    referrer: '',
-    referrerPolicy: 'no-referrer',
-    body: 'text-body',
-    bodyUsed: false,
-    cookies: {},
-    passthrough,
-  })
+  )
 
-  // Converts `Headers` instance into inspectable object
-  expect(request).toHaveProperty('headers', {
-    'content-type': 'application/json',
-    'x-header': 'secret',
-  })
+  expect(request).toEqual(
+    expect.objectContaining({
+      url: new URL('http://test.mswjs.io/user'),
+      // Converts `Headers` instance into a plain object.
+      headers: {
+        'content-type': 'text/plain',
+        'x-header': 'secret',
+      },
+      body: 'text-body',
+    }),
+  )
 })

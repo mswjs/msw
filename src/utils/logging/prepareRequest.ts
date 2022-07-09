@@ -6,6 +6,7 @@ import { MockedRequest } from '../request/MockedRequest.js'
 export function prepareRequest(request: MockedRequest) {
   return {
     ...request,
+    body: request.body,
     headers: request.headers.all(),
   }
 }

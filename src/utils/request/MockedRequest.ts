@@ -85,7 +85,7 @@ export class MockedRequest<
   public readonly referrerPolicy: RequestReferrerPolicy
 
   constructor(request: IsomorphicRequest)
-  constructor(url: URL, init: MockedRequestInit)
+  constructor(url: URL, init?: MockedRequestInit)
   constructor(input: URL | IsomorphicRequest, init: MockedRequestInit = {}) {
     if (input instanceof IsomorphicRequest) {
       super(input)

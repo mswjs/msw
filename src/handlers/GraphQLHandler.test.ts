@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
 import { Headers } from 'headers-polyfill/lib'
 import { context, MockedRequest, MockedRequestInit } from '..'

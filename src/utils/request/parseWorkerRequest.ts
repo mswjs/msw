@@ -1,4 +1,4 @@
-import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { encodeBuffer } from '@mswjs/interceptors'
 import { Headers } from 'headers-polyfill'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { MockedRequest } from './MockedRequest'

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { encodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { encodeBuffer } from '@mswjs/interceptors'
 import { Headers } from 'headers-polyfill'
 import { MockedRequest } from '../request/MockedRequest'
 import { parseGraphQLRequest } from './parseGraphQLRequest'

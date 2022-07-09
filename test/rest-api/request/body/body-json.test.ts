@@ -19,7 +19,7 @@ test('reads request body as json', async () => {
   })
   const json = await res.json()
 
-  expect(res.status).toBe(200)
+  expect(res.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
@@ -35,6 +35,6 @@ test('reads a single number as json request body', async () => {
   })
   const json = await res.json()
 
-  expect(res.status).toBe(200)
+  expect(res.status()).toBe(200)
   expect(json).toEqual(123)
 })

@@ -10,7 +10,7 @@ function prepareRuntime() {
 test('sends a JSON request body', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request('/', {
+  const res = await runtime.request('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ test('sends a JSON request body', async () => {
 test('sends a single number as a JSON request body', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request('/', {
+  const res = await runtime.request('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -37,7 +37,7 @@ test('reads json request body as text', async () => {
   expect(body).toBe(`{"firstName":"John"}`)
 })
 
-test('reads array buffer request body as text', async () => {
+test('reads buffer request body as text', async () => {
   const runtime = await prepareRuntime()
 
   runtime.page.evaluate(() => {
@@ -51,4 +51,30 @@ test('reads array buffer request body as text', async () => {
 
   expect(res.status()).toBe(200)
   expect(body).toBe('hello-world')
+})
+
+test('reads null request body as empty text', async () => {
+  const runtime = await prepareRuntime()
+  const [body, status] = await runtime.page.evaluate(() => {
+    return fetch('/text', {
+      method: 'POST',
+      body: null,
+    }).then((res) => res.text().then((text) => [text, res.status]))
+  })
+
+  expect(status).toBe(200)
+  expect(body).toBe('')
+})
+
+test('reads undefined request body as empty text', async () => {
+  const runtime = await prepareRuntime()
+  const [body, status] = await runtime.page.evaluate(() => {
+    return fetch('/text', {
+      method: 'POST',
+      body: undefined,
+    }).then((res) => res.text().then((text) => [text, res.status]))
+  })
+
+  expect(status).toBe(200)
+  expect(body).toBe('')
 })

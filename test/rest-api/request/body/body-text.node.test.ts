@@ -59,3 +59,24 @@ test('reads array buffer request body as text', async () => {
   expect(res.status).toBe(200)
   expect(body).toBe('hello-world')
 })
+
+test('reads null request body as empty text', async () => {
+  const res = await fetch('http://localhost/resource', {
+    method: 'POST',
+    body: null,
+  })
+  const body = await res.text()
+
+  expect(res.status).toBe(200)
+  expect(body).toBe('')
+})
+
+test('reads undefined request body as empty text', async () => {
+  const res = await fetch('http://localhost/resource', {
+    method: 'POST',
+  })
+  const body = await res.text()
+
+  expect(res.status).toBe(200)
+  expect(body).toBe('')
+})

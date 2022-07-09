@@ -8,6 +8,14 @@ const worker = setupWorker(
     const body = await req.text()
     return res(ctx.body(body))
   }),
+  rest.post('/json', async (req, res, ctx) => {
+    const json = await req.json()
+    return res(ctx.json(json))
+  }),
+  rest.post('/arrayBuffer', async (req, res, ctx) => {
+    const arrayBuffer = await req.arrayBuffer()
+    return res(ctx.body(arrayBuffer))
+  }),
 )
 
 worker.start()

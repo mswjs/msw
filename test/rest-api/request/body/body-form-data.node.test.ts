@@ -4,7 +4,7 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.post('http://test.example/sign-in', (req, res, ctx) => {
+  rest.post('http://localhost/deprecated', (req, res, ctx) => {
     return res(ctx.json(req.body))
   }),
 )
@@ -25,7 +25,7 @@ test('handles "FormData" as a request body', async () => {
   formData.append('username', 'john.maverick')
   formData.append('password', 'secret123')
 
-  const res = await fetch('http://test.example/sign-in', {
+  const res = await fetch('http://localhost/deprecated', {
     method: 'POST',
     headers: formData.getHeaders(),
     body: formData,

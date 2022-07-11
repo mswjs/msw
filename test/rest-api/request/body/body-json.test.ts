@@ -7,10 +7,10 @@ function prepareRuntime() {
   })
 }
 
-test('sends a JSON request body', async () => {
+test('reads request body as json', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request('/', {
+  const res = await runtime.request('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -19,13 +19,14 @@ test('sends a JSON request body', async () => {
   })
   const json = await res.json()
 
+  expect(res.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
-test('sends a single number as a JSON request body', async () => {
+test('reads a single number as json request body', async () => {
   const runtime = await prepareRuntime()
 
-  const res = await runtime.request('/', {
+  const res = await runtime.request('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -34,5 +35,42 @@ test('sends a single number as a JSON request body', async () => {
   })
   const json = await res.json()
 
+  expect(res.status()).toBe(200)
   expect(json).toEqual(123)
+})
+
+test('reads request body using json() method', async () => {
+  const runtime = await prepareRuntime()
+
+  const res = await runtime.request('/json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ firstName: 'John' }),
+  })
+  const json = await res.json()
+
+  expect(res.status()).toBe(200)
+  expect(json).toEqual({ firstName: 'John' })
+})
+
+test('reads array buffer request body using json() method', async () => {
+  const runtime = await prepareRuntime()
+
+  runtime.page.evaluate(() => {
+    debugger
+    return fetch('/json', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
+    })
+  })
+  const res = await runtime.page.waitForResponse(runtime.makeUrl('/json'))
+  const json = await res.json()
+
+  expect(res.status()).toBe(200)
+  expect(json).toEqual({ firstName: 'John' })
 })

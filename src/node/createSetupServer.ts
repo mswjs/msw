@@ -11,12 +11,12 @@ import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { ServerLifecycleEventsMap, SetupServerApi } from './glossary'
 import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { parseIsomorphicRequest } from '../utils/request/parseIsomorphicRequest'
 import { handleRequest } from '../utils/handleRequest'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
 import { RequiredDeep } from '../typeUtils'
+import { MockedRequest } from '../utils/request/MockedRequest'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -66,7 +66,8 @@ export function createSetupServer(
     })
 
     interceptor.on('request', async function setupServerListener(request) {
-      const mockedRequest = parseIsomorphicRequest(request)
+      const mockedRequest = new MockedRequest(request)
+
       const response = await handleRequest<
         MockedInterceptedResponse & { delay?: number }
       >(mockedRequest, currentHandlers, resolvedOptions, emitter, {

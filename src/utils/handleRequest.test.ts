@@ -1,13 +1,12 @@
 import { Headers } from 'headers-polyfill'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { ServerLifecycleEventsMap } from '../node/glossary'
-import { createMockedRequest } from '../../test/support/utils'
 import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { rest } from '../rest'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { response } from '../response'
-import { context } from '..'
+import { context, MockedRequest } from '..'
 import { RequiredDeep } from '../typeUtils'
 
 const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
@@ -45,8 +44,7 @@ afterEach(() => {
 })
 
 test('returns undefined for a request with the "x-msw-bypass" header equal to "true"', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
+  const request = new MockedRequest(new URL('http://localhost/user'), {
     headers: new Headers({
       'x-msw-bypass': 'true',
     }),
@@ -73,8 +71,7 @@ test('returns undefined for a request with the "x-msw-bypass" header equal to "t
 })
 
 test('does not bypass a request with "x-msw-bypass" header set to arbitrary value', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
+  const request = new MockedRequest(new URL('http://localhost/user'), {
     headers: new Headers({
       'x-msw-bypass': 'anything',
     }),
@@ -100,9 +97,7 @@ test('does not bypass a request with "x-msw-bypass" header set to arbitrary valu
 })
 
 test('reports request as unhandled when it has no matching request handlers', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/user'))
   const handlers: RequestHandler[] = []
 
   const result = await handleRequest(
@@ -129,9 +124,7 @@ test('reports request as unhandled when it has no matching request handlers', as
 })
 
 test('returns undefined and warns on a request handler that returns no response', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/user'))
   const handlers: RequestHandler[] = [
     rest.get('/user', () => {
       // Intentionally blank response resolver.
@@ -168,9 +161,7 @@ test('returns undefined and warns on a request handler that returns no response'
 })
 
 test('returns the mocked response for a request with a matching request handler', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/user'))
   const mockedResponse = await response(context.json({ firstName: 'John' }))
   const handlers: RequestHandler[] = [
     rest.get('/user', () => {
@@ -212,9 +203,7 @@ test('returns the mocked response for a request with a matching request handler'
 })
 
 test('returns a transformed response if the "transformResponse" option is provided', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/user'))
   const mockedResponse = await response(context.json({ firstName: 'John' }))
   const handlers: RequestHandler[] = [
     rest.get('/user', () => {
@@ -258,9 +247,7 @@ test('returns a transformed response if the "transformResponse" option is provid
 })
 
 it('returns undefined without warning on a passthrough request', async () => {
-  const request = createMockedRequest({
-    url: new URL('http://localhost/user'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/user'))
   const handlers: RequestHandler[] = [
     rest.get('/user', (req) => {
       return req.passthrough()

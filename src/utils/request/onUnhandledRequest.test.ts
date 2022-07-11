@@ -2,9 +2,9 @@ import {
   onUnhandledRequest,
   UnhandledRequestCallback,
 } from './onUnhandledRequest'
-import { createMockedRequest } from '../../../test/support/utils'
 import { RestHandler, RESTMethods } from '../../handlers/RestHandler'
 import { ResponseResolver } from '../../handlers/RequestHandler'
+import { MockedRequest } from './MockedRequest'
 
 const resolver: ResponseResolver = () => void 0
 
@@ -52,7 +52,11 @@ afterAll(() => {
 })
 
 test('supports the "bypass" request strategy', () => {
-  onUnhandledRequest(createMockedRequest(), [], 'bypass')
+  onUnhandledRequest(
+    new MockedRequest(new URL('http://localhost/api')),
+    [],
+    'bypass',
+  )
 
   expect(console.warn).not.toHaveBeenCalled()
   expect(console.error).not.toHaveBeenCalled()
@@ -60,9 +64,7 @@ test('supports the "bypass" request strategy', () => {
 
 test('supports the "warn" request strategy', () => {
   onUnhandledRequest(
-    createMockedRequest({
-      url: new URL('http://localhost/api'),
-    }),
+    new MockedRequest(new URL('http://localhost/api')),
     [],
     'warn',
   )
@@ -73,9 +75,7 @@ test('supports the "warn" request strategy', () => {
 test('supports the "error" request strategy', () => {
   expect(() =>
     onUnhandledRequest(
-      createMockedRequest({
-        url: new URL('http://localhost/api'),
-      }),
+      new MockedRequest(new URL('http://localhost/api')),
       [],
       'error',
     ),
@@ -92,9 +92,7 @@ test('supports a custom callback function', () => {
       console.warn(`callback: ${request.method} ${request.url.href}`)
     },
   )
-  const request = createMockedRequest({
-    url: new URL('/user', 'http://localhost:3000'),
-  })
+  const request = new MockedRequest(new URL('/user', 'http://localhost:3000'))
   onUnhandledRequest(request, [], callback)
 
   expect(callback).toHaveBeenCalledTimes(1)
@@ -118,10 +116,7 @@ test('supports calling default strategies from the custom callback function', ()
       print.error()
     },
   )
-  const request = createMockedRequest({
-    id: 'request-1',
-    url: new URL('http://localhost/api'),
-  })
+  const request = new MockedRequest(new URL('http://localhost/api'))
   expect(() => onUnhandledRequest(request, [], callback)).toThrow(
     `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
   )
@@ -133,7 +128,7 @@ test('supports calling default strategies from the custom callback function', ()
   })
 
   // Check that the custom logic in the callback was called.
-  expect(console.warn).toHaveBeenCalledWith('custom callback: request-1')
+  expect(console.warn).toHaveBeenCalledWith(`custom callback: ${request.id}`)
 
   // Check that the default strategy was called.
   expect(console.error).toHaveBeenCalledWith(fixtures.errorWithoutSuggestions)
@@ -141,7 +136,7 @@ test('supports calling default strategies from the custom callback function', ()
 
 test('does not print any suggestions given no handlers to suggest', () => {
   onUnhandledRequest(
-    createMockedRequest({ url: new URL('http://localhost/api') }),
+    new MockedRequest(new URL('http://localhost/api')),
     [],
     'warn',
   )
@@ -151,7 +146,7 @@ test('does not print any suggestions given no handlers to suggest', () => {
 
 test('does not print any suggestions given no handlers are similar', () => {
   onUnhandledRequest(
-    createMockedRequest({ url: new URL('http://localhost/api') }),
+    new MockedRequest(new URL('http://localhost/api')),
     [
       // None of the defined request handlers match the actual request URL
       // to be used as suggestions.
@@ -166,7 +161,7 @@ test('does not print any suggestions given no handlers are similar', () => {
 
 test('respects RegExp as a request handler method', () => {
   onUnhandledRequest(
-    createMockedRequest({ url: new URL('http://localhost/api') }),
+    new MockedRequest(new URL('http://localhost/api')),
     [new RestHandler(/^GE/, 'http://localhost/api', resolver)],
     'warn',
   )
@@ -176,7 +171,7 @@ test('respects RegExp as a request handler method', () => {
 
 test('sorts the suggestions by relevance', () => {
   onUnhandledRequest(
-    createMockedRequest({ url: new URL('http://localhost/api') }),
+    new MockedRequest(new URL('http://localhost/api')),
     [
       new RestHandler(RESTMethods.GET, 'http://localhost/', resolver),
       new RestHandler(RESTMethods.GET, 'http://localhost:9090/api', resolver),
@@ -194,7 +189,7 @@ test('sorts the suggestions by relevance', () => {
 
 test('does not print more than 4 suggestions', () => {
   onUnhandledRequest(
-    createMockedRequest({ url: new URL('http://localhost/api') }),
+    new MockedRequest(new URL('http://localhost/api')),
     [
       new RestHandler(RESTMethods.GET, 'http://localhost/ap', resolver),
       new RestHandler(RESTMethods.GET, 'http://localhost/api', resolver),
@@ -218,7 +213,7 @@ test('does not print more than 4 suggestions', () => {
 test('throws an exception given unknown request strategy', () => {
   expect(() =>
     onUnhandledRequest(
-      createMockedRequest(),
+      new MockedRequest(new URL('http://localhost/api')),
       [],
       // @ts-expect-error Intentional unknown strategy.
       'arbitrary-strategy',

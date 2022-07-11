@@ -15,7 +15,7 @@ test('handles a GET request without a body', async () => {
 
   const res = await runtime.request('/login')
   const body = await res.json()
-  expect(body).toEqual({ body: undefined })
+  expect(body).toEqual({})
 })
 
 test('handles a GET request without a body and "Content-Type: application/json" header', async () => {

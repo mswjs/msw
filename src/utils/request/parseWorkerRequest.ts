@@ -1,10 +1,7 @@
+import { encodeBuffer } from '@mswjs/interceptors'
 import { Headers } from 'headers-polyfill'
-import { passthrough } from '../../handlers/RequestHandler'
-import { RestRequest } from '../../handlers/RestHandler'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
-import { setRequestCookies } from './setRequestCookies'
-import { parseBody } from './parseBody'
-import { pruneGetRequestBody } from './pruneGetRequestBody'
+import { MockedRequest } from './MockedRequest'
 
 /**
  * Converts a given request received from the Service Worker
@@ -12,33 +9,13 @@ import { pruneGetRequestBody } from './pruneGetRequestBody'
  */
 export function parseWorkerRequest(
   rawRequest: ServiceWorkerIncomingRequest,
-): RestRequest {
-  const request: RestRequest = {
-    id: rawRequest.id,
-    cache: rawRequest.cache,
-    credentials: rawRequest.credentials,
-    method: rawRequest.method,
-    url: new URL(rawRequest.url),
-    referrer: rawRequest.referrer,
-    referrerPolicy: rawRequest.referrerPolicy,
-    redirect: rawRequest.redirect,
-    mode: rawRequest.mode,
-    params: {},
-    cookies: {},
-    integrity: rawRequest.integrity,
-    keepalive: rawRequest.keepalive,
-    destination: rawRequest.destination,
-    body: pruneGetRequestBody(rawRequest),
-    bodyUsed: rawRequest.bodyUsed,
-    headers: new Headers(rawRequest.headers),
-    passthrough,
-  }
+): MockedRequest {
+  const url = new URL(rawRequest.url)
+  const headers = new Headers(rawRequest.headers)
 
-  // Set document cookies on the request.
-  setRequestCookies(request)
-
-  // Parse the request's body based on the "Content-Type" header.
-  request.body = parseBody(request.body, request.headers)
-
-  return request
+  return new MockedRequest(url, {
+    ...rawRequest,
+    body: encodeBuffer(rawRequest.body || ''),
+    headers,
+  })
 }

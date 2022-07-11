@@ -9,7 +9,7 @@ test('handles FormData as a request body', async () => {
 
   await page.click('button')
 
-  const res = await page.waitForResponse(makeUrl('/'))
+  const res = await page.waitForResponse(makeUrl('/deprecated'))
   const status = res.status()
   const json = await res.json()
 

@@ -1,10 +1,5 @@
 import * as path from 'path'
-import { Headers } from 'headers-polyfill'
-import { MockedRequest } from './../../src'
-import { uuidv4 } from '../../src/utils/internal/uuidv4'
 import { ChildProcess } from 'child_process'
-import { IsomorphicRequest } from '@mswjs/interceptors'
-import { passthrough } from '../../src/handlers/RequestHandler'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -14,46 +9,6 @@ export function sleep(duration: number) {
 
 export function fromTemp(...segments: string[]) {
   return path.join(__dirname, '../..', 'tmp', ...segments)
-}
-
-export function createMockedRequest(
-  init: Partial<MockedRequest> = {},
-): MockedRequest {
-  return {
-    id: uuidv4(),
-    method: 'GET',
-    url: new URL('/', location.href),
-    headers: new Headers({
-      'x-origin': 'msw-test',
-    }),
-    body: '',
-    bodyUsed: false,
-    mode: 'same-origin',
-    destination: 'document',
-    redirect: 'manual',
-    referrer: '',
-    referrerPolicy: 'origin',
-    credentials: 'same-origin',
-    cache: 'default',
-    integrity: '',
-    keepalive: true,
-    cookies: {},
-    passthrough,
-    ...init,
-  }
-}
-
-export function createIsomorphicRequest(
-  initialValues: Partial<IsomorphicRequest> = {},
-): IsomorphicRequest {
-  return {
-    id: uuidv4(),
-    method: 'GET',
-    url: new URL('/', location.href),
-    headers: new Headers(),
-    credentials: 'same-origin',
-    ...initialValues,
-  }
 }
 
 export function promisifyChildProcess(

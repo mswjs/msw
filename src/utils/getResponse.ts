@@ -1,9 +1,9 @@
 import { MockedResponse } from '../response'
 import {
-  MockedRequest,
   RequestHandler,
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
+import { MockedRequest } from './request/MockedRequest'
 
 export interface ResponseLookupResult {
   handler?: RequestHandler

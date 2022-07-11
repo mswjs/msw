@@ -10,7 +10,6 @@ import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
 import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
-import { jsonParse } from '../utils/internal/jsonParse'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { RestHandler } from '../handlers/RestHandler'
 import { prepareStartHandler } from './start/utils/prepareStartHandler'
@@ -80,9 +79,10 @@ export function setupWorker(
               return
             }
 
-            const message = jsonParse<
-              ServiceWorkerMessage<typeof eventType, any>
-            >(event.data)
+            const message = event.data as ServiceWorkerMessage<
+              typeof eventType,
+              any
+            >
 
             if (!message) {
               return
@@ -128,7 +128,7 @@ export function setupWorker(
         >((resolve, reject) => {
           const handleIncomingMessage = (event: MessageEvent) => {
             try {
-              const message = JSON.parse(event.data)
+              const message = event.data
 
               if (message.type === eventType) {
                 resolve(message)

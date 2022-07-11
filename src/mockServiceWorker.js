@@ -316,7 +316,7 @@ function sendToClient(client, message) {
       resolve(event.data)
     }
 
-    client.postMessage(JSON.stringify(message), [channel.port2])
+    client.postMessage(message, [channel.port2])
   })
 }
 

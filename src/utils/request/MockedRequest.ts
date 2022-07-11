@@ -157,10 +157,6 @@ export class MockedRequest<
       ? cookieUtils.parse(requestCookiesString)
       : {}
 
-    /**
-     * Really, needs to be addressed in "@mswjs/cookies".
-     * @see https://github.com/mswjs/cookies/issues/19
-     */
     store.hydrate()
 
     const cookiesFromStore = Array.from(

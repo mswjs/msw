@@ -147,7 +147,9 @@ async function handleRequest(event, requestId) {
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const clonedResponse = response.clone()
-      sendToClient(client, {
+      const body =
+        clonedResponse.body === null ? null : await clonedResponse.arrayBuffer()
+      const message = {
         type: 'RESPONSE',
         payload: {
           requestId,
@@ -155,12 +157,12 @@ async function handleRequest(event, requestId) {
           ok: clonedResponse.ok,
           status: clonedResponse.status,
           statusText: clonedResponse.statusText,
-          body:
-            clonedResponse.body === null ? null : await clonedResponse.text(),
+          body,
           headers: Object.fromEntries(clonedResponse.headers.entries()),
           redirected: clonedResponse.redirected,
         },
-      })
+      }
+      sendToClient(client, message, body)
     })()
   }
 
@@ -200,7 +202,7 @@ async function getResponse(event, client, requestId) {
 
   function passthrough() {
     // Clone the request because it might've been already used
-    // (i.e. its body has been read and sent to the cilent).
+    // (i.e. its body has been read and sent to the client).
     const headers = Object.fromEntries(clonedRequest.headers.entries())
 
     // Remove MSW-specific request headers so the bypassed requests
@@ -239,7 +241,8 @@ async function getResponse(event, client, requestId) {
   )
 
   // Notify the client that a request has been intercepted.
-  const clientMessage = await sendToClient(client, {
+  const body = await request.arrayBuffer()
+  const message = {
     type: 'REQUEST',
     payload: {
       id: requestId,
@@ -254,11 +257,12 @@ async function getResponse(event, client, requestId) {
       redirect: request.redirect,
       referrer: request.referrer,
       referrerPolicy: request.referrerPolicy,
-      body: await request.text(),
+      body,
       bodyUsed: request.bodyUsed,
       keepalive: request.keepalive,
     },
-  })
+  }
+  const clientMessage = await sendToClient(client, message, body)
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
@@ -304,7 +308,7 @@ This exception has been gracefully handled as a 500 response, however, it's stro
   return passthrough()
 }
 
-function sendToClient(client, message) {
+function sendToClient(client, message, body) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -316,7 +320,11 @@ function sendToClient(client, message) {
       resolve(event.data)
     }
 
-    client.postMessage(message, [channel.port2])
+    const transfer = [channel.port2]
+    if (body) {
+      transfer.push(body)
+    }
+    client.postMessage(message, transfer)
   })
 }
 

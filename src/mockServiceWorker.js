@@ -147,7 +147,8 @@ async function handleRequest(event, requestId) {
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const clonedResponse = response.clone()
-      sendToClient(client, {
+      const body = await clonedResponse.arrayBuffer()
+      const message = {
         type: 'RESPONSE',
         payload: {
           requestId,
@@ -155,14 +156,12 @@ async function handleRequest(event, requestId) {
           ok: clonedResponse.ok,
           status: clonedResponse.status,
           statusText: clonedResponse.statusText,
-          body:
-            clonedResponse.body === null
-              ? null
-              : await clonedResponse.arrayBuffer(),
+          body,
           headers: Object.fromEntries(clonedResponse.headers.entries()),
           redirected: clonedResponse.redirected,
         },
-      })
+      }
+      sendToClient(client, message, [body])
     })()
   }
 
@@ -241,7 +240,7 @@ async function getResponse(event, client, requestId) {
   )
 
   // Notify the client that a request has been intercepted.
-  const clientMessage = await sendToClient(client, {
+  const message = {
     type: 'REQUEST',
     payload: {
       id: requestId,
@@ -260,7 +259,10 @@ async function getResponse(event, client, requestId) {
       bodyUsed: request.bodyUsed,
       keepalive: request.keepalive,
     },
-  })
+  }
+  const clientMessage = await sendToClient(client, message, [
+    message.payload.body,
+  ])
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
@@ -306,7 +308,7 @@ This exception has been gracefully handled as a 500 response, however, it's stro
   return passthrough()
 }
 
-function sendToClient(client, message) {
+function sendToClient(client, message, transfer = []) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -318,11 +320,7 @@ function sendToClient(client, message) {
       resolve(event.data)
     }
 
-    const transfer = [channel.port2]
-    if (typeof message.payload !== 'undefined' && message.payload.body) {
-      transfer.push(message.payload.body)
-    }
-    client.postMessage(message, transfer)
+    client.postMessage(message, [channel.port2, ...transfer])
   })
 }
 
@@ -334,7 +332,8 @@ function sleep(timeMs) {
 
 async function respondWithMock(response) {
   await sleep(response.delay)
-  return new Response(response.body, response)
+  const body = response.status == 204 ? null : response.body
+  return new Response(body, response)
 }
 
 function respondWithMockStream(operationChannel, mockResponse) {

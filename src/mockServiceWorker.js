@@ -147,9 +147,7 @@ async function handleRequest(event, requestId) {
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const clonedResponse = response.clone()
-      const body =
-        clonedResponse.body === null ? null : await clonedResponse.arrayBuffer()
-      const message = {
+      sendToClient(client, {
         type: 'RESPONSE',
         payload: {
           requestId,
@@ -157,12 +155,14 @@ async function handleRequest(event, requestId) {
           ok: clonedResponse.ok,
           status: clonedResponse.status,
           statusText: clonedResponse.statusText,
-          body,
+          body:
+            clonedResponse.body === null
+              ? null
+              : await clonedResponse.arrayBuffer(),
           headers: Object.fromEntries(clonedResponse.headers.entries()),
           redirected: clonedResponse.redirected,
         },
-      }
-      sendToClient(client, message, body)
+      })
     })()
   }
 
@@ -241,8 +241,7 @@ async function getResponse(event, client, requestId) {
   )
 
   // Notify the client that a request has been intercepted.
-  const body = await request.arrayBuffer()
-  const message = {
+  const clientMessage = await sendToClient(client, {
     type: 'REQUEST',
     payload: {
       id: requestId,
@@ -257,12 +256,11 @@ async function getResponse(event, client, requestId) {
       redirect: request.redirect,
       referrer: request.referrer,
       referrerPolicy: request.referrerPolicy,
-      body,
+      body: await request.arrayBuffer(),
       bodyUsed: request.bodyUsed,
       keepalive: request.keepalive,
     },
-  }
-  const clientMessage = await sendToClient(client, message, body)
+  })
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
@@ -308,7 +306,7 @@ This exception has been gracefully handled as a 500 response, however, it's stro
   return passthrough()
 }
 
-function sendToClient(client, message, body) {
+function sendToClient(client, message) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -321,8 +319,8 @@ function sendToClient(client, message, body) {
     }
 
     const transfer = [channel.port2]
-    if (body) {
-      transfer.push(body)
+    if (typeof message.payload !== 'undefined' && message.payload.body) {
+      transfer.push(message.payload.body)
     }
     client.postMessage(message, transfer)
   })

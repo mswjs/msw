@@ -147,7 +147,8 @@ async function handleRequest(event, requestId) {
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const clonedResponse = response.clone()
-      const body = await clonedResponse.arrayBuffer()
+      const body =
+        clonedResponse.body == null ? null : await clonedResponse.arrayBuffer()
       const message = {
         type: 'RESPONSE',
         payload: {
@@ -161,7 +162,7 @@ async function handleRequest(event, requestId) {
           redirected: clonedResponse.redirected,
         },
       }
-      sendToClient(client, message, [body])
+      sendToClient(client, message, body ? [body] : [])
     })()
   }
 
@@ -332,8 +333,7 @@ function sleep(timeMs) {
 
 async function respondWithMock(response) {
   await sleep(response.delay)
-  const body = response.status == 204 ? null : response.body
-  return new Response(body, response)
+  return new Response(response.body, response)
 }
 
 function respondWithMockStream(operationChannel, mockResponse) {

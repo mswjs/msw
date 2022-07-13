@@ -62,7 +62,10 @@
     "prototype",
     "server",
     "service",
-    "handler"
+    "handler",
+    "testing",
+    "front-end",
+    "back-end"
   ],
   "sideEffects": false,
   "dependencies": {

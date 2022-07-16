@@ -24,7 +24,7 @@ export class WorkerChannel {
     event: Event,
     ...rest: Parameters<WorkerChannelEventsMap[Event]>
   ): void {
-    const [data, transfer] = rest as [unknown, Transferable[] | undefined]
-    this.port.postMessage({ type: event, data }, transfer as any)
+    const [data, transfer] = rest
+    this.port.postMessage({ type: event, data }, { transfer })
   }
 }

@@ -1,5 +1,5 @@
 import {
-  ServiceWorkerFetchEventMap,
+  SerializedResponse,
   ServiceWorkerIncomingEventsMap,
 } from '../../glossary'
 
@@ -11,36 +11,20 @@ export interface ServiceWorkerMessage<
   payload: EventPayload
 }
 
-export interface WorkerMessageChannel {
-  send<Event extends keyof ServiceWorkerFetchEventMap>(
-    message: Parameters<ServiceWorkerFetchEventMap[Event]>[0] extends undefined
-      ? { type: Event }
-      : {
-          type: Event
-          payload: Parameters<ServiceWorkerFetchEventMap[Event]>[0]
-        },
-  ): void
+interface WorkerChannelEventsMap {
+  MOCK_RESPONSE: (data: SerializedResponse<any>, body?: [ArrayBuffer]) => void
+  NOT_FOUND: () => void
+  NETWORK_ERROR: (data: { name: string; message: string }) => void
 }
 
-/**
- * Creates a communication channel between the client
- * and the Service Worker associated with the given event.
- */
-export function createMessageChannel(
-  event: MessageEvent,
-): WorkerMessageChannel {
-  const port = event.ports[0]
+export class WorkerChannel {
+  constructor(private readonly port: MessagePort) {}
 
-  return {
-    /**
-     * Send a text message to the connected Service Worker.
-     */
-    send(message) {
-      if (!port) {
-        return
-      }
-
-      port.postMessage(message)
-    },
+  public postMessage<Event extends keyof WorkerChannelEventsMap>(
+    event: Event,
+    ...rest: Parameters<WorkerChannelEventsMap[Event]>
+  ): void {
+    const [data, transfer] = rest as [unknown, Transferable[] | undefined]
+    this.port.postMessage({ type: event, data }, transfer as any)
   }
 }

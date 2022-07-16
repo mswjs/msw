@@ -10,14 +10,14 @@ test('propagates the exception originating from a handled request', async () => 
 
   const endpointUrl = runtime.makeUrl('/user')
   const res = await runtime.request(endpointUrl)
-  const json = await res.json()
 
   // Expect the exception to be handled as a 500 error response.
-  expect(res.status()).toEqual(500)
-  expect(json).toEqual({
-    errorType: 'Error',
+  expect(res.status()).toBe(500)
+  expect(res.statusText()).toBe('Request Handler Error')
+  expect(await res.json()).toEqual({
+    name: 'Error',
     message: 'Custom error message',
-    location: expect.stringContaining('Error: Custom error message'),
+    stack: expect.stringContaining('Error: Custom error message'),
   })
 
   // Expect standard request failure message from the browser.

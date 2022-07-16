@@ -162,7 +162,7 @@ async function handleRequest(event, requestId) {
           redirected: clonedResponse.redirected,
         },
       }
-      sendToClient(client, message, body ? [body] : [])
+      sendToClient(client, message, body && [body])
     })()
   }
 
@@ -309,7 +309,7 @@ This exception has been gracefully handled as a 500 response, however, it's stro
   return passthrough()
 }
 
-function sendToClient(client, message, transfer = []) {
+function sendToClient(client, message, transfer) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -321,7 +321,7 @@ function sendToClient(client, message, transfer = []) {
       resolve(event.data)
     }
 
-    client.postMessage(message, [channel.port2, ...transfer])
+    client.postMessage(message, [channel.port2].concat(transfer || []))
   })
 }
 

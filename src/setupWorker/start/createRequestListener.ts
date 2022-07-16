@@ -42,6 +42,14 @@ export const createRequestListener = (
             messageChannel.postMessage('NOT_FOUND')
           },
           async onMockedResponse(response) {
+            if (response.body instanceof ReadableStream) {
+              throw new Error(
+                devUtils.formatMessage(
+                  'Failed to construct a mocked response with a "ReadableStream" body: mocked streams are not supported. Follow https://github.com/mswjs/msw/issues/1336 for more details.',
+                ),
+              )
+            }
+
             const responseInstance = new Response(response.body)
             const responseBodyBuffer = await responseInstance.arrayBuffer()
 

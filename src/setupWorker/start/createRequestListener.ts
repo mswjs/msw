@@ -3,7 +3,6 @@ import {
   SerializedResponse,
   SetupWorkerInternalContext,
   ServiceWorkerIncomingEventsMap,
-  ServiceWorkerBroadcastChannelMessageMap,
 } from '../glossary'
 import {
   ServiceWorkerMessage,
@@ -16,7 +15,6 @@ import { RequestHandler } from '../../handlers/RequestHandler'
 import { RequiredDeep } from '../../typeUtils'
 import { MockedResponse } from '../../response'
 import { streamResponse } from './utils/streamResponse'
-import { StrictBroadcastChannel } from '../../utils/internal/StrictBroadcastChannel'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -33,10 +31,6 @@ export const createRequestListener = (
 
     try {
       const request = parseWorkerRequest(message.payload)
-      const operationChannel =
-        new StrictBroadcastChannel<ServiceWorkerBroadcastChannelMessageMap>(
-          `msw-response-stream-${request.id}`,
-        )
 
       await handleRequest<SerializedResponse>(
         request,
@@ -48,6 +42,7 @@ export const createRequestListener = (
           onPassthroughResponse() {
             return messageChannel.send({
               type: 'MOCK_NOT_FOUND',
+              payload: undefined,
             })
           },
           onMockedResponse(response) {
@@ -61,7 +56,7 @@ export const createRequestListener = (
             }
 
             // If the mocked response has a body, stream it to the worker.
-            streamResponse(operationChannel, messageChannel, response)
+            streamResponse(messageChannel, response)
           },
           onMockedResponseSent(
             response,

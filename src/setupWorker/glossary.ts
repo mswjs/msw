@@ -77,17 +77,10 @@ export type ServiceWorkerOutgoingEventTypes =
  * only as a part of a single `fetch` event handler.
  */
 export interface ServiceWorkerFetchEventMap {
-  MOCK_RESPONSE(payload: SerializedResponse): void
-  MOCK_RESPONSE_START(payload: SerializedResponse): void
-
-  MOCK_NOT_FOUND(): void
-  NETWORK_ERROR(payload: { name: string; message: string }): void
-  INTERNAL_ERROR(payload: { status: number; body: string }): void
-}
-
-export interface ServiceWorkerBroadcastChannelMessageMap {
-  MOCK_RESPONSE_CHUNK(payload: Uint8Array): void
-  MOCK_RESPONSE_END(): void
+  MOCK_RESPONSE: SerializedResponse
+  MOCK_NOT_FOUND: void
+  NETWORK_ERROR: { name: string; message: string }
+  INTERNAL_ERROR: { status: number; body: string }
 }
 
 export type WorkerLifecycleEventsMap = LifeCycleEventsMap<Response>

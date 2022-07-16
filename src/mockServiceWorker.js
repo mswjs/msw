@@ -200,7 +200,7 @@ async function getResponse(event, client, requestId) {
 
   function passthrough() {
     // Clone the request because it might've been already used
-    // (i.e. its body has been read and sent to the cilent).
+    // (i.e. its body has been read and sent to the client).
     const headers = Object.fromEntries(clonedRequest.headers.entries())
 
     // Remove MSW-specific request headers so the bypassed requests
@@ -231,13 +231,6 @@ async function getResponse(event, client, requestId) {
     return passthrough()
   }
 
-  // Create a communication channel scoped to the current request.
-  // This way events can be exchanged outside of the worker's global
-  // "message" event listener (i.e. abstracted into functions).
-  const operationChannel = new BroadcastChannel(
-    `msw-response-stream-${requestId}`,
-  )
-
   // Notify the client that a request has been intercepted.
   const clientMessage = await sendToClient(client, {
     type: 'REQUEST',
@@ -263,10 +256,6 @@ async function getResponse(event, client, requestId) {
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
       return respondWithMock(clientMessage.payload)
-    }
-
-    case 'MOCK_RESPONSE_START': {
-      return respondWithMockStream(operationChannel, clientMessage.payload)
     }
 
     case 'MOCK_NOT_FOUND': {
@@ -329,39 +318,4 @@ function sleep(timeMs) {
 async function respondWithMock(response) {
   await sleep(response.delay)
   return new Response(response.body, response)
-}
-
-function respondWithMockStream(operationChannel, mockResponse) {
-  let streamCtrl
-  const stream = new ReadableStream({
-    start: (controller) => (streamCtrl = controller),
-  })
-
-  return new Promise(async (resolve, reject) => {
-    operationChannel.onmessageerror = (event) => {
-      operationChannel.close()
-      return reject(event.data.error)
-    }
-
-    operationChannel.onmessage = (event) => {
-      if (!event.data) {
-        return
-      }
-
-      switch (event.data.type) {
-        case 'MOCK_RESPONSE_CHUNK': {
-          streamCtrl.enqueue(event.data.payload)
-          break
-        }
-
-        case 'MOCK_RESPONSE_END': {
-          streamCtrl.close()
-          operationChannel.close()
-        }
-      }
-    }
-
-    await sleep(mockResponse.delay)
-    return resolve(new Response(stream, mockResponse))
-  })
 }

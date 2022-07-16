@@ -13,12 +13,11 @@ export interface ServiceWorkerMessage<
 
 export interface WorkerMessageChannel {
   send<Event extends keyof ServiceWorkerFetchEventMap>(
-    message: Parameters<ServiceWorkerFetchEventMap[Event]>[0] extends undefined
-      ? { type: Event }
-      : {
-          type: Event
-          payload: Parameters<ServiceWorkerFetchEventMap[Event]>[0]
-        },
+    message: {
+      type: Event
+      payload: ServiceWorkerFetchEventMap[Event]
+    },
+    transfers?: any[],
   ): void
 }
 
@@ -35,12 +34,12 @@ export function createMessageChannel(
     /**
      * Send a text message to the connected Service Worker.
      */
-    send(message) {
+    send(message, transfers) {
       if (!port) {
         return
       }
 
-      port.postMessage(message)
+      port.postMessage(message, transfers || [])
     },
   }
 }

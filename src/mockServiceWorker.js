@@ -148,7 +148,9 @@ async function handleRequest(event, requestId) {
     ;(async function () {
       const clonedResponse = response.clone()
       const body =
-        clonedResponse.body == null ? null : await clonedResponse.arrayBuffer()
+        clonedResponse.body === null
+          ? undefined
+          : await clonedResponse.arrayBuffer()
       const message = {
         type: 'RESPONSE',
         payload: {

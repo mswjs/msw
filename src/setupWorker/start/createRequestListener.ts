@@ -50,14 +50,21 @@ export const createRequestListener = (
               )
             }
 
-            const responseInstance = new Response(response.body)
+            const responseInstance = new Response(response.body, response)
             const responseBodyBuffer = await responseInstance.arrayBuffer()
+
+            // If the mocked response has no body, keep it that way.
+            // Sending an empty ArrayBuffer to the worker will cause
+            // the worker constructing "new Response(new ArrayBuffer(0))"
+            // which will throw on responses that must have no body (i.e. 204).
+            const responseBody =
+              response.body == null ? null : responseBodyBuffer
 
             messageChannel.postMessage(
               'MOCK_RESPONSE',
               {
                 ...response,
-                body: responseBodyBuffer,
+                body: responseBody,
               },
               [responseBodyBuffer],
             )

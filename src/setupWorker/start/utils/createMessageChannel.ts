@@ -12,9 +12,9 @@ export interface ServiceWorkerMessage<
 }
 
 interface WorkerChannelEventsMap {
-  MOCK_RESPONSE: (data: SerializedResponse<any>, body?: [ArrayBuffer]) => void
-  NOT_FOUND: () => void
-  NETWORK_ERROR: (data: { name: string; message: string }) => void
+  MOCK_RESPONSE: [data: SerializedResponse<any>, body?: [ArrayBuffer]]
+  NOT_FOUND: []
+  NETWORK_ERROR: [data: { name: string; message: string }]
 }
 
 export class WorkerChannel {
@@ -22,7 +22,7 @@ export class WorkerChannel {
 
   public postMessage<Event extends keyof WorkerChannelEventsMap>(
     event: Event,
-    ...rest: Parameters<WorkerChannelEventsMap[Event]>
+    ...rest: WorkerChannelEventsMap[Event]
   ): void {
     const [data, transfer] = rest
     this.port.postMessage({ type: event, data }, { transfer })

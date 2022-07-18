@@ -1,7 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 import { waitFor } from '../../../../support/waitFor'
-import { workerConsoleSpy } from '../../../../support/workerConsole'
 
 test('propagates the exception originating from a handled request', async () => {
   const runtime = await pageWith({
@@ -31,8 +30,7 @@ test('propagates the exception originating from a handled request', async () => 
     )
   })
 
-  //
-  expect(workerConsoleSpy.get('error')).toEqual(
+  expect(runtime.consoleSpy.get('error')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
 [MSW] Uncaught exception in the request handler for "GET ${endpointUrl}":

@@ -231,13 +231,6 @@ async function getResponse(event, client, requestId) {
     return passthrough()
   }
 
-  // Create a communication channel scoped to the current request.
-  // This way events can be exchanged outside of the worker's global
-  // "message" event listener (i.e. abstracted into functions).
-  const operationChannel = new BroadcastChannel(
-    `msw-response-stream-${requestId}`,
-  )
-
   // Notify the client that a request has been intercepted.
   const clientMessage = await sendToClient(client, {
     type: 'REQUEST',
@@ -262,11 +255,7 @@ async function getResponse(event, client, requestId) {
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
-      return respondWithMock(clientMessage.payload)
-    }
-
-    case 'MOCK_RESPONSE_START': {
-      return respondWithMockStream(operationChannel, clientMessage.payload)
+      return respondWithMock(clientMessage.data)
     }
 
     case 'MOCK_NOT_FOUND': {
@@ -274,30 +263,12 @@ async function getResponse(event, client, requestId) {
     }
 
     case 'NETWORK_ERROR': {
-      const { name, message } = clientMessage.payload
+      const { name, message } = clientMessage.data
       const networkError = new Error(message)
       networkError.name = name
 
       // Rejecting a "respondWith" promise emulates a network error.
       throw networkError
-    }
-
-    case 'INTERNAL_ERROR': {
-      const parsedBody = JSON.parse(clientMessage.payload.body)
-
-      console.error(
-        `\
-[MSW] Uncaught exception in the request handler for "%s %s":
-
-${parsedBody.location}
-
-This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/recipes/mocking-error-responses\
-`,
-        request.method,
-        request.url,
-      )
-
-      return respondWithMock(clientMessage.payload)
     }
   }
 
@@ -329,39 +300,4 @@ function sleep(timeMs) {
 async function respondWithMock(response) {
   await sleep(response.delay)
   return new Response(response.body, response)
-}
-
-function respondWithMockStream(operationChannel, mockResponse) {
-  let streamCtrl
-  const stream = new ReadableStream({
-    start: (controller) => (streamCtrl = controller),
-  })
-
-  return new Promise(async (resolve, reject) => {
-    operationChannel.onmessageerror = (event) => {
-      operationChannel.close()
-      return reject(event.data.error)
-    }
-
-    operationChannel.onmessage = (event) => {
-      if (!event.data) {
-        return
-      }
-
-      switch (event.data.type) {
-        case 'MOCK_RESPONSE_CHUNK': {
-          streamCtrl.enqueue(event.data.payload)
-          break
-        }
-
-        case 'MOCK_RESPONSE_END': {
-          streamCtrl.close()
-          operationChannel.close()
-        }
-      }
-    }
-
-    await sleep(mockResponse.delay)
-    return resolve(new Response(stream, mockResponse))
-  })
 }

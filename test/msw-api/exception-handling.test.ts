@@ -16,12 +16,16 @@ test('transforms uncaught exceptions into a 500 response', async () => {
   const runtime = await createRuntime()
 
   const res = await runtime.request('https://api.github.com/users/octocat')
-  const status = res.status()
   const headers = await res.allHeaders()
-  const body = await res.json()
 
-  expect(status).toEqual(500)
+  expect(res.status()).toBe(500)
+  expect(res.statusText()).toBe('Request Handler Error')
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
-  expect(body).toHaveProperty('errorType', 'ReferenceError')
-  expect(body).toHaveProperty('message', 'nonExisting is not defined')
+  expect(await res.json()).toEqual({
+    name: 'ReferenceError',
+    message: 'nonExisting is not defined',
+    stack: expect.stringContaining(
+      'ReferenceError: nonExisting is not defined',
+    ),
+  })
 })

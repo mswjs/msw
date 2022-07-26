@@ -11,8 +11,8 @@
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const activeClientIds = new Set()
 
-self.addEventListener('install', function () {
-  self.skipWaiting()
+self.addEventListener('install', async function () {
+  await self.skipWaiting()
 })
 
 self.addEventListener('activate', function (event) {
@@ -20,7 +20,7 @@ self.addEventListener('activate', function (event) {
 })
 
 self.addEventListener('message', async function (event) {
-  const clientId = event.source.id
+  const { id: clientId } = event.source
 
   if (!clientId || !self.clients) {
     return
@@ -38,14 +38,14 @@ self.addEventListener('message', async function (event) {
 
   switch (event.data) {
     case 'KEEPALIVE_REQUEST': {
-      sendToClient(client, {
+      await sendToClient(client, {
         type: 'KEEPALIVE_RESPONSE',
       })
       break
     }
 
     case 'INTEGRITY_CHECK_REQUEST': {
-      sendToClient(client, {
+      await sendToClient(client, {
         type: 'INTEGRITY_CHECK_RESPONSE',
         payload: INTEGRITY_CHECKSUM,
       })
@@ -55,7 +55,7 @@ self.addEventListener('message', async function (event) {
     case 'MOCK_ACTIVATE': {
       activeClientIds.add(clientId)
 
-      sendToClient(client, {
+      await sendToClient(client, {
         type: 'MOCKING_ENABLED',
         payload: true,
       })
@@ -145,9 +145,9 @@ async function handleRequest(event, requestId) {
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
-    ;(async function () {
+    await (async function () {
       const clonedResponse = response.clone()
-      sendToClient(client, {
+      await sendToClient(client, {
         type: 'RESPONSE',
         payload: {
           requestId,
@@ -156,7 +156,7 @@ async function handleRequest(event, requestId) {
           status: clonedResponse.status,
           statusText: clonedResponse.statusText,
           body:
-            clonedResponse.body === null ? null : await clonedResponse.text(),
+              clonedResponse.body === null ? null : await clonedResponse.text(),
           headers: Object.fromEntries(clonedResponse.headers.entries()),
           redirected: clonedResponse.redirected,
         },

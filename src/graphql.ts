@@ -83,7 +83,7 @@ const standardGraphQLHandlers = {
    * })
    * @see {@link https://mswjs.io/docs/api/graphql/query `graphql.query()`}
    */
-  query: createScopedGraphQLHandler(OperationTypeNode.QUERY, '*'),
+  query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
 
   /**
    * Captures a GraphQL mutation by a given name.
@@ -93,14 +93,14 @@ const standardGraphQLHandlers = {
    * })
    * @see {@link https://mswjs.io/docs/api/graphql/mutation `graphql.mutation()`}
    */
-  mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, '*'),
+  mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
 }
 
 function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
   return {
     operation: createGraphQLOperationHandler(url),
-    query: createScopedGraphQLHandler(OperationTypeNode.QUERY, url),
-    mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, url),
+    query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
+    mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, url),
   }
 }
 

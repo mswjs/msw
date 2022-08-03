@@ -1,4 +1,4 @@
-import { DocumentNode, OperationTypeNode } from 'graphql'
+import type { DocumentNode, OperationTypeNode } from 'graphql'
 import { SerializedResponse } from '../setupWorker/glossary'
 import { data } from '../context/data'
 import { extensions } from '../context/extensions'

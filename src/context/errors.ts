@@ -1,4 +1,4 @@
-import { GraphQLError } from 'graphql'
+import type { GraphQLError } from 'graphql'
 import { ResponseTransformer } from '../response'
 import { jsonParse } from '../utils/internal/jsonParse'
 import { mergeRight } from '../utils/internal/mergeRight'

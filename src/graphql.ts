@@ -1,4 +1,4 @@
-import { DocumentNode, OperationTypeNode } from 'graphql'
+import type { DocumentNode, OperationTypeNode } from 'graphql'
 import { ResponseResolver } from './handlers/RequestHandler'
 import {
   GraphQLHandler,

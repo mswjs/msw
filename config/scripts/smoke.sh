@@ -32,7 +32,7 @@ yarn_version=$(yarn -v)
 
 if [ "$yarn_version" != "1.19.2" ]
 then
-  echo "Faild to install and use Yarn version 1.19.2"
+  echo "Failed to install and use Yarn version 1.19.2"
   echo "Current version is $yarn_version"
   exit 1
 fi

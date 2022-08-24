@@ -18,6 +18,7 @@
     "test": "yarn test:unit && yarn test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
+    "test:concurrency": "jest --config=./test/jest.config.js test/msw-api/setup-server/scenarios/concurrency/process-one.test.ts --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
     "prepare": "yarn simple-git-hooks init",

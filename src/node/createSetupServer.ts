@@ -137,6 +137,10 @@ export function createSetupServer(
         )
       },
 
+      listHandlers() {
+        return currentHandlers
+      },
+
       printHandlers() {
         currentHandlers.forEach((handler) => {
           const { header, callFrame } = handler.info

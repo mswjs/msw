@@ -128,14 +128,14 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.1.0",
     "tsup": "^5.12.8",
-    "typescript": "^4.7.2",
+    "typescript": "^4.8.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
     "webpack-dev-server": "^3.11.2"
   },
   "peerDependencies": {
     "graphql": "^15.0.0 || ^16.0.0",
-    "typescript": ">= 4.2.x <= 4.7.x"
+    "typescript": ">= 4.2.x <= 4.8.x"
   },
   "peerDependenciesMeta": {
     "graphql": {

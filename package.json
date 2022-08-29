@@ -86,7 +86,7 @@
     "path-to-regexp": "^6.2.0",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",
-    "type-fest": "^1.2.2",
+    "type-fest": "^2.19.0",
     "yargs": "^17.3.1"
   },
   "devDependencies": {

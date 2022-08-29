@@ -24,7 +24,9 @@ export interface LifeCycleEventsMap<ResponseType> {
   unhandledException: (error: Error, request: MockedRequest) => void
 }
 
-export type LifeCycleEventEmitter<ResponseType> = Pick<
+export type LifeCycleEventEmitter<
+  ResponseType extends Record<string | symbol, any>,
+> = Pick<
   StrictEventEmitter<ResponseType>,
   'on' | 'removeListener' | 'removeAllListeners'
 >

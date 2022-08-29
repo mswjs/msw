@@ -31,11 +31,11 @@ export type ForbiddenHeaderError<HeaderName extends string> =
 export function set<N extends string | HeadersObject>(
   ...args: N extends string
     ? Lowercase<N> extends ForbiddenHeaderNames
-      ? ForbiddenHeaderError<N>
+      ? [ForbiddenHeaderError<N>]
       : [N, string]
     : N extends HeadersObject<infer CookieName>
     ? Lowercase<CookieName> extends ForbiddenHeaderNames
-      ? ForbiddenHeaderError<CookieName>
+      ? [ForbiddenHeaderError<CookieName>]
       : [N]
     : [N]
 ): ResponseTransformer {

@@ -17,6 +17,7 @@ import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
 import { RequiredDeep } from '../typeUtils'
 import { MockedRequest } from '../utils/request/MockedRequest'
+import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -138,11 +139,13 @@ export function createSetupServer(
       },
 
       listHandlers() {
-        return currentHandlers
+        return toReadonlyArray(currentHandlers)
       },
 
       printHandlers() {
-        currentHandlers.forEach((handler) => {
+        const handlers = this.listHandlers()
+
+        handlers.forEach((handler) => {
           const { header, callFrame } = handler.info
 
           const pragma = handler.info.hasOwnProperty('operationType')

@@ -27,19 +27,49 @@ afterAll(() => {
 
 test('lists all current request handlers', () => {
   const handlers = server.listHandlers()
+  const handlerHeaders = handlers.map((handler) => handler.info.header)
 
-  expect(handlers.length).toEqual(6)
+  expect(handlerHeaders).toEqual([
+    'GET https://test.mswjs.io/book/:bookId',
+    'query GetUser (origin: *)',
+    'mutation UpdatePost (origin: *)',
+    'all (origin: *)',
+    'query GetRepo (origin: https://api.github.com)',
+    'all (origin: https://api.github.com)',
+  ])
 })
 
-test('respects runtime request handlers when listing handlers', () => {
+test('forbids from modifying the list of handlers', () => {
+  const handlers = server.listHandlers()
+
+  expect(() => {
+    // @ts-expect-error Intentional runtime misusage.
+    handlers[0] = 1
+  }).toThrow(/Cannot assign to read only property '\d+' of object/)
+
+  expect(() => {
+    // @ts-expect-error Intentional runtime misusage.
+    handlers.push(1)
+  }).toThrow(/Cannot add property \d+, object is not extensible/)
+})
+
+test('includes runtime request handlers when listing handlers', () => {
   server.use(
     rest.get('https://test.mswjs.io/book/:bookId', resolver),
     graphql.query('GetRandomNumber', resolver),
   )
 
   const handlers = server.listHandlers()
+  const handlerHeaders = handlers.map((handler) => handler.info.header)
 
-  // Runtime handlers are prepended to the list of handlers
-  // and they DON'T remove the handlers they may override.
-  expect(handlers.length).toEqual(8)
+  expect(handlerHeaders).toEqual([
+    'GET https://test.mswjs.io/book/:bookId',
+    'query GetRandomNumber (origin: *)',
+    'GET https://test.mswjs.io/book/:bookId',
+    'query GetUser (origin: *)',
+    'mutation UpdatePost (origin: *)',
+    'all (origin: *)',
+    'query GetRepo (origin: https://api.github.com)',
+    'all (origin: https://api.github.com)',
+  ])
 })

@@ -10,7 +10,10 @@ import {
 
 // This is an example of a custom request handler that matches requests
 // based on the presence of a given header.
-class HeaderHandler extends RequestHandler<{ headerName: string }> {
+class HeaderHandler extends RequestHandler<{
+  header: string
+  headerName: string
+}> {
   constructor(headerName: string, resolver: ResponseResolver) {
     super({
       info: {
@@ -36,7 +39,7 @@ interface CustomContext {
   halJson: (body: Record<string, any>) => ResponseTransformer
 }
 
-class UrlHandler extends RequestHandler<{ url: string }> {
+class UrlHandler extends RequestHandler<{ header: string; url: string }> {
   constructor(
     url: string,
     resolver: ResponseResolver<MockedRequest, CustomContext>,

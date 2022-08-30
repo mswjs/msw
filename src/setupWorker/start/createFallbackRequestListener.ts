@@ -25,7 +25,10 @@ export function createFallbackRequestListener(
   })
 
   interceptor.on('request', async (request) => {
-    const mockedRequest = new MockedRequest(request)
+    const mockedRequest = new MockedRequest(request.url, {
+      ...request,
+      body: await request.arrayBuffer(),
+    })
 
     const response = await handleRequest<SerializedResponse>(
       mockedRequest,

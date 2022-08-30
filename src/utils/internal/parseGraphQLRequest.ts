@@ -1,8 +1,7 @@
-import {
+import type {
   DocumentNode,
   OperationDefinitionNode,
   OperationTypeNode,
-  parse,
 } from 'graphql'
 import { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
@@ -41,6 +40,9 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
 
 function parseQuery(query: string): ParsedGraphQLQuery | Error {
   try {
+    // Since 'graphql' is an optional peer dependency,
+    // we'll attempt to import it dynamically
+    const { parse } = require('graphql')
     const ast = parse(query)
     return parseDocumentNode(ast)
   } catch (error) {

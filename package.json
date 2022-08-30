@@ -86,7 +86,7 @@
     "path-to-regexp": "^6.2.0",
     "statuses": "^2.0.0",
     "strict-event-emitter": "^0.2.0",
-    "type-fest": "^1.2.2",
+    "type-fest": "^2.19.0",
     "yargs": "^17.3.1"
   },
   "devDependencies": {
@@ -128,14 +128,14 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.1.0",
     "tsup": "^5.12.8",
-    "typescript": "^4.7.2",
+    "typescript": "^4.8.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
     "webpack-dev-server": "^3.11.2"
   },
   "peerDependencies": {
     "graphql": "^15.0.0 || ^16.0.0",
-    "typescript": ">= 4.2.x <= 4.7.x"
+    "typescript": ">= 4.2.x <= 4.8.x"
   },
   "peerDependenciesMeta": {
     "graphql": {

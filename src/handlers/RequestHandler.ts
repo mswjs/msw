@@ -73,7 +73,7 @@ export type AsyncResponseResolverReturnType<ReturnType> =
 export type ResponseResolver<
   RequestType = MockedRequest,
   ContextType = typeof defaultContext,
-  BodyType = any,
+  BodyType extends DefaultBodyType = any,
 > = (
   req: RequestType,
   res: ResponseComposition<BodyType>,

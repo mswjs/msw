@@ -138,9 +138,6 @@
     "typescript": ">= 4.2.x <= 4.8.x"
   },
   "peerDependenciesMeta": {
-    "graphql": {
-      "optional": true
-    },
     "typescript": {
       "optional": true
     }

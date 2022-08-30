@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { rest, graphql } from 'msw'
 import { setupServer } from 'msw/node'
 

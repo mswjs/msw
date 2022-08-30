@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { ExecutionResult, buildSchema, graphql } from 'graphql'
+import type { ExecutionResult } from 'graphql'
+import { buildSchema, graphql } from 'graphql'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { SetupWorkerApi } from 'msw'
 import { gql } from '../support/graphql'

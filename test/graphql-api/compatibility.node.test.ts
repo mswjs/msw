@@ -1,6 +1,5 @@
 import fetch from 'cross-fetch'
-import { graphql as executeGraphql } from 'graphql'
-import { buildSchema } from 'graphql/utilities'
+import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../support/graphql'

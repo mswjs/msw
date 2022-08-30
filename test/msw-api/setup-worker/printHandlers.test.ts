@@ -49,7 +49,7 @@ test('lists rest request handlers', async () => {
   ])
 })
 
-test('respects runtime request handlers', async () => {
+test('includes runtime request handlers', async () => {
   const { page, consoleSpy } = await createRuntime()
 
   await page.evaluate(() => {

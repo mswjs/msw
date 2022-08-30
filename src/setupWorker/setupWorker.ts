@@ -17,6 +17,7 @@ import { createFallbackStart } from './start/createFallbackStart'
 import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
+import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 
 interface Listener {
   target: EventTarget
@@ -190,8 +191,14 @@ export function setupWorker(
       )
     },
 
+    listHandlers() {
+      return toReadonlyArray(context.requestHandlers)
+    },
+
     printHandlers() {
-      context.requestHandlers.forEach((handler) => {
+      const handlers = this.listHandlers()
+
+      handlers.forEach((handler) => {
         const { header, callFrame } = handler.info
         const pragma = handler.info.hasOwnProperty('operationType')
           ? '[graphql]'

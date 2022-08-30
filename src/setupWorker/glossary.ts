@@ -6,10 +6,15 @@ import {
   SharedOptions,
 } from '../sharedOptions'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
-import { DefaultBodyType, RequestHandler } from '../handlers/RequestHandler'
+import {
+  DefaultBodyType,
+  RequestHandler,
+  RequestHandlerDefaultInfo,
+} from '../handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { Path } from '../utils/matching/matchRequestUrl'
 import { RequiredDeep } from '../typeUtils'
+import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ResolvedPath = Path | URL
 
@@ -236,6 +241,19 @@ export interface SetupWorkerApi {
    * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()`}
    */
   resetHandlers: (...nextHandlers: RequestHandler[]) => void
+
+  /**
+   * Returns a readonly list of currently active request handlers.
+   * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()`}
+   */
+  listHandlers(): ReadonlyArray<
+    RequestHandler<
+      RequestHandlerDefaultInfo,
+      MockedRequest<DefaultBodyType>,
+      any,
+      MockedRequest<DefaultBodyType>
+    >
+  >
 
   /**
    * Lists all active request handlers.

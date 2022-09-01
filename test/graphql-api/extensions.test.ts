@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { ExecutionResult } from 'graphql'
+import type { ExecutionResult } from 'graphql'
 import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
 import { gql } from '../support/graphql'
 

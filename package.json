@@ -6,7 +6,6 @@
   "types": "./lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
-    "./iife": "./lib/iife/index.js",
     "./native": "./lib/native/index.js",
     "./node": {
       "import": "./lib/node/index.mjs",

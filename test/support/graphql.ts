@@ -1,4 +1,4 @@
-import { ExecutionResult } from 'graphql'
+import type { ExecutionResult } from 'graphql'
 
 /**
  * Identity function that returns a given template string array.

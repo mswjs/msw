@@ -4,6 +4,15 @@
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./iife": "./lib/iife/index.js",
+    "./native": "./lib/native/index.js",
+    "./node": {
+      "import": "./lib/node/index.mjs",
+      "require": "./lib/node/index.js"
+    }
+  },
   "bin": {
     "msw": "cli/index.js"
   },

@@ -8,7 +8,9 @@
     ".": {
       "default": "./lib/index.js"
     },
-    "./native": "./lib/native/index.js",
+    "./native": {
+      "default": "./lib/native/index.js"
+    },
     "./node": {
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"

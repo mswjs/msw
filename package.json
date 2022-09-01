@@ -5,11 +5,13 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "exports": {
-    ".": "./lib/index.js",
+    ".": {
+      "default": "./lib/index.js"
+    },
     "./native": "./lib/native/index.js",
     "./node": {
-      "import": "./lib/node/index.mjs",
-      "require": "./lib/node/index.js"
+      "require": "./lib/node/index.js",
+      "default": "./lib/node/index.mjs"
     }
   },
   "bin": {

@@ -37,15 +37,6 @@ export interface HandleRequestOptions<ResponseType> {
     response: ResponseType,
     handler: RequiredDeep<ResponseLookupResult>,
   ): void
-
-  /**
-   * Invoked when the mocked response is sent.
-   * Respects the response delay duration.
-   */
-  onMockedResponseSent?(
-    response: ResponseType,
-    handler: RequiredDeep<ResponseLookupResult>,
-  ): void
 }
 
 export async function handleRequest<
@@ -138,10 +129,6 @@ Expected response resolver to return a mocked response Object, but got %s. The o
     requiredLookupResult,
   )
 
-  handleRequestOptions?.onMockedResponseSent?.(
-    transformedResponse,
-    requiredLookupResult,
-  )
   emitter.emit('request:end', request)
 
   return transformedResponse

@@ -38,8 +38,11 @@
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {
-    "*.ts": [
-      "eslint"
+    "**/*.ts": [
+      "eslint --fix"
+    ],
+    "**/*.{ts,json}": [
+      "prettier --write"
     ]
   },
   "homepage": "https://mswjs.io",

@@ -13,6 +13,7 @@ export interface WebpackHttpServerOptions {
 
 export type CompilationResult = {
   id: string
+  previewUrl: string
   stats: webpack.Stats
 }
 
@@ -63,33 +64,35 @@ export class WebpackHttpServer {
       }
 
       const result = await this.compile(entries)
-      const previewUrl = new URL(`/compilation/${result.id}`, this.serverUrl)
 
       return res.json({
-        previewUrl: previewUrl.href,
+        previewUrl: result.previewUrl,
       })
     })
   }
 
-  private get serverUrl(): string {
+  public get serverUrl(): string {
+    invariant(
+      this.server,
+      'Cannot retrieve server address: server is not running',
+    )
     const address = this.server.address()
 
     if (typeof address === 'string') {
       return address
     }
 
-    return `http://localhost:${address.port}`
+    return `http://127.0.0.1:${address.port}`
   }
 
   public async listen(): Promise<void> {
-    this.server = this.app.listen(8044, 'localhost', () => {
-      console.log('webpack http server running at "%s"', this.serverUrl)
+    return new Promise((resolve) => {
+      this.server = this.app.listen(8044, '127.0.0.1', resolve)
     })
   }
 
   public async close(): Promise<void> {
     this.compilations.clear()
-    this.fs.reset()
 
     invariant(this.server, 'Failed to close server: no server running')
 
@@ -103,7 +106,7 @@ export class WebpackHttpServer {
     })
   }
 
-  private async compile(entries: Array<string>): Promise<CompilationResult> {
+  public async compile(entries: Array<string>): Promise<CompilationResult> {
     const compilationId = crypto.createHash('md5').digest('hex')
 
     const config: webpack.Configuration = {
@@ -126,14 +129,19 @@ export class WebpackHttpServer {
     return new Promise((resolve) => {
       compiler.watch({ poll: 1000 }, (error, stats) => {
         if (error || stats.hasErrors()) {
-          console.log('Compiled with errors')
+          console.error('Compiled with errors:', error || stats.toJson().errors)
           return
         }
 
         this.handleIncrementalBuild(compilationId, stats)
+        const previewUrl = new URL(
+          `/compilation/${compilationId}`,
+          this.serverUrl,
+        ).href
 
         resolve({
           id: compilationId,
+          previewUrl,
           stats,
         })
       })
@@ -213,48 +221,3 @@ function useMemoryFs(
       .on('end', () => res.end())
   }
 }
-
-/**
- * Usage.
- */
-import * as fs from 'fs'
-import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript'
-
-const { SERVICE_WORKER_BUILD_PATH } = require('../../config/constants.js')
-
-const server = new WebpackHttpServer({
-  before(app) {
-    app.get('/mockServiceWorker.js', (req, res) => {
-      const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
-      res.set('Content-Type', 'application/javascript; charset=utf8')
-      res.set('Content-Encoding', 'chunked')
-      readable.pipe(res)
-    })
-  },
-  webpackConfig: {
-    module: {
-      rules: [
-        {
-          test: /\.tsx?$/,
-          use: [
-            {
-              loader: 'ts-loader',
-              options: {
-                configFile: path.resolve(__dirname, '../..', 'tsconfig.json'),
-                transpileOnly: true,
-              },
-            },
-          ],
-        },
-      ],
-    },
-    resolve: {
-      alias: {
-        msw: path.resolve(__dirname, '../..'),
-      },
-      extensions: ['.ts', '.js'],
-    },
-  },
-})
-
-server.listen()

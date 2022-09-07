@@ -1,13 +1,10 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-test('mocks response to a basic GET request', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'basic.mocks.ts'),
-  })
+test('mocks response to a GET request', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./basic.mocks.ts'))
 
-  const res = await runtime.request('https://api.github.com/users/octocat')
-  const headers = await res.allHeaders()
+  const res = await fetch('https://api.github.com/users/octocat')
+  const headers = res.headers()
   const body = await res.json()
 
   expect(res.status()).toBe(200)

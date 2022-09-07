@@ -1,12 +1,9 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-test('parses request URL parameters', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'params.mocks.ts'),
-  })
+test('parses request URL parameters', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./params.mocks.ts'))
 
-  const res = await runtime.request(
+  const res = await fetch(
     'https://api.github.com/users/octocat/messages/abc-123',
   )
   const status = res.status()

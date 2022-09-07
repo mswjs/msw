@@ -146,7 +146,8 @@
     "typescript": "^4.8.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^3.11.2",
+    "webpack-http-server": "^0.1.0"
   },
   "peerDependencies": {
     "typescript": ">= 4.2.x <= 4.8.x"

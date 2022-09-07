@@ -1,7 +1,7 @@
 import { HttpServer } from '@open-draft/test-server/http'
 import * as fs from 'fs'
 import * as path from 'path'
-import { WebpackHttpServer } from './support/WebpackHttpServer'
+import { WebpackHttpServer } from 'webpack-http-server'
 
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants.js')
 

@@ -9,9 +9,11 @@
       "default": "./lib/index.js"
     },
     "./native": {
+      "types": "./lib/native/index.d.ts",
       "default": "./lib/native/index.js"
     },
     "./node": {
+      "types": "./lib/node/index.d.ts",
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
     }

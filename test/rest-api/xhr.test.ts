@@ -1,20 +1,17 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-test('mocks a response to an XMLHttpRequest', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'xhr.mocks.ts'),
-  })
+test('mocks a response to an XMLHttpRequest', async ({ loadExample, page }) => {
+  await loadExample(require.resolve('./xhr.mocks.ts'))
 
   const REQUEST_URL = 'https://api.github.com/users/octocat'
 
-  runtime.page.evaluate((url) => {
+  page.evaluate((url) => {
     const req = new XMLHttpRequest()
     req.open('GET', url)
     req.send()
   }, REQUEST_URL)
 
-  const res = await runtime.page.waitForResponse(REQUEST_URL)
+  const res = await page.waitForResponse(REQUEST_URL)
   const body = await res.json()
 
   expect(res.status()).toBe(200)

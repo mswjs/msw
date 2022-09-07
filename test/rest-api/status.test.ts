@@ -1,14 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-function prepareRuntime() {
-  return pageWith({ example: path.resolve(__dirname, 'status.mocks.ts') })
-}
+const EXAMPLE_PATH = require.resolve('./status.mocks.ts')
 
-test('sets given status code on the mocked response', async () => {
-  const runtime = await prepareRuntime()
+test('sets given status code on the mocked response', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request('/posts')
+  const res = await fetch('/posts')
   const status = res.status()
   const statusText = res.statusText()
 
@@ -16,10 +16,13 @@ test('sets given status code on the mocked response', async () => {
   expect(statusText).toBe('Forbidden')
 })
 
-test('supports custom status text on the mocked response', async () => {
-  const runtime = await prepareRuntime()
+test('supports custom status text on the mocked response', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request('/user')
+  const res = await fetch('/user')
   const status = res.status()
   const statusText = res.statusText()
 

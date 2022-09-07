@@ -1,12 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-test('composes various context utilities into a valid mocked response', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'context.mocks.ts'),
-  })
+test('composes various context utilities into a valid mocked response', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./context.mocks.ts'))
 
-  const res = await runtime.request('https://test.mswjs.io/')
+  const res = await fetch('https://test.mswjs.io/')
   const headers = await res.allHeaders()
   const body = await res.json()
 

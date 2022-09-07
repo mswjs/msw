@@ -32,7 +32,7 @@
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
-    "test:new": "playwright test test/rest-api/basic.test.ts test/rest-api/params.test.ts -c ./test/playwright.config.ts",
+    "test:new": "playwright test -c ./test/playwright.config.ts",
     "wb": "ts-node test/support/WebpackHttpServer.ts",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",

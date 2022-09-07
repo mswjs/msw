@@ -1,11 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-test('supports redirect in a mocked response', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'redirect.mocks.ts'),
-  })
-  const res = await runtime.request('/login')
+test('supports redirect in a mocked response', async ({
+  loadExample,
+  fetch,
+  makeUrl,
+  page,
+}) => {
+  await loadExample(require.resolve('./redirect.mocks.ts'))
+
+  const res = await fetch('/login')
   const headers = await res.allHeaders()
 
   // Assert the original response returns redirect.
@@ -13,9 +16,7 @@ test('supports redirect in a mocked response', async () => {
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(res.status()).toBe(307)
 
-  const redirectRes = await runtime.page.waitForResponse(
-    runtime.makeUrl('/user'),
-  )
+  const redirectRes = await page.waitForResponse(makeUrl('/user'))
   const redirectStatus = redirectRes.status()
   const redirectHeaders = await redirectRes.allHeaders()
   const redirectBody = await redirectRes.json()

@@ -1,18 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'query.mocks.ts'),
-  })
-}
+const EXAMPLE_PATH = require.resolve('./query.mocks.ts')
 
-test('retrieves a single request URL query parameter', async () => {
-  const runtime = await createRuntime()
+test('retrieves a single request URL query parameter', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request(
-    'https://test.mswjs.io/api/books?id=abc-123',
-  )
+  const res = await fetch('https://test.mswjs.io/api/books?id=abc-123')
   const status = res.status()
   const headers = await res.allHeaders()
   const body = await res.json()
@@ -24,15 +20,15 @@ test('retrieves a single request URL query parameter', async () => {
   })
 })
 
-test('retrieves multiple request URL query parameters', async () => {
-  const runtime = await createRuntime()
+test('retrieves multiple request URL query parameters', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request(
-    'https://test.mswjs.io/products?id=1&id=2&id=3',
-    {
-      method: 'POST',
-    },
-  )
+  const res = await fetch('https://test.mswjs.io/products?id=1&id=2&id=3', {
+    method: 'POST',
+  })
   const status = res.status()
   const headers = await res.allHeaders()
   const body = await res.json()

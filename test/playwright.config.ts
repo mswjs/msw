@@ -2,6 +2,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   workers: 1,
+  timeout: 10000,
   globalSetup: require.resolve('./playwright.setup.ts'),
   forbidOnly: !!process.env.CI,
   projects: [

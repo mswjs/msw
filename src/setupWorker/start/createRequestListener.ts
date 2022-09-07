@@ -11,10 +11,10 @@ import {
 import { NetworkError } from '../../utils/NetworkError'
 import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
 import { handleRequest } from '../../utils/handleRequest'
-import { RequestHandler } from '../../handlers/RequestHandler'
 import { RequiredDeep } from '../../typeUtils'
 import { MockedResponse } from '../../response'
 import { devUtils } from '../../utils/internal/devUtils'
+import { serializeResponse } from '../../utils/logging/serializeResponse'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -41,7 +41,10 @@ export const createRequestListener = (
           onPassthroughResponse() {
             messageChannel.postMessage('NOT_FOUND')
           },
-          async onMockedResponse(response) {
+          async onMockedResponse(
+            response,
+            { handler, publicRequest, parsedRequest },
+          ) {
             if (response.body instanceof ReadableStream) {
               throw new Error(
                 devUtils.formatMessage(
@@ -54,7 +57,7 @@ export const createRequestListener = (
             const responseBodyBuffer = await responseInstance.arrayBuffer()
 
             // If the mocked response has no body, keep it that way.
-            // Sending an empty ArrayBuffer to the worker will cause
+            // Sending an empty "ArrayBuffer" to the worker will cause
             // the worker constructing "new Response(new ArrayBuffer(0))"
             // which will throw on responses that must have no body (i.e. 204).
             const responseBody =
@@ -68,21 +71,16 @@ export const createRequestListener = (
               },
               [responseBodyBuffer],
             )
-          },
-          onMockedResponseSent(
-            response,
-            { handler, publicRequest, parsedRequest },
-          ) {
-            if (options.quiet) {
-              return
-            }
 
-            handler.log(
-              publicRequest,
-              response,
-              handler as RequestHandler,
-              parsedRequest,
-            )
+            if (!options.quiet) {
+              context.emitter.once('response:mocked', (response) => {
+                handler.log(
+                  publicRequest,
+                  serializeResponse(response),
+                  parsedRequest,
+                )
+              })
+            }
           },
         },
       )

@@ -5,7 +5,6 @@ import {
 } from '@mswjs/interceptors'
 import { FetchInterceptor } from '@mswjs/interceptors/lib/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
-import type { RequestHandler } from '../../handlers/RequestHandler'
 import {
   SerializedResponse,
   SetupWorkerInternalContext,
@@ -14,6 +13,8 @@ import {
 import type { RequiredDeep } from '../../typeUtils'
 import { handleRequest } from '../../utils/handleRequest'
 import { MockedRequest } from '../../utils/request/MockedRequest'
+import { serializeResponse } from '../../utils/logging/serializeResponse'
+import { createResponseFromIsomorphicResponse } from '../../utils/request/createResponseFromIsomorphicResponse'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
@@ -45,17 +46,15 @@ export function createFallbackRequestListener(
             delay: response.delay,
           }
         },
-        onMockedResponseSent(
-          response,
-          { handler, publicRequest, parsedRequest },
-        ) {
+        onMockedResponse(_, { handler, publicRequest, parsedRequest }) {
           if (!options.quiet) {
-            handler.log(
-              publicRequest,
-              response,
-              handler as RequestHandler,
-              parsedRequest,
-            )
+            context.emitter.once('response:mocked', (response) => {
+              handler.log(
+                publicRequest,
+                serializeResponse(response),
+                parsedRequest,
+              )
+            })
           }
         },
       },
@@ -63,6 +62,20 @@ export function createFallbackRequestListener(
 
     if (response) {
       request.respondWith(response)
+    }
+  })
+
+  interceptor.on('response', (request, response) => {
+    if (!request.id) {
+      return
+    }
+
+    const browserResponse = createResponseFromIsomorphicResponse(response)
+
+    if (response.headers.get('x-powered-by') === 'msw') {
+      context.emitter.emit('response:mocked', browserResponse, request.id)
+    } else {
+      context.emitter.emit('response:bypass', browserResponse, request.id)
     }
   })
 

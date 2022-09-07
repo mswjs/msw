@@ -140,7 +140,6 @@ export abstract class RequestHandler<
   abstract log(
     request: Request,
     response: SerializedResponse<any>,
-    handler: this,
     parsedResult: ParsedResult,
   ): void
 

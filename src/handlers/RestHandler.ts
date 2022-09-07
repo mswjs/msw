@@ -1,5 +1,5 @@
 import { body, cookie, json, text, xml } from '../context'
-import { SerializedResponse } from '../setupWorker/glossary'
+import type { SerializedResponse } from '../setupWorker/glossary'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
@@ -174,7 +174,7 @@ export class RestHandler<
     return matchesMethod && parsedResult.matches
   }
 
-  log(request: RequestType, response: SerializedResponse) {
+  log(request: RequestType, response: SerializedResponse<any>) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)
@@ -190,10 +190,7 @@ export class RestHandler<
       'color:inherit',
     )
     console.log('Request', loggedRequest)
-    console.log('Handler:', {
-      mask: this.info.path,
-      resolver: this.resolver,
-    })
+    console.log('Handler:', this)
     console.log('Response', loggedResponse)
     console.groupEnd()
   }

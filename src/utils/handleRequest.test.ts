@@ -26,7 +26,6 @@ const options: RequiredDeep<SharedOptions> = {
 const callbacks: Partial<Record<keyof HandleRequestOptions<any>, any>> = {
   onPassthroughResponse: jest.fn(),
   onMockedResponse: jest.fn(),
-  onMockedResponseSent: jest.fn(),
 }
 
 beforeEach(() => {
@@ -67,7 +66,6 @@ test('returns undefined for a request with the "x-msw-bypass" header equal to "t
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })
 
 test('does not bypass a request with "x-msw-bypass" header set to arbitrary value', async () => {
@@ -93,7 +91,6 @@ test('does not bypass a request with "x-msw-bypass" header set to arbitrary valu
   expect(result).not.toBeUndefined()
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
-  expect(callbacks.onMockedResponseSent).toHaveBeenCalledTimes(1)
 })
 
 test('reports request as unhandled when it has no matching request handlers', async () => {
@@ -120,7 +117,6 @@ test('reports request as unhandled when it has no matching request handlers', as
   })
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })
 
 test('returns undefined and warns on a request handler that returns no response', async () => {
@@ -148,7 +144,6 @@ test('returns undefined and warns on a request handler that returns no response'
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 
   expect(console.warn).toHaveBeenCalledTimes(1)
   const warning = (console.warn as unknown as jest.SpyInstance).mock.calls[0][0]
@@ -195,11 +190,6 @@ test('returns the mocked response for a request with a matching request handler'
     mockedResponse,
     lookupResult,
   )
-  expect(callbacks.onMockedResponseSent).toHaveBeenNthCalledWith(
-    1,
-    mockedResponse,
-    lookupResult,
-  )
 })
 
 test('returns a transformed response if the "transformResponse" option is provided', async () => {
@@ -239,11 +229,6 @@ test('returns a transformed response if the "transformResponse" option is provid
     finalResponse,
     lookupResult,
   )
-  expect(callbacks.onMockedResponseSent).toHaveBeenNthCalledWith(
-    1,
-    finalResponse,
-    lookupResult,
-  )
 })
 
 it('returns undefined without warning on a passthrough request', async () => {
@@ -270,5 +255,4 @@ it('returns undefined without warning on a passthrough request', async () => {
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponseSent).not.toHaveBeenCalled()
 })

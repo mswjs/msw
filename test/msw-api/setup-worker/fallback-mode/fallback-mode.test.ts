@@ -3,6 +3,7 @@ import { SetupWorkerApi } from 'msw'
 import { createTeardown } from 'fs-teardown'
 import { Page, pageWith, Response, ScenarioApi } from 'page-with'
 import { fromTemp } from '../../../support/utils'
+import { waitFor } from '../../../support/waitFor'
 
 let runtime: ScenarioApi
 
@@ -83,13 +84,15 @@ test('responds with a mocked response to a handled request', async () => {
   const response = await request('https://api.github.com/users/octocat')
 
   // Prints the request message group in the console.
-  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
-    expect.arrayContaining([
-      expect.stringMatching(
-        /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK/,
-      ),
-    ]),
-  )
+  await waitFor(() => {
+    expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK/,
+        ),
+      ]),
+    )
+  })
 
   // Responds with a mocked response.
   expect(response.status).toEqual(200)

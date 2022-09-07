@@ -197,8 +197,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
 
   log(
     request: Request,
-    response: SerializedResponse,
-    handler: this,
+    response: SerializedResponse<any>,
     parsedRequest: ParsedGraphQLRequest,
   ) {
     const loggedRequest = prepareRequest(request)

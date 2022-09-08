@@ -35,6 +35,8 @@
 
 ## Documentation
 
+This README will give you a brief overview on the library but there's no better place to start with Mock Service Worker than its official documentation.
+
 - [Documentation](https://mswjs.io/docs)
 - [**Getting started**](https://mswjs.io/docs/getting-started/install)
 - [Recipes](https://mswjs.io/docs/recipes)
@@ -110,84 +112,77 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 ### Usage example
 
-Here's an example of an actual integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+Take a look at the example of an integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
 
 ```js
-// test/LoginForm.test.js
-import '@testing-library/jest-dom'
+// test/Dashboard.test.js
+
 import React from 'react'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import Login from '../src/components/Login'
+import { render, screen, waitFor } from '@testing-library/react'
+import Dashboard from '../src/components/Dashboard'
 
 const server = setupServer(
-  rest.post('/login', (req, res, ctx) => {
-    // Respond with a mocked user token that gets persisted
-    // in the `sessionStorage` by the `Login` component.
-    return res(ctx.json({ token: 'mocked_user_token' }))
+  // Describe network behavior with request handlers.
+  // Tip: move the handlers into their own module and
+  // import it across your browser and Node.js setups!
+  rest.get('/posts', (req, res, ctx) => {
+    return res(
+      ctx.json([
+        {
+          id: 'f8dd058f-9006-4174-8d49-e3086bc39c21',
+          title: `Avoid Nesting When You're Testing`,
+        },
+        {
+          id: '8ac96078-6434-4959-80ed-cc834e7fef61',
+          title: `How I Built A Modern Website In 2021`,
+        },
+      ]),
+    )
   }),
 )
 
-// Enable API mocking before tests.
+// Enable request interception.
 beforeAll(() => server.listen())
 
-// Reset any runtime request handlers we may add during the tests.
+// Reset handlers so that each test could alter them
+// without affecting other, unrelated tests.
 afterEach(() => server.resetHandlers())
 
-// Disable API mocking after the tests are done.
+// Don't forget to clean up afterwards.
 afterAll(() => server.close())
 
-test('allows the user to log in', async () => {
-  render(<Login />)
-  userEvent.type(
-    screen.getByRole('textbox', { name: /username/i }),
-    'john.maverick',
-  )
-  userEvent.type(
-    screen.getByRole('textbox', { name: /password/i }),
-    'super-secret',
-  )
-  userEvent.click(screen.getByText(/submit/i))
-  const alert = await screen.findByRole('alert')
+it('displays the list of recent posts', async () => {
+  render(<Dashboard />)
 
-  // Assert successful login state
-  expect(alert).toHaveTextContent(/welcome/i)
-  expect(window.sessionStorage.getItem('token')).toEqual(fakeUserResponse.token)
-})
+  // 🕗 Wait for the posts request to be finished.
+  await waitFor(() => {
+    expect(
+      screen.getByLabelText('Fetching latest posts...'),
+    ).not.toBeInTheDocument()
+  })
 
-test('handles login exception', () => {
-  server.use(
-    rest.post('/login', (req, res, ctx) => {
-      // Respond with "500 Internal Server Error" status for this test.
-      return res(
-        ctx.status(500),
-        ctx.json({ message: 'Internal Server Error' }),
-      )
-    }),
-  )
+  // ✅ Assert that the correct posts have loaded.
+  expect(
+    screen.getByRole('link', { name: /Avoid Nesting When You're Testing/ }),
+  ).toBeVisible()
 
-  render(<Login />)
-  userEvent.type(
-    screen.getByRole('textbox', { name: /username/i }),
-    'john.maverick',
-  )
-  userEvent.type(
-    screen.getByRole('textbox', { name: /password/i }),
-    'super-secret',
-  )
-  userEvent.click(screen.getByText(/submit/i))
-
-  // Assert meaningful error message shown to the user
-  expect(alert).toHaveTextContent(/sorry, something went wrong/i)
-  expect(window.sessionStorage.getItem('token')).toBeNull()
+  expect(
+    screen.getByRole('link', { name: /How I Built A Modern Website In 2021/ }),
+  ).toBeVisible()
 })
 ```
 
-> **Tip:** Did you know that although the API is called `setupServer`, there are no actual servers involved? The name is chosen for familiarity, and the API is designed to resemble operating with an actual server.
+> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started/install) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
+
+Despite the API being called `setupServer`, there are no actual servers involved! The name was chosen for familiarity, and the API was designed to resemble operating with an actual server.
 
 ## Sponsors
+
+Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon and countless others. Despite that, this library remains a hobby project maintained in spare time and having no opportunity to financially support even a single full-time contributor.
+
+**You can change that!** Consider [sponsoring the effort](https://github.com/sponsors/mswjs) behind one of the most innovative approaches around API mocking. Raise a topic of open source sponsorships with your boss and colleagues. Let's build sustainable open source together!
 
 ### Golden Sponsors
 
@@ -223,6 +218,8 @@ test('handles login exception', () => {
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
 
 ## Awards & Mentions
+
+We've been extremely humbled to receive awards and mentions from the community for all the innovation and reach Mock Service Worker brings in the JavaScript ecosystem.
 
 <table>
   <tr valign="middle">

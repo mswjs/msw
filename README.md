@@ -64,7 +64,7 @@ In-browser usage is what sets Mock Service Worker apart from other tools. Utiliz
 - This library intercepts requests on the network level, which means _after_ they have been performed and "left" your application. As a result, the entirety of your code runs, giving you more confidence when mocking;
 - Imagine your application as a box. Every API mocking library out there opens your box and removes the part that does the request, placing a blackbox in its stead. Mock Service Worker leaves your box intact, 1-1 as it is in production. Instead, MSW lives in a separate box next to yours;
 - No more stubbing of `fetch`, `axios`, `react-query`, you-name-it;
-- You can reuse the same mock definition for unit, integration, and E2E testing. Did we mention local development and debugging? Yep. All running against the same network description without the need for adapters of bloated configurations.
+- You can reuse the same mock definition for the unit, integration, and E2E testing. Did we mention local development and debugging? Yep. All running against the same network description without the need for adapters of bloated configurations.
 
 ### Usage example
 
@@ -180,7 +180,7 @@ Despite the API being called `setupServer`, there are no actual servers involved
 
 ## Sponsors
 
-Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon and countless others. Despite that, this library remains a hobby project maintained in spare time and having no opportunity to financially support even a single full-time contributor.
+Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon, and countless others. Despite that, this library remains a hobby project maintained in spare time and has no opportunity to financially support even a single full-time contributor.
 
 **You can change that!** Consider [sponsoring the effort](https://github.com/sponsors/mswjs) behind one of the most innovative approaches around API mocking. Raise a topic of open source sponsorships with your boss and colleagues. Let's build sustainable open source together!
 
@@ -219,7 +219,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 ## Awards & Mentions
 
-We've been extremely humbled to receive awards and mentions from the community for all the innovation and reach Mock Service Worker brings in the JavaScript ecosystem.
+We've been extremely humbled to receive awards and mentions from the community for all the innovation and reach Mock Service Worker brings to the JavaScript ecosystem.
 
 <table>
   <tr valign="middle">

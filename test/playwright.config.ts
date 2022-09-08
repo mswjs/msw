@@ -5,6 +5,12 @@ const config: PlaywrightTestConfig = {
   timeout: 10000,
   globalSetup: require.resolve('./playwright.setup.ts'),
   forbidOnly: !!process.env.CI,
+  testIgnore: /\.node\.test/,
+  use: {
+    launchOptions: {
+      devtools: !process.env.CI,
+    },
+  },
   projects: [
     {
       name: 'chromium',

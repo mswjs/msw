@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import fetch from 'node-fetch'
 import FormDataPolyfill from 'form-data'
 import { rest } from 'msw'

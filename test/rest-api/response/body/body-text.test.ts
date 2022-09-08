@@ -1,16 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('responds with a text response body', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'body-text.mocks.ts'),
-  })
+test('responds with a text response body', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./body-text.mocks.ts'))
 
-  const res = await runtime.request('/text')
-
+  const res = await fetch('/text')
   const headers = await res.allHeaders()
-  expect(headers).toHaveProperty('content-type', 'text/plain')
-
   const text = await res.text()
+
+  expect(headers).toHaveProperty('content-type', 'text/plain')
   expect(text).toBe('hello world')
 })

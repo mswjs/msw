@@ -2,20 +2,21 @@
  * @jest-environment node
  */
 import fetch, { Response } from 'node-fetch'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { RESTMethods, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  // Responding with "204 No Content" because the "OPTIONS"
+  // request returns 204 without an obvious way to override that.
+  app.all('*', (req, res) => res.status(204).end())
+})
 
 const server = setupServer()
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    // Responding with "204 No Content" because the "OPTIONS"
-    // request returns 204 without an obvious way to override that.
-    app.all('*', (req, res) => res.status(204).end())
-  })
+  await httpServer.listen()
+
   server.listen({
     onUnhandledRequest: 'bypass',
   })
@@ -47,8 +48,8 @@ test('matches all requests given no custom path', async () => {
     Object.values(RESTMethods).reduce<Promise<Response>[]>((all, method) => {
       return all.concat(
         [
-          httpServer.http.makeUrl('/'),
-          httpServer.http.makeUrl('/foo'),
+          httpServer.http.url('/'),
+          httpServer.http.url('/foo'),
           'https://example.com',
         ].map((url) => fetch(url, { method })),
       )
@@ -63,21 +64,21 @@ test('matches all requests given no custom path', async () => {
 
 test('respects custom path when matching requests', async () => {
   server.use(
-    rest.all(httpServer.http.makeUrl('/api/*'), (req, res, ctx) => {
+    rest.all(httpServer.http.url('/api/*'), (req, res, ctx) => {
       return res(ctx.text('hello world'))
     }),
   )
 
   // Root requests.
   await forEachMethod(async (method) => {
-    const response = await fetch(httpServer.http.makeUrl('/api/'), { method })
+    const response = await fetch(httpServer.http.url('/api/'), { method })
     expect(response.status).toEqual(200)
     expect(await response.text()).toEqual('hello world')
   })
 
   // Nested requests.
   await forEachMethod(async (method) => {
-    const response = await fetch(httpServer.http.makeUrl('/api/foo'), {
+    const response = await fetch(httpServer.http.url('/api/foo'), {
       method,
     })
     expect(response.status).toEqual(200)
@@ -86,7 +87,7 @@ test('respects custom path when matching requests', async () => {
 
   // Mismatched requests.
   await forEachMethod(async (method) => {
-    const response = await fetch(httpServer.http.makeUrl('/foo'), { method })
+    const response = await fetch(httpServer.http.url('/foo'), { method })
     expect(response.status).toEqual(204)
   })
 })

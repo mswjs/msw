@@ -1,13 +1,11 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('responds with a given binary body', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'body-binary.mocks.ts'),
-  })
+test('responds with a given binary body', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./body-binary.mocks.ts'))
 
-  const res = await runtime.request('/images/abc-123')
+  const res = await fetch('/images/abc-123')
   const status = res.status()
   const headers = await res.allHeaders()
   const body = await res.body()

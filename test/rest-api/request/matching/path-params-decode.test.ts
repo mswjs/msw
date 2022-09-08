@@ -1,22 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'path-params-decode.mocks.ts'),
-  })
-}
-
-test('decodes url componets', async () => {
-  const runtime = await createRuntime()
+test('decodes url componets', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./path-params-decode.mocks.ts'))
 
   const url = 'http://example.com:5001/example'
-
-  const res = await runtime.request(
+  const res = await fetch(
     `https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`,
   )
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     url,

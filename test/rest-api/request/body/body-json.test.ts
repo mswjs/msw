@@ -1,32 +1,30 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function prepareRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'body.mocks.ts'),
-  })
-}
+test('reads request body as json', async ({ loadExample, fetch, page }) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-test('reads request body as json', async () => {
-  const runtime = await prepareRuntime()
-
-  const res = await runtime.request('/deprecated', {
+  const res = await fetch('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
+  await page.pause()
+
   const json = await res.json()
 
   expect(res.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
-test('reads a single number as json request body', async () => {
-  const runtime = await prepareRuntime()
+test('reads a single number as json request body', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-  const res = await runtime.request('/deprecated', {
+  const res = await fetch('/deprecated', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,10 +37,13 @@ test('reads a single number as json request body', async () => {
   expect(json).toEqual(123)
 })
 
-test('reads request body using json() method', async () => {
-  const runtime = await prepareRuntime()
+test('reads request body using json() method', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-  const res = await runtime.request('/json', {
+  const res = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -55,20 +56,28 @@ test('reads request body using json() method', async () => {
   expect(json).toEqual({ firstName: 'John' })
 })
 
-test('reads array buffer request body using json() method', async () => {
-  const runtime = await prepareRuntime()
+test('reads array buffer request body using json() method', async ({
+  loadExample,
+  fetch,
+  page,
+  makeUrl,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-  runtime.page.evaluate(() => {
-    debugger
+  page.evaluate(() => {
     return fetch('/json', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
+      body: new TextEncoder().encode(
+        JSON.stringify({
+          firstName: 'John',
+        }),
+      ),
     })
   })
-  const res = await runtime.page.waitForResponse(runtime.makeUrl('/json'))
+  const res = await page.waitForResponse(makeUrl('/json'))
   const json = await res.json()
 
   expect(res.status()).toBe(200)

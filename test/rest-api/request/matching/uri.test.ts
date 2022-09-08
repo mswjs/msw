@@ -1,16 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'uri.mocks.ts'),
-  })
-}
+test('matches an exact string with the same request URL with a trailing slash', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-test('matches an exact string with the same request URL with a trailing slash', async () => {
-  const runtime = await createRuntime()
-
-  const res = await runtime.request('https://api.github.com/made-up/')
+  const res = await fetch('https://api.github.com/made-up/')
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
@@ -19,20 +15,25 @@ test('matches an exact string with the same request URL with a trailing slash', 
   })
 })
 
-test('does not match an exact string with a different request URL with a trailing slash', async () => {
-  const runtime = await createRuntime()
+test('does not match an exact string with a different request URL with a trailing slash', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.page.evaluate(() =>
-    fetch('https://api.github.com/other/'),
-  )
+  const res = await page.evaluate(() => fetch('https://api.github.com/other/'))
 
   expect(res.status).not.toBe(200)
 })
 
-test('matches an exact string with the same request URL without a trailing slash', async () => {
-  const runtime = await createRuntime()
+test('matches an exact string with the same request URL without a trailing slash', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.request('https://api.github.com/made-up')
+  const res = await fetch('https://api.github.com/made-up')
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
@@ -41,20 +42,25 @@ test('matches an exact string with the same request URL without a trailing slash
   })
 })
 
-test('does not match an exact string with a different request URL without a trailing slash', async () => {
-  const runtime = await createRuntime()
+test('does not match an exact string with a different request URL without a trailing slash', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.page.evaluate(() =>
-    fetch('https://api.github.com/other'),
-  )
+  const res = await page.evaluate(() => fetch('https://api.github.com/other'))
 
   expect(res.status).not.toBe(200)
 })
 
-test('matches a mask against a matching request URL', async () => {
-  const runtime = await createRuntime()
+test('matches a mask against a matching request URL', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.request('https://test.mswjs.io/messages/abc-123')
+  const res = await fetch('https://test.mswjs.io/messages/abc-123')
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
@@ -63,10 +69,13 @@ test('matches a mask against a matching request URL', async () => {
   })
 })
 
-test('ignores query parameters when matching a mask against a matching request URL', async () => {
-  const runtime = await createRuntime()
+test('ignores query parameters when matching a mask against a matching request URL', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.request(
+  const res = await fetch(
     'https://test.mswjs.io/messages/abc-123/items?hello=true',
   )
 
@@ -77,20 +86,27 @@ test('ignores query parameters when matching a mask against a matching request U
   })
 })
 
-test('does not match a mask against a non-matching request URL', async () => {
-  const runtime = await createRuntime()
+test('does not match a mask against a non-matching request URL', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.page.evaluate(() =>
+  const res = await page.evaluate(() =>
     fetch('https://test.mswjs.io/users/def-456').catch(() => null),
   )
 
   expect(res).toBeNull()
 })
 
-test('matches a RegExp against a matching request URL', async () => {
-  const runtime = await createRuntime()
+test('matches a RegExp against a matching request URL', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.request('https://mswjs.google.com/path')
+  const res = await fetch('https://mswjs.google.com/path')
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
@@ -99,20 +115,27 @@ test('matches a RegExp against a matching request URL', async () => {
   })
 })
 
-test('does not match a RegExp against a non-matching request URL', async () => {
-  const runtime = await createRuntime()
+test('does not match a RegExp against a non-matching request URL', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.page.evaluate(() =>
+  const res = await page.evaluate(() =>
     fetch('https://mswjs.google.com/other').catch(() => null),
   )
 
   expect(res).toBeNull()
 })
 
-test('supports escaped parentheses in the request URL', async () => {
-  const runtime = await createRuntime()
+test('supports escaped parentheses in the request URL', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await runtime.request(`/resource('id')`)
+  const res = await fetch(`/resource('id')`)
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')

@@ -1,12 +1,9 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('responds with an XML response body', async () => {
-  const { request } = await pageWith({
-    example: path.resolve(__dirname, 'body-xml.mocks.ts'),
-  })
+test('responds with an XML response body', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./body-xml.mocks.ts'))
 
-  const res = await request('/user')
+  const res = await fetch('/user')
   const status = res.status()
   const headers = await res.allHeaders()
   const text = await res.text()

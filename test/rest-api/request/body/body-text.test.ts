@@ -1,15 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function prepareRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'body.mocks.ts'),
-  })
-}
+test('reads plain text request body as text', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-test('reads plain text request body as text', async () => {
-  const runtime = await prepareRuntime()
-  const res = await runtime.request('/text', {
+  const res = await fetch('/text', {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain',
@@ -22,9 +19,10 @@ test('reads plain text request body as text', async () => {
   expect(body).toBe('hello-world')
 })
 
-test('reads json request body as text', async () => {
-  const runtime = await prepareRuntime()
-  const res = await runtime.request('/text', {
+test('reads json request body as text', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
+
+  const res = await fetch('/text', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -37,25 +35,30 @@ test('reads json request body as text', async () => {
   expect(body).toBe(`{"firstName":"John"}`)
 })
 
-test('reads buffer request body as text', async () => {
-  const runtime = await prepareRuntime()
+test('reads buffer request body as text', async ({
+  loadExample,
+  page,
+  makeUrl,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-  runtime.page.evaluate(() => {
+  page.evaluate(() => {
     return fetch('/text', {
       method: 'POST',
       body: new TextEncoder().encode('hello-world'),
     })
   })
-  const res = await runtime.page.waitForResponse(runtime.makeUrl('/text'))
+  const res = await page.waitForResponse(makeUrl('/text'))
   const body = await res.text()
 
   expect(res.status()).toBe(200)
   expect(body).toBe('hello-world')
 })
 
-test('reads null request body as empty text', async () => {
-  const runtime = await prepareRuntime()
-  const [body, status] = await runtime.page.evaluate(() => {
+test('reads null request body as empty text', async ({ loadExample, page }) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
+
+  const [body, status] = await page.evaluate(() => {
     return fetch('/text', {
       method: 'POST',
       body: null,
@@ -66,9 +69,13 @@ test('reads null request body as empty text', async () => {
   expect(body).toBe('')
 })
 
-test('reads undefined request body as empty text', async () => {
-  const runtime = await prepareRuntime()
-  const [body, status] = await runtime.page.evaluate(() => {
+test('reads undefined request body as empty text', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
+
+  const [body, status] = await page.evaluate(() => {
     return fetch('/text', {
       method: 'POST',
       body: undefined,

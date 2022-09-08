@@ -1,16 +1,9 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function prepareRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'body.mocks.ts'),
-  })
-}
+test('reads request body as array buffer', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-test('reads request body as array buffer', async () => {
-  const runtime = await prepareRuntime()
-
-  const res = await runtime.request('/json', {
+  const res = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -23,25 +16,34 @@ test('reads request body as array buffer', async () => {
   expect(body).toEqual(Buffer.from(JSON.stringify({ firstName: 'John' })))
 })
 
-test('reads buffer request body as array buffer', async () => {
-  const runtime = await prepareRuntime()
+test('reads buffer request body as array buffer', async ({
+  loadExample,
+  fetch,
+  page,
+  makeUrl,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
 
-  runtime.page.evaluate(() => {
+  page.evaluate(() => {
     return fetch('/json', {
       method: 'POST',
       body: new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
     })
   })
-  const res = await runtime.page.waitForResponse(runtime.makeUrl('/json'))
+  const res = await page.waitForResponse(makeUrl('/json'))
   const body = await res.body()
 
   expect(res.status()).toBe(200)
   expect(body).toEqual(Buffer.from(JSON.stringify({ firstName: 'John' })))
 })
 
-test('reads null request body as empty array buffer', async () => {
-  const runtime = await prepareRuntime()
-  const [body, status] = await runtime.page.evaluate(() => {
+test('reads null request body as empty array buffer', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
+
+  const [body, status] = await page.evaluate(() => {
     return fetch('/arrayBuffer', {
       method: 'POST',
       body: null,
@@ -56,9 +58,12 @@ test('reads null request body as empty array buffer', async () => {
   expect(body).toBe('')
 })
 
-test('reads undefined request body as empty array buffer', async () => {
-  const runtime = await prepareRuntime()
-  const [body, status] = await runtime.page.evaluate(() => {
+test('reads undefined request body as empty array buffer', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'))
+  const [body, status] = await page.evaluate(() => {
     return fetch('/arrayBuffer', {
       method: 'POST',
       body: undefined,

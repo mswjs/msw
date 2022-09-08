@@ -1,10 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('handles FormData as a request body', async () => {
-  const { page, makeUrl } = await pageWith({
-    example: path.resolve(__dirname, 'body.mocks.ts'),
-    markup: path.resolve(__dirname, 'body-form-data.page.html'),
+test('handles FormData as a request body', async ({
+  loadExample,
+  page,
+  makeUrl,
+}) => {
+  await loadExample(require.resolve('./body.mocks.ts'), {
+    markup: require.resolve('./body-form-data.page.html'),
   })
 
   await page.click('button')

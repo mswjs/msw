@@ -27,8 +27,8 @@
 ## Features
 
 - **Seamless**. A dedicated layer of requests interception at your disposal. Keep your application's code and tests unaware of whether something is mocked or not.
-- **Deviation-free**. Request the same production resources and test the actual behavior of your app. Augment an existing API, or design it as you go, when there is none.
-- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture outgoing requests. Use parameters, wildcards, and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
+- **Deviation-free**. Request the same production resources and test the actual behavior of your app. Augment an existing API, or design it as you go when there is none.
+- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture requests. Use parameters, wildcards, and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
 
 ---
 
@@ -54,27 +54,27 @@
 
 ### How does it work?
 
-Browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), which can intercept requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
+In-browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), which can intercept requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
 
-**Watch a 30 seconds explanation on how Mock Service Worker works in a browser:**
+**Take a look at this quick presentation on how Mock Service Worker functions in a browser:**
 
 [![What is Mock Service Worker?](https://raw.githubusercontent.com/mswjs/msw/main/media/msw-video-thumbnail.jpg)](https://youtu.be/HcQCqboatZk)
 
 ### How is it different?
 
-- Intercepts requests on the network level, not the application level.
-- If you think of your application as a box, Mock Service Worker lives in its own box next to yours, instead of opening and altering it for the purpose of mocking.
-- Agnostic of request-issuing libraries, so you can use it with `fetch`, `axios`, `react-query`, you-name-it.
-- The same mock definition can be reused for unit, integration, E2E testing, and debugging.
+- This library intercepts requests on the network level, which means _after_ they have been performed and "left" your application. As a result, the entirety of your code runs, giving you more confidence when mocking;
+- Imagine your application as a box. Every API mocking library out there opens your box and removes the part that does the request, placing a blackbox in its stead. Mock Service Worker leaves your box intact, 1-1 as it is in production. Instead, MSW lives in a separate box next to yours;
+- No more stubbing of `fetch`, `axios`, `react-query`, you-name-it;
+- You can reuse the same mock definition for unit, integration, and E2E testing. Did we mention local development and debugging? Yep. All running against the same network description without the need for adapters of bloated configurations.
 
 ### Usage example
 
 ```js
 // src/mocks.js
-// 1. Import mocking utils.
+// 1. Import the library.
 import { setupWorker, rest } from 'msw'
 
-// 2. Define request handlers and response resolvers.
+// 2. Describe network behavior with request handlers.
 const worker = setupWorker(
   rest.get('https://github.com/octocat', (req, res, ctx) => {
     return res(
@@ -87,7 +87,7 @@ const worker = setupWorker(
   }),
 )
 
-// 3. Start the Service Worker.
+// 3. Start request interception by starting the Service Worker.
 worker.start()
 ```
 
@@ -95,21 +95,21 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/mswjs/msw/blob/main/media/msw-quick-look-network.png?raw=true)
 
-> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes on the client-side? That way you can use the same languages (i.e. TypeScript), third-party libraries, and internal logic in mocks.
+> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes entirely on the client? This way you can use the same languages, like TypeScript, third-party libraries, and internal logic to create the mocks you need.
 
-## Node
+## Node.js
 
 - [Learn more about using MSW in Node.js](https://mswjs.io/docs/getting-started/integrate/node)
 - [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
 ### How does it work?
 
-Although Service Worker is a browser-specific API, this library allows reusing of the same mock definition to have API mocking in Node.js through augmenting native request issuing modules.
+There's no such thing as Service Workers in Node.js. Instead, MSW implements a [low-level interception algorithm](https://github.com/mswjs/interceptors) that can utilize the very same request handlers you have for the browser. This blends the boundary between environments, allowing you to focus on your network behaviors.
 
 ### How is it different?
 
-- Prevents from stubbing `fetch`/`axios`/etc. as a part of your test, allowing you to treat API mocking as a pre-requisite and focus on what actually matters during testing.
-- The same mock definition you use for local development can be reused for testing.
+- Does not stub `fetch`, `axios`, etc. As a result, your tests know _nothing_ about mocking;
+- You can reuse the same request handlers for local development and debugging, as well as for testing. Truly a single source of truth for your network behavior across all environments and all tools.
 
 ### Usage example
 

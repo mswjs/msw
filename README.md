@@ -11,9 +11,6 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" />
   </a>
-  <a href="https://circleci.com/gh/mswjs/msw" target="_blank">
-    <img src="https://img.shields.io/circleci/project/github/mswjs/msw/master.svg?style=for-the-badge&color=black" alt="Build status" />
-  </a>
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
   </a>

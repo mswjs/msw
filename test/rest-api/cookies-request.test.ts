@@ -1,21 +1,24 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { Page } from '@playwright/test'
+import { test, expect } from '../playwright.extend'
 
-async function createRuntime() {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'cookies-request.mocks.ts'),
-  })
-  await runtime.page.evaluate(() => {
+const EXAMPLE_PATH = require.resolve('./cookies-request.mocks.ts')
+
+async function bakeCookies(page: Page) {
+  await page.evaluate(() => {
     document.cookie = 'auth-token=abc-123;'
     document.cookie = 'custom-cookie=yes;'
   })
-  return runtime
 }
 
-test('returns all document cookies in "req.cookies" for "include" credentials', async () => {
-  const runtime = await createRuntime()
+test('returns all document cookies in "req.cookies" for "include" credentials', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(EXAMPLE_PATH)
+  await bakeCookies(page)
 
-  const res = await runtime.request('/user', {
+  const res = await fetch('/user', {
     credentials: 'include',
   })
   const headers = await res.allHeaders()
@@ -30,10 +33,15 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   })
 })
 
-test('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async () => {
-  const runtime = await createRuntime()
+test('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(EXAMPLE_PATH)
+  await bakeCookies(page)
 
-  const res = await runtime.request('/user', {
+  const res = await fetch('/user', {
     credentials: 'same-origin',
   })
   const headers = await res.allHeaders()
@@ -48,10 +56,15 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   })
 })
 
-test('returns no cookies in "req.cookies" for "same-origin" credentials and request to a different origin', async () => {
-  const runtime = await createRuntime()
+test('returns no cookies in "req.cookies" for "same-origin" credentials and request to a different origin', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(EXAMPLE_PATH)
+  await bakeCookies(page)
 
-  const res = await runtime.request('https://test.mswjs.io/user', {
+  const res = await fetch('https://test.mswjs.io/user', {
     credentials: 'same-origin',
   })
   const headers = await res.allHeaders()
@@ -63,10 +76,15 @@ test('returns no cookies in "req.cookies" for "same-origin" credentials and requ
   })
 })
 
-test('returns no cookies in "req.cookies" for "omit" credentials', async () => {
-  const runtime = await createRuntime()
+test('returns no cookies in "req.cookies" for "omit" credentials', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(EXAMPLE_PATH)
+  await bakeCookies(page)
 
-  const res = await runtime.request('/user', {
+  const res = await fetch('/user', {
     credentials: 'omit',
   })
   const headers = await res.allHeaders()

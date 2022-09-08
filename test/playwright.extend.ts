@@ -5,11 +5,13 @@ import {
   headersToObject,
   flattenHeadersObject,
 } from 'headers-polyfill'
+import { spyOnConsole, ConsoleMessages } from 'page-with'
 
 interface CustomFixtures {
   loadExample(entry: string): Promise<void>
   fetch(url: string, init?: RequestInit): Promise<Response>
   makeUrl(path: string): string
+  spyOnConsole(): ConsoleMessages
 }
 
 export const test = base.extend<CustomFixtures>({
@@ -57,6 +59,11 @@ export const test = base.extend<CustomFixtures>({
   async makeUrl({}, use) {
     await use((path) => {
       return new URL(path, process.env.WEBPACK_SERVER_URL).href
+    })
+  },
+  async spyOnConsole({ page }, use) {
+    await use(() => {
+      return spyOnConsole(page as any)
     })
   },
 })

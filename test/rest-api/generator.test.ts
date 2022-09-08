@@ -1,5 +1,4 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
 type ExpectedResponseBody =
   | {
@@ -10,13 +9,14 @@ type ExpectedResponseBody =
       status: 'done'
     }
 
-test('supports a generator function as the response resolver', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'generator.mocks.ts'),
-  })
+test('supports a generator function as the response resolver', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./generator.mocks.ts'))
 
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
-    const res = await runtime.request('/polling/3')
+    const res = await fetch('/polling/3')
     const body = await res.json()
     expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
     expect(res.status()).toBe(200)
@@ -31,13 +31,14 @@ test('supports a generator function as the response resolver', async () => {
   await assertRequest({ status: 'complete', count: 3 })
 })
 
-test('supports one-time handlers with the generator as the response resolver', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'generator.mocks.ts'),
-  })
+test('supports one-time handlers with the generator as the response resolver', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./generator.mocks.ts'))
 
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
-    const res = await runtime.request('/polling/once/3')
+    const res = await fetch('/polling/once/3')
     const body = await res.json()
     expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
     expect(res.status()).toBe(200)

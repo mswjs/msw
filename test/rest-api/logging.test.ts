@@ -1,18 +1,19 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 import { StatusCodeColor } from '../../src/utils/logging/getStatusCodeColor'
 import { waitFor } from '../support/waitFor'
 
-function createRuntime() {
-  return pageWith({ example: path.resolve(__dirname, 'basic.mocks.ts') })
-}
+test('prints a captured request info into browser console', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./basic.mocks.ts'))
 
-test('prints a captured request info into browser console', async () => {
-  const runtime = await createRuntime()
-  await runtime.request('https://api.github.com/users/octocat')
+  await fetch('https://api.github.com/users/octocat')
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(

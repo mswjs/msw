@@ -1,16 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'custom-request-handler.mocks.ts'),
-  })
-}
+const EXAMPLE_PATH = require.resolve('./custom-request-handler.mocks.ts')
 
-test('intercepts a request with a custom request handler with default context', async () => {
-  const runtime = await createRuntime()
+test('intercepts a request with a custom request handler with default context', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request('https://test.mswjs.io/url/matters/not', {
+  const res = await fetch('https://test.mswjs.io/url/matters/not', {
     headers: {
       'x-custom-header': 'true',
     },
@@ -25,10 +23,13 @@ test('intercepts a request with a custom request handler with default context', 
   })
 })
 
-test('intercepts a request with a custom request handler with custom context', async () => {
-  const runtime = await createRuntime()
+test('intercepts a request with a custom request handler with custom context', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await runtime.request('https://test.url/')
+  const res = await fetch('https://test.url/')
   const body = await res.json()
   const headers = await res.allHeaders()
 

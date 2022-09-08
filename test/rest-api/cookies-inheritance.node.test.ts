@@ -4,26 +4,27 @@
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer, SetupServerApi } from 'msw/node'
-import { ServerApi, createServer } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
-let httpServer: ServerApi
 let server: SetupServerApi
 
+const httpServer = new HttpServer((app) => {
+  const handler: ExpressRequestHandler = (req, res) => {
+    res.status(500).end()
+  }
+  app.post('/login', handler)
+  app.get('/user', handler)
+})
+
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    const handler: ExpressRequestHandler = (req, res) => {
-      res.status(500).end()
-    }
-    app.post('/login', handler)
-    app.get('/user', handler)
-  })
+  await httpServer.listen()
 
   server = setupServer(
-    rest.post(httpServer.https.makeUrl('/login'), (req, res, ctx) => {
+    rest.post(httpServer.https.url('/login'), (req, res, ctx) => {
       return res(ctx.cookie('authToken', 'abc-123'))
     }),
-    rest.get(httpServer.https.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.https.url('/user'), (req, res, ctx) => {
       if (req.cookies.authToken == null) {
         return res(
           ctx.status(403),
@@ -50,11 +51,11 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('inherits cookies set on a preceeding request', async () => {
-  const res = await fetch(httpServer.https.makeUrl('/login'), {
+test('inherits cookies set from a preceeding request', async () => {
+  const res = await fetch(httpServer.https.url('/login'), {
     method: 'POST',
   }).then(() => {
-    return fetch(httpServer.https.makeUrl('/user'))
+    return fetch(httpServer.https.url('/user'))
   })
   const json = await res.json()
 

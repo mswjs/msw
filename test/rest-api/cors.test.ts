@@ -1,39 +1,38 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { ServerApi, createServer } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
+import { test, expect } from '../playwright.extend'
 
-let server: ServerApi
+const server = new HttpServer((app) => {
+  // Enable a strict CORS policy on this test server.
+  // Requests from the test must use `mode: "no-cors"` to obtain the response.
+  app.use('*', (req, res, next) => {
+    res.set('Access-Control-Allow-Origin', server.http.url())
+    next()
+  })
 
-beforeAll(async () => {
-  server = await createServer((app) => {
-    // Enable a strict CORS policy on this test server.
-    // Requests from the test must use `mode: "no-cors"` to obtain the response.
-    app.use('*', (req, res, next) => {
-      res.set('Access-Control-Allow-Origin', server.http.makeUrl())
-      next()
-    })
-
-    app.get('/', (req, res) => {
-      res.status(200).send('hello')
-    })
+  app.get('/', (req, res) => {
+    res.status(200).send('hello')
   })
 })
 
-afterAll(async () => {
+test.beforeAll(async () => {
+  await server.listen()
+})
+
+test.afterAll(async () => {
   await server.close()
 })
 
-test('handles a CORS request with an "opaque" response', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'cors.mocks.ts'),
-  })
+test('handles a CORS request with an "opaque" response', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./cors.mocks.ts'))
 
   const errors = []
-  runtime.page.on('pageerror', (error) => {
-    errors.push(error)
-  })
+  page.on('pageerror', (error) => errors.push(error))
 
-  const res = await runtime.request(server.http.makeUrl(), {
+  const res = await fetch(server.http.url(), {
     mode: 'no-cors',
   })
 

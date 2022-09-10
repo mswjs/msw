@@ -33,7 +33,7 @@
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
-    "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
+    "test:ts": "yarn tsc -p ./test/typings/tsconfig.json && yarn tsc -p ./test/typings/tsconfig.node16.json",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
     "release": "release publish",

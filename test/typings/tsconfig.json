@@ -6,6 +6,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "Node",
     "lib": ["dom"],
+    "module": "ESNext",
     "baseUrl": ".",
     "typeRoots": ["node_modules/@types"],
     "paths": {
@@ -13,6 +14,6 @@
       "msw/*": ["../../*"]
     }
   },
-  "include": ["../../global.d.ts", "**/*.test-d.ts"],
+  "include": ["../../global.d.ts", "**/*.test-d.*"],
   "exclude": ["node_modules"]
 }

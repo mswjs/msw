@@ -32,7 +32,7 @@ jobs:
         run: yarn build
 
       - name: Integration tests
-        run: yarn test:integration
+        run: yarn test:new
 
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.

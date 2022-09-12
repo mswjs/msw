@@ -1,15 +1,15 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'operation-reference.mocks.ts'),
-  })
-}
+const OPERATION_REFERENCE_EXAMPLE = require.resolve(
+  './operation-reference.mocks.ts',
+)
 
-test('allows referencing the request body in the request handler', async () => {
-  const runtime = await createRuntime()
+test('allows referencing the request body in the GraphQL query handler', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(OPERATION_REFERENCE_EXAMPLE)
+
   const GET_USER_QUERY = `
     query GetUser($id: String!) {
       query
@@ -17,7 +17,7 @@ test('allows referencing the request body in the request handler', async () => {
     }
   `
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: GET_USER_QUERY,
     variables: {
       id: 'abc-123',
@@ -26,6 +26,7 @@ test('allows referencing the request body in the request handler', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {
@@ -37,8 +38,12 @@ test('allows referencing the request body in the request handler', async () => {
   })
 })
 
-test('allows referencing the request body in the request handler', async () => {
-  const runtime = await createRuntime()
+test('allows referencing the request body in the GraphQL mutation handler', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(OPERATION_REFERENCE_EXAMPLE)
+
   const LOGIN_MUTATION = `
     mutation Login($username: String!, $password: String!) {
       mutation
@@ -46,7 +51,7 @@ test('allows referencing the request body in the request handler', async () => {
     }
   `
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: LOGIN_MUTATION,
     variables: {
       username: 'john',
@@ -56,6 +61,7 @@ test('allows referencing the request body in the request handler', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {

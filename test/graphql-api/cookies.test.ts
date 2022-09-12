@@ -1,17 +1,15 @@
-import * as path from 'path'
 import * as cookieUtils from 'cookie'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { test, expect } from '../playwright.extend'
 import { gql } from '../support/graphql'
 
-function createRuntime() {
-  return pageWith({ example: path.resolve(__dirname, 'cookies.mocks.ts') })
-}
+test('sets cookie on the mocked GraphQL response', async ({
+  loadExample,
+  query,
+  page,
+}) => {
+  await loadExample(require.resolve('./cookies.mocks.ts'))
 
-test('sets cookie on the mocked GraphQL response', async () => {
-  const runtime = await createRuntime()
-
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: gql`
       query GetUser {
         firstName
@@ -31,7 +29,7 @@ test('sets cookie on the mocked GraphQL response', async () => {
   })
 
   // Should be able to access the response cookies.
-  const cookieString = await runtime.page.evaluate(() => {
+  const cookieString = await page.evaluate(() => {
     return document.cookie
   })
   const allCookies = cookieUtils.parse(cookieString)

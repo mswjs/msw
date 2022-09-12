@@ -1,15 +1,13 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import type { ExecutionResult } from 'graphql'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { test, expect } from '../playwright.extend'
 import { gql } from '../support/graphql'
 
-test('mocks a GraphQL response with both data and extensions', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'extensions.mocks.ts'),
-  })
+test('mocks a GraphQL response with both data and extensions', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(require.resolve('./extensions.mocks.ts'))
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: gql`
       query Login {
         user {
@@ -21,22 +19,23 @@ test('mocks a GraphQL response with both data and extensions', async () => {
     `,
   })
   const status = res.status()
-  const body: ExecutionResult = await res.json()
+  const body = await res.json()
 
-  expect(status).toEqual(200)
-  expect(body.errors).toBeUndefined()
-  expect(body.data).toEqual({
-    user: {
-      id: 1,
-      name: 'Joe Bloggs',
-      password: 'HelloWorld!',
+  expect(status).toBe(200)
+  expect(body).toEqual({
+    data: {
+      user: {
+        id: 1,
+        name: 'Joe Bloggs',
+        password: 'HelloWorld!',
+      },
     },
-  })
-  expect(body.extensions).toEqual({
-    message: 'This is a mocked extension',
-    tracking: {
-      version: '0.1.2',
-      page: '/test/',
+    extensions: {
+      message: 'This is a mocked extension',
+      tracking: {
+        version: '0.1.2',
+        page: '/test/',
+      },
     },
   })
 })

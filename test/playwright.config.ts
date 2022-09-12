@@ -5,7 +5,7 @@ const config: PlaywrightTestConfig = {
   timeout: 10000,
   globalSetup: require.resolve('./playwright.setup.ts'),
   forbidOnly: !!process.env.CI,
-  testDir: './rest-api',
+  testDir: 'graphql-api',
   testIgnore: /\.node\.test/,
   use: {
     launchOptions: {

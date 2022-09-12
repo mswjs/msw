@@ -1,18 +1,16 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { gql } from '../support/graphql'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'variables.mocks.ts'),
-  })
-}
+const EXAMPLE_PATH = require.resolve('./variables.mocks.ts')
 
-test('can access variables from a GraphQL query', async () => {
-  const runtime = await createRuntime()
+test('can access variables from a GraphQL query', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
+  const res = await query('/graphql', {
+    query: gql`
       query GetGithubUser($username: String!) {
         user(login: $username) {
           firstName
@@ -38,11 +36,14 @@ test('can access variables from a GraphQL query', async () => {
   })
 })
 
-test('can access variables from a GraphQL mutation', async () => {
-  const runtime = await createRuntime()
+test('can access variables from a GraphQL mutation', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
+  const res = await query('/graphql', {
+    query: gql`
       mutation DeletePost($postId: String!) {
         deletePost(id: $postId) {
           postId
@@ -66,17 +67,20 @@ test('can access variables from a GraphQL mutation', async () => {
   })
 })
 
-test('returns an empty object when accessing variables from a GraphQL operation without them', async () => {
-  const runtime = await createRuntime()
+test('returns an empty object when accessing variables from a GraphQL operation without them', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(EXAMPLE_PATH)
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
-        query GetActiveUser {
-          user {
-            id
-          }
+  const res = await query('/graphql', {
+    query: gql`
+      query GetActiveUser {
+        user {
+          id
         }
-      `,
+      }
+    `,
   })
   const status = res.status()
   const body = await res.json()

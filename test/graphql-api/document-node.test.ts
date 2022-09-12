@@ -1,18 +1,15 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { test, expect } from '../playwright.extend'
 import { gql } from '../support/graphql'
 
-function prepareRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'document-node.mocks.ts'),
-  })
-}
+const DOCUMENT_NODE_EXAMPLE = require.resolve('./document-node.mocks.ts')
 
-test('intercepts a GraphQL query based on its DocumentNode', async () => {
-  const runtime = await prepareRuntime()
+test('intercepts a GraphQL query based on its DocumentNode', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(DOCUMENT_NODE_EXAMPLE)
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: gql`
       query GetUser {
         user {
@@ -35,10 +32,13 @@ test('intercepts a GraphQL query based on its DocumentNode', async () => {
   })
 })
 
-test('intercepts a GraphQL mutation based on its DocumentNode', async () => {
-  const runtime = await prepareRuntime()
+test('intercepts a GraphQL mutation based on its DocumentNode', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(DOCUMENT_NODE_EXAMPLE)
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: gql`
       mutation Login {
         session {
@@ -67,24 +67,21 @@ test('intercepts a GraphQL mutation based on its DocumentNode', async () => {
   })
 })
 
-test('intercepts a scoped GraphQL query based on its DocumentNode', async () => {
-  const runtime = await prepareRuntime()
+test('intercepts a scoped GraphQL query based on its DocumentNode', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(DOCUMENT_NODE_EXAMPLE)
 
-  const res = await executeGraphQLQuery(
-    runtime.page,
-    {
-      query: gql`
-        query GetSubscription {
-          subscription {
-            id
-          }
+  const res = await query('https://api.github.com/graphql', {
+    query: gql`
+      query GetSubscription {
+        subscription {
+          id
         }
-      `,
-    },
-    {
-      uri: 'https://api.github.com/graphql',
-    },
-  )
+      }
+    `,
+  })
 
   expect(res.status()).toEqual(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')

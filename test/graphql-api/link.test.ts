@@ -1,25 +1,31 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
+import { HttpServer } from '@open-draft/test-server/http'
+import { test, expect } from '../playwright.extend'
+import { gql } from '../support/graphql'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'link.mocks.ts'),
-    routes(app) {
-      app.post('/graphql', (req, res) => {
-        res.status(500).end()
-      })
-    },
+const LINK_EXAMPLE = require.resolve('./link.mocks.ts')
+
+const server = new HttpServer((app) => {
+  app.post('/graphql', (req, res) => {
+    res.status(500).end()
   })
-}
+})
 
-test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
-  const runtime = await createRuntime()
+test.beforeAll(async () => {
+  await server.listen()
+})
 
-  const res = await executeGraphQLQuery(
-    runtime.page,
-    {
-      query: `
+test.afterAll(async () => {
+  await server.close()
+})
+
+test('mocks a GraphQL query to the GitHub GraphQL API', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(LINK_EXAMPLE)
+
+  const res = await query('https://api.github.com/graphql', {
+    query: gql`
       query GetUser($username: String!) {
         user(username: $username) {
           id
@@ -27,14 +33,10 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
         }
       }
     `,
-      variables: {
-        username: 'john',
-      },
+    variables: {
+      username: 'john',
     },
-    {
-      uri: 'https://api.github.com/graphql',
-    },
-  )
+  })
 
   const headers = await res.allHeaders()
   const body = await res.json()
@@ -51,27 +53,24 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
   })
 })
 
-test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
-  const runtime = await createRuntime()
+test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(LINK_EXAMPLE)
 
-  const res = await executeGraphQLQuery(
-    runtime.page,
-    {
-      query: `
+  const res = await query('https://api.stripe.com/graphql', {
+    query: gql`
       mutation Payment($amount: Int!) {
         bankAccount {
           totalFunds
         }
       }
     `,
-      variables: {
-        amount: 350,
-      },
+    variables: {
+      amount: 350,
     },
-    {
-      uri: 'https://api.stripe.com/graphql',
-    },
-  )
+  })
 
   const headers = await res.allHeaders()
   const body = await res.json()
@@ -87,11 +86,14 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
   })
 })
 
-test('falls through to the matching GraphQL operation to an unknown endpoint', async () => {
-  const runtime = await createRuntime()
+test('falls through to the matching GraphQL operation to an unknown endpoint', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(LINK_EXAMPLE)
 
-  const res = await executeGraphQLQuery(runtime.page, {
-    query: `
+  const res = await query('/graphql', {
+    query: gql`
       query GetUser($username: String!) {
         user(username: $username) {
           id
@@ -108,7 +110,6 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
   const body = await res.json()
 
   expect(headers).toHaveProperty('x-request-handler', 'fallback')
-
   expect(body).toEqual({
     data: {
       user: {
@@ -119,28 +120,24 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
   })
 })
 
-test('bypasses a GraphQL operation to an unknown endpoint', async () => {
-  const runtime = await createRuntime()
+test('bypasses a GraphQL operation to an unknown endpoint', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(LINK_EXAMPLE)
 
-  const res = await executeGraphQLQuery(
-    runtime.page,
-    {
-      query: `
+  const res = await query(server.http.url('/graphql'), {
+    query: gql`
       mutation Payment($amount: Int!) {
         bankAccount {
           totalFunds
         }
       }
     `,
-      variables: {
-        amount: 350,
-      },
+    variables: {
+      amount: 350,
     },
-    {
-      uri: runtime.makeUrl('/graphql'),
-    },
-  )
+  })
 
-  const status = res.status()
-  expect(status).toBe(500)
+  expect(res.status()).toBe(500)
 })

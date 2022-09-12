@@ -1,9 +1,8 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql } from 'graphql'
-import { ServerApi, createServer } from '@open-draft/test-server'
 import { SetupWorkerApi } from 'msw'
+import { HttpServer } from '@open-draft/test-server/http'
+import { test, expect } from '../playwright.extend'
 import { gql } from '../support/graphql'
 
 declare namespace window {
@@ -13,67 +12,69 @@ declare namespace window {
   }
 }
 
-let httpServer: ServerApi
+// This test server simulates a production GraphQL server
+// and uses a hard-coded `rootValue` to resolve queries
+// against the schema.
+const httpServer = new HttpServer((app) => {
+  app.post('/graphql', async (req, res) => {
+    const result = await graphql({
+      schema: buildSchema(gql`
+        type User {
+          firstName: String!
+          lastName: String!
+        }
 
-beforeAll(async () => {
-  // This test server simulates a production GraphQL server
-  // and uses a hard-coded `rootValue` to resolve queries
-  // against the schema.
-  httpServer = await createServer((app) => {
-    app.post('/graphql', async (req, res) => {
-      const result = await graphql({
-        schema: buildSchema(gql`
-          type User {
-            firstName: String!
-            lastName: String!
-          }
-
-          type Query {
-            user: User!
-          }
-        `),
-        source: req.body.query,
-        rootValue: {
-          user: {
-            firstName: 'John',
-            lastName: 'Maverick',
-          },
+        type Query {
+          user: User!
+        }
+      `),
+      source: req.body.query,
+      rootValue: {
+        user: {
+          firstName: 'John',
+          lastName: 'Maverick',
         },
-      })
-
-      return res.status(200).json(result)
+      },
     })
+
+    return res.status(200).json(result)
   })
 })
 
-afterAll(async () => {
+test.beforeAll(async () => {
+  await httpServer.listen()
+})
+
+test.afterAll(async () => {
   await httpServer.close()
 })
 
-function createRuntime() {
-  return pageWith({
-    example: path.join(__dirname, 'response-patching.mocks.ts'),
-  })
-}
+test('patches a GraphQL response', async ({ loadExample, page, query }) => {
+  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  const endpointUrl = httpServer.http.url('/graphql')
 
-test('patches a GraphQL response', async () => {
-  const runtime = await createRuntime()
-  const endpointUrl = httpServer.http.makeUrl('/graphql')
-
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return window.msw.registration
   })
 
-  const res = await runtime.page.evaluate(
-    ([url]) => {
-      return window.dispatchGraphQLQuery(url)
-    },
-    [endpointUrl],
-  )
+  const res = await query(endpointUrl, {
+    query: gql`
+      query GetUser {
+        user {
+          firstName
+          lastName
+        }
+      }
+    `,
+  })
+  const body = await res.json()
 
-  expect(res.errors).toBeUndefined()
-  expect(res.data).toHaveProperty('user', {
-    firstName: 'Christian',
-    lastName: 'Maverick',
+  expect(body).toEqual({
+    data: {
+      user: {
+        firstName: 'Christian',
+        lastName: 'Maverick',
+      },
+    },
   })
 })

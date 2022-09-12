@@ -1,5 +1,5 @@
 import { setupWorker, graphql } from 'msw'
-import { createGraphQLClient, gql } from '../support/graphql'
+// import { createGraphQLClient, gql } from '../support/graphql'
 
 interface GetUserQuery {
   user: {
@@ -25,25 +25,23 @@ const worker = setupWorker(
   }),
 )
 
-const registration = worker.start()
-
 // @ts-ignore
 window.msw = {
-  registration,
+  registration: worker.start(),
 }
 
 // @ts-ignore
-window.dispatchGraphQLQuery = (uri: string) => {
-  const client = createGraphQLClient({ uri })
+// window.dispatchGraphQLQuery = (uri: string) => {
+//   const client = createGraphQLClient({ uri })
 
-  return client({
-    query: gql`
-      query GetUser {
-        user {
-          firstName
-          lastName
-        }
-      }
-    `,
-  })
-}
+//   return client({
+//     query: gql`
+//       query GetUser {
+//         user {
+//           firstName
+//           lastName
+//         }
+//       }
+//     `,
+//   })
+// }

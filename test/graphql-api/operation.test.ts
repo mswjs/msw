@@ -1,22 +1,31 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
-import { sleep } from '../support/utils'
+import { HttpServer } from '@open-draft/test-server/http'
+import { test, expect } from '../playwright.extend'
 import { gql } from '../support/graphql'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'operation.mocks.ts'),
-    routes(app) {
-      app.post('/search', (req, res) => {
-        return res.json({ results: [1, 2, 3] })
-      })
-    },
-  })
-}
+const OPERATION_EXAMPLE = require.resolve('./operation.mocks.ts')
 
-test('intercepts and mocks a GraphQL query', async () => {
-  const runtime = await createRuntime()
+const server = new HttpServer((app) => {
+  app.post('/search', (req, res) => {
+    return res.json({ results: [1, 2, 3] })
+  })
+})
+
+test.beforeAll(async () => {
+  await server.listen()
+})
+
+test.afterAll(async () => {
+  await server.close()
+})
+
+test('intercepts and mocks a GraphQL query', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(OPERATION_EXAMPLE)
+
   const GET_USER_QUERY = gql`
     query GetUser($id: String!) {
       query
@@ -24,7 +33,7 @@ test('intercepts and mocks a GraphQL query', async () => {
     }
   `
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: GET_USER_QUERY,
     variables: {
       id: 'abc-123',
@@ -33,7 +42,7 @@ test('intercepts and mocks a GraphQL query', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {
@@ -44,15 +53,21 @@ test('intercepts and mocks a GraphQL query', async () => {
     },
   })
 
-  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} query GetUser 200 OK/),
     ]),
   )
 })
 
-test('intercepts and mocks an anonymous GraphQL query', async () => {
-  const runtime = await createRuntime()
+test('intercepts and mocks an anonymous GraphQL query', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(OPERATION_EXAMPLE)
+
   const ANONYMOUS_QUERY = gql`
     query {
       anonymousQuery {
@@ -62,16 +77,16 @@ test('intercepts and mocks an anonymous GraphQL query', async () => {
     }
   `
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: ANONYMOUS_QUERY,
     variables: {
       id: 'abc-123',
     },
   })
 
-  expect(runtime.consoleSpy.get('warning')).toBeUndefined()
+  expect(consoleSpy.get('warning')).toBeUndefined()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
 
   const headers = await res.allHeaders()
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -86,15 +101,19 @@ test('intercepts and mocks an anonymous GraphQL query', async () => {
     },
   })
 
-  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} anonymous query 200 OK/),
     ]),
   )
 })
 
-test('intercepts and mocks a GraphQL mutation', async () => {
-  const runtime = await createRuntime()
+test('intercepts and mocks a GraphQL mutation', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(OPERATION_EXAMPLE)
+
   const LOGIN_MUTATION = gql`
     mutation Login($username: String!, $password: String!) {
       mutation
@@ -102,7 +121,7 @@ test('intercepts and mocks a GraphQL mutation', async () => {
     }
   `
 
-  const res = await executeGraphQLQuery(runtime.page, {
+  const res = await query('/graphql', {
     query: LOGIN_MUTATION,
     variables: {
       username: 'john',
@@ -112,7 +131,7 @@ test('intercepts and mocks a GraphQL mutation', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {
@@ -125,8 +144,15 @@ test('intercepts and mocks a GraphQL mutation', async () => {
   })
 })
 
-test('propagates parsing errors from the invalid GraphQL requests', async () => {
-  const { page, consoleSpy } = await createRuntime()
+test('propagates parsing errors from the invalid GraphQL requests', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(OPERATION_EXAMPLE)
+
   const INVALID_QUERY = `
     # Intentionally invalid GraphQL query.
     query GetUser() {
@@ -134,34 +160,30 @@ test('propagates parsing errors from the invalid GraphQL requests', async () => 
     }
   `
 
-  executeGraphQLQuery(page, {
+  query('/graphql', {
     query: INVALID_QUERY,
   })
 
-  // Await the console message, because you cannot await a failed response.
-  await sleep(500)
-
-  expect(consoleSpy.get('error')).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining(
-        'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
-      ),
-    ]),
-  )
+  await waitFor(() => {
+    expect(consoleSpy.get('error')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(
+          'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
+        ),
+      ]),
+    )
+  })
 })
 
-test('bypasses seemingly compatible REST requests', async () => {
-  const { page, makeUrl } = await createRuntime()
+test('bypasses seemingly compatible REST requests', async ({
+  loadExample,
+  query,
+}) => {
+  await loadExample(OPERATION_EXAMPLE)
 
-  const res = await executeGraphQLQuery(
-    page,
-    {
-      query: 'favorite books',
-    },
-    {
-      uri: makeUrl('/search'),
-    },
-  )
+  const res = await query(server.http.url('/search'), {
+    query: 'favorite books',
+  })
 
   const headers = await res.allHeaders()
   const body = await res.json()

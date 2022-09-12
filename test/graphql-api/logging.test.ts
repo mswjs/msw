@@ -1,19 +1,19 @@
-import * as path from 'path'
-import { executeGraphQLQuery } from './utils/executeGraphQLQuery'
-import { pageWith } from 'page-with'
-import { gql } from '../support/graphql'
-import { waitFor } from '../support/waitFor'
 import { StatusCodeColor } from '../../src/utils/logging/getStatusCodeColor'
+import { waitFor } from '../support/waitFor'
+import { test, expect } from '../playwright.extend'
+import { gql } from '../support/graphql'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'logging.mocks.ts'),
-  })
-}
+const LOGGING_EXAMPLE = require.resolve('./logging.mocks.ts')
 
-test('prints a log for a GraphQL query', async () => {
-  const { page, consoleSpy } = await createRuntime()
-  await executeGraphQLQuery(page, {
+test('prints a log for a GraphQL query', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(LOGGING_EXAMPLE)
+
+  await query('/graphql', {
     query: gql`
       query GetUserDetail {
         user {
@@ -37,9 +37,15 @@ test('prints a log for a GraphQL query', async () => {
   })
 })
 
-test('prints a log for a GraphQL mutation', async () => {
-  const { page, consoleSpy } = await createRuntime()
-  await executeGraphQLQuery(page, {
+test('prints a log for a GraphQL mutation', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(LOGGING_EXAMPLE)
+
+  await query('/graphql', {
     query: gql`
       mutation Login {
         user {
@@ -62,9 +68,15 @@ test('prints a log for a GraphQL mutation', async () => {
   })
 })
 
-test('prints a log for a GraphQL query intercepted via "graphql.operation"', async () => {
-  const { page, consoleSpy } = await createRuntime()
-  await executeGraphQLQuery(page, {
+test('prints a log for a GraphQL query intercepted via "graphql.operation"', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(LOGGING_EXAMPLE)
+
+  await query('/graphql', {
     query: gql`
       query GetLatestPosts {
         posts {
@@ -87,9 +99,15 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
   })
 })
 
-test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async () => {
-  const runtime = await createRuntime()
-  await executeGraphQLQuery(runtime.page, {
+test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async ({
+  loadExample,
+  spyOnConsole,
+  query,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(LOGGING_EXAMPLE)
+
+  await query('/graphql', {
     query: gql`
       mutation CreatePost {
         post {
@@ -100,7 +118,7 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
   })
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(

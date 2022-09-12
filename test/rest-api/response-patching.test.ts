@@ -120,35 +120,35 @@ test('forwards custom request headers to the original request', async ({
   expect(body).toEqual({ message: 'success' })
 })
 
-test.skip('supports patching a HEAD request', async ({
-  loadExample,
-  fetch,
-}) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+test.fixme(
+  'supports patching a HEAD request',
+  async ({ loadExample, fetch }) => {
+    await loadExample(require.resolve('./response-patching.mocks.ts'))
 
-  const res = await fetch(
-    httpServer.http.url('/posts'),
-    {
-      method: 'HEAD',
-    },
-    (res) => {
-      return res.headers()['x-powered-by'] === 'msw'
-    },
-  )
+    const res = await fetch(
+      httpServer.http.url('/posts'),
+      {
+        method: 'HEAD',
+      },
+      (res) => {
+        return res.headers()['x-powered-by'] === 'msw'
+      },
+    )
 
-  throw new Error('Fix this test')
+    throw new Error('Fix this test')
 
-  const status = res.status()
-  const headers = await res.allHeaders()
-  const body = await res.json()
+    const status = res.status()
+    const headers = await res.allHeaders()
+    const body = await res.json()
 
-  console.log('response!!', { status, headers, body })
+    console.log('response!!', { status, headers, body })
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(headers).toHaveProperty('x-custom', 'HEAD REQUEST PATCHED')
-  expect(body).toEqual({ mocked: true })
-})
+    expect(status).toBe(200)
+    expect(headers).toHaveProperty('x-powered-by', 'msw')
+    expect(headers).toHaveProperty('x-custom', 'HEAD REQUEST PATCHED')
+    expect(body).toEqual({ mocked: true })
+  },
+)
 
 test('supports patching a GET request', async ({
   loadExample,
@@ -181,42 +181,41 @@ test('supports patching a GET request', async ({
   expect(body).toEqual({ id: 101, mocked: true })
 })
 
-test.skip('supports patching a POST request', async ({
-  loadExample,
-  fetch,
-  makeUrl,
-}) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+test.fixme(
+  'supports patching a POST request',
+  async ({ loadExample, fetch, makeUrl }) => {
+    await loadExample(require.resolve('./response-patching.mocks.ts'))
 
-  const res = await fetch(
-    httpServer.http.url('/posts'),
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const res = await fetch(
+      httpServer.http.url('/posts'),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'foo',
+          body: 'bar',
+          userId: 1,
+        }),
       },
-      body: JSON.stringify({
-        title: 'foo',
-        body: 'bar',
-        userId: 1,
-      }),
-    },
-    (res) => {
-      return (
-        matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-          .matches && res.headers()['x-powered-by'] === 'msw'
-      )
-    },
-  )
-  const status = res.status()
-  const headers = await res.allHeaders()
-  const body = await res.json()
+      (res) => {
+        return (
+          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
+            .matches && res.headers()['x-powered-by'] === 'msw'
+        )
+      },
+    )
+    const status = res.status()
+    const headers = await res.allHeaders()
+    const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
-  expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
-  expect(body).toEqual({
-    id: 101,
-    mocked: true,
-  })
-})
+    expect(status).toBe(200)
+    expect(headers).toHaveProperty('x-powered-by', 'msw')
+    expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
+    expect(body).toEqual({
+      id: 101,
+      mocked: true,
+    })
+  },
+)

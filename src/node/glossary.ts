@@ -46,7 +46,7 @@ export interface SetupServerApi {
   resetHandlers(...nextHandlers: RequestHandler[]): void
 
   /**
-   * Returns a readonly list of cyurrently active request handlers.
+   * Returns a readonly list of currently active request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/list-handlers `server.listHandlers()`}
    */
   listHandlers(): ReadonlyArray<

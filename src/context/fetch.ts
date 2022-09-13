@@ -3,7 +3,12 @@ import { Headers } from 'headers-polyfill'
 import { MockedRequest } from '../utils/request/MockedRequest'
 
 const useFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> =
-  isNodeProcess() ? require('node-fetch') : window.fetch
+  isNodeProcess()
+    ? (input, init) =>
+        import('node-fetch').then(({ default: nodeFetch }) =>
+          (nodeFetch as unknown as typeof window.fetch)(input, init),
+        )
+    : window.fetch
 
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)

@@ -1,4 +1,4 @@
-import statuses from 'statuses/codes.json' assert { type: 'json' }
+import statuses from 'statuses/codes.json'
 import { ResponseTransformer } from '../response'
 
 /**

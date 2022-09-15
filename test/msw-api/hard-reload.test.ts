@@ -1,16 +1,13 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'hard-reload.mocks.ts'),
-  })
-}
+test('keeps the mocking enabled after hard-reload of the page', async ({
+  loadExample,
+  page,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./hard-reload.mocks.ts'))
 
-test('keeps the mocking enabled after hard-reload of the page', async () => {
-  const runtime = await createRuntime()
-
-  runtime.page.evaluate(() => {
+  page.evaluate(() => {
     /**
      * Emulate a forced reload.
      * Since `location.reload(true)` is deprecated,
@@ -20,11 +17,11 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
     location.replace(location.href)
   })
 
-  await runtime.page.waitForNavigation({
+  await page.waitForNavigation({
     waitUntil: 'networkidle',
   })
 
-  const res = await runtime.request('https://api.github.com')
+  const res = await fetch('https://api.github.com')
   const headers = await res.allHeaders()
   const body = await res.json()
 

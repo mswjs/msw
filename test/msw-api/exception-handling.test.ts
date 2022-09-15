@@ -1,26 +1,28 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'exception-handling.mocks.ts'),
-  })
-}
+test('activates the worker without errors', async ({
+  loadExample,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./exception-handling.mocks.ts'))
 
-test('activates the worker without errors', async () => {
-  const { consoleSpy } = await createRuntime()
   expect(consoleSpy.get('error')).toBeUndefined()
 })
 
-test('transforms uncaught exceptions into a 500 response', async () => {
-  const runtime = await createRuntime()
+test('transforms uncaught exceptions into a 500 response', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./exception-handling.mocks.ts'))
 
-  const res = await runtime.request('https://api.github.com/users/octocat')
+  const res = await fetch('https://api.github.com/users/octocat')
   const headers = await res.allHeaders()
 
   expect(res.status()).toBe(500)
   expect(res.statusText()).toBe('Request Handler Error')
   expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+
   expect(await res.json()).toEqual({
     name: 'ReferenceError',
     message: 'nonExisting is not defined',

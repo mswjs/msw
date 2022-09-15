@@ -1,6 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest, graphql } from 'msw'
+import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -10,14 +9,15 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'printHandlers.mocks.ts'),
-  })
-}
+const PRINT_HANDLERS_EXAMPLE = require.resolve('./printHandlers.mocks.ts')
 
-test('lists rest request handlers', async () => {
-  const { page, consoleSpy } = await createRuntime()
+test('lists rest request handlers', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(PRINT_HANDLERS_EXAMPLE)
 
   await page.evaluate(() => {
     window.msw.worker.printHandlers()
@@ -49,8 +49,13 @@ test('lists rest request handlers', async () => {
   ])
 })
 
-test('includes runtime request handlers', async () => {
-  const { page, consoleSpy } = await createRuntime()
+test('includes runtime request handlers', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(PRINT_HANDLERS_EXAMPLE)
 
   await page.evaluate(() => {
     const { worker, rest, graphql } = window.msw

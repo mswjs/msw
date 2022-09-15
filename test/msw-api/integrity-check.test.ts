@@ -1,25 +1,24 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../playwright.extend'
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import copyServiceWorker from '../../config/copyServiceWorker'
 
-beforeAll(() => {
-  jest.spyOn(global.console, 'log').mockImplementation()
+test.afterEach(({ previewServer }) => {
+  previewServer.resetMiddleware()
 })
 
-afterAll(() => {
-  jest.restoreAllMocks()
-})
-
-test('activates the worker without errors given the latest integrity', async () => {
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'integrity-check-valid.mocks.ts'),
-  })
+test('activates the worker without errors given the latest integrity', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./integrity-check-valid.mocks.ts'))
 
   expect(consoleSpy.get('error')).toBeUndefined()
 
-  const res = await request('https://api.github.com/users/octocat')
+  const res = await fetch('https://api.github.com/users/octocat')
   const headers = await res.allHeaders()
   const body = await res.json()
 
@@ -29,7 +28,12 @@ test('activates the worker without errors given the latest integrity', async () 
   })
 })
 
-test('errors when activating the worker with an outdated integrity', async () => {
+test('errors when activating the worker with an outdated integrity', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  previewServer,
+}) => {
   const TEMP_SERVICE_WORKER_PATH = path.resolve(
     __dirname,
     '../..',
@@ -43,16 +47,16 @@ test('errors when activating the worker with an outdated integrity', async () =>
     'intentionally-invalid-checksum',
   )
 
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'integrity-check-invalid.mocks.ts'),
-    routes(app) {
-      app.get('/mockServiceWorker-outdated.js', (req, res) => {
-        return res
-          .set('content-type', 'application/javascript')
-          .send(fs.readFileSync(TEMP_SERVICE_WORKER_PATH, 'utf8'))
-      })
-    },
+  previewServer.apply((app) => {
+    app.get('/mockServiceWorker-outdated.js', (_, res) => {
+      return res
+        .set('content-type', 'application/javascript')
+        .send(fs.readFileSync(TEMP_SERVICE_WORKER_PATH, 'utf8'))
+    })
   })
+
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./integrity-check-invalid.mocks.ts'))
 
   // Produces a meaningful error in the browser's console.
   expect(consoleSpy.get('error')).toEqual(
@@ -62,7 +66,7 @@ test('errors when activating the worker with an outdated integrity', async () =>
   )
 
   // Should still keep the mocking enabled.
-  const res = await request('https://api.github.com/users/octocat')
+  const res = await fetch('https://api.github.com/users/octocat')
   const headers = await res.allHeaders()
   const body = await res.json()
 

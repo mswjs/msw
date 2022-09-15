@@ -1,18 +1,19 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { sleep } from '../../support/utils'
+import { test, expect } from '../../playwright.extend'
 
-test('gracefully handles a 204 response null body during life-cycle events', async () => {
+test('gracefully handles a 204 response null body during life-cycle events', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./null-body.mocks.ts'))
+
   let error: Error
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'null-body.mocks.ts'),
-  })
-
-  runtime.page.on('pageerror', (pageError) => {
+  page.on('pageerror', (pageError) => {
     error = pageError
   })
 
-  await runtime.request('https://test.mswjs.io/api/books')
+  await fetch('https://test.mswjs.io/api/books')
   await sleep(500)
 
   expect(error).not.toBeDefined()

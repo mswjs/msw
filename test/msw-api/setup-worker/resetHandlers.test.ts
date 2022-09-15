@@ -1,6 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi, rest } from 'msw'
+import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   // Annotate global references to the worker and rest request handlers.
@@ -10,16 +9,16 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'use.mocks.ts'),
-  })
-}
+const USE_EXAMPLE = require.resolve('./use.mocks.ts')
 
-test('removes all runtime request handlers when resetting without explicit next handlers', async () => {
-  const runtime = await createRuntime()
+test('removes all runtime request handlers when resetting without explicit next handlers', async ({
+  loadExample,
+  page,
+  fetch,
+}) => {
+  await loadExample(USE_EXAMPLE)
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
 
     // Add a request handler on runtime
@@ -31,7 +30,7 @@ test('removes all runtime request handlers when resetting without explicit next 
   })
 
   // Request handlers added on runtime affect the network communication.
-  const loginResponse = await runtime.request('/login', {
+  const loginResponse = await fetch('/login', {
     method: 'POST',
   })
   const loginStatus = loginResponse.status()
@@ -40,32 +39,36 @@ test('removes all runtime request handlers when resetting without explicit next 
   expect(loginBody).toEqual({ accepted: true })
 
   // Reset request handlers to initial handlers.
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
 
     msw.worker.resetHandlers()
   })
 
   // Any runtime request handlers are removed upon reset.
-  const secondLoginResponse = await runtime.request('/login', {
+  const secondLoginResponse = await fetch('/login', {
     method: 'POST',
   })
   const secondLoginStatus = secondLoginResponse.status()
   expect(secondLoginStatus).toBe(404)
 
   // Initial request handlers (given to `setupWorker`) are not affected.
-  const bookResponse = await runtime.request('/book/abc-123')
+  const bookResponse = await fetch('/book/abc-123')
   const bookStatus = bookResponse.status()
   const bookBody = await bookResponse.json()
   expect(bookStatus).toBe(200)
   expect(bookBody).toEqual({ title: 'Original title' })
 })
 
-test('replaces all handlers with the explicit next runtime handlers upon reset', async () => {
-  const runtime = await createRuntime()
+test('replaces all handlers with the explicit next runtime handlers upon reset', async ({
+  loadExample,
+  page,
+  fetch,
+}) => {
+  await loadExample(USE_EXAMPLE)
 
   // Add a runtime request handler.
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
 
     msw.worker.use(
@@ -76,7 +79,7 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
   })
 
   // Reset request handlers with explicit next handlers.
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
 
     msw.worker.resetHandlers(
@@ -87,19 +90,19 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
   })
 
   // Any runtime request handlers must be removed.
-  const loginResponse = await runtime.request('/login', {
+  const loginResponse = await fetch('/login', {
     method: 'POST',
   })
   const secondLoginStatus = loginResponse.status()
   expect(secondLoginStatus).toBe(404)
 
   // Any initial request handler must be removed.
-  const bookResponse = await runtime.request('/book/abc-123')
+  const bookResponse = await fetch('/book/abc-123')
   const bookStatus = bookResponse.status()
   expect(bookStatus).toEqual(404)
 
   // Should leave only explicit reset request handlers.
-  const productsResponse = await runtime.request('/products')
+  const productsResponse = await fetch('/products')
   const productsStatus = productsResponse.status()
   const productsBody = await productsResponse.json()
   expect(productsStatus).toBe(200)

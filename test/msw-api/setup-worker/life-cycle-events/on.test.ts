@@ -1,7 +1,7 @@
-import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
-import { pageWith, ScenarioApi } from 'page-with'
-import { waitFor } from '../../../support/waitFor'
+import { HttpServer } from '@open-draft/test-server/http'
+import type { ConsoleMessages } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -9,40 +9,48 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'on.mocks.ts'),
-    routes(app) {
-      app.post('/no-response', (req, res) => {
-        res.send('original-response')
-      })
-      app.get('/unknown-route', (req, res) => {
-        res.send('majestic-unknown')
-      })
-    },
-  })
-}
+const ON_EXAMPLE = require.resolve('./on.mocks.ts')
 
-export function getRequestId(messages: ScenarioApi['consoleSpy']) {
+let server: HttpServer
+
+export function getRequestId(messages: ConsoleMessages) {
   const requestStartMessage = messages.get('warning').find((message) => {
     return message.startsWith('[request:start]')
   })
   return requestStartMessage.split(' ')[3]
 }
 
-test('emits events for a handled request and mocked response', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/user')
-  await runtime.request(url)
-  const requestId = getRequestId(runtime.consoleSpy)
+test.beforeEach(async ({ createServer }) => {
+  server = await createServer((app) => {
+    app.post('/no-response', (req, res) => {
+      res.send('original-response')
+    })
+    app.get('/unknown-route', (req, res) => {
+      res.send('majestic-unknown')
+    })
+  })
+})
+
+test('emits events for a handled request and mocked response', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const url = server.http.url('/user')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
-  expect(runtime.consoleSpy.get('warning')).toEqual([
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${url} ${requestId}`,
     `[request:match] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
@@ -50,19 +58,26 @@ test('emits events for a handled request and mocked response', async () => {
   ])
 })
 
-test('emits events for a handled request with no response', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/no-response')
-  await runtime.request(url, { method: 'POST' })
-  const requestId = getRequestId(runtime.consoleSpy)
+test('emits events for a handled request with no response', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const url = server.http.url('/no-response')
+  await fetch(url, { method: 'POST' })
+  const requestId = getRequestId(consoleSpy)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:bypass]'),
     )
   })
 
-  expect(runtime.consoleSpy.get('warning')).toEqual([
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
     expect.stringContaining(
       '[MSW] Expected response resolver to return a mocked response Object',
@@ -72,19 +87,26 @@ test('emits events for a handled request with no response', async () => {
   ])
 })
 
-test('emits events for an unhandled request', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/unknown-route')
-  await runtime.request(url)
-  const requestId = getRequestId(runtime.consoleSpy)
+test('emits events for an unhandled request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const url = server.http.url('/unknown-route')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:bypass]'),
     )
   })
 
-  expect(runtime.consoleSpy.get('warning')).toEqual([
+  expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${url} ${requestId}`,
     `[request:unhandled] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
@@ -92,24 +114,36 @@ test('emits events for an unhandled request', async () => {
   ])
 })
 
-test('emits unhandled exceptions in the request handler', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/unhandled-exception')
-  await runtime.request(url)
-  const requestId = getRequestId(runtime.consoleSpy)
+test('emits unhandled exceptions in the request handler', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
 
-  expect(runtime.consoleSpy.get('warning')).toContain(
+  const url = server.http.url('/unhandled-exception')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
+
+  expect(consoleSpy.get('warning')).toContain(
     `[unhandledException] GET ${url} ${requestId} Unhandled resolver error`,
   )
 })
 
-test('stops emitting events once the worker is stopped', async () => {
-  const runtime = await createRuntime()
+test('stops emitting events once the worker is stopped', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return window.msw.worker.stop()
   })
-  await runtime.request('/unknown-route')
+  await fetch('/unknown-route')
 
-  expect(runtime.consoleSpy.get('warning')).toBeUndefined()
+  expect(consoleSpy.get('warning')).toBeUndefined()
 })

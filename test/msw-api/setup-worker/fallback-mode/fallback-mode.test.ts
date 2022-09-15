@@ -1,55 +1,38 @@
-import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
 import { createTeardown } from 'fs-teardown'
-import { Page, pageWith, Response, ScenarioApi } from 'page-with'
+import { Page } from '@playwright/test'
+import { HttpServer } from '@open-draft/test-server/http'
 import { fromTemp } from '../../../support/utils'
-import { waitFor } from '../../../support/waitFor'
-
-let runtime: ScenarioApi
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const worker: SetupWorkerApi
 }
 
-// Create a temporary directory on the disk
-// that would server as the public directory.
 const fsMock = createTeardown({
   rootDir: fromTemp('fallback-mode'),
-  paths: {
-    'index.html': '<script src="index.js"></script>',
-  },
 })
 
-beforeAll(async () => {
-  await fsMock.prepare()
+let server: HttpServer
 
-  runtime = await pageWith({
-    title: 'Fallback mode',
-    example: path.resolve(__dirname, '../../../rest-api/basic.mocks.ts'),
-    serverOptions: {
-      // Force this particular server instance to compile
-      // assets to the file-system so the test could open them.
-      compileInMemory: false,
-      webpackConfig: {
-        output: {
-          filename: 'index.js',
-          path: fsMock.resolve(),
-        },
-      },
-    },
-  })
-
-  await runtime.page.goto(`file://${fsMock.resolve('index.html')}`, {
+async function gotoStaticPage(page: Page): Promise<void> {
+  await page.goto(`file://${fsMock.resolve('index.html')}`, {
     waitUntil: 'networkidle',
   })
-})
+}
 
-afterAll(async () => {
-  await fsMock.cleanup()
-})
+interface DirectFetchResponse {
+  status: number
+  statusText: string
+  headers: Record<string, string>
+  body: Record<string, unknown>
+}
 
-function createRequestHelper(page: Page) {
-  return (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+function createFetchWithoutNetwork(page: Page) {
+  return (
+    input: RequestInfo,
+    init?: RequestInit,
+  ): Promise<DirectFetchResponse> => {
     return page.evaluate(
       ([input, init]: [RequestInfo, RequestInit]) => {
         return fetch(input, init)
@@ -73,22 +56,58 @@ function createRequestHelper(page: Page) {
   }
 }
 
-test('prints a fallback start message in the console', async () => {
-  const consoleGroups = runtime.consoleSpy.get('startGroupCollapsed')
+test.beforeAll(async ({ previewServer }) => {
+  await fsMock.prepare()
+
+  const compilation = await previewServer.compile([
+    require.resolve('./fallback-mode.mocks.ts'),
+  ])
+
+  await fsMock.create({
+    'index.html': `<script src="${compilation.previewUrl}/main.js"></script>`,
+  })
+})
+
+test.beforeEach(async ({ createServer }) => {
+  server = await createServer((app) => {
+    app.get('/user', (_, res) => {
+      res.json({ name: 'Actual User' })
+    })
+  })
+})
+
+test.afterAll(async () => {
+  await fsMock.cleanup()
+})
+
+test('prints a fallback start message in the console', async ({
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await gotoStaticPage(page)
+  const consoleGroups = consoleSpy.get('startGroupCollapsed')
 
   expect(consoleGroups).toContain('[MSW] Mocking enabled (fallback mode).')
 })
 
-test('responds with a mocked response to a handled request', async () => {
-  const request = createRequestHelper(runtime.page)
-  const response = await request('https://api.github.com/users/octocat')
+test('responds with a mocked response to a handled request', async ({
+  spyOnConsole,
+  waitFor,
+  page,
+}) => {
+  const fetch = createFetchWithoutNetwork(page)
+  const consoleSpy = spyOnConsole()
+  await gotoStaticPage(page)
+
+  const response = await fetch(server.http.url('/user'))
 
   // Prints the request message group in the console.
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/api\.github\.com\/users\/octocat 200 OK/,
+          /\[MSW\] \d{2}:\d{2}:\d{2} GET http:\/\/127\.0\.0\.1:\d+\/user 200 OK/,
         ),
       ]),
     )
@@ -97,23 +116,28 @@ test('responds with a mocked response to a handled request', async () => {
   // Responds with a mocked response.
   expect(response.status).toEqual(200)
   expect(response.statusText).toEqual('OK')
-  expect(response.headers['x-powered-by']).toEqual('msw')
+  expect(response.headers).toHaveProperty('x-powered-by', 'msw')
   expect(response.body).toEqual({
     name: 'John Maverick',
-    originalUsername: 'octocat',
   })
 })
 
-test('warns on the unhandled request by default', async () => {
-  const request = createRequestHelper(runtime.page)
-  await request('https://example.com')
+test('warns on the unhandled request by default', async ({
+  spyOnConsole,
+  page,
+}) => {
+  const fetch = createFetchWithoutNetwork(page)
+  const consoleSpy = spyOnConsole()
+  await gotoStaticPage(page)
 
-  expect(runtime.consoleSpy.get('warning')).toEqual(
+  await fetch(server.http.url('/unknown-resource'))
+
+  expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
 [MSW] Warning: captured a request without a matching request handler:
 
-  • GET https://example.com/
+  • GET ${server.http.url('/unknown-resource')}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`),
@@ -121,16 +145,24 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
   )
 })
 
-test('stops the fallback interceptor when called "worker.stop()"', async () => {
-  const request = createRequestHelper(runtime.page)
-  await runtime.page.evaluate(() => {
+test('stops the fallback interceptor when called "worker.stop()"', async ({
+  spyOnConsole,
+  page,
+}) => {
+  const fetch = createFetchWithoutNetwork(page)
+  const consoleSpy = spyOnConsole()
+  await gotoStaticPage(page)
+
+  await page.evaluate(() => {
     window.worker.stop()
   })
 
-  // The stop message must be printed to the console.
-  expect(runtime.consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
+  // Must print the stop message to the console.
+  expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 
-  // No requests should be intercepted.
-  const response = await request('https://api.github.com/users/octocat')
-  expect(response.headers).toHaveProperty('x-github-media-type')
+  // Must not intercept requests anymore.
+  const response = await fetch(server.http.url('/user'))
+
+  expect(response.status).toBe(200)
+  expect(response.body).toEqual({ name: 'Actual User' })
 })

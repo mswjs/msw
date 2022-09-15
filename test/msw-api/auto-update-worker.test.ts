@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import * as fs from 'fs'
 import { execSync } from 'child_process'
 import { createTeardown } from 'fs-teardown'

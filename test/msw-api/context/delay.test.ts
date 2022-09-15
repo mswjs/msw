@@ -1,8 +1,9 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../playwright.extend'
+
+const DELAY_EXAMPLE = require.resolve('./delay.mocks.ts')
 
 declare global {
-  namespace jest {
+  namespace PlaywrightTest {
     interface Matchers<R> {
       toRoughlyEqual(expected: number, deviation: number): R
     }
@@ -34,15 +35,10 @@ expect.extend({
   },
 })
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'delay.mocks.ts'),
-  })
-}
+test('uses explicit server response delay', async ({ loadExample, fetch }) => {
+  await loadExample(DELAY_EXAMPLE)
 
-test('uses explicit server response delay', async () => {
-  const runtime = await createRuntime()
-  const res = await runtime.request('/delay?duration=1200')
+  const res = await fetch('/delay?duration=1200')
   const timing = res.request().timing()
 
   expect(timing.responseStart).toRoughlyEqual(1200, 250)
@@ -56,9 +52,13 @@ test('uses explicit server response delay', async () => {
   expect(body).toEqual({ mocked: true })
 })
 
-test('uses realistic server response delay when no delay value is provided', async () => {
-  const runtime = await createRuntime()
-  const res = await runtime.request('/delay')
+test('uses realistic server response delay when no delay value is provided', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(DELAY_EXAMPLE)
+
+  const res = await fetch('/delay')
   const timing = res.request().timing()
 
   expect(timing.responseStart).toRoughlyEqual(250, 300)
@@ -74,9 +74,12 @@ test('uses realistic server response delay when no delay value is provided', asy
   })
 })
 
-test('uses realistic server response delay when "real" delay mode is provided', async () => {
-  const runtime = await createRuntime()
-  const res = await runtime.request('/delay?mode=real')
+test('uses realistic server response delay when "real" delay mode is provided', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(DELAY_EXAMPLE)
+  const res = await fetch('/delay?mode=real')
   const timing = res.request().timing()
 
   expect(timing.responseStart).toRoughlyEqual(250, 300)

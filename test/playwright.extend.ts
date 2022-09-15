@@ -1,3 +1,5 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import * as crypto from 'crypto'
 import { test as base, expect, type Response } from '@playwright/test'
 import {
@@ -7,11 +9,22 @@ import {
   type FlatHeadersObject,
 } from 'headers-polyfill'
 import { spyOnConsole, ConsoleMessages } from 'page-with'
-import type { CompilationOptions } from 'webpack-http-server'
+import { HttpServer, HttpServerMiddleware } from '@open-draft/test-server/http'
+import {
+  CompilationOptions,
+  CompilationResult,
+  WebpackHttpServer,
+} from 'webpack-http-server'
 import { waitFor } from './support/waitFor'
 
-interface CustomFixtures {
-  loadExample(entry: string, options?: CompilationOptions): Promise<void>
+const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants.js')
+
+interface TestFixtures {
+  createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
+  loadExample(
+    entry: string,
+    options?: CompilationOptions,
+  ): Promise<CompilationResult>
   fetch(
     url: string,
     init?: RequestInit,
@@ -21,6 +34,10 @@ interface CustomFixtures {
   makeUrl(path: string): string
   spyOnConsole(): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
+}
+
+interface WorkerFixtures {
+  previewServer: WebpackHttpServer
 }
 
 interface GraphQLQueryOptions {
@@ -35,32 +52,78 @@ interface GraphQLMultipartDataOptions {
   fileContents: string[]
 }
 
-export const test = base.extend<CustomFixtures>({
-  async loadExample({ page, request }, use) {
-    await use(async (entry, options = {}) => {
-      const res = await request.post(
-        `${process.env.WEBPACK_SERVER_URL}/compilation`,
-        {
-          data: {
-            ...options,
-            entry,
+export const test = base.extend<TestFixtures, WorkerFixtures>({
+  previewServer: [
+    async ({}, use) => {
+      const server = new WebpackHttpServer({
+        before(app) {
+          app.get('/mockServiceWorker.js', (req, res) => {
+            const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
+            res.set('Content-Type', 'application/javascript; charset=utf8')
+            res.set('Content-Encoding', 'chunked')
+            readable.pipe(res)
+          })
+        },
+        webpackConfig: {
+          module: {
+            rules: [
+              {
+                test: /\.tsx?$/,
+                use: [
+                  {
+                    loader: 'ts-loader',
+                    options: {
+                      configFile: path.resolve(
+                        __dirname,
+                        '..',
+                        'tsconfig.json',
+                      ),
+                      transpileOnly: true,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          resolve: {
+            alias: {
+              msw: path.resolve(__dirname, '..'),
+            },
+            extensions: ['.ts', '.js'],
           },
         },
-      )
-      const result = await res.json()
+      })
 
-      await page.goto(result.previewUrl, { waitUntil: 'networkidle' })
+      await server.listen()
+      await use(server)
+    },
+    { scope: 'worker' },
+  ],
+  async createServer({}, use) {
+    let server: HttpServer
+
+    await use(async (...middleware) => {
+      server = new HttpServer(...middleware)
+      await server.listen()
+      return server
+    })
+
+    await server.close()
+  },
+  async loadExample({ page, previewServer }, use) {
+    await use(async (entry, options = {}) => {
+      const compilation = await previewServer.compile([entry], options)
+      await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
+      return compilation
     })
   },
   async waitFor({}, use) {
     await use(waitFor)
   },
-  async fetch({ page }, use) {
+  async fetch({ page, previewServer }, use) {
     await use(async (url, init, predicate) => {
-      const requestId = crypto.createHash('md5').digest('hex')
-      const resolvedUrl = url.startsWith('/')
-        ? new URL(url, process.env.WEBPACK_SERVER_URL).href
-        : url
+      const requestId = crypto.randomBytes(16).toString('hex')
+      const resolvedUrl = new URL(url, previewServer.serverUrl).href
 
       const fetchOptions = init || {}
       const initialHeaders = fetchOptions.headers || {}

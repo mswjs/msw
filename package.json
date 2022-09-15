@@ -33,7 +33,6 @@
     "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
     "test:new": "playwright test -c ./test/playwright.config.ts",
-    "wb": "ts-node test/support/WebpackHttpServer.ts",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
     "release": "release publish",

@@ -1,7 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { waitFor } from '../../../support/waitFor'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -9,70 +7,82 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'on.mocks.ts'),
-  })
-}
+const ON_EXAMPLE = require.resolve('./on.mocks.ts')
 
-test('removes all listeners attached to the worker instance', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/user')
-  await runtime.request(url)
+test('removes all listeners attached to the worker instance', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  page,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const url = 'http://localhost/user'
+  await fetch(url)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
   // Remove all life-cycle events listeners.
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
     msw.worker.events.removeAllListeners()
   })
 
   // Request the same endpoint again.
-  runtime.consoleSpy.clear()
-  await runtime.request(url)
+  consoleSpy.clear()
+  await fetch(url)
 
   const promise = waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
-  await expect(promise).rejects.toThrow()
+  await expect(promise).resolves.toBeUndefined()
 })
 
-test('removes all the listeners by the event name', async () => {
-  const runtime = await createRuntime()
-  const url = runtime.makeUrl('/user')
-  await runtime.request(url)
+test('removes all the listeners by the event name', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  page,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const url = 'http://localhost/user'
+  await fetch(url)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
   // Request the same endpoint again.
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
     msw.worker.events.removeAllListeners('request:end')
   })
 
   // Request the same endpoint again.
-  runtime.consoleSpy.clear()
-  await runtime.request(url)
+  consoleSpy.clear()
+  await fetch(url)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
-  expect(runtime.consoleSpy.get('warning')).not.toContainEqual(
+  expect(consoleSpy.get('warning')).not.toContainEqual(
     expect.stringContaining('[request:end]'),
   )
 })

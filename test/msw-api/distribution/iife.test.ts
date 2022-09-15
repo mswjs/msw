@@ -1,20 +1,37 @@
+import * as fs from 'fs'
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../playwright.extend'
 
-it('supports the usage of the iife bundle in a <script> tag', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'iife.mocks.js'),
-    markup: `
-<script src="/iife/index.js"></script>
-    `,
-    contentBase: path.resolve(process.cwd(), 'lib'),
+test.afterEach(({ previewServer }) => {
+  previewServer.resetMiddleware()
+})
+
+test('supports the usage of the iife bundle in a <script> tag', async ({
+  loadExample,
+  spyOnConsole,
+  previewServer,
+  fetch,
+}) => {
+  previewServer.use((app) => {
+    app.get('/iife/index.js', (_, res) => {
+      fs.createReadStream(
+        path.resolve(__dirname, '../../..', 'lib/iife/index.js'),
+      ).pipe(res)
+
+      return res
+    })
   })
 
-  expect(runtime.consoleSpy.get('error')).toBeUndefined()
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./iife.mocks.js'), {
+    markup: `<script src="/iife/index.js"></script>`,
+  })
 
-  const response = await runtime.request('/user')
+  expect(consoleSpy.get('error')).toBeUndefined()
 
-  expect(response.status()).toEqual(200)
+  const response = await fetch('/user')
+
+  expect(response.status()).toBe(200)
   expect(await response.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await response.json()).toEqual({
     firstName: 'John',

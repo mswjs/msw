@@ -2,13 +2,13 @@ import { rest, setupWorker } from 'msw'
 import { ServerLifecycleEventsMap } from 'msw/src/node/glossary'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
+  rest.get('*/user', (req, res, ctx) => {
     return res(ctx.text('response-body'))
   }),
-  rest.post('/no-response', () => {
+  rest.post('*/no-response', () => {
     return
   }),
-  rest.get('/unhandled-exception', () => {
+  rest.get('*/unhandled-exception', () => {
     throw new Error('Unhandled resolver error')
   }),
 )

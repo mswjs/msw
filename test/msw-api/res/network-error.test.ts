@@ -1,10 +1,8 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../playwright.extend'
 
-test('throws a network error', async () => {
-  const { page, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'network-error.mocks.ts'),
-  })
+test('throws a network error', async ({ spyOnConsole, loadExample, page }) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./network-error.mocks.ts'))
 
   // Do not use `runtime.request()`, because it always awaits a response.
   // In this case we await a network error, performing a request manually.

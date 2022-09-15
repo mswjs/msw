@@ -1,13 +1,14 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../playwright.extend'
 
-test('supports asynchronous response transformer', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
-  })
+test('supports asynchronous response transformer', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./async-response-transformer.mocks.ts'))
 
-  const res = await runtime.request('/image')
+  const res = await fetch('/image')
   const body = await res.body()
   const expectedBuffer = fs.readFileSync(
     path.resolve(__dirname, '../../fixtures/image.jpg'),
@@ -24,12 +25,13 @@ test('supports asynchronous response transformer', async () => {
   expect(new Uint8Array(body)).toEqual(new Uint8Array(expectedBuffer))
 })
 
-test('supports asynchronous default response transformer', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'async-response-transformer.mocks.ts'),
-  })
+test('supports asynchronous default response transformer', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./async-response-transformer.mocks.ts'))
 
-  const res = await runtime.request('/search', {
+  const res = await fetch('/search', {
     method: 'POST',
   })
   const status = res.status()

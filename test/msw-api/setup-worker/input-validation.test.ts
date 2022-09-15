@@ -1,10 +1,10 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../playwright.extend'
 
-test('throws an error given an Array of request handlers to "setupWorker"', async () => {
-  const { page } = await pageWith({
-    example: path.resolve(__dirname, 'input-validation.mocks.ts'),
-  })
+test('throws an error given an Array of request handlers to "setupWorker"', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./input-validation.mocks.ts'))
 
   const exceptions: string[] = []
 

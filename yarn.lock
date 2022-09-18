@@ -1779,10 +1779,10 @@
   resolved "https://registry.yarnpkg.com/@open-draft/until/-/until-2.0.0.tgz#13d79bb827eb1be21cea4d29cdc60ca3312ec02f"
   integrity sha512-0zJhDjNR0aH1d68TiD6GnYr18dcuOiyTx8xV/I7fp9+z/VQ20e305aObW1/DO5/fiCOztscmvJsCjJDYDhFW6w==
 
-"@ossjs/release@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@ossjs/release/-/release-0.3.0.tgz#9032711b05a718389d7d8c34db07816428c6dc15"
-  integrity sha512-ULz99duErTwwOnyNdijt/wPY1o89Cpo3BPDIbCV/uGm56cFDEsjvaFaFxj1Bk057/NRf/FzcVWzTchguQHZpfg==
+"@ossjs/release@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@ossjs/release/-/release-0.4.0.tgz#3c4412f2b19fb845b1099815b164bdea0a4da74f"
+  integrity sha512-cfW+gk3GdVqjrawkAG8q6MXPmTJouwwPegmBAVNvYvKq/tKQHgluxiueTlNTdJRryI76rpe6y5+EXlHdisrwdg==
   dependencies:
     "@open-draft/until" "^2.0.0"
     "@types/conventional-commits-parser" "^3.0.2"

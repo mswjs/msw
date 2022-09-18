@@ -111,7 +111,7 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@open-draft/test-server": "^0.2.3",
-    "@ossjs/release": "^0.3.0",
+    "@ossjs/release": "^0.4.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "26",
     "@types/json-bigint": "^1.0.1",

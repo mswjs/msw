@@ -71,8 +71,6 @@ const worker = setupWorker(
   rest.head('*/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req.url.href, { method: 'HEAD' })
 
-    console.log('original:', originalResponse)
-
     return res(
       ctx.set('x-custom', originalResponse.headers.get('x-custom')),
       ctx.json({

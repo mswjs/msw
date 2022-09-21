@@ -9,15 +9,18 @@ declare namespace window {
 }
 
 test.beforeEach(async ({ loadExample }) => {
-  const compilation = await loadExample(require.resolve('./start.mocks.ts'))
-  compilation.use((router) => {
-    router.get('/worker.js', (_, res) => {
-      res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
-    })
+  await loadExample(require.resolve('./start.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use((router) => {
+        router.get('/worker.js', (_, res) => {
+          res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
+        })
+      })
+    },
   })
 })
 
-test.only('resolves the "start" Promise when the worker has been activated', async ({
+test('resolves the "start" Promise when the worker has been activated', async ({
   spyOnConsole,
   waitFor,
   page,

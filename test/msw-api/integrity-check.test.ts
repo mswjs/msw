@@ -4,10 +4,6 @@ import { test, expect } from '../playwright.extend'
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants'
 import copyServiceWorker from '../../config/copyServiceWorker'
 
-test.afterEach(({ previewServer }) => {
-  previewServer.resetMiddleware()
-})
-
 test('activates the worker without errors given the latest integrity', async ({
   loadExample,
   spyOnConsole,
@@ -32,7 +28,6 @@ test('errors when activating the worker with an outdated integrity', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  previewServer,
 }) => {
   const TEMP_SERVICE_WORKER_PATH = path.resolve(
     __dirname,
@@ -47,16 +42,18 @@ test('errors when activating the worker with an outdated integrity', async ({
     'intentionally-invalid-checksum',
   )
 
-  previewServer.apply((app) => {
-    app.get('/mockServiceWorker-outdated.js', (_, res) => {
-      return res
-        .set('content-type', 'application/javascript')
-        .send(fs.readFileSync(TEMP_SERVICE_WORKER_PATH, 'utf8'))
-    })
-  })
-
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./integrity-check-invalid.mocks.ts'))
+  await loadExample(require.resolve('./integrity-check-invalid.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use((router) => {
+        router.get('/mockServiceWorker-outdated.js', (_, res) => {
+          return res
+            .set('content-type', 'application/javascript')
+            .send(fs.readFileSync(TEMP_SERVICE_WORKER_PATH, 'utf8'))
+        })
+      })
+    },
+  })
 
   // Produces a meaningful error in the browser's console.
   expect(consoleSpy.get('error')).toEqual(

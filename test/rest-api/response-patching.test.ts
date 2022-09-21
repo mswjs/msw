@@ -72,13 +72,15 @@ test('bypasses the original request when it equals the mocked request', async ({
   const res = await fetch(
     httpServer.http.url('/repos/mswjs/msw?mocked=true'),
     null,
-    (res) => {
-      return (
-        // Await the response from MSW so that the original response
-        // from the same URL would not interfere.
-        matchRequestUrl(new URL(res.request().url()), res.url()).matches &&
-        res.headers()['x-powered-by'] === 'msw'
-      )
+    {
+      waitForResponse(res) {
+        return (
+          // Await the response from MSW so that the original response
+          // from the same URL would not interfere.
+          matchRequestUrl(new URL(res.request().url()), res.url()).matches &&
+          res.headers()['x-powered-by'] === 'msw'
+        )
+      },
     },
   )
 
@@ -130,18 +132,16 @@ test.fixme(
       {
         method: 'HEAD',
       },
-      (res) => {
-        return res.headers()['x-powered-by'] === 'msw'
+      {
+        waitForResponse(res) {
+          return res.headers()['x-powered-by'] === 'msw'
+        },
       },
     )
-
-    throw new Error('Fix this test')
 
     const status = res.status()
     const headers = await res.allHeaders()
     const body = await res.json()
-
-    console.log('response!!', { status, headers, body })
 
     expect(status).toBe(200)
     expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -165,11 +165,13 @@ test('supports patching a GET request', async ({
         'Content-Type': 'application/json',
       },
     },
-    (res) => {
-      return (
-        matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-          .matches && res.headers()['x-powered-by'] === 'msw'
-      )
+    {
+      waitForResponse(res) {
+        return (
+          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
+            .matches && res.headers()['x-powered-by'] === 'msw'
+        )
+      },
     },
   )
   const status = res.status()
@@ -199,11 +201,13 @@ test.fixme(
           userId: 1,
         }),
       },
-      (res) => {
-        return (
-          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-            .matches && res.headers()['x-powered-by'] === 'msw'
-        )
+      {
+        waitForResponse(res) {
+          return (
+            matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
+              .matches && res.headers()['x-powered-by'] === 'msw'
+          )
+        },
       },
     )
     const status = res.status()

@@ -42,7 +42,6 @@ test('propagates a mocked network error', async ({
 
   // Expect a notification warning from the library.
   await waitFor(() => {
-    console.log(workerConsole.consoleSpy.get('warning'))
     expect(workerConsole.consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(

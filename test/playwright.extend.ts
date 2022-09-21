@@ -49,7 +49,7 @@ interface WorkerFixtures {
 
 interface FetchOptions {
   page?: Page
-  waitForResponse?(res: Response): Promise<boolean>
+  waitForResponse?(res: Response): Promise<boolean> | boolean
 }
 
 interface GraphQLQueryOptions {

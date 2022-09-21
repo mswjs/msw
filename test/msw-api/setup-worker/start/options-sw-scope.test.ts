@@ -1,16 +1,19 @@
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('respects a custom "scope" Service Worker option', async () => {
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'options-sw-scope.mocks.ts'),
-  })
+test('respects a custom "scope" Service Worker option', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(path.resolve(__dirname, 'options-sw-scope.mocks.ts'))
 
   expect(consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([expect.stringContaining('[MSW] Mocking enabled.')]),
   )
 
-  const res = await request('/user')
+  const res = await fetch('/user')
   const status = res.status()
 
   // Since the root "/" page lies outside of the custom worker scope,

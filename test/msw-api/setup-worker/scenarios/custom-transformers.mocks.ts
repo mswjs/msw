@@ -1,10 +1,10 @@
 import { ResponseTransformer, compose, context, setupWorker, rest } from 'msw'
-import * as JSONbig from 'json-bigint'
+import * as JSONBig from 'json-bigint'
 
 const jsonBig = (body: Record<string, any>): ResponseTransformer => {
   return compose(
     context.set('Content-Type', 'application/json'),
-    context.body(JSONbig.stringify(body)),
+    context.body(JSONBig.stringify(body)),
   )
 }
 

@@ -15,7 +15,7 @@ window.msw = {
         // delays the worker installation time. This allows us to test
         // that the "worker.start()" Promise indeed resolves only after
         // the worker has been activated and not just registered.
-        url: '/worker.js',
+        url: './worker.js',
       },
     })
   },

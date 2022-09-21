@@ -1,16 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'fall-through.mocks.ts'),
-  })
-}
+test('falls through all relevant request handlers until response is returned', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./fall-through.mocks.ts'))
 
-test('falls through all relevant request handlers until response is returned', async () => {
-  const { request, consoleSpy } = await createRuntime()
-
-  const res = await request('/user')
+  const res = await fetch('/user')
   const body = await res.json()
 
   // One of the handlers returns a mocked response.
@@ -25,10 +23,15 @@ test('falls through all relevant request handlers until response is returned', a
   expect(consoleSpy.get('log')).not.toContain('[get] third')
 })
 
-test('falls through all relevant handler even if none returns response', async () => {
-  const { request, consoleSpy } = await createRuntime()
+test('falls through all relevant handler even if none returns response', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./fall-through.mocks.ts'))
 
-  const res = await request('/blog/article', {
+  const res = await fetch('/blog/article', {
     method: 'POST',
   })
   const status = res.status()

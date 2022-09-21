@@ -1,12 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../../playwright.extend'
 
-test('executes a given callback on an unhandled request', async () => {
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'callback.mocks.ts'),
-  })
+test('executes a given callback on an unhandled request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./callback.mocks.ts'))
 
-  const res = await request('https://mswjs.io/non-existing-page')
+  const res = await fetch('https://mswjs.io/non-existing-page')
   const status = res.status()
 
   // Request is performed as-is.

@@ -1,17 +1,17 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import * as JSONbig from 'json-bigint'
+import * as JSONBig from 'json-bigint'
+import { test, expect } from '../../../playwright.extend'
 
-test('uses a custom transformer to parse BigInt in response body', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'custom-transformers.mocks.ts'),
-  })
+test('uses a custom transformer to parse BigInt in response body', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./custom-transformers.mocks.ts'))
 
-  const res = await runtime.request('/user')
+  const res = await fetch('/user')
   const body = await res.text()
 
   expect(body).toEqual(
-    JSONbig.stringify({
+    JSONBig.stringify({
       username: 'john.maverick',
       balance: BigInt(1597928668063727616),
     }),

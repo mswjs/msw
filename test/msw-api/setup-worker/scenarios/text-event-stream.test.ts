@@ -1,13 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { test, expect } from '../../../playwright.extend'
 import { sleep } from '../../../support/utils'
-import { waitFor } from '../../../support/waitFor'
 
-let httpServer: ServerApi
-
-beforeAll(async () => {
-  httpServer = await createServer((app) => {
+test('bypasses the unhandled request with the "Accept" header containing "text/event-stream"', async ({
+  loadExample,
+  spyOnConsole,
+  createServer,
+  page,
+  waitFor,
+}) => {
+  const server = await createServer((app) => {
     app.get('/user', async (req, res) => {
       res.set({
         'Content-Type': 'text/event-stream',
@@ -23,27 +24,20 @@ beforeAll(async () => {
       }
     })
   })
-})
 
-afterAll(async () => {
-  await httpServer.close()
-})
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./text-event-stream.mocks.ts'))
 
-test('bypasses the unhandled request with the "Accept" header containing "text/event-stream"', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'text-event-stream.mocks.ts'),
-  })
-
-  await runtime.page.evaluate((endpointUrl) => {
+  await page.evaluate((endpointUrl) => {
     const source = new EventSource(endpointUrl)
     source.addEventListener('message', (message) => {
       console.log(message.data)
     })
-  }, httpServer.http.makeUrl('/user'))
+  }, server.http.url('/user'))
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('error')).toBeUndefined()
-    expect(runtime.consoleSpy.get('log')).toEqual(
+    expect(consoleSpy.get('error')).toBeUndefined()
+    expect(consoleSpy.get('log')).toEqual(
       expect.arrayContaining(['hello', 'beautiful', 'world']),
     )
   })

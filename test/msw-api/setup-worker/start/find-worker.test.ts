@@ -1,6 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -8,10 +7,13 @@ declare namespace window {
   }
 }
 
-test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async () => {
-  const { page, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'find-worker.mocks.ts'),
-  })
+test('resolves the "start" Promise and returns a ServiceWorkerRegistration when using a findWorker that returns true', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./find-worker.mocks.ts'))
 
   const resolvedPayload = await page.evaluate(() => {
     return window.msw.registration
@@ -34,10 +36,13 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
   expect(customMessageIndex).toBeGreaterThan(activationMessageIndex)
 })
 
-test('fails to return a ServiceWorkerRegistration when using a findWorker that returns false', async () => {
-  const { page, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'find-worker.error.mocks.ts'),
-  })
+test('fails to return a ServiceWorkerRegistration when using a findWorker that returns false', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./find-worker.error.mocks.ts'))
 
   const workerStartError = await page.evaluate(() => {
     return window.msw.registration.catch((err) => err)

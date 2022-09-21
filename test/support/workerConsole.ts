@@ -1,14 +1,12 @@
-import { ConsoleMessageType } from 'page-with/lib/utils/spyOnConsole'
-import { ServerApi, createServer } from '@open-draft/test-server'
 import { format } from 'outvariant'
+import { ConsoleMessageType } from 'page-with'
+import { HttpServer } from '@open-draft/test-server/http'
 
-let workerConsoleServer: ServerApi
-export const workerConsoleSpy = new Map<ConsoleMessageType, string[]>()
-export const workerConsoleIdle = Promise.resolve()
+type WorkerConsoleSpy = Map<ConsoleMessageType, string[]>
 
-// Map certain console methods to "ConsoleMessageType".
-const consoleMessageTypeOverrides = {
-  warn: 'warning',
+export interface WorkerConsole {
+  server: HttpServer
+  consoleSpy: WorkerConsoleSpy
 }
 
 /**
@@ -21,13 +19,22 @@ const consoleMessageTypeOverrides = {
  * @see https://github.com/microsoft/playwright/issues/6559
  * @see https://stackoverflow.com/questions/54339039/puppeteer-can-not-listen-service-workers-console
  */
-export async function createWorkerConsoleServer() {
-  workerConsoleServer = await createServer((app) => {
+
+export async function createWorkerConsoleServer(): Promise<WorkerConsole> {
+  const workerConsoleSpy = new Map() as WorkerConsoleSpy
+
+  const workerConsoleServer = new HttpServer((app) => {
     app.use((req, res, next) => {
       // Configure CORS so that localhost can issue cross-port requests
       // during the test runs.
       res.setHeader('Access-Control-Allow-Origin', '*')
       next()
+    })
+
+    app.get('/', (_, res) => {
+      res.send(
+        'This is a server that proxies "console" calls from the Service Worker.',
+      )
     })
 
     app.post('/console/:messageType', (req, res) => {
@@ -48,5 +55,17 @@ export async function createWorkerConsoleServer() {
     })
   })
 
-  return workerConsoleServer
+  await workerConsoleServer.listen()
+
+  return {
+    server: workerConsoleServer,
+    consoleSpy: workerConsoleSpy,
+  }
+}
+
+// Map certain console methods to "ConsoleMessageType".
+const consoleMessageTypeOverrides: Partial<
+  Record<keyof typeof console, ConsoleMessageType>
+> = {
+  warn: 'warning',
 }

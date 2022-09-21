@@ -1,7 +1,6 @@
-import * as path from 'path'
-import { Page, pageWith, createRequestUtil } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { sleep } from '../../support/utils'
+import { Page } from '@playwright/test'
+import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -9,25 +8,41 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'stop.mocks.ts'),
-  })
-}
-
 const stopWorkerOn = async (page: Page) => {
-  await page.evaluate(() => {
+  page.evaluate(() => {
     return window.msw.worker.stop()
   })
 
-  return sleep(1000)
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('Failed to await the worker stop console message!'))
+    }, 5000)
+
+    page.on('console', (message) => {
+      const text = message.text()
+
+      if (
+        // Successful stop console message.
+        text.includes('[MSW] Mocking disabled.') ||
+        // Warning when calling "stop()" multiple times.
+        text.includes('worker.stop()')
+      ) {
+        clearTimeout(timeout)
+        resolve()
+      }
+    })
+  })
 }
 
-test('disables the mocking when the worker is stopped', async () => {
-  const runtime = await createRuntime()
-  await stopWorkerOn(runtime.page)
+test('disables the mocking when the worker is stopped', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await loadExample(require.resolve('./stop.mocks.ts'))
+  await stopWorkerOn(page)
 
-  const res = await runtime.request('https://api.github.com')
+  const res = await fetch('https://api.github.com')
   const headers = await res.allHeaders()
   const body = await res.json()
 
@@ -37,15 +52,20 @@ test('disables the mocking when the worker is stopped', async () => {
   })
 })
 
-test('keeps the mocking enabled in one tab when stopping the worker in another tab', async () => {
-  const runtime = await createRuntime()
+test('keeps the mocking enabled in one tab when stopping the worker in another tab', async ({
+  loadExample,
+  context,
+  fetch,
+}) => {
+  const compilation = await loadExample(require.resolve('./stop.mocks.ts'))
 
-  const firstPage = await runtime.context.newPage()
-  await firstPage.goto(runtime.origin, {
+  const firstPage = await context.newPage()
+  await firstPage.goto(compilation.previewUrl, {
     waitUntil: 'networkidle',
   })
-  const secondPage = await runtime.context.newPage()
-  await secondPage.goto(runtime.origin, {
+
+  const secondPage = await context.newPage()
+  await secondPage.goto(compilation.previewUrl, {
     waitUntil: 'networkidle',
   })
 
@@ -54,9 +74,9 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   // Switch to another page.
   await secondPage.bringToFront()
 
-  // Create a request handler for the new page.
-  const request = createRequestUtil(secondPage, runtime.server)
-  const res = await request('https://api.github.com')
+  const res = await fetch('https://api.github.com', null, {
+    page: secondPage,
+  })
   const headers = await res.allHeaders()
   const body = await res.json()
 
@@ -66,26 +86,31 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   })
 })
 
-test('prints a warning on multiple "worker.stop()" calls', async () => {
-  const runtime = await createRuntime()
+test('prints a warning on multiple "worker.stop()" calls', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./stop.mocks.ts'))
 
   function byStopMessage(text: string): boolean {
     return text === '[MSW] Mocking disabled.'
   }
 
-  await stopWorkerOn(runtime.page)
+  await stopWorkerOn(page)
 
   // Prints the stop message and no warnings.
-  expect(runtime.consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
-  expect(runtime.consoleSpy.get('warning')).toBeUndefined()
+  expect(consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
+  expect(consoleSpy.get('warning')).toBeUndefined()
 
-  await stopWorkerOn(runtime.page)
+  await stopWorkerOn(page)
 
   // Does not print a duplicate stop message.
-  expect(runtime.consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
+  expect(consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
 
   // Prints a warning so the user knows something is not right.
-  expect(runtime.consoleSpy.get('warning')).toEqual([
+  expect(consoleSpy.get('warning')).toEqual([
     `[MSW] Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.`,
   ])
 })

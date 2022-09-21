@@ -1,12 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../../playwright.extend'
 
-test('executes a default "warn" strategy in a custom callback', async () => {
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'callback-print.mocks.ts'),
-  })
+test('executes a default "warn" strategy in a custom callback', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./callback-print.mocks.ts'))
 
-  const res = await request('https://mswjs.io/use-warn')
+  const res = await fetch('https://mswjs.io/use-warn')
   const status = res.status()
 
   // Request is performed as-is.
@@ -32,12 +34,15 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
   )
 })
 
-test('executes a default "error" strategy in a custom callback', async () => {
-  const { request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'callback-print.mocks.ts'),
-  })
+test('executes a default "error" strategy in a custom callback', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./callback-print.mocks.ts'))
 
-  const res = await request('https://mswjs.io/use-error')
+  const res = await fetch('https://mswjs.io/use-error')
   const status = res.status()
 
   // Request is performed as-is.

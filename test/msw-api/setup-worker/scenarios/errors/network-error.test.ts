@@ -1,15 +1,12 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { until } from '@open-draft/until'
-import { workerConsoleSpy } from '../../../../support/workerConsole'
-import { waitFor } from '../../../../support/waitFor'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
+import { test, expect } from '../../../../playwright.extend'
 
-let httpServer: ServerApi
+let server: HttpServer
 
-beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.use((req, res, next) => {
+test.beforeEach(async ({ createServer }) => {
+  server = await createServer((app) => {
+    app.use((_, res, next) => {
       // Configure CORS to fail all requests issued from the test.
       res.setHeader('Access-Control-Allow-Origin', 'https://mswjs.io')
       next()
@@ -21,20 +18,23 @@ beforeAll(async () => {
   })
 })
 
-afterAll(async () => {
-  await httpServer.close()
-})
+test('propagates a mocked network error', async ({
+  loadExample,
+  spyOnConsole,
+  workerConsole,
+  fetch,
+  page,
+  waitFor,
+  makeUrl,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./network-error.mocks.ts'))
 
-test('propagates a mocked network error', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'network-error.mocks.ts'),
-  })
-
-  const endpointUrl = runtime.makeUrl('/user')
-  await until(() => runtime.page.evaluate((url) => fetch(url), endpointUrl))
+  const endpointUrl = makeUrl('/user')
+  await until(() => page.evaluate((url) => fetch(url), endpointUrl))
 
   // Expect the fetch error message.
-  expect(runtime.consoleSpy.get('error')).toEqual(
+  expect(consoleSpy.get('error')).toEqual(
     expect.arrayContaining([
       expect.stringContaining('Failed to load resource: net::ERR_FAILED'),
     ]),
@@ -42,7 +42,8 @@ test('propagates a mocked network error', async () => {
 
   // Expect a notification warning from the library.
   await waitFor(() => {
-    expect(workerConsoleSpy.get('warning')).toEqual(
+    console.log(workerConsole.consoleSpy.get('warning'))
+    expect(workerConsole.consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(
           `[MSW] Successfully emulated a network error for the "GET ${endpointUrl}" request.`,
@@ -52,20 +53,25 @@ test('propagates a mocked network error', async () => {
   })
 
   // The worker must not produce any errors.
-  expect(workerConsoleSpy.get('error')).toBeUndefined()
+  expect(workerConsole.consoleSpy.get('error')).toBeUndefined()
 })
 
-test('propagates an original network error', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'network-error.mocks.ts'),
-  })
+test('propagates a CORS violation error from a non-matching request', async ({
+  loadExample,
+  spyOnConsole,
+  workerConsole,
+  page,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./network-error.mocks.ts'))
 
-  const endpointUrl = httpServer.http.makeUrl('/resource')
-  await until(() => runtime.page.evaluate((url) => fetch(url), endpointUrl))
+  const endpointUrl = server.http.url('/resource')
+  await until(() => page.evaluate((url) => fetch(url), endpointUrl))
 
   // Expect the default fetch error message.
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('error')).toEqual(
+    expect(consoleSpy.get('error')).toEqual(
       expect.arrayContaining([
         expect.stringContaining('Failed to load resource: net::ERR_FAILED'),
       ]),
@@ -74,7 +80,7 @@ test('propagates an original network error', async () => {
 
   // Expect the explanatory error message from the library.
   await waitFor(() => {
-    expect(workerConsoleSpy.get('error')).toEqual([
+    expect(workerConsole.consoleSpy.get('error')).toEqual([
       `[MSW] Caught an exception from the "GET ${endpointUrl}" request (TypeError: Failed to fetch). This is probably not a problem with Mock Service Worker. There is likely an additional logging output above.`,
     ])
   })

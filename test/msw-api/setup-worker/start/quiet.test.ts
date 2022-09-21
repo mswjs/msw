@@ -1,6 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -8,10 +7,14 @@ declare namespace window {
   }
 }
 
-test('does not log the captured request when the "quiet" option is set to "true"', async () => {
-  const { page, request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'quiet.mocks.ts'),
-  })
+test('does not log the captured request when the "quiet" option is set to "true"', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./quiet.mocks.ts'))
 
   await page.evaluate(() => {
     return window.msw.registration
@@ -19,7 +22,7 @@ test('does not log the captured request when the "quiet" option is set to "true"
 
   expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 
-  const res = await request('/user')
+  const res = await fetch('/user')
 
   const headers = await res.allHeaders()
   const body = await res.json()

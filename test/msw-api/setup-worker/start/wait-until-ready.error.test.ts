@@ -1,21 +1,24 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../playwright.extend'
 
-test('restores deferred requests if the worker registration fails', async () => {
-  const { page } = await pageWith({
-    example: path.resolve(__dirname, 'wait-until-ready.error.mocks.ts'),
-    routes(app) {
-      app.get('/numbers', (req, res) => {
-        res.status(200).json([4, 5, 6])
-      })
+test('restores deferred requests if the worker registration fails', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./wait-until-ready.error.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use((router) => {
+        router.get('/numbers', (req, res) => {
+          res.status(200).json([4, 5, 6])
+        })
 
-      app.get('/letters', (req, res) => {
-        res.status(200).json(['d', 'e', 'f'])
+        router.get('/letters', (req, res) => {
+          res.status(200).json(['d', 'e', 'f'])
+        })
       })
     },
   })
 
-  await page.reload()
+  page.evaluate(() => window.init())
 
   const [numbersResponse, lettersResponse] = await Promise.all([
     page.waitForResponse((res) => {

@@ -4,6 +4,6 @@ const worker = setupWorker()
 
 worker.start({
   serviceWorker: {
-    url: '/public/mockServiceWorker.js',
+    url: './public/mockServiceWorker.js',
   },
 })

@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as crypto from 'crypto'
-import { test as base, expect, type Response } from '@playwright/test'
+import { test as base, expect, type Response, Page } from '@playwright/test'
 import {
   Headers,
   headersToObject,
@@ -16,6 +16,10 @@ import {
   WebpackHttpServer,
 } from 'webpack-http-server'
 import { waitFor } from './support/waitFor'
+import {
+  createWorkerConsoleServer,
+  WorkerConsole,
+} from './support/workerConsole'
 
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants.js')
 
@@ -23,12 +27,14 @@ interface TestFixtures {
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
   loadExample(
     entry: string,
-    options?: CompilationOptions,
+    options?: CompilationOptions & {
+      beforeNavigation?(compilation: CompilationResult): void
+    },
   ): Promise<CompilationResult>
   fetch(
     url: string,
     init?: RequestInit,
-    predicate?: (res: Response) => boolean,
+    options?: FetchOptions,
   ): Promise<Response>
   query(uri: string, options: GraphQLQueryOptions): Promise<Response>
   makeUrl(path: string): string
@@ -38,6 +44,12 @@ interface TestFixtures {
 
 interface WorkerFixtures {
   previewServer: WebpackHttpServer
+  workerConsole: WorkerConsole
+}
+
+interface FetchOptions {
+  page?: Page
+  waitForResponse?(res: Response): Promise<boolean>
 }
 
 interface GraphQLQueryOptions {
@@ -54,11 +66,37 @@ interface GraphQLMultipartDataOptions {
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   previewServer: [
-    async ({}, use) => {
+    async ({ workerConsole }, use) => {
       const server = new WebpackHttpServer({
         before(app) {
+          // Prevent Express from responding with cached 304 responses.
+          app.set('etag', false)
+
           app.get('/mockServiceWorker.js', (req, res) => {
             const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
+            readable.push(
+              `
+// EVERYTHING BELOW THIS LINE IS APPENDED TO THE WORKER SCRIPT
+// ONLY DURING THE TEST RUN.
+const originals = {}
+Object.keys(console).forEach((methodName) => {
+  originals[methodName] = console[methodName]
+  console[methodName] = (...args) => {
+    fetch('${workerConsole.server.http.url('/console/')}' + methodName, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args)
+    })
+
+    originals[methodName](...args)
+  }
+})
+`,
+              'utf8',
+            )
+
             res.set('Content-Type', 'application/javascript; charset=utf8')
             res.set('Content-Encoding', 'chunked')
             readable.pipe(res)
@@ -99,6 +137,16 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     },
     { scope: 'worker' },
   ],
+  workerConsole: [
+    async ({}, use) => {
+      const { server, consoleSpy } = await createWorkerConsoleServer()
+      await use({
+        server,
+        consoleSpy,
+      })
+    },
+    { scope: 'worker' },
+  ],
   async createServer({}, use) {
     let server: HttpServer
 
@@ -113,6 +161,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   async loadExample({ page, previewServer }, use) {
     await use(async (entry, options = {}) => {
       const compilation = await previewServer.compile([entry], options)
+      options.beforeNavigation?.(compilation)
       await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
       return compilation
     })
@@ -121,7 +170,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await use(waitFor)
   },
   async fetch({ page, previewServer }, use) {
-    await use(async (url, init, predicate) => {
+    await use(async (url, init, options = {}) => {
+      const target = options.page || page
+
       const requestId = crypto.randomBytes(16).toString('hex')
       const resolvedUrl = new URL(url, previewServer.serverUrl).href
 
@@ -137,14 +188,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         headers: flattenHeadersObject(headersToObject(requestHeaders)),
       }
 
-      page.evaluate<unknown, [string, RequestInit]>(
+      target.evaluate<unknown, [string, RequestInit]>(
         ([url, init]) => fetch(url, init as RequestInit),
         [resolvedUrl, resolvedInit],
       )
 
-      return page.waitForResponse(async (res) => {
-        if (predicate) {
-          return predicate(res)
+      return target.waitForResponse(async (res) => {
+        if (typeof options.waitForResponse !== 'undefined') {
+          return options.waitForResponse(res)
         }
 
         const {
@@ -266,9 +317,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       })
     })
   },
-  async makeUrl({}, use) {
+  async makeUrl({ previewServer }, use) {
     await use((path) => {
-      return new URL(path, process.env.WEBPACK_SERVER_URL).href
+      return new URL(path, previewServer.serverUrl).href
     })
   },
   async spyOnConsole({ page }, use) {

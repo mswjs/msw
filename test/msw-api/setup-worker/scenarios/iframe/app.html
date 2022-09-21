@@ -1,6 +1,6 @@
 <script>
   window.request = () => {
-    fetch('/user')
+    fetch('./user')
       .then((res) => res.json())
       .then((data) => {
         const node = document.createElement('p')

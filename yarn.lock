@@ -1774,7 +1774,7 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
-"@types/mustache@^4.1.2":
+"@types/mustache@^4.1.2", "@types/mustache@^4.2.1":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@types/mustache/-/mustache-4.2.1.tgz#724a2fca5763117dee626aa4ca3e3f6e546e7434"
   integrity sha512-gFAlWL9Ik21nJioqjlGCnNYbf9zHi0sVbaZ/1hQEBcCEuxfLJDvz4bVJSV6v6CUaoLOz0XEIoP7mSrhJ6o237w==
@@ -9198,14 +9198,16 @@ webpack-dev-server@^3.11.2:
     ws "^6.2.1"
     yargs "^13.3.2"
 
-webpack-http-server@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.1.0.tgz#1f4bc30b600ecbb7f520943ffc1aa569d21aa0fe"
-  integrity sha512-3WXOqszzIV/gaeGiDXSRdzhpJZVguQh+mwwpUtotp+wyAdetGiqAxcdyLwwfR5NvyspUAqTnfY8k0lAXV9uXiQ==
+webpack-http-server@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.2.1.tgz#ec70eff0ccb16c61617fabcca83b6eda6c455f1c"
+  integrity sha512-U39ZO+reBfAOgDkpewp27VSJd9j4VnPzouXBYwYBLd3H3FhnDsZsvkIVEnmbeEcV7VFw8ggAqKw4010tFhOXQg==
   dependencies:
     "@types/express" "^4.17.13"
+    "@types/mustache" "^4.2.1"
     express "^4.18.1"
     memfs "^3.4.7"
+    mustache "^4.2.0"
     outvariant "^1.3.0"
     webpack "^5.74.0"
 

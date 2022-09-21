@@ -1,15 +1,14 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from '../../../../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'warn.mocks.ts'),
-  })
-}
+test('warns on an unhandled REST API request with an absolute URL', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./warn.mocks.ts'))
 
-test('warns on an unhandled REST API request with an absolute URL', async () => {
-  const { request, consoleSpy } = await createRuntime()
-  const res = await request('https://mswjs.io/non-existing-page')
+  const res = await fetch('https://mswjs.io/non-existing-page')
   const status = res.status()
 
   expect(status).toBe(404)
@@ -26,9 +25,15 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
   )
 })
 
-test('warns on an unhandled REST API request with a relative URL', async () => {
-  const { request, consoleSpy } = await createRuntime()
-  const res = await request('/user-details')
+test('warns on an unhandled REST API request with a relative URL', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./warn.mocks.ts'))
+
+  const res = await fetch('/user-details')
   const status = res.status()
 
   expect(status).toBe(404)
@@ -45,9 +50,15 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
   )
 })
 
-test('does not warn on request which handler explicitly returns no mocked response', async () => {
-  const { request, consoleSpy } = await createRuntime()
-  const res = await request('/explicit-return', { method: 'POST' })
+test('does not warn on request which handler explicitly returns no mocked response', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./warn.mocks.ts'))
+
+  const res = await fetch('/explicit-return', { method: 'POST' })
   const status = res.status()
 
   expect(status).toBe(404)
@@ -60,9 +71,15 @@ test('does not warn on request which handler explicitly returns no mocked respon
   )
 })
 
-test('does not warn on request which handler implicitly returns no mocked response', async () => {
-  const { request, consoleSpy } = await createRuntime()
-  const res = await request('/implicit-return', { method: 'POST' })
+test('does not warn on request which handler implicitly returns no mocked response', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./warn.mocks.ts'))
+
+  const res = await fetch('/implicit-return', { method: 'POST' })
   const status = res.status()
 
   expect(status).toBe(404)

@@ -1,7 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { waitFor } from '../../../support/waitFor'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -10,26 +8,32 @@ declare namespace window {
   }
 }
 
-test('removes a listener by the event name', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'on.mocks.ts'),
-  })
+test('removes a listener by the event name', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  page,
+  waitFor,
+  makeUrl,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./on.mocks.ts'))
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     const { msw } = window
     msw.worker.events.removeListener('request:end', msw.requestEndListner)
   })
 
-  const url = runtime.makeUrl('/user')
-  await runtime.request(url)
+  const url = makeUrl('/user')
+  await fetch(url)
 
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('warning')).toContainEqual(
+    expect(consoleSpy.get('warning')).toContainEqual(
       expect.stringContaining('[response:mocked]'),
     )
   })
 
-  expect(runtime.consoleSpy.get('warning')).not.toContainEqual(
+  expect(consoleSpy.get('warning')).not.toContainEqual(
     expect.stringContaining('[request:end]'),
   )
 })

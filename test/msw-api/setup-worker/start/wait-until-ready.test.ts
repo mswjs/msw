@@ -1,33 +1,44 @@
 import * as path from 'path'
-import { PageWithOptions, pageWith } from 'page-with'
+import * as express from 'express'
+import { test, expect } from '../../../playwright.extend'
 
-const routes: PageWithOptions['routes'] = (app) => {
-  // Serve the delayed Service Worker to emulate its long installation.
-  // Requests made during the worker installation must be deferred.
-  app.get('/worker.js', (req, res) => {
+declare global {
+  interface Window {
+    init(): void
+  }
+}
+
+const compilationRouter = (router: express.Router) => {
+  router.get('/worker.js', (_, res) => {
     res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
   })
 
-  app.get('/numbers', (req, res) => {
+  router.get('/numbers', (_, res) => {
     res.json([10, 11, 12])
   })
 
-  app.get('/letters', (req, res) => {
+  router.get('/letters', (_, res) => {
     res.json(['x', 'y', 'z'])
   })
 }
 
-test('defers network requests until the worker is ready', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'wait-until-ready.mocks.ts'),
-    routes,
+test('defers network requests until the worker is ready', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./wait-until-ready.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use(compilationRouter)
+    },
   })
 
+  page.evaluate(() => window.init())
+
   const [numbersResponse, lettersResponse] = await Promise.all([
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/numbers')
     }),
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/letters')
     }),
   ])
@@ -39,18 +50,23 @@ test('defers network requests until the worker is ready', async () => {
   expect(await lettersResponse.json()).toEqual(['a', 'b', 'c'])
 })
 
-test('allows requests to passthrough when the "waitUntilReady" option is disabled', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'wait-until-ready.false.mocks.ts'),
-    routes,
+test('allows requests to passthrough when the "waitUntilReady" option is disabled', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./wait-until-ready.false.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use(compilationRouter)
+    },
   })
-  await runtime.page.reload()
+
+  page.evaluate(() => window.init())
 
   const [numbersResponse, lettersResponse] = await Promise.all([
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/numbers')
     }),
-    runtime.page.waitForResponse((res) => {
+    page.waitForResponse((res) => {
       return res.url().includes('/letters')
     }),
   ])

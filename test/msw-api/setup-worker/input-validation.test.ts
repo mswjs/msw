@@ -6,7 +6,7 @@ test('throws an error given an Array of request handlers to "setupWorker"', asyn
 }) => {
   await loadExample(require.resolve('./input-validation.mocks.ts'))
 
-  const exceptions: string[] = []
+  const exceptions: Array<string> = []
 
   page.on('pageerror', (error) => {
     exceptions.push(error.message)

@@ -1,7 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { waitFor } from '../../../support/waitFor'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -9,10 +7,15 @@ declare namespace window {
   }
 }
 
-test('removes all listeners when the worker is stopped', async () => {
-  const { page, request, consoleSpy } = await pageWith({
-    example: path.resolve(__dirname, 'removes-all-listeners.mocks.ts'),
-  })
+test('removes all listeners when the worker is stopped', async ({
+  loadExample,
+  spyOnConsole,
+  waitFor,
+  page,
+  fetch,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./removes-all-listeners.mocks.ts'))
 
   await page.evaluate(() => {
     const firstWorker = window.msw.createWorker()
@@ -29,7 +32,7 @@ test('removes all listeners when the worker is stopped', async () => {
     '[MSW] Mocking enabled.',
   ])
 
-  await request('/user')
+  await fetch('/user')
 
   await waitFor(() => {
     expect(consoleSpy.get('startGroupCollapsed')).toEqual([

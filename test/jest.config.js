@@ -4,5 +4,4 @@ module.exports = {
   moduleNameMapper: {
     '^msw(.*)': '<rootDir>/..$1',
   },
-  setupFilesAfterEnv: ['./jest.setup.ts'],
 }

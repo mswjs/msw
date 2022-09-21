@@ -1,7 +1,6 @@
 import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
-import { waitFor } from '../../../support/waitFor'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -9,41 +8,39 @@ declare namespace window {
   }
 }
 
-function prepareRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'start.mocks.ts'),
-    routes(app) {
-      app.get('/worker.js', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
-      })
-    },
+test.beforeEach(async ({ loadExample }) => {
+  const compilation = await loadExample(require.resolve('./start.mocks.ts'))
+  compilation.use((router) => {
+    router.get('/worker.js', (_, res) => {
+      res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
+    })
   })
-}
+})
 
-test('resolves the "start" Promise when the worker has been activated', async () => {
-  const runtime = await prepareRuntime()
-  const events: string[] = []
+test.only('resolves the "start" Promise when the worker has been activated', async ({
+  spyOnConsole,
+  waitFor,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  const events: Array<string> = []
 
-  const untilWorkerActivated = runtime.page
+  const untilWorkerActivated = page
     .evaluate(() => {
-      return new Promise((resolve) =>
-        navigator.serviceWorker.addEventListener('controllerchange', resolve),
-      )
+      return new Promise((resolve) => {
+        navigator.serviceWorker.addEventListener('controllerchange', resolve)
+      })
     })
-    .then(() => {
-      events.push('worker activated')
-    })
+    .then(() => events.push('worker activated'))
 
-  const untilStartResolved = runtime.page
-    .evaluate(() => {
-      return window.msw.startWorker()
-    })
-    .then(() => {
-      events.push('start resolved')
-    })
+  await page.pause()
+
+  const untilStartResolved = page
+    .evaluate(() => window.msw.startWorker())
+    .then(() => events.push('start resolved'))
 
   const untilActivationMessage = waitFor(() => {
-    expect(runtime.consoleSpy.get('startGroupCollapsed')).toContain(
+    expect(consoleSpy.get('startGroupCollapsed')).toContain(
       '[MSW] Mocking enabled.',
     )
     events.push('enabled message')
@@ -61,35 +58,40 @@ test('resolves the "start" Promise when the worker has been activated', async ()
   expect(events).toHaveLength(3)
 })
 
-test('prints the start message when the worker has been registered', async () => {
-  const runtime = await prepareRuntime()
+test('prints the start message when the worker has been registered', async ({
+  spyOnConsole,
+  page,
+  makeUrl,
+}) => {
+  const consoleSpy = spyOnConsole()
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return window.msw.startWorker()
   })
 
-  expect(runtime.consoleSpy.get('log')).toContain(
-    `Worker scope: ${runtime.makeUrl('/')}`,
-  )
-  expect(runtime.consoleSpy.get('log')).toContain(
-    `Worker script URL: ${runtime.makeUrl('/worker.js')}`,
+  expect(consoleSpy.get('log')).toContain(`Worker scope: ${makeUrl('/')}`)
+  expect(consoleSpy.get('log')).toContain(
+    `Worker script URL: ${makeUrl('/worker.js')}`,
   )
 })
 
-test('prints a warning if "worker.start()" is called multiple times', async () => {
-  const runtime = await prepareRuntime()
+test('prints a warning if "worker.start()" is called multiple times', async ({
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
 
-  await runtime.page.evaluate(() => {
+  await page.evaluate(() => {
     return Promise.all([window.msw.startWorker(), window.msw.startWorker()])
   })
 
   // The activation message ise printed only once.
-  expect(runtime.consoleSpy.get('startGroupCollapsed')).toEqual([
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
     '[MSW] Mocking enabled.',
   ])
 
   // The warning is printed about multiple calls of "worker.start()".
-  expect(runtime.consoleSpy.get('warning')).toEqual([
+  expect(consoleSpy.get('warning')).toEqual([
     `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
   ])
 })

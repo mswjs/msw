@@ -1,32 +1,31 @@
 import * as path from 'path'
 import { Frame } from 'playwright'
-import { pageWith } from 'page-with'
+import * as express from 'express'
+import { test, expect } from '../../../../playwright.extend'
 
-declare namespace window {
-  export const request: () => Promise<any>
+declare global {
+  interface Window {
+    request(): Promise<void>
+  }
 }
 
 function findFrame(frame: Frame) {
   return frame.name() === ''
 }
 
-// This has proven to be a rather flaky test.
-// Retry it a couple of times before failing the entire CI.
-jest.retryTimes(3)
+const staticMiddleware = (router: express.Router) => {
+  router.use(express.static(__dirname))
+}
 
-beforeAll(() => {
-  jest.spyOn(global.console, 'warn')
-})
-
-afterAll(() => {
-  jest.restoreAllMocks()
-})
-
-test('intercepts a request from an iframe (nested client)', async () => {
-  const { page } = await pageWith({
-    example: path.resolve(__dirname, 'iframe.mocks.ts'),
+test('intercepts a request from an iframe (nested client)', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./iframe.mocks.ts'), {
     markup: path.resolve(__dirname, 'page-in-iframe.html'),
-    contentBase: path.resolve(__dirname),
+    beforeNavigation(compilation) {
+      compilation.use(staticMiddleware)
+    },
   })
 
   const frame = page.mainFrame().childFrames().find(findFrame)
@@ -36,14 +35,17 @@ test('intercepts a request from an iframe (nested client)', async () => {
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
-  expect(console.warn).not.toHaveBeenCalled()
 })
 
-test('intercepts a request from a deeply nested iframe', async () => {
-  const { page } = await pageWith({
-    example: path.resolve(__dirname, 'iframe.mocks.ts'),
+test('intercepts a request from a deeply nested iframe', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./iframe.mocks.ts'), {
     markup: path.resolve(__dirname, 'page-in-nested-iframe.html'),
-    contentBase: path.resolve(__dirname),
+    beforeNavigation(compilation) {
+      compilation.use(staticMiddleware)
+    },
   })
 
   const deepFrame = page
@@ -58,61 +60,63 @@ test('intercepts a request from a deeply nested iframe', async () => {
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
-  expect(console.warn).not.toHaveBeenCalled()
 })
 
-test('intercepts a request from a deeply nested iframe given MSW is registered in a parent nested iframe', async () => {
-  const nestedFrame = await pageWith({
-    title: 'MSW frame',
-    example: path.resolve(__dirname, 'iframe.mocks.ts'),
+test('intercepts a request from a deeply nested iframe given MSW is registered in a parent nested iframe', async ({
+  loadExample,
+  previewServer,
+  page,
+}) => {
+  await loadExample(require.resolve('./iframe.mocks.ts'), {
     markup: path.resolve(__dirname, 'page-in-iframe.html'),
-    contentBase: path.resolve(__dirname),
+    beforeNavigation(compilation) {
+      compilation.use(staticMiddleware)
+    },
   })
 
-  await pageWith({
-    title: 'Top frame (no MSW)',
-    example: null,
-    markup: `<iframe src="${nestedFrame.page.url()}"></iframe>`,
+  // Intentionally empty compilation just to serve
+  // a custom page with an embedded iframe.
+  await previewServer.compile([], {
+    markup: `<iframe src="${page.url()}"></iframe>`,
   })
 
-  const deepFrame = nestedFrame.page.mainFrame().childFrames().find(findFrame)
+  const deepFrame = page.mainFrame().childFrames().find(findFrame)
   await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
-  expect(console.warn).not.toHaveBeenCalled()
 })
 
-test('intercepts a request from an iframe given MSW is registered in a sibling iframe', async () => {
-  // A request-issuing frame. Here lives the `window.fetch` call.
-  const requestFrame = await pageWith({
-    title: 'Request frame',
-    example: null,
-    markup: path.resolve(__dirname, 'page-in-iframe.html'),
-    contentBase: path.resolve(__dirname),
-  })
-
+test('intercepts a request from an iframe given MSW is registered in a sibling iframe', async ({
+  loadExample,
+  previewServer,
+  page,
+  context,
+}) => {
   // A frame that registers MSW, but does no requests.
-  const mswFrame = await pageWith({
-    title: 'MSW frame',
-    example: path.resolve(__dirname, 'iframe.mocks.ts'),
-    contentBase: path.resolve(__dirname),
+  await loadExample(require.resolve('./iframe.mocks.ts'))
+
+  // A request-issuing frame. Here lives the `window.fetch` call.
+  const requestPage = await context.newPage()
+  const requestCompilation = await previewServer.compile([], {
+    markup: path.resolve(__dirname, 'page-in-iframe.html'),
   })
+  requestCompilation.use(staticMiddleware)
+  await requestPage.goto(requestCompilation.previewUrl)
 
   // A parent frame that hosts two frames above.
-  const parentPage = await pageWith({
-    title: 'Parent page',
-    example: null,
+  const parentPage = await context.newPage()
+  const parentCompilation = await previewServer.compile([], {
     markup: `
-<iframe src="${requestFrame.page.url()}"></iframe>
-<iframe src="${mswFrame.page.url()}"></iframe>
-    `,
+<iframe src="${requestPage.url()}"></iframe>
+<iframe src="${page.url()}"></iframe>
+      `,
   })
+  await parentPage.goto(parentCompilation.previewUrl)
+  await parentPage.bringToFront()
 
-  await parentPage.page.bringToFront()
-
-  const frame = parentPage.page
+  const frame = parentPage
     .mainFrame()
     .childFrames()
     .find(findFrame)
@@ -124,5 +128,4 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
 
   expect(firstName).toBe('John')
-  expect(console.warn).not.toHaveBeenCalled()
 })

@@ -1,14 +1,17 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { waitFor } from '../../../../support/waitFor'
+import { test, expect } from '../../../../playwright.extend'
 
-test('propagates the exception originating from a handled request', async () => {
-  const runtime = await pageWith({
-    example: path.resolve(__dirname, 'internal-error.mocks.ts'),
-  })
+test('propagates the exception originating from a handled request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+  makeUrl,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./internal-error.mocks.ts'))
 
-  const endpointUrl = runtime.makeUrl('/user')
-  const res = await runtime.request(endpointUrl)
+  const endpointUrl = makeUrl('/user')
+  const res = await fetch(endpointUrl)
 
   // Expect the exception to be handled as a 500 error response.
   expect(res.status()).toBe(500)
@@ -21,7 +24,7 @@ test('propagates the exception originating from a handled request', async () => 
 
   // Expect standard request failure message from the browser.
   await waitFor(() => {
-    expect(runtime.consoleSpy.get('error')).toEqual(
+    expect(consoleSpy.get('error')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(
           'Failed to load resource: the server responded with a status of 500',
@@ -30,7 +33,7 @@ test('propagates the exception originating from a handled request', async () => 
     )
   })
 
-  expect(runtime.consoleSpy.get('error')).toEqual(
+  expect(consoleSpy.get('error')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
 [MSW] Uncaught exception in the request handler for "GET ${endpointUrl}":

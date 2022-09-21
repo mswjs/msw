@@ -1,6 +1,5 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
 import { SetupWorkerApi } from 'msw'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
@@ -8,14 +7,15 @@ declare namespace window {
   }
 }
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, './quiet.mocks.ts'),
-  })
-}
+const QUITE_EXAMPLE = require.resolve('./quiet.mocks.ts')
 
-test('prints out the console stop message', async () => {
-  const { page, consoleSpy } = await createRuntime()
+test('prints out the console stop message', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(QUITE_EXAMPLE)
 
   await page.evaluate(() => {
     return window.msw.worker.start()
@@ -28,8 +28,13 @@ test('prints out the console stop message', async () => {
   expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 })
 
-test('does not print out any console stop message when in "quite" mode', async () => {
-  const { page, consoleSpy } = await createRuntime()
+test('does not print out any console stop message when in "quite" mode', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(QUITE_EXAMPLE)
 
   await page.evaluate(() => {
     return window.msw.worker.start({ quiet: true })

@@ -9,17 +9,6 @@ import { response } from '../response'
 import { context, MockedRequest } from '..'
 import { RequiredDeep } from '../typeUtils'
 
-const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
-const listener = jest.fn()
-function createMockListener(name: string) {
-  return (...args: any) => {
-    listener(name, ...args)
-  }
-}
-function getEmittedEvents() {
-  return listener.mock.calls
-}
-
 const options: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: jest.fn(),
 }
@@ -28,27 +17,44 @@ const callbacks: Partial<Record<keyof HandleRequestOptions<any>, any>> = {
   onMockedResponse: jest.fn(),
 }
 
-beforeEach(() => {
-  jest.spyOn(global.console, 'warn').mockImplementation()
+function setup() {
+  const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
+  const listener = jest.fn()
+
+  const createMockListener = (name: string) => {
+    return (...args: any) => {
+      listener(name, ...args)
+    }
+  }
 
   emitter.on('request:start', createMockListener('request:start'))
   emitter.on('request:match', createMockListener('request:match'))
   emitter.on('request:unhandled', createMockListener('request:unhandled'))
   emitter.on('request:end', createMockListener('request:end'))
+  emitter.on('response:mocked', createMockListener('response:mocked'))
+  emitter.on('response:bypass', createMockListener('response:bypass'))
+
+  const events = listener.mock.calls
+  return { emitter, events }
+}
+
+beforeEach(() => {
+  jest.spyOn(global.console, 'warn').mockImplementation()
 })
 
 afterEach(() => {
   jest.resetAllMocks()
-  emitter.removeAllListeners()
 })
 
 test('returns undefined for a request with the "x-msw-bypass" header equal to "true"', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'), {
     headers: new Headers({
       'x-msw-bypass': 'true',
     }),
   })
-  const handlers: RequestHandler[] = []
+  const handlers: Array<RequestHandler> = []
 
   const result = await handleRequest(
     request,
@@ -59,7 +65,7 @@ test('returns undefined for a request with the "x-msw-bypass" header equal to "t
   )
 
   expect(result).toBeUndefined()
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:end', request],
   ])
@@ -69,12 +75,14 @@ test('returns undefined for a request with the "x-msw-bypass" header equal to "t
 })
 
 test('does not bypass a request with "x-msw-bypass" header set to arbitrary value', async () => {
+  const { emitter } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'), {
     headers: new Headers({
       'x-msw-bypass': 'anything',
     }),
   })
-  const handlers: RequestHandler[] = [
+  const handlers: Array<RequestHandler> = [
     rest.get('/user', (req, res, ctx) => {
       return res(ctx.text('hello world'))
     }),
@@ -94,8 +102,10 @@ test('does not bypass a request with "x-msw-bypass" header set to arbitrary valu
 })
 
 test('reports request as unhandled when it has no matching request handlers', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'))
-  const handlers: RequestHandler[] = []
+  const handlers: Array<RequestHandler> = []
 
   const result = await handleRequest(
     request,
@@ -106,7 +116,7 @@ test('reports request as unhandled when it has no matching request handlers', as
   )
 
   expect(result).toBeUndefined()
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:unhandled', request],
     ['request:end', request],
@@ -120,8 +130,10 @@ test('reports request as unhandled when it has no matching request handlers', as
 })
 
 test('returns undefined and warns on a request handler that returns no response', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'))
-  const handlers: RequestHandler[] = [
+  const handlers: Array<RequestHandler> = [
     rest.get('/user', () => {
       // Intentionally blank response resolver.
       return
@@ -137,7 +149,7 @@ test('returns undefined and warns on a request handler that returns no response'
   )
 
   expect(result).toBeUndefined()
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:end', request],
   ])
@@ -156,9 +168,11 @@ test('returns undefined and warns on a request handler that returns no response'
 })
 
 test('returns the mocked response for a request with a matching request handler', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'))
   const mockedResponse = await response(context.json({ firstName: 'John' }))
-  const handlers: RequestHandler[] = [
+  const handlers: Array<RequestHandler> = [
     rest.get('/user', () => {
       return mockedResponse
     }),
@@ -179,7 +193,7 @@ test('returns the mocked response for a request with a matching request handler'
   )
 
   expect(result).toEqual(mockedResponse)
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:match', request],
     ['request:end', request],
@@ -193,9 +207,11 @@ test('returns the mocked response for a request with a matching request handler'
 })
 
 test('returns a transformed response if the "transformResponse" option is provided', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'))
   const mockedResponse = await response(context.json({ firstName: 'John' }))
-  const handlers: RequestHandler[] = [
+  const handlers: Array<RequestHandler> = [
     rest.get('/user', () => {
       return mockedResponse
     }),
@@ -217,7 +233,7 @@ test('returns a transformed response if the "transformResponse" option is provid
   })
 
   expect(result).toEqual(finalResponse)
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:match', request],
     ['request:end', request],
@@ -232,8 +248,10 @@ test('returns a transformed response if the "transformResponse" option is provid
 })
 
 it('returns undefined without warning on a passthrough request', async () => {
+  const { emitter, events } = setup()
+
   const request = new MockedRequest(new URL('http://localhost/user'))
-  const handlers: RequestHandler[] = [
+  const handlers: Array<RequestHandler> = [
     rest.get('/user', (req) => {
       return req.passthrough()
     }),
@@ -248,7 +266,7 @@ it('returns undefined without warning on a passthrough request', async () => {
   )
 
   expect(result).toBeUndefined()
-  expect(getEmittedEvents()).toEqual([
+  expect(events).toEqual([
     ['request:start', request],
     ['request:end', request],
   ])

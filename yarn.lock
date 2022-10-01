@@ -9138,10 +9138,10 @@ strict-event-emitter@^0.2.4:
   dependencies:
     events "^3.3.0"
 
-strict-event-emitter@^0.2.5:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/strict-event-emitter/-/strict-event-emitter-0.2.5.tgz#682894279b50c159f51ca91dec33a0ccb049b013"
-  integrity sha512-BmJ3GQ3APBr6bKOWBrdvLmazOYeIZWfemtr7a5D8wgzMoys6Kp6HvnGq8G3LCPFv6iWao7WO85KTWf2I8A/1RA==
+strict-event-emitter@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/strict-event-emitter/-/strict-event-emitter-0.2.6.tgz#7bb2022bdabcbf0058cec7118a7bbbfd64367366"
+  integrity sha512-qDZOqEBoNtKLPb/qAutkXUt7hs3zXgYA1xX4pVa+gZHCZZVLr2r81AzHsK5YrQQhRNphMtkOUyAyOr9e1IxJTw==
   dependencies:
     events "^3.3.0"
 

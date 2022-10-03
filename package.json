@@ -9,9 +9,11 @@
       "default": "./lib/index.js"
     },
     "./native": {
+      "types": "./lib/native/index.d.ts",
       "default": "./lib/native/index.js"
     },
     "./node": {
+      "types": "./lib/node/index.d.ts",
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
     }
@@ -31,7 +33,7 @@
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
-    "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
+    "test:ts": "ts-node test/typings/run.ts",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
     "release": "release publish",

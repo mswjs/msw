@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "strict": true,
+    "target": "esnext",
+    "module": "commonjs",
     "noEmit": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "Node",
+    "types": ["node"],
+    "typeRoots": ["../../node_modules/@types"],
     "lib": ["dom"],
-    "module": "ESNext",
     "baseUrl": ".",
-    "typeRoots": ["node_modules/@types"],
     "paths": {
-      "msw": ["../../"],
+      "msw": ["../.."],
       "msw/*": ["../../*"]
     }
   },

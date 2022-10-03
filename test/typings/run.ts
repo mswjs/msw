@@ -2,15 +2,18 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { spawnSync } from 'child_process'
 import { invariant } from 'outvariant'
-import typeScriptVersionFromPackage from 'typescript/package.json'
+import tsPackageJson from 'typescript/package.json'
 
-const tsVersion = typeScriptVersionFromPackage.version
+const tsInstalledVersion = tsPackageJson.version
 invariant(
-  tsVersion,
+  tsInstalledVersion,
   'Failed to run typings tests: unable to determine TypeScript version',
 )
 
-const tsVersionMajorMinor = tsVersion.substring(0, tsVersion.lastIndexOf('.'))
+const tsVersionMajorMinor = tsInstalledVersion.substring(
+  0,
+  tsInstalledVersion.lastIndexOf('.'),
+)
 
 const tsConfigPaths = [
   path.resolve(__dirname, `tsconfig.${tsVersionMajorMinor}.json`),

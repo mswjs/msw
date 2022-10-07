@@ -10,7 +10,6 @@ import { GraphQLHandler } from '../../handlers/GraphQLHandler'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { tryCatch } from '../internal/tryCatch'
 import { devUtils } from '../internal/devUtils'
-import { MockedRequest } from './MockedRequest'
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4
@@ -22,7 +21,7 @@ export interface UnhandledRequestPrint {
 }
 
 export type UnhandledRequestCallback = (
-  request: MockedRequest,
+  request: Request,
   print: UnhandledRequestPrint,
 ) => void
 
@@ -33,8 +32,8 @@ export type UnhandledRequestStrategy =
   | UnhandledRequestCallback
 
 interface RequestHandlerGroups {
-  rest: RestHandler[]
-  graphql: GraphQLHandler[]
+  rest: Array<RestHandler>
+  graphql: Array<GraphQLHandler>
 }
 
 function groupHandlersByType(handlers: RequestHandler[]): RequestHandlerGroups {
@@ -60,7 +59,7 @@ function groupHandlersByType(handlers: RequestHandler[]): RequestHandlerGroups {
 type RequestHandlerSuggestion = [number, RequestHandler]
 
 type ScoreGetterFn<RequestHandlerType extends RequestHandler> = (
-  request: MockedRequest,
+  request: Request,
   handler: RequestHandlerType,
 ) => number
 
@@ -107,8 +106,8 @@ function getGraphQLHandlerScore(
 }
 
 function getSuggestedHandler(
-  request: MockedRequest,
-  handlers: RestHandler[] | GraphQLHandler[],
+  request: Request,
+  handlers: Array<RestHandler> | Array<GraphQLHandler>,
   getScore: ScoreGetterFn<RestHandler> | ScoreGetterFn<GraphQLHandler>,
 ): RequestHandler[] {
   const suggestedHandlers = (handlers as RequestHandler[])
@@ -135,12 +134,12 @@ ${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
   return `Did you mean to request "${handlers[0].info.header}" instead?`
 }
 
-export function onUnhandledRequest(
-  request: MockedRequest,
+export async function onUnhandledRequest(
+  request: Request,
   handlers: RequestHandler[],
   strategy: UnhandledRequestStrategy = 'warn',
-): void {
-  const parsedGraphQLQuery = tryCatch(() => parseGraphQLRequest(request))
+): Promise<void> {
+  const parsedGraphQLQuery = await tryCatch(() => parseGraphQLRequest(request))
 
   function generateHandlerSuggestion(): string {
     /**

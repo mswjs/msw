@@ -1,7 +1,5 @@
-import { encodeBuffer } from '@mswjs/interceptors'
-import { Headers } from 'headers-polyfill'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
-import { MockedRequest } from './MockedRequest'
+import { pruneGetRequestBody } from './pruneGetRequestBody'
 
 /**
  * Converts a given request received from the Service Worker
@@ -9,13 +7,15 @@ import { MockedRequest } from './MockedRequest'
  */
 export function parseWorkerRequest(
   rawRequest: ServiceWorkerIncomingRequest,
-): MockedRequest {
-  const url = new URL(rawRequest.url)
-  const headers = new Headers(rawRequest.headers)
+): Request {
+  console.log({ rawRequest })
 
-  return new MockedRequest(url, {
+  /**
+   * @todo See if we can't send "Request" as-is
+   * from the worker. It should be transferrable.
+   */
+  return new Request(rawRequest.url, {
     ...rawRequest,
-    body: encodeBuffer(rawRequest.body || ''),
-    headers,
+    body: pruneGetRequestBody(rawRequest),
   })
 }

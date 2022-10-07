@@ -1,6 +1,5 @@
 import {
   StartOptions,
-  SerializedResponse,
   SetupWorkerInternalContext,
   ServiceWorkerIncomingEventsMap,
 } from '../glossary'
@@ -12,7 +11,6 @@ import { NetworkError } from '../../utils/NetworkError'
 import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
 import { handleRequest } from '../../utils/handleRequest'
 import { RequiredDeep } from '../../typeUtils'
-import { MockedResponse } from '../../response'
 import { devUtils } from '../../utils/internal/devUtils'
 import { serializeResponse } from '../../utils/logging/serializeResponse'
 
@@ -31,54 +29,54 @@ export const createRequestListener = (
     const request = parseWorkerRequest(message.payload)
 
     try {
-      await handleRequest<SerializedResponse>(
+      await handleRequest(
         request,
         context.requestHandlers,
         options,
         context.emitter,
         {
-          transformResponse,
+          /**
+           * @todo See if this transformation is needed
+           * once we adopt "Response".
+           */
+          // transformResponse,
           onPassthroughResponse() {
             messageChannel.postMessage('NOT_FOUND')
           },
           async onMockedResponse(
             response,
-            { handler, publicRequest, parsedRequest },
+            { request, handler, parsedRequest },
           ) {
-            if (response.body instanceof ReadableStream) {
-              throw new Error(
-                devUtils.formatMessage(
-                  'Failed to construct a mocked response with a "ReadableStream" body: mocked streams are not supported. Follow https://github.com/mswjs/msw/issues/1336 for more details.',
-                ),
-              )
-            }
+            // if (response.body instanceof ReadableStream) {
+            //   throw new Error(
+            //     devUtils.formatMessage(
+            //       'Failed to construct a mocked response with a "ReadableStream" body: mocked streams are not supported. Follow https://github.com/mswjs/msw/issues/1336 for more details.',
+            //     ),
+            //   )
+            // }
 
-            const responseInstance = new Response(response.body, response)
-            const responseBodyBuffer = await responseInstance.arrayBuffer()
+            const responseInit = serializeResponse(response)
+            const responseBuffer = await response.arrayBuffer()
 
             // If the mocked response has no body, keep it that way.
             // Sending an empty "ArrayBuffer" to the worker will cause
             // the worker constructing "new Response(new ArrayBuffer(0))"
             // which will throw on responses that must have no body (i.e. 204).
-            const responseBody =
-              response.body == null ? null : responseBodyBuffer
+            // const responseBody =
+            //   response.body == null ? null : responseBuffer
 
             messageChannel.postMessage(
               'MOCK_RESPONSE',
               {
-                ...response,
-                body: responseBody,
+                ...responseInit,
+                body: responseBuffer,
               },
-              [responseBodyBuffer],
+              [responseBuffer],
             )
 
             if (!options.quiet) {
-              context.emitter.once('response:mocked', (response) => {
-                handler.log(
-                  publicRequest,
-                  serializeResponse(response),
-                  parsedRequest,
-                )
+              context.emitter.once('response:mocked', () => {
+                handler.log(request, responseInit, parsedRequest)
               })
             }
           },
@@ -116,25 +114,22 @@ This exception has been gracefully handled as a 500 response, however, it's stro
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
+          body: {
             name: error.name,
             message: error.message,
             stack: error.stack,
-          }),
+          },
         })
       }
     }
   }
 }
 
-function transformResponse(
-  response: MockedResponse<string>,
-): SerializedResponse<string> {
-  return {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers.all(),
-    body: response.body,
-    delay: response.delay,
-  }
-}
+// function transformResponse(response: Response): SerializedResponse<string> {
+//   return {
+//     status: response.status,
+//     statusText: response.statusText,
+//     headers: headersToObject(response.headers),
+//     body: response.body,
+//   }
+// }

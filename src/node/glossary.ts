@@ -1,7 +1,6 @@
 import type { PartialDeep } from 'type-fest'
 import type { IsomorphicResponse } from '@mswjs/interceptors'
 import {
-  DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
 } from '../handlers/RequestHandler'
@@ -10,7 +9,6 @@ import {
   LifeCycleEventsMap,
   SharedOptions,
 } from '../sharedOptions'
-import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
 
@@ -49,14 +47,7 @@ export interface SetupServerApi {
    * Returns a readonly list of currently active request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/list-handlers `server.listHandlers()`}
    */
-  listHandlers(): ReadonlyArray<
-    RequestHandler<
-      RequestHandlerDefaultInfo,
-      MockedRequest<DefaultBodyType>,
-      any,
-      MockedRequest<DefaultBodyType>
-    >
-  >
+  listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
 
   /**
    * Lists all active request handlers.

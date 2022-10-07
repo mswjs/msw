@@ -6,7 +6,6 @@ import type {
 import { parse } from 'graphql'
 import { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
-import { MockedRequest } from '../request/MockedRequest'
 import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
 
@@ -86,11 +85,13 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
   return operations.variables
 }
 
-function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
+async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
+  const searchParams = new URLSearchParams(request.url)
+
   switch (request.method) {
     case 'GET': {
-      const query = request.url.searchParams.get('query')
-      const variables = request.url.searchParams.get('variables') || ''
+      const query = searchParams.get('query')
+      const variables = searchParams.get('variables') || ''
 
       return {
         query,
@@ -99,8 +100,15 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
     }
 
     case 'POST': {
-      if (request.body?.query) {
-        const { query, variables } = request.body
+      const requestText = await request.text()
+      const requestJson = jsonParse<{
+        query: string
+        variables?: GraphQLVariables
+        operations?: any
+      }>(requestText)
+
+      if (requestJson?.query) {
+        const { query, variables } = requestJson
 
         return {
           query,
@@ -109,9 +117,10 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
       }
 
       // Handle multipart body operations.
-      if (request.body?.operations) {
+      if (requestJson?.operations) {
         const { operations, map, ...files } =
-          request.body as GraphQLMultipartRequestBody
+          requestJson as unknown as GraphQLMultipartRequestBody
+
         const parsedOperations =
           jsonParse<{ query?: string; variables?: GraphQLVariables }>(
             operations,
@@ -146,13 +155,13 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
  * Determines if a given request can be considered a GraphQL request.
  * Does not parse the query and does not guarantee its validity.
  */
-export function parseGraphQLRequest(
-  request: MockedRequest<any>,
-): ParsedGraphQLRequest {
-  const input = getGraphQLInput(request)
+export async function parseGraphQLRequest(
+  request: Request,
+): Promise<ParsedGraphQLRequest> {
+  const input = await getGraphQLInput(request)
 
   if (!input || !input.query) {
-    return undefined
+    return
   }
 
   const { query, variables } = input

@@ -45,16 +45,14 @@ export type {
 } from './response'
 
 export type {
-  RestRequest,
   RestContext,
   RequestQuery,
-  ParsedRestRequest,
+  RestRequestParsedResult,
 } from './handlers/RestHandler'
 
 export type {
   GraphQLContext,
   GraphQLVariables,
-  GraphQLRequest,
   GraphQLRequestBody,
   GraphQLJsonRequestBody,
 } from './handlers/GraphQLHandler'

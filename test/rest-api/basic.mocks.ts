@@ -1,15 +1,22 @@
 import { setupWorker, rest } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://api.github.com/users/:username', (req, res, ctx) => {
-    const { username } = req.params
+  rest.get('https://api.github.com/users/:username', ({ params }) => {
+    const { username } = params
 
-    return res(
-      ctx.json({
+    return new Response(
+      JSON.stringify({
         name: 'John Maverick',
         originalUsername: username,
       }),
     )
+
+    // return res(
+    //   ctx.json({
+    //     name: 'John Maverick',
+    //     originalUsername: username,
+    //   }),
+    // )
   }),
 )
 

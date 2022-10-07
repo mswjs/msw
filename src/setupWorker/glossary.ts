@@ -1,4 +1,4 @@
-import { FlatHeadersObject } from 'headers-polyfill'
+import { HeadersObject } from 'headers-polyfill'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,
@@ -14,7 +14,6 @@ import {
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { Path } from '../utils/matching/matchRequestUrl'
 import { RequiredDeep } from '../typeUtils'
-import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ResolvedPath = Path | URL
 
@@ -197,7 +196,7 @@ export interface StartOptions extends SharedOptions {
 export interface SerializedResponse<BodyType extends DefaultBodyType = any> {
   status: number
   statusText: string
-  headers: FlatHeadersObject
+  headers: HeadersObject
   body: BodyType
   delay?: number
 }
@@ -246,14 +245,7 @@ export interface SetupWorkerApi {
    * Returns a readonly list of currently active request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()`}
    */
-  listHandlers(): ReadonlyArray<
-    RequestHandler<
-      RequestHandlerDefaultInfo,
-      MockedRequest<DefaultBodyType>,
-      any,
-      MockedRequest<DefaultBodyType>
-    >
-  >
+  listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
 
   /**
    * Lists all active request handlers.

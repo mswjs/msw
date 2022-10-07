@@ -27,7 +27,6 @@ import {
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { tryCatch } from '../utils/internal/tryCatch'
 import { devUtils } from '../utils/internal/devUtils'
-import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -81,27 +80,24 @@ export function isDocumentNode(
   return typeof value === 'object' && 'kind' in value && 'definitions' in value
 }
 
-export class GraphQLRequest<
-  Variables extends GraphQLVariables,
-> extends MockedRequest<GraphQLRequestBody<Variables>> {
-  constructor(request: MockedRequest, public readonly variables: Variables) {
-    super(request.url, {
-      ...request,
-      /**
-       * TODO(https://github.com/mswjs/msw/issues/1318): Cleanup
-       */
-      body: request['_body'],
-    })
-  }
-}
+// export class GraphQLRequest<
+//   Variables extends GraphQLVariables,
+// > extends Request {
+//   constructor(request: Request, public readonly variables: Variables) {
+//     super(request.url, {
+//       ...request,
+//       /**
+//        * TODO(https://github.com/mswjs/msw/issues/1318): Cleanup
+//        */
+//       body: request['_body'],
+//     })
+//   }
+// }
 
-export class GraphQLHandler<
-  Request extends GraphQLRequest<any> = GraphQLRequest<any>,
-> extends RequestHandler<
+export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  Request,
-  ParsedGraphQLRequest | null,
-  GraphQLRequest<any>
+  // @ts-ignore @todo
+  ParsedGraphQLRequest
 > {
   private endpoint: Path
 
@@ -109,7 +105,7 @@ export class GraphQLHandler<
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
-    resolver: ResponseResolver<any, any>,
+    resolver: ResponseResolver<GraphQLContext<any>, any>,
   ) {
     let resolvedOperationName = operationName
 
@@ -149,21 +145,14 @@ export class GraphQLHandler<
     this.endpoint = endpoint
   }
 
-  parse(request: MockedRequest) {
+  override async parse(request: Request) {
     return tryCatch(
       () => parseGraphQLRequest(request),
       (error) => console.error(error.message),
     )
   }
 
-  protected getPublicRequest(
-    request: Request,
-    parsedResult: ParsedGraphQLRequest,
-  ): GraphQLRequest<any> {
-    return new GraphQLRequest(request, parsedResult?.variables || {})
-  }
-
-  predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {
+  override predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
     if (!parsedResult) {
       return false
     }
@@ -178,7 +167,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
       return false
     }
 
-    const hasMatchingUrl = matchRequestUrl(request.url, this.endpoint)
+    const hasMatchingUrl = matchRequestUrl(new URL(request.url), this.endpoint)
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       parsedResult.operationType === this.info.operationType
@@ -195,7 +184,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     )
   }
 
-  log(
+  override log(
     request: Request,
     response: SerializedResponse<any>,
     parsedRequest: ParsedGraphQLRequest,

@@ -1,5 +1,4 @@
 import { StrictEventEmitter } from 'strict-event-emitter'
-import { MockedRequest } from './utils/request/MockedRequest'
 import { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {
@@ -15,13 +14,13 @@ export interface SharedOptions {
 }
 
 export interface LifeCycleEventsMap<ResponseType> {
-  'request:start': (request: MockedRequest) => void
-  'request:match': (request: MockedRequest) => void
-  'request:unhandled': (request: MockedRequest) => void
-  'request:end': (request: MockedRequest) => void
+  'request:start': (request: Request) => void
+  'request:match': (request: Request) => void
+  'request:unhandled': (request: Request) => void
+  'request:end': (request: Request) => void
   'response:mocked': (response: ResponseType, requestId: string) => void
   'response:bypass': (response: ResponseType, requestId: string) => void
-  unhandledException: (error: Error, request: MockedRequest) => void
+  unhandledException: (error: Error, request: Request) => void
 }
 
 export type LifeCycleEventEmitter<

@@ -1,15 +1,13 @@
-import { MockedResponse } from '../response'
 import {
   RequestHandler,
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
-import { MockedRequest } from './request/MockedRequest'
 
 export interface ResponseLookupResult {
   handler?: RequestHandler
-  publicRequest?: any
+  request: Request
   parsedRequest?: any
-  response?: MockedResponse
+  response?: Response
 }
 
 export interface ResponseResolutionContext {
@@ -19,10 +17,7 @@ export interface ResponseResolutionContext {
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
-export const getResponse = async <
-  Request extends MockedRequest,
-  Handler extends RequestHandler[],
->(
+export const getResponse = async <Handler extends Array<RequestHandler>>(
   request: Request,
   handlers: Handler,
   resolutionContext?: ResponseResolutionContext,
@@ -33,13 +28,14 @@ export const getResponse = async <
 
   if (relevantHandlers.length === 0) {
     return {
+      request,
       handler: undefined,
       response: undefined,
     }
   }
 
   const result = await relevantHandlers.reduce<
-    Promise<RequestHandlerExecutionResult<any> | null>
+    Promise<RequestHandlerExecutionResult | null>
   >(async (executionResult, handler) => {
     const previousResults = await executionResult
 
@@ -62,9 +58,12 @@ export const getResponse = async <
       }
     }
 
-    if (result.response.once) {
-      handler.markAsSkipped(true)
-    }
+    /**
+     * @todo Support `res.once()` alternative.
+     */
+    // if (result.response.once) {
+    //   handler.markAsSkipped(true)
+    // }
 
     return result
   }, Promise.resolve(null))
@@ -74,6 +73,7 @@ export const getResponse = async <
   // (i.e. if relevant handlers are fall-through).
   if (!result) {
     return {
+      request,
       handler: undefined,
       response: undefined,
     }
@@ -81,7 +81,7 @@ export const getResponse = async <
 
   return {
     handler: result.handler,
-    publicRequest: result.request,
+    request: result.request,
     parsedRequest: result.parsedResult,
     response: result.response,
   }

@@ -3,7 +3,6 @@ import { ResponseResolver } from './handlers/RequestHandler'
 import {
   GraphQLHandler,
   GraphQLContext,
-  GraphQLRequest,
   GraphQLVariables,
   ExpectedOperationTypeNode,
   GraphQLHandlerNameSelector,
@@ -31,36 +30,20 @@ function createScopedGraphQLHandler(
       | GraphQLHandlerNameSelector
       | DocumentNode
       | TypedDocumentNode<Query, Variables>,
-    resolver: ResponseResolver<
-      GraphQLRequest<Variables>,
-      GraphQLContext<Query>
-    >,
+    resolver: ResponseResolver<GraphQLContext<Query>>,
   ) => {
-    return new GraphQLHandler<GraphQLRequest<Variables>>(
-      operationType,
-      operationName,
-      url,
-      resolver,
-    )
+    return new GraphQLHandler(operationType, operationName, url, resolver)
   }
 }
 
 function createGraphQLOperationHandler(url: Path) {
   return <
     Query extends Record<string, any>,
-    Variables extends GraphQLVariables = GraphQLVariables,
+    // Variables extends GraphQLVariables = GraphQLVariables,
   >(
-    resolver: ResponseResolver<
-      GraphQLRequest<Variables>,
-      GraphQLContext<Query>
-    >,
+    resolver: ResponseResolver<GraphQLContext<Query>>,
   ) => {
-    return new GraphQLHandler<GraphQLRequest<Variables>>(
-      'all',
-      new RegExp('.*'),
-      url,
-      resolver,
-    )
+    return new GraphQLHandler('all', new RegExp('.*'), url, resolver)
   }
 }
 

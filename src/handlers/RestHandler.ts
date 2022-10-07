@@ -14,10 +14,8 @@ import {
   PathParams,
 } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
-import { MockedRequest } from '../utils/request/MockedRequest'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
-  DefaultBodyType,
   defaultContext,
   DefaultContext,
   RequestHandler,
@@ -65,51 +63,51 @@ export type RequestQuery = {
   [queryName: string]: string
 }
 
-export type ParsedRestRequest = Match
-
-export class RestRequest<
-  RequestBody extends DefaultBodyType = DefaultBodyType,
-  RequestParams extends PathParams = PathParams,
-> extends MockedRequest<RequestBody> {
-  constructor(
-    request: MockedRequest<RequestBody>,
-    public readonly params: RequestParams,
-  ) {
-    super(request.url, {
-      ...request,
-      /**
-       * @deprecated https://github.com/mswjs/msw/issues/1318
-       * @note Use internal request body buffer as the body init
-       * because "request.body" is a getter that will trigger
-       * request body parsing at this step.
-       */
-      body: request['_body'],
-    })
-    this.id = request.id
-  }
+export type RestRequestParsedResult = {
+  match: Match
+  cookies: Record<string, string | Array<string>>
 }
+
+export type RestRequestResolverExtras<Params extends PathParams> = {
+  params: Params
+  cookies: Record<string, string | Array<string>>
+}
+
+// export class RestRequest<
+//   RequestBody extends DefaultBodyType = DefaultBodyType,
+//   RequestParams extends PathParams = PathParams,
+// > extends Request {
+//   constructor(
+//     request: MockedRequest<RequestBody>,
+//     public readonly params: RequestParams,
+//   ) {
+//     super(request.url, {
+//       ...request,
+//       /**
+//        * @deprecated https://github.com/mswjs/msw/issues/1318
+//        * @note Use internal request body buffer as the body init
+//        * because "request.body" is a getter that will trigger
+//        * request body parsing at this step.
+//        */
+//       body: request['_body'],
+//     })
+//     this.id = request.id
+//   }
+// }
 
 /**
  * Request handler for REST API requests.
  * Provides request matching based on method and URL.
  */
-export class RestHandler<
-  RequestType extends MockedRequest<DefaultBodyType> = MockedRequest<DefaultBodyType>,
-> extends RequestHandler<
+export class RestHandler extends RequestHandler<
   RestHandlerInfo,
-  RequestType,
-  ParsedRestRequest,
-  RestRequest<
-    RequestType extends MockedRequest<infer RequestBodyType>
-      ? RequestBodyType
-      : any,
-    PathParams
-  >
+  RestRequestParsedResult,
+  RestRequestResolverExtras<any>
 > {
   constructor(
     method: RestHandlerMethod,
     path: Path,
-    resolver: ResponseResolver<any, any>,
+    resolver: ResponseResolver<any, RestRequestResolverExtras<any>>,
   ) {
     super({
       info: {
@@ -150,31 +148,45 @@ export class RestHandler<
     )
   }
 
-  parse(request: RequestType, resolutionContext?: ResponseResolutionContext) {
-    return matchRequestUrl(
-      request.url,
+  override async parse(
+    request: Request,
+    resolutionContext?: ResponseResolutionContext,
+  ) {
+    const match = matchRequestUrl(
+      new URL(request.url),
       this.info.path,
       resolutionContext?.baseUrl,
     )
+
+    return {
+      match,
+      cookies: {},
+    }
   }
 
-  protected getPublicRequest(
-    request: RequestType,
-    parsedResult: ParsedRestRequest,
-  ): RestRequest<any, PathParams> {
-    return new RestRequest(request, parsedResult.params || {})
+  override predicate(request: Request, parsedResult: RestRequestParsedResult) {
+    const hasMatchingMethod = this.matchMethod(request.method)
+    const hasMatchingUrl = parsedResult.match.matches
+    return hasMatchingMethod && hasMatchingUrl
   }
 
-  predicate(request: RequestType, parsedResult: ParsedRestRequest) {
-    const matchesMethod =
-      this.info.method instanceof RegExp
-        ? this.info.method.test(request.method)
-        : isStringEqual(this.info.method, request.method)
-
-    return matchesMethod && parsedResult.matches
+  private matchMethod(actualMethod: string): boolean {
+    return this.info.method instanceof RegExp
+      ? this.info.method.test(actualMethod)
+      : isStringEqual(this.info.method, actualMethod)
   }
 
-  log(request: RequestType, response: SerializedResponse<any>) {
+  protected override extendInfo(
+    request: Request,
+    parsedResult: RestRequestParsedResult,
+  ) {
+    return {
+      params: parsedResult.match?.params || {},
+      cookies: {},
+    }
+  }
+
+  override log(request: Request, response: SerializedResponse<any>) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = prepareRequest(request)
     const loggedResponse = prepareResponse(response)

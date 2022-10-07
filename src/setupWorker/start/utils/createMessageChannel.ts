@@ -12,7 +12,7 @@ export interface ServiceWorkerMessage<
 }
 
 interface WorkerChannelEventsMap {
-  MOCK_RESPONSE: [data: SerializedResponse<any>, body?: [ArrayBuffer]]
+  MOCK_RESPONSE: [data: SerializedResponse<any>, body?: Array<ArrayBuffer>]
   NOT_FOUND: []
   NETWORK_ERROR: [data: { name: string; message: string }]
 }

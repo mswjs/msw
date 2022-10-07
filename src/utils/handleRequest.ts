@@ -2,16 +2,14 @@ import { until } from '@open-draft/until'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { ServerLifecycleEventsMap } from '../node/glossary'
-import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
 import { devUtils } from './internal/devUtils'
-import { MockedRequest } from './request/MockedRequest'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
-export interface HandleRequestOptions<ResponseType> {
+export interface HandleRequestOptions {
   /**
    * Options for the response resolution process.
    */
@@ -23,31 +21,29 @@ export interface HandleRequestOptions<ResponseType> {
    * Transforms a `MockedResponse` instance returned from a handler
    * to a response instance supported by the lower tooling (i.e. interceptors).
    */
-  transformResponse?(response: MockedResponse<string>): ResponseType
+  transformResponse?(response: Response): Response
 
   /**
    * Invoked whenever a request is performed as-is.
    */
-  onPassthroughResponse?(request: MockedRequest): void
+  onPassthroughResponse?(request: Request): void
 
   /**
    * Invoked when the mocked response is ready to be sent.
    */
   onMockedResponse?(
-    response: ResponseType,
+    response: Response,
     handler: RequiredDeep<ResponseLookupResult>,
   ): void
 }
 
-export async function handleRequest<
-  ResponseType extends Record<string, any> = MockedResponse<string>,
->(
-  request: MockedRequest,
-  handlers: RequestHandler[],
+export async function handleRequest(
+  request: Request,
+  handlers: Array<RequestHandler>,
   options: RequiredDeep<SharedOptions>,
   emitter: StrictEventEmitter<ServerLifecycleEventsMap>,
-  handleRequestOptions?: HandleRequestOptions<ResponseType>,
-): Promise<ResponseType | undefined> {
+  handleRequestOptions?: HandleRequestOptions,
+): Promise<Response | undefined> {
   emitter.emit('request:start', request)
 
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
@@ -106,11 +102,13 @@ Expected response resolver to return a mocked response Object, but got %s. The o
 
   // When the developer explicitly returned "req.passthrough()" do not warn them.
   // Perform the request as-is.
-  if (response.passthrough) {
+  if (response.status === 101) {
     emitter.emit('request:end', request)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
+
+  response.headers.set('X-Powered-By', 'msw')
 
   // Store all the received response cookies in the virtual cookie store.
   readResponseCookies(request, response)
@@ -122,7 +120,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
 
   const transformedResponse =
     handleRequestOptions?.transformResponse?.(response) ||
-    (response as any as ResponseType)
+    (response as any as Response)
 
   handleRequestOptions?.onMockedResponse?.(
     transformedResponse,

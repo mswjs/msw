@@ -14,6 +14,7 @@ import {
   PathParams,
 } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
   defaultContext,
@@ -65,7 +66,7 @@ export type RequestQuery = {
 
 export type RestRequestParsedResult = {
   match: Match
-  cookies: Record<string, string | Array<string>>
+  cookies: Record<string, string>
 }
 
 export type RestRequestResolverExtras<Params extends PathParams> = {
@@ -152,15 +153,17 @@ export class RestHandler extends RequestHandler<
     request: Request,
     resolutionContext?: ResponseResolutionContext,
   ) {
+    const url = new URL(request.url)
     const match = matchRequestUrl(
-      new URL(request.url),
+      url,
       this.info.path,
       resolutionContext?.baseUrl,
     )
+    const cookies = getAllRequestCookies(request)
 
     return {
       match,
-      cookies: {},
+      cookies,
     }
   }
 
@@ -182,7 +185,7 @@ export class RestHandler extends RequestHandler<
   ) {
     return {
       params: parsedResult.match?.params || {},
-      cookies: {},
+      cookies: parsedResult.cookies,
     }
   }
 

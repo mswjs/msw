@@ -1,9 +1,9 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
-interface ResponseType {
-  username: string
-  messageId: string
-}
+// interface ResponseType {
+//   username: string
+//   messageId: string
+// }
 
 type RequestParams = {
   username: string
@@ -11,17 +11,15 @@ type RequestParams = {
 }
 
 const worker = setupWorker(
-  rest.get<never, RequestParams, ResponseType>(
+  rest.get<RequestParams>(
     'https://api.github.com/users/:username/messages/:messageId',
-    (req, res, ctx) => {
-      const { username, messageId } = req.params
+    ({ params }) => {
+      const { username, messageId } = params
 
-      return res(
-        ctx.json({
-          username,
-          messageId,
-        }),
-      )
+      return HttpResponse.json({
+        username,
+        messageId,
+      })
     },
   ),
 )

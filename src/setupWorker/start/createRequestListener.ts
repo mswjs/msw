@@ -71,6 +71,8 @@ export const createRequestListener = (
                 ...responseInit,
                 body: responseBuffer,
               },
+              // Transfer response's buffer so it could
+              // be sent over to the worker.
               [responseBuffer],
             )
 

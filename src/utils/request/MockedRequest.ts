@@ -161,7 +161,7 @@ export class MockedRequest<
 
     // Get existing document cookies that are applicable
     // to this request based on its "credentials" policy.
-    const cookiesFromDocument = getRequestCookies(this)
+    const cookiesFromDocument = getRequestCookies(this as any)
 
     const forwardedCookies = {
       ...cookiesFromDocument,

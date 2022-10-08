@@ -1,24 +1,18 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/api/books', (req, res, ctx) => {
-    const bookId = req.url.searchParams.get('id')
+  rest.get('https://test.mswjs.io/api/books', ({ request }) => {
+    const url = new URL(request.url)
+    const bookId = url.searchParams.get('id')
 
-    return res(
-      ctx.json({
-        bookId,
-      }),
-    )
+    return HttpResponse.json({ bookId })
   }),
 
-  rest.post('https://test.mswjs.io/products', (req, res, ctx) => {
-    const productIds = req.url.searchParams.getAll('id')
+  rest.post('https://test.mswjs.io/products', ({ request }) => {
+    const url = new URL(request.url)
+    const productIds = url.searchParams.getAll('id')
 
-    return res(
-      ctx.json({
-        productIds,
-      }),
-    )
+    return HttpResponse.json({ productIds })
   }),
 )
 

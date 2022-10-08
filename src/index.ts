@@ -60,3 +60,5 @@ export type {
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
+
+export * from './utils/HttpResponse'

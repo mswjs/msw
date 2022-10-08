@@ -14,6 +14,14 @@ export interface ResponseResolutionContext {
   baseUrl?: string
 }
 
+async function filterAsync<Item>(
+  target: Array<Item>,
+  predicate: (item: Item) => Promise<boolean>,
+): Promise<Array<Item>> {
+  const results = await Promise.all(target.map(predicate))
+  return target.filter((_, index) => results[index])
+}
+
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
@@ -22,7 +30,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   handlers: Handler,
   resolutionContext?: ResponseResolutionContext,
 ): Promise<ResponseLookupResult> => {
-  const relevantHandlers = handlers.filter((handler) => {
+  const relevantHandlers = await filterAsync(handlers, (handler) => {
     return handler.test(request, resolutionContext)
   })
 

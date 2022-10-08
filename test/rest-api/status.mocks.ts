@@ -1,15 +1,18 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/posts', (req, res, ctx) => {
+  rest.get('/posts', () => {
     // Setting response status code without status text
     // implicitly sets the correct status text.
-    return res(ctx.status(403))
+    return HttpResponse.text(null, { status: 403 })
   }),
-  rest.get('/user', (req, res, ctx) => {
+  rest.get('/user', () => {
     // Response status text can be overridden
     // to an arbitrary string value.
-    return res(ctx.status(401, 'Custom text'))
+    return HttpResponse.text(null, {
+      status: 401,
+      statusText: 'Custom text',
+    })
   }),
 )
 

@@ -1,21 +1,21 @@
-import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
+import { type ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 
 /**
  * Converts a given request received from the Service Worker
- * into a `MockedRequest` instance.
+ * into a Fetch `Request` instance.
  */
 export function parseWorkerRequest(
-  rawRequest: ServiceWorkerIncomingRequest,
+  incomingRequest: ServiceWorkerIncomingRequest,
 ): Request {
-  console.log({ rawRequest })
-
-  /**
-   * @todo See if we can't send "Request" as-is
-   * from the worker. It should be transferrable.
-   */
-  return new Request(rawRequest.url, {
-    ...rawRequest,
-    body: pruneGetRequestBody(rawRequest),
+  // "Request" instance is not serializable so
+  // it cannot be sent directly from the worker.
+  return new Request(incomingRequest.url, {
+    ...incomingRequest,
+    /**
+     * @todo See if it's possible to post ReadableStream
+     * from the worker directly (if it's transferable).
+     */
+    body: pruneGetRequestBody(incomingRequest),
   })
 }

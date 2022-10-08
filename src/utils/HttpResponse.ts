@@ -13,34 +13,66 @@ export interface HttpResponseDecoratedInit extends HttpResponseInit {
 }
 
 export const HttpResponse = {
+  /**
+   * Define a `Response` with a `Content-Type: "text/plain"` body.
+   * @example
+   * HttpResponse.text('hello world')
+   * HttpResponse.text('Error', { status: 500 })
+   */
   text<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): Response {
-    return createResponse(body, decorateResponseInit(init))
+    const responseInit = decorateResponseInit(init)
+    responseInit.headers.set('Content-Type', 'text/plain')
+    return createResponse(body, responseInit)
   },
 
-  json<BodyType extends Record<string, unknown>>(
-    body?: BodyType | null,
-    init?: HttpResponseInit,
-  ): Response {
+  /**
+   * Define a `Response` with a `Content-Type: "application/json"` body.
+   * @example
+   * HttpResponse.json({ firstName: 'John' })
+   * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
+   */
+  json<
+    BodyType extends
+      | Record<string, unknown>
+      | Array<unknown>
+      | boolean
+      | number,
+  >(body?: BodyType | null, init?: HttpResponseInit): Response {
     const responseInit = decorateResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')
     return createResponse(JSON.stringify(body), responseInit)
   },
 
+  /**
+   * Define a `Response` with a `Content-Type: "application/xml"` body.
+   * @example
+   * HttpResponse.xml(`<user name="John" />`)
+   * HttpResponse.xml(`<article id="abc-123" />`, { status: 201 })
+   */
   xml<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): Response {
     const responseInit = decorateResponseInit(init)
-    responseInit.headers.set('Content-Type', 'application/xml')
+    responseInit.headers.set('Content-Type', 'text/xml')
+    return createResponse(body, responseInit)
+  },
+
+  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+    const responseInit = decorateResponseInit(init)
+
+    if (body) {
+      responseInit.headers.set('Content-Length', body.byteLength.toString())
+    }
+
     return createResponse(body, responseInit)
   },
 
   /**
    * @todo Support:
-   * - ArrayBuffer
    * - FormData
    * - ReadableStream
    */

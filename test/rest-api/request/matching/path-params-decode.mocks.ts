@@ -1,10 +1,9 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/reflect-url/:url', (req, res, ctx) => {
-    const { url } = req.params
-
-    return res(ctx.json({ url }))
+  rest.get('https://test.mswjs.io/reflect-url/:url', ({ params }) => {
+    const { url } = params
+    return HttpResponse.json({ url })
   }),
 )
 

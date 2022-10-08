@@ -1,50 +1,48 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/polling/:maxCount', function* (req, res, ctx) {
-    const { maxCount } = req.params
+  rest.get<{ maxCount: string }>('/polling/:maxCount', function* ({ params }) {
+    const { maxCount } = params
     let count = 0
 
-    while (count < maxCount) {
+    while (count < Number(maxCount)) {
       count += 1
-      yield res(
-        ctx.json({
-          status: 'pending',
-          count,
-        }),
-      )
+
+      yield HttpResponse.json({
+        status: 'pending',
+        count,
+      })
     }
 
-    return res(
-      ctx.json({
-        status: 'complete',
-        count,
-      }),
-    )
+    return HttpResponse.json({
+      status: 'complete',
+      count,
+    })
   }),
 
-  rest.get('/polling/once/:maxCount', function* (req, res, ctx) {
-    let count = 0
+  rest.get<{ maxCount: string }>(
+    '/polling/once/:maxCount',
+    function* ({ params }) {
+      const { maxCount } = params
+      let count = 0
 
-    while (count < req.params.maxCount) {
-      count += 1
-      yield res(
-        ctx.json({
+      while (count < Number(maxCount)) {
+        count += 1
+
+        yield HttpResponse.json({
           status: 'pending',
           count,
-        }),
-      )
-    }
+        })
+      }
 
-    return res.once(
-      ctx.json({
+      return HttpResponse.json({
         status: 'complete',
         count,
-      }),
-    )
-  }),
-  rest.get('/polling/once/:maxCount', (req, res, ctx) => {
-    return res(ctx.json({ status: 'done' }))
+      })
+    },
+  ),
+  rest.get('/polling/once/:maxCount', () => {
+    return HttpResponse.json({ status: 'done' })
   }),
 )
 

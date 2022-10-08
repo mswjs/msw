@@ -115,7 +115,7 @@ function decorateResponse(
 
   // Write the mocked response cookies to the document.
   const responseCookie = init?.headers?.get('Set-Cookie')
-  if (responseCookie) {
+  if (responseCookie && typeof document !== 'undefined') {
     /**
      * @todo Support multiple "Set-Cookie" response headers.
      */

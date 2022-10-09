@@ -1,9 +1,9 @@
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  graphql.query('Login', (req, res, ctx) => {
-    return res(
-      ctx.errors([
+  graphql.query('Login', () => {
+    return HttpResponse.json({
+      errors: [
         {
           message: 'This is a mocked error',
           locations: [
@@ -13,8 +13,8 @@ const worker = setupWorker(
             },
           ],
         },
-      ]),
-    )
+      ],
+    })
   }),
 )
 

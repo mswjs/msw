@@ -1,5 +1,5 @@
 import { parse } from 'graphql'
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 const GetUser = parse(`
   query GetUser {
@@ -32,38 +32,38 @@ const github = graphql.link('https://api.github.com/graphql')
 
 const worker = setupWorker(
   // "DocumentNode" can be used as the expected query/mutation.
-  graphql.query(GetUser, (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.query(GetUser, () => {
+    return HttpResponse.json({
+      data: {
         // Note that inferring the query body and variables
         // is impossible with the native "DocumentNode".
         // Consider using tools like GraphQL Code Generator.
         user: {
           firstName: 'John',
         },
-      }),
-    )
+      },
+    })
   }),
-  graphql.mutation(Login, (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.mutation<unknown, { username: string }>(Login, ({ variables }) => {
+    return HttpResponse.json({
+      data: {
         session: {
           id: 'abc-123',
         },
         user: {
-          username: req.variables.username,
+          username: variables.username,
         },
-      }),
-    )
+      },
+    })
   }),
-  github.query(GetSubscription, (req, res, ctx) => {
-    return res(
-      ctx.data({
+  github.query(GetSubscription, () => {
+    return HttpResponse.json({
+      data: {
         subscription: {
           id: 123,
         },
-      }),
-    )
+      },
+    })
   }),
 )
 

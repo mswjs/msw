@@ -116,11 +116,11 @@ This exception has been gracefully handled as a 500 response, however, it's stro
           headers: {
             'Content-Type': 'application/json',
           },
-          body: {
+          body: JSON.stringify({
             name: error.name,
             message: error.message,
             stack: error.stack,
-          },
+          }),
         })
       }
     }

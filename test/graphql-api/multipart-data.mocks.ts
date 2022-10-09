@@ -1,4 +1,4 @@
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 const worker = setupWorker(
   graphql.mutation<
@@ -6,29 +6,30 @@ const worker = setupWorker(
       multipart: {
         file1?: string
         file2?: string
-        files?: string[]
+        files?: Array<string>
         plainText?: string
       }
     },
     {
       file1?: File
       file2?: File
-      files?: File[]
+      files?: Array<File>
       plainText?: string
     }
-  >('UploadFile', async (req, res, ctx) => {
-    const { file1, file2, files = [], plainText } = req.variables
+  >('UploadFile', async ({ variables }) => {
+    const { file1, file2, files = [], plainText } = variables
     const filesResponse = await Promise.all(files.map((file) => file.text()))
-    return res(
-      ctx.data({
+
+    return HttpResponse.json({
+      data: {
         multipart: {
           file1: await file1?.text(),
           file2: await file2?.text(),
           files: filesResponse,
           plainText,
         },
-      }),
-    )
+      },
+    })
   }),
 )
 

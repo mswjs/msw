@@ -1,4 +1,4 @@
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 interface GetUserDetailQuery {
   user: {
@@ -14,31 +14,35 @@ interface LoginQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<GetUserDetailQuery>('GetUserDetail', (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.query<GetUserDetailQuery>('GetUserDetail', () => {
+    return HttpResponse.json({
+      data: {
         user: {
           firstName: 'John',
           lastName: 'Maverick',
         },
-      }),
-    )
+      },
+    })
   }),
-  graphql.mutation<LoginQuery>('Login', (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.mutation<LoginQuery>('Login', () => {
+    return HttpResponse.json({
+      data: {
         user: {
           id: 'abc-123',
         },
-      }),
-    )
+      },
+    })
   }),
-  graphql.operation((req, res, ctx) => {
-    return res(
-      ctx.status(301),
-      ctx.data({
-        ok: true,
-      }),
+  graphql.operation(() => {
+    return HttpResponse.json(
+      {
+        data: {
+          ok: true,
+        },
+      },
+      {
+        status: 301,
+      },
     )
   }),
 )

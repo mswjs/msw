@@ -31,7 +31,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   resolutionContext?: ResponseResolutionContext,
 ): Promise<ResponseLookupResult> => {
   const relevantHandlers = await filterAsync(handlers, (handler) => {
-    return handler.test(request, resolutionContext)
+    return handler.test(request, resolutionContext).catch(() => false)
   })
 
   if (relevantHandlers.length === 0) {

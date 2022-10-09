@@ -1,43 +1,42 @@
 import {
   ResponseResolver,
   RestContext,
-  MockedRequest,
   setupWorker,
   rest,
+  HttpResponse,
 } from 'msw'
 
-const handleRequestBody: ResponseResolver<MockedRequest, RestContext> = (
-  req,
-  res,
-  ctx,
-) => {
-  const { body } = req
+const handleRequestBody: ResponseResolver<RestContext> = async ({
+  request,
+}) => {
+  const text = await request.text()
+  console.log({ request, text })
 
-  return res(ctx.json({ body }))
+  return new Response(text, { headers: request.headers })
 }
 
-const handleMultipartRequestBody: ResponseResolver<
-  MockedRequest,
-  RestContext
-> = async (req, res, ctx) => {
-  const { body } = req
+const handleMultipartRequestBody: ResponseResolver<RestContext> = async ({
+  request,
+}) => {
+  const body = await request.json()
 
-  if (typeof body !== 'object') {
-    throw new Error(
-      'Expected multipart request body to be parsed but got string',
-    )
-  }
+  // if (typeof body !== 'object') {
+  //   throw new Error(
+  //     'Expected multipart request body to be parsed but got string',
+  //   )
+  // }
 
-  const resBody: Record<string, string> = {}
+  const responseBody: Record<string, unknown> = {}
+
   for (const [name, value] of Object.entries(body)) {
     if (value instanceof File) {
-      resBody[name] = await value.text()
+      responseBody[name] = await value.text()
     } else {
-      resBody[name] = value as string
+      responseBody[name] = value
     }
   }
 
-  return res(ctx.json({ body: resBody }))
+  return HttpResponse.json(responseBody)
 }
 
 const worker = setupWorker(

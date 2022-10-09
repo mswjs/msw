@@ -50,7 +50,7 @@ test('mocks a GraphQL query issued with a GET request', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {
@@ -84,7 +84,7 @@ test('mocks a GraphQL query issued with a POST request', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {

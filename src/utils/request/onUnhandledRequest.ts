@@ -7,8 +7,7 @@ import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { RestHandler } from '../../handlers/RestHandler'
 import { GraphQLHandler } from '../../handlers/GraphQLHandler'
-import { RequestHandler } from '../../handlers/RequestHandler'
-import { tryCatch } from '../internal/tryCatch'
+import { type RequestHandler } from '../../handlers/RequestHandler'
 import { devUtils } from '../internal/devUtils'
 
 const MAX_MATCH_SCORE = 3
@@ -36,7 +35,9 @@ interface RequestHandlerGroups {
   graphql: Array<GraphQLHandler>
 }
 
-function groupHandlersByType(handlers: RequestHandler[]): RequestHandlerGroups {
+function groupHandlersByType(
+  handlers: Array<RequestHandler>,
+): RequestHandlerGroups {
   return handlers.reduce<RequestHandlerGroups>(
     (groups, handler) => {
       if (handler instanceof RestHandler) {
@@ -110,8 +111,8 @@ function getSuggestedHandler(
   handlers: Array<RestHandler> | Array<GraphQLHandler>,
   getScore: ScoreGetterFn<RestHandler> | ScoreGetterFn<GraphQLHandler>,
 ): RequestHandler[] {
-  const suggestedHandlers = (handlers as RequestHandler[])
-    .reduce<RequestHandlerSuggestion[]>((suggestions, handler) => {
+  const suggestedHandlers = (handlers as Array<RequestHandler>)
+    .reduce<Array<RequestHandlerSuggestion>>((suggestions, handler) => {
       const score = getScore(request, handler as any)
       return suggestions.concat([[score, handler]])
     }, [])
@@ -136,10 +137,12 @@ ${handlers.map((handler) => `  • ${handler.info.header}`).join('\n')}`
 
 export async function onUnhandledRequest(
   request: Request,
-  handlers: RequestHandler[],
+  handlers: Array<RequestHandler>,
   strategy: UnhandledRequestStrategy = 'warn',
 ): Promise<void> {
-  const parsedGraphQLQuery = await tryCatch(() => parseGraphQLRequest(request))
+  const parsedGraphQLQuery = await parseGraphQLRequest(request).catch(
+    () => null,
+  )
 
   function generateHandlerSuggestion(): string {
     /**

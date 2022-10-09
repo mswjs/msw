@@ -4,10 +4,11 @@ import type {
   OperationTypeNode,
 } from 'graphql'
 import { parse } from 'graphql'
-import { GraphQLVariables } from '../../handlers/GraphQLHandler'
+import { type GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
 import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
+import { parseMultipartData } from './parseMultipartData'
 
 interface GraphQLInput {
   query: string | null
@@ -23,13 +24,14 @@ export type ParsedGraphQLRequest<
   VariablesType extends GraphQLVariables = GraphQLVariables,
 > =
   | (ParsedGraphQLQuery & {
+      query: string
       variables?: VariablesType
     })
   | undefined
 
 export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
-  const operationDef = node.definitions.find((def) => {
-    return def.kind === 'OperationDefinition'
+  const operationDef = node.definitions.find((definition) => {
+    return definition.kind === 'OperationDefinition'
   }) as OperationDefinitionNode
 
   return {
@@ -61,6 +63,7 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
   files: Record<string, File>,
 ) {
   const operations = { variables }
+
   for (const [key, pathArray] of Object.entries(map)) {
     if (!(key in files)) {
       throw new Error(`Given files do not have a key '${key}' .`)
@@ -82,16 +85,17 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
       target[lastPath] = files[key]
     }
   }
+
   return operations.variables
 }
 
 async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
-  const searchParams = new URLSearchParams(request.url)
+  const url = new URL(request.url)
 
   switch (request.method) {
     case 'GET': {
-      const query = searchParams.get('query')
-      const variables = searchParams.get('variables') || ''
+      const query = url.searchParams.get('query')
+      const variables = url.searchParams.get('variables') || ''
 
       return {
         query,
@@ -100,27 +104,20 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
     }
 
     case 'POST': {
-      const requestText = await request.text()
-      const requestJson = jsonParse<{
-        query: string
-        variables?: GraphQLVariables
-        operations?: any
-      }>(requestText)
+      // Handle multipart body GraphQL operations.
+      if (
+        request.headers.get('content-type')?.includes('multipart/form-data')
+      ) {
+        const responseJson = parseMultipartData<GraphQLMultipartRequestBody>(
+          await request.text(),
+          request.headers,
+        )
 
-      if (requestJson?.query) {
-        const { query, variables } = requestJson
-
-        return {
-          query,
-          variables,
+        if (!responseJson) {
+          return null
         }
-      }
 
-      // Handle multipart body operations.
-      if (requestJson?.operations) {
-        const { operations, map, ...files } =
-          requestJson as unknown as GraphQLMultipartRequestBody
-
+        const { operations, map, ...files } = responseJson
         const parsedOperations =
           jsonParse<{ query?: string; variables?: GraphQLVariables }>(
             operations,
@@ -141,6 +138,22 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
 
         return {
           query: parsedOperations.query,
+          variables,
+        }
+      }
+
+      // Handle plain POST GraphQL operations.
+      const requestJson: {
+        query: string
+        variables?: GraphQLVariables
+        operations?: any /** @todo Annotate this */
+      } = await request.json().catch(() => null)
+
+      if (requestJson?.query) {
+        const { query, variables } = requestJson
+
+        return {
+          query,
           variables,
         }
       }
@@ -181,6 +194,7 @@ export async function parseGraphQLRequest(
   }
 
   return {
+    query: input.query,
     operationType: parsedResult.operationType,
     operationName: parsedResult.operationName,
     variables,

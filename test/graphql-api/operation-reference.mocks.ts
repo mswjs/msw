@@ -1,21 +1,21 @@
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  graphql.query('GetUser', (req, res, ctx) => {
-    return res(
-      ctx.data({
-        query: req.body.query,
-        variables: req.body.variables,
-      }),
-    )
+  graphql.query('GetUser', async ({ query, variables }) => {
+    return HttpResponse.json({
+      data: {
+        query,
+        variables,
+      },
+    })
   }),
-  graphql.mutation('Login', (req, res, ctx) => {
-    return res(
-      ctx.data({
-        query: req.body.query,
-        variables: req.body.variables,
-      }),
-    )
+  graphql.mutation('Login', ({ query, variables }) => {
+    return HttpResponse.json({
+      data: {
+        query,
+        variables,
+      },
+    })
   }),
 )
 

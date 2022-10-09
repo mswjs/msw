@@ -5,7 +5,7 @@
 export function getPublicUrlFromRequest(request: Request): string {
   const url = new URL(request.url)
 
-  return request.referrer.startsWith(origin)
+  return url.origin === origin
     ? url.pathname
     : new URL(url.pathname, `${url.protocol}//${url.host}`).href
 }

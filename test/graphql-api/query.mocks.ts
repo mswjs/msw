@@ -1,4 +1,4 @@
-import { setupWorker, graphql } from 'msw'
+import { setupWorker, graphql, HttpResponse } from 'msw'
 
 interface GetUserDetailQuery {
   user: {
@@ -8,15 +8,15 @@ interface GetUserDetailQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<GetUserDetailQuery>('GetUserDetail', (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.query<GetUserDetailQuery>('GetUserDetail', () => {
+    return HttpResponse.json({
+      data: {
         user: {
           firstName: 'John',
           lastName: 'Maverick',
         },
-      }),
-    )
+      },
+    })
   }),
 )
 

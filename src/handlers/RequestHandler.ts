@@ -156,7 +156,7 @@ export abstract class RequestHandler<
   ): Promise<boolean> {
     return this.predicate(
       request,
-      await this.parse(request, resolutionContext),
+      await this.parse(request.clone(), resolutionContext),
       resolutionContext,
     )
   }
@@ -184,9 +184,11 @@ export abstract class RequestHandler<
       return null
     }
 
-    const parsedResult = await this.parse(request, resolutionContext)
+    const requestClone = request.clone()
+
+    const parsedResult = await this.parse(requestClone, resolutionContext)
     const shouldInterceptRequest = this.predicate(
-      request,
+      requestClone,
       parsedResult,
       resolutionContext,
     )
@@ -199,7 +201,7 @@ export abstract class RequestHandler<
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
 
-    const resolverExtras = this.extendInfo(request, parsedResult)
+    const resolverExtras = this.extendInfo(requestClone, parsedResult)
     const mockedResponse = await executeResolver({
       ...resolverExtras,
       request,

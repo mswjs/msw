@@ -1,5 +1,5 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
-import { SerializedResponse } from '../setupWorker/glossary'
+import { type SerializedResponse } from '../setupWorker/glossary'
 import { data } from '../context/data'
 import { extensions } from '../context/extensions'
 import { errors } from '../context/errors'
@@ -25,7 +25,6 @@ import {
   parseDocumentNode,
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
-import { tryCatch } from '../utils/internal/tryCatch'
 import { devUtils } from '../utils/internal/devUtils'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
@@ -59,6 +58,11 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationName: GraphQLHandlerNameSelector
 }
 
+export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
+  query: string
+  variables: Variables
+}
+
 export type GraphQLRequestBody<VariablesType extends GraphQLVariables> =
   | GraphQLJsonRequestBody<VariablesType>
   | GraphQLMultipartRequestBody
@@ -80,24 +84,11 @@ export function isDocumentNode(
   return typeof value === 'object' && 'kind' in value && 'definitions' in value
 }
 
-// export class GraphQLRequest<
-//   Variables extends GraphQLVariables,
-// > extends Request {
-//   constructor(request: Request, public readonly variables: Variables) {
-//     super(request.url, {
-//       ...request,
-//       /**
-//        * TODO(https://github.com/mswjs/msw/issues/1318): Cleanup
-//        */
-//       body: request['_body'],
-//     })
-//   }
-// }
-
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
   // @ts-ignore @todo
-  ParsedGraphQLRequest
+  ParsedGraphQLRequest,
+  GraphQLResolverExtras<any>
 > {
   private endpoint: Path
 
@@ -105,7 +96,7 @@ export class GraphQLHandler extends RequestHandler<
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
-    resolver: ResponseResolver<GraphQLContext<any>, any>,
+    resolver: ResponseResolver<GraphQLContext<any>, GraphQLResolverExtras<any>>,
   ) {
     let resolvedOperationName = operationName
 
@@ -146,10 +137,10 @@ export class GraphQLHandler extends RequestHandler<
   }
 
   override async parse(request: Request) {
-    return tryCatch(
-      () => parseGraphQLRequest(request),
-      (error) => console.error(error.message),
-    )
+    return parseGraphQLRequest(request).catch((error) => {
+      console.error(error)
+      return undefined
+    })
   }
 
   override predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
@@ -159,6 +150,7 @@ export class GraphQLHandler extends RequestHandler<
 
     if (!parsedResult.operationName && this.info.operationType !== 'all') {
       const publicUrl = getPublicUrlFromRequest(request)
+
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
@@ -182,6 +174,16 @@ Consider naming this operation or using "graphql.operation" request handler to i
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
+  }
+
+  protected override extendInfo(
+    _request: Request,
+    parsedResult: ParsedGraphQLRequest<GraphQLVariables>,
+  ) {
+    return {
+      query: parsedResult?.query || '',
+      variables: parsedResult?.variables || {},
+    }
   }
 
   override log(

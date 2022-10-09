@@ -5498,6 +5498,11 @@ headers-polyfill@^3.1.0:
   resolved "https://registry.yarnpkg.com/headers-polyfill/-/headers-polyfill-3.1.0.tgz#22135c594feb4d5efd56e5c7f587552b9feac0e7"
   integrity sha512-AVwgTAzeGpF7kwUCMc9HbAoCKFcHGEfmWkaI8g0jprrkh9VPRaofIsfV7Lw8UuR9pi4Rk7IIjJce8l0C+jSJNA==
 
+headers-polyfill@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/headers-polyfill/-/headers-polyfill-3.1.2.tgz#9a4dcb545c5b95d9569592ef7ec0708aab763fbe"
+  integrity sha512-tWCK4biJ6hcLqTviLXVR9DTRfYGQMXEIUj3gwJ2rZ5wO/at3XtkI4g8mCvFdUF9l1KMBNCfmNAdnahm1cgavQA==
+
 headers-utils@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/headers-utils/-/headers-utils-3.0.2.tgz#dfc65feae4b0e34357308aefbcafa99c895e59ef"

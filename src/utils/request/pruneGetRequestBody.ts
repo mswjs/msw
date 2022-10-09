@@ -1,5 +1,4 @@
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
-import { isStringEqual } from '../internal/isStringEqual'
 
 type Input = Pick<ServiceWorkerIncomingRequest, 'method' | 'body'>
 
@@ -11,7 +10,7 @@ export function pruneGetRequestBody(
 ): ServiceWorkerIncomingRequest['body'] {
   if (
     request.method &&
-    isStringEqual(request.method, 'GET') &&
+    ['HEAD', 'GET'].includes(request.method.toUpperCase()) &&
     request.body === ''
   ) {
     return undefined

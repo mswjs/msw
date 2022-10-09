@@ -62,3 +62,4 @@ export type { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 
 export * from './utils/HttpResponse'
+export { bypass } from './utils/bypass'

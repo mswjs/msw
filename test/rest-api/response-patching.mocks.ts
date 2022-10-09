@@ -1,8 +1,8 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { setupWorker, rest, HttpResponse, bypass } from 'msw'
 
 const worker = setupWorker(
   rest.get('/user', async () => {
-    const originalResponse = await ctx.fetch('/user')
+    const originalResponse = await fetch(bypass('/user'))
     const body = await originalResponse.json()
 
     return HttpResponse.json({
@@ -13,7 +13,7 @@ const worker = setupWorker(
   }),
 
   rest.get('/repos/:owner/:repoName', async ({ request }) => {
-    const originalResponse = await ctx.fetch(request)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json({
@@ -23,7 +23,7 @@ const worker = setupWorker(
   }),
 
   rest.get('/headers', async ({ request }) => {
-    const originalResponse = await ctx.fetch('/headers-proxy', {
+    const originalResponse = await fetch(bypass('/headers-proxy'), {
       method: 'POST',
       headers: request.headers,
     })
@@ -33,7 +33,7 @@ const worker = setupWorker(
   }),
 
   rest.post('/posts', async ({ request }) => {
-    const originalResponse = await ctx.fetch(request)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json(
@@ -50,7 +50,7 @@ const worker = setupWorker(
   }),
 
   rest.get('/posts', async ({ request }) => {
-    const originalResponse = await ctx.fetch(request)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json({
@@ -60,7 +60,7 @@ const worker = setupWorker(
   }),
 
   rest.head('/posts', async ({ request }) => {
-    const originalResponse = await ctx.fetch(request)
+    const originalResponse = await fetch(bypass(request))
 
     return HttpResponse.json(
       {

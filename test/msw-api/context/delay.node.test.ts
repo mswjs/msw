@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { delay, HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { performance } from 'perf_hooks'
 
@@ -31,8 +31,9 @@ async function makeRequest(url: string) {
 
 test('uses explicit server response time', async () => {
   server.use(
-    rest.get('http://localhost/user', (req, res, ctx) => {
-      return res(ctx.delay(500), ctx.text('john'))
+    rest.get('http://localhost/user', async () => {
+      await delay(500)
+      return HttpResponse.text('john')
     }),
   )
 
@@ -44,8 +45,9 @@ test('uses explicit server response time', async () => {
 
 test('uses realistic server response time when no duration is provided', async () => {
   server.use(
-    rest.get('http://localhost/user', (req, res, ctx) => {
-      return res(ctx.delay(), ctx.text('john'))
+    rest.get('http://localhost/user', async () => {
+      await delay()
+      return HttpResponse.text('john')
     }),
   )
 
@@ -58,8 +60,9 @@ test('uses realistic server response time when no duration is provided', async (
 
 test('uses realistic server response time when "real" mode is provided', async () => {
   server.use(
-    rest.get('http://localhost/user', (req, res, ctx) => {
-      return res(ctx.delay('real'), ctx.text('john'))
+    rest.get('http://localhost/user', async () => {
+      await delay('real')
+      return HttpResponse.text('john')
     }),
   )
 

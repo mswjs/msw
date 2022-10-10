@@ -1,8 +1,10 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/book/:bookId', function originalResolver(req, res, ctx) {
-    return res(ctx.json({ title: 'Original title' }))
+  rest.get('/book/:bookId', function originalResolver() {
+    return HttpResponse.json({
+      title: 'Original title',
+    })
   }),
 )
 

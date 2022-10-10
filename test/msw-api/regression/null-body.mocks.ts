@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/api/books', (req, res, ctx) => {
-    return res(ctx.status(204))
+  rest.get('https://test.mswjs.io/api/books', () => {
+    return HttpResponse.text(null, { status: 204 })
   }),
 )
 

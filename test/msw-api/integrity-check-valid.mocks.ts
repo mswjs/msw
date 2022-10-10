@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://api.github.com/users/octocat', (req, res, ctx) => {
-    return res(ctx.json({ mocked: true }))
+  rest.get('https://api.github.com/users/octocat', () => {
+    return HttpResponse.json({ mocked: true })
   }),
 )
 

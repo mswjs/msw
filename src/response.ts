@@ -1,7 +1,7 @@
 import { Headers } from 'headers-polyfill'
 import { DefaultBodyType } from './handlers/RequestHandler'
 import { compose } from './utils/internal/compose'
-import { NetworkError } from './utils/NetworkError'
+import { NetworkError } from './NetworkError'
 
 export type MaybePromise<ValueType = any> = ValueType | Promise<ValueType>
 

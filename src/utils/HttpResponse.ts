@@ -13,6 +13,14 @@ export interface HttpResponseDecoratedInit extends HttpResponseInit {
 }
 
 export const HttpResponse = {
+  plain<BodyType extends string | BodyInit>(
+    body?: BodyType,
+    init?: HttpResponseInit,
+  ): Response {
+    const responseInit = decorateResponseInit(init)
+    return createResponse(body, responseInit)
+  },
+
   /**
    * Define a `Response` with a `Content-Type: "text/plain"` body.
    * @example

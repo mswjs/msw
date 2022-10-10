@@ -1,16 +1,17 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  rest.get('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
 worker.start({
-  onUnhandledRequest(req, print) {
-    console.log(`Oops, unhandled ${req.method} ${req.url.href}`)
+  onUnhandledRequest(request, print) {
+    console.log(`Oops, unhandled ${request.method} ${request.url}`)
+    const url = new URL(request.url)
 
-    if (req.url.pathname.includes('/use-warn')) {
+    if (url.pathname.includes('/use-warn')) {
       // Using "print" allows you to execute the default strategy.
       print.warning()
     } else {

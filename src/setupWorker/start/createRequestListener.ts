@@ -7,7 +7,7 @@ import {
   ServiceWorkerMessage,
   WorkerChannel,
 } from './utils/createMessageChannel'
-import { NetworkError } from '../../utils/NetworkError'
+import { NetworkError } from '../../NetworkError'
 import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
 import { handleRequest } from '../../utils/handleRequest'
 import { RequiredDeep } from '../../typeUtils'

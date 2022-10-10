@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { SetupWorkerApi, rest } from 'msw'
+import { SetupWorkerApi, rest, HttpResponse } from 'msw'
 
 declare namespace window {
   export const msw: {
@@ -18,8 +18,8 @@ test('returns a mocked response from a runtime request handler upon match', asyn
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.post('/login', function postLoginResolver(req, res, ctx) {
-        return res(ctx.json({ accepted: true }))
+      msw.rest.post('/login', function postLoginResolver() {
+        return HttpResponse.json({ accepted: true })
       }),
     )
   })
@@ -49,8 +49,8 @@ test('returns a mocked response from a persistent request handler override', asy
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.get('/book/:bookId', function permanentOverride(req, res, ctx) {
-        return res(ctx.json({ title: 'Permanent override' }))
+      msw.rest.get('/book/:bookId', function permanentOverride() {
+        return HttpResponse.json({ title: 'Permanent override' })
       }),
     )
   })
@@ -77,8 +77,8 @@ test('returns a mocked response from a one-time request handler override only up
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.get('/book/:bookId', function oneTimeOverride(req, res, ctx) {
-        return res.once(ctx.json({ title: 'One-time override' }))
+      msw.rest.get('/book/:bookId', function oneTimeOverride() {
+        return HttpResponse.json({ title: 'One-time override' })
       }),
     )
   })
@@ -105,10 +105,16 @@ test('returns a mocked response from a one-time request handler override only up
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.get('/book/:bookId', function oneTimeOverride(req, res, ctx) {
-        const { bookId } = req.params
-        return res.once(ctx.json({ title: 'One-time override', bookId }))
-      }),
+      msw.rest.get<{ bookId: string }>(
+        '/book/:bookId',
+        function oneTimeOverride({ params }) {
+          /* eslint-disable-next-line */
+          const { bookId } = params
+
+          throw new Error('Support res.once()')
+          // return res.once(ctx.json({ title: 'One-time override', bookId }))
+        },
+      ),
     )
   })
 

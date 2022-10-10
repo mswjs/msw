@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, NetworkError } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res) => {
-    return res.networkError('Custom network error message')
+  rest.get('/user', () => {
+    throw new NetworkError('Custom network error message')
   }),
 )
 

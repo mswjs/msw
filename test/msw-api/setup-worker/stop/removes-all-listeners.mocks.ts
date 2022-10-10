@@ -1,9 +1,9 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const createWorker = () => {
   return setupWorker(
-    rest.get('/user', (req, res, ctx) => {
-      return res(ctx.status(200))
+    rest.get('/user', () => {
+      return HttpResponse.plain()
     }),
   )
 }

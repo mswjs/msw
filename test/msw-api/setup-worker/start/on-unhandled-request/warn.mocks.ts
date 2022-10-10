@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  rest.get('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
   rest.post('/explicit-return', () => {
     // Short-circuiting in a handler makes it perform the request as-is,

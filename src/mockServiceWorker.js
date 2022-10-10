@@ -247,7 +247,7 @@ async function getResponse(event, client, requestId) {
       redirect: request.redirect,
       referrer: request.referrer,
       referrerPolicy: request.referrerPolicy,
-      body: await request.text(),
+      body: await request.arrayBuffer(),
       bodyUsed: request.bodyUsed,
       keepalive: request.keepalive,
     },

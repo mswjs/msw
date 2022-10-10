@@ -43,9 +43,9 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   id: string
 
   /**
-   * Text response body.
+   * Request body.
    */
-  body?: string
+  body?: ArrayBuffer
 }
 
 export type ServiceWorkerIncomingResponse = Pick<

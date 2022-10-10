@@ -12,7 +12,7 @@ export function pruneGetRequestBody(
   if (
     request.method &&
     isStringEqual(request.method, 'GET') &&
-    request.body === ''
+    request.body?.byteLength === 0
   ) {
     return undefined
   }

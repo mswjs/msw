@@ -1,4 +1,3 @@
-import { encodeBuffer } from '@mswjs/interceptors'
 import { Headers } from 'headers-polyfill'
 import { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { MockedRequest } from './MockedRequest'
@@ -15,7 +14,7 @@ export function parseWorkerRequest(
 
   return new MockedRequest(url, {
     ...rawRequest,
-    body: encodeBuffer(rawRequest.body || ''),
+    body: rawRequest.body || new ArrayBuffer(0),
     headers,
   })
 }

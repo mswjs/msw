@@ -37,6 +37,7 @@ export type DefaultRequestMultipartBody = Record<
 export type DefaultBodyType =
   | Record<string, any>
   | DefaultRequestMultipartBody
+  | FormData
   | string
   | number
   | boolean

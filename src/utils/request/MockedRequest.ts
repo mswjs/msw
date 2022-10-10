@@ -108,6 +108,14 @@ export class MockedRequest<
    * to read the request body as a plain text, JSON, or ArrayBuffer.
    */
   public get body(): RequestBody {
+    /**
+     * If an XHR sends a FormData body, as per https://developer.mozilla.org/fr/docs/Web/API/XMLHttpRequest/send the interceptor
+     * will pass the raw FormData instance directly, not an ArrayBuffer. Short-circuit here in this case
+     */
+    if (this['_body'] instanceof FormData) {
+      return this['_body'] as RequestBody
+    }
+
     const text = decodeBuffer(this['_body'])
 
     /**
@@ -123,6 +131,10 @@ export class MockedRequest<
     }
 
     return body as RequestBody
+  }
+
+  public formData(): FormData {
+    return this['_body']
   }
 
   /**

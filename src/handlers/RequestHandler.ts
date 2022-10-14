@@ -4,7 +4,6 @@ import { isIterable } from '../utils/internal/isIterable'
 import { status } from '../context/status'
 import { set } from '../context/set'
 import { delay } from '../context/delay'
-import { fetch } from '../context/fetch'
 import { type ResponseResolutionContext } from '../utils/getResponse'
 import { type SerializedResponse } from '../setupWorker/glossary'
 
@@ -12,14 +11,12 @@ export type DefaultContext = {
   status: typeof status
   set: typeof set
   delay: typeof delay
-  fetch: typeof fetch
 }
 
 export const defaultContext: DefaultContext = {
   status,
   set,
   delay,
-  fetch,
 }
 
 export type DefaultRequestMultipartBody = Record<

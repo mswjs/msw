@@ -4,7 +4,7 @@
 import fetch from 'node-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 
 let httpServer: ServerApi
 const server = setupServer()
@@ -20,8 +20,8 @@ beforeAll(async () => {
   })
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
-      return res(ctx.json({ firstName: 'John' }))
+    rest.get(httpServer.http.makeUrl('/user'), () => {
+      return HttpResponse.json({ firstName: 'John' })
     }),
   )
   server.listen({ onUnhandledRequest: 'bypass' })

@@ -1,25 +1,30 @@
 import fetch, { Response } from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 describe('setupServer / fetch', () => {
   const server = setupServer(
-    rest.get('http://test.mswjs.io', (req, res, ctx) => {
-      return res(
-        ctx.status(401),
-        ctx.set('x-header', 'yes'),
-        ctx.json({
+    rest.get('http://test.mswjs.io', () => {
+      return HttpResponse.json(
+        {
           firstName: 'John',
           age: 32,
-        }),
+        },
+        {
+          status: 401,
+          headers: {
+            'X-Header': 'yes',
+          },
+        },
       )
     }),
-    rest.post('https://test.mswjs.io', (req, res, ctx) => {
-      return res(
-        ctx.status(403),
-        ctx.set('x-header', 'yes'),
-        ctx.json(req.body as Record<string, any>),
-      )
+    rest.post('https://test.mswjs.io', async ({ request }) => {
+      return HttpResponse.json(await request.json(), {
+        status: 403,
+        headers: {
+          'X-Header': 'yes',
+        },
+      })
     }),
   )
 

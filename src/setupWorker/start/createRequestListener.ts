@@ -13,6 +13,7 @@ import { handleRequest } from '../../utils/handleRequest'
 import { RequiredDeep } from '../../typeUtils'
 import { devUtils } from '../../utils/internal/devUtils'
 import { serializeResponse } from '../../utils/logging/serializeResponse'
+import { uuidv4 } from '../../utils/internal/uuidv4'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -26,11 +27,13 @@ export const createRequestListener = (
     >,
   ) => {
     const messageChannel = new WorkerChannel(event.ports[0])
+    const requestId = uuidv4()
     const request = parseWorkerRequest(message.payload)
 
     try {
       await handleRequest(
         request,
+        requestId,
         context.requestHandlers,
         options,
         context.emitter,

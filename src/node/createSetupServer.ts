@@ -3,7 +3,6 @@ import { isNodeProcess } from 'is-node-process'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   BatchInterceptor,
-  MockedResponse as MockedInterceptedResponse,
   Interceptor,
   HttpRequestEventMap,
 } from '@mswjs/interceptors'
@@ -16,7 +15,6 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
 import { RequiredDeep } from '../typeUtils'
-import { MockedRequest } from '../utils/request/MockedRequest'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
@@ -28,14 +26,14 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
  * Useful to generate identical API using different patches to request issuing modules.
  */
 export function createSetupServer(
-  ...interceptors: { new (): Interceptor<HttpRequestEventMap> }[]
+  ...interceptors: Array<typeof Interceptor<HttpRequestEventMap>>
 ) {
   const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
   const publicEmitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
   pipeEvents(emitter, publicEmitter)
 
   return function setupServer(
-    ...requestHandlers: RequestHandler[]
+    ...requestHandlers: Array<RequestHandler>
   ): SetupServerApi {
     requestHandlers.forEach((handler) => {
       if (Array.isArray(handler))
@@ -48,7 +46,7 @@ export function createSetupServer(
 
     // Store the list of request handlers for the current server instance,
     // so it could be modified at a runtime.
-    let currentHandlers: RequestHandler[] = [...requestHandlers]
+    let currentHandlers: Array<RequestHandler> = [...requestHandlers]
 
     // Error when attempting to run this function in a browser environment.
     if (!isNodeProcess()) {
@@ -66,51 +64,30 @@ export function createSetupServer(
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
-    interceptor.on('request', async function setupServerListener(request) {
-      const mockedRequest = new MockedRequest(request.url, {
-        ...request,
-        body: await request.arrayBuffer(),
-      })
+    interceptor.on(
+      'request',
+      async function setupServerListener(request, requestId) {
+        const response = await handleRequest(
+          request,
+          requestId,
+          currentHandlers,
+          resolvedOptions,
+          emitter,
+        )
 
-      const response = await handleRequest<
-        MockedInterceptedResponse & { delay?: number }
-      >(mockedRequest, currentHandlers, resolvedOptions, emitter, {
-        transformResponse(response) {
-          return {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers.all(),
-            body: response.body,
-            delay: response.delay,
-          }
-        },
-      })
-
-      if (response) {
-        // Delay Node.js responses in the listener so that
-        // the response lookup logic is not concerned with responding
-        // in any way. The same delay is implemented in the worker.
-        if (response.delay) {
-          await new Promise((resolve) => {
-            setTimeout(resolve, response.delay)
-          })
+        if (response) {
+          request.respondWith(response)
         }
 
-        request.respondWith(response)
-      }
-
-      return
-    })
-
-    interceptor.on('response', (request, response) => {
-      if (!request.id) {
         return
-      }
+      },
+    )
 
+    interceptor.on('response', (response, _, requestId) => {
       if (response.headers.get('x-powered-by') === 'msw') {
-        emitter.emit('response:mocked', response, request.id)
+        emitter.emit('response:mocked', response, requestId)
       } else {
-        emitter.emit('response:bypass', response, request.id)
+        emitter.emit('response:bypass', response, requestId)
       }
     })
 

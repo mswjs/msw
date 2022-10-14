@@ -1,12 +1,13 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { SetupWorkerApi, rest } from 'msw'
+import { SetupWorkerApi, rest, HttpResponse } from 'msw'
 
 declare namespace window {
   // Annotate global references to the worker and rest request handlers.
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -24,8 +25,8 @@ test('removes all runtime request handlers when resetting without explicit next 
 
     // Add a request handler on runtime
     msw.worker.use(
-      msw.rest.post('/login', (req, res, ctx) => {
-        return res(ctx.json({ accepted: true }))
+      msw.rest.post('/login', () => {
+        return msw.HttpResponse.json({ accepted: true })
       }),
     )
   })
@@ -69,8 +70,8 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.post('/login', (req, res, ctx) => {
-        return res(ctx.json({ accepted: true }))
+      msw.rest.post('/login', () => {
+        return msw.HttpResponse.json({ accepted: true })
       }),
     )
   })
@@ -80,8 +81,8 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     const { msw } = window
 
     msw.worker.resetHandlers(
-      msw.rest.get('/products', (req, res, ctx) => {
-        return res(ctx.json([1, 2, 3]))
+      msw.rest.get('/products', () => {
+        return msw.HttpResponse.json([1, 2, 3])
       }),
     )
   })

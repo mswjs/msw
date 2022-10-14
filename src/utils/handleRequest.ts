@@ -39,16 +39,17 @@ export interface HandleRequestOptions {
 
 export async function handleRequest(
   request: Request,
+  requestId: string,
   handlers: Array<RequestHandler>,
   options: RequiredDeep<SharedOptions>,
   emitter: StrictEventEmitter<ServerLifecycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions,
 ): Promise<Response | undefined> {
-  emitter.emit('request:start', request)
+  emitter.emit('request:start', request, requestId)
 
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
   if (request.headers.get('x-msw-bypass') === 'true') {
-    emitter.emit('request:end', request)
+    emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -64,7 +65,7 @@ export async function handleRequest(
 
   if (lookupError) {
     // Allow developers to react to unhandled exceptions in request handlers.
-    emitter.emit('unhandledException', lookupError, request)
+    emitter.emit('unhandledException', lookupError, request, requestId)
     throw lookupError
   }
 
@@ -74,8 +75,8 @@ export async function handleRequest(
   // Allow the developer to react to such cases.
   if (!handler) {
     onUnhandledRequest(request, handlers, options.onUnhandledRequest)
-    emitter.emit('request:unhandled', request)
-    emitter.emit('request:end', request)
+    emitter.emit('request:unhandled', request, requestId)
+    emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -95,7 +96,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
       handler.info.callFrame,
     )
 
-    emitter.emit('request:end', request)
+    emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -103,7 +104,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
   // When the developer explicitly returned "req.passthrough()" do not warn them.
   // Perform the request as-is.
   if (response.status === 101) {
-    emitter.emit('request:end', request)
+    emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -113,7 +114,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
   // Store all the received response cookies in the virtual cookie store.
   readResponseCookies(request, response)
 
-  emitter.emit('request:match', request)
+  emitter.emit('request:match', request, requestId)
 
   const requiredLookupResult =
     lookupResult as RequiredDeep<ResponseLookupResult>
@@ -127,7 +128,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
     requiredLookupResult,
   )
 
-  emitter.emit('request:end', request)
+  emitter.emit('request:end', request, requestId)
 
   return transformedResponse
 }

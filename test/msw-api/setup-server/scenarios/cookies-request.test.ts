@@ -1,5 +1,5 @@
 import * as https from 'https'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer, SetupServerApi } from 'msw/node'
 import { ServerApi, createServer } from '@open-draft/test-server'
 
@@ -14,8 +14,8 @@ beforeAll(async () => {
   })
 
   server = setupServer(
-    rest.get(httpServer.https.makeUrl('/user'), (req, res, ctx) => {
-      return res(ctx.json({ cookies: req.cookies }))
+    rest.get(httpServer.https.makeUrl('/user'), ({ cookies }) => {
+      return HttpResponse.json({ cookies })
     }),
   )
 

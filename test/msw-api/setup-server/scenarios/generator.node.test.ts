@@ -1,63 +1,49 @@
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<never, { maxCount: string }>(
-    '/polling/:maxCount',
-    function* (req, res, ctx) {
-      const maxCount = parseInt(req.params.maxCount)
+  rest.get<{ maxCount: string }>('/polling/:maxCount', function* ({ params }) {
+    const maxCount = parseInt(params.maxCount)
+    let count = 0
+
+    while (count < maxCount) {
+      count += 1
+      yield HttpResponse.json({
+        status: 'pending',
+        count,
+      })
+    }
+
+    return HttpResponse.json({
+      status: 'complete',
+      count,
+    })
+  }),
+
+  rest.get<{ maxCount: string }>(
+    '/polling/once/:maxCount',
+    function* ({ params }) {
+      const maxCount = parseInt(params.maxCount)
       let count = 0
 
       while (count < maxCount) {
         count += 1
-        yield res(
-          ctx.json({
-            status: 'pending',
-            count,
-          }),
-        )
+        yield HttpResponse.json({
+          status: 'pending',
+          count,
+        })
       }
 
-      return res(
-        ctx.json({
-          status: 'complete',
-          count,
-        }),
-      )
+      return HttpResponse.json({
+        status: 'complete',
+        count,
+      })
     },
   ),
-
-  rest.get<never, { maxCount: string }>(
-    '/polling/once/:maxCount',
-    function* (req, res, ctx) {
-      const maxCount = parseInt(req.params.maxCount)
-      let count = 0
-
-      while (count < maxCount) {
-        count += 1
-        yield res(
-          ctx.json({
-            status: 'pending',
-            count,
-          }),
-        )
-      }
-
-      return res.once(
-        ctx.json({
-          status: 'complete',
-          count,
-        }),
-      )
-    },
-  ),
-  rest.get<never, { maxCount: string }>(
-    '/polling/once/:maxCount',
-    (req, res, ctx) => {
-      return res(ctx.json({ status: 'done' }))
-    },
-  ),
+  rest.get<{ maxCount: string }>('/polling/once/:maxCount', () => {
+    return HttpResponse.json({ status: 'done' })
+  }),
 )
 
 beforeAll(() => {

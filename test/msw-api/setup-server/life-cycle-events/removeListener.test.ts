@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { createServer, ServerApi } from '@open-draft/test-server'
 
@@ -17,8 +17,8 @@ beforeAll(async () => {
   })
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
-      return res(ctx.json({ firstName: 'John' }))
+    rest.get(httpServer.http.makeUrl('/user'), () => {
+      return HttpResponse.json({ firstName: 'John' })
     }),
   )
   server.listen()

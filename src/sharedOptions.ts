@@ -13,19 +13,31 @@ export interface SharedOptions {
   onUnhandledRequest?: UnhandledRequestStrategy
 }
 
-export interface LifeCycleEventsMap<ResponseType> {
-  'request:start': (request: Request) => void
-  'request:match': (request: Request) => void
-  'request:unhandled': (request: Request) => void
-  'request:end': (request: Request) => void
-  'response:mocked': (response: ResponseType, requestId: string) => void
-  'response:bypass': (response: ResponseType, requestId: string) => void
-  unhandledException: (error: Error, request: Request) => void
+export interface LifeCycleEventsMap {
+  'request:start': (request: Request, requestId: string) => void
+  'request:match': (request: Request, requestId: string) => void
+  'request:unhandled': (request: Request, requestId: string) => void
+  'request:end': (request: Request, requestId: string) => void
+  'response:mocked': (
+    response: Response,
+    request: Request,
+    requestId: string,
+  ) => void
+  'response:bypass': (
+    response: Response,
+    request: Request,
+    requestId: string,
+  ) => void
+  unhandledException: (
+    error: Error,
+    request: Request,
+    requestId: string,
+  ) => void
 }
 
 export type LifeCycleEventEmitter<
-  ResponseType extends Record<string | symbol, any>,
+  EventsMap extends Record<string | symbol, any>,
 > = Pick<
-  StrictEventEmitter<ResponseType>,
+  StrictEventEmitter<EventsMap>,
   'on' | 'removeListener' | 'removeAllListeners'
 >

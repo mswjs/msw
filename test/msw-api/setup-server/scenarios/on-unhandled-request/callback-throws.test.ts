@@ -3,18 +3,18 @@
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  rest.get('https://test.mswjs.io/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
 beforeAll(() =>
   server.listen({
-    onUnhandledRequest(req) {
-      throw new Error(`Custom error for ${req.method} ${req.url}`)
+    onUnhandledRequest(request) {
+      throw new Error(`Custom error for ${request.method} ${request.url}`)
     },
   }),
 )

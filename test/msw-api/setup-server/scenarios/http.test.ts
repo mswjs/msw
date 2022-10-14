@@ -2,18 +2,22 @@
  * @jest-environment node
  */
 import * as http from 'http'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 describe('setupServer / http', () => {
   const server = setupServer(
-    rest.get('http://test.mswjs.io', (req, res, ctx) => {
-      return res(
-        ctx.status(401),
-        ctx.set('x-header', 'yes'),
-        ctx.json({
+    rest.get('http://test.mswjs.io', () => {
+      return HttpResponse.json(
+        {
           firstName: 'John',
-        }),
+        },
+        {
+          status: 401,
+          headers: {
+            'X-Header': 'yes',
+          },
+        },
       )
     }),
   )

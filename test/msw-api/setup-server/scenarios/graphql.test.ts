@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'cross-fetch'
-import { graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../../support/graphql'
 
@@ -30,24 +30,24 @@ const LOGIN = gql`
 `
 
 const server = setupServer(
-  graphql.query('GetUserDetail', (req, res, ctx) => {
-    const { userId } = req.variables
+  graphql.query('GetUserDetail', ({ variables }) => {
+    const { userId } = variables
 
-    return res(
-      ctx.data({
+    return HttpResponse.json({
+      data: {
         user: {
           id: userId,
           firstName: 'John',
           age: 32,
         },
-      }),
-    )
+      },
+    })
   }),
-  graphql.mutation('Login', (req, res, ctx) => {
-    const { username } = req.variables
+  graphql.mutation('Login', ({ variables }) => {
+    const { username } = variables
 
-    return res(
-      ctx.errors([
+    return HttpResponse.json({
+      errors: [
         {
           message: `User "${username}" is not found`,
           locations: [
@@ -57,8 +57,8 @@ const server = setupServer(
             },
           ],
         },
-      ]),
-    )
+      ],
+    })
   }),
 )
 

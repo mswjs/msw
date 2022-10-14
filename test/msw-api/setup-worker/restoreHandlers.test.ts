@@ -1,11 +1,12 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { SetupWorkerApi, rest } from 'msw'
+import { SetupWorkerApi, rest, HttpResponse } from 'msw'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -22,8 +23,8 @@ test('returns a mocked response from the used one-time request handler when rest
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.get('/book/:bookId', (req, res, ctx) => {
-        return res.once(ctx.json({ title: 'One-time override' }))
+      msw.rest.get('/book/:bookId', () => {
+        return msw.HttpResponse.json({ title: 'One-time override' })
       }),
     )
   })

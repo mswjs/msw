@@ -3,11 +3,11 @@
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  rest.get('https://test.mswjs.io/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 

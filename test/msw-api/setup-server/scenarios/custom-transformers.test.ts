@@ -1,23 +1,18 @@
 import fetch from 'node-fetch'
 import * as JSONbig from 'json-bigint'
-import { ResponseTransformer, compose, context, rest } from 'msw'
+import { rest, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-const jsonBig = (body: Record<string, any>): ResponseTransformer => {
-  return compose(
-    context.set('Content-Type', 'application/json'),
-    context.body(JSONbig.stringify(body)),
-  )
-}
-
 const server = setupServer(
-  rest.get('http://test.mswjs.io/me', (req, res) => {
-    return res(
-      jsonBig({
-        username: 'john.maverick',
-        balance: BigInt(1597928668063727616),
-      }),
-    )
+  rest.get('http://test.mswjs.io/me', () => {
+    /**
+     * @todo Shouldn't "HttpResponse.json()" support strings?
+     */
+    return HttpResponse.plain(JSONbig.stringify(BigInt(1597928668063727616)), {
+      headers: {
+        'Content-Tpye': 'application/json',
+      },
+    })
   }),
 )
 

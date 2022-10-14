@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/pull', (req, res, ctx) => {
-    return res(ctx.json({ status: 'pulled' }))
+  rest.get('https://test.mswjs.io/pull', () => {
+    return HttpResponse.json({ status: 'pulled' })
   }),
 )
 

@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 let httpServer: ServerApi
@@ -23,8 +23,8 @@ beforeAll(async () => {
   })
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
-      return res(ctx.json({ mocked: true }))
+    rest.get(httpServer.http.makeUrl('/user'), () => {
+      return HttpResponse.json({ mocked: true })
     }),
     rest.post(httpServer.http.makeUrl('/explicit-return'), () => {
       // Short-circuiting in a handler makes it perform the request as-is,

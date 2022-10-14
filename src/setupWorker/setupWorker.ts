@@ -4,7 +4,6 @@ import {
   SetupWorkerInternalContext,
   SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
-  WorkerLifecycleEventsMap,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
@@ -18,6 +17,7 @@ import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '../utils/internal/devUtils'
 import { pipeEvents } from '../utils/internal/pipeEvents'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
+import { LifeCycleEventsMap } from '../sharedOptions'
 
 interface Listener {
   target: EventTarget
@@ -27,7 +27,7 @@ interface Listener {
 
 // Declare the list of event handlers on the module's scope
 // so it persists between Fash refreshes of the application's code.
-let listeners: Listener[] = []
+let listeners: Array<Listener> = []
 
 /**
  * Creates a new mock Service Worker registration
@@ -36,7 +36,7 @@ let listeners: Listener[] = []
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
  */
 export function setupWorker(
-  ...requestHandlers: RequestHandler[]
+  ...requestHandlers: Array<RequestHandler>
 ): SetupWorkerApi {
   requestHandlers.forEach((handler) => {
     if (Array.isArray(handler))
@@ -56,8 +56,8 @@ export function setupWorker(
     )
   }
 
-  const emitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
-  const publicEmitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
+  const emitter = new StrictEventEmitter<LifeCycleEventsMap>()
+  const publicEmitter = new StrictEventEmitter<LifeCycleEventsMap>()
   pipeEvents(emitter, publicEmitter)
 
   const context: SetupWorkerInternalContext = {

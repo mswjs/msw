@@ -16,4 +16,5 @@ worker.start()
 window.msw = {
   worker,
   rest,
+  HttpResponse,
 }

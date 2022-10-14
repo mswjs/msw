@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const log = jest.fn()
@@ -10,9 +10,9 @@ const log = jest.fn()
 const server = setupServer(
   rest.get('https://test.mswjs.io/*', () => log('[get] first')),
   rest.get('https://test.mswjs.io/us*', () => log('[get] second')),
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) =>
-    res(ctx.json({ firstName: 'John' })),
-  ),
+  rest.get('https://test.mswjs.io/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
+  }),
   rest.get('https://test.mswjs.io/user', () => log('[get] third')),
 
   rest.post('https://test.mswjs.io/blog/*', () => log('[post] first')),

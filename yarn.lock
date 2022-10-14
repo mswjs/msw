@@ -1806,6 +1806,40 @@
     semver "^7.3.7"
     yargs "^17.4.1"
 
+"@remix-run/web-blob@^3.0.4":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@remix-run/web-blob/-/web-blob-3.0.4.tgz#99c67b9d0fb641bd0c07d267fd218ae5aa4ae5ed"
+  integrity sha512-AfegzZvSSDc+LwnXV+SwROTrDtoLiPxeFW+jxgvtDAnkuCX1rrzmVJ6CzqZ1Ai0bVfmJadkG5GxtAfYclpPmgw==
+  dependencies:
+    "@remix-run/web-stream" "^1.0.0"
+    web-encoding "1.1.5"
+
+"@remix-run/web-fetch@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@remix-run/web-fetch/-/web-fetch-4.3.0.tgz#8990c58352ecefed2ea32e13a924c4cc0d7d7328"
+  integrity sha512-//VynoWVu/hocB0TWfoUZdg6Yy/320cO4r0dN/eZUSM5/rLUGEy+NqAykyY8GKHjYYZimw96kRMFa3aQbwmp8g==
+  dependencies:
+    "@remix-run/web-blob" "^3.0.4"
+    "@remix-run/web-form-data" "^3.0.3"
+    "@remix-run/web-stream" "^1.0.3"
+    "@web3-storage/multipart-parser" "^1.0.0"
+    data-uri-to-buffer "^3.0.1"
+    mrmime "^1.0.0"
+
+"@remix-run/web-form-data@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@remix-run/web-form-data/-/web-form-data-3.0.3.tgz#f89a7f971aaf1084d2da87affbb7f4e01c32b8ce"
+  integrity sha512-wL4veBtVPazSpXfPMzrbmeV3IxuxCfcQYPerQ8BXRO5ahAEVw23tv7xS+yoX0XDO5j+vpRaSbhHJK1H5gF7eYQ==
+  dependencies:
+    web-encoding "1.1.5"
+
+"@remix-run/web-stream@^1.0.0", "@remix-run/web-stream@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@remix-run/web-stream/-/web-stream-1.0.3.tgz#3284a6a45675d1455c4d9c8f31b89225c9006438"
+  integrity sha512-wlezlJaA5NF6SsNMiwQnnAW6tnPzQ5I8qk0Y0pSohm0eHKa2FQ1QhEKLVVcDDu02TmkfHgnux0igNfeYhDOXiA==
+  dependencies:
+    web-streams-polyfill "^3.1.1"
+
 "@sinonjs/commons@^1.7.0":
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.2.tgz#858f5c4b48d80778fde4b9d541f27edc0d56488b"
@@ -2297,6 +2331,11 @@
   dependencies:
     "@typescript-eslint/types" "5.11.0"
     eslint-visitor-keys "^3.0.0"
+
+"@web3-storage/multipart-parser@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@web3-storage/multipart-parser/-/multipart-parser-1.0.0.tgz#6b69dc2a32a5b207ba43e556c25cc136a56659c4"
+  integrity sha512-BEO6al7BYqcnfX15W2cnGR+Q566ACXAT9UQykORCWW80lmkpWsnEob6zJS1ZVBKsSJC8+7vJkHwlp+lXG1UCdw==
 
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
@@ -3924,6 +3963,11 @@ dargs@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/dargs/-/dargs-7.0.0.tgz#04015c41de0bcb69ec84050f3d9be0caf8d6d5cc"
   integrity sha512-2iy1EkLdlBzQGvbweYRFxmFath8+K7+AKB0TlhHWkNuH+TmovaMH/Wp7V7R4u7f4SnX3OgLsU9t1NI9ioDnUpg==
+
+data-uri-to-buffer@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/data-uri-to-buffer/-/data-uri-to-buffer-3.0.1.tgz#594b8973938c5bc2c33046535785341abc4f3636"
+  integrity sha512-WboRycPNsVw3B3TL559F7kuBUM4d8CgMEvk6xEJlOp7OBPjt6G7z8WMWlD2rOFZLk6OYfFIUGsCOWzcQH9K2og==
 
 data-urls@^2.0.0:
   version "2.0.0"
@@ -7273,6 +7317,11 @@ mri@1.1.4:
   resolved "https://registry.yarnpkg.com/mri/-/mri-1.1.4.tgz#7cb1dd1b9b40905f1fac053abe25b6720f44744a"
   integrity sha512-6y7IjGPm8AzlvoUrwAaw1tLnUBudaS3752vcd8JtrpGGQn+rXIe63LFVHm/YMwtqAuh+LJPCFdlLYPWM1nYn6w==
 
+mrmime@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/mrmime/-/mrmime-1.0.1.tgz#5f90c825fad4bdd41dc914eff5d1a8cfdaf24f27"
+  integrity sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -10046,7 +10095,7 @@ wcwidth@^1.0.1:
   dependencies:
     defaults "^1.0.3"
 
-web-encoding@^1.1.5:
+web-encoding@1.1.5, web-encoding@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/web-encoding/-/web-encoding-1.1.5.tgz#fc810cf7667364a6335c939913f5051d3e0c4864"
   integrity sha512-HYLeVCdJ0+lBYV2FvNZmv3HJ2Nt0QYXqZojk3d9FJOLkwnuhzM9tmamh8d7HPM8QqjKH8DeHkFTx+CFlWpZZDA==
@@ -10054,6 +10103,11 @@ web-encoding@^1.1.5:
     util "^0.12.3"
   optionalDependencies:
     "@zxing/text-encoding" "0.9.0"
+
+web-streams-polyfill@^3.1.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.2.1.tgz#71c2718c52b45fd49dbeee88634b3a60ceab42a6"
+  integrity sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
-import { rest } from 'msw'
+import { HttpResponse, rest, bypass } from 'msw'
 import { setupServer } from 'msw/node'
 
 let httpServer: ServerApi
@@ -16,22 +16,24 @@ interface ResponseBody {
 const server = setupServer(
   rest.get<never, never, ResponseBody>(
     'https://test.mswjs.io/user',
-    async (req, res, ctx) => {
-      const originalResponse = await ctx.fetch(httpServer.http.makeUrl('/user'))
+    async () => {
+      const originalResponse = await fetch(
+        bypass(httpServer.http.makeUrl('/user')),
+      )
       const body = await originalResponse.json()
 
-      return res(
-        ctx.json({
-          id: body.id,
-          mocked: true,
-        }),
-      )
+      return HttpResponse.json({
+        id: body.id,
+        mocked: true,
+      })
     },
   ),
   rest.get<never, never, ResponseBody>(
     'https://test.mswjs.io/complex-request',
-    async (req, res, ctx) => {
-      const shouldBypass = req.url.searchParams.get('bypass') === 'true'
+    async ({ request }) => {
+      const url = new URL(request.url)
+
+      const shouldBypass = url.searchParams.get('bypass') === 'true'
       const performRequest = shouldBypass
         ? () =>
             ctx
@@ -41,18 +43,17 @@ const server = setupServer(
             fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
               res.json(),
             )
+
       const originalResponse = await performRequest()
 
-      return res(
-        ctx.json({
-          id: originalResponse.id,
-          mocked: true,
-        }),
-      )
+      return HttpResponse.json({
+        id: originalResponse.id,
+        mocked: true,
+      })
     },
   ),
-  rest.post('https://httpbin.org/post', (req, res, ctx) => {
-    return res(ctx.json({ id: 303 }))
+  rest.post('https://httpbin.org/post', () => {
+    return HttpResponse.json({ id: 303 })
   }),
 )
 

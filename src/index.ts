@@ -27,7 +27,6 @@ export { cleanUrl } from './utils/url/cleanUrl'
 export type { SetupWorkerApi, StartOptions } from './setupWorker/glossary'
 export type { SharedOptions } from './sharedOptions'
 
-export * from './utils/request/MockedRequest'
 export type {
   ResponseResolver,
   ResponseResolverReturnType,

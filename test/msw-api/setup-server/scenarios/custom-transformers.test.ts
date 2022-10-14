@@ -5,14 +5,17 @@ import { setupServer } from 'msw/node'
 
 const server = setupServer(
   rest.get('http://test.mswjs.io/me', () => {
-    /**
-     * @todo Shouldn't "HttpResponse.json()" support strings?
-     */
-    return HttpResponse.plain(JSONbig.stringify(BigInt(1597928668063727616)), {
-      headers: {
-        'Content-Tpye': 'application/json',
+    return HttpResponse.plain(
+      JSONbig.stringify({
+        username: 'john.maverick',
+        balance: BigInt(1597928668063727616),
+      }),
+      {
+        headers: {
+          'Content-Tpye': 'application/json',
+        },
       },
-    })
+    )
   }),
 )
 

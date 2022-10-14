@@ -17,6 +17,9 @@ afterAll(() => server.close())
 test('returns a mocked response from the used one-time request handler when restored', async () => {
   server.use(
     rest.get('https://test.mswjs.io/book/:bookId', () => {
+      /**
+       * @todo @fixme This needs to use one-time response.
+       */
       return HttpResponse.json({ title: 'Overridden title' })
     }),
   )

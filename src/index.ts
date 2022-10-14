@@ -64,3 +64,11 @@ export * from './utils/HttpResponse'
 export * from './delay'
 export { bypass } from './utils/bypass'
 export { NetworkError } from './NetworkError'
+
+export {
+  Request,
+  Response,
+  ReadableStream,
+  Blob,
+  FormData,
+} from '@remix-run/web-fetch'

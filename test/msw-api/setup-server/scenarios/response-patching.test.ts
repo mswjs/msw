@@ -1,9 +1,9 @@
 /**
  * @jest-environment node
  */
-import fetch from 'node-fetch'
+import fetch from '@remix-run/web-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
-import { HttpResponse, rest, bypass } from 'msw'
+import { HttpResponse, Request, rest, bypass } from 'msw'
 import { setupServer } from 'msw/node'
 
 let httpServer: ServerApi
@@ -14,21 +14,18 @@ interface ResponseBody {
 }
 
 const server = setupServer(
-  rest.get<never, never, ResponseBody>(
-    'https://test.mswjs.io/user',
-    async () => {
-      const originalResponse = await fetch(
-        bypass(httpServer.http.makeUrl('/user')),
-      )
-      const body = await originalResponse.json()
+  rest.get<never, ResponseBody>('https://test.mswjs.io/user', async () => {
+    const originalResponse = await fetch(
+      bypass(httpServer.http.makeUrl('/user')),
+    )
+    const body = await originalResponse.json()
 
-      return HttpResponse.json({
-        id: body.id,
-        mocked: true,
-      })
-    },
-  ),
-  rest.get<never, never, ResponseBody>(
+    return HttpResponse.json({
+      id: body.id,
+      mocked: true,
+    })
+  }),
+  rest.get<never, ResponseBody>(
     'https://test.mswjs.io/complex-request',
     async ({ request }) => {
       const url = new URL(request.url)
@@ -36,9 +33,13 @@ const server = setupServer(
       const shouldBypass = url.searchParams.get('bypass') === 'true'
       const performRequest = shouldBypass
         ? () =>
-            ctx
-              .fetch(httpServer.http.makeUrl('/user'), { method: 'POST' })
-              .then((res) => res.json())
+            fetch(
+              bypass(
+                new Request(httpServer.http.makeUrl('/user'), {
+                  method: 'POST',
+                }),
+              ),
+            ).then((res) => res.json())
         : () =>
             fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
               res.json(),

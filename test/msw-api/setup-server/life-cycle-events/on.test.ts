@@ -59,11 +59,11 @@ beforeAll(async () => {
     listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('response:mocked', async (response, requestId) => {
+  server.events.on('response:mocked', async (response, _, requestId) => {
     listener(`[response:mocked] ${await response.text()} ${requestId}`)
   })
 
-  server.events.on('response:bypass', async (response, requestId) => {
+  server.events.on('response:bypass', async (response, _, requestId) => {
     listener(`[response:bypass] ${await response.text()} ${requestId}`)
   })
 
@@ -92,6 +92,12 @@ test('emits events for a handler request and mocked response', async () => {
   const url = httpServer.http.makeUrl('/user')
   await fetch(url)
   const requestId = getRequestId(listener)
+
+  await waitFor(() => {
+    expect(listener).toHaveBeenCalledWith(
+      expect.stringContaining('[response:mocked]'),
+    )
+  })
 
   expect(listener).toHaveBeenNthCalledWith(
     1,

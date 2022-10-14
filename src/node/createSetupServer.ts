@@ -61,6 +61,9 @@ export function createSetupServer(
 
     const interceptor = new BatchInterceptor({
       name: 'setup-server',
+      /**
+       * @todo Needs a symbol. Really? A type issue?
+       */
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
@@ -78,16 +81,14 @@ export function createSetupServer(
         if (response) {
           request.respondWith(response)
         }
-
-        return
       },
     )
 
-    interceptor.on('response', (response, _, requestId) => {
+    interceptor.on('response', (response, request, requestId) => {
       if (response.headers.get('x-powered-by') === 'msw') {
-        emitter.emit('response:mocked', response, requestId)
+        emitter.emit('response:mocked', response, request, requestId)
       } else {
-        emitter.emit('response:bypass', response, requestId)
+        emitter.emit('response:bypass', response, request, requestId)
       }
     })
 

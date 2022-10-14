@@ -5,7 +5,9 @@
 export function getPublicUrlFromRequest(request: Request): string {
   const url = new URL(request.url)
 
-  return url.origin === origin
-    ? url.pathname
-    : new URL(url.pathname, `${url.protocol}//${url.host}`).href
+  if (typeof origin === 'undefined') {
+    return url.href
+  }
+
+  return url.origin === origin ? url.pathname : url.href
 }

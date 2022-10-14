@@ -15,6 +15,7 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
+
 afterAll(() => server.close())
 
 test('tolerates relative request handlers on the server', async () => {

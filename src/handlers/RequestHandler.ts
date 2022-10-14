@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import { MaybePromise } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
@@ -98,7 +99,7 @@ export abstract class RequestHandler<
     MaybeAsyncResponseResolverReturnType,
     MaybeAsyncResponseResolverReturnType
   >
-  private resolverGeneratorResult?: MaybeAsyncResponseResolverReturnType
+  private resolverGeneratorResult?: ResponseResolverReturnType
 
   protected resolver: ResponseResolver<any, ResolverExtras>
 
@@ -226,14 +227,19 @@ export abstract class RequestHandler<
         // If the generator is done and there is no next value,
         // return the previous generator's value.
         if (!nextResponse && done) {
-          return this.resolverGeneratorResult
+          invariant(
+            this.resolverGeneratorResult,
+            'Failed to returned a previously stored generator response: the value is not a valid Response.',
+          )
+
+          return this.resolverGeneratorResult.clone()
         }
 
         if (!this.resolverGenerator) {
           this.resolverGenerator = result
         }
 
-        this.resolverGeneratorResult = nextResponse
+        this.resolverGeneratorResult = nextResponse?.clone()
         return nextResponse
       }
 

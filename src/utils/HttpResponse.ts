@@ -1,9 +1,7 @@
 import * as cookieUtils from 'cookie'
 import httpStatusTexts from 'statuses/codes.json'
 import { Headers } from 'headers-polyfill'
-import { Response as ResponsePolyfill } from '@remix-run/web-fetch'
-
-const Response = globalThis.Response || ResponsePolyfill
+import { Response } from '../fetch'
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType

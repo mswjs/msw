@@ -232,6 +232,8 @@ export abstract class RequestHandler<
             'Failed to returned a previously stored generator response: the value is not a valid Response.',
           )
 
+          // Clone the previously stored response from the generator
+          // so that it could be read again.
           return this.resolverGeneratorResult.clone()
         }
 
@@ -239,6 +241,8 @@ export abstract class RequestHandler<
           this.resolverGenerator = result
         }
 
+        // Also clone the response before storing it
+        // so it could be read again.
         this.resolverGeneratorResult = nextResponse?.clone()
         return nextResponse
       }

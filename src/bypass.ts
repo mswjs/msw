@@ -1,3 +1,5 @@
+import { Request } from './fetch'
+
 /**
  * Creates a "Request" instance that, when fetched, will
  * ignore any otherwise matching request handlers and will
@@ -24,5 +26,5 @@ function toRequest(input: string | URL | Request): Request {
     return input.clone()
   }
 
-  return new Request(input)
+  return new Request(input.toString())
 }

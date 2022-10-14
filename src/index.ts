@@ -62,13 +62,7 @@ export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 
 export * from './utils/HttpResponse'
 export * from './delay'
-export { bypass } from './utils/bypass'
+export { bypass } from './bypass'
 export { NetworkError } from './NetworkError'
 
-export {
-  Request,
-  Response,
-  ReadableStream,
-  Blob,
-  FormData,
-} from '@remix-run/web-fetch'
+export * from './fetch'

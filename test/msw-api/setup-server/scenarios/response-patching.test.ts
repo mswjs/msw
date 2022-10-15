@@ -14,7 +14,7 @@ interface ResponseBody {
 }
 
 const server = setupServer(
-  rest.get<never, ResponseBody>('https://test.mswjs.io/user', async () => {
+  rest.get('https://test.mswjs.io/user', async () => {
     const originalResponse = await fetch(
       bypass(httpServer.http.makeUrl('/user')),
     )
@@ -25,34 +25,31 @@ const server = setupServer(
       mocked: true,
     })
   }),
-  rest.get<never, ResponseBody>(
-    'https://test.mswjs.io/complex-request',
-    async ({ request }) => {
-      const url = new URL(request.url)
+  rest.get('https://test.mswjs.io/complex-request', async ({ request }) => {
+    const url = new URL(request.url)
 
-      const shouldBypass = url.searchParams.get('bypass') === 'true'
-      const performRequest = shouldBypass
-        ? () =>
-            fetch(
-              bypass(
-                new Request(httpServer.http.makeUrl('/user'), {
-                  method: 'POST',
-                }),
-              ),
-            ).then((res) => res.json())
-        : () =>
-            fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
-              res.json(),
-            )
+    const shouldBypass = url.searchParams.get('bypass') === 'true'
+    const performRequest = shouldBypass
+      ? () =>
+          fetch(
+            bypass(
+              new Request(httpServer.http.makeUrl('/user'), {
+                method: 'POST',
+              }),
+            ),
+          ).then((res) => res.json())
+      : () =>
+          fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
+            res.json(),
+          )
 
-      const originalResponse = await performRequest()
+    const originalResponse = await performRequest()
 
-      return HttpResponse.json({
-        id: originalResponse.id,
-        mocked: true,
-      })
-    },
-  ),
+    return HttpResponse.json({
+      id: originalResponse.id,
+      mocked: true,
+    })
+  }),
   rest.post('https://httpbin.org/post', () => {
     return HttpResponse.json({ id: 303 })
   }),

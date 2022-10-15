@@ -1,3 +1,4 @@
+import type { Request as RemixRequest } from '@remix-run/web-fetch'
 import { Request } from './fetch'
 
 /**
@@ -10,7 +11,7 @@ import { Request } from './fetch'
  * bypass(new URL('/resource', 'api.example.com'))
  * bypass(new Request('/user'))
  */
-export function bypass(input: string | URL | Request): Request {
+export function bypass(input: string | URL | Request): RemixRequest {
   const request = toRequest(input)
 
   // Set the custom MSW bypass header.
@@ -21,10 +22,10 @@ export function bypass(input: string | URL | Request): Request {
   return request
 }
 
-function toRequest(input: string | URL | Request): Request {
+function toRequest(input: string | URL | Request): RemixRequest {
   if (input instanceof Request) {
-    return input.clone()
+    return input.clone() as RemixRequest
   }
 
-  return new Request(input.toString())
+  return new Request(input) as RemixRequest
 }

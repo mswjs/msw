@@ -21,6 +21,7 @@ import {
   DefaultContext,
   RequestHandler,
   RequestHandlerDefaultInfo,
+  RequestHandlerPublicOptions,
   ResponseResolver,
 } from './RequestHandler'
 
@@ -74,28 +75,6 @@ export type RestRequestResolverExtras<Params extends PathParams> = {
   cookies: Record<string, string | Array<string>>
 }
 
-// export class RestRequest<
-//   RequestBody extends DefaultBodyType = DefaultBodyType,
-//   RequestParams extends PathParams = PathParams,
-// > extends Request {
-//   constructor(
-//     request: MockedRequest<RequestBody>,
-//     public readonly params: RequestParams,
-//   ) {
-//     super(request.url, {
-//       ...request,
-//       /**
-//        * @deprecated https://github.com/mswjs/msw/issues/1318
-//        * @note Use internal request body buffer as the body init
-//        * because "request.body" is a getter that will trigger
-//        * request body parsing at this step.
-//        */
-//       body: request['_body'],
-//     })
-//     this.id = request.id
-//   }
-// }
-
 /**
  * Request handler for REST API requests.
  * Provides request matching based on method and URL.
@@ -109,6 +88,7 @@ export class RestHandler extends RequestHandler<
     method: RestHandlerMethod,
     path: Path,
     resolver: ResponseResolver<any, RestRequestResolverExtras<any>>,
+    options?: RequestHandlerPublicOptions,
   ) {
     super({
       info: {
@@ -118,6 +98,7 @@ export class RestHandler extends RequestHandler<
       },
       ctx: restContext,
       resolver,
+      once: options?.once,
     })
 
     this.checkRedundantQueryParameters()

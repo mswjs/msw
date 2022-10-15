@@ -6,6 +6,7 @@ declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -77,9 +78,13 @@ test('returns a mocked response from a one-time request handler override only up
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.get('/book/:bookId', function oneTimeOverride() {
-        return HttpResponse.json({ title: 'One-time override' })
-      }),
+      msw.rest.get(
+        '/book/:bookId',
+        function oneTimeOverride() {
+          return HttpResponse.json({ title: 'One-time override' })
+        },
+        { once: true },
+      ),
     )
   })
 
@@ -108,12 +113,11 @@ test('returns a mocked response from a one-time request handler override only up
       msw.rest.get<{ bookId: string }>(
         '/book/:bookId',
         function oneTimeOverride({ params }) {
-          /* eslint-disable-next-line */
           const { bookId } = params
 
-          throw new Error('Support res.once()')
-          // return res.once(ctx.json({ title: 'One-time override', bookId }))
+          return msw.HttpResponse.json({ title: 'One-time override', bookId })
         },
+        { once: true },
       ),
     )
   })

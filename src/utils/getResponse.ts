@@ -53,7 +53,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
 
     const result = await handler.run(request, resolutionContext)
 
-    if (result === null || result.handler.shouldSkip) {
+    if (result === null) {
       return null
     }
 
@@ -65,13 +65,6 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
         parsedResult: result.parsedResult,
       }
     }
-
-    /**
-     * @todo Support `res.once()` alternative.
-     */
-    // if (result.response.once) {
-    //   handler.markAsSkipped(true)
-    // }
 
     return result
   }, Promise.resolve(null))

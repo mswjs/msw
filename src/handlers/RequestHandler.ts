@@ -72,10 +72,15 @@ export type ResponseResolver<
   info: ResponseResolverInfo<ContextType, ResolverExtraInfo>,
 ) => AsyncResponseResolverReturnType
 
-export interface RequestHandlerOptions<HandlerInfo> {
+export interface RequestHandlerOptions<HandlerInfo>
+  extends RequestHandlerPublicOptions {
   info: HandlerInfo
   resolver: ResponseResolver<any, any>
   ctx?: ContextMap
+}
+
+export interface RequestHandlerPublicOptions {
+  once?: boolean
 }
 
 export interface RequestHandlerExecutionResult {
@@ -91,8 +96,13 @@ export abstract class RequestHandler<
   ResolverExtras extends Record<string, unknown> = any,
 > {
   public info: HandlerInfo & RequestHandlerInternalInfo
-  public shouldSkip: boolean
+  /**
+   * Indicates whether this request handler has been used
+   * (its resolver has successfully executed).
+   */
+  public isUsed: boolean
 
+  private once: boolean
   private ctx: ContextMap
   private resolverGenerator?: Generator<
     MaybeAsyncResponseResolverReturnType,
@@ -104,9 +114,9 @@ export abstract class RequestHandler<
   protected resolver: ResponseResolver<any, ResolverExtras>
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
-    this.shouldSkip = false
     this.ctx = options.ctx || defaultContext
     this.resolver = options.resolver
+    this.once = options.once || false
 
     const callFrame = getCallFrame(new Error())
 
@@ -114,6 +124,8 @@ export abstract class RequestHandler<
       ...options.info,
       callFrame,
     }
+
+    this.isUsed = false
   }
 
   /**
@@ -159,10 +171,6 @@ export abstract class RequestHandler<
     )
   }
 
-  public markAsSkipped(shouldSkip = true): void {
-    this.shouldSkip = shouldSkip
-  }
-
   protected extendInfo(
     _request: Request,
     _parsedResult: ParsedResult,
@@ -178,9 +186,14 @@ export abstract class RequestHandler<
     request: Request,
     resolutionContext?: ResponseResolutionContext,
   ): Promise<RequestHandlerExecutionResult | null> {
-    if (this.shouldSkip) {
+    if (this.isUsed && this.once) {
       return null
     }
+
+    // Immediately mark the handler as used.
+    // Can't await the resolver to be resolved because it's potentially
+    // asynchronous, and there may be multiple requests hitting this handler.
+    this.isUsed = true
 
     const requestClone = request.clone()
 
@@ -200,18 +213,19 @@ export abstract class RequestHandler<
     const executeResolver = this.wrapResolver(this.resolver)
 
     const resolverExtras = this.extendInfo(requestClone, parsedResult)
-    const mockedResponse = await executeResolver({
+    const mockedResponse = (await executeResolver({
       ...resolverExtras,
       request,
       ctx: this.ctx,
-    })
+    })) as Response
 
-    return this.createExecutionResult(
+    const executionResult = this.createExecutionResult(
       request,
       parsedResult,
-      // @ts-ignore @todo
-      mockedResponse as any,
+      mockedResponse,
     )
+
+    return executionResult
   }
 
   private wrapResolver(

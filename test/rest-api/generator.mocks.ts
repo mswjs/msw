@@ -40,6 +40,7 @@ const worker = setupWorker(
         count,
       })
     },
+    { once: true },
   ),
   rest.get('/polling/once/:maxCount', () => {
     return HttpResponse.json({ status: 'done' })

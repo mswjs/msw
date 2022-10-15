@@ -20,9 +20,12 @@ beforeAll(async () => {
   })
 
   server = setupServer(
-    rest.get(httpServer.http.makeUrl('/book/:bookId'), () => {
-      return HttpResponse.json({ title: 'Original title' })
-    }),
+    rest.get<{ bookId: string }>(
+      httpServer.http.makeUrl('/book/:bookId'),
+      () => {
+        return HttpResponse.json({ title: 'Original title' })
+      },
+    ),
   )
   server.listen()
 })
@@ -53,16 +56,18 @@ test('returns a mocked response from a runtime request handler upon match', asyn
 
   // Other request handlers are preserved, if there are no overlaps.
   const bookResponse = await fetch(httpServer.http.makeUrl('/book/abc-123'))
-  const bookBody = await bookResponse.json()
   expect(bookResponse.status).toBe(200)
-  expect(bookBody).toEqual({ title: 'Original title' })
+  expect(await bookResponse.json()).toEqual({ title: 'Original title' })
 })
 
 test('returns a mocked response from a persistent request handler override', async () => {
   server.use(
-    rest.get(httpServer.http.makeUrl('/book/:bookId'), () => {
-      return HttpResponse.json({ title: 'Permanent override' })
-    }),
+    rest.get<{ bookId: string }>(
+      httpServer.http.makeUrl('/book/:bookId'),
+      () => {
+        return HttpResponse.json({ title: 'Permanent override' })
+      },
+    ),
   )
 
   const bookResponse = await fetch(httpServer.http.makeUrl('/book/abc-123'))
@@ -73,19 +78,21 @@ test('returns a mocked response from a persistent request handler override', asy
   const anotherBookResponse = await fetch(
     httpServer.http.makeUrl('/book/abc-123'),
   )
-  const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookResponse.status).toBe(200)
-  expect(anotherBookBody).toEqual({ title: 'Permanent override' })
+  expect(await anotherBookResponse.json()).toEqual({
+    title: 'Permanent override',
+  })
 })
 
-test.skip('returns a mocked response from a one-time request handler override only upon first request match', async () => {
+test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
   server.use(
-    rest.get(httpServer.http.makeUrl('/book/:bookId'), () => {
-      /**
-       * @todo `res.once()`
-       */
-      return HttpResponse.json({ title: 'One-time override' })
-    }),
+    rest.get<{ bookId: string }>(
+      httpServer.http.makeUrl('/book/:bookId'),
+      () => {
+        return HttpResponse.json({ title: 'One-time override' })
+      },
+      { once: true },
+    ),
   )
 
   const bookResponse = await fetch(httpServer.http.makeUrl('/book/abc-123'))
@@ -96,20 +103,22 @@ test.skip('returns a mocked response from a one-time request handler override on
   const anotherBookResponse = await fetch(
     httpServer.http.makeUrl('/book/abc-123'),
   )
-  const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookResponse.status).toBe(200)
-  expect(anotherBookBody).toEqual({ title: 'Original title' })
+  expect(await anotherBookResponse.json()).toEqual({ title: 'Original title' })
 })
 
-test.skip('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
+test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
   server.use(
-    /**
-     * @todo `res.once()`
-     */
-    rest.get(httpServer.http.makeUrl('/book/:bookId'), ({ params }) => {
-      const { bookId } = params
-      return HttpResponse.json({ title: 'One-time override', bookId })
-    }),
+    rest.get<{ bookId: string }>(
+      httpServer.http.makeUrl('/book/:bookId'),
+      ({ params }) => {
+        return HttpResponse.json({
+          title: 'One-time override',
+          bookId: params.bookId,
+        })
+      },
+      { once: true },
+    ),
   )
 
   const bookRequestPromise = fetch(httpServer.http.makeUrl('/book/abc-123'))
@@ -118,12 +127,13 @@ test.skip('returns a mocked response from a one-time request handler override on
   )
 
   const bookResponse = await bookRequestPromise
-  const bookBody = await bookResponse.json()
   expect(bookResponse.status).toBe(200)
-  expect(bookBody).toEqual({ title: 'One-time override', bookId: 'abc-123' })
+  expect(await bookResponse.json()).toEqual({
+    title: 'One-time override',
+    bookId: 'abc-123',
+  })
 
   const anotherBookResponse = await anotherBookRequestPromise
-  const anotherBookBody = await anotherBookResponse.json()
   expect(anotherBookResponse.status).toBe(200)
-  expect(anotherBookBody).toEqual({ title: 'Original title' })
+  expect(await anotherBookResponse.json()).toEqual({ title: 'Original title' })
 })

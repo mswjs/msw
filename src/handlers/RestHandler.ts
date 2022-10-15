@@ -1,12 +1,11 @@
 import { body, cookie, json, text, xml } from '../context'
-import type { SerializedResponse } from '../setupWorker/glossary'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
-import { prepareRequest } from '../utils/logging/prepareRequest'
-import { prepareResponse } from '../utils/logging/prepareResponse'
+import { serializeRequest } from '../utils/logging/serializeRequest'
+import { serializeResponse } from '../utils/logging/serializeResponse'
 import {
   Match,
   matchRequestUrl,
@@ -161,7 +160,7 @@ export class RestHandler extends RequestHandler<
   }
 
   protected override extendInfo(
-    request: Request,
+    _request: Request,
     parsedResult: RestRequestParsedResult,
   ) {
     return {
@@ -170,10 +169,10 @@ export class RestHandler extends RequestHandler<
     }
   }
 
-  override log(request: Request, response: SerializedResponse<any>) {
+  override async log(request: Request, response: Response) {
     const publicUrl = getPublicUrlFromRequest(request)
-    const loggedRequest = prepareRequest(request)
-    const loggedResponse = prepareResponse(response)
+    const loggedRequest = await serializeRequest(request)
+    const loggedResponse = await serializeResponse(response)
     const statusColor = getStatusCodeColor(response.status)
 
     console.groupCollapsed(

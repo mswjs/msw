@@ -63,6 +63,7 @@ export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export * from './utils/HttpResponse'
 export * from './delay'
 export { bypass } from './bypass'
+export { passthrough } from './passthrough'
 export { NetworkError } from './NetworkError'
 
 export * from './fetch'

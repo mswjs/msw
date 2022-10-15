@@ -43,7 +43,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   }
 
   const result = await relevantHandlers.reduce<
-    Promise<RequestHandlerExecutionResult | null>
+    Promise<RequestHandlerExecutionResult<any> | null>
   >(async (executionResult, handler) => {
     const previousResults = await executionResult
 

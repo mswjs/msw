@@ -3,11 +3,13 @@
  * Otherwise returns an absolute URL.
  */
 export function getPublicUrlFromRequest(request: Request): string {
-  const url = new URL(request.url)
-
-  if (typeof origin === 'undefined') {
-    return url.href
+  if (typeof location === 'undefined') {
+    return request.url
   }
 
-  return url.origin === origin ? url.pathname : url.href
+  const url = new URL(request.url)
+
+  return url.origin === location.origin
+    ? url.pathname
+    : url.origin + url.pathname
 }

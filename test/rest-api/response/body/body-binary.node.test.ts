@@ -4,7 +4,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 function getImageBuffer() {
@@ -12,14 +12,15 @@ function getImageBuffer() {
 }
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io/image', (_, res, ctx) => {
+  rest.get('http://test.mswjs.io/image', () => {
     const imageBuffer = getImageBuffer()
 
-    return res(
-      ctx.set('Content-Length', imageBuffer.byteLength.toString()),
-      ctx.set('Content-Type', 'image/jpeg'),
-      ctx.body(imageBuffer),
-    )
+    return HttpResponse.arrayBuffer(imageBuffer, {
+      headers: {
+        'Content-Type': 'image/jpeg',
+        'Content-Length': imageBuffer.byteLength.toString(),
+      },
+    })
   }),
 )
 

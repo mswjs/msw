@@ -23,7 +23,7 @@ test('receives all headers from the request header with multiple values', async 
   const status = res.status()
   const body = await res.json()
 
-  expect(status).toEqual(200)
+  expect(status).toBe(200)
   expect(body).toEqual({
     'x-header': 'application/json,application/hal+json',
   })
@@ -37,7 +37,7 @@ test('supports setting a header with multiple values on the mocked response', as
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(status).toEqual(200)
+  expect(status).toBe(200)
   expect(headers).toHaveProperty('accept', 'application/json, image/png')
   expect(body).toEqual({
     mocked: true,

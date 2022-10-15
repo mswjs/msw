@@ -1,20 +1,17 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.post('/deprecated', (req, res, ctx) => {
-    return res(ctx.json(req.body))
+  rest.post('/deprecated', async ({ request }) => {
+    return HttpResponse.json(await request.json())
   }),
-  rest.post('/text', async (req, res, ctx) => {
-    const body = await req.text()
-    return res(ctx.body(body))
+  rest.post('/text', async ({ request }) => {
+    return HttpResponse.text(await request.text())
   }),
-  rest.post('/json', async (req, res, ctx) => {
-    const json = await req.json()
-    return res(ctx.json(json))
+  rest.post('/json', async ({ request }) => {
+    return HttpResponse.json(await request.json())
   }),
-  rest.post('/arrayBuffer', async (req, res, ctx) => {
-    const arrayBuffer = await req.arrayBuffer()
-    return res(ctx.body(arrayBuffer))
+  rest.post('/arrayBuffer', async ({ request }) => {
+    return HttpResponse.arrayBuffer(await request.arrayBuffer())
   }),
 )
 

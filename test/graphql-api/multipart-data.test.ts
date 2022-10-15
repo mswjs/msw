@@ -49,7 +49,7 @@ test('accepts a file from a GraphQL mutation', async () => {
 
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(body).toEqual({
     data: {
       multipart: {

@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, passthrough } from 'msw'
 
 const worker = setupWorker(
-  rest.post('/', (req) => {
-    return req.passthrough()
+  rest.post('/', () => {
+    return passthrough()
   }),
 )
 
@@ -12,4 +12,5 @@ worker.start()
 window.msw = {
   worker,
   rest,
+  passthrough,
 }

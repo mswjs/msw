@@ -33,7 +33,7 @@ test('intercepts and mocks a GraphQL query', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {
@@ -71,7 +71,7 @@ test('intercepts and mocks an anonymous GraphQL query', async () => {
 
   expect(runtime.consoleSpy.get('warning')).toBeUndefined()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
 
   const headers = await res.allHeaders()
   expect(headers).toHaveProperty('x-powered-by', 'msw')
@@ -112,7 +112,7 @@ test('intercepts and mocks a GraphQL mutation', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(body).toEqual({
     data: {

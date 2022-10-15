@@ -39,7 +39,7 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {
@@ -76,7 +76,7 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async () => {
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {

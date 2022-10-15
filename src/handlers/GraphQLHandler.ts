@@ -1,5 +1,4 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
-import { type SerializedResponse } from '../setupWorker/glossary'
 import { data } from '../context/data'
 import { extensions } from '../context/extensions'
 import { errors } from '../context/errors'
@@ -15,8 +14,8 @@ import {
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
-import { prepareRequest } from '../utils/logging/prepareRequest'
-import { prepareResponse } from '../utils/logging/prepareResponse'
+import { serializeRequest } from '../utils/logging/serializeRequest'
+import { serializeResponse } from '../utils/logging/serializeResponse'
 import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
@@ -186,13 +185,13 @@ Consider naming this operation or using "graphql.operation" request handler to i
     }
   }
 
-  override log(
+  override async log(
     request: Request,
-    response: SerializedResponse<any>,
+    response: Response,
     parsedRequest: ParsedGraphQLRequest,
   ) {
-    const loggedRequest = prepareRequest(request)
-    const loggedResponse = prepareResponse(response)
+    const loggedRequest = await serializeRequest(request)
+    const loggedResponse = await serializeResponse(response)
     const statusColor = getStatusCodeColor(response.status)
     const requestInfo = parsedRequest?.operationName
       ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`

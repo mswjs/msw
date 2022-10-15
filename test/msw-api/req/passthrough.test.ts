@@ -3,13 +3,14 @@
  */
 import * as path from 'path'
 import { pageWith } from 'page-with'
-import { HttpResponse, rest, SetupWorkerApi } from 'msw'
+import { HttpResponse, passthrough, rest, SetupWorkerApi } from 'msw'
 import { createServer, ServerApi } from '@open-draft/test-server'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest
+    passthrough: typeof passthrough
     HttpResponse: typeof HttpResponse
   }
 }
@@ -43,10 +44,10 @@ it('performs request as-is when returning "req.passthrough" call in the resolver
   const endpointUrl = httpServer.http.makeUrl('/user')
 
   await runtime.page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, rest, passthrough } = window.msw
     worker.use(
-      rest.post<ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      rest.post<ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
     )
   }, endpointUrl)
@@ -67,10 +68,10 @@ it('does not allow fall-through when returning "req.passthrough" call in the res
   const endpointUrl = httpServer.http.makeUrl('/user')
 
   await runtime.page.evaluate((endpointUrl) => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, rest, passthrough, HttpResponse } = window.msw
     worker.use(
-      rest.post<ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      rest.post<ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
       rest.post<ResponseBody>(endpointUrl, () => {
         return HttpResponse.json({ name: 'Kate' })

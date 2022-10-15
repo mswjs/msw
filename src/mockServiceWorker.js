@@ -146,19 +146,23 @@ async function handleRequest(event, requestId) {
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
-      const clonedResponse = response.clone()
+      const responseClone = response.clone()
       sendToClient(client, {
         type: 'RESPONSE',
         payload: {
           requestId,
-          type: clonedResponse.type,
-          ok: clonedResponse.ok,
-          status: clonedResponse.status,
-          statusText: clonedResponse.statusText,
-          body:
-            clonedResponse.body === null ? null : await clonedResponse.text(),
-          headers: Object.fromEntries(clonedResponse.headers.entries()),
-          redirected: clonedResponse.redirected,
+          type: responseClone.type,
+          ok: responseClone.ok,
+          status: responseClone.status,
+          statusText: responseClone.statusText,
+          /**
+           * @todo Send back the response buffer instead.
+           * I'm pretty sure we can clone the response and send
+           * its body as transferrable so we don't have to serialize it.
+           */
+          body: responseClone.body === null ? null : await responseClone.text(),
+          headers: Object.fromEntries(responseClone.headers.entries()),
+          redirected: responseClone.redirected,
         },
       })
     })()
@@ -196,20 +200,20 @@ async function resolveMainClient(event) {
 
 async function getResponse(event, client, requestId) {
   const { request } = event
-  const clonedRequest = request.clone()
+
+  // Clone the request because it might've been already used
+  // (i.e. its body has been read and sent to the client).
+  const requestClone = request.clone()
 
   function passthrough() {
-    // Clone the request because it might've been already used
-    // (i.e. its body has been read and sent to the client).
-    const headers = Object.fromEntries(clonedRequest.headers.entries())
+    const headers = Object.fromEntries(requestClone.headers.entries())
 
-    // Remove MSW-specific request headers so the bypassed requests
-    // comply with the server's CORS preflight check.
-    // Operate with the headers as an object because request "Headers"
-    // are immutable.
-    delete headers['x-msw-bypass']
+    // Remove internal MSW request header so the passthrough request
+    // complies with any potential CORS preflight checks on the server.
+    // Some servers forbid unknown request headers.
+    delete headers['x-msw-intention']
 
-    return fetch(clonedRequest, { headers })
+    return fetch(requestClone, { headers })
   }
 
   // Bypass mocking when the client is not active.
@@ -227,7 +231,8 @@ async function getResponse(event, client, requestId) {
 
   // Bypass requests with the explicit bypass header.
   // Such requests can be issued by "ctx.fetch()".
-  if (request.headers.get('x-msw-bypass') === 'true') {
+  const mswIntention = request.headers.get('x-msw-intention')
+  if (['bypass', 'passthrough'].includes(mswIntention)) {
     return passthrough()
   }
 

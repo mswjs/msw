@@ -13,36 +13,42 @@ const worker = setupWorker(
   }),
 )
 
-worker.events.on('request:start', (req) => {
-  console.warn(`[request:start] ${req.method} ${req.url} ${req.id}`)
+worker.events.on('request:start', (request, requestId) => {
+  console.warn(`[request:start] ${request.method} ${request.url} ${requestId}`)
 })
 
-worker.events.on('request:match', (req) => {
-  console.warn(`[request:match] ${req.method} ${req.url} ${req.id}`)
+worker.events.on('request:match', (request, requestId) => {
+  console.warn(`[request:match] ${request.method} ${request.url} ${requestId}`)
 })
 
-worker.events.on('request:unhandled', (req) => {
-  console.warn(`[request:unhandled] ${req.method} ${req.url} ${req.id}`)
+worker.events.on('request:unhandled', (request, requestId) => {
+  console.warn(
+    `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
+  )
 })
 
-const requestEndListner: ServerLifecycleEventsMap['request:end'] = (req) => {
-  console.warn(`[request:end] ${req.method} ${req.url} ${req.id}`)
+const requestEndListner: ServerLifecycleEventsMap['request:end'] = (
+  request,
+  requestId,
+) => {
+  console.warn(`[request:end] ${request.method} ${request.url} ${requestId}`)
 }
+
 worker.events.on('request:end', requestEndListner)
 
-worker.events.on('response:mocked', async (res, requestId) => {
-  const body = await res.text()
+worker.events.on('response:mocked', async (response, request, requestId) => {
+  const body = await response.text()
   console.warn(`[response:mocked] ${body} ${requestId}`)
 })
 
-worker.events.on('response:bypass', async (res, requestId) => {
-  const body = await res.text()
+worker.events.on('response:bypass', async (response, request, requestId) => {
+  const body = await response.text()
   console.warn(`[response:bypass] ${body} ${requestId}`)
 })
 
-worker.events.on('unhandledException', (error, req) => {
+worker.events.on('unhandledException', (error, request, requestId) => {
   console.warn(
-    `[unhandledException] ${req.method} ${req.url} ${req.id} ${error.message}`,
+    `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,
   )
 })
 

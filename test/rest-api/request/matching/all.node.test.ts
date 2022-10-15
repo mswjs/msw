@@ -3,7 +3,7 @@
  */
 import fetch, { Response } from 'node-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
-import { RESTMethods, rest } from 'msw'
+import { RESTMethods, rest, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 let httpServer: ServerApi
@@ -38,8 +38,8 @@ async function forEachMethod(callback: (method: RESTMethods) => unknown) {
 
 test('matches all requests given no custom path', async () => {
   server.use(
-    rest.all('*', (req, res, ctx) => {
-      return res(ctx.text('welcome to the jungle'))
+    rest.all('*', () => {
+      return HttpResponse.text('welcome to the jungle')
     }),
   )
 
@@ -56,22 +56,22 @@ test('matches all requests given no custom path', async () => {
   )
 
   for (const response of responses) {
-    expect(response.status).toEqual(200)
+    expect(response.status).toBe(200)
     expect(await response.text()).toEqual('welcome to the jungle')
   }
 })
 
 test('respects custom path when matching requests', async () => {
   server.use(
-    rest.all(httpServer.http.makeUrl('/api/*'), (req, res, ctx) => {
-      return res(ctx.text('hello world'))
+    rest.all(httpServer.http.makeUrl('/api/*'), () => {
+      return HttpResponse.text('hello world')
     }),
   )
 
   // Root requests.
   await forEachMethod(async (method) => {
     const response = await fetch(httpServer.http.makeUrl('/api/'), { method })
-    expect(response.status).toEqual(200)
+    expect(response.status).toBe(200)
     expect(await response.text()).toEqual('hello world')
   })
 
@@ -80,7 +80,7 @@ test('respects custom path when matching requests', async () => {
     const response = await fetch(httpServer.http.makeUrl('/api/foo'), {
       method,
     })
-    expect(response.status).toEqual(200)
+    expect(response.status).toBe(200)
     expect(await response.text()).toEqual('hello world')
   })
 

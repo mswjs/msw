@@ -16,10 +16,10 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   })
 
   await runtime.page.evaluate(() => {
-    const { msw } = window
+    const { worker, rest, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.post('/login', function postLoginResolver() {
+    worker.use(
+      rest.post('/login', function postLoginResolver() {
         return HttpResponse.json({ accepted: true })
       }),
     )
@@ -47,10 +47,10 @@ test('returns a mocked response from a persistent request handler override', asy
   })
 
   await runtime.page.evaluate(() => {
-    const { msw } = window
+    const { worker, rest, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', function permanentOverride() {
+    worker.use(
+      rest.get('/book/:bookId', function permanentOverride() {
         return HttpResponse.json({ title: 'Permanent override' })
       }),
     )
@@ -75,10 +75,10 @@ test('returns a mocked response from a one-time request handler override only up
   })
 
   await runtime.page.evaluate(() => {
-    const { msw } = window
+    const { worker, rest, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get(
+    worker.use(
+      rest.get(
         '/book/:bookId',
         function oneTimeOverride() {
           return HttpResponse.json({ title: 'One-time override' })
@@ -107,15 +107,15 @@ test('returns a mocked response from a one-time request handler override only up
   })
 
   await runtime.page.evaluate(() => {
-    const { msw } = window
+    const { worker, rest, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get<{ bookId: string }>(
+    worker.use(
+      rest.get<{ bookId: string }>(
         '/book/:bookId',
         function oneTimeOverride({ params }) {
           const { bookId } = params
 
-          return msw.HttpResponse.json({ title: 'One-time override', bookId })
+          return HttpResponse.json({ title: 'One-time override', bookId })
         },
         { once: true },
       ),

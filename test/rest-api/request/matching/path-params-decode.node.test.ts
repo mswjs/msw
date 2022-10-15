@@ -2,15 +2,16 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/reflect-url/:url', (req, res, ctx) => {
-    const { url } = req.params
-
-    return res(ctx.json({ url }))
-  }),
+  rest.get<{ url: string }>(
+    'https://test.mswjs.io/reflect-url/:url',
+    ({ params }) => {
+      return HttpResponse.json({ url: params.url })
+    },
+  ),
 )
 
 beforeAll(() => {
@@ -28,7 +29,7 @@ test('decodes url componets', async () => {
     `https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`,
   )
 
-  expect(res.status).toEqual(200)
+  expect(res.status).toBe(200)
   expect(await res.json()).toEqual({
     url,
   })

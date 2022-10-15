@@ -1,21 +1,21 @@
 import { RequestHandler } from '../../handlers/RequestHandler'
 
 export function use(
-  currentHandlers: RequestHandler[],
-  ...handlers: RequestHandler[]
+  currentHandlers: Array<RequestHandler>,
+  ...handlers: Array<RequestHandler>
 ): void {
   currentHandlers.unshift(...handlers)
 }
 
-export function restoreHandlers(handlers: RequestHandler[]): void {
+export function restoreHandlers(handlers: Array<RequestHandler>): void {
   handlers.forEach((handler) => {
-    handler.markAsSkipped(false)
+    handler.isUsed = false
   })
 }
 
 export function resetHandlers(
-  initialHandlers: RequestHandler[],
-  ...nextHandlers: RequestHandler[]
+  initialHandlers: Array<RequestHandler>,
+  ...nextHandlers: Array<RequestHandler>
 ) {
   return nextHandlers.length > 0 ? [...nextHandlers] : [...initialHandlers]
 }

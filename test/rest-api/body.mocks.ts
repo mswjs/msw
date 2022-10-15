@@ -1,38 +1,27 @@
-import {
-  ResponseResolver,
-  RestContext,
-  setupWorker,
-  rest,
-  HttpResponse,
-} from 'msw'
+import { setupWorker, rest, HttpResponse, ResponseResolver } from 'msw'
 
-const handleRequestBody: ResponseResolver<RestContext> = async ({
-  request,
-}) => {
-  const text = await request.text()
-  console.log({ request, text })
+const forwardRequestBody: ResponseResolver<any> = async ({ request }) => {
+  const requestText =
+    request.headers.get('Content-Type') === 'application/json'
+      ? await request.json()
+      : await request.text()
 
-  return new Response(text, { headers: request.headers })
+  return HttpResponse.json({ value: requestText })
 }
 
-const handleMultipartRequestBody: ResponseResolver<RestContext> = async ({
+const forwardMultipartRequestBody: ResponseResolver<any> = async ({
   request,
 }) => {
-  const body = await request.json()
+  const formData = await request.formData()
+  const responseBody: Record<string, string | Array<string>> = {}
 
-  // if (typeof body !== 'object') {
-  //   throw new Error(
-  //     'Expected multipart request body to be parsed but got string',
-  //   )
-  // }
+  for (const [name, value] of formData.entries()) {
+    const nextValue = value instanceof File ? await value.text() : value
 
-  const responseBody: Record<string, unknown> = {}
-
-  for (const [name, value] of Object.entries(body)) {
-    if (value instanceof File) {
-      responseBody[name] = await value.text()
+    if (responseBody[name]) {
+      responseBody[name] = [].concat(responseBody[name], nextValue)
     } else {
-      responseBody[name] = value
+      responseBody[name] = nextValue
     }
   }
 
@@ -40,9 +29,9 @@ const handleMultipartRequestBody: ResponseResolver<RestContext> = async ({
 }
 
 const worker = setupWorker(
-  rest.get('/login', handleRequestBody),
-  rest.post('/login', handleRequestBody),
-  rest.post('/upload', handleMultipartRequestBody),
+  rest.get('/resource', forwardRequestBody),
+  rest.post('/resource', forwardRequestBody),
+  rest.post('/upload', forwardMultipartRequestBody),
 )
 
 worker.start()

@@ -8,8 +8,6 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/
 import { SetupWorkerInternalContext, StartOptions } from '../glossary'
 import type { RequiredDeep } from '../../typeUtils'
 import { handleRequest } from '../../utils/handleRequest'
-import { serializeResponse } from '../../utils/logging/serializeResponse'
-import { createResponseFromIsomorphicResponse } from '../../utils/request/createResponseFromIsomorphicResponse'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
@@ -20,9 +18,10 @@ export function createFallbackRequestListener(
     interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
   })
 
-  interceptor.on('request', async (request) => {
+  interceptor.on('request', async (request, requestId) => {
     const response = await handleRequest(
       request,
+      requestId,
       context.requestHandlers,
       options,
       context.emitter,
@@ -30,7 +29,7 @@ export function createFallbackRequestListener(
         onMockedResponse(_, { handler, request, parsedRequest }) {
           if (!options.quiet) {
             context.emitter.once('response:mocked', (response) => {
-              handler.log(request, serializeResponse(response), parsedRequest)
+              handler.log(request, response, parsedRequest)
             })
           }
         },
@@ -43,12 +42,10 @@ export function createFallbackRequestListener(
   })
 
   interceptor.on('response', (response, request, requestId) => {
-    const browserResponse = createResponseFromIsomorphicResponse(response)
-
     if (response.headers.get('x-powered-by') === 'msw') {
-      context.emitter.emit('response:mocked', browserResponse, requestId)
+      context.emitter.emit('response:mocked', response, request, requestId)
     } else {
-      context.emitter.emit('response:bypass', browserResponse, requestId)
+      context.emitter.emit('response:bypass', response, request, requestId)
     }
   })
 

@@ -20,12 +20,16 @@ test('returns a mocked response from the used one-time request handler when rest
   const runtime = await createRuntime()
 
   await runtime.page.evaluate(() => {
-    const { msw } = window
+    const { worker, rest, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', () => {
-        return msw.HttpResponse.json({ title: 'One-time override' })
-      }),
+    worker.use(
+      rest.get<{ bookId: string }>(
+        '/book/:bookId',
+        () => {
+          return HttpResponse.json({ title: 'One-time override' })
+        },
+        { once: true },
+      ),
     )
   })
 
@@ -47,9 +51,8 @@ test('returns a mocked response from the used one-time request handler when rest
 
   // Restore the one-time request handlers, marking them as unused.
   await runtime.page.evaluate(() => {
-    const { msw } = window
-
-    msw.worker.restoreHandlers()
+    const { worker } = window.msw
+    worker.restoreHandlers()
   })
 
   // Once restored, one-time request handler affect network again.

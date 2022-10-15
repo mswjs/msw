@@ -110,7 +110,7 @@ function getSuggestedHandler(
   request: Request,
   handlers: Array<RestHandler> | Array<GraphQLHandler>,
   getScore: ScoreGetterFn<RestHandler> | ScoreGetterFn<GraphQLHandler>,
-): RequestHandler[] {
+): Array<RequestHandler> {
   const suggestedHandlers = (handlers as Array<RequestHandler>)
     .reduce<Array<RequestHandlerSuggestion>>((suggestions, handler) => {
       const score = getScore(request, handler as any)

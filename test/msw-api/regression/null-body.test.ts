@@ -12,7 +12,7 @@ test('gracefully handles a 204 response null body during life-cycle events', asy
     error = pageError
   })
 
-  await runtime.request('https://test.mswjs.io/api/books')
+  await runtime.request('/api/books')
   await sleep(500)
 
   expect(error).not.toBeDefined()

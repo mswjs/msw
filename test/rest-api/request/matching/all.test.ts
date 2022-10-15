@@ -32,7 +32,7 @@ test('respects custom path when matching requests', async () => {
   )
 
   for (const response of rootResponses) {
-    expect(response.status()).toEqual(200)
+    expect(response.status()).toBe(200)
     expect(await response.text()).toEqual('hello world')
   }
 
@@ -42,7 +42,7 @@ test('respects custom path when matching requests', async () => {
     'http://localhost/api/user',
   )
   for (const response of nestedResponses) {
-    expect(response.status()).toEqual(200)
+    expect(response.status()).toBe(200)
     expect(await response.text()).toEqual('hello world')
   }
 
@@ -54,7 +54,7 @@ test('respects custom path when matching requests', async () => {
     'http://localhost/foo',
   )
   for (const response of mismatchedResponses) {
-    expect(response.status()).toEqual(200)
+    expect(response.status()).toBe(200)
     expect(await response.text()).toEqual('welcome to the jungle')
   }
 })

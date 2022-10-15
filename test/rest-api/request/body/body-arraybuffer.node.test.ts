@@ -2,14 +2,14 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { encodeBuffer } from '@mswjs/interceptors'
 
 const server = setupServer(
-  rest.post('http://localhost/arrayBuffer', async (req, res, ctx) => {
-    const arrayBuffer = await req.arrayBuffer()
-    return res(ctx.body(arrayBuffer))
+  rest.post('http://localhost/arrayBuffer', async ({ request }) => {
+    const arrayBuffer = await request.arrayBuffer()
+    return HttpResponse.arrayBuffer(arrayBuffer)
   }),
 )
 
@@ -32,7 +32,7 @@ test('reads text request body as array buffer', async () => {
   const body = await res.arrayBuffer()
 
   expect(res.status).toBe(200)
-  expect(body).toEqual(encodeBuffer('foo bar'))
+  expect(body).toEqual(encodeBuffer('foo bar').buffer)
 })
 
 test('reads array buffer request body as array buffer', async () => {
@@ -43,7 +43,7 @@ test('reads array buffer request body as array buffer', async () => {
   const body = await res.arrayBuffer()
 
   expect(res.status).toBe(200)
-  expect(body).toEqual(encodeBuffer('foo bar'))
+  expect(body).toEqual(encodeBuffer('foo bar').buffer)
 })
 
 test('reads null request body as empty array buffer', async () => {
@@ -57,7 +57,7 @@ test('reads null request body as empty array buffer', async () => {
   const body = await res.arrayBuffer()
 
   expect(res.status).toBe(200)
-  expect(body).toEqual(encodeBuffer(''))
+  expect(body).toEqual(encodeBuffer('').buffer)
 })
 
 test('reads undefined request body as empty array buffer', async () => {
@@ -68,5 +68,5 @@ test('reads undefined request body as empty array buffer', async () => {
   const body = await res.arrayBuffer()
 
   expect(res.status).toBe(200)
-  expect(body).toEqual(encodeBuffer(''))
+  expect(body).toEqual(encodeBuffer('').buffer)
 })

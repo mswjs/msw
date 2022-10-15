@@ -1,5 +1,5 @@
 import {
-  SerializedResponse,
+  StringifiedResponse,
   ServiceWorkerIncomingEventsMap,
 } from '../../glossary'
 
@@ -12,7 +12,7 @@ export interface ServiceWorkerMessage<
 }
 
 interface WorkerChannelEventsMap {
-  MOCK_RESPONSE: [data: SerializedResponse<any>, body?: Array<ArrayBuffer>]
+  MOCK_RESPONSE: [data: StringifiedResponse, transferable?: [ArrayBuffer]]
   NOT_FOUND: []
   NETWORK_ERROR: [data: { name: string; message: string }]
 }

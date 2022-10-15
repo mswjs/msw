@@ -14,18 +14,28 @@ import { Request } from './fetch'
 export function bypass(input: string | URL | Request): RemixRequest {
   const request = toRequest(input)
 
-  // Set the custom MSW bypass header.
-  // The worker recognizes this header, strips it away,
-  // and performs the intercepted request as-is.
-  request.headers.set('x-msw-bypass', 'true')
+  // Set the internal header that would instruct MSW
+  // to bypass this request from any further request matching.
+  // Unlike "passthrough()", bypass is meant for performing
+  // additional requests within pending request resolution.
+  request.headers.set('x-msw-intention', 'bypass')
 
   return request
 }
 
 function toRequest(input: string | URL | Request): RemixRequest {
   if (input instanceof Request) {
+    /**
+     * @note When using "node-fetch", if the request instance
+     * hasn't been constructed using ONLY the "node-fetch"'s Request,
+     * the input to its "fetch()" will be invalid. "node-fetch" will
+     * think it's given a URL object, and will throw on it being invalid.
+     */
     return input.clone() as RemixRequest
   }
 
-  return new Request(input) as RemixRequest
+  const baseUrl = typeof location !== 'undefined' ? location.href : undefined
+  const requestUrl = new URL(input, baseUrl)
+
+  return new Request(requestUrl) as RemixRequest
 }

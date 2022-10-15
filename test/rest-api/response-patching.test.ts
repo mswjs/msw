@@ -106,7 +106,7 @@ test('forwards custom request headers to the original request', async () => {
   const status = res.status()
   const body = await res.json()
 
-  expect(status).toEqual(200)
+  expect(status).toBe(200)
   expect(body).toEqual({ message: 'success' })
 })
 

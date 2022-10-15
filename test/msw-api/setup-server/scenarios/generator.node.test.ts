@@ -40,6 +40,7 @@ const server = setupServer(
         count,
       })
     },
+    { once: true },
   ),
   rest.get<{ maxCount: string }>('/polling/once/:maxCount', () => {
     return HttpResponse.json({ status: 'done' })
@@ -79,7 +80,7 @@ test('supports generator as the response resolver', async () => {
   await assertRequest({ status: 'complete', count: 3 })
 })
 
-test.skip('supports one-time handlers with the generator as the response resolver', async () => {
+test('supports one-time handlers with the generator as the response resolver', async () => {
   type ExpectedResponseBody =
     | {
         status: 'pending' | 'complete'

@@ -55,8 +55,8 @@ const standardGraphQLHandlers = {
   /**
    * Captures any GraphQL operation, regardless of its name, under the current scope.
    * @example
-   * graphql.operation((req, res, ctx) => {
-   *   return res(ctx.data({ name: 'John' }))
+   * graphql.operation(() => {
+   *   return HttpResponse.json({ data: { name: 'John' } })
    * })
    * @see {@link https://mswjs.io/docs/api/graphql/operation `graphql.operation()`}
    */
@@ -65,8 +65,8 @@ const standardGraphQLHandlers = {
   /**
    * Captures a GraphQL query by a given name.
    * @example
-   * graphql.query('GetUser', (req, res, ctx) => {
-   *   return res(ctx.data({ user: { name: 'John' } }))
+   * graphql.query('GetUser', () => {
+   *   return HttpResponse.json({ data: { user: { name: 'John' } } })
    * })
    * @see {@link https://mswjs.io/docs/api/graphql/query `graphql.query()`}
    */
@@ -75,8 +75,8 @@ const standardGraphQLHandlers = {
   /**
    * Captures a GraphQL mutation by a given name.
    * @example
-   * graphql.mutation('SavePost', (req, res, ctx) => {
-   *   return res(ctx.data({ post: { id: 'abc-123' } }))
+   * graphql.mutation('SavePost', () => {
+   *   return HttpResponse.json({ data: { post: { id: 'abc-123 } } })
    * })
    * @see {@link https://mswjs.io/docs/api/graphql/mutation `graphql.mutation()`}
    */

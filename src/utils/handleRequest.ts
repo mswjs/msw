@@ -48,7 +48,7 @@ export async function handleRequest(
   emitter.emit('request:start', request, requestId)
 
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
-  if (request.headers.get('x-msw-bypass') === 'true') {
+  if (request.headers.get('x-msw-intention') === 'bypass') {
     emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
@@ -74,7 +74,7 @@ export async function handleRequest(
   // When there's no handler for the request, consider it unhandled.
   // Allow the developer to react to such cases.
   if (!handler) {
-    onUnhandledRequest(request, handlers, options.onUnhandledRequest)
+    await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
     emitter.emit('request:unhandled', request, requestId)
     emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
@@ -103,13 +103,16 @@ Expected response resolver to return a mocked response Object, but got %s. The o
 
   // When the developer explicitly returned "req.passthrough()" do not warn them.
   // Perform the request as-is.
-  if (response.status === 101) {
+  if (
+    response.status === 302 &&
+    response.headers.get('x-msw-intention') === 'passthrough'
+  ) {
     emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 
-  response.headers.set('X-Powered-By', 'msw')
+  response.headers.set('x-powered-by', 'msw')
 
   // Store all the received response cookies in the virtual cookie store.
   readResponseCookies(request, response)

@@ -28,10 +28,26 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     const response = new Response(responseJson.body || null, responseJson)
     const isMockedResponse = response.headers.get('x-powered-by') === 'msw'
 
+    console.log(responseJson)
+
     if (isMockedResponse) {
-      context.emitter.emit('response:mocked', response, responseJson.requestId)
+      context.emitter.emit(
+        'response:mocked',
+        response,
+        /**
+         * @todo @fixme In this context, we don't know anything about
+         * the request.
+         */
+        null as any,
+        responseJson.requestId,
+      )
     } else {
-      context.emitter.emit('response:bypass', response, responseJson.requestId)
+      context.emitter.emit(
+        'response:bypass',
+        response,
+        null as any,
+        responseJson.requestId,
+      )
     }
   }
 }

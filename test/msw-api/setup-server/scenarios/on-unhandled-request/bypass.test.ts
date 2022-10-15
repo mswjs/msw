@@ -40,7 +40,7 @@ test('bypasses unhandled requests', async () => {
   const res = await fetch(httpServer.http.makeUrl('/'))
 
   // Request should be performed as-is
-  expect(res.status).toEqual(200)
+  expect(res.status).toBe(200)
   expect(await res.text()).toEqual('root')
 
   // No warnings/errors should be printed

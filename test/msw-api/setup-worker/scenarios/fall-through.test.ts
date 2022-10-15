@@ -8,9 +8,10 @@ function createRuntime() {
 }
 
 test('falls through all relevant request handlers until response is returned', async () => {
-  const { request, consoleSpy } = await createRuntime()
+  const { request, consoleSpy, page } = await createRuntime()
 
   const res = await request('/user')
+
   const body = await res.json()
 
   // One of the handlers returns a mocked response.

@@ -1,11 +1,22 @@
-import { flattenHeadersObject, headersToObject } from 'headers-polyfill'
-import type { SerializedResponse } from '../../setupWorker/glossary'
+import { type HeadersObject, headersToObject } from 'headers-polyfill'
 
-export function serializeResponse(source: Response): SerializedResponse<any> {
+export interface SerializedResponse {
+  status: number
+  statusText: string
+  headers: HeadersObject
+  body: string
+}
+
+export async function serializeResponse(
+  response: Response,
+): Promise<SerializedResponse> {
+  const responseClone = response.clone()
+  const responseText = await responseClone.text()
+
   return {
-    status: source.status,
-    statusText: source.statusText,
-    headers: flattenHeadersObject(headersToObject(source.headers)),
-    body: source.body,
+    status: responseClone.status,
+    statusText: responseClone.statusText,
+    headers: headersToObject(responseClone.headers),
+    body: responseText,
   }
 }

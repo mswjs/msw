@@ -12,7 +12,7 @@ test('matches an exact string with the same request URL with a trailing slash', 
 
   const res = await runtime.request('https://api.github.com/made-up/')
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     mocked: true,
@@ -34,7 +34,7 @@ test('matches an exact string with the same request URL without a trailing slash
 
   const res = await runtime.request('https://api.github.com/made-up')
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     mocked: true,
@@ -56,7 +56,7 @@ test('matches a mask against a matching request URL', async () => {
 
   const res = await runtime.request('https://test.mswjs.io/messages/abc-123')
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     messageId: 'abc-123',
@@ -70,7 +70,7 @@ test('ignores query parameters when matching a mask against a matching request U
     'https://test.mswjs.io/messages/abc-123/items?hello=true',
   )
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     messageId: 'abc-123',
@@ -92,7 +92,7 @@ test('matches a RegExp against a matching request URL', async () => {
 
   const res = await runtime.request('https://mswjs.google.com/path')
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     mocked: true,
@@ -114,7 +114,7 @@ test('supports escaped parentheses in the request URL', async () => {
 
   const res = await runtime.request(`/resource('id')`)
 
-  expect(res.status()).toEqual(200)
+  expect(res.status()).toBe(200)
   expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await res.json()).toEqual({
     mocked: true,

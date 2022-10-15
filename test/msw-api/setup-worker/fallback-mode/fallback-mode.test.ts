@@ -95,7 +95,7 @@ test('responds with a mocked response to a handled request', async () => {
   })
 
   // Responds with a mocked response.
-  expect(response.status).toEqual(200)
+  expect(response.status).toBe(200)
   expect(response.statusText).toEqual('OK')
   expect(response.headers['x-powered-by']).toEqual('msw')
   expect(response.body).toEqual({

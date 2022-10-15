@@ -13,102 +13,88 @@ function createRuntime() {
 test('handles a GET request without a body', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('/login')
+  const res = await runtime.request('/resource')
   const body = await res.json()
-  expect(body).toEqual({})
+
+  expect(body).toEqual({ value: '' })
 })
 
-test('handles a GET request without a body and "Content-Type: application/json" header', async () => {
+test('handles a GET request without a body', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('/login', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  const body = await res.json()
-  expect(body).toEqual({ body: undefined })
+  const res = await runtime.request('/resource')
+  const json = await res.json()
+
+  expect(json).toEqual({ value: '' })
 })
 
 test('handles a POST request with an explicit empty body', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('/login', {
+  const res = await runtime.request('/resource', {
     method: 'POST',
     body: '',
   })
-  const body = await res.json()
-  expect(body).toEqual({ body: '' })
+  const json = await res.json()
+
+  expect(json).toEqual({ value: '' })
 })
 
 test('handles a POST request with a textual body', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('/login', {
+  const res = await runtime.request('/resource', {
     method: 'POST',
     body: 'text-body',
   })
-  const body = await res.json()
-  expect(body).toEqual({ body: 'text-body' })
+  const json = await res.json()
+
+  expect(json).toEqual({ value: 'text-body' })
 })
 
 test('handles a POST request with a JSON body and "Content-Type: application/json" header', async () => {
   const runtime = await createRuntime()
 
-  const res = await runtime.request('/login', {
+  const res = await runtime.request('/resource', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      json: 'body',
+      firstName: 'John',
     }),
   })
-  const body = await res.json()
-  expect(body).toEqual({
-    body: {
-      json: 'body',
+  const json = await res.json()
+
+  expect(json).toEqual({
+    value: {
+      firstName: 'John',
     },
   })
 })
 
 test('handles a POST request with a multipart body and "Content-Type: multipart/form-data" header', async () => {
   const runtime = await createRuntime()
-  // WORKAROUND: `FormData` is not available in `page.evaluate`
-  const multipartData = `\
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
-Content-Disposition: form-data; name="file"; filename="file1.txt"\r
-Content-Type: application/octet-stream\r
-\r
-file content\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
-Content-Disposition: form-data; name="text"\r
-\r
-text content\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
-Content-Disposition: form-data; name="text2"\r
-\r
-another text content\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab\r
-Content-Disposition: form-data; name="text2"\r
-\r
-another text content 2\r
-------WebKitFormBoundaryvZ1cVXWyK0ilQdab--\r\n`
-  const headers = new Headers({
-    'content-type':
-      'multipart/form-data; boundary=WebKitFormBoundaryvZ1cVXWyK0ilQdab',
+
+  await runtime.page.evaluate(() => {
+    const data = new FormData()
+    data.set('file', new File(['file content'], 'file1.txt'))
+    data.set('text', 'text content')
+    data.set('text2', 'another text content')
+    data.append('text2', 'another text content 2')
+
+    fetch('/upload', {
+      method: 'POST',
+      body: data,
+    })
   })
-  const res = await runtime.request('/upload', {
-    method: 'POST',
-    headers,
-    body: multipartData,
-  })
-  const body = await res.json()
-  expect(body).toEqual({
-    body: {
-      file: 'file content',
-      text: 'text content',
-      text2: ['another text content', 'another text content 2'],
-    },
+
+  const res = await runtime.page.waitForResponse(/\/upload/)
+  const json = await res.json()
+
+  expect(json).toEqual({
+    file: 'file content',
+    text: 'text content',
+    text2: ['another text content', 'another text content 2'],
   })
 })

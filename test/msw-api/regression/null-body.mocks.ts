@@ -1,8 +1,8 @@
 import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/api/books', () => {
-    return HttpResponse.text(null, { status: 204 })
+  rest.get('/api/books', () => {
+    return HttpResponse.plain(null, { status: 204 })
   }),
 )
 

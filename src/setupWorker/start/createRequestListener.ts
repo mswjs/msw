@@ -12,8 +12,7 @@ import { parseWorkerRequest } from '../../utils/request/parseWorkerRequest'
 import { handleRequest } from '../../utils/handleRequest'
 import { RequiredDeep } from '../../typeUtils'
 import { devUtils } from '../../utils/internal/devUtils'
-import { serializeResponse } from '../../utils/logging/serializeResponse'
-import { uuidv4 } from '../../utils/internal/uuidv4'
+import { toResponseInit } from '../../utils/toResponseInit'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -27,7 +26,8 @@ export const createRequestListener = (
     >,
   ) => {
     const messageChannel = new WorkerChannel(event.ports[0])
-    const requestId = uuidv4()
+
+    const requestId = message.payload.id
     const request = parseWorkerRequest(message.payload)
 
     try {
@@ -50,29 +50,24 @@ export const createRequestListener = (
             response,
             { request, handler, parsedRequest },
           ) {
-            // if (response.body instanceof ReadableStream) {
-            //   throw new Error(
-            //     devUtils.formatMessage(
-            //       'Failed to construct a mocked response with a "ReadableStream" body: mocked streams are not supported. Follow https://github.com/mswjs/msw/issues/1336 for more details.',
-            //     ),
-            //   )
-            // }
-
-            const responseInit = serializeResponse(response)
+            // Clone the mocked response so its body could be read
+            // to buffer to be sent to the worker and also in the
+            // ".log()" method of the request handler.
+            const responseClone = response.clone()
+            const responseInit = toResponseInit(response)
             const responseBuffer = await response.arrayBuffer()
 
             // If the mocked response has no body, keep it that way.
             // Sending an empty "ArrayBuffer" to the worker will cause
             // the worker constructing "new Response(new ArrayBuffer(0))"
             // which will throw on responses that must have no body (i.e. 204).
-            // const responseBody =
-            //   response.body == null ? null : responseBuffer
+            const responseBody = response.body == null ? null : responseBuffer
 
             messageChannel.postMessage(
               'MOCK_RESPONSE',
               {
                 ...responseInit,
-                body: responseBuffer,
+                body: responseBody,
               },
               // Transfer response's buffer so it could
               // be sent over to the worker.
@@ -81,7 +76,7 @@ export const createRequestListener = (
 
             if (!options.quiet) {
               context.emitter.once('response:mocked', () => {
-                handler.log(request, responseInit, parsedRequest)
+                handler.log(request, responseClone, parsedRequest)
               })
             }
           },

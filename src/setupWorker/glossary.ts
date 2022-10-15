@@ -1,4 +1,3 @@
-import { HeadersObject } from 'headers-polyfill'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,
@@ -7,7 +6,6 @@ import {
 } from '../sharedOptions'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import {
-  DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
 } from '../handlers/RequestHandler'
@@ -76,13 +74,17 @@ export type ServiceWorkerOutgoingEventTypes =
   | 'KEEPALIVE_REQUEST'
   | 'CLIENT_CLOSED'
 
+export interface StringifiedResponse extends ResponseInit {
+  body: string | ArrayBuffer | null
+}
+
 /**
  * Map of the events that can be sent to the Service Worker
  * only as a part of a single `fetch` event handler.
  */
 export interface ServiceWorkerFetchEventMap {
-  MOCK_RESPONSE(payload: SerializedResponse): void
-  MOCK_RESPONSE_START(payload: SerializedResponse): void
+  MOCK_RESPONSE(payload: StringifiedResponse): void
+  MOCK_RESPONSE_START(payload: StringifiedResponse): void
 
   MOCK_NOT_FOUND(): void
   NETWORK_ERROR(payload: { name: string; message: string }): void
@@ -99,7 +101,7 @@ export interface SetupWorkerInternalContext {
   startOptions?: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  requestHandlers: RequestHandler[]
+  requestHandlers: Array<RequestHandler>
   emitter: StrictEventEmitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {
@@ -189,14 +191,6 @@ export interface StartOptions extends SharedOptions {
    * of all registered Service Workers on the page.
    */
   findWorker?: FindWorker
-}
-
-export interface SerializedResponse<BodyType extends DefaultBodyType = any> {
-  status: number
-  statusText: string
-  headers: HeadersObject
-  body: BodyType
-  delay?: number
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>

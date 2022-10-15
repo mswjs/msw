@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  */
+import { Request } from '../../fetch'
 import { getRequestCookies } from './getRequestCookies'
-import { MockedRequest } from './MockedRequest'
 
 const prevLocation = global.location
 
@@ -21,7 +21,7 @@ afterAll(() => {
 
 test('returns empty object when in a node environment with polyfilled location object', () => {
   const cookies = getRequestCookies(
-    new MockedRequest(new URL('/user', location.origin), {
+    new Request(new URL('/user', location.href), {
       credentials: 'include',
     }),
   )

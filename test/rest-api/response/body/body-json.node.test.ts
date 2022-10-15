@@ -2,15 +2,15 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('http://localhost/json', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  rest.get('http://localhost/json', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
-  rest.get('http://localhost/number', (req, res, ctx) => {
-    return res(ctx.json(123))
+  rest.get('http://localhost/number', () => {
+    return HttpResponse.json(123)
   }),
 )
 

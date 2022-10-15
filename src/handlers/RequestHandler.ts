@@ -6,7 +6,6 @@ import { status } from '../context/status'
 import { set } from '../context/set'
 import { delay } from '../context/delay'
 import { type ResponseResolutionContext } from '../utils/getResponse'
-import { type SerializedResponse } from '../setupWorker/glossary'
 
 export type DefaultContext = {
   status: typeof status
@@ -83,16 +82,18 @@ export interface RequestHandlerPublicOptions {
   once?: boolean
 }
 
-export interface RequestHandlerExecutionResult {
+export interface RequestHandlerExecutionResult<
+  ParsedResult extends Record<string, unknown>,
+> {
   handler: RequestHandler
-  parsedResult: any | undefined
+  parsedResult?: ParsedResult
   request: Request
   response?: Response
 }
 
 export abstract class RequestHandler<
   HandlerInfo extends RequestHandlerDefaultInfo = RequestHandlerDefaultInfo,
-  ParsedResult extends Record<string, unknown> | undefined = any,
+  ParsedResult extends Record<string, unknown> = any,
   ResolverExtras extends Record<string, unknown> = any,
 > {
   public info: HandlerInfo & RequestHandlerInternalInfo
@@ -142,7 +143,7 @@ export abstract class RequestHandler<
    */
   abstract log(
     request: Request,
-    response: SerializedResponse<any>,
+    response: Response,
     parsedResult: ParsedResult,
   ): void
 
@@ -185,7 +186,7 @@ export abstract class RequestHandler<
   public async run(
     request: Request,
     resolutionContext?: ResponseResolutionContext,
-  ): Promise<RequestHandlerExecutionResult | null> {
+  ): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.once) {
       return null
     }
@@ -235,8 +236,17 @@ export abstract class RequestHandler<
       const result = this.resolverGenerator || (await resolver(info))
 
       if (isIterable<AsyncResponseResolverReturnType>(result)) {
+        // Immediately mark this handler as unused.
+        // Only when the generator is done, the handler will be
+        // considered used.
+        this.isUsed = false
+
         const { value, done } = result[Symbol.iterator]().next()
         const nextResponse = await value
+
+        if (done) {
+          this.isUsed = true
+        }
 
         // If the generator is done and there is no next value,
         // return the previous generator's value.
@@ -269,7 +279,7 @@ export abstract class RequestHandler<
     request: Request,
     parsedResult: ParsedResult,
     response?: Response,
-  ): RequestHandlerExecutionResult {
+  ): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
       parsedResult,
@@ -277,25 +287,4 @@ export abstract class RequestHandler<
       response,
     }
   }
-}
-
-/**
- * Bypass this intercepted request.
- * This will make a call to the actual endpoint requested.
- */
-export function passthrough(): Response {
-  // Constructing a "101 Continue" mocked response
-  // to keep the return type of the resolver consistent.
-  return new Response(null, { status: 101 })
-
-  // return {
-  //   status: 101,
-  //   statusText: 'Continue',
-  //   headers: new Headers(),
-  //   body: null,
-  //   // Setting "passthrough" to true will signal the response pipeline
-  //   // to perform this intercepted request as-is.
-  //   passthrough: true,
-  //   once: false,
-  // }
 }

@@ -1,19 +1,27 @@
 /**
  * @jest-environment jsdom
  */
+import { Request } from '../../fetch'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
-import { MockedRequest } from './MockedRequest'
 
-test('returns an absolute URL string given its origin differs from the referrer', () => {
-  const request = new MockedRequest(new URL('https://test.mswjs.io/path'), {
-    referrer: 'http://localhost',
-  })
-  expect(getPublicUrlFromRequest(request)).toBe('https://test.mswjs.io/path')
+test('returns an absolute request URL withouth search params', () => {
+  expect(
+    getPublicUrlFromRequest(new Request(new URL('https://test.mswjs.io/path'))),
+  ).toBe('https://test.mswjs.io/path')
+
+  expect(
+    getPublicUrlFromRequest(new Request(new URL('http://localhost/path'))),
+  ).toBe('/path')
+
+  expect(
+    getPublicUrlFromRequest(
+      new Request(new URL('http://localhost/path?foo=bar')),
+    ),
+  ).toBe('/path')
 })
 
-test('returns a relative URL string given its origin matches the referrer', () => {
-  const request = new MockedRequest(new URL('http://localhost/path'), {
-    referrer: 'http://localhost',
-  })
-  expect(getPublicUrlFromRequest(request)).toBe('/path')
+it('returns a relative URL given the request to the same origin', () => {
+  expect(getPublicUrlFromRequest(new Request('http://localhost/user'))).toBe(
+    '/user',
+  )
 })

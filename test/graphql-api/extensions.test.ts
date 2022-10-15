@@ -23,7 +23,7 @@ test('mocks a GraphQL response with both data and extensions', async () => {
   const status = res.status()
   const body: ExecutionResult = await res.json()
 
-  expect(status).toEqual(200)
+  expect(status).toBe(200)
   expect(body.errors).toBeUndefined()
   expect(body.data).toEqual({
     user: {

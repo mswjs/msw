@@ -22,7 +22,7 @@ export const HttpResponse = {
   },
 
   /**
-   * Define a `Response` with a `Content-Type: "text/plain"` body.
+   * Create a `Response` with a `Content-Type: "text/plain"` body.
    * @example
    * HttpResponse.text('hello world')
    * HttpResponse.text('Error', { status: 500 })
@@ -37,7 +37,7 @@ export const HttpResponse = {
   },
 
   /**
-   * Define a `Response` with a `Content-Type: "application/json"` body.
+   * Create a `Response` with a `Content-Type: "application/json"` body.
    * @example
    * HttpResponse.json({ firstName: 'John' })
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
@@ -55,7 +55,7 @@ export const HttpResponse = {
   },
 
   /**
-   * Define a `Response` with a `Content-Type: "application/xml"` body.
+   * Create a `Response` with a `Content-Type: "application/xml"` body.
    * @example
    * HttpResponse.xml(`<user name="John" />`)
    * HttpResponse.xml(`<article id="abc-123" />`, { status: 201 })
@@ -69,6 +69,15 @@ export const HttpResponse = {
     return createResponse(body, responseInit)
   },
 
+  /**
+   * Create a `Response` with an `ArrayBuffer` body.
+   * @example
+   * const buffer = new ArrayBuffer(3)
+   * const view = new Uint8Array(buffer)
+   * view.set([1, 2, 3])
+   *
+   * HttpResponse.arrayBuffer(buffer)
+   */
   arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
     const responseInit = decorateResponseInit(init)
 
@@ -80,10 +89,17 @@ export const HttpResponse = {
   },
 
   /**
-   * @todo Support:
-   * - FormData
-   * - ReadableStream
+   * Create a `Response` with a `FormData` body.
+   * @example
+   * const data = new FormData()
+   * data.set('name', 'Alice')
+   *
+   * HttpResponse.formData(data)
    */
+  formData(data?: FormData, init?: HttpResponseInit): Response {
+    const responseInit = decorateResponseInit(init)
+    return createResponse(data, responseInit)
+  },
 }
 
 function createResponse(

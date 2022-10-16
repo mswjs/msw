@@ -22,3 +22,7 @@ export const Blob: typeof globalThis.Blob = globalThis.Blob
 export const FormData: typeof globalThis.FormData = globalThis.FormData
   ? globalThis.FormData
   : require('@remix-run/web-fetch').FormData
+
+export const File: typeof globalThis.File = globalThis.File
+  ? globalThis.File
+  : require('formdata-node').File

@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <form id="sign-in-form">
-      <input name="username" value="john.maverick" />
-      <input name="password" type="password" value="secret123" />
-      <button>Sign in</button>
-    </form>
-
     <script>
-      const form = document.getElementById('sign-in-form')
-      form.addEventListener('submit', (event) => {
-        event.preventDefault()
-        const formData = new FormData(form)
+      window.makeRequest = () => {
+        const data = new FormData()
+        data.set('name', 'Alice')
+        data.set('file', new File(['hello world'], 'file.txt'))
 
-        fetch('/deprecated', {
+        fetch('/formData', {
           method: 'POST',
-          body: formData,
+          body: data,
         })
-      })
+      }
     </script>
   </body>
 </html>

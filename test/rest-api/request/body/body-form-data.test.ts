@@ -1,26 +1,27 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
 
-/**
- * @todo Add `HttpResponse.formData()` support.
- * Stop relying on the deprecated `.body` property
- * that's no longer there!
- */
-test.skip('handles FormData as a request body', async () => {
+declare global {
+  interface Window {
+    makeRequest(): void
+  }
+}
+
+test('handles FormData as a request body', async () => {
   const { page, makeUrl } = await pageWith({
     example: path.resolve(__dirname, 'body.mocks.ts'),
     markup: path.resolve(__dirname, 'body-form-data.page.html'),
   })
 
-  await page.click('button')
+  await page.evaluate(() => window.makeRequest())
 
-  const res = await page.waitForResponse(makeUrl('/deprecated'))
+  const res = await page.waitForResponse(makeUrl('/formData'))
   const status = res.status()
   const json = await res.json()
 
   expect(status).toBe(200)
   expect(json).toEqual({
-    username: 'john.maverick',
-    password: 'secret123',
+    name: 'Alice',
+    fileText: 'hello world',
   })
 })

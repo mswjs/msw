@@ -1,4 +1,3 @@
-import * as cookieUtils from 'cookie'
 import httpStatusTexts from 'statuses/codes.json'
 import { Headers } from 'headers-polyfill'
 import { Response } from '../fetch'
@@ -118,19 +117,22 @@ function decorateResponse(
   init: HttpResponseDecoratedInit,
 ): Response {
   // Allow to mock the response type.
-  if (init?.type) {
+  if (init.type) {
     defineReadOnly(response, 'type', init.type)
   }
 
-  // Write the mocked response cookies to the document.
-  const responseCookie = init?.headers?.get('Set-Cookie')
-  if (responseCookie && typeof document !== 'undefined') {
-    /**
-     * @todo Support multiple "Set-Cookie" response headers.
-     */
-    const cookies = cookieUtils.parse(responseCookie)
-    for (const cookieName in cookies) {
-      document.cookie = `${cookieName}=${cookies[cookieName]}`
+  // Cookie forwarding is only relevant in the browser.
+  if (typeof document !== 'undefined') {
+    // Write the mocked response cookies to the document.
+    // Note that Fetch API Headers will concatenate multiple "Set-Cookie"
+    // headers into a single comma-separated string, just as it does
+    // with any other multi-value headers.
+    const responseCookies = init.headers.get('Set-Cookie')?.split(',') || []
+
+    for (const cookieString of responseCookies) {
+      // No need to parse the cookie headers because it's defined
+      // as the valid cookie string to begin with.
+      document.cookie = cookieString
     }
   }
 

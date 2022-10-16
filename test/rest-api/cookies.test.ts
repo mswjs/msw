@@ -1,9 +1,24 @@
 import * as path from 'path'
 import * as cookieUtils from 'cookie'
-import { pageWith } from 'page-with'
+import { Page, pageWith } from 'page-with'
 
 function createRuntime() {
   return pageWith({ example: path.resolve(__dirname, 'cookies.mocks.ts') })
+}
+
+async function getDocumentCookies(
+  page: Page,
+): Promise<Array<Record<string, string>>> {
+  const documentCookie = await page.evaluate(() => {
+    return document.cookie
+  })
+
+  const allCookies = documentCookie.split('; ').map((cookieString) => {
+    // The cookie parser only supports one cookie string at a time.
+    return cookieUtils.parse(cookieString)
+  })
+
+  return allCookies
 }
 
 test('allows setting cookies on the mocked response', async () => {
@@ -19,12 +34,17 @@ test('allows setting cookies on the mocked response', async () => {
     mocked: true,
   })
 
-  // Should be able to access the response cookies.
-  const cookieString = await runtime.page.evaluate(() => {
-    return document.cookie
-  })
-  const allCookies = cookieUtils.parse(cookieString)
-  expect(allCookies).toEqual({ myCookie: 'value' })
+  // Must forward the mocked response cookie to the document.
+  const allCookies = await getDocumentCookies(runtime.page)
+  expect(allCookies).toEqual([
+    {
+      /**
+       * @note There's no way to read cookie attributes
+       * in JavaScript. "document.cookie" strips them.
+       */
+      myCookie: 'value',
+    },
+  ])
 })
 
 test('allows setting multiple response cookies', async () => {
@@ -36,12 +56,14 @@ test('allows setting multiple response cookies', async () => {
   expect(headers).toHaveProperty('x-powered-by', 'msw')
   expect(headers).not.toHaveProperty('set-cookie')
 
-  const cookieString = await runtime.page.evaluate(() => {
-    return document.cookie
-  })
-  const allCookies = cookieUtils.parse(cookieString)
-  expect(allCookies).toEqual({
-    firstCookie: 'yes',
-    secondCookie: 'no',
-  })
+  const allCookies = await getDocumentCookies(runtime.page)
+
+  expect(allCookies).toEqual([
+    {
+      firstCookie: 'yes',
+    },
+    {
+      secondCookie: 'no',
+    },
+  ])
 })

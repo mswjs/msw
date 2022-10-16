@@ -1,4 +1,4 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { setupWorker, rest, HttpResponse, Headers } from 'msw'
 
 const worker = setupWorker(
   rest.get('/user', () => {
@@ -8,28 +8,28 @@ const worker = setupWorker(
       },
       {
         headers: {
-          /**
-           * @todo "cookie" parser will treat this as two
-           * separate cookies. It's because it expects
-           * a single cookie string. This is also what
-           * "document.cookie" expects. But "Headers" don't
-           * support defining multiple "Set-Cookie" values.
-           * @see https://stackoverflow.com/a/63254504/2754939
-           */
-          'Set-Cookie': 'myCookie=value; Max-Age=2592000',
+          'Set-Cookie': 'myCookie=value; Max-Age=2000',
         },
       },
     )
   }),
   rest.get('/order', () => {
+    const headers = new Headers()
+
+    /**
+     * @note Fetch API Headers don't support multi-value headers
+     * in the HeadersInit. You can, however, set multiple
+     * values by using the "append" method.
+     */
+    headers.append('Set-Cookie', 'firstCookie=yes')
+    headers.append('Set-Cookie', 'secondCookie=no; Max-Age=1000')
+
     return HttpResponse.json(
       {
         mocked: true,
       },
       {
-        headers: {
-          'Set-Cookie': 'firstCookie=yes; secondCookie=no',
-        },
+        headers,
       },
     )
   }),

@@ -1,3 +1,7 @@
+export const Headers: typeof globalThis.Headers = globalThis.Headers
+  ? globalThis.Headers
+  : require('headers-polyfill').Headers
+
 export const Request: typeof globalThis.Request = globalThis.Request
   ? globalThis.Request
   : require('@remix-run/web-fetch').Request

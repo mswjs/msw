@@ -167,7 +167,7 @@ export interface StartOptions extends SharedOptions {
   serviceWorker?: {
     /**
      * Custom url to the worker script.
-     * @default "./mockServiceWorker.js"
+     * @default "/mockServiceWorker.js"
      */
     url?: string
     options?: RegistrationOptions

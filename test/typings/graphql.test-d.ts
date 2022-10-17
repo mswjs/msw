@@ -1,11 +1,36 @@
 import { parse } from 'graphql'
-import {
-  MockedRequest,
-  GraphQLRequest,
-  graphql,
-  GraphQLHandler,
-  GraphQLVariables,
-} from 'msw'
+import { graphql, GraphQLHandler, GraphQLVariables, HttpResponse } from 'msw'
+
+/**
+ * Response body type (GraphQL query type).
+ */
+// Returned mocked response body must satisfy the
+// GraphQL query generic.
+graphql.query<{ id: string }>('GetUser', () => {
+  return HttpResponse.json({
+    data: { id: '2' },
+  })
+})
+
+graphql.query<{ id: string }>(
+  'GetUser',
+  // @ts-expect-error "id" type is incorrect
+  () => {
+    return HttpResponse.json({
+      data: { id: 123 },
+    })
+  },
+)
+
+graphql.query<{ id: string }>(
+  'GetUser',
+  // @ts-expect-error response json is empty
+  () => HttpResponse.json({ data: {} }),
+)
+
+///
+///
+///
 
 graphql.query<{ key: string }>('', (req, res, ctx) => {
   return res(

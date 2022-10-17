@@ -1,5 +1,6 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
 import {
+  DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
   ResponseResolver,
@@ -44,6 +45,10 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   variables?: Variables
 }
 
+export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
+  data: BodyType
+}
+
 export function isDocumentNode(
   value: DocumentNode | any,
 ): value is DocumentNode {
@@ -66,7 +71,7 @@ export class GraphQLHandler extends RequestHandler<
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
-    resolver: ResponseResolver<GraphQLResolverExtras<any>>,
+    resolver: ResponseResolver<GraphQLResolverExtras<any>, any>,
   ) {
     let resolvedOperationName = operationName
 

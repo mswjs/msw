@@ -33,14 +33,14 @@ test('prints the response info to the console', async () => {
   // Must print the response summary to the console.
   expect(getResponseLogs(firstResponseLogRegexp)).toHaveLength(1)
 
-  const secondResopnseLogRegexp = createResponseLogRegexp('john.doe')
+  const secondResponseLogRegexp = createResponseLogRegexp('john.doe')
   await runtime.request('https://api.github.com/users/john.doe')
-  await waitForResponseLog(secondResopnseLogRegexp)
+  await waitForResponseLog(secondResponseLogRegexp)
 
   /**
    * Must not duplicate response logs for the current and previous requests.
    * @see https://github.com/mswjs/msw/issues/1411
    */
-  expect(getResponseLogs(secondResopnseLogRegexp)).toHaveLength(1)
+  expect(getResponseLogs(secondResponseLogRegexp)).toHaveLength(1)
   expect(getResponseLogs(firstResponseLogRegexp)).toHaveLength(1)
 })

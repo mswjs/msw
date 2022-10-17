@@ -6,6 +6,7 @@ import {
   ExpectedOperationTypeNode,
   GraphQLHandlerNameSelector,
   GraphQLResolverExtras,
+  GraphQLResponseBody,
 } from './handlers/GraphQLHandler'
 import { Path } from './utils/matching/matchRequestUrl'
 
@@ -30,7 +31,11 @@ function createScopedGraphQLHandler(
       | GraphQLHandlerNameSelector
       | DocumentNode
       | TypedDocumentNode<Query, Variables>,
-    resolver: ResponseResolver<GraphQLResolverExtras<Variables>>,
+    resolver: ResponseResolver<
+      GraphQLResolverExtras<Variables>,
+      null,
+      GraphQLResponseBody<Query>
+    >,
   ) => {
     return new GraphQLHandler(operationType, operationName, url, resolver)
   }

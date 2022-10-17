@@ -364,7 +364,7 @@ Instead, you can abstract a common response logic into a plain function and alwa
 import { Response } from 'msw'
 
 export function augmentResponse() {
-  const response = new Resopnse()
+  const response = new Response()
   response.headers.set('X-Response-Source', 'mocks')
   return response
 }

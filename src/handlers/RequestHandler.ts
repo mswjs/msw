@@ -3,6 +3,7 @@ import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import { type ResponseResolutionContext } from '../utils/getResponse'
 import { type MaybePromise } from '../typeUtils'
+import { type StrictResponse } from '../utils/HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -26,17 +27,22 @@ export interface RequestHandlerInternalInfo {
   callFrame?: string
 }
 
-export type ResponseResolverReturnType = Response | undefined | void
+export type ResponseResolverReturnType<BodyType extends DefaultBodyType> =
+  | Response
+  | StrictResponse<BodyType>
+  | undefined
+  | void
 
-export type MaybeAsyncResponseResolverReturnType =
-  MaybePromise<ResponseResolverReturnType>
+export type MaybeAsyncResponseResolverReturnType<
+  BodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<BodyType>>
 
-export type AsyncResponseResolverReturnType =
-  | MaybeAsyncResponseResolverReturnType
+export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
+  | MaybeAsyncResponseResolverReturnType<BodyType>
   | Generator<
-      MaybeAsyncResponseResolverReturnType,
-      MaybeAsyncResponseResolverReturnType,
-      MaybeAsyncResponseResolverReturnType
+      MaybeAsyncResponseResolverReturnType<BodyType>,
+      MaybeAsyncResponseResolverReturnType<BodyType>,
+      MaybeAsyncResponseResolverReturnType<BodyType>
     >
 
 export type ResponseResolverInfo<
@@ -47,9 +53,10 @@ export type ResponseResolverInfo<
 
 export type ResponseResolver<
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
+  ResponseBodyType extends DefaultBodyType = DefaultBodyType,
 > = (
   info: ResponseResolverInfo<ResolverExtraInfo>,
-) => AsyncResponseResolverReturnType
+) => AsyncResponseResolverReturnType<ResponseBodyType>
 
 export interface RequestHandlerOptions<HandlerInfo>
   extends RequestHandlerPublicOptions {
@@ -82,13 +89,13 @@ export abstract class RequestHandler<
    */
   public isUsed: boolean
 
-  protected resolver: ResponseResolver<ResolverExtras>
+  protected resolver: ResponseResolver<ResolverExtras, any>
   private resolverGenerator?: Generator<
-    MaybeAsyncResponseResolverReturnType,
-    MaybeAsyncResponseResolverReturnType,
-    MaybeAsyncResponseResolverReturnType
+    MaybeAsyncResponseResolverReturnType<any>,
+    MaybeAsyncResponseResolverReturnType<any>,
+    MaybeAsyncResponseResolverReturnType<any>
   >
-  private resolverGeneratorResult?: ResponseResolverReturnType
+  private resolverGeneratorResult?: ResponseResolverReturnType<any>
   private once: boolean
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
@@ -206,11 +213,13 @@ export abstract class RequestHandler<
 
   private wrapResolver(
     resolver: ResponseResolver<ResolverExtras>,
-  ): ResponseResolver<ResolverExtras> {
-    return async (info): Promise<Response | undefined | void> => {
+  ): ResponseResolver<any, ResolverExtras> {
+    return async (
+      info,
+    ): Promise<StrictResponse<any> | Response | undefined | void> => {
       const result = this.resolverGenerator || (await resolver(info))
 
-      if (isIterable<AsyncResponseResolverReturnType>(result)) {
+      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
         // Immediately mark this handler as unused.
         // Only when the generator is done, the handler will be
         // considered used.

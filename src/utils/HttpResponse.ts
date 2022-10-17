@@ -1,6 +1,7 @@
 import httpStatusTexts from 'statuses/codes.json'
 import { Headers } from 'headers-polyfill'
 import { Response } from '../fetch'
+import { type DefaultBodyType } from '../handlers/RequestHandler'
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
@@ -10,6 +11,16 @@ export interface HttpResponseDecoratedInit extends HttpResponseInit {
   status: number
   statusText: string
   headers: Headers
+}
+
+declare const responseBodyType: unique symbol
+
+/**
+ * Opaque `Response` type that supports strict body type.
+ */
+export interface StrictResponse<BodyType extends DefaultBodyType>
+  extends Response {
+  readonly [responseBodyType]: BodyType
 }
 
 export const HttpResponse = {
@@ -30,7 +41,7 @@ export const HttpResponse = {
   text<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
-  ): Response {
+  ): StrictResponse<BodyType> {
     const responseInit = decorateResponseInit(init)
     responseInit.headers.set('Content-Type', 'text/plain')
     return createResponse(body, responseInit)
@@ -48,7 +59,7 @@ export const HttpResponse = {
       | Array<unknown>
       | boolean
       | number,
-  >(body?: BodyType | null, init?: HttpResponseInit): Response {
+  >(body?: BodyType | null, init?: HttpResponseInit): StrictResponse<BodyType> {
     const responseInit = decorateResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')
     return createResponse(JSON.stringify(body), responseInit)
@@ -78,7 +89,7 @@ export const HttpResponse = {
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit) {
     const responseInit = decorateResponseInit(init)
 
     if (body) {
@@ -105,10 +116,10 @@ export const HttpResponse = {
 function createResponse(
   body: BodyInit | null | undefined,
   init: HttpResponseDecoratedInit,
-): Response {
+): StrictResponse<any> {
   const response = new Response(body, init)
   decorateResponse(response, init)
-  return response
+  return response as StrictResponse<any>
 }
 
 function decorateResponseInit(

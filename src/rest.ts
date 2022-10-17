@@ -1,4 +1,5 @@
 import {
+  DefaultBodyType,
   type RequestHandlerPublicOptions,
   type ResponseResolver,
 } from './handlers/RequestHandler'
@@ -14,10 +15,14 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
 ) {
   return <
     Params extends PathParams<keyof Params> = PathParams,
-    // ResponseBody extends DefaultBodyType = DefaultBodyType,
+    _RequestBodyType extends DefaultBodyType = DefaultBodyType,
+    ResponseBodyType extends DefaultBodyType = DefaultBodyType,
   >(
     path: Path,
-    resolver: ResponseResolver<RestRequestResolverExtras<Params>>,
+    resolver: ResponseResolver<
+      RestRequestResolverExtras<Params>,
+      ResponseBodyType
+    >,
     options: RequestHandlerPublicOptions = {},
   ) => {
     return new RestHandler(method, path, resolver, options)

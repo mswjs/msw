@@ -1,4 +1,33 @@
-import { rest } from 'msw'
+import { rest, HttpResponse } from 'msw'
+
+/**
+ * Response body generic.
+ */
+rest.get<never, never, { id: number }>('/user', () => {
+  return HttpResponse.json({ id: 1 })
+})
+
+rest.get<never, never, { id: number }>(
+  '/user',
+  // @ts-expect-error String not assignable to number
+  () => HttpResponse.json({ id: 'invalid' }),
+)
+
+rest.get<never, never, { id: number }>(
+  '/user',
+  // @ts-expect-error Missing property "id"
+  () => HttpResponse.json({}),
+)
+
+rest.get<never, never, { id: number }>(
+  '/user',
+  // @ts-expect-error Unknown property "invalid"
+  () => HttpResponse.json({ id: 1, invalid: true }),
+)
+
+//
+//
+//
 
 rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
   // @ts-expect-error `session` property is not defined on the request body type.

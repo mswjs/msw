@@ -1,6 +1,51 @@
 import { rest, HttpResponse } from 'msw'
 
 /**
+ * Request path parameters.
+ */
+rest.get<{ id: string }>('/user/:id', ({ params }) => {
+  params.id.toUpperCase()
+
+  // @ts-expect-error Unknown path parameter
+  params.unknown
+})
+
+rest.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
+  params.a.toUpperCase()
+  params.b.map((x) => x)
+
+  // @ts-expect-error Unknown path parameter
+  params.unknown
+})
+
+// Supports path parameters declaration via type.
+type UserPathParams = { id: string }
+rest.get<UserPathParams>('/user/:id', ({ params }) => {
+  params.id.toUpperCase()
+
+  // @ts-expect-error Unknown path parameter
+  params.unknown
+})
+
+// Supports path parameters declaration via interface.
+interface PostPathParameters {
+  id: string
+}
+rest.get<PostPathParameters>('/user/:id', ({ params }) => {
+  params.id.toUpperCase()
+
+  // @ts-expect-error Unknown path parameter
+  params.unknown
+})
+
+rest.get<never>('/user/:a/:b', ({ params }) => {
+  // @ts-expect-error Unknown path parameter
+  params.a.toUpperCase()
+  // @ts-expect-error Unknown path parameter
+  params.b.map((x) => x)
+})
+
+/**
  * Request body generic.
  */
 rest.post<never, { id: string }>('/user', async ({ request }) => {
@@ -41,66 +86,14 @@ rest.get<never, never, { id: number }>(
   () => HttpResponse.json({}),
 )
 
-//
-//
-//
-
-rest.get<never, never, { postCount: number }>('/user', (req, res, ctx) => {
-  // @ts-expect-error `session` property is not defined on the request body type.
-  req.body.session
-
-  res(
-    // @ts-expect-error JSON doesn't match given response body generic type.
-    ctx.json({ unknown: true }),
-  )
-
-  res(
-    // @ts-expect-error value types do not match
-    ctx.json({ postCount: 'this is not a number' }),
-  )
-
-  return res(ctx.json({ postCount: 2 }))
-})
-
-rest.post<// @ts-expect-error `null` is not a valid request body type.
-null>('/submit', () => null)
-
-rest.get<
-  any,
-  // @ts-expect-error `null` is not a valid response body type.
-  null
->('/user', () => null)
-
-rest.get<never, never, { label: boolean }>('/user', (req, res, ctx) =>
-  // allow ResponseTransformer to contain a more specific type
-  res(ctx.json({ label: true })),
+// Response resolver can return a response body of a
+// narrower type than defined in the generic.
+rest.get<never, never, string | string[]>('/user', () =>
+  HttpResponse.json(['value']),
 )
 
-rest.get<never, never, string | string[]>('/user', (req, res, ctx) =>
-  // allow ResponseTransformer to return a narrower type than a given union
-  res(ctx.json('hello')),
+// Response resolver can return a more specific type
+// than provided in the response generic.
+rest.get<never, never, { label: boolean }>('/user', () =>
+  HttpResponse.json({ label: true }),
 )
-
-rest.head('/user', (req) => {
-  // @ts-expect-error GET requests cannot have body.
-  req.body.toString()
-})
-
-rest.head<string>('/user', (req) => {
-  // @ts-expect-error GET requests cannot have body.
-  req.body.toString()
-})
-
-rest.get('/user', (req) => {
-  // @ts-expect-error GET requests cannot have body.
-  req.body.toString()
-})
-
-rest.get<string>('/user', (req) => {
-  // @ts-expect-error GET requests cannot have body.
-  req.body.toString()
-})
-
-rest.post<{ userId: string }>('/user', (req) => {
-  req.body.userId.toUpperCase()
-})

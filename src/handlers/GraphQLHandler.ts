@@ -1,13 +1,5 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
-import { data } from '../context/data'
-import { extensions } from '../context/extensions'
-import { errors } from '../context/errors'
-import { field } from '../context/field'
-import { GraphQLPayloadContext } from '../typeUtils'
-import { cookie } from '../context/cookie'
 import {
-  defaultContext,
-  DefaultContext,
   RequestHandler,
   RequestHandlerDefaultInfo,
   ResponseResolver,
@@ -28,27 +20,6 @@ import { devUtils } from '../utils/internal/devUtils'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
-
-// GraphQL related context should contain utility functions
-// useful for GraphQL. Functions like `xml()` bear no value
-// in the GraphQL universe.
-export type GraphQLContext<QueryType extends Record<string, unknown>> =
-  DefaultContext & {
-    data: GraphQLPayloadContext<QueryType>
-    extensions: GraphQLPayloadContext<QueryType>
-    errors: typeof errors
-    cookie: typeof cookie
-    field: typeof field
-  }
-
-export const graphqlContext: GraphQLContext<any> = {
-  ...defaultContext,
-  data,
-  extensions,
-  errors,
-  cookie,
-  field,
-}
 
 export type GraphQLVariables = Record<string, any>
 
@@ -95,7 +66,7 @@ export class GraphQLHandler extends RequestHandler<
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
-    resolver: ResponseResolver<GraphQLContext<any>, GraphQLResolverExtras<any>>,
+    resolver: ResponseResolver<GraphQLResolverExtras<any>>,
   ) {
     let resolvedOperationName = operationName
 
@@ -128,7 +99,6 @@ export class GraphQLHandler extends RequestHandler<
         operationType,
         operationName: resolvedOperationName,
       },
-      ctx: graphqlContext,
       resolver,
     })
 

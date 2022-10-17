@@ -3,7 +3,6 @@
  */
 import {
   RestHandler,
-  RestContext,
   RestRequestResolverExtras,
   RestRequestParsedResult,
 } from './RestHandler'
@@ -14,7 +13,6 @@ import {
 } from './RequestHandler'
 
 const resolver: ResponseResolver<
-  RestContext,
   RestRequestResolverExtras<{ userId: string }>
 > = ({ params }) => {
   return HttpResponse.json({ userId: params.userId })

@@ -5,7 +5,6 @@ import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
 import { Headers } from 'headers-polyfill'
 import {
-  GraphQLContext,
   GraphQLHandler,
   GraphQLRequestBody,
   GraphQLResolverExtras,
@@ -15,10 +14,9 @@ import { HttpResponse } from '../utils/HttpResponse'
 import { ResponseResolver } from './RequestHandler'
 import { Request } from '../fetch'
 
-const resolver: ResponseResolver<
-  GraphQLContext<any>,
-  GraphQLResolverExtras<{ userId: string }>
-> = ({ variables }) => {
+const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
+  variables,
+}) => {
   return HttpResponse.json({
     data: {
       user: {

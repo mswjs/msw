@@ -4,7 +4,6 @@ import {
 } from './handlers/RequestHandler'
 import {
   RESTMethods,
-  type RestContext,
   RestHandler,
   RestRequestResolverExtras,
 } from './handlers/RestHandler'
@@ -18,7 +17,7 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
     // ResponseBody extends DefaultBodyType = DefaultBodyType,
   >(
     path: Path,
-    resolver: ResponseResolver<RestContext, RestRequestResolverExtras<Params>>,
+    resolver: ResponseResolver<RestRequestResolverExtras<Params>>,
     options: RequestHandlerPublicOptions = {},
   ) => {
     return new RestHandler(method, path, resolver, options)

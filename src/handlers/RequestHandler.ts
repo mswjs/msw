@@ -1,23 +1,8 @@
 import { invariant } from 'outvariant'
-import { MaybePromise } from '../response'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
-import { status } from '../context/status'
-import { set } from '../context/set'
-import { delay } from '../context/delay'
 import { type ResponseResolutionContext } from '../utils/getResponse'
-
-export type DefaultContext = {
-  status: typeof status
-  set: typeof set
-  delay: typeof delay
-}
-
-export const defaultContext: DefaultContext = {
-  status,
-  set,
-  delay,
-}
+import { type MaybePromise } from '../typeUtils'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -41,8 +26,6 @@ export interface RequestHandlerInternalInfo {
   callFrame?: string
 }
 
-type ContextMap = Record<string, (...args: Array<any>) => any>
-
 export type ResponseResolverReturnType = Response | undefined | void
 
 export type MaybeAsyncResponseResolverReturnType =
@@ -57,25 +40,21 @@ export type AsyncResponseResolverReturnType =
     >
 
 export type ResponseResolverInfo<
-  ContextType,
   ResolverExtraInfo extends Record<string, unknown>,
 > = {
   request: Request
-  ctx: ContextType
 } & ResolverExtraInfo
 
 export type ResponseResolver<
-  ContextType extends ContextMap = typeof defaultContext,
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
 > = (
-  info: ResponseResolverInfo<ContextType, ResolverExtraInfo>,
+  info: ResponseResolverInfo<ResolverExtraInfo>,
 ) => AsyncResponseResolverReturnType
 
 export interface RequestHandlerOptions<HandlerInfo>
   extends RequestHandlerPublicOptions {
   info: HandlerInfo
-  resolver: ResponseResolver<any, any>
-  ctx?: ContextMap
+  resolver: ResponseResolver<any>
 }
 
 export interface RequestHandlerPublicOptions {
@@ -103,19 +82,16 @@ export abstract class RequestHandler<
    */
   public isUsed: boolean
 
-  private once: boolean
-  private ctx: ContextMap
+  protected resolver: ResponseResolver<ResolverExtras>
   private resolverGenerator?: Generator<
     MaybeAsyncResponseResolverReturnType,
     MaybeAsyncResponseResolverReturnType,
     MaybeAsyncResponseResolverReturnType
   >
   private resolverGeneratorResult?: ResponseResolverReturnType
-
-  protected resolver: ResponseResolver<any, ResolverExtras>
+  private once: boolean
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
-    this.ctx = options.ctx || defaultContext
     this.resolver = options.resolver
     this.once = options.once || false
 
@@ -217,7 +193,6 @@ export abstract class RequestHandler<
     const mockedResponse = (await executeResolver({
       ...resolverExtras,
       request,
-      ctx: this.ctx,
     })) as Response
 
     const executionResult = this.createExecutionResult(
@@ -230,8 +205,8 @@ export abstract class RequestHandler<
   }
 
   private wrapResolver(
-    resolver: ResponseResolver<any, any>,
-  ): ResponseResolver<any, ResolverExtras> {
+    resolver: ResponseResolver<ResolverExtras>,
+  ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<Response | undefined | void> => {
       const result = this.resolverGenerator || (await resolver(info))
 

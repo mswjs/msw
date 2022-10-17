@@ -1,4 +1,3 @@
-import { body, cookie, json, text, xml } from '../context'
 import { ResponseResolutionContext } from '../utils/getResponse'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
@@ -16,8 +15,6 @@ import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromReques
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
-  defaultContext,
-  DefaultContext,
   RequestHandler,
   RequestHandlerDefaultInfo,
   RequestHandlerPublicOptions,
@@ -39,25 +36,6 @@ export enum RESTMethods {
   PATCH = 'PATCH',
   OPTIONS = 'OPTIONS',
   DELETE = 'DELETE',
-}
-
-// Declaring a context interface infers
-// JSDoc description of the referenced utils.
-export type RestContext = DefaultContext & {
-  cookie: typeof cookie
-  text: typeof text
-  body: typeof body
-  json: typeof json
-  xml: typeof xml
-}
-
-export const restContext: RestContext = {
-  ...defaultContext,
-  cookie,
-  body,
-  text,
-  json,
-  xml,
 }
 
 export type RequestQuery = {
@@ -86,7 +64,7 @@ export class RestHandler extends RequestHandler<
   constructor(
     method: RestHandlerMethod,
     path: Path,
-    resolver: ResponseResolver<any, RestRequestResolverExtras<any>>,
+    resolver: ResponseResolver<RestRequestResolverExtras<any>>,
     options?: RequestHandlerPublicOptions,
   ) {
     super({
@@ -95,7 +73,6 @@ export class RestHandler extends RequestHandler<
         path,
         method,
       },
-      ctx: restContext,
       resolver,
       once: options?.once,
     })

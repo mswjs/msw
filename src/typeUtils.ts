@@ -1,6 +1,6 @@
-import { ResponseTransformer } from './response'
-
 type Fn = (...arg: any[]) => any
+
+export type MaybePromise<T> = T | Promise<T>
 
 export type RequiredDeep<
   Type,
@@ -18,7 +18,3 @@ export type RequiredDeep<
         : RequiredDeep<NonNullable<Type[Key]>, U>
     }
   : Type
-
-export type GraphQLPayloadContext<QueryType extends Record<string, unknown>> = (
-  payload: QueryType,
-) => ResponseTransformer

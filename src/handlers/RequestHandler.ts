@@ -3,7 +3,7 @@ import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import { type ResponseResolutionContext } from '../utils/getResponse'
 import { type MaybePromise } from '../typeUtils'
-import { type StrictResponse } from '../utils/HttpResponse'
+import { StrictRequest, type StrictResponse } from '../utils/HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -47,15 +47,17 @@ export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
-  request: Request
+  request: StrictRequest<RequestBodyType>
 } & ResolverExtraInfo
 
 export type ResponseResolver<
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
   ResponseBodyType extends DefaultBodyType = DefaultBodyType,
 > = (
-  info: ResponseResolverInfo<ResolverExtraInfo>,
+  info: ResponseResolverInfo<ResolverExtraInfo, RequestBodyType>,
 ) => AsyncResponseResolverReturnType<ResponseBodyType>
 
 export interface RequestHandlerOptions<HandlerInfo>
@@ -167,7 +169,7 @@ export abstract class RequestHandler<
    * using the given resolver function.
    */
   public async run(
-    request: Request,
+    request: StrictRequest<any>,
     resolutionContext?: ResponseResolutionContext,
   ): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.once) {
@@ -213,7 +215,7 @@ export abstract class RequestHandler<
 
   private wrapResolver(
     resolver: ResponseResolver<ResolverExtras>,
-  ): ResponseResolver<any, ResolverExtras> {
+  ): ResponseResolver<ResolverExtras> {
     return async (
       info,
     ): Promise<StrictResponse<any> | Response | undefined | void> => {

@@ -1,6 +1,28 @@
 import { rest, HttpResponse } from 'msw'
 
 /**
+ * Request body generic.
+ */
+rest.post<never, { id: string }>('/user', async ({ request }) => {
+  const data = await request.json()
+  data.id
+
+  // @ts-expect-error Unknown property
+  data.unknown
+
+  const text = await request.text()
+  text.toUpperCase()
+  // @ts-expect-error Text remains plain text.
+  text.id
+})
+
+rest.get<never, null>('/user', async ({ request }) => {
+  const data = await request.json()
+  // @ts-expect-error Null is not an object
+  Object.keys(data)
+})
+
+/**
  * Response body generic.
  */
 rest.get<never, never, { id: number }>('/user', () => {
@@ -17,12 +39,6 @@ rest.get<never, never, { id: number }>(
   '/user',
   // @ts-expect-error Missing property "id"
   () => HttpResponse.json({}),
-)
-
-rest.get<never, never, { id: number }>(
-  '/user',
-  // @ts-expect-error Unknown property "invalid"
-  () => HttpResponse.json({ id: 1, invalid: true }),
 )
 
 //

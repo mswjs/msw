@@ -13,14 +13,19 @@ export interface HttpResponseDecoratedInit extends HttpResponseInit {
   headers: Headers
 }
 
-declare const responseBodyType: unique symbol
+declare const bodyType: unique symbol
 
 /**
  * Opaque `Response` type that supports strict body type.
  */
 export interface StrictResponse<BodyType extends DefaultBodyType>
   extends Response {
-  readonly [responseBodyType]: BodyType
+  readonly [bodyType]: BodyType
+}
+
+export interface StrictRequest<BodyType extends DefaultBodyType>
+  extends Request {
+  json(): Promise<BodyType>
 }
 
 export const HttpResponse = {

@@ -15,12 +15,13 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
 ) {
   return <
     Params extends PathParams<keyof Params> = PathParams,
-    _RequestBodyType extends DefaultBodyType = DefaultBodyType,
+    RequestBodyType extends DefaultBodyType = DefaultBodyType,
     ResponseBodyType extends DefaultBodyType = DefaultBodyType,
   >(
     path: Path,
     resolver: ResponseResolver<
       RestRequestResolverExtras<Params>,
+      RequestBodyType,
       ResponseBodyType
     >,
     options: RequestHandlerPublicOptions = {},

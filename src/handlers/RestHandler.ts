@@ -65,7 +65,11 @@ export class RestHandler extends RequestHandler<
   constructor(
     method: RestHandlerMethod,
     path: Path,
-    resolver: ResponseResolver<RestRequestResolverExtras<any>, DefaultBodyType>,
+    resolver: ResponseResolver<
+      RestRequestResolverExtras<any>,
+      any,
+      DefaultBodyType
+    >,
     options?: RequestHandlerPublicOptions,
   ) {
     super({

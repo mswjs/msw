@@ -10,7 +10,7 @@ import {
   GraphQLResolverExtras,
   isDocumentNode,
 } from './GraphQLHandler'
-import { HttpResponse } from '../utils/HttpResponse'
+import { HttpResponse } from '../HttpResponse'
 import { ResponseResolver } from './RequestHandler'
 import { Request } from '../fetch'
 

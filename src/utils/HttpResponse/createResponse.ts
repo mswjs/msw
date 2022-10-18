@@ -1,3 +1,4 @@
+import { Response } from '../../fetch'
 import type { StrictResponse } from '../../HttpResponse'
 import { decorateResponse, type HttpResponseDecoratedInit } from './decorators'
 

@@ -24,7 +24,7 @@ export interface StrictRequest<BodyType extends DefaultBodyType>
 
 export const HttpResponse = {
   plain<BodyType extends string | BodyInit>(
-    body?: BodyType,
+    body?: BodyType | null,
     init?: HttpResponseInit,
   ): Response {
     const responseInit = decorateResponseInit(init)

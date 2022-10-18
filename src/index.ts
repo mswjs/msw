@@ -41,10 +41,17 @@ export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { DelayMode } from './delay'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 
+/* Fetch API classes mirrors */
+export { Request } from './Request'
+export { Response } from './Response'
+export { ReadableStream } from './ReadableStream'
+export { Headers } from './Headers'
+export { FormData } from './FormData'
+export { Blob } from './Blob'
+export { File } from './File'
+
 export * from './HttpResponse'
 export * from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'
 export { NetworkError } from './NetworkError'
-
-export * from './fetch'

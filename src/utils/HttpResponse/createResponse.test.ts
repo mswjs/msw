@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { Headers } from 'headers-polyfill'
-import { ReadableStream } from '../../fetch'
+import { ReadableStream } from '../../ReadableStream'
 import { createResponse } from './createResponse'
 
 it('creates an empty response', () => {

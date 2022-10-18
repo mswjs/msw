@@ -7,7 +7,7 @@ import { rest } from '../rest'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { RequiredDeep } from '../typeUtils'
 import { uuidv4 } from './internal/uuidv4'
-import { Request } from '../fetch'
+import { Request } from '../Request'
 import { HttpResponse } from '../HttpResponse'
 import { passthrough } from '../passthrough'
 

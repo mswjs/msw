@@ -12,7 +12,7 @@ import {
 } from './GraphQLHandler'
 import { HttpResponse } from '../HttpResponse'
 import { ResponseResolver } from './RequestHandler'
-import { Request } from '../fetch'
+import { Request } from '../Request'
 
 const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
   variables,

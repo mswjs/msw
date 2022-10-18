@@ -47,7 +47,7 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
 
 export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
   data?: BodyType
-  errors?: Array<Partial<GraphQLError>>
+  errors?: readonly Partial<GraphQLError>[]
 }
 
 export function isDocumentNode(

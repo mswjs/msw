@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { Request } from '../../fetch'
+import { Request } from '../../Request'
 import { getRequestCookies } from './getRequestCookies'
 
 const prevLocation = global.location

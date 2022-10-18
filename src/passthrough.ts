@@ -1,4 +1,4 @@
-import { Response } from './fetch'
+import { Response } from './Response'
 
 /**
  * Instruct Mock Service Worker to perform this request as-is.

@@ -4,7 +4,7 @@ import {
 } from './onUnhandledRequest'
 import { RestHandler, RESTMethods } from '../../handlers/RestHandler'
 import { ResponseResolver } from '../../handlers/RequestHandler'
-import { Request } from '../../fetch'
+import { Request } from '../../Request'
 
 const resolver: ResponseResolver = () => void 0
 

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { Request } from './fetch'
+import { Request } from './Request'
 import { bypass } from './bypass'
 
 it('returns bypassed request given a request url string', () => {

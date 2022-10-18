@@ -2,7 +2,9 @@
  * @jest-environment node
  */
 import { encodeBuffer } from '@mswjs/interceptors'
-import { Blob, FormData, Response } from '../../fetch'
+import { Response } from '../../Response'
+import { Blob } from '../../Blob'
+import { FormData } from '../../FormData'
 import { serializeResponse } from './serializeResponse'
 
 it('serializes response without body', async () => {

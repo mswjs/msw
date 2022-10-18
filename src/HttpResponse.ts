@@ -1,4 +1,4 @@
-import { Response } from './fetch'
+import { Response } from './Response'
 import { type DefaultBodyType } from './handlers/RequestHandler'
 import { createResponse } from './utils/HttpResponse/createResponse'
 import { decorateResponseInit } from './utils/HttpResponse/decorators'

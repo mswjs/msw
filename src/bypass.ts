@@ -1,5 +1,5 @@
 import type { Request as RemixRequest } from '@remix-run/web-fetch'
-import { Request } from './fetch'
+import { Request } from './Request'
 
 /**
  * Creates a "Request" instance that, when fetched, will

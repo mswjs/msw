@@ -12,7 +12,10 @@ export interface ServiceWorkerMessage<
 }
 
 interface WorkerChannelEventsMap {
-  MOCK_RESPONSE: [data: StringifiedResponse, transferable?: [ArrayBuffer]]
+  MOCK_RESPONSE: [
+    data: StringifiedResponse,
+    transfer?: [ReadableStream<Uint8Array>],
+  ]
   NOT_FOUND: []
   NETWORK_ERROR: [data: { name: string; message: string }]
 }
@@ -25,6 +28,13 @@ export class WorkerChannel {
     ...rest: WorkerChannelEventsMap[Event]
   ): void {
     const [data, transfer] = rest
-    this.port.postMessage({ type: event, data }, { transfer })
+    this.port.postMessage(
+      { type: event, data },
+      {
+        // @ts-expect-error ReadableStream can be transferred
+        // but TypeScript doesn't acknowledge that.
+        transfer,
+      },
+    )
   }
 }

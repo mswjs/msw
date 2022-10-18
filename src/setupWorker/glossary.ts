@@ -75,7 +75,7 @@ export type ServiceWorkerOutgoingEventTypes =
   | 'CLIENT_CLOSED'
 
 export interface StringifiedResponse extends ResponseInit {
-  body: string | ArrayBuffer | null
+  body: string | ReadableStream<Uint8Array> | null
 }
 
 /**

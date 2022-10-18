@@ -147,24 +147,27 @@ async function handleRequest(event, requestId) {
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
       const responseClone = response.clone()
-      sendToClient(client, {
-        type: 'RESPONSE',
-        payload: {
-          requestId,
-          type: responseClone.type,
-          ok: responseClone.ok,
-          status: responseClone.status,
-          statusText: responseClone.statusText,
-          /**
-           * @todo Send back the response buffer instead.
-           * I'm pretty sure we can clone the response and send
-           * its body as transferrable so we don't have to serialize it.
-           */
-          body: responseClone.body === null ? null : await responseClone.text(),
-          headers: Object.fromEntries(responseClone.headers.entries()),
-          redirected: responseClone.redirected,
+      // When performing original requests, response body will
+      // always be a ReadableStream, even for 204 responses.
+      // But when creating a new Response instance on the client,
+      // the body for a 204 response must be null.
+      const responseBody = response.status === 204 ? null : responseClone.body
+
+      sendToClient(
+        client,
+        {
+          type: 'RESPONSE',
+          payload: {
+            requestId,
+            type: responseClone.type,
+            status: responseClone.status,
+            statusText: responseClone.statusText,
+            body: responseBody,
+            headers: Object.fromEntries(responseClone.headers.entries()),
+          },
         },
-      })
+        [responseBody],
+      )
     })()
   }
 
@@ -280,7 +283,7 @@ async function getResponse(event, client, requestId) {
   return passthrough()
 }
 
-function sendToClient(client, message) {
+function sendToClient(client, message, transferrables = []) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -292,17 +295,13 @@ function sendToClient(client, message) {
       resolve(event.data)
     }
 
-    client.postMessage(message, [channel.port2])
-  })
-}
-
-function sleep(timeMs) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, timeMs)
+    client.postMessage(
+      message,
+      [channel.port2].concat(transferrables.filter(Boolean)),
+    )
   })
 }
 
 async function respondWithMock(response) {
-  await sleep(response.delay)
   return new Response(response.body, response)
 }

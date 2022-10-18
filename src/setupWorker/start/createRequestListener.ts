@@ -55,28 +55,22 @@ export const createRequestListener = (
             // ".log()" method of the request handler.
             const responseClone = response.clone()
             const responseInit = toResponseInit(response)
-            const responseBuffer = await response.arrayBuffer()
-
-            // If the mocked response has no body, keep it that way.
-            // Sending an empty "ArrayBuffer" to the worker will cause
-            // the worker constructing "new Response(new ArrayBuffer(0))"
-            // which will throw on responses that must have no body (i.e. 204).
-            const responseBody = response.body == null ? null : responseBuffer
+            const responseStream = responseClone.body
 
             messageChannel.postMessage(
               'MOCK_RESPONSE',
               {
                 ...responseInit,
-                body: responseBody,
+                body: responseStream,
               },
               // Transfer response's buffer so it could
               // be sent over to the worker.
-              [responseBuffer],
+              responseStream ? [responseStream] : undefined,
             )
 
             if (!options.quiet) {
-              context.emitter.once('response:mocked', () => {
-                handler.log(request, responseClone, parsedRequest)
+              context.emitter.once('response:mocked', (response) => {
+                handler.log(request, response, parsedRequest)
               })
             }
           },

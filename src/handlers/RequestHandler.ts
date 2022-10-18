@@ -3,7 +3,7 @@ import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import { type ResponseResolutionContext } from '../utils/getResponse'
 import { type MaybePromise } from '../typeUtils'
-import { StrictRequest, type StrictResponse } from '../utils/HttpResponse'
+import { StrictRequest, type StrictResponse } from '../HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,

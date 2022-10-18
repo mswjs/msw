@@ -1,4 +1,4 @@
-import type { DocumentNode, OperationTypeNode } from 'graphql'
+import type { DocumentNode, GraphQLError, OperationTypeNode } from 'graphql'
 import {
   DefaultBodyType,
   RequestHandler,
@@ -46,7 +46,8 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
 }
 
 export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
-  data: BodyType
+  data?: BodyType
+  errors?: Array<GraphQLError>
 }
 
 export function isDocumentNode(
@@ -61,7 +62,8 @@ export function isDocumentNode(
 
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  // @ts-ignore @todo
+  /** @@todo */
+  // @ts-ignore
   ParsedGraphQLRequest,
   GraphQLResolverExtras<any>
 > {

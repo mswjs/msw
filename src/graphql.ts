@@ -42,8 +42,15 @@ function createScopedGraphQLHandler(
 }
 
 function createGraphQLOperationHandler(url: Path) {
-  return <Variables extends GraphQLVariables = GraphQLVariables>(
-    resolver: ResponseResolver<GraphQLResolverExtras<Variables>>,
+  return <
+    Query extends Record<string, any>,
+    Variables extends GraphQLVariables = GraphQLVariables,
+  >(
+    resolver: ResponseResolver<
+      GraphQLResolverExtras<Variables>,
+      null,
+      GraphQLResponseBody<Query>
+    >,
   ) => {
     return new GraphQLHandler('all', new RegExp('.*'), url, resolver)
   }

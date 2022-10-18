@@ -134,7 +134,8 @@ function decorateResponseInit(
   const status = init?.status || 200
   const statusText =
     init?.statusText ||
-    httpStatusTexts[status.toString() as keyof typeof httpStatusTexts]
+    httpStatusTexts[status.toString() as keyof typeof httpStatusTexts] ||
+    ''
   const headers = new Headers(init?.headers)
 
   return {
@@ -151,7 +152,11 @@ function decorateResponse(
 ): Response {
   // Allow to mock the response type.
   if (init.type) {
-    defineReadOnly(response, 'type', init.type)
+    Object.defineProperty(response, 'type', {
+      value: init.type,
+      enumerable: true,
+      writable: false,
+    })
   }
 
   // Cookie forwarding is only relevant in the browser.
@@ -170,16 +175,4 @@ function decorateResponse(
   }
 
   return response
-}
-
-function defineReadOnly(
-  target: any,
-  propertyName: string,
-  value: unknown,
-): void {
-  Object.defineProperty(target, propertyName, {
-    value,
-    enumerable: true,
-    writable: false,
-  })
 }

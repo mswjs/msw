@@ -8,11 +8,12 @@ type Input = Pick<ServiceWorkerIncomingRequest, 'method' | 'body'>
 export function pruneGetRequestBody(
   request: Input,
 ): ServiceWorkerIncomingRequest['body'] {
-  if (
-    request.method &&
-    ['HEAD', 'GET'].includes(request.method.toUpperCase()) &&
-    request.body === ''
-  ) {
+  // Force HEAD/GET request body to always be empty.
+  // The worker reads any request's body as ArrayBuffer,
+  // and you cannot re-construct a GET/HEAD Request
+  // with an ArrayBuffer, even if empty. Also note that
+  // "request.body" is always undefined in the worker.
+  if (['HEAD', 'GET'].includes(request.method)) {
     return undefined
   }
 

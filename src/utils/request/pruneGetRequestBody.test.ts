@@ -1,38 +1,53 @@
 /**
  * @jest-environment jsdom
  */
+import { TextEncoder } from 'util'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 
 test('sets empty GET request body to undefined', () => {
-  const body = pruneGetRequestBody({
-    method: 'GET',
-    body: '',
-  })
+  expect(
+    pruneGetRequestBody({
+      method: 'GET',
+    }),
+  ).toBeUndefined()
 
-  expect(body).toBeUndefined()
+  expect(
+    pruneGetRequestBody({
+      method: 'GET',
+      // There's no such thing as a GET request with a body.
+      body: new ArrayBuffer(5),
+    }),
+  ).toBeUndefined()
 })
 
-test('preserves non-empty GET request body', () => {
-  const body = pruneGetRequestBody({
-    method: 'GET',
-    body: 'text-body',
-  })
-
-  expect(body).toBe('text-body')
-})
-
-test('ignores requests of the other method than GET', () => {
+test('sets HEAD request body to undefined', () => {
   expect(
     pruneGetRequestBody({
       method: 'HEAD',
-      body: JSON.stringify({ a: 1 }),
     }),
-  ).toBe(JSON.stringify({ a: 1 }))
+  ).toBeUndefined()
 
   expect(
     pruneGetRequestBody({
-      method: 'POST',
-      body: 'text-body',
+      method: 'HEAD',
+      body: new ArrayBuffer(5),
     }),
-  ).toBe('text-body')
+  ).toBeUndefined()
+})
+
+test('ignores requests of the other methods than GET', () => {
+  const body = new TextEncoder().encode('hello world')
+  expect(
+    pruneGetRequestBody({
+      method: 'POST',
+      body,
+    }),
+  ).toEqual(body)
+
+  expect(
+    pruneGetRequestBody({
+      method: 'PUT',
+      body,
+    }),
+  ).toEqual(body)
 })

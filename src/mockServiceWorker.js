@@ -240,26 +240,30 @@ async function getResponse(event, client, requestId) {
   }
 
   // Notify the client that a request has been intercepted.
-  const clientMessage = await sendToClient(client, {
-    type: 'REQUEST',
-    payload: {
-      id: requestId,
-      url: request.url,
-      method: request.method,
-      headers: Object.fromEntries(request.headers.entries()),
-      cache: request.cache,
-      mode: request.mode,
-      credentials: request.credentials,
-      destination: request.destination,
-      integrity: request.integrity,
-      redirect: request.redirect,
-      referrer: request.referrer,
-      referrerPolicy: request.referrerPolicy,
-      body: await request.text(),
-      bodyUsed: request.bodyUsed,
-      keepalive: request.keepalive,
+  const requestBuffer = await request.arrayBuffer()
+  const clientMessage = await sendToClient(
+    client,
+    {
+      type: 'REQUEST',
+      payload: {
+        id: requestId,
+        url: request.url,
+        mode: request.mode,
+        method: request.method,
+        headers: Object.fromEntries(request.headers.entries()),
+        cache: request.cache,
+        credentials: request.credentials,
+        destination: request.destination,
+        integrity: request.integrity,
+        redirect: request.redirect,
+        referrer: request.referrer,
+        referrerPolicy: request.referrerPolicy,
+        body: requestBuffer,
+        keepalive: request.keepalive,
+      },
     },
-  })
+    [requestBuffer],
+  )
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {

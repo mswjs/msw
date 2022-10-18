@@ -8,14 +8,8 @@ import { pruneGetRequestBody } from './pruneGetRequestBody'
 export function parseWorkerRequest(
   incomingRequest: ServiceWorkerIncomingRequest,
 ): Request {
-  // "Request" instance is not serializable so
-  // it cannot be sent directly from the worker.
   return new Request(incomingRequest.url, {
     ...incomingRequest,
-    /**
-     * @todo See if it's possible to post ReadableStream
-     * from the worker directly (if it's transferable).
-     */
     body: pruneGetRequestBody(incomingRequest),
   })
 }

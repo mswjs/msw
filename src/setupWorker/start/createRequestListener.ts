@@ -38,11 +38,6 @@ export const createRequestListener = (
         options,
         context.emitter,
         {
-          /**
-           * @todo See if this transformation is needed
-           * once we adopt "Response".
-           */
-          // transformResponse,
           onPassthroughResponse() {
             messageChannel.postMessage('NOT_FOUND')
           },
@@ -118,12 +113,3 @@ This exception has been gracefully handled as a 500 response, however, it's stro
     }
   }
 }
-
-// function transformResponse(response: Response): SerializedResponse<string> {
-//   return {
-//     status: response.status,
-//     statusText: response.statusText,
-//     headers: headersToObject(response.headers),
-//     body: response.body,
-//   }
-// }

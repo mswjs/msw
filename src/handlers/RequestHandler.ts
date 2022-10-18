@@ -183,9 +183,9 @@ export abstract class RequestHandler<
 
     const requestClone = request.clone()
 
-    const parsedResult = await this.parse(requestClone, resolutionContext)
+    const parsedResult = await this.parse(request.clone(), resolutionContext)
     const shouldInterceptRequest = this.predicate(
-      requestClone,
+      request.clone(),
       parsedResult,
       resolutionContext,
     )
@@ -198,14 +198,16 @@ export abstract class RequestHandler<
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
 
-    const resolverExtras = this.extendInfo(requestClone, parsedResult)
+    const resolverExtras = this.extendInfo(request, parsedResult)
     const mockedResponse = (await executeResolver({
       ...resolverExtras,
       request,
     })) as Response
 
     const executionResult = this.createExecutionResult(
-      request,
+      // Pass the cloned request to the result so that logging
+      // and other consumers could read its body once more.
+      requestClone,
       parsedResult,
       mockedResponse,
     )

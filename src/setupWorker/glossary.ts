@@ -34,15 +34,11 @@ type RequestWithoutMethods = Omit<
  */
 export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   /**
-   * Unique UUID of the request generated once the request is
+   * Unique ID of the request generated once the request is
    * captured by the "fetch" event in the Service Worker.
    */
   id: string
-
-  /**
-   * Text response body.
-   */
-  body?: string
+  body?: ArrayBuffer | null
 }
 
 export type ServiceWorkerIncomingResponse = Pick<

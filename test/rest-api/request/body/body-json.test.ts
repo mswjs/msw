@@ -27,7 +27,6 @@ test('reads array buffer request body using json() method', async () => {
   const runtime = await prepareRuntime()
 
   runtime.page.evaluate(() => {
-    debugger
     return fetch('/json', {
       method: 'POST',
       headers: {

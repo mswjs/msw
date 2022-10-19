@@ -27,7 +27,11 @@ beforeAll(async () => {
         },
       })
     }),
-    rest.get(httpServer.https.makeUrl('/user'), ({ cookies }) => {
+    rest.get<
+      never,
+      never,
+      { firstName: string; lastName: string } | { error: string }
+    >(httpServer.https.makeUrl('/user'), ({ cookies }) => {
       if (cookies.authToken == null) {
         return HttpResponse.json(
           {

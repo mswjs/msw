@@ -16,7 +16,7 @@ function createRestHandler<Method extends RESTMethods | RegExp>(
   return <
     Params extends PathParams<keyof Params> = PathParams,
     RequestBodyType extends DefaultBodyType = DefaultBodyType,
-    ResponseBodyType extends DefaultBodyType = DefaultBodyType,
+    ResponseBodyType extends DefaultBodyType = undefined,
   >(
     path: Path,
     resolver: ResponseResolver<

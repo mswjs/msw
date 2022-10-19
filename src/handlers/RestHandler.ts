@@ -15,7 +15,6 @@ import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromReques
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
-  DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
   RequestHandlerPublicOptions,
@@ -65,11 +64,7 @@ export class RestHandler extends RequestHandler<
   constructor(
     method: RestHandlerMethod,
     path: Path,
-    resolver: ResponseResolver<
-      RestRequestResolverExtras<any>,
-      any,
-      DefaultBodyType
-    >,
+    resolver: ResponseResolver<RestRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerPublicOptions,
   ) {
     super({

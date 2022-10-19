@@ -71,7 +71,7 @@ export class GraphQLHandler extends RequestHandler<
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
-    resolver: ResponseResolver<GraphQLResolverExtras<any>, any>,
+    resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
   ) {
     let resolvedOperationName = operationName
 

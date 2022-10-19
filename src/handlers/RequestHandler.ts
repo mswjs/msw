@@ -56,7 +56,7 @@ export type ResponseResolverInfo<
 export type ResponseResolver<
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
-  ResponseBodyType extends DefaultBodyType = DefaultBodyType,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > = (
   info: ResponseResolverInfo<ResolverExtraInfo, RequestBodyType>,
 ) => AsyncResponseResolverReturnType<ResponseBodyType>
@@ -92,7 +92,7 @@ export abstract class RequestHandler<
    */
   public isUsed: boolean
 
-  protected resolver: ResponseResolver<ResolverExtras, any>
+  protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverGenerator?: Generator<
     MaybeAsyncResponseResolverReturnType<any>,
     MaybeAsyncResponseResolverReturnType<any>,

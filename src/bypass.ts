@@ -1,4 +1,4 @@
-import type { Request as RemixRequest } from '@remix-run/web-fetch'
+import { type Request as RequestPolyfill } from '@remix-run/web-fetch'
 import { Request } from './Request'
 
 /**
@@ -11,7 +11,7 @@ import { Request } from './Request'
  * bypass(new URL('/resource', 'api.example.com'))
  * bypass(new Request('/user'))
  */
-export function bypass(input: string | URL | Request): RemixRequest {
+export function bypass(input: string | URL | Request): RequestPolyfill {
   const request = toRequest(input)
 
   // Set the internal header that would instruct MSW
@@ -23,7 +23,7 @@ export function bypass(input: string | URL | Request): RemixRequest {
   return request
 }
 
-function toRequest(input: string | URL | Request): RemixRequest {
+function toRequest(input: string | URL | Request): RequestPolyfill {
   if (input instanceof Request) {
     /**
      * @note When using "node-fetch", if the request instance
@@ -31,11 +31,11 @@ function toRequest(input: string | URL | Request): RemixRequest {
      * the input to its "fetch()" will be invalid. "node-fetch" will
      * think it's given a URL object, and will throw on it being invalid.
      */
-    return input.clone() as RemixRequest
+    return input.clone() as RequestPolyfill
   }
 
   const baseUrl = typeof location !== 'undefined' ? location.href : undefined
   const requestUrl = new URL(input, baseUrl)
 
-  return new Request(requestUrl) as RemixRequest
+  return new Request(requestUrl) as RequestPolyfill
 }

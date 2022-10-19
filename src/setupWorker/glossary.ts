@@ -123,7 +123,7 @@ export interface SetupWorkerInternalContext {
      * Adds an event listener on the given target.
      * Returns a clean-up function that removes that listener.
      */
-    addListener<EventType extends Event = Event>(
+    addListener<EventType extends Event>(
       target: EventTarget,
       eventType: string,
       listener: (event: EventType) => void,

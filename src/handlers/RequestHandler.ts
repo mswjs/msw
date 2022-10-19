@@ -27,9 +27,10 @@ export interface RequestHandlerInternalInfo {
   callFrame?: string
 }
 
-export type ResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | Response
-  | StrictResponse<BodyType>
+export type ResponseResolverReturnType<
+  BodyType extends DefaultBodyType = undefined,
+> =
+  | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
   | undefined
   | void
 
@@ -71,7 +72,7 @@ export interface RequestHandlerPublicOptions {
 }
 
 export interface RequestHandlerExecutionResult<
-  ParsedResult extends Record<string, unknown>,
+  ParsedResult extends Record<string, unknown> | undefined,
 > {
   handler: RequestHandler
   parsedResult?: ParsedResult
@@ -81,7 +82,7 @@ export interface RequestHandlerExecutionResult<
 
 export abstract class RequestHandler<
   HandlerInfo extends RequestHandlerDefaultInfo = RequestHandlerDefaultInfo,
-  ParsedResult extends Record<string, unknown> = any,
+  ParsedResult extends Record<string, any> | undefined = any,
   ResolverExtras extends Record<string, unknown> = any,
 > {
   public info: HandlerInfo & RequestHandlerInternalInfo
@@ -97,7 +98,7 @@ export abstract class RequestHandler<
     MaybeAsyncResponseResolverReturnType<any>,
     MaybeAsyncResponseResolverReturnType<any>
   >
-  private resolverGeneratorResult?: ResponseResolverReturnType<any>
+  private resolverGeneratorResult?: Response | StrictResponse<any>
   private once: boolean
 
   constructor(options: RequestHandlerOptions<HandlerInfo>) {
@@ -218,9 +219,7 @@ export abstract class RequestHandler<
   private wrapResolver(
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
-    return async (
-      info,
-    ): Promise<StrictResponse<any> | Response | undefined | void> => {
+    return async (info): Promise<ResponseResolverReturnType<any>> => {
       const result = this.resolverGenerator || (await resolver(info))
 
       if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {

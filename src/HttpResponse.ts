@@ -1,4 +1,3 @@
-import { Response } from './Response'
 import { type DefaultBodyType } from './handlers/RequestHandler'
 import { createResponse } from './utils/HttpResponse/createResponse'
 import { decorateResponseInit } from './utils/HttpResponse/decorators'
@@ -23,7 +22,7 @@ export interface StrictRequest<BodyType extends DefaultBodyType>
 }
 
 export const HttpResponse = {
-  plain<BodyType extends string | BodyInit>(
+  plain<BodyType extends BodyInit>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): Response {
@@ -89,7 +88,7 @@ export const HttpResponse = {
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit) {
+  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
     const responseInit = decorateResponseInit(init)
 
     if (body) {
@@ -112,3 +111,13 @@ export const HttpResponse = {
     return createResponse(data, responseInit)
   },
 }
+
+//
+//
+
+// function check(r: StrictResponse<{ id: number }>) {
+//   return r
+// }
+
+// check(new Response(1))
+// check(HttpResponse.json({ id: 1 }))

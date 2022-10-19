@@ -62,8 +62,6 @@ export function isDocumentNode(
 
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  /** @@todo */
-  // @ts-ignore
   ParsedGraphQLRequest,
   GraphQLResolverExtras<any>
 > {

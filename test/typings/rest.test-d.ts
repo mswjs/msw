@@ -1,4 +1,4 @@
-import { rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from '../../src'
 
 /**
  * Request path parameters.
@@ -70,6 +70,12 @@ rest.get<never, null>('/user', async ({ request }) => {
 /**
  * Response body generic.
  */
+rest.get('/user', () => {
+  // Allows responding with a plain Response
+  // when no response body generic is set.
+  return new Response('hello')
+})
+
 rest.get<never, never, { id: number }>('/user', () => {
   return HttpResponse.json({ id: 1 })
 })

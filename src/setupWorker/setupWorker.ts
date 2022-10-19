@@ -100,16 +100,13 @@ export function setupWorker(
       },
     },
     events: {
-      addListener(
-        target: EventTarget,
-        eventType: string,
-        callback: EventListener,
-      ) {
-        target.addEventListener(eventType, callback)
-        listeners.push({ eventType, target, callback })
+      addListener(target, eventType, callback) {
+        const listener = callback as EventListener
+        target.addEventListener(eventType, listener)
+        listeners.push({ eventType, target, callback: listener })
 
         return () => {
-          target.removeEventListener(eventType, callback)
+          target.removeEventListener(eventType, listener)
         }
       },
       removeAllListeners() {

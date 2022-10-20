@@ -87,7 +87,7 @@
   "sideEffects": false,
   "dependencies": {
     "@mswjs/cookies": "^0.2.2",
-    "@mswjs/interceptors": "^0.17.5",
+    "@mswjs/interceptors": "0.17.6",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",

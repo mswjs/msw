@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import fetch from '@remix-run/web-fetch'
+import fetch, { Request as RemixRequest } from '@remix-run/web-fetch'
 import { bypass, graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
@@ -12,7 +12,7 @@ let httpServer: ServerApi
 
 const server = setupServer(
   graphql.query('GetUser', async ({ request }) => {
-    const originalResponse = await fetch(bypass(request))
+    const originalResponse = await fetch(bypass<RemixRequest>(request))
     const { requestHeaders, queryResult } = await originalResponse.json()
 
     return HttpResponse.json({

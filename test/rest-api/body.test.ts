@@ -3,6 +3,7 @@
  */
 import * as path from 'path'
 import { pageWith } from 'page-with'
+import util from 'util'
 
 function createRuntime() {
   return pageWith({
@@ -70,6 +71,21 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
       json: 'body',
     },
   })
+})
+
+test('handles a POST request with a Protobuf body and "Content-Type: application/protobuf" header', async () => {
+  const runtime = await createRuntime()
+
+  const input = new Uint8Array([138, 1, 6, 10, 4, 10, 2, 32, 1])
+  const res = await runtime.request('/protobuf', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/protobuf',
+    },
+    body: new util.TextDecoder().decode(input),
+  })
+  const body = await res.body()
+  expect(body).toEqual(Buffer.from(input))
 })
 
 test('handles a POST request with a multipart body and "Content-Type: multipart/form-data" header', async () => {

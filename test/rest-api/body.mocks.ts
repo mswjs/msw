@@ -16,6 +16,18 @@ const handleRequestBody: ResponseResolver<MockedRequest, RestContext> = (
   return res(ctx.json({ body }))
 }
 
+const handleProtobufBody: ResponseResolver<MockedRequest, RestContext> = async (
+  req,
+  res,
+  ctx,
+) => {
+  return res(
+    ctx.status(200),
+    ctx.set('Content-Type', 'application/protobuf'),
+    ctx.body(new Uint8Array(await req.arrayBuffer())),
+  )
+}
+
 const handleMultipartRequestBody: ResponseResolver<
   MockedRequest,
   RestContext
@@ -43,6 +55,7 @@ const handleMultipartRequestBody: ResponseResolver<
 const worker = setupWorker(
   rest.get('/login', handleRequestBody),
   rest.post('/login', handleRequestBody),
+  rest.post('/protobuf', handleProtobufBody),
   rest.post('/upload', handleMultipartRequestBody),
 )
 

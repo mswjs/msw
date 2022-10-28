@@ -10,6 +10,7 @@ import {
   RequestHandlerDefaultInfo,
 } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
+import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { MockedRequest } from './utils/request/MockedRequest'
@@ -18,8 +19,7 @@ import { MockedRequest } from './utils/request/MockedRequest'
  * Generic class for the mock API setup
  */
 export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
-  private readonly initialHandlers: RequestHandler[]
-
+  protected readonly initialHandlers: RequestHandler[]
   protected readonly interceptor: BatchInterceptor<
     Interceptor<HttpRequestEventMap>[],
     HttpRequestEventMap
@@ -35,13 +35,22 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
     interceptors: {
       new (): Interceptor<HttpRequestEventMap>
     }[],
+    readonly interceptorName: string,
     initialHandlers: RequestHandler[],
   ) {
+    initialHandlers.forEach((handler) => {
+      if (Array.isArray(handler))
+        throw new Error(
+          devUtils.formatMessage(
+            `Failed to call "${this.constructor.name}" given an Array of request handlers (${this.constructor.name}([a, b])), expected to receive each handler individually: ${this.constructor.name}(a, b).`,
+          ),
+        )
+    })
+
     this.interceptor = new BatchInterceptor({
-      name: 'setup-api',
+      name: interceptorName,
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
-    // Clone
     this.initialHandlers = [...initialHandlers]
     this.currentHandlers = [...initialHandlers]
     pipeEvents(this.emitter, this.publicEmitter)

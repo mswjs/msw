@@ -16,7 +16,7 @@ test('throws an error given an Array of request handlers to "setupWorker"', asyn
   expect(exceptions).toEqual(
     expect.arrayContaining([
       expect.stringContaining(
-        '[MSW] Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).',
+        '[MSW] Failed to call "SetupWorkerApi" given an Array of request handlers (SetupWorkerApi([a, b])), expected to receive each handler individually: SetupWorkerApi(a, b).',
       ),
     ]),
   )

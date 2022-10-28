@@ -12,7 +12,7 @@ import {
   IsomorphicResponse,
   MockedResponse as MockedInterceptedResponse,
 } from '@mswjs/interceptors'
-import { devUtils } from '../utils/internal/devUtils'
+
 /**
  * Sets up a requests interception in Node.js with the given request handlers.
  * @param {RequestHandler[]} requestHandlers List of request handlers.
@@ -35,7 +35,11 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
   private resolvedOptions: RequiredDeep<SharedOptions>
 
   constructor(handlers: RequestHandler[]) {
-    super([ClientRequestInterceptor, XMLHttpRequestInterceptor], handlers)
+    super(
+      [ClientRequestInterceptor, XMLHttpRequestInterceptor],
+      'server-setup',
+      handlers,
+    )
 
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
@@ -44,9 +48,7 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
   }
 
   public async init(): Promise<void> {
-    const _self = this
-
-    this.interceptor.on('request', async function setupServerListener(request) {
+    this.interceptor.on('request', async (request) => {
       const mockedRequest = new MockedRequest(request.url, {
         ...request,
         body: await request.arrayBuffer(),
@@ -56,9 +58,9 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
         MockedInterceptedResponse & { delay?: number }
       >(
         mockedRequest,
-        _self.currentHandlers,
-        _self.resolvedOptions,
-        _self.emitter,
+        this.currentHandlers,
+        this.resolvedOptions,
+        this.emitter,
         {
           transformResponse(response) {
             return {
@@ -94,9 +96,9 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
       }
 
       if (response.headers.get('x-powered-by') === 'msw') {
-        _self.emitter.emit('response:mocked', response, request.id)
+        this.emitter.emit('response:mocked', response, request.id)
       } else {
-        _self.emitter.emit('response:bypass', response, request.id)
+        this.emitter.emit('response:bypass', response, request.id)
       }
     })
   }
@@ -132,13 +134,5 @@ Declaration: ${callFrame}
 }
 
 export const setupServer = (...handlers: RequestHandler[]) => {
-  handlers.forEach((handler) => {
-    if (Array.isArray(handler))
-      throw new Error(
-        devUtils.formatMessage(
-          'Failed to call "setupServer" given an Array of request handlers (setupServer([a, b])), expected to receive each handler individually: setupServer(a, b).',
-        ),
-      )
-  })
   return new SetupServerApi(handlers)
 }

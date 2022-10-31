@@ -23,6 +23,9 @@ interface Listener {
   callback: EventListener
 }
 
+/**
+ * Concrete class to implement the SetupApi for the browser environment, uses the ServerWorker setup.
+ */
 export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   private context: SetupWorkerInternalContext
   private startHandler: any

@@ -36,6 +36,7 @@ afterAll(() => {
 test('lists all current request handlers', () => {
   server.printHandlers()
 
+  // Test failed here, commenting so it shows up in the PR
   expect(console.log).toBeCalledTimes(6)
 
   expect(console.log).toBeCalledWith(`\

@@ -93,15 +93,13 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
     return toReadonlyArray(this.currentHandlers)
   }
 
-  private registerEvents(): LifeCycleEventEmitter<
-    Record<string | symbol, any>
-  > {
+  private registerEvents(): LifeCycleEventEmitter<TLifecycleEventsMap> {
     return {
-      on: (evt: any, listener: any) => {
-        return this.publicEmitter.on(evt, listener)
+      on: (...args) => {
+        return this.publicEmitter.on(...args)
       },
-      removeListener: (evt: any, listener: any) => {
-        return this.publicEmitter.removeListener(evt, listener)
+      removeListener: (...args) => {
+        return this.publicEmitter.removeListener(...args)
       },
       removeAllListeners: (...args: any) => {
         return this.publicEmitter.removeAllListeners(...args)

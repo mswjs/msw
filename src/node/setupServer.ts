@@ -13,24 +13,16 @@ import {
   MockedResponse as MockedInterceptedResponse,
 } from '@mswjs/interceptors'
 
-/**
- * Sets up a requests interception in Node.js with the given request handlers.
- * @param {RequestHandler[]} requestHandlers List of request handlers.
- * @see {@link https://mswjs.io/docs/api/setup-server `setupServer`}
- */
-// export const setupServer = createSetupServer(
-//   // List each interceptor separately instead of using the "node" preset
-//   // so that MSW wouldn't bundle the unnecessary classes (i.e. "SocketPolyfill").
-//   ClientRequestInterceptor,
-//   XMLHttpRequestInterceptor,
-// )
-
 export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
+/**
+ * Concrete class to implement the SetupApi for the node server environment, uses both the ClientRequestInterceptor
+ * and XMLHttpRequestInterceptor.
+ */
 export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
   private resolvedOptions: RequiredDeep<SharedOptions>
 
@@ -43,10 +35,12 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
 
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
-    // TODO: Re-think this
     this.init()
   }
 
+  /**
+   * Subscribe to all requests that are using the interceptor object
+   */
   public async init(): Promise<void> {
     this.interceptor.on('request', async (request) => {
       const mockedRequest = new MockedRequest(request.url, {
@@ -133,6 +127,11 @@ Declaration: ${callFrame}
   }
 }
 
+/**
+ * Sets up a requests interception in Node.js with the given request handlers.
+ * @param {RequestHandler[]} requestHandlers List of request handlers.
+ * @see {@link https://mswjs.io/docs/api/setup-server `setupServer`}
+ */
 export const setupServer = (...handlers: RequestHandler[]) => {
   return new SetupServerApi(handlers)
 }

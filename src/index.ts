@@ -3,7 +3,7 @@ export { context }
 
 export { setupWorker } from './setupWorker/setupWorker'
 
-export { SetupApi } from './createSetupApi'
+export { SetupApi } from './SetupApi'
 
 export {
   response,

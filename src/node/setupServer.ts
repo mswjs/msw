@@ -1,6 +1,10 @@
+import {
+  IsomorphicResponse,
+  MockedResponse as MockedInterceptedResponse,
+} from '@mswjs/interceptors'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
-import { SetupApi } from '../createSetupApi'
+import { SetupApi } from '../SetupApi'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
@@ -8,10 +12,6 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { bold } from 'chalk'
 import { MockedRequest } from '../utils/request/MockedRequest'
 import { handleRequest } from '../utils/handleRequest'
-import {
-  IsomorphicResponse,
-  MockedResponse as MockedInterceptedResponse,
-} from '@mswjs/interceptors'
 
 export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
 
@@ -26,10 +26,10 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
 export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
   private resolvedOptions: RequiredDeep<SharedOptions>
 
-  constructor(handlers: RequestHandler[]) {
+  constructor(handlers: Array<RequestHandler>) {
     super(
       [ClientRequestInterceptor, XMLHttpRequestInterceptor],
-      'server-setup',
+      'setup-server',
       handlers,
     )
 
@@ -102,10 +102,11 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
       DEFAULT_LISTEN_OPTIONS,
       options,
     ) as RequiredDeep<SharedOptions>
+
     super.apply()
   }
 
-  public printHandlers() {
+  public printHandlers(): void {
     const handlers = this.listHandlers()
 
     handlers.forEach((handler) => {
@@ -117,7 +118,7 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
 
       console.log(`\
 ${bold(`${pragma} ${header}`)}
-Declaration: ${callFrame}
+  Declaration: ${callFrame}
 `)
     })
   }
@@ -129,9 +130,11 @@ Declaration: ${callFrame}
 
 /**
  * Sets up a requests interception in Node.js with the given request handlers.
- * @param {RequestHandler[]} requestHandlers List of request handlers.
+ * @param {RequestHandler[]} handlers List of request handlers.
  * @see {@link https://mswjs.io/docs/api/setup-server `setupServer`}
  */
-export const setupServer = (...handlers: RequestHandler[]) => {
+export const setupServer = (
+  ...handlers: Array<RequestHandler>
+): SetupServerApi => {
   return new SetupServerApi(handlers)
 }

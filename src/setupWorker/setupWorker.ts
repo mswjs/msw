@@ -4,17 +4,18 @@ import {
   ServiceWorkerIncomingEventsMap,
   WorkerLifecycleEventsMap,
   StartReturnType,
+  StopHandler,
+  StartHandler,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { RestHandler } from '../handlers/RestHandler'
 import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
 import { createFallbackStart } from './start/createFallbackStart'
 import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '../utils/internal/devUtils'
-import { SetupApi } from '../createSetupApi'
+import { SetupApi } from '../SetupApi'
 import { mergeRight } from '../utils/internal/mergeRight'
 
 interface Listener {
@@ -23,17 +24,14 @@ interface Listener {
   callback: EventListener
 }
 
-/**
- * Concrete class to implement the SetupApi for the browser environment, uses the ServerWorker setup.
- */
 export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   private context: SetupWorkerInternalContext
-  private startHandler: any
-  private stopHandler: any
-  private listeners: Listener[] = []
+  private startHandler: StartHandler = null as any
+  private stopHandler: StopHandler = null as any
+  private listeners: Array<Listener>
 
-  constructor(handlers: RequestHandler[]) {
-    super([], 'worker-setup', handlers)
+  constructor(handlers: Array<RequestHandler>) {
+    super([], 'setup-worker', handlers)
 
     if (isNodeProcess()) {
       throw new Error(
@@ -43,13 +41,12 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
       )
     }
 
-    this.context = {} as SetupWorkerInternalContext
-
-    this.initializeWorkerContext()
+    this.listeners = []
+    this.context = this.createWorkerContext()
   }
 
-  public initializeWorkerContext(): void {
-    this.context = {
+  private createWorkerContext(): SetupWorkerInternalContext {
+    const context = {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
@@ -160,12 +157,25 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
         !('serviceWorker' in navigator) || location.protocol === 'file:',
     }
 
-    this.startHandler = this.context.useFallbackMode
-      ? createFallbackStart(this.context)
-      : createStartHandler(this.context)
-    this.stopHandler = this.context.useFallbackMode
-      ? createFallbackStop(this.context)
-      : createStop(this.context)
+    /**
+     * @todo Not sure I like this but "this.currentHandlers"
+     * updates never bubble to "this.context.requestHandlers".
+     */
+    Object.defineProperties(context, {
+      requestHandlers: {
+        get: () => this.currentHandlers,
+      },
+    })
+
+    this.startHandler = context.useFallbackMode
+      ? createFallbackStart(context)
+      : createStartHandler(context)
+
+    this.stopHandler = context.useFallbackMode
+      ? createFallbackStop(context)
+      : createStop(context)
+
+    return context
   }
 
   public async start(options: Record<string, any> = {}): StartReturnType {
@@ -174,21 +184,13 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
-    return await this.startHandler(this.context.startOptions, options)
+    /**
+     * @fixme @todo Typings.
+     */
+    return await this.startHandler(this.context.startOptions as any, options)
   }
 
-  public restoreHandlers(): void {
-    this.context.requestHandlers.forEach((handler) => {
-      handler.markAsSkipped(false)
-    })
-  }
-
-  public resetHandlers(...nextHandlers: RequestHandler[]) {
-    this.context.requestHandlers =
-      nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
-  }
-
-  public printHandlers() {
+  public printHandlers(): void {
     const handlers = this.listHandlers()
 
     handlers.forEach((handler) => {
@@ -204,11 +206,6 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
       }
 
       console.log('Handler:', handler)
-
-      if (handler instanceof RestHandler) {
-        console.log('Match:', `https://mswjs.io/repl?path=${handler.info.path}`)
-      }
-
       console.groupEnd()
     })
   }
@@ -221,6 +218,13 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   }
 }
 
-export function setupWorker(...handlers: RequestHandler[]) {
+/**
+ * Sets up a requests interception in the browser with the given request handlers.
+ * @param {RequestHandler[]} handlers List of request handlers.
+ * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
+ */
+export function setupWorker(
+  ...handlers: Array<RequestHandler>
+): SetupWorkerApi {
   return new SetupWorkerApi(handlers)
 }

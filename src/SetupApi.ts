@@ -18,25 +18,24 @@ import { MockedRequest } from './utils/request/MockedRequest'
 /**
  * Generic class for the mock API setup
  */
-export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
-  protected readonly initialHandlers: RequestHandler[]
+export abstract class SetupApi<EventsMap extends EventMapType> {
   protected readonly interceptor: BatchInterceptor<
-    Interceptor<HttpRequestEventMap>[],
+    Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  protected readonly emitter = new StrictEventEmitter<TLifecycleEventsMap>()
-  protected readonly publicEmitter =
-    new StrictEventEmitter<TLifecycleEventsMap>()
-  protected currentHandlers: RequestHandler[]
+  protected readonly initialHandlers: Array<RequestHandler>
+  protected currentHandlers: Array<RequestHandler>
+  protected readonly emitter = new StrictEventEmitter<EventsMap>()
+  protected readonly publicEmitter = new StrictEventEmitter<EventsMap>()
 
-  public readonly events: LifeCycleEventEmitter<Record<string | symbol, any>>
+  public readonly events: LifeCycleEventEmitter<EventsMap>
 
   constructor(
-    interceptors: {
+    interceptors: Array<{
       new (): Interceptor<HttpRequestEventMap>
-    }[],
-    readonly interceptorName: string,
-    initialHandlers: RequestHandler[],
+    }>,
+    protected readonly interceptorName: string,
+    initialHandlers: Array<RequestHandler>,
   ) {
     initialHandlers.forEach((handler) => {
       if (Array.isArray(handler))
@@ -47,12 +46,17 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
         )
     })
 
+    /**
+     * @todo Not all "setup*" APIs rely on interceptors.
+     * Consider moving this away to the child class.
+     */
     this.interceptor = new BatchInterceptor({
       name: interceptorName,
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
     this.initialHandlers = [...initialHandlers]
     this.currentHandlers = [...initialHandlers]
+
     pipeEvents(this.emitter, this.publicEmitter)
     this.events = this.registerEvents()
   }
@@ -67,7 +71,7 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
     this.interceptor.dispose()
   }
 
-  public use(...runtimeHandlers: RequestHandler[]): void {
+  public use(...runtimeHandlers: Array<RequestHandler>): void {
     this.currentHandlers.unshift(...runtimeHandlers)
   }
 
@@ -77,7 +81,7 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
     })
   }
 
-  public resetHandlers(...nextHandlers: RequestHandler[]) {
+  public resetHandlers(...nextHandlers: Array<RequestHandler>): void {
     this.currentHandlers =
       nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
   }
@@ -93,7 +97,7 @@ export abstract class SetupApi<TLifecycleEventsMap extends EventMapType> {
     return toReadonlyArray(this.currentHandlers)
   }
 
-  private registerEvents(): LifeCycleEventEmitter<TLifecycleEventsMap> {
+  private registerEvents(): LifeCycleEventEmitter<EventsMap> {
     return {
       on: (...args) => {
         return this.publicEmitter.on(...args)

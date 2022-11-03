@@ -84,11 +84,11 @@ test('respects runtime request handlers when listing handlers', () => {
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[rest] GET https://test.mswjs.io/book/:bookId')}
-  Declaration: ${__filename}:74:10
+  Declaration: ${__filename}:75:10
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[graphql] query GetRandomNumber (origin: *)')}
-  Declaration: ${__filename}:75:13
+  Declaration: ${__filename}:76:13
 `)
 })

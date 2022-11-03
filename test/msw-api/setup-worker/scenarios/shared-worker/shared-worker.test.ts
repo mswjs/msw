@@ -14,16 +14,20 @@ test('supports shared workers', async () => {
 
   await page.evaluate(() => {
     const worker = new SharedWorker('/worker.js')
+
     worker.addEventListener('error', () =>
       console.error('There is an error with worker'),
     )
-    worker.port.onmessage = (e) => {
-      console.log(e.data)
+
+    worker.port.onmessage = (event) => {
+      console.log(event.data)
     }
-    worker.port.postMessage('Message posted to worker')
+
+    worker.port.postMessage('john')
   })
+
   await waitFor(() => {
     expect(consoleSpy.get('error')).toBeUndefined()
-    expect(consoleSpy.get('log')).toContain('Message received from worker')
+    expect(consoleSpy.get('log')).toContain('hello, john')
   })
 })

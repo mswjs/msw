@@ -9,7 +9,7 @@ function createRuntime() {
   })
 }
 
-test('supports shared workers', async () => {
+test('does not interfere with a shared worker', async () => {
   const { page, consoleSpy } = await createRuntime()
 
   await page.evaluate(() => {

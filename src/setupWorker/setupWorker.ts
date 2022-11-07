@@ -7,6 +7,7 @@ import {
   StartReturnType,
   StopHandler,
   StartHandler,
+  StartOptions,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
@@ -178,7 +179,7 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
     return context
   }
 
-  public async start(options: Record<string, any> = {}): StartReturnType {
+  public async start(options: StartOptions = {}): StartReturnType {
     this.context.startOptions = mergeRight(
       DEFAULT_START_OPTIONS,
       options,

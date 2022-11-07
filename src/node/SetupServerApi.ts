@@ -111,10 +111,10 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
     })
   }
 
-  public listen(options?: Partial<SharedOptions>): void {
+  public listen(options: Partial<SharedOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
-      options || {},
+      options,
     ) as RequiredDeep<SharedOptions>
 
     // Apply the interceptor when starting the server.

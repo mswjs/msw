@@ -1,4 +1,4 @@
-import { bold } from 'chalk'
+import chalk from 'chalk'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
@@ -16,6 +16,11 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { MockedRequest } from '../utils/request/MockedRequest'
 import { handleRequest } from '../utils/handleRequest'
 import { devUtils } from '../utils/internal/devUtils'
+
+/**
+ * @see https://github.com/mswjs/msw/pull/1399
+ */
+const { bold } = chalk
 
 export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
 

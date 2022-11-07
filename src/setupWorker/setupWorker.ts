@@ -211,9 +211,9 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   }
 
   public stop(): void {
+    super.dispose()
     this.context.events.removeAllListeners()
     this.context.emitter.removeAllListeners()
-    this.publicEmitter.removeAllListeners()
     this.stopHandler()
   }
 }

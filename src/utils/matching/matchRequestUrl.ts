@@ -1,5 +1,5 @@
 import { match } from 'path-to-regexp'
-import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl'
+import { getCleanUrl } from '@mswjs/interceptors/lib/utils/getCleanUrl.js'
 import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp

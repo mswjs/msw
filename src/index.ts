@@ -2,6 +2,9 @@ import * as context from './context'
 export { context }
 
 export { setupWorker } from './setupWorker/setupWorker'
+
+export { SetupApi } from './SetupApi'
+
 export {
   response,
   defaultResponse,

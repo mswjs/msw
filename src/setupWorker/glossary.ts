@@ -99,7 +99,7 @@ export type WorkerLifecycleEventsMap = LifeCycleEventsMap<Response>
 
 export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
-  startOptions?: RequiredDeep<StartOptions>
+  startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler[]

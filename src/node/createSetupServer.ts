@@ -1,4 +1,5 @@
-import { bold } from 'chalk'
+import chalk from 'chalk'
+const { bold } = chalk
 import { isNodeProcess } from 'is-node-process'
 import { StrictEventEmitter } from 'strict-event-emitter'
 import {

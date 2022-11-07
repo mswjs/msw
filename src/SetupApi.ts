@@ -1,8 +1,4 @@
-import {
-  BatchInterceptor,
-  HttpRequestEventMap,
-  Interceptor,
-} from '@mswjs/interceptors'
+import { invariant } from 'outvariant'
 import { EventMapType, StrictEventEmitter } from 'strict-event-emitter'
 import {
   DefaultBodyType,
@@ -16,59 +12,45 @@ import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { MockedRequest } from './utils/request/MockedRequest'
 
 /**
- * Generic class for the mock API setup
+ * Generic class for the mock API setup.
  */
 export abstract class SetupApi<EventsMap extends EventMapType> {
-  protected readonly interceptor: BatchInterceptor<
-    Array<Interceptor<HttpRequestEventMap>>,
-    HttpRequestEventMap
-  >
-  protected readonly initialHandlers: Array<RequestHandler>
+  protected initialHandlers: ReadonlyArray<RequestHandler>
   protected currentHandlers: Array<RequestHandler>
-  protected readonly emitter = new StrictEventEmitter<EventsMap>()
-  protected readonly publicEmitter = new StrictEventEmitter<EventsMap>()
+  protected readonly emitter: StrictEventEmitter<EventsMap>
+  protected readonly publicEmitter: StrictEventEmitter<EventsMap>
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(
-    interceptors: Array<{
-      new (): Interceptor<HttpRequestEventMap>
-    }>,
-    protected readonly interceptorName: string,
-    initialHandlers: Array<RequestHandler>,
-  ) {
-    initialHandlers.forEach((handler) => {
-      if (Array.isArray(handler))
-        throw new Error(
-          devUtils.formatMessage(
-            `Failed to call "${this.constructor.name}" given an Array of request handlers (${this.constructor.name}([a, b])), expected to receive each handler individually: ${this.constructor.name}(a, b).`,
-          ),
-        )
-    })
+  constructor(initialHandlers: Array<RequestHandler>) {
+    this.validateHandlers(initialHandlers)
 
-    /**
-     * @todo Not all "setup*" APIs rely on interceptors.
-     * Consider moving this away to the child class.
-     */
-    this.interceptor = new BatchInterceptor({
-      name: interceptorName,
-      interceptors: interceptors.map((Interceptor) => new Interceptor()),
-    })
-    this.initialHandlers = [...initialHandlers]
+    this.initialHandlers = toReadonlyArray(initialHandlers)
     this.currentHandlers = [...initialHandlers]
 
+    this.emitter = new StrictEventEmitter<EventsMap>()
+    this.publicEmitter = new StrictEventEmitter<EventsMap>()
     pipeEvents(this.emitter, this.publicEmitter)
-    this.events = this.registerEvents()
+
+    this.events = this.createLifeCycleEvents()
   }
 
-  protected apply(): void {
-    this.interceptor.apply()
+  private validateHandlers(handlers: ReadonlyArray<RequestHandler>): void {
+    // Guard against incorrect call signature of the setup API.
+    for (const handler of handlers) {
+      invariant(
+        !Array.isArray(handler),
+        devUtils.formatMessage(
+          'Failed to call "%s" given an Array of request handlers. Make sure you spread the request handlers when calling this function.',
+        ),
+        this.constructor.name,
+      )
+    }
   }
 
   protected dispose(): void {
     this.emitter.removeAllListeners()
     this.publicEmitter.removeAllListeners()
-    this.interceptor.dispose()
   }
 
   public use(...runtimeHandlers: Array<RequestHandler>): void {
@@ -97,7 +79,7 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
     return toReadonlyArray(this.currentHandlers)
   }
 
-  private registerEvents(): LifeCycleEventEmitter<EventsMap> {
+  private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {
     return {
       on: (...args) => {
         return this.publicEmitter.on(...args)

@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import {
   SetupWorkerInternalContext,
@@ -31,15 +32,14 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   private listeners: Array<Listener>
 
   constructor(handlers: Array<RequestHandler>) {
-    super([], 'setup-worker', handlers)
+    super(handlers)
 
-    if (isNodeProcess()) {
-      throw new Error(
-        devUtils.formatMessage(
-          'Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
-        ),
-      )
-    }
+    invariant(
+      !isNodeProcess(),
+      devUtils.formatMessage(
+        'Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
+      ),
+    )
 
     this.listeners = []
     this.context = this.createWorkerContext()

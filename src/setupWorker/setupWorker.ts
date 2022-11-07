@@ -51,7 +51,7 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
-      startOptions: undefined,
+      startOptions: null as any,
       worker: null,
       registration: null,
       requestHandlers: this.currentHandlers,
@@ -185,10 +185,7 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
-    /**
-     * @fixme @todo Typings.
-     */
-    return await this.startHandler(this.context.startOptions as any, options)
+    return await this.startHandler(this.context.startOptions, options)
   }
 
   public printHandlers(): void {

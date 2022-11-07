@@ -88,7 +88,7 @@
   "sideEffects": false,
   "dependencies": {
     "@mswjs/cookies": "^0.2.2",
-    "@mswjs/interceptors": "^0.17.5",
+    "@mswjs/interceptors": "^0.18.0",
     "@open-draft/until": "^1.0.3",
     "@remix-run/web-fetch": "^4.3.0",
     "@types/cookie": "^0.4.1",

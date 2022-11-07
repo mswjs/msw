@@ -14,6 +14,6 @@ test('throws an error given an Array of request handlers to setupServer', async 
   }
 
   expect(createServer).toThrow(
-    `[MSW] Failed to call "SetupServerApi" given an Array of request handlers. Make sure you spread the request handlers when calling this function.`,
+    `[MSW] Failed to construct "SetupServerApi" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.`,
   )
 })

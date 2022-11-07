@@ -41,7 +41,7 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
       invariant(
         !Array.isArray(handler),
         devUtils.formatMessage(
-          'Failed to call "%s" given an Array of request handlers. Make sure you spread the request handlers when calling this function.',
+          'Failed to construct "%s" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.',
         ),
         this.constructor.name,
       )

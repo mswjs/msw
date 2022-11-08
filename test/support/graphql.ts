@@ -26,7 +26,7 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
   const fetchFn = options.fetch || fetch
 
   return async (input: GraphQLOperationInput): Promise<ExecutionResult> => {
-    const res = await fetchFn(options.uri, {
+    const response = await fetchFn(options.uri, {
       method: 'POST',
       headers: {
         accept: '*/*',
@@ -38,6 +38,6 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
     // No need to transform the JSON into `ExecutionResult`,
     // because that's the responsibility of an actual server
     // or an MSW request handler.
-    return res.json()
+    return response.json()
   }
 }

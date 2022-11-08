@@ -1,21 +1,25 @@
 /**
  * @jest-environment jsdom
  */
+import { Headers } from 'headers-polyfill'
 import { Request } from './Request'
 import { bypass } from './bypass'
 
 it('returns bypassed request given a request url string', () => {
-  const request = bypass('/user')
+  const [url, init] = bypass('/user')
+  const headers = new Headers(init.headers)
 
-  expect(request.url).toBe('http://localhost/user')
-  expect(request.headers.get('x-msw-intention')).toBe('bypass')
+  // Relative URLs are rebased against the current location.
+  expect(url).toBe('http://localhost/user')
+  expect(headers.get('x-msw-intention')).toBe('bypass')
 })
 
 it('returns bypassed request given a request url', () => {
-  const request = bypass(new URL('/user', 'https://api.github.com'))
+  const [url, init] = bypass(new URL('/user', 'https://api.github.com'))
+  const headers = new Headers(init.headers)
 
-  expect(request.url).toBe('https://api.github.com/user')
-  expect(request.headers.get('x-msw-intention')).toBe('bypass')
+  expect(url).toBe('https://api.github.com/user')
+  expect(headers.get('x-msw-intention')).toBe('bypass')
 })
 
 it('returns bypassed request given request instance', async () => {
@@ -26,11 +30,12 @@ it('returns bypassed request given request instance', async () => {
     },
     body: 'hello world',
   })
-  const request = bypass(original)
+  const [url, init] = bypass(original)
+  const headers = new Headers(init.headers)
 
-  expect(request.method).toBe('POST')
-  expect(request.url).toBe('http://localhost/resource')
-  expect(request.headers.get('x-msw-intention')).toBe('bypass')
-  expect(request.headers.get('x-my-header')).toBe('value')
-  expect(await request.text()).toBe('hello world')
+  expect(url).toBe('http://localhost/resource')
+  expect(init.method).toBe('POST')
+  expect(init.body).toEqual(original.body)
+  expect(headers.get('x-msw-intention')).toBe('bypass')
+  expect(headers.get('x-my-header')).toBe('value')
 })

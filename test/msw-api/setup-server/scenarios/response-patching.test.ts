@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import fetch, { Request as RemixRequest } from '@remix-run/web-fetch'
+import fetch from '@remix-run/web-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
 import { HttpResponse, Request, rest, bypass } from 'msw'
 import { setupServer } from 'msw/node'
@@ -16,7 +16,7 @@ interface ResponseBody {
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async () => {
     const originalResponse = await fetch(
-      bypass<RemixRequest>(httpServer.http.makeUrl('/user')),
+      ...bypass(httpServer.http.makeUrl('/user')),
     )
     const body = await originalResponse.json()
 
@@ -32,7 +32,7 @@ const server = setupServer(
     const performRequest = shouldBypass
       ? () =>
           fetch(
-            bypass<RemixRequest>(
+            ...bypass(
               new Request(httpServer.http.makeUrl('/user'), {
                 method: 'POST',
               }),
@@ -90,7 +90,7 @@ test('returns a combination of mocked and original responses', async () => {
   })
 })
 
-test('bypasses a mocked request when using "ctx.fetch"', async () => {
+test('bypasses a mocked request when using "bypass()"', async () => {
   const res = await fetch('https://test.mswjs.io/complex-request?bypass=true')
 
   expect(res.status).toBe(200)

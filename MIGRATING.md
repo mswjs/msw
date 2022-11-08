@@ -285,9 +285,22 @@ import { rest, bypass } from 'msw'
 export const handlers = [
   rest.get('https://api.github.com/user/:username', async ({ request }) => {
     // Performs an original "GET" request to the GitHub REST API.
-    const original = await fetch(bypass(request))
+    const original = await fetch(...bypass(request))
   }),
 ]
+```
+
+> Note that `bypass()` returns a tuple of request input and init instead of a `Request` instance. That is because fetch polyfills lock-in the request identity to the requests created using those polyfills.
+
+The `bypass()` function also accepts `RequestInit` as the second argument to modify the bypassed request.
+
+```js
+// Bypass the given "request" and modify its headers.
+bypass(request, {
+  headers: {
+    'X-Modified-Header': 'true',
+  },
+})
 ```
 
 ### `ctx.cookie()`

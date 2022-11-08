@@ -1,9 +1,10 @@
 /**
  * @jest-environment node
  */
-import fetch, { Request as RemixRequest } from '@remix-run/web-fetch'
+import { invariant } from 'outvariant'
 import { bypass, graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
+import fetch from '@remix-run/web-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { createGraphQLClient, gql } from '../support/graphql'
@@ -12,7 +13,8 @@ let httpServer: ServerApi
 
 const server = setupServer(
   graphql.query('GetUser', async ({ request }) => {
-    const originalResponse = await fetch(bypass<RemixRequest>(request))
+    const requestInfo = bypass(request)
+    const originalResponse = await fetch(...requestInfo)
     const { requestHeaders, queryResult } = await originalResponse.json()
 
     return HttpResponse.json({
@@ -34,9 +36,11 @@ beforeAll(async () => {
   server.listen()
 
   // This test server acts as a production server MSW will be hitting
-  // when performing a request patching with `ctx.fetch()`.
+  // when performing a bypassed request.
   httpServer = await createServer((app) => {
     app.post('/graphql', async (req, res) => {
+      invariant(req.body.query, 'Request body does not have a query')
+
       const result = await executeGraphql({
         schema: buildSchema(gql`
           type User {

@@ -1,44 +1,62 @@
-import { Request } from './Request'
+import { Headers } from 'headers-polyfill'
 
 /**
- * Creates a "Request" instance that, when fetched, will
- * ignore any otherwise matching request handlers and will
- * by performed against the actual network.
+ * Derives request input and init from the given Request info
+ * to define a request that will always be ignored by MSW.
  *
  * @example
- * bypass('/user')
- * bypass(new URL('/resource', 'https://example.com'))
- * bypass(new Request('/user'))
+ * import fetch, { Request } from 'node-fetch'
+ * import { bypass } from 'msw'
+ *
+ * fetch(...bypass('/resource'))
+ * fetch(...bypass(new URL('/resource', 'https://example.com)))
+ * fetch(...bypass(new Request('https://example.com/resource')))
  */
-export function bypass<RequestType extends Request>(
+export function bypass(
   input: string | URL | Request,
-): RequestType {
-  const request = toRequest<RequestType>(input)
+  init?: RequestInit,
+): [string, RequestInit] {
+  const isGivenRequest = isRequest(input)
+  const url = isGivenRequest ? input.url : input.toString()
+  const resolvedInit: RequestInit =
+    typeof init !== 'undefined'
+      ? init
+      : isGivenRequest
+      ? {
+          // Set each request init property explicitly
+          // to prevent leaking internal properties of whichever
+          // Request polyfill provided as the input.
+          mode: input.mode,
+          method: input.method,
+          body: input.body,
+          cache: input.cache,
+          headers: input.headers,
+          credentials: input.credentials,
+          signal: input.signal,
+          referrerPolicy: input.referrerPolicy,
+          referrer: input.referrer,
+          redirect: input.redirect,
+          integrity: input.integrity,
+          keepalive: input.keepalive,
+        }
+      : {}
 
   // Set the internal header that would instruct MSW
   // to bypass this request from any further request matching.
   // Unlike "passthrough()", bypass is meant for performing
   // additional requests within pending request resolution.
-  request.headers.set('x-msw-intention', 'bypass')
+  const headers = new Headers(resolvedInit.headers)
+  headers.set('x-msw-intention', 'bypass')
+  resolvedInit.headers = headers
 
-  return request
+  return [url, resolvedInit]
 }
 
-function toRequest<RequestType extends Request>(
-  input: string | URL | Request,
-): RequestType {
-  if (input instanceof Request) {
-    /**
-     * @note When using "node-fetch", if the request instance
-     * hasn't been constructed using ONLY the "node-fetch"'s Request,
-     * the input to its "fetch()" will be invalid. "node-fetch" will
-     * think it's given a URL object, and will throw on it being invalid.
-     */
-    return input.clone() as RequestType
-  }
-
-  const baseUrl = typeof location !== 'undefined' ? location.href : undefined
-  const requestUrl = new URL(input, baseUrl)
-
-  return new Request(requestUrl) as RequestType
+function isRequest(input: string | URL | Request): input is Request {
+  return (
+    typeof input === 'object' &&
+    input.constructor.name === 'Request' &&
+    'clone' in input &&
+    typeof input.clone === 'function'
+  )
 }

@@ -1,5 +1,7 @@
 module.exports = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.(t|j)sx?$': '@swc/jest',
+  },
   testTimeout: 15000,
   moduleNameMapper: {
     '^msw(.*)': '<rootDir>/..$1',

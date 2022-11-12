@@ -161,7 +161,7 @@ test('does not produce eslint errors or warnings', async () => {
   expect(init.stderr).toEqual('')
 
   const eslint = await promisifyChildProcess(
-    exec(`node_modules/.bin/eslint ${fsMock.resolve()}`),
+    exec(path.resolve(`node_modules/.bin/eslint ${fsMock.resolve()}`)),
   )
   expect(eslint.stdout).toEqual('')
   expect(eslint.stderr).toEqual('')

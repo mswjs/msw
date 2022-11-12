@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.47.3",
+  "version": "0.48.1",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,9 +9,11 @@
       "default": "./lib/index.js"
     },
     "./native": {
+      "types": "./lib/native/index.d.ts",
       "default": "./lib/native/index.js"
     },
     "./node": {
+      "types": "./lib/node/index.d.ts",
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
     }
@@ -31,7 +33,7 @@
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
-    "test:ts": "yarn tsc -p ./test/typings/tsconfig.json",
+    "test:ts": "ts-node test/typings/run.ts",
     "test:new": "playwright test -c ./test/playwright.config.ts",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
@@ -102,7 +104,7 @@
     "outvariant": "^1.3.0",
     "path-to-regexp": "^6.2.0",
     "statuses": "^2.0.0",
-    "strict-event-emitter": "^0.2.0",
+    "strict-event-emitter": "^0.2.6",
     "type-fest": "^2.19.0",
     "yargs": "^17.3.1"
   },
@@ -141,6 +143,7 @@
     "regenerator-runtime": "^0.13.9",
     "rimraf": "^3.0.2",
     "simple-git-hooks": "^2.8.0",
+    "statuses": "^2.0.0",
     "ts-jest": "26",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.9.1",

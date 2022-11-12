@@ -1,7 +1,7 @@
 import * as cookieUtils from 'cookie'
 import { store } from '@mswjs/cookies'
 import { IsomorphicRequest, RequestInit } from '@mswjs/interceptors'
-import { decodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils'
+import { decodeBuffer } from '@mswjs/interceptors/lib/utils/bufferUtils.js'
 import { Headers } from 'headers-polyfill'
 import { DefaultBodyType } from '../../handlers/RequestHandler'
 import { MockedResponse } from '../../response'

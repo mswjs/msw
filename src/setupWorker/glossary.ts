@@ -99,7 +99,7 @@ export type WorkerLifecycleEventsMap = LifeCycleEventsMap<Response>
 
 export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
-  startOptions?: RequiredDeep<StartOptions>
+  startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler[]
@@ -167,7 +167,7 @@ export interface StartOptions extends SharedOptions {
   serviceWorker?: {
     /**
      * Custom url to the worker script.
-     * @default "./mockServiceWorker.js"
+     * @default "/mockServiceWorker.js"
      */
     url?: string
     options?: RegistrationOptions

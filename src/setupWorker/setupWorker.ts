@@ -1,23 +1,24 @@
+import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
-import { StrictEventEmitter } from 'strict-event-emitter'
 import {
   SetupWorkerInternalContext,
-  SetupWorkerApi,
   ServiceWorkerIncomingEventsMap,
   WorkerLifecycleEventsMap,
+  StartReturnType,
+  StopHandler,
+  StartHandler,
+  StartOptions,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
-import * as requestHandlerUtils from '../utils/internal/requestHandlerUtils'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { RestHandler } from '../handlers/RestHandler'
-import { prepareStartHandler } from './start/utils/prepareStartHandler'
+import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
 import { createFallbackStart } from './start/createFallbackStart'
 import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '../utils/internal/devUtils'
-import { pipeEvents } from '../utils/internal/pipeEvents'
-import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
+import { SetupApi } from '../SetupApi'
+import { mergeRight } from '../utils/internal/mergeRight'
 
 interface Listener {
   target: EventTarget
@@ -25,214 +26,203 @@ interface Listener {
   callback: EventListener
 }
 
-// Declare the list of event handlers on the module's scope
-// so it persists between Fash refreshes of the application's code.
-let listeners: Listener[] = []
+export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
+  private context: SetupWorkerInternalContext
+  private startHandler: StartHandler = null as any
+  private stopHandler: StopHandler = null as any
+  private listeners: Array<Listener>
 
-/**
- * Creates a new mock Service Worker registration
- * with the given request handlers.
- * @param {RequestHandler[]} requestHandlers List of request handlers
- * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
- */
-export function setupWorker(
-  ...requestHandlers: RequestHandler[]
-): SetupWorkerApi {
-  requestHandlers.forEach((handler) => {
-    if (Array.isArray(handler))
-      throw new Error(
-        devUtils.formatMessage(
-          'Failed to call "setupWorker" given an Array of request handlers (setupWorker([a, b])), expected to receive each handler individually: setupWorker(a, b).',
-        ),
-      )
-  })
+  constructor(handlers: Array<RequestHandler>) {
+    super(handlers)
 
-  // Error when attempting to run this function in a Node.js environment.
-  if (isNodeProcess()) {
-    throw new Error(
+    invariant(
+      !isNodeProcess(),
       devUtils.formatMessage(
         'Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.',
       ),
     )
+
+    this.listeners = []
+    this.context = this.createWorkerContext()
   }
 
-  const emitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
-  const publicEmitter = new StrictEventEmitter<WorkerLifecycleEventsMap>()
-  pipeEvents(emitter, publicEmitter)
+  private createWorkerContext(): SetupWorkerInternalContext {
+    const context = {
+      // Mocking is not considered enabled until the worker
+      // signals back the successful activation event.
+      isMockingEnabled: false,
+      startOptions: null as any,
+      worker: null,
+      registration: null,
+      requestHandlers: this.currentHandlers,
+      emitter: this.emitter,
+      workerChannel: {
+        on: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
+          eventType: EventType,
+          callback: (
+            event: MessageEvent,
+            message: ServiceWorkerMessage<
+              EventType,
+              ServiceWorkerIncomingEventsMap[EventType]
+            >,
+          ) => void,
+        ) => {
+          this.context.events.addListener(
+            navigator.serviceWorker,
+            'message',
+            (event: MessageEvent) => {
+              // Avoid messages broadcasted from unrelated workers.
+              if (event.source !== this.context.worker) {
+                return
+              }
 
-  const context: SetupWorkerInternalContext = {
-    // Mocking is not considered enabled until the worker
-    // signals back the successful activation event.
-    isMockingEnabled: false,
-    startOptions: undefined,
-    worker: null,
-    registration: null,
-    requestHandlers: [...requestHandlers],
-    emitter,
-    workerChannel: {
-      on(eventType, callback) {
-        context.events.addListener(
-          navigator.serviceWorker,
-          'message',
-          (event: MessageEvent) => {
-            // Avoid messages broadcasted from unrelated workers.
-            if (event.source !== context.worker) {
-              return
-            }
+              const message = event.data as ServiceWorkerMessage<
+                typeof eventType,
+                any
+              >
 
-            const message = event.data as ServiceWorkerMessage<
-              typeof eventType,
-              any
-            >
-
-            if (!message) {
-              return
-            }
-
-            if (message.type === eventType) {
-              callback(event, message)
-            }
-          },
-        )
-      },
-      send(type) {
-        context.worker?.postMessage(type)
-      },
-    },
-    events: {
-      addListener(
-        target: EventTarget,
-        eventType: string,
-        callback: EventListener,
-      ) {
-        target.addEventListener(eventType, callback)
-        listeners.push({ eventType, target, callback })
-
-        return () => {
-          target.removeEventListener(eventType, callback)
-        }
-      },
-      removeAllListeners() {
-        for (const { target, eventType, callback } of listeners) {
-          target.removeEventListener(eventType, callback)
-        }
-        listeners = []
-      },
-      once(eventType) {
-        const bindings: Array<() => void> = []
-
-        return new Promise<
-          ServiceWorkerMessage<
-            typeof eventType,
-            ServiceWorkerIncomingEventsMap[typeof eventType]
-          >
-        >((resolve, reject) => {
-          const handleIncomingMessage = (event: MessageEvent) => {
-            try {
-              const message = event.data
+              if (!message) {
+                return
+              }
 
               if (message.type === eventType) {
-                resolve(message)
+                callback(event, message)
               }
-            } catch (error) {
-              reject(error)
-            }
+            },
+          )
+        },
+        send: (type: any) => {
+          this.context.worker?.postMessage(type)
+        },
+      },
+      events: {
+        addListener: (
+          target: EventTarget,
+          eventType: string,
+          callback: EventListener,
+        ) => {
+          target.addEventListener(eventType, callback)
+          this.listeners.push({ eventType, target, callback })
+
+          return () => {
+            target.removeEventListener(eventType, callback)
           }
+        },
+        removeAllListeners: () => {
+          for (const { target, eventType, callback } of this.listeners) {
+            target.removeEventListener(eventType, callback)
+          }
+          this.listeners = []
+        },
+        once: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
+          eventType: EventType,
+        ) => {
+          const bindings: Array<() => void> = []
 
-          bindings.push(
-            context.events.addListener(
-              navigator.serviceWorker,
-              'message',
-              handleIncomingMessage,
-            ),
-            context.events.addListener(
-              navigator.serviceWorker,
-              'messageerror',
-              reject,
-            ),
-          )
-        }).finally(() => {
-          bindings.forEach((unbind) => unbind())
-        })
+          return new Promise<
+            ServiceWorkerMessage<
+              typeof eventType,
+              ServiceWorkerIncomingEventsMap[typeof eventType]
+            >
+          >((resolve, reject) => {
+            const handleIncomingMessage = (event: MessageEvent) => {
+              try {
+                const message = event.data
+
+                if (message.type === eventType) {
+                  resolve(message)
+                }
+              } catch (error) {
+                reject(error)
+              }
+            }
+
+            bindings.push(
+              this.context.events.addListener(
+                navigator.serviceWorker,
+                'message',
+                handleIncomingMessage,
+              ),
+              this.context.events.addListener(
+                navigator.serviceWorker,
+                'messageerror',
+                reject,
+              ),
+            )
+          }).finally(() => {
+            bindings.forEach((unbind) => unbind())
+          })
+        },
       },
-    },
-    useFallbackMode:
-      !('serviceWorker' in navigator) || location.protocol === 'file:',
+      useFallbackMode:
+        !('serviceWorker' in navigator) || location.protocol === 'file:',
+    }
+
+    /**
+     * @todo Not sure I like this but "this.currentHandlers"
+     * updates never bubble to "this.context.requestHandlers".
+     */
+    Object.defineProperties(context, {
+      requestHandlers: {
+        get: () => this.currentHandlers,
+      },
+    })
+
+    this.startHandler = context.useFallbackMode
+      ? createFallbackStart(context)
+      : createStartHandler(context)
+
+    this.stopHandler = context.useFallbackMode
+      ? createFallbackStop(context)
+      : createStop(context)
+
+    return context
   }
 
-  const startHandler = context.useFallbackMode
-    ? createFallbackStart(context)
-    : createStartHandler(context)
-  const stopHandler = context.useFallbackMode
-    ? createFallbackStop(context)
-    : createStop(context)
+  public async start(options: StartOptions = {}): StartReturnType {
+    this.context.startOptions = mergeRight(
+      DEFAULT_START_OPTIONS,
+      options,
+    ) as SetupWorkerInternalContext['startOptions']
 
-  return {
-    start: prepareStartHandler(startHandler, context),
-    stop() {
-      context.events.removeAllListeners()
-      context.emitter.removeAllListeners()
-      publicEmitter.removeAllListeners()
-      stopHandler()
-    },
-
-    use(...handlers) {
-      requestHandlerUtils.use(context.requestHandlers, ...handlers)
-    },
-
-    restoreHandlers() {
-      requestHandlerUtils.restoreHandlers(context.requestHandlers)
-    },
-
-    resetHandlers(...nextHandlers) {
-      context.requestHandlers = requestHandlerUtils.resetHandlers(
-        requestHandlers,
-        ...nextHandlers,
-      )
-    },
-
-    listHandlers() {
-      return toReadonlyArray(context.requestHandlers)
-    },
-
-    printHandlers() {
-      const handlers = this.listHandlers()
-
-      handlers.forEach((handler) => {
-        const { header, callFrame } = handler.info
-        const pragma = handler.info.hasOwnProperty('operationType')
-          ? '[graphql]'
-          : '[rest]'
-
-        console.groupCollapsed(`${pragma} ${header}`)
-
-        if (callFrame) {
-          console.log(`Declaration: ${callFrame}`)
-        }
-
-        console.log('Handler:', handler)
-
-        if (handler instanceof RestHandler) {
-          console.log(
-            'Match:',
-            `https://mswjs.io/repl?path=${handler.info.path}`,
-          )
-        }
-
-        console.groupEnd()
-      })
-    },
-
-    events: {
-      on(...args) {
-        return publicEmitter.on(...args)
-      },
-      removeListener(...args) {
-        return publicEmitter.removeListener(...args)
-      },
-      removeAllListeners(...args) {
-        return publicEmitter.removeAllListeners(...args)
-      },
-    },
+    return await this.startHandler(this.context.startOptions, options)
   }
+
+  public printHandlers(): void {
+    const handlers = this.listHandlers()
+
+    handlers.forEach((handler) => {
+      const { header, callFrame } = handler.info
+      const pragma = handler.info.hasOwnProperty('operationType')
+        ? '[graphql]'
+        : '[rest]'
+
+      console.groupCollapsed(`${pragma} ${header}`)
+
+      if (callFrame) {
+        console.log(`Declaration: ${callFrame}`)
+      }
+
+      console.log('Handler:', handler)
+      console.groupEnd()
+    })
+  }
+
+  public stop(): void {
+    super.dispose()
+    this.context.events.removeAllListeners()
+    this.context.emitter.removeAllListeners()
+    this.stopHandler()
+  }
+}
+
+/**
+ * Sets up a requests interception in the browser with the given request handlers.
+ * @param {RequestHandler[]} handlers List of request handlers.
+ * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
+ */
+export function setupWorker(
+  ...handlers: Array<RequestHandler>
+): SetupWorkerApi {
+  return new SetupWorkerApi(handlers)
 }

@@ -30,4 +30,13 @@ test('transforms uncaught exceptions into a 500 response', async ({
       'ReferenceError: nonExisting is not defined',
     ),
   })
+
+  const errors = runtime.consoleSpy.get('error')
+
+  expect(errors).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining('ReferenceError: nonExisting is not defined'),
+      expect.stringContaining('  at '),
+    ]),
+  )
 })

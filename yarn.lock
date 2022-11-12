@@ -9242,10 +9242,10 @@ webpack-dev-server@^3.11.2:
     ws "^6.2.1"
     yargs "^13.3.2"
 
-webpack-http-server@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.2.1.tgz#ec70eff0ccb16c61617fabcca83b6eda6c455f1c"
-  integrity sha512-U39ZO+reBfAOgDkpewp27VSJd9j4VnPzouXBYwYBLd3H3FhnDsZsvkIVEnmbeEcV7VFw8ggAqKw4010tFhOXQg==
+webpack-http-server@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.3.0.tgz#f440039ceea85bddca63d700c47a11624aa56ed9"
+  integrity sha512-VCw6lK1+BA5vEQZrH3E2U2HkyFP1oVXqGBvrmTfnObQWx2Y3R4twrBL8HnL6FfLRuWMnmRK5OvRn0cDi5Ft2LQ==
   dependencies:
     "@types/express" "^4.17.13"
     "@types/mustache" "^4.2.1"

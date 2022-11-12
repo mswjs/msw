@@ -1,16 +1,23 @@
-import * as path from 'path'
-import { pageWith } from 'page-with'
-import { waitFor } from '../../../../support/waitFor'
+/**
+ * @jest-environment node
+ */
+import express from 'express'
+import { test, expect } from '../../../../playwright.extend'
 
-function createRuntime() {
-  return pageWith({
-    example: path.resolve(__dirname, 'shared-worker.mocks.ts'),
-    contentBase: path.resolve(__dirname),
+test('does not interfere with a shared worker', async ({
+  loadExample,
+  spyOnConsole,
+  waitFor,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./shared-worker.mocks.ts'), {
+    beforeNavigation(compilation) {
+      compilation.use((router) => {
+        router.use(express.static(__dirname))
+      })
+    },
   })
-}
-
-test('does not interfere with a shared worker', async () => {
-  const { page, consoleSpy } = await createRuntime()
 
   await page.evaluate(() => {
     const worker = new SharedWorker('/worker.js')

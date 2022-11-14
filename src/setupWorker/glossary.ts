@@ -92,6 +92,10 @@ export interface ServiceWorkerBroadcastChannelMessageMap {
   MOCK_RESPONSE_END(): void
 }
 
+export interface StrictEventListener<EventType extends Event> {
+  (event: EventType): void
+}
+
 export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
   startOptions: RequiredDeep<StartOptions>
@@ -126,7 +130,7 @@ export interface SetupWorkerInternalContext {
     addListener<EventType extends Event>(
       target: EventTarget,
       eventType: string,
-      listener: (event: EventType) => void,
+      callback: StrictEventListener<EventType>,
     ): () => void
     /**
      * Removes all currently attached listeners.

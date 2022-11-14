@@ -23,7 +23,7 @@ import { LifeCycleEventsMap } from '../sharedOptions'
 interface Listener {
   target: EventTarget
   eventType: string
-  callback: EventListener
+  callback: EventListenerOrEventListenerObject
 }
 
 export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
@@ -47,7 +47,7 @@ export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
   }
 
   private createWorkerContext(): SetupWorkerInternalContext {
-    const context = {
+    const context: SetupWorkerInternalContext = {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
@@ -57,55 +57,41 @@ export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
       requestHandlers: this.currentHandlers,
       emitter: this.emitter,
       workerChannel: {
-        on: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
-          eventType: EventType,
-          callback: (
-            event: MessageEvent,
-            message: ServiceWorkerMessage<
-              EventType,
-              ServiceWorkerIncomingEventsMap[EventType]
-            >,
-          ) => void,
-        ) => {
-          this.context.events.addListener(
-            navigator.serviceWorker,
-            'message',
-            (event: MessageEvent) => {
-              // Avoid messages broadcasted from unrelated workers.
-              if (event.source !== this.context.worker) {
-                return
-              }
+        on: (eventType, callback) => {
+          this.context.events.addListener<
+            MessageEvent<ServiceWorkerMessage<typeof eventType, any>>
+          >(navigator.serviceWorker, 'message', (event) => {
+            // Avoid messages broadcasted from unrelated workers.
+            if (event.source !== this.context.worker) {
+              return
+            }
 
-              const message = event.data as ServiceWorkerMessage<
-                typeof eventType,
-                any
-              >
+            const message = event.data
 
-              if (!message) {
-                return
-              }
+            if (!message) {
+              return
+            }
 
-              if (message.type === eventType) {
-                callback(event, message)
-              }
-            },
-          )
+            if (message.type === eventType) {
+              callback(event, message)
+            }
+          })
         },
-        send: (type: any) => {
+        send: (type) => {
           this.context.worker?.postMessage(type)
         },
       },
       events: {
-        addListener: (
-          target: EventTarget,
-          eventType: string,
-          callback: EventListener,
-        ) => {
-          target.addEventListener(eventType, callback)
-          this.listeners.push({ eventType, target, callback })
+        addListener: (target, eventType, callback) => {
+          target.addEventListener(eventType, callback as EventListener)
+          this.listeners.push({
+            eventType,
+            target,
+            callback: callback as EventListener,
+          })
 
           return () => {
-            target.removeEventListener(eventType, callback)
+            target.removeEventListener(eventType, callback as EventListener)
           }
         },
         removeAllListeners: () => {
@@ -114,9 +100,7 @@ export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
           }
           this.listeners = []
         },
-        once: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
-          eventType: EventType,
-        ) => {
+        once: (eventType) => {
           const bindings: Array<() => void> = []
 
           return new Promise<

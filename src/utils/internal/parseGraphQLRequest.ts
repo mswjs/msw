@@ -4,7 +4,7 @@ import type {
   OperationTypeNode,
 } from 'graphql'
 import { parse } from 'graphql'
-import { type GraphQLVariables } from '../../handlers/GraphQLHandler'
+import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
 import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'

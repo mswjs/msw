@@ -1,14 +1,14 @@
 import {
   DefaultBodyType,
-  type RequestHandlerPublicOptions,
-  type ResponseResolver,
+  RequestHandlerPublicOptions,
+  ResponseResolver,
 } from './handlers/RequestHandler'
 import {
   RESTMethods,
   RestHandler,
   RestRequestResolverExtras,
 } from './handlers/RestHandler'
-import { type Path, type PathParams } from './utils/matching/matchRequestUrl'
+import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 
 function createRestHandler<Method extends RESTMethods | RegExp>(
   method: Method,

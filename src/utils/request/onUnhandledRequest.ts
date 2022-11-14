@@ -7,7 +7,7 @@ import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { RestHandler } from '../../handlers/RestHandler'
 import { GraphQLHandler } from '../../handlers/GraphQLHandler'
-import { type RequestHandler } from '../../handlers/RequestHandler'
+import type { RequestHandler } from '../../handlers/RequestHandler'
 import { devUtils } from '../internal/devUtils'
 
 const MAX_MATCH_SCORE = 3

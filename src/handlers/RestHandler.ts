@@ -106,10 +106,7 @@ export class RestHandler extends RequestHandler<
     )
   }
 
-  override async parse(
-    request: Request,
-    resolutionContext?: ResponseResolutionContext,
-  ) {
+  async parse(request: Request, resolutionContext?: ResponseResolutionContext) {
     const url = new URL(request.url)
     const match = matchRequestUrl(
       url,
@@ -124,7 +121,7 @@ export class RestHandler extends RequestHandler<
     }
   }
 
-  override predicate(request: Request, parsedResult: RestRequestParsedResult) {
+  predicate(request: Request, parsedResult: RestRequestParsedResult) {
     const hasMatchingMethod = this.matchMethod(request.method)
     const hasMatchingUrl = parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl
@@ -136,7 +133,7 @@ export class RestHandler extends RequestHandler<
       : isStringEqual(this.info.method, actualMethod)
   }
 
-  protected override extendInfo(
+  protected extendInfo(
     _request: Request,
     parsedResult: RestRequestParsedResult,
   ) {
@@ -146,7 +143,7 @@ export class RestHandler extends RequestHandler<
     }
   }
 
-  override async log(request: Request, response: Response) {
+  async log(request: Request, response: Response) {
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = await serializeRequest(request)
     const loggedResponse = await serializeResponse(response)

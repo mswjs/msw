@@ -1,9 +1,9 @@
 import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
-import { type ResponseResolutionContext } from '../utils/getResponse'
-import { type MaybePromise } from '../typeUtils'
-import { StrictRequest, type StrictResponse } from '../HttpResponse'
+import type { ResponseResolutionContext } from '../utils/getResponse'
+import type { MaybePromise } from '../typeUtils'
+import { StrictRequest, StrictResponse } from '../HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -252,9 +252,12 @@ export abstract class RequestHandler<
           this.resolverGenerator = result
         }
 
-        // Also clone the response before storing it
-        // so it could be read again.
-        this.resolverGeneratorResult = nextResponse?.clone()
+        if (nextResponse) {
+          // Also clone the response before storing it
+          // so it could be read again.
+          this.resolverGeneratorResult = nextResponse?.clone()
+        }
+
         return nextResponse
       }
 

@@ -110,14 +110,14 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  override async parse(request: Request) {
+  async parse(request: Request) {
     return parseGraphQLRequest(request).catch((error) => {
       console.error(error)
       return undefined
     })
   }
 
-  override predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
+  predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
     if (!parsedResult) {
       return false
     }
@@ -150,7 +150,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     )
   }
 
-  protected override extendInfo(
+  protected extendInfo(
     _request: Request,
     parsedResult: ParsedGraphQLRequest<GraphQLVariables>,
   ) {
@@ -160,7 +160,7 @@ Consider naming this operation or using "graphql.operation" request handler to i
     }
   }
 
-  override async log(
+  async log(
     request: Request,
     response: Response,
     parsedRequest: ParsedGraphQLRequest,

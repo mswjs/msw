@@ -1,4 +1,4 @@
-import { type ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
+import type { ServiceWorkerIncomingRequest } from '../../setupWorker/glossary'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 
 /**

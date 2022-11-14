@@ -1,4 +1,4 @@
-import { type HeadersObject, headersToObject } from 'headers-polyfill'
+import { HeadersObject, headersToObject } from 'headers-polyfill'
 
 export interface SerializedResponse {
   status: number

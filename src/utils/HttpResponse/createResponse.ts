@@ -1,6 +1,6 @@
 import { Response } from '../../Response'
 import type { StrictResponse } from '../../HttpResponse'
-import { decorateResponse, type HttpResponseDecoratedInit } from './decorators'
+import { decorateResponse, HttpResponseDecoratedInit } from './decorators'
 
 export function createResponse(
   body: BodyInit | null | undefined,

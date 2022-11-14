@@ -16,12 +16,11 @@ export function bypass(
   input: string | URL | Request,
   init?: RequestInit,
 ): [string, RequestInit] {
-  const isGivenRequest = isRequest(input)
-  const url = isGivenRequest ? input.url : input.toString()
+  const url = isRequest(input) ? input.url : input.toString()
   const resolvedInit: RequestInit =
     typeof init !== 'undefined'
       ? init
-      : isGivenRequest
+      : isRequest(input)
       ? {
           // Set each request init property explicitly
           // to prevent leaking internal properties of whichever

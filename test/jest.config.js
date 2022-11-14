@@ -2,7 +2,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': '@swc/jest',
   },
-  testTimeout: 15000,
+  testTimeout: 10000,
   moduleNameMapper: {
     '^msw(.*)': '<rootDir>/..$1',
   },

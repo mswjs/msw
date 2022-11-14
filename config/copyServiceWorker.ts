@@ -3,6 +3,8 @@ import * as path from 'path'
 import chalk from 'chalk'
 import { until } from '@open-draft/until'
 
+const { cyan } = chalk
+
 /**
  * Copies the given Service Worker source file into the destination.
  * Injects the integrity checksum into the destination file.
@@ -46,5 +48,5 @@ export default async function copyServiceWorker(
     throw new Error(`Failed to write file.\n${writeFileError.message}`)
   }
 
-  console.log('Service Worker copied to: %s', chalk.cyan(destFilePath))
+  console.log('Service Worker copied to: %s', cyan(destFilePath))
 }

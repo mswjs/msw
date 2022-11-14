@@ -94,7 +94,7 @@ export interface ServiceWorkerBroadcastChannelMessageMap {
 
 export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
-  startOptions?: RequiredDeep<StartOptions>
+  startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: Array<RequestHandler>

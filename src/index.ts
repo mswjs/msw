@@ -1,5 +1,7 @@
 export { setupWorker } from './setupWorker/setupWorker'
 
+export { SetupApi } from './SetupApi'
+
 /* Request handlers */
 export { RequestHandler } from './handlers/RequestHandler'
 export { rest } from './rest'

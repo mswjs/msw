@@ -36,6 +36,7 @@ afterAll(() => {
 test('lists all current request handlers', () => {
   server.printHandlers()
 
+  // Test failed here, commenting so it shows up in the PR
   expect(console.log).toBeCalledTimes(6)
 
   expect(console.log).toBeCalledWith(`\
@@ -83,11 +84,11 @@ test('respects runtime request handlers when listing handlers', () => {
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[rest] GET https://test.mswjs.io/book/:bookId')}
-  Declaration: ${__filename}:74:10
+  Declaration: ${__filename}:75:10
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[graphql] query GetRandomNumber (origin: *)')}
-  Declaration: ${__filename}:75:13
+  Declaration: ${__filename}:76:13
 `)
 })

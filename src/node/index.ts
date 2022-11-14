@@ -1,2 +1,2 @@
 export { setupServer } from './setupServer'
-export type { SetupServerApi } from './glossary'
+export type { SetupServerApi, ServerLifecycleEventsMap } from './glossary'

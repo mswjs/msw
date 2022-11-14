@@ -1,70 +1,75 @@
 /**
  * @jest-environment node
  */
-import * as http from 'http'
+import http from 'http'
 import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
+import { ServerApi, createServer } from '@open-draft/test-server'
+import { waitForClientRequest } from '../../../support/utils'
 
-const server = setupServer(
-  rest.get('http://test.mswjs.io', () => {
-    return HttpResponse.json(
-      {
-        firstName: 'John',
-      },
-      {
-        status: 401,
-        headers: {
-          'X-Header': 'yes',
-        },
-      },
-    )
-  }),
-)
+let httpServer: ServerApi
+const server = setupServer()
 
-beforeAll(() => {
+beforeAll(async () => {
   server.listen()
-})
 
-afterAll(() => {
-  server.close()
-})
-
-it('returns a mocked response to a http.get request', async () => {
-  let res: http.IncomingMessage
-  let resBody = ''
-
-  await new Promise<void>((resolve) => {
-    http.get('http://test.mswjs.io', (message) => {
-      res = message
-      res.setEncoding('utf8')
-      res.on('data', (chunk) => (resBody += chunk))
-      res.on('end', () => resolve())
+  httpServer = await createServer((app) => {
+    app.get('/resource', (_, res) => {
+      return res.status(500).send('original-response')
     })
   })
-
-  expect(res.statusCode).toEqual(401)
-  expect(res.headers).toHaveProperty('content-type', 'application/json')
-  expect(res.headers).toHaveProperty('x-header', 'yes')
-  expect(resBody).toEqual('{"firstName":"John"}')
 })
 
-it('returns a mocked response to a http.request request', async () => {
-  let res: http.IncomingMessage
-  let resBody = ''
+beforeEach(() => {
+  server.use(
+    rest.get(httpServer.http.makeUrl('/resource'), () => {
+      return HttpResponse.json(
+        { firstName: 'John' },
+        {
+          status: 401,
+          headers: {
+            'x-header': 'yes',
+          },
+        },
+      )
+    }),
+  )
+})
 
-  await new Promise<void>((resolve) => {
-    http
-      .request('http://test.mswjs.io', (message) => {
-        res = message
-        res.setEncoding('utf8')
-        res.on('data', (chunk) => (resBody += chunk))
-        res.on('end', () => resolve())
-      })
-      .end()
-  })
+afterEach(() => {
+  server.resetHandlers()
+})
 
-  expect(res.statusCode).toEqual(401)
-  expect(res.headers).toHaveProperty('content-type', 'application/json')
-  expect(res.headers).toHaveProperty('x-header', 'yes')
-  expect(resBody).toEqual('{"firstName":"John"}')
+afterAll(async () => {
+  server.close()
+  await httpServer.close()
+})
+
+it('returns a mocked response to an "http.get" request', async () => {
+  const request = http.get(httpServer.http.makeUrl('/resource'))
+  const { response, responseText } = await waitForClientRequest(request)
+
+  expect(response.statusCode).toBe(401)
+  expect(response.headers).toEqual(
+    expect.objectContaining({
+      'content-type': 'application/json',
+      'x-header': 'yes',
+    }),
+  )
+  expect(responseText).toBe('{"firstName":"John"}')
+})
+
+it('returns a mocked response to an "http.request" request', async () => {
+  const request = http.request(httpServer.http.makeUrl('/resource'))
+  request.end()
+  const { response, responseText } = await waitForClientRequest(request)
+
+  expect(response.statusCode).toBe(401)
+  expect(response.headers).toEqual(
+    expect.objectContaining({
+      'content-type': 'application/json',
+      'x-header': 'yes',
+    }),
+  )
+  expect(responseText).toBe('{"firstName":"John"}')
 })

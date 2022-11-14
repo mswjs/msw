@@ -10,7 +10,7 @@ it('returns bypassed request given a request url string', () => {
   const headers = new Headers(init.headers)
 
   // Relative URLs are rebased against the current location.
-  expect(url).toBe('http://localhost/user')
+  expect(url).toBe('/user')
   expect(headers.get('x-msw-intention')).toBe('bypass')
 })
 

@@ -31,7 +31,7 @@ export class WorkerChannel {
     this.port.postMessage(
       { type: event, data },
       {
-        // @ts-expect-error ReadableStream can be transferred
+        // @ts-ignore ReadableStream can be transferred
         // but TypeScript doesn't acknowledge that.
         transfer,
       },

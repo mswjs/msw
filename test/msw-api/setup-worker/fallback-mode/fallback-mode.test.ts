@@ -1,7 +1,8 @@
 import * as path from 'path'
 import { SetupWorkerApi } from 'msw'
 import { createTeardown } from 'fs-teardown'
-import { Page, pageWith, Response, ScenarioApi } from 'page-with'
+import { invariant } from 'outvariant'
+import { Page, pageWith, ScenarioApi } from 'page-with'
 import { fromTemp } from '../../../support/utils'
 import { waitFor } from '../../../support/waitFor'
 
@@ -49,12 +50,21 @@ afterAll(async () => {
 })
 
 function createRequestHelper(page: Page) {
-  return (input: RequestInfo, init?: RequestInit): Promise<Response> => {
-    return page.evaluate(
-      ([input, init]: [RequestInfo, RequestInit]) => {
+  return (input: RequestInfo, init?: RequestInit) => {
+    return page.evaluate<
+      | {
+          status: number
+          statusText: string
+          headers: Record<string, string>
+          body: unknown
+        }
+      | undefined,
+      [RequestInfo, RequestInit | undefined]
+    >(
+      ([input, init]) => {
         return fetch(input, init)
           .then((res) => {
-            const headers = {}
+            const headers: Record<string, string> = {}
             res.headers.forEach((value, key) => {
               headers[key] = value
             })
@@ -66,7 +76,7 @@ function createRequestHelper(page: Page) {
               body,
             }))
           })
-          .catch(() => null)
+          .catch(() => void 0)
       },
       [input, init],
     )
@@ -74,6 +84,7 @@ function createRequestHelper(page: Page) {
 }
 
 test('prints a fallback start message in the console', async () => {
+  await runtime.page.reload()
   const consoleGroups = runtime.consoleSpy.get('startGroupCollapsed')
 
   expect(consoleGroups).toContain('[MSW] Mocking enabled (fallback mode).')
@@ -94,10 +105,12 @@ test('responds with a mocked response to a handled request', async () => {
     )
   })
 
+  invariant(response, 'Expected to receive a response')
+
   // Responds with a mocked response.
   expect(response.status).toBe(200)
   expect(response.statusText).toEqual('OK')
-  expect(response.headers['x-powered-by']).toEqual('msw')
+  expect(response.headers).toHaveProperty('x-powered-by', 'msw')
   expect(response.body).toEqual({
     name: 'John Maverick',
     originalUsername: 'octocat',
@@ -132,5 +145,7 @@ test('stops the fallback interceptor when called "worker.stop()"', async () => {
 
   // No requests should be intercepted.
   const response = await request('https://api.github.com/users/octocat')
+  invariant(response, 'Expected to receive a response')
+
   expect(response.headers).toHaveProperty('x-github-media-type')
 })

@@ -15,7 +15,7 @@ interface ResponseBody {
 
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async () => {
-    const fetchArgs = bypass(httpServer.http.makeUrl('/user'))
+    const fetchArgs = await bypass(httpServer.http.makeUrl('/user'))
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 

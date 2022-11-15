@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { pageWith } from 'page-with'
+import { sleep } from '../support/utils'
 
 function createRuntime() {
   return pageWith({
@@ -13,8 +14,7 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
   runtime.page.evaluate(() => {
     /**
      * Emulate a forced reload.
-     * Since `location.reload(true)` is deprecated,
-     * use a workaround.
+     * Since `location.reload(true)` is deprecated, using a workaround.
      * @see https://stackoverflow.com/a/65544086/2754939
      */
     location.replace(location.href)
@@ -24,7 +24,14 @@ test('keeps the mocking enabled after hard-reload of the page', async () => {
     waitUntil: 'networkidle',
   })
 
-  const res = await runtime.request('https://api.github.com')
+  /**
+   * @note No idea why immediate reload and awaiting for network idle
+   * stopped working. Sadness.
+   * @fixme Rewrite this to await a reliable source.
+   */
+  await sleep(200)
+
+  const res = await runtime.request('/resource')
   const headers = await res.allHeaders()
   const body = await res.json()
 

@@ -66,7 +66,7 @@ test('bypasses the original request when it equals the mocked request', async ()
 
   const res = await runtime.request(
     '/repos/mswjs/msw?mocked=true',
-    null,
+    undefined,
     (res, url) => {
       return (
         // Await the response from MSW so that the original response

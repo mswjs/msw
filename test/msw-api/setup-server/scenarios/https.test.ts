@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 import https from 'https'
+import { ServerApi, createServer, httpsAgent } from '@open-draft/test-server'
 import { HttpResponse, rest } from 'msw'
-import { ServerApi, createServer } from '@open-draft/test-server'
 import { setupServer } from 'msw/node'
 import { waitForClientRequest } from '../../../support/utils'
 
@@ -23,19 +23,17 @@ beforeAll(async () => {
 beforeEach(() => {
   server.use(
     rest.get(httpServer.https.makeUrl('/resource'), () => {
-      rest.get('https://test.mswjs.io', () => {
-        return HttpResponse.json(
-          {
-            firstName: 'John',
+      return HttpResponse.json(
+        {
+          firstName: 'John',
+        },
+        {
+          status: 401,
+          headers: {
+            'X-Header': 'yes',
           },
-          {
-            status: 401,
-            headers: {
-              'X-Header': 'yes',
-            },
-          },
-        )
-      })
+        },
+      )
     }),
   )
 })
@@ -50,7 +48,9 @@ afterAll(async () => {
 })
 
 it('returns a mocked response to an "https.get" request', async () => {
-  const request = https.get(httpServer.https.makeUrl('/resource'))
+  const request = https.get(httpServer.https.makeUrl('/resource'), {
+    agent: httpsAgent,
+  })
   const { response, responseText } = await waitForClientRequest(request)
 
   expect(response.statusCode).toBe(401)
@@ -64,7 +64,9 @@ it('returns a mocked response to an "https.get" request', async () => {
 })
 
 it('returns a mocked response to an "https.request" request', async () => {
-  const request = https.request(httpServer.https.makeUrl('/resource'))
+  const request = https.request(httpServer.https.makeUrl('/resource'), {
+    agent: httpsAgent,
+  })
   request.end()
   const { response, responseText } = await waitForClientRequest(request)
 

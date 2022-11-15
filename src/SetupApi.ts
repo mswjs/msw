@@ -22,7 +22,7 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(initialHandlers: Array<RequestHandler>) {
+  constructor(...initialHandlers: Array<RequestHandler>) {
     this.validateHandlers(initialHandlers)
 
     this.initialHandlers = toReadonlyArray(initialHandlers)

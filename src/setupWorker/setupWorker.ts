@@ -32,8 +32,8 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
   private stopHandler: StopHandler = null as any
   private listeners: Array<Listener>
 
-  constructor(handlers: Array<RequestHandler>) {
-    super(handlers)
+  constructor(...handlers: Array<RequestHandler>) {
+    super(...handlers)
 
     invariant(
       !isNodeProcess(),
@@ -224,5 +224,5 @@ export class SetupWorkerApi extends SetupApi<WorkerLifecycleEventsMap> {
 export function setupWorker(
   ...handlers: Array<RequestHandler>
 ): SetupWorkerApi {
-  return new SetupWorkerApi(handlers)
+  return new SetupWorkerApi(...handlers)
 }

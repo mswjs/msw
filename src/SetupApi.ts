@@ -23,7 +23,7 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
   constructor(...initialHandlers: Array<RequestHandler>) {
-    this.validateHandlers(initialHandlers)
+    this.validateHandlers(...initialHandlers)
 
     this.initialHandlers = toReadonlyArray(initialHandlers)
     this.currentHandlers = [...initialHandlers]
@@ -35,7 +35,7 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
     this.events = this.createLifeCycleEvents()
   }
 
-  private validateHandlers(handlers: ReadonlyArray<RequestHandler>): void {
+  private validateHandlers(...handlers: ReadonlyArray<RequestHandler>): void {
     // Guard against incorrect call signature of the setup API.
     for (const handler of handlers) {
       invariant(

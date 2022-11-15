@@ -13,6 +13,6 @@ export const setupServer = (
 ): SetupServerApi => {
   return new SetupServerApi(
     [ClientRequestInterceptor, XMLHttpRequestInterceptor],
-    handlers,
+    ...handlers,
   )
 }

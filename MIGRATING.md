@@ -1,5 +1,42 @@
 # Migration guide
 
+This guide will help you migrate from the latest version of MSW to the `next` release that introduces a first-class support for Fetch API primitives to the library. **This is a breaking change**. In fact, this is the biggest change to our public API since they day the library was first published. Do not fret, however, as this is precisely why this document exists.
+
+## Getting started
+
+```sh
+npm install msw@next --save-dev
+```
+
+## Table of contents
+
+To help you navigate, we've structured this guide on the feature basis. You can read it top-to-bottom, or you can jump to a particular feature you have trouble migrating from.
+
+- [**Response resolver**](#response-resolver) (call signature change)
+- [Request changes](#request-changes)
+- [req.params](#reqparams)
+- [req.cookies](#request-cookies)
+- [req.passthrough](#reqpassthrough)
+- [res.once](#resonce)
+- [Context utilities](#context-utilities)
+  - [ctx.status](#ctxstatus)
+  - [ctx.set](#ctxset)
+  - [ctx.cookie](#ctxcookie)
+  - [ctx.body](#ctxbody)
+  - [ctx.text](#ctxtext)
+  - [ctx.json](#ctxjson)
+  - [ctx.xml](#ctxxml)
+  - [ctx.data](#ctxdata)
+  - [ctx.errors](#ctxerrors)
+  - [ctx.delay](#ctxdelay)
+  - [ctx.fetch](#ctx-fetch)
+- [Life-cycle events](#life-cycle-events)
+- [Advanced](#advanced)
+- [**What's new in this release?**](#whats-new)
+- [Common issues](#common-issues)
+
+---
+
 ## Response resolver
 
 A response resolver now exposes a single object argument instead of `(req, res, ctx)`. That argument represents resolver information and consists of properties that are always present for all handler types and extra properties specific to handler types.
@@ -85,13 +122,25 @@ rest.get('/product', ({ request }) => {
 })
 ```
 
-#### Path parameters
+#### `req.params`
 
 Path parameters are now exposed directly on the [Resolver info](#resolver-info) object (previously, `req.params`).
 
-#### Request cookies
+```js
+rest.get('/resource', ({ params }) => {
+  console.log('Request path parameters:', params)
+})
+```
+
+#### `req.cookies`
 
 Request cookies are now exposed directly on the [Resolver info](#resolver-info) object (previously, `req.cookies`).
+
+```js
+rest.get('/resource', ({ cookies }) => {
+  console.log('Request cookies:', cookies)
+})
+```
 
 #### Request body
 
@@ -102,8 +151,8 @@ The library now does no assumptions when reading the intercepted request's body 
 For example, this is how you would read request body:
 
 ```js
-rest.post('/user', async ({ request }) => {
-  const nextUser = await request.json()
+rest.post('/resource', async ({ request }) => {
+  const data = await request.json()
   // request.formData() / request.arrayBuffer() / etc.
 })
 ```
@@ -146,7 +195,7 @@ setupServer(
 
 Relying on a single universal `Response` class will allow you to write request handlers that can run in both browser and Node.js environments.
 
-## One-time responses
+## `res.once`
 
 To create a one-time request handler, pass it an object as the third argument with `once: true` set:
 
@@ -154,14 +203,20 @@ To create a one-time request handler, pass it an object as the third argument wi
 import { HttpResponse, rest } from 'msw'
 
 export const handlers = [
-  rest.get('/user', () => HttpResponse.text('hello'), { once: true }),
+  rest.get(
+    '/user',
+    () => {
+      return HttpResponse.text('hello')
+    },
+    { once: true },
+  ),
 ]
 ```
 
-## Passthrough responses
+## `req.passthrough`
 
 ```js
-import { passthrough } from 'msw'
+import { rest, passthrough } from 'msw'
 
 export const handlers = [
   rest.get('/user', () => {
@@ -196,101 +251,199 @@ export const handlers = [
 ]
 ```
 
-### REST response body utilities
+Let's go through each previously existing context utility and see how to declare its analogue using the `Response` class.
 
-All response body utilities, like `ctx.body()`, `ctx.text()`, `ctx.json()`, etc., were removed in favor of constructing a correct `Response` instance. However, since `Response` declarations may get verbose, the library now exports a `HttpResponse` abstraction to help you construct mocked responses with different body types easier.
+### `ctx.status`
 
 ```js
-import { HttpResponse, rest } from 'msw'
+import { rest, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/body', () => {
-    // You can construct mocked responses with
-    // arbitrary bodies via a direct Response instance.
-    return new Response('raw-body', {
-      headers: {
-        'Content-Type': 'application/vnd.acme+json',
-      },
-    })
-  }),
-  rest.get('/text', () => {
-    return HttpResponse.text('hello world')
-  }),
-  rest.get('/json', () => {
-    return HttpResponse.json({ firstName: 'John' })
-  }),
-  rest.get('/xml', () => {
-    return HttpResponse.xml({ firstName: 'John' })
+  rest.get('/resource', () => {
+    return HttpResponse.text('hello', { status: 201 })
   }),
 ]
 ```
 
-> In addition, you can now mock other response bodies like `formData` or `blob` by accessing the respective methods on the `HttpResponse` object.
-
-### GraphQL response body utilities
-
-GraphQL context utilities have been removed in favor of constructing a correct JSON response instance.
+### `ctx.set`
 
 ```js
-import { HttpResponse, graphql } from 'msw'
+import { rest, HttpResponse } from 'msw'
 
 export const handlers = [
-  graphql.query('GetUser', ({ variables }) => {
+  rest.get('/resource', () => {
+    return HttpResponse.text('hello', {
+      headers: {
+        'Content-Type': 'text/plain; charset=windows-1252',
+      },
+    })
+  }),
+]
+```
+
+### `ctx.cookie`
+
+```js
+import { HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    return HttpResponse.text('hello', {
+      headers: {
+        'Set-Cookie': 'token=abc-123',
+      },
+    })
+  }),
+]
+```
+
+Although setting `Set-Cookie` header has no effect on a regular `Response` instance, we detect that header on `HttpResponse` and implement response cookie forwarding on our side for you. **This is why you must always use `HttpResponse` in order to mock response cookies**.
+
+Since Fetch API Headers do not support multiple values as the `HeadersInit`, to mock a multi-value response cookie create a `Headers` instance and use the `.append()` method to set multiple `Set-Cookie` response headers.
+
+```js
+import { Headers, HttpResponse, rest } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    rest.get('/resource', () => {
+      const headers = new Headers()
+      headers.append('Set-Cookie', 'sessionId=123')
+      headers.append('Set-Cookie', 'gtm=en_US')
+
+      return HttpResponse.plain(null, { headers })
+    })
+  }),
+]
+```
+
+### `ctx.body`
+
+```js
+import { rest, HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    return HttpResponse.raw('any-body')
+  }),
+]
+```
+
+> Do not forget to set the `Content-Type` header that represents the mocked response's body type. If using common response body types, like text or json, see the respective migration instructions for those context utilities below.
+
+### `ctx.text`
+
+```js
+import { rest, HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    return HttpResponse.text('hello')
+  }),
+]
+```
+
+### `ctx.json`
+
+```js
+import { rest, HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    return HttpResponse.json({ firstName: 'John' })
+  }),
+]
+```
+
+### `ctx.xml`
+
+```js
+import { rest, HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
+    return HttpResponse.xml('<user id="abc-123" />')
+  }),
+]
+```
+
+### `ctx.data`
+
+The `ctx.data` utility has been removed in favor of constructing a mocked JSON response with the "data" property in it.
+
+```js
+import { HttpResponse } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', () => {
     return HttpResponse.json({
       data: {
-        // ctx.data()
         user: {
-          id: variables.id,
           firstName: 'John',
         },
       },
-      // ctx.errors()
-      errors: [
-        {
-          message: 'Failed to fetch "user.posts"',
-        },
-      ],
-      extensions: {
-        // ctx.extensions()
-        server: 'HTTP1.1 Apache',
-      },
     })
   }),
 ]
 ```
 
-### `ctx.delay()`
+### `ctx.errors`
 
-You can delay a mocked response by awaiting the `delay()` function:
+The `ctx.data` utility has been removed in favor of constructing a mocked JSON response with the "data" property in it.
 
 ```js
-import { rest, delay } from 'msw'
+import { HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.post('/user', async () => {
-    await delay()
+  rest.get('/resource', () => {
+    return HttpResponse.json({
+      errors: [
+        {
+          message: 'Something went wrong',
+        },
+      ],
+    })
   }),
 ]
 ```
 
-> The `delay()` function has the same call signature as the `ctx.delay()` used to have.
+### `ctx.delay`
 
-### `ctx.fetch()`
+```js
+import { rest, HttpResponse, delay } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', async () => {
+    await delay()
+    return HttpResponse.text('hello')
+  }),
+]
+```
+
+The `delay` function has the same call signature as the `ctx.delay` context function. This means it supports the delay mode as an argument:
+
+```js
+await delay(500)
+await delay('infinite')
+```
+
+### `ctx.fetch`
 
 The `ctx.fetch()` function has been removed in favor of the `bypass()` function. You should now always perform a regular `fetch()` call and wrap the request in the `bypass()` function if you wish for it to ignore any otherwise matching request handlers.
 
 ```js
-import { rest, bypass } from 'msw'
+import { rest, HttpResponse, bypass } from 'msw'
 
 export const handlers = [
-  rest.get('https://api.github.com/user/:username', async ({ request }) => {
-    // Performs an original "GET" request to the GitHub REST API.
-    const original = await fetch(...bypass(request))
+  rest.get('/resource', async ({ request }) => {
+    // Use the regular "fetch" from your environment.
+    const originalResponse = await fetch(...bypass(request))
+    const json = await originalResponse.json()
+
+    // ...handle the original response, maybe return a mocked one.
   }),
 ]
 ```
-
-> Note that `bypass()` returns a tuple of request input and init instead of a `Request` instance. That is because fetch polyfills lock-in the request identity to the requests created using those polyfills.
 
 The `bypass()` function also accepts `RequestInit` as the second argument to modify the bypassed request.
 
@@ -303,37 +456,7 @@ bypass(request, {
 })
 ```
 
-### `ctx.cookie()`
-
-Please set the "Set-Cookie" response header in order to mock response cookies.
-
-```js
-import { HttpResponse, rest } from 'msw'
-
-export const handlers = [
-  rest.post('/login', () => {
-    return HttpResponse.text(null, {
-      headers: {
-        'Set-Cookie': 'sessionId=abc123',
-      },
-    })
-  }),
-]
-```
-
-Since Fetch API Headers do not support multiple values as the `HeadersInit`, to mock a multi-value response cookie create a `Headers` instance and use the `.append()` method to set multiple `Set-Cookie` response headers.
-
-```js
-import { Headers, HttpResponse, rest } from 'msw'
-
-rest.post('/login', () => {
-  const headers = new Headers()
-  headers.append('Set-Cookie', 'sessionId=123')
-  headers.append('Set-Cookie', 'gtm=en_US')
-
-  return HttpResponse.plain(null, { headers })
-})
-```
+---
 
 ## Life-cycle events
 
@@ -357,6 +480,14 @@ server.events.on('request:match', async (request) => {
   const json = await clone.json()
 
   console.log('Performed request with body:', json)
+})
+```
+
+The `response:*` events now always contain the response reference, the related request, and its id in the listener arguments.
+
+```js
+worker.events.on('response:mocked', (response, request, requestId) => {
+  console.log('response to %s %s is:', request.method, request.url, response)
 })
 ```
 
@@ -392,6 +523,55 @@ export const handlers = [
     return augmentResponse(HttpResponse.json({ id: 1 }))
   }),
 ]
+```
+
+---
+
+## What's new?
+
+The main benefit of this release is the adoption of Fetch API primitives—`Request` and `Response` classes. By handling requests and responses as the platform does it, you bring your API mocking setup to the next level. Less library-specific abstractions, flatter learning curve, improved compatibility with other tools. But, most importantly, specification compliance and investment into a solution that uses standard APIs that are here to stay.
+
+### New request body methods
+
+You can now read the intercepted request body as you would a regular `Request` instance. This mainly means the addition of the following methods on the `request`:
+
+- `request.blob()`
+- `request.formData()`
+- `request.arrayBuffer()`
+
+For example, this is how you would read the request as `Blob`:
+
+```js
+import { rest } from 'msw'
+
+export const handlers = [
+  rest.get('/resource', async ({ request }) => {
+    const blob = await request.blob()
+  }),
+]
+```
+
+### Support `ReadableStream` mocked responses
+
+You can now send a `ReadableStream` as the mocked response body. This is great for mocking any kind of streaming in HTTP responses.
+
+```js
+import { rest, HttpResponse, ReadableStream, delay } from 'msw'
+
+rest.get('/greeting', () => {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(encoder.encode('hello'))
+      await delay(100)
+      controller.enqueue(encoder.encode('world'))
+      await delay(100)
+      controller.close()
+    },
+  })
+
+  return HttpResponse.plain(stream)
+})
 ```
 
 ---

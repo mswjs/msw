@@ -10,7 +10,8 @@ interface GetUserQuery {
 
 const worker = setupWorker(
   graphql.query<GetUserQuery>('GetUser', async ({ request }) => {
-    const originalResponse = await fetch(...bypass(request))
+    const fetchArgs = await bypass(request)
+    const originalResponse = await fetch(...fetchArgs)
     const originalJson = await originalResponse.json()
 
     return HttpResponse.json({

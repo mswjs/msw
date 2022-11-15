@@ -15,9 +15,8 @@ interface ResponseBody {
 
 const server = setupServer(
   rest.get('https://test.mswjs.io/user', async () => {
-    const originalResponse = await fetch(
-      ...bypass(httpServer.http.makeUrl('/user')),
-    )
+    const fetchArgs = bypass(httpServer.http.makeUrl('/user'))
+    const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
     return HttpResponse.json({
@@ -29,15 +28,13 @@ const server = setupServer(
     const url = new URL(request.url)
 
     const shouldBypass = url.searchParams.get('bypass') === 'true'
+    const fetchArgs = await bypass(
+      new Request(httpServer.http.makeUrl('/user'), {
+        method: 'POST',
+      }),
+    )
     const performRequest = shouldBypass
-      ? () =>
-          fetch(
-            ...bypass(
-              new Request(httpServer.http.makeUrl('/user'), {
-                method: 'POST',
-              }),
-            ),
-          ).then((res) => res.json())
+      ? () => fetch(...fetchArgs).then((res) => res.json())
       : () =>
           fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
             res.json(),

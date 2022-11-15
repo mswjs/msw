@@ -13,7 +13,7 @@ let httpServer: ServerApi
 
 const server = setupServer(
   graphql.query('GetUser', async ({ request }) => {
-    const requestInfo = bypass(request)
+    const requestInfo = await bypass(request)
     const originalResponse = await fetch(...requestInfo)
     const { requestHeaders, queryResult } = await originalResponse.json()
 
@@ -91,7 +91,13 @@ test('patches a GraphQL response', async () => {
     fetch,
   })
 
-  const res = await client({
+  const res = await client<{
+    user: {
+      firstName: string
+      lastName: string
+    }
+    requestHeaders: Record<string, string>
+  }>({
     query: gql`
       query GetUser {
         user {
@@ -111,7 +117,7 @@ test('patches a GraphQL response', async () => {
     firstName: 'Christian',
     lastName: 'Maverick',
   })
-  expect(res.data.requestHeaders).toHaveProperty('x-msw-intention', 'bypass')
-  expect(res.data.requestHeaders).not.toHaveProperty('_headers')
-  expect(res.data.requestHeaders).not.toHaveProperty('_names')
+  expect(res.data?.requestHeaders).toHaveProperty('x-msw-intention', 'bypass')
+  expect(res.data?.requestHeaders).not.toHaveProperty('_headers')
+  expect(res.data?.requestHeaders).not.toHaveProperty('_names')
 })

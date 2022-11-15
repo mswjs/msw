@@ -35,9 +35,9 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
     interceptors: Array<{
       new (): Interceptor<HttpRequestEventMap>
     }>,
-    handlers: Array<RequestHandler>,
+    ...handlers: Array<RequestHandler>
   ) {
-    super(handlers)
+    super(...handlers)
 
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',

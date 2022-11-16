@@ -306,13 +306,11 @@ import { Headers, HttpResponse, rest } from 'msw'
 
 export const handlers = [
   rest.get('/resource', () => {
-    rest.get('/resource', () => {
-      const headers = new Headers()
-      headers.append('Set-Cookie', 'sessionId=123')
-      headers.append('Set-Cookie', 'gtm=en_US')
+    const headers = new Headers()
+    headers.append('Set-Cookie', 'sessionId=123')
+    headers.append('Set-Cookie', 'gtm=en_US')
 
-      return HttpResponse.plain(null, { headers })
-    })
+    return HttpResponse.plain(null, { headers })
   }),
 ]
 ```

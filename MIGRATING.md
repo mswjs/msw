@@ -297,23 +297,25 @@ export const handlers = [
 ]
 ```
 
-Although setting `Set-Cookie` header has no effect on a regular `Response` instance, we detect that header on `HttpResponse` and implement response cookie forwarding on our side for you. **This is why you must always use `HttpResponse` in order to mock response cookies**.
-
-Since Fetch API Headers do not support multiple values as the `HeadersInit`, to mock a multi-value response cookie create a `Headers` instance and use the `.append()` method to set multiple `Set-Cookie` response headers.
+When you provide an object as the `ResponseInit.headers` value, you cannot specify multiple response cookies with the same name. Instead, to support multiple response cookies, provide a `Headers` instance:
 
 ```js
 import { Headers, HttpResponse, rest } from 'msw'
 
 export const handlers = [
   rest.get('/resource', () => {
-    const headers = new Headers()
-    headers.append('Set-Cookie', 'sessionId=123')
-    headers.append('Set-Cookie', 'gtm=en_US')
-
-    return HttpResponse.plain(null, { headers })
+    return HttpResponse.plain(null, {
+      headers: new Headers([
+        // Mock a multi-value response cookie header.
+        ['Set-Cookie', 'sessionId=123'],
+        ['Set-Cookie', 'gtm=en_US'],
+      ]),
+    })
   }),
 ]
 ```
+
+> This is applicable to any multi-value headers, really.
 
 ### `ctx.body`
 

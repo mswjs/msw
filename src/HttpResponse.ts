@@ -111,13 +111,3 @@ export const HttpResponse = {
     return createResponse(data, responseInit)
   },
 }
-
-//
-//
-
-// function check(r: StrictResponse<{ id: number }>) {
-//   return r
-// }
-
-// check(new Response(1))
-// check(HttpResponse.json({ id: 1 }))

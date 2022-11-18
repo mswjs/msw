@@ -146,13 +146,13 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.1.0",
     "tsup": "^5.12.8",
-    "typescript": "^4.8.2",
+    "typescript": "^4.9.3",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
     "webpack-dev-server": "^3.11.2"
   },
   "peerDependencies": {
-    "typescript": ">= 4.2.x <= 4.8.x"
+    "typescript": ">= 4.4.x <= 4.9.x"
   },
   "peerDependenciesMeta": {
     "typescript": {

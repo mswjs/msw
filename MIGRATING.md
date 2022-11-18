@@ -1,6 +1,6 @@
 # Migration guide
 
-This guide will help you migrate from the latest version of MSW to the `next` release that introduces a first-class support for Fetch API primitives to the library. **This is a breaking change**. In fact, this is the biggest change to our public API since they day the library was first published. Do not fret, however, as this is precisely why this document exists.
+This guide will help you migrate from the latest version of MSW to the `next` release that introduces a first-class support for Fetch API primitives to the library. **This is a breaking change**. In fact, this is the biggest change to our public API since the day the library was first published. Do not fret, however, as this is precisely why this document exists.
 
 ## Getting started
 

@@ -209,7 +209,7 @@ export type StartHandler = (
 ) => StartReturnType
 export type StopHandler = () => void
 
-export interface SetupWorkerApi {
+export interface SetupWorker {
   /**
    * Registers and activates the mock Service Worker.
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}

@@ -1,7 +1,7 @@
 import { RequiredDeep } from '../../../typeUtils'
 import { mergeRight } from '../../../utils/internal/mergeRight'
 import {
-  SetupWorkerApi,
+  SetupWorker,
   SetupWorkerInternalContext,
   StartHandler,
   StartOptions,
@@ -36,7 +36,7 @@ export function resolveStartOptions(
 export function prepareStartHandler(
   handler: StartHandler,
   context: SetupWorkerInternalContext,
-): SetupWorkerApi['start'] {
+): SetupWorker['start'] {
   return (initialOptions) => {
     context.startOptions = resolveStartOptions(initialOptions)
     return handler(context.startOptions, initialOptions || {})

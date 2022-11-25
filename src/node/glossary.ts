@@ -14,7 +14,7 @@ import { MockedRequest } from '../utils/request/MockedRequest'
 
 export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
 
-export interface SetupServerApi {
+export interface SetupServer {
   /**
    * Starts requests interception based on the previously provided request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()`}

@@ -57,7 +57,8 @@ export const HttpResponse = {
       | Array<unknown>
       | boolean
       | number
-      | string,
+      | string
+      | unknown,
   >(body?: BodyType | null, init?: HttpResponseInit): StrictResponse<BodyType> {
     const responseInit = decorateResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')

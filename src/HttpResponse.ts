@@ -51,14 +51,10 @@ export const HttpResponse = {
    * HttpResponse.json({ firstName: 'John' })
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
-  json<
-    BodyType extends
-      | Record<string, unknown>
-      | Array<unknown>
-      | boolean
-      | number
-      | string,
-  >(body?: BodyType | null, init?: HttpResponseInit): StrictResponse<BodyType> {
+  json<BodyType extends DefaultBodyType>(
+    body?: BodyType | null,
+    init?: HttpResponseInit,
+  ): StrictResponse<BodyType> {
     const responseInit = decorateResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')
     return createResponse(JSON.stringify(body), responseInit)

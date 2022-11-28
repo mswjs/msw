@@ -80,6 +80,22 @@ rest.get<never, never, { id: number }>('/user', () => {
   return HttpResponse.json({ id: 1 })
 })
 
+// Supports explicit response data declared via type.
+type ResponseBodyType = { id: number }
+rest.get<never, never, ResponseBodyType>('/user', () => {
+  const data: ResponseBodyType = { id: 1 }
+  return HttpResponse.json(data)
+})
+
+// Supports explicit response data declared via interface.
+interface ResponseBodyInterface {
+  id: number
+}
+rest.get<never, never, ResponseBodyInterface>('/user', () => {
+  const data: ResponseBodyInterface = { id: 1 }
+  return HttpResponse.json(data)
+})
+
 rest.get<never, never, { id: number }>(
   '/user',
   // @ts-expect-error String not assignable to number

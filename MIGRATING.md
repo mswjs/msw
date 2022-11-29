@@ -503,14 +503,13 @@ It is still possible to create custom handlers and resolvers, just make sure to 
 
 As this release removes the concept of response composition via `res()`, you can no longer compose context utilities or abstract their partial composed state to a helper function.
 
-Instead, you can abstract a common response logic into a plain function and always returns a `Response` instance.
+Instead, you can abstract a common response logic into a plain function that always returns a `Response` instance.
 
 ```js
 // utils.js
 import { Response } from 'msw'
 
-export function augmentResponse() {
-  const response = new Response()
+export function augmentResponse<R extends Response>(response: R): R {
   response.headers.set('X-Response-Source', 'mocks')
   return response
 }

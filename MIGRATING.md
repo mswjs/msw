@@ -389,7 +389,7 @@ export const handlers = [
 
 ### `ctx.errors`
 
-The `ctx.data` utility has been removed in favor of constructing a mocked JSON response with the "data" property in it.
+The `ctx.errors` utility has been removed in favor of constructing a mocked JSON response with the "errors" property in it.
 
 ```js
 import { HttpResponse } from 'msw'

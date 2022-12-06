@@ -19,6 +19,7 @@ import { devUtils } from '../utils/internal/devUtils'
 import { SetupApi } from '../SetupApi'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { LifeCycleEventsMap } from '../sharedOptions'
+import { SetupWorkerApi as SetupWorker } from './glossary'
 
 interface Listener {
   target: EventTarget
@@ -26,7 +27,10 @@ interface Listener {
   callback: EventListenerOrEventListenerObject
 }
 
-export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
+class SetupWorkerApi
+  extends SetupApi<LifeCycleEventsMap>
+  implements SetupWorker
+{
   private context: SetupWorkerInternalContext
   private startHandler: StartHandler = null as any
   private stopHandler: StopHandler = null as any
@@ -205,8 +209,6 @@ export class SetupWorkerApi extends SetupApi<LifeCycleEventsMap> {
  * @param {RequestHandler[]} handlers List of request handlers.
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
  */
-export function setupWorker(
-  ...handlers: Array<RequestHandler>
-): SetupWorkerApi {
+export function setupWorker(...handlers: Array<RequestHandler>): SetupWorker {
   return new SetupWorkerApi(...handlers)
 }

@@ -8,7 +8,7 @@ const useFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response> =
         import('node-fetch').then(({ default: nodeFetch }) =>
           (nodeFetch as unknown as typeof window.fetch)(input, init),
         )
-    : window.fetch
+    : globalThis.fetch
 
 export const augmentRequestInit = (requestInit: RequestInit): RequestInit => {
   const headers = new Headers(requestInit.headers)

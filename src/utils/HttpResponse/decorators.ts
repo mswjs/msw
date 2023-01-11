@@ -1,5 +1,5 @@
 import httpStatusTexts from 'statuses/codes.json'
-import { Headers } from 'headers-polyfill'
+import { Headers } from '../../Headers'
 import type { HttpResponseInit } from '../../HttpResponse'
 
 export interface HttpResponseDecoratedInit extends HttpResponseInit {

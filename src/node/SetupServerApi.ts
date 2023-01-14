@@ -49,6 +49,14 @@ export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
     })
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
+    const nodeMajorVersion = parseFloat(process.version.replace('v', ''))
+    if (nodeMajorVersion > 16) {
+      devUtils.warn(
+        'Detected the version of Node.js (%s) that is not officially supported. Some features may not work as expected.',
+        process.version,
+      )
+    }
+
     this.init()
   }
 

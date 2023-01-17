@@ -1,4 +1,5 @@
 import * as context from './context'
+import { checkGlobals } from './utils/internal/checkGlobals'
 export { context }
 
 export { setupWorker } from './setupWorker/setupWorker'
@@ -65,3 +66,9 @@ export type {
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { DelayMode } from './context/delay'
 export { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
+
+// Validate environmental globals before executing any code.
+// This ensures that the library gives user-friendly errors
+// when ran in the environments that require additional polyfills
+// from the end user.
+checkGlobals()

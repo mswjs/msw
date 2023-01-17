@@ -1,5 +1,5 @@
 import { until } from '@open-draft/until'
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { ServerLifecycleEventsMap } from '../node/glossary'
 import { MockedResponse } from '../response'
@@ -45,7 +45,7 @@ export async function handleRequest<
   request: MockedRequest,
   handlers: RequestHandler[],
   options: RequiredDeep<SharedOptions>,
-  emitter: StrictEventEmitter<ServerLifecycleEventsMap>,
+  emitter: Emitter<ServerLifecycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions<ResponseType>,
 ): Promise<ResponseType | undefined> {
   emitter.emit('request:start', request)

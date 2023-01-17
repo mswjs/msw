@@ -1,11 +1,11 @@
-import { EventEmitter } from 'stream'
+import { Emitter, EventMap } from 'strict-event-emitter'
 
 /**
  * Pipes all emitted events from one emitter to another.
  */
-export function pipeEvents(
-  source: EventEmitter,
-  destination: EventEmitter,
+export function pipeEvents<Events extends EventMap>(
+  source: Emitter<Events>,
+  destination: Emitter<Events>,
 ): void {
   const rawEmit = source.emit
 

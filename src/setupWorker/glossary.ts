@@ -1,5 +1,5 @@
 import { FlatHeadersObject } from 'headers-polyfill'
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
@@ -103,7 +103,7 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: RequestHandler[]
-  emitter: StrictEventEmitter<WorkerLifecycleEventsMap>
+  emitter: Emitter<WorkerLifecycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {
     /**

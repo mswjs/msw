@@ -1,4 +1,4 @@
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import { MockedRequest } from './utils/request/MockedRequest'
 import { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
@@ -15,18 +15,16 @@ export interface SharedOptions {
 }
 
 export interface LifeCycleEventsMap<ResponseType> {
-  'request:start': (request: MockedRequest) => void
-  'request:match': (request: MockedRequest) => void
-  'request:unhandled': (request: MockedRequest) => void
-  'request:end': (request: MockedRequest) => void
-  'response:mocked': (response: ResponseType, requestId: string) => void
-  'response:bypass': (response: ResponseType, requestId: string) => void
-  unhandledException: (error: Error, request: MockedRequest) => void
+  'request:start': [MockedRequest]
+  'request:match': [MockedRequest]
+  'request:unhandled': [MockedRequest]
+  'request:end': [MockedRequest]
+  'response:mocked': [response: ResponseType, requestId: string]
+  'response:bypass': [response: ResponseType, requestId: string]
+  unhandledException: [error: Error, request: MockedRequest]
+  [key: string]: Array<unknown>
 }
 
 export type LifeCycleEventEmitter<
   ResponseType extends Record<string | symbol, any>,
-> = Pick<
-  StrictEventEmitter<ResponseType>,
-  'on' | 'removeListener' | 'removeAllListeners'
->
+> = Pick<Emitter<ResponseType>, 'on' | 'removeListener' | 'removeAllListeners'>

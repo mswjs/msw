@@ -9230,12 +9230,10 @@ strict-event-emitter@^0.2.4:
   dependencies:
     events "^3.3.0"
 
-strict-event-emitter@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/strict-event-emitter/-/strict-event-emitter-0.2.6.tgz#7bb2022bdabcbf0058cec7118a7bbbfd64367366"
-  integrity sha512-qDZOqEBoNtKLPb/qAutkXUt7hs3zXgYA1xX4pVa+gZHCZZVLr2r81AzHsK5YrQQhRNphMtkOUyAyOr9e1IxJTw==
-  dependencies:
-    events "^3.3.0"
+strict-event-emitter@^0.4.3:
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/strict-event-emitter/-/strict-event-emitter-0.4.3.tgz#45d0f75e1dc071eeb7cfbdff864fd2b9172bc257"
+  integrity sha512-uD0y7Wp3+ifPyfzIS+JrMvSnxFExHytmD5gTkndF1fi8Vrk2uiOY/2At73AwzLHz+RwrchegD8tHdowsfG7raQ==
 
 string-argv@^0.3.1:
   version "0.3.1"

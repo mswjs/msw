@@ -3,8 +3,8 @@ import {
   BatchInterceptor,
   HttpRequestEventMap,
 } from '@mswjs/interceptors'
-import { FetchInterceptor } from '@mswjs/interceptors/lib/interceptors/fetch'
-import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
+import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { SetupWorkerInternalContext, StartOptions } from '../glossary'
 import type { RequiredDeep } from '../../typeUtils'
 import { handleRequest } from '../../utils/handleRequest'

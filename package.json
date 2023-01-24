@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.49.2",
+  "version": "0.49.3",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -102,7 +102,7 @@
     "node-fetch": "^2.6.7",
     "outvariant": "^1.3.0",
     "path-to-regexp": "^6.2.0",
-    "strict-event-emitter": "^0.2.6",
+    "strict-event-emitter": "^0.4.3",
     "type-fest": "^2.19.0",
     "yargs": "^17.3.1"
   },

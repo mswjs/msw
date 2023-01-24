@@ -1,5 +1,5 @@
 import { Headers } from 'headers-polyfill'
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import { ServerLifecycleEventsMap } from '../node/glossary'
 import { SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
@@ -18,7 +18,7 @@ const callbacks: Partial<Record<keyof HandleRequestOptions<any>, any>> = {
 }
 
 function setup() {
-  const emitter = new StrictEventEmitter<ServerLifecycleEventsMap>()
+  const emitter = new Emitter<ServerLifecycleEventsMap>()
   const listener = jest.fn()
 
   const createMockListener = (name: string) => {

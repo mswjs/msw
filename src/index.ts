@@ -28,7 +28,8 @@ export { cleanUrl } from './utils/url/cleanUrl'
 /**
  * Type definitions.
  */
-export type { SetupWorkerApi, StartOptions } from './setupWorker/glossary'
+export type { SetupWorker, StartOptions } from './setupWorker/glossary'
+export { SetupWorkerApi } from './setupWorker/setupWorker'
 export type { SharedOptions } from './sharedOptions'
 
 export * from './utils/request/MockedRequest'

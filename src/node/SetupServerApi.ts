@@ -16,6 +16,7 @@ import { mergeRight } from '../utils/internal/mergeRight'
 import { MockedRequest } from '../utils/request/MockedRequest'
 import { handleRequest } from '../utils/handleRequest'
 import { devUtils } from '../utils/internal/devUtils'
+import { SetupServer } from './glossary'
 
 /**
  * @see https://github.com/mswjs/msw/pull/1399
@@ -28,7 +29,10 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
-export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
+export class SetupServerApi
+  extends SetupApi<ServerLifecycleEventsMap>
+  implements SetupServer
+{
   protected readonly interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap

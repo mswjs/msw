@@ -1,4 +1,4 @@
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
@@ -102,7 +102,7 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   requestHandlers: Array<RequestHandler>
-  emitter: StrictEventEmitter<LifeCycleEventsMap>
+  emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {
     /**
@@ -200,7 +200,7 @@ export type StartHandler = (
 ) => StartReturnType
 export type StopHandler = () => void
 
-export interface SetupWorkerApi {
+export interface SetupWorker {
   /**
    * Registers and activates the mock Service Worker.
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}

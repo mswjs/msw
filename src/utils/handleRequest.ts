@@ -1,8 +1,7 @@
 import { until } from '@open-draft/until'
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { ServerLifecycleEventsMap } from '../node/glossary'
-import { SharedOptions } from '../sharedOptions'
+import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
 import { devUtils } from './internal/devUtils'
@@ -42,7 +41,7 @@ export async function handleRequest(
   requestId: string,
   handlers: Array<RequestHandler>,
   options: RequiredDeep<SharedOptions>,
-  emitter: StrictEventEmitter<ServerLifecycleEventsMap>,
+  emitter: Emitter<LifeCycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions,
 ): Promise<Response | undefined> {
   emitter.emit('request:start', request, requestId)

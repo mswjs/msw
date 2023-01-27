@@ -8,12 +8,12 @@ import {
 } from '@mswjs/interceptors'
 import { SetupApi } from '../SetupApi'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { SharedOptions } from '../sharedOptions'
+import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { mergeRight } from '../utils/internal/mergeRight'
 import { handleRequest } from '../utils/handleRequest'
 import { devUtils } from '../utils/internal/devUtils'
-import { ServerLifecycleEventsMap } from './glossary'
+import { SetupServer } from './glossary'
 
 /**
  * @see https://github.com/mswjs/msw/pull/1399
@@ -24,7 +24,10 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
-export class SetupServerApi extends SetupApi<ServerLifecycleEventsMap> {
+export class SetupServerApi
+  extends SetupApi<LifeCycleEventsMap>
+  implements SetupServer
+{
   protected readonly interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap

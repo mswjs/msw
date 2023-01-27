@@ -9,9 +9,7 @@ import {
   SharedOptions,
 } from '../sharedOptions'
 
-export type ServerLifecycleEventsMap = LifeCycleEventsMap
-
-export interface SetupServerApi {
+export interface SetupServer {
   /**
    * Starts requests interception based on the previously provided request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()`}
@@ -54,5 +52,5 @@ export interface SetupServerApi {
    */
   printHandlers(): void
 
-  events: LifeCycleEventEmitter<ServerLifecycleEventsMap>
+  events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }

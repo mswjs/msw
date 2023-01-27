@@ -1,5 +1,5 @@
-import { StrictEventEmitter } from 'strict-event-emitter'
-import { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
+import type { Emitter } from 'strict-event-emitter'
+import type { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {
   /**
@@ -13,31 +13,16 @@ export interface SharedOptions {
   onUnhandledRequest?: UnhandledRequestStrategy
 }
 
-export interface LifeCycleEventsMap {
-  'request:start': (request: Request, requestId: string) => void
-  'request:match': (request: Request, requestId: string) => void
-  'request:unhandled': (request: Request, requestId: string) => void
-  'request:end': (request: Request, requestId: string) => void
-  'response:mocked': (
-    response: Response,
-    request: Request,
-    requestId: string,
-  ) => void
-  'response:bypass': (
-    response: Response,
-    request: Request,
-    requestId: string,
-  ) => void
-  unhandledException: (
-    error: Error,
-    request: Request,
-    requestId: string,
-  ) => void
+export type LifeCycleEventsMap = {
+  'request:start': [request: Request, requestId: string]
+  'request:match': [request: Request, requestId: string]
+  'request:unhandled': [request: Request, requestId: string]
+  'request:end': [request: Request, requestId: string]
+  'response:mocked': [response: Response, request: Request, requestId: string]
+  'response:bypass': [response: Response, request: Request, requestId: string]
+  unhandledException: [error: Error, request: Request, requestId: string]
 }
 
 export type LifeCycleEventEmitter<
   EventsMap extends Record<string | symbol, any>,
-> = Pick<
-  StrictEventEmitter<EventsMap>,
-  'on' | 'removeListener' | 'removeAllListeners'
->
+> = Pick<Emitter<EventsMap>, 'on' | 'removeListener' | 'removeAllListeners'>

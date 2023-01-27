@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { EventMapType, StrictEventEmitter } from 'strict-event-emitter'
+import { EventMap, Emitter } from 'strict-event-emitter'
 import {
   RequestHandler,
   RequestHandlerDefaultInfo,
@@ -12,11 +12,11 @@ import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 /**
  * Generic class for the mock API setup.
  */
-export abstract class SetupApi<EventsMap extends EventMapType> {
+export abstract class SetupApi<EventsMap extends EventMap> {
   protected initialHandlers: ReadonlyArray<RequestHandler>
   protected currentHandlers: Array<RequestHandler>
-  protected readonly emitter: StrictEventEmitter<EventsMap>
-  protected readonly publicEmitter: StrictEventEmitter<EventsMap>
+  protected readonly emitter: Emitter<EventsMap>
+  protected readonly publicEmitter: Emitter<EventsMap>
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
@@ -26,8 +26,8 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
     this.initialHandlers = toReadonlyArray(initialHandlers)
     this.currentHandlers = [...initialHandlers]
 
-    this.emitter = new StrictEventEmitter<EventsMap>()
-    this.publicEmitter = new StrictEventEmitter<EventsMap>()
+    this.emitter = new Emitter<EventsMap>()
+    this.publicEmitter = new Emitter<EventsMap>()
     pipeEvents(this.emitter, this.publicEmitter)
 
     this.events = this.createLifeCycleEvents()
@@ -74,13 +74,13 @@ export abstract class SetupApi<EventsMap extends EventMapType> {
 
   private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {
     return {
-      on: (...args) => {
-        return this.publicEmitter.on(...args)
+      on: (...args: any[]) => {
+        return (this.publicEmitter.on as any)(...args)
       },
-      removeListener: (...args) => {
-        return this.publicEmitter.removeListener(...args)
+      removeListener: (...args: any[]) => {
+        return (this.publicEmitter.removeListener as any)(...args)
       },
-      removeAllListeners: (...args: any) => {
+      removeAllListeners: (...args: any[]) => {
         return this.publicEmitter.removeAllListeners(...args)
       },
     }

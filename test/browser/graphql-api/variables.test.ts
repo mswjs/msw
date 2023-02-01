@@ -1,4 +1,4 @@
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 import { test, expect } from '../playwright.extend'
 
 const EXAMPLE_PATH = require.resolve('./variables.mocks.ts')

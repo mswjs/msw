@@ -1,7 +1,7 @@
-import { StatusCodeColor } from '../../src/utils/logging/getStatusCodeColor'
-import { waitFor } from '../support/waitFor'
+import { StatusCodeColor } from '../../../src/utils/logging/getStatusCodeColor'
+import { waitFor } from '../../support/waitFor'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 const LOGGING_EXAMPLE = require.resolve('./logging.mocks.ts')
 

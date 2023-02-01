@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 test('accepts a file from a GraphQL mutation', async ({
   loadExample,

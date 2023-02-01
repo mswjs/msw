@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 test('mocks a GraphQL response with both data and extensions', async ({
   loadExample,

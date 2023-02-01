@@ -1,6 +1,6 @@
 import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 const MUTATION_EXAMPLE = require.resolve('./mutation.mocks.ts')
 

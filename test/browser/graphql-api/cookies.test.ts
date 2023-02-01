@@ -1,6 +1,6 @@
 import * as cookieUtils from 'cookie'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 test('sets cookie on the mocked GraphQL response', async ({
   loadExample,

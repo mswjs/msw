@@ -1,5 +1,5 @@
 import { setupWorker, graphql } from 'msw'
-// import { createGraphQLClient, gql } from '../support/graphql'
+// import { createGraphQLClient, gql } from '../../support/graphql'
 
 interface GetUserQuery {
   user: {

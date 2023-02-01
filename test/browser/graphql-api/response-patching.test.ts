@@ -3,7 +3,7 @@ import { buildSchema, graphql } from 'graphql'
 import { SetupWorkerApi } from 'msw'
 import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 declare namespace window {
   export const dispatchGraphQLQuery: (uri: string) => Promise<ExecutionResult>

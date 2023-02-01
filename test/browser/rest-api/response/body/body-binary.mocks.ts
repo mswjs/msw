@@ -1,5 +1,5 @@
 import { setupWorker, rest } from 'msw'
-import base64Image from 'url-loader!../../../fixtures/image.jpg'
+import base64Image from 'url-loader!../../../../fixtures/image.jpg'
 
 const worker = setupWorker(
   rest.get('/images/:imageId', async (_, res, ctx) => {

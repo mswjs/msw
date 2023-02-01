@@ -34,7 +34,7 @@
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
     "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "ts-node test/typings/run.ts",
-    "test:new": "playwright test -c ./test/playwright.config.ts",
+    "test:new": "playwright test -c ./test/browser/playwright.config.ts",
     "prepare": "yarn simple-git-hooks init",
     "prepack": "yarn build",
     "release": "release publish",

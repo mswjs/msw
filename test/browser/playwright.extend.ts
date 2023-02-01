@@ -15,13 +15,13 @@ import {
   CompilationResult,
   WebpackHttpServer,
 } from 'webpack-http-server'
-import { waitFor } from './support/waitFor'
+import { waitFor } from '../support/waitFor'
 import {
   createWorkerConsoleServer,
   WorkerConsole,
-} from './support/workerConsole'
+} from '../support/workerConsole'
 
-const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants.js')
+const { SERVICE_WORKER_BUILD_PATH } = require('../../config/constants.js')
 
 interface TestFixtures {
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
@@ -111,11 +111,7 @@ Object.keys(console).forEach((methodName) => {
                   {
                     loader: 'ts-loader',
                     options: {
-                      configFile: path.resolve(
-                        __dirname,
-                        '..',
-                        'tsconfig.json',
-                      ),
+                      configFile: require.resolve('../../tsconfig.json'),
                       transpileOnly: true,
                     },
                   },
@@ -125,7 +121,7 @@ Object.keys(console).forEach((methodName) => {
           },
           resolve: {
             alias: {
-              msw: path.resolve(__dirname, '..'),
+              msw: path.resolve(__dirname, '../..'),
             },
             extensions: ['.ts', '.js'],
           },
@@ -162,7 +158,24 @@ Object.keys(console).forEach((methodName) => {
     await use(async (entry, options = {}) => {
       const compilation = await previewServer.compile([entry], options)
       options.beforeNavigation?.(compilation)
+
+      const consoleSpy = spyOnConsole(page)
+
       await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
+
+      // Wait for the MSW activation message.
+      await waitFor(() => {
+        if (
+          consoleSpy
+            .get('startGroupCollapsed')
+            .includes('[MSW] Mocking enabled.')
+        ) {
+          return Promise.resolve()
+        }
+
+        return Promise.reject()
+      })
+
       return compilation
     })
   },
@@ -188,6 +201,9 @@ Object.keys(console).forEach((methodName) => {
         headers: flattenHeadersObject(headersToObject(requestHeaders)),
       }
 
+      // Don't await the request here so that we can await the response
+      // later on based on the request identity headers. This way we can
+      // perform multiple requests in parallel.
       target.evaluate<unknown, [string, RequestInit]>(
         ([url, init]) => fetch(url, init as RequestInit),
         [resolvedUrl, resolvedInit],

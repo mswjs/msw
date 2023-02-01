@@ -1,7 +1,6 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
-  testIgnore: /\.node\.test/,
   projects: [
     {
       name: 'chromium',
@@ -18,7 +17,6 @@ const config: PlaywrightTestConfig = {
   outputDir: './test-results',
   snapshotDir: './test-snapshots',
   timeout: 10000,
-  reporter: process.env.CI ? undefined : 'html',
   forbidOnly: !!process.env.CI,
 }
 

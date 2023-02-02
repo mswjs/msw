@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node'
 import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { HttpServer } from '@open-draft/test-server/http'
-import { createGraphQLClient, gql } from '../support/graphql'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 const server = setupServer(
   graphql.query('GetUser', async (req, res, ctx) => {

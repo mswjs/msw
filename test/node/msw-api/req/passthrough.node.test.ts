@@ -4,9 +4,14 @@
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { ServerApi, createServer } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.post<never, ResponseBody>('/user', (req, res) => {
+    res.json({ name: 'John' })
+  })
+})
+
 const server = setupServer()
 
 interface ResponseBody {
@@ -14,11 +19,7 @@ interface ResponseBody {
 }
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.post<never, ResponseBody>('/user', (req, res) => {
-      res.json({ name: 'John' })
-    })
-  })
+  await httpServer.listen()
 
   server.listen()
 
@@ -37,7 +38,7 @@ afterAll(async () => {
 })
 
 it('performs request as-is when returning "req.passthrough" call in the resolver', async () => {
-  const endpointUrl = httpServer.http.makeUrl('/user')
+  const endpointUrl = httpServer.http.url('/user')
   server.use(
     rest.post<never, ResponseBody>(endpointUrl, (req) => {
       return req.passthrough()
@@ -54,7 +55,7 @@ it('performs request as-is when returning "req.passthrough" call in the resolver
 })
 
 it('does not allow fall-through when returning "req.passthrough" call in the resolver', async () => {
-  const endpointUrl = httpServer.http.makeUrl('/user')
+  const endpointUrl = httpServer.http.url('/user')
   server.use(
     rest.post<never, ResponseBody>(endpointUrl, (req) => {
       return req.passthrough()
@@ -74,7 +75,7 @@ it('does not allow fall-through when returning "req.passthrough" call in the res
 })
 
 it('prints a warning and performs a request as-is if nothing was returned from the resolver', async () => {
-  const endpointUrl = httpServer.http.makeUrl('/user')
+  const endpointUrl = httpServer.http.url('/user')
   server.use(
     rest.post<never, ResponseBody>(endpointUrl, () => {
       return

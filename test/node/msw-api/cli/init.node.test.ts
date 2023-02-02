@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 import { exec } from 'child_process'
 import { createTeardown } from 'fs-teardown'
-import { fromTemp, promisifyChildProcess } from '../../support/utils'
+import { fromTemp, promisifyChildProcess } from '../../../support/utils'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
@@ -16,7 +16,7 @@ const fsMock = createTeardown({
   },
 })
 
-const cliPath = path.join(__dirname, '../../../cli/index.js')
+const cliPath = require.resolve('../../../../cli/index.js')
 
 function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
@@ -168,7 +168,7 @@ test('does not produce eslint errors or warnings', async () => {
 })
 
 test('errors and shuts down if creating a directory fails', async () => {
-  const init = require('../../../cli/init')
+  const init = require('../../../../cli/init')
   const error = new Error('Could not create this directory')
   jest.spyOn(fs.promises, 'mkdir').mockRejectedValue(error)
 

@@ -4,7 +4,7 @@
 import fetch from 'cross-fetch'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
-import { createGraphQLClient, gql } from '../../../support/graphql'
+import { createGraphQLClient, gql } from '../../../../support/graphql'
 
 const apolloClient = createGraphQLClient({
   uri: 'http://localhost:3000',

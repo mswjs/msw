@@ -4,20 +4,21 @@
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/user', (req, res) => {
+    res.status(500).end()
+  })
+})
+
 const server = setupServer()
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/user', (req, res) => {
-      res.status(500).end()
-    })
-  })
+  await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
       return res(ctx.json({ firstName: 'John' }))
     }),
   )
@@ -39,7 +40,7 @@ test('removes a listener by the event name', async () => {
 
   server.events.removeListener('request:start', listeners.requestStart)
 
-  await fetch(httpServer.http.makeUrl('/user'))
+  await fetch(httpServer.http.url('/user'))
   expect(listeners.requestStart).not.toHaveBeenCalled()
   expect(listeners.requestEnd).toHaveBeenCalledTimes(1)
 })

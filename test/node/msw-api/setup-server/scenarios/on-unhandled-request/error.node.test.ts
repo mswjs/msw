@@ -2,36 +2,36 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/user', (req, res) => {
+    res.status(200).json({ original: true })
+  })
+  app.post('/explicit-return', (req, res) => {
+    res.status(500).end()
+  })
+  app.post('/implicit-return', (req, res) => {
+    res.status(500).end()
+  })
+})
 const server = setupServer()
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/user', (req, res) => {
-      res.status(200).json({ original: true })
-    })
-    app.post('/explicit-return', (req, res) => {
-      res.status(500).end()
-    })
-    app.post('/implicit-return', (req, res) => {
-      res.status(500).end()
-    })
-  })
+  await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
       return res(ctx.json({ mocked: true }))
     }),
-    rest.post(httpServer.http.makeUrl('/explicit-return'), () => {
+    rest.post(httpServer.http.url('/explicit-return'), () => {
       // Short-circuiting in a handler makes it perform the request as-is,
       // but still treats this request as handled.
       return
     }),
-    rest.post(httpServer.http.makeUrl('/implicit-return'), () => {
+    rest.post(httpServer.http.url('/implicit-return'), () => {
       // The handler that has no return also performs the request as-is,
       // still treating this request as handled.
     }),
@@ -55,7 +55,7 @@ afterAll(async () => {
 })
 
 test('errors on unhandled request when using the "error" value', async () => {
-  const endpointUrl = httpServer.http.makeUrl('/')
+  const endpointUrl = httpServer.http.url('/')
   const makeRequest = () => fetch(endpointUrl)
 
   await expect(() => makeRequest()).rejects.toThrow(
@@ -73,7 +73,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 
 test('does not error on request which handler explicitly returns no mocked response', async () => {
   const makeRequest = () => {
-    return fetch(httpServer.http.makeUrl('/explicit-return'), {
+    return fetch(httpServer.http.url('/explicit-return'), {
       method: 'POST',
     })
   }
@@ -84,7 +84,7 @@ test('does not error on request which handler explicitly returns no mocked respo
 
 test('does not error on request which handler implicitly returns no mocked response', async () => {
   const makeRequest = () => {
-    return fetch(httpServer.http.makeUrl('/implicit-return'), {
+    return fetch(httpServer.http.url('/implicit-return'), {
       method: 'POST',
     })
   }

@@ -2,7 +2,7 @@ import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
-import { createGraphQLClient, gql } from '../support/graphql'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 const schema = gql`
   type User {

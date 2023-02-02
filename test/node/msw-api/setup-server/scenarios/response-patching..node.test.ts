@@ -2,11 +2,18 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/user', (req, res) => {
+    res.status(200).json({ id: 101 }).end()
+  })
+  app.post('/user', (req, res) => {
+    res.status(200).json({ id: 202 }).end()
+  })
+})
 
 interface ResponseBody {
   id: number
@@ -17,7 +24,7 @@ const server = setupServer(
   rest.get<never, never, ResponseBody>(
     'https://test.mswjs.io/user',
     async (req, res, ctx) => {
-      const originalResponse = await ctx.fetch(httpServer.http.makeUrl('/user'))
+      const originalResponse = await ctx.fetch(httpServer.http.url('/user'))
       const body = await originalResponse.json()
 
       return res(
@@ -35,7 +42,7 @@ const server = setupServer(
       const performRequest = shouldBypass
         ? () =>
             ctx
-              .fetch(httpServer.http.makeUrl('/user'), { method: 'POST' })
+              .fetch(httpServer.http.url('/user'), { method: 'POST' })
               .then((res) => res.json())
         : () =>
             fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
@@ -57,15 +64,7 @@ const server = setupServer(
 )
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/user', (req, res) => {
-      res.status(200).json({ id: 101 }).end()
-    })
-    app.post('/user', (req, res) => {
-      res.status(200).json({ id: 202 }).end()
-    })
-  })
-
+  await httpServer.listen()
   server.listen()
 })
 

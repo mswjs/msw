@@ -6,7 +6,7 @@ import { buildSchema, graphql as executeGraphql } from 'graphql'
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
 import fetch from 'node-fetch'
-import { gql } from '../support/graphql'
+import { gql } from '../../support/graphql'
 
 const schema = gql`
   type User {

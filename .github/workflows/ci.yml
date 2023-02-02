@@ -31,8 +31,11 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Integration tests
-        run: yarn test:new
+      - name: Node.js tests
+        run: yarn test:node
+
+      - name: Browser tests
+        run: yarn test:browser
 
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.

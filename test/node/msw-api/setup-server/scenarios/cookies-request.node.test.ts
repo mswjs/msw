@@ -1,20 +1,21 @@
 import * as https from 'https'
 import { rest } from 'msw'
 import { setupServer, SetupServerApi } from 'msw/node'
-import { ServerApi, createServer } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/user', (req, res) => {
+    res.json({ works: false })
+  })
+})
+
 let server: SetupServerApi
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/user', (req, res) => {
-      res.json({ works: false })
-    })
-  })
+  await httpServer.listen()
 
   server = setupServer(
-    rest.get(httpServer.https.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.https.url('/user'), (req, res, ctx) => {
       return res(ctx.json({ cookies: req.cookies }))
     }),
   )
@@ -29,7 +30,7 @@ afterAll(async () => {
 
 test('has access to request cookies', (done) => {
   let responseBody = ''
-  const url = new URL(httpServer.https.makeUrl('/user'))
+  const url = new URL(httpServer.https.url('/user'))
 
   https.get(
     {

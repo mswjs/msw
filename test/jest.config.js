@@ -1,7 +1,11 @@
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
   preset: 'ts-jest',
-  testTimeout: 15000,
+  rootDir: './node',
+  // Limit the concurrency because some tests recompile the library,
+  // creating a moment of time when it has no "lib" files.
+  maxWorkers: 1,
   moduleNameMapper: {
-    '^msw(.*)': '<rootDir>/..$1',
+    '^msw(.*)': '<rootDir>/../..$1',
   },
 }

@@ -4,10 +4,15 @@
 import fetch from 'node-fetch'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { createServer, ServerApi } from '@open-draft/test-server'
-import { waitFor } from '../../../support/waitFor'
+import { HttpServer } from '@open-draft/test-server/http'
+import { waitFor } from '../../../../support/waitFor'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/user', (req, res) => res.status(500).end())
+  app.post('/no-response', (req, res) => res.send('original-response'))
+  app.get('/unknown-route', (req, res) => res.send('majestic-unknown'))
+})
+
 const server = setupServer()
 
 const listener = jest.fn()
@@ -22,20 +27,16 @@ function getRequestId(requestStartListener: jest.Mock) {
 }
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/user', (req, res) => res.status(500).end())
-    app.post('/no-response', (req, res) => res.send('original-response'))
-    app.get('/unknown-route', (req, res) => res.send('majestic-unknown'))
-  })
+  await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
       return res(ctx.text('response-body'))
     }),
-    rest.post(httpServer.http.makeUrl('/no-response'), () => {
+    rest.post(httpServer.http.url('/no-response'), () => {
       return
     }),
-    rest.get(httpServer.http.makeUrl('/unhandled-exception'), () => {
+    rest.get(httpServer.http.url('/unhandled-exception'), () => {
       throw new Error('Unhandled resolver error')
     }),
   )
@@ -87,7 +88,7 @@ afterAll(async () => {
 })
 
 test('emits events for a handler request and mocked response', async () => {
-  const url = httpServer.http.makeUrl('/user')
+  const url = httpServer.http.url('/user')
   await fetch(url)
   const requestId = getRequestId(listener)
 
@@ -111,7 +112,7 @@ test('emits events for a handler request and mocked response', async () => {
 })
 
 test('emits events for a handled request with no response', async () => {
-  const url = httpServer.http.makeUrl('/no-response')
+  const url = httpServer.http.url('/no-response')
   await fetch(url, { method: 'POST' })
   const requestId = getRequestId(listener)
 
@@ -137,7 +138,7 @@ test('emits events for a handled request with no response', async () => {
 })
 
 test('emits events for an unhandled request', async () => {
-  const url = httpServer.http.makeUrl('/unknown-route')
+  const url = httpServer.http.url('/unknown-route')
   await fetch(url)
   const requestId = getRequestId(listener)
 
@@ -166,7 +167,7 @@ test('emits events for an unhandled request', async () => {
 })
 
 test('emits unhandled exceptions in the request handler', async () => {
-  const url = httpServer.http.makeUrl('/unhandled-exception')
+  const url = httpServer.http.url('/unhandled-exception')
   await fetch(url).catch(() => undefined)
   const requestId = getRequestId(listener)
 
@@ -177,7 +178,7 @@ test('emits unhandled exceptions in the request handler', async () => {
 
 test('stops emitting events once the server is stopped', async () => {
   server.close()
-  await fetch(httpServer.http.makeUrl('/user'))
+  await fetch(httpServer.http.url('/user'))
 
   expect(listener).not.toHaveBeenCalled()
 })

@@ -2,25 +2,26 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { setupServer } from 'msw/node'
 import { rest } from 'msw'
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.get('/', (req, res) => {
+    res.send('root')
+  })
+  app.get('/user', (req, res) => {
+    res.json({ firstName: 'Miranda' })
+  })
+})
+
 const server = setupServer()
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.get('/', (req, res) => {
-      res.send('root')
-    })
-    app.get('/user', (req, res) => {
-      res.json({ firstName: 'Miranda' })
-    })
-  })
+  await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.makeUrl('/user'), (req, res, ctx) => {
+    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
       return res(ctx.json({ firstName: 'John' }))
     }),
   )
@@ -37,7 +38,7 @@ afterAll(async () => {
 })
 
 test('bypasses unhandled requests', async () => {
-  const res = await fetch(httpServer.http.makeUrl('/'))
+  const res = await fetch(httpServer.http.url('/'))
 
   // Request should be performed as-is
   expect(res.status).toEqual(200)

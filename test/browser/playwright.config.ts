@@ -19,6 +19,7 @@ const config: PlaywrightTestConfig = {
   snapshotDir: './test-snapshots',
   timeout: 10000,
   forbidOnly: !!process.env.CI,
+  reporter: 'list',
 }
 
 export default config

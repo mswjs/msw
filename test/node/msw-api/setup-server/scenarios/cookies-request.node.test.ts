@@ -1,15 +1,19 @@
-import * as https from 'https'
+/**
+ * @jest-environment node
+ */
+import https from 'https'
 import { rest } from 'msw'
 import { setupServer, SetupServerApi } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
+import { waitForClientRequest } from '../../../../support/utils'
+
+let server: SetupServerApi
 
 const httpServer = new HttpServer((app) => {
   app.get('/user', (req, res) => {
     res.json({ works: false })
   })
 })
-
-let server: SetupServerApi
 
 beforeAll(async () => {
   await httpServer.listen()
@@ -28,34 +32,18 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('has access to request cookies', (done) => {
-  let responseBody = ''
+test('has access to request cookies', async () => {
   const url = new URL(httpServer.https.url('/user'))
 
-  https.get(
-    {
-      method: 'GET',
-      protocol: url.protocol,
-      host: url.host,
-      path: url.pathname,
-      headers: {
-        Cookie: 'auth-token=abc-123',
-      },
+  const request = https.get({
+    protocol: url.protocol,
+    host: url.host,
+    path: url.pathname,
+    headers: {
+      Cookie: 'auth-token=abc-123',
     },
-    (res) => {
-      res.setEncoding('utf8')
-      res.on('error', done)
-      res.on('data', (chunk) => (responseBody += chunk))
-      res.on('end', () => {
-        const json = JSON.parse(responseBody)
-        expect(json).toEqual({
-          cookies: {
-            'auth-token': 'abc-123',
-          },
-        })
+  })
+  const { responseText } = await waitForClientRequest(request)
 
-        done()
-      })
-    },
-  )
+  expect(responseText).toBe('{"cookies":{"auth-token":"abc-123"}}')
 })

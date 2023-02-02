@@ -3,33 +3,29 @@
  */
 import { getAbsoluteWorkerUrl } from './getAbsoluteWorkerUrl'
 
+const rawLocation = window.location
+
 afterAll(() => {
   Object.defineProperty(window, 'location', {
-    value: {
-      href: '',
-    },
+    value: rawLocation,
   })
 })
 
-it('returns an absolute URL relatively to the root', () => {
-  expect(getAbsoluteWorkerUrl('./mockServiceWorker.js')).toEqual(
-    'http://localhost/mockServiceWorker.js',
-  )
+it('returns absolute worker url relatively to the root', () => {
+  expect(getAbsoluteWorkerUrl('./worker.js')).toBe('http://localhost/worker.js')
 })
 
-it('returns an absolute URL relatively to the current path', () => {
+it('returns an absolute worker url relatively to the current path', () => {
   Object.defineProperty(window, 'location', {
     value: {
-      href: 'http://localhost/foo/bar/',
+      href: 'http://localhost/path/to/page',
     },
   })
 
-  // Must respect the dot in the relative path.
   expect(getAbsoluteWorkerUrl('./worker.js')).toBe(
-    'http://localhost/foo/bar/worker.js',
+    'http://localhost/path/to/worker.js',
   )
 
-  // Must support the root-level reference
-  // regardless of the current location.
+  // Leading slash must still resolve to the root.
   expect(getAbsoluteWorkerUrl('/worker.js')).toBe('http://localhost/worker.js')
 })

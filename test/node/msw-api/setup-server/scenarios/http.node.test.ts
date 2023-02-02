@@ -1,84 +1,75 @@
 /**
  * @jest-environment node
  */
-import * as http from 'http'
+/**
+ * @note Do not import as wildcard lest the ESM gods be displeased.
+ * Make sure "allowSyntheticDefaultImports" is true in tsconfig.json.
+ */
+import http from 'http'
+import { HttpServer } from '@open-draft/test-server/http'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
+import { waitForClientRequest } from '../../../../support/utils'
 
-describe('setupServer / http', () => {
-  const server = setupServer(
-    rest.get('http://test.mswjs.io', (req, res, ctx) => {
+const httpServer = new HttpServer((app) => {
+  app.get('/resource', (_, res) => {
+    return res.status(500).send('original-response')
+  })
+})
+
+const server = setupServer()
+
+beforeAll(async () => {
+  await httpServer.listen()
+  server.listen()
+})
+
+beforeEach(() => {
+  server.use(
+    rest.get(httpServer.http.url('/resource'), (req, res, ctx) => {
       return res(
         ctx.status(401),
         ctx.set('x-header', 'yes'),
-        ctx.json({
-          firstName: 'John',
-        }),
+        ctx.json({ firstName: 'John' }),
       )
     }),
   )
+})
 
-  beforeAll(() => {
-    server.listen()
-  })
+afterEach(() => {
+  server.resetHandlers()
+})
 
-  afterAll(() => {
-    server.close()
-  })
+afterAll(async () => {
+  server.close()
+  await httpServer.close()
+})
 
-  describe('given I perform a request using http.get', () => {
-    let res: http.IncomingMessage
-    let resBody = ''
+it('returns a mocked response to an "http.get" request', async () => {
+  const request = http.get(httpServer.http.url('/resource'))
+  const { response, responseText } = await waitForClientRequest(request)
 
-    beforeAll((done) => {
-      http.get('http://test.mswjs.io', (message) => {
-        res = message
-        res.setEncoding('utf8')
-        res.on('data', (chunk) => (resBody += chunk))
-        res.on('end', done)
-      })
-    })
+  expect(response.statusCode).toBe(401)
+  expect(response.headers).toEqual(
+    expect.objectContaining({
+      'content-type': 'application/json',
+      'x-header': 'yes',
+    }),
+  )
+  expect(responseText).toBe('{"firstName":"John"}')
+})
 
-    test('should return mocked status code', () => {
-      expect(res.statusCode).toEqual(401)
-    })
+it('returns a mocked response to an "http.request" request', async () => {
+  const request = http.request(httpServer.http.url('/resource'))
+  request.end()
+  const { response, responseText } = await waitForClientRequest(request)
 
-    test('should return mocked headers', () => {
-      expect(res.headers).toHaveProperty('content-type', 'application/json')
-      expect(res.headers).toHaveProperty('x-header', 'yes')
-    })
-
-    test('should return mocked body', () => {
-      expect(resBody).toEqual('{"firstName":"John"}')
-    })
-  })
-
-  describe('given I perform a request using http.request', () => {
-    let res: http.IncomingMessage
-    let resBody = ''
-
-    beforeAll((done) => {
-      const req = http.request('http://test.mswjs.io', (message) => {
-        res = message
-        res.setEncoding('utf8')
-        res.on('data', (chunk) => (resBody += chunk))
-        res.on('end', done)
-      })
-
-      req.end()
-    })
-
-    test('should return mocked status code', () => {
-      expect(res.statusCode).toEqual(401)
-    })
-
-    test('should return mocked headers', () => {
-      expect(res.headers).toHaveProperty('content-type', 'application/json')
-      expect(res.headers).toHaveProperty('x-header', 'yes')
-    })
-
-    test('should return mocked body', () => {
-      expect(resBody).toEqual('{"firstName":"John"}')
-    })
-  })
+  expect(response.statusCode).toBe(401)
+  expect(response.headers).toEqual(
+    expect.objectContaining({
+      'content-type': 'application/json',
+      'x-header': 'yes',
+    }),
+  )
+  expect(responseText).toBe('{"firstName":"John"}')
 })

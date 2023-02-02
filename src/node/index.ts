@@ -1,3 +1,4 @@
 export { ServerLifecycleEventsMap } from './SetupServerApi'
 export { setupServer } from './setupServer'
-export type { SetupServerApi } from './glossary'
+export type { SetupServer } from './glossary'
+export { SetupServerApi } from './SetupServerApi'

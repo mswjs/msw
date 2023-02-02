@@ -9,7 +9,7 @@ test('handles FormData as a request body', async ({
     markup: require.resolve('./body-form-data.page.html'),
   })
 
-  await page.click('button')
+  page.click('button')
 
   const res = await page.waitForResponse(makeUrl('/deprecated'))
   const status = res.status()

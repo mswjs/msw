@@ -135,21 +135,27 @@ Object.keys(console).forEach((methodName) => {
 
       await server.listen()
       await use(server)
+      await server.close()
     },
     { scope: 'worker' },
   ],
   workerConsole: [
     async ({}, use) => {
       const { server, consoleSpy } = await createWorkerConsoleServer()
+      consoleSpy.clear()
+
       await use({
         server,
         consoleSpy,
       })
+
+      consoleSpy.clear()
+      await server.close()
     },
     { scope: 'worker' },
   ],
   async createServer({}, use) {
-    let server: HttpServer
+    let server: HttpServer | undefined
 
     await use(async (...middleware) => {
       server = new HttpServer(...middleware)
@@ -157,7 +163,7 @@ Object.keys(console).forEach((methodName) => {
       return server
     })
 
-    await server.close()
+    await server?.close()
   },
   async loadExample({ page, previewServer, waitForMswActivation }, use) {
     await use(async (entry, options = {}) => {
@@ -320,7 +326,7 @@ Object.keys(console).forEach((methodName) => {
              * @note Silence request rejections so that request errors
              * could be asserted in tests.
              */
-            return null
+            return new Response(null, { status: 508 })
           })
         },
         {
@@ -354,14 +360,14 @@ Object.keys(console).forEach((methodName) => {
     })
   },
   async spyOnConsole({ page }, use) {
-    let messages: ConsoleMessages
+    let messages: ConsoleMessages | undefined
 
     await use(() => {
       messages = spyOnConsole(page as any)
       return messages
     })
 
-    messages.clear()
+    messages?.clear()
   },
 })
 

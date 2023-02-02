@@ -23,11 +23,15 @@ import {
 
 const { SERVICE_WORKER_BUILD_PATH } = require('../../config/constants.js')
 
-interface TestFixtures {
+export interface TestFixtures {
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
   loadExample(
     entry: string,
     options?: CompilationOptions & {
+      /**
+       * Do not await the "Mocking enabled" message in the console.
+       */
+      skipActivation?: boolean
       beforeNavigation?(compilation: CompilationResult): void
     },
   ): Promise<CompilationResult>
@@ -40,6 +44,7 @@ interface TestFixtures {
   makeUrl(path: string): string
   spyOnConsole(): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
+  waitForMswActivation(): Promise<void>
 }
 
 interface WorkerFixtures {
@@ -154,33 +159,43 @@ Object.keys(console).forEach((methodName) => {
 
     await server.close()
   },
-  async loadExample({ page, previewServer }, use) {
+  async loadExample({ page, previewServer, waitForMswActivation }, use) {
     await use(async (entry, options = {}) => {
       const compilation = await previewServer.compile([entry], options)
       options.beforeNavigation?.(compilation)
 
-      const consoleSpy = spyOnConsole(page)
+      // Forward browser runtime errors/warnings to the test runner.
+      page.on('pageerror', console.error)
 
       await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
 
-      // Wait for the MSW activation message.
-      await waitFor(() => {
-        if (
-          consoleSpy
-            .get('startGroupCollapsed')
-            .includes('[MSW] Mocking enabled.')
-        ) {
-          return Promise.resolve()
-        }
-
-        return Promise.reject()
-      })
+      if (!options.skipActivation) {
+        await waitForMswActivation()
+      }
 
       return compilation
     })
   },
   async waitFor({}, use) {
     await use(waitFor)
+  },
+  async waitForMswActivation({ spyOnConsole }, use) {
+    const consoleSpy = spyOnConsole()
+
+    await use(() => {
+      return waitFor(() => {
+        const groupMessages = consoleSpy.get('startGroupCollapsed')
+
+        if (groupMessages?.includes('[MSW] Mocking enabled.')) {
+          consoleSpy.clear()
+          return Promise.resolve()
+        }
+
+        return Promise.reject()
+      })
+    })
+
+    consoleSpy.clear()
   },
   async fetch({ page, previewServer }, use) {
     await use(async (url, init, options = {}) => {
@@ -339,9 +354,14 @@ Object.keys(console).forEach((methodName) => {
     })
   },
   async spyOnConsole({ page }, use) {
+    let messages: ConsoleMessages
+
     await use(() => {
-      return spyOnConsole(page as any)
+      messages = spyOnConsole(page as any)
+      return messages
     })
+
+    messages.clear()
   },
 })
 

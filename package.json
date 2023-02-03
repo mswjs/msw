@@ -17,9 +17,7 @@
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
     },
-    "./package.json": {
-      "default": "./package.json"
-    }
+    "./package.json": "./package.json"
   },
   "bin": {
     "msw": "cli/index.js"

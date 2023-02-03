@@ -16,7 +16,8 @@
       "types": "./lib/node/index.d.ts",
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "bin": {
     "msw": "cli/index.js"

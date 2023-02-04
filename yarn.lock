@@ -1537,7 +1537,7 @@
     semver "^7.3.7"
     yargs "^17.4.1"
 
-"@playwright/test@^1.25.1":
+"@playwright/test@^1.30.0":
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.30.0.tgz#8c0c4930ff2c7be7b3ec3fd434b2a3b4465ed7cb"
   integrity sha512-SVxkQw1xvn/Wk/EvBnqWIq6NLo1AppwbYOjNLmyU0R1RoQ3rLEBtmjTnElcnz8VEtn11fptj1ECxK0tgURhajw==

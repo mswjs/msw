@@ -18,6 +18,7 @@ const config: PlaywrightTestConfig = {
   outputDir: './test-results',
   snapshotDir: './test-snapshots',
   retries: 2,
+  workers: process.env.CI ? 2 : undefined,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
 }

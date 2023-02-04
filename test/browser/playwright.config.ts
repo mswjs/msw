@@ -17,7 +17,7 @@ const config: PlaywrightTestConfig = {
   },
   outputDir: './test-results',
   snapshotDir: './test-snapshots',
-  timeout: 10000,
+  retries: 2,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
 }

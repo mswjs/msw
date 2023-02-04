@@ -142,7 +142,6 @@ Object.keys(console).forEach((methodName) => {
   workerConsole: [
     async ({}, use) => {
       const { server, consoleSpy } = await createWorkerConsoleServer()
-      consoleSpy.clear()
 
       await use({
         server,
@@ -369,6 +368,10 @@ Object.keys(console).forEach((methodName) => {
 
     messages?.clear()
   },
+})
+
+test.afterEach(async ({ workerConsole }) => {
+  workerConsole.consoleSpy.clear()
 })
 
 export { expect }

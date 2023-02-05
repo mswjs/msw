@@ -15,7 +15,7 @@ test.beforeAll(async () => {
   await httpServer.listen()
 })
 
-test.afterAll(async () => {
+test.afterEach(async () => {
   await httpServer.close()
 })
 

@@ -11,7 +11,7 @@ const server = new HttpServer((app) => {
   })
 })
 
-test.beforeAll(async () => {
+test.beforeEach(async () => {
   await server.listen()
 })
 

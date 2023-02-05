@@ -12,11 +12,11 @@ function endpoint(): string {
   return server.http.url('/graphql')
 }
 
-test.beforeAll(async () => {
+test.beforeEach(async () => {
   await server.listen()
 })
 
-test.afterAll(async () => {
+test.afterEach(async () => {
   await server.close()
 })
 

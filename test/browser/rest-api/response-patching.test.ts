@@ -35,11 +35,11 @@ const httpServer = new HttpServer((app) => {
   })
 })
 
-test.beforeAll(async () => {
+test.beforeEach(async () => {
   await httpServer.listen()
 })
 
-test.afterAll(async () => {
+test.afterEach(async () => {
   await httpServer.close()
 })
 

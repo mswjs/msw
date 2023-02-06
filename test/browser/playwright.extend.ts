@@ -72,6 +72,8 @@ interface GraphQLMultipartDataOptions {
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   previewServer: [
     async ({ workerConsole }, use) => {
+      workerConsole.consoleSpy.clear()
+
       const server = new WebpackHttpServer({
         before(app) {
           // Prevent Express from responding with cached 304 responses.
@@ -142,6 +144,7 @@ Object.keys(console).forEach((methodName) => {
   workerConsole: [
     async ({}, use) => {
       const { server, consoleSpy } = await createWorkerConsoleServer()
+      consoleSpy.clear()
 
       await use({
         server,
@@ -368,10 +371,6 @@ Object.keys(console).forEach((methodName) => {
 
     messages?.clear()
   },
-})
-
-test.afterEach(async ({ workerConsole }) => {
-  workerConsole.consoleSpy.clear()
 })
 
 export { expect }

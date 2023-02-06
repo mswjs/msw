@@ -18,9 +18,12 @@ const config: PlaywrightTestConfig = {
   outputDir: './test-results',
   snapshotDir: './test-snapshots',
   retries: 2,
-  workers: process.env.CI ? 2 : undefined,
+  workers: 4,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
+  // Run every test in parallel to ensure that tests are isolated
+  // and there's no shared state leaking from the shared compilation
+  // server or the preview server.
   fullyParallel: true,
 }
 

@@ -113,13 +113,13 @@ Object.keys(console).forEach((methodName) => {
           module: {
             rules: [
               {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 use: [
                   {
-                    loader: 'ts-loader',
+                    loader: 'esbuild-loader',
                     options: {
-                      configFile: require.resolve('../../tsconfig.json'),
-                      transpileOnly: true,
+                      loader: 'ts',
+                      tsconfigRaw: require('../../tsconfig.json'),
                     },
                   },
                 ],

@@ -21,6 +21,7 @@ const config: PlaywrightTestConfig = {
   workers: process.env.CI ? 2 : undefined,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
+  fullyParallel: true,
 }
 
 export default config

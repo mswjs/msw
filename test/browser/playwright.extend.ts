@@ -116,10 +116,10 @@ Object.keys(console).forEach((methodName) => {
                 test: /\.tsx?$/,
                 use: [
                   {
-                    loader: 'ts-loader',
+                    loader: 'esbuild-loader',
                     options: {
-                      configFile: require.resolve('../../tsconfig.json'),
-                      transpileOnly: true,
+                      loader: 'ts',
+                      target: 'es2015',
                     },
                   },
                 ],

@@ -15,10 +15,11 @@ const fsMock = createTeardown({
 
 let server: HttpServer
 
-async function gotoStaticPage(page: Page): Promise<void> {
-  await page.goto(`file://${fsMock.resolve('index.html')}`, {
-    waitUntil: 'networkidle',
-  })
+async function gotoStaticPage(page: Page, workerIndex: number): Promise<void> {
+  await page.goto(
+    `file://${fsMock.resolve(`worker-${workerIndex}/index.html`)}`,
+    { waitUntil: 'networkidle' },
+  )
 }
 
 interface DirectFetchResponse {
@@ -34,10 +35,10 @@ function createFetchWithoutNetwork(page: Page) {
     init?: RequestInit,
   ): Promise<DirectFetchResponse> => {
     return page.evaluate(
-      ([input, init]: [RequestInfo, RequestInit]) => {
+      ([input, init]) => {
         return fetch(input, init)
           .then((res) => {
-            const headers = {}
+            const headers: Record<string, string> = {}
             res.headers.forEach((value, key) => {
               headers[key] = value
             })
@@ -49,23 +50,28 @@ function createFetchWithoutNetwork(page: Page) {
               body,
             }))
           })
-          .catch(() => null)
+          .catch(() => null as any)
       },
-      [input, init],
+      [input, init] as [RequestInfo, RequestInit],
     )
   }
 }
 
-test.beforeAll(async ({ previewServer }) => {
+test.beforeAll(async ({ webpackServer }, testInfo) => {
   await fsMock.prepare()
 
-  const compilation = await previewServer.compile([
+  testInfo.workerIndex
+
+  const compilation = await webpackServer.compile([
     require.resolve('./fallback-mode.mocks.ts'),
   ])
-
   const bundleUrl = new URL('./main.js', compilation.previewUrl)
   await fsMock.create({
-    'index.html': `<script src="${bundleUrl.href}"></script>`,
+    // Scope static files per worker to prevent shared state.
+    // The tests below are run in parallel.
+    [`worker-${testInfo.workerIndex}`]: {
+      'index.html': `<script src="${bundleUrl.href}"></script>`,
+    },
   })
 })
 
@@ -85,9 +91,9 @@ test('prints a fallback start message in the console', async ({
   spyOnConsole,
   page,
   waitFor,
-}) => {
+}, testInfo) => {
   const consoleSpy = spyOnConsole()
-  await gotoStaticPage(page)
+  await gotoStaticPage(page, testInfo.workerIndex)
   const consoleGroups = consoleSpy.get('startGroupCollapsed')
 
   await waitFor(() => {
@@ -99,10 +105,10 @@ test('responds with a mocked response to a handled request', async ({
   spyOnConsole,
   waitFor,
   page,
-}) => {
+}, testInfo) => {
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
-  await gotoStaticPage(page)
+  await gotoStaticPage(page, testInfo.workerIndex)
 
   const response = await fetch(server.https.url('/user'))
 
@@ -129,10 +135,10 @@ test('responds with a mocked response to a handled request', async ({
 test('warns on the unhandled request by default', async ({
   spyOnConsole,
   page,
-}) => {
+}, testInfo) => {
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
-  await gotoStaticPage(page)
+  await gotoStaticPage(page, testInfo.workerIndex)
 
   await fetch(server.http.url('/unknown-resource'))
 
@@ -152,10 +158,10 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
 test('stops the fallback interceptor when called "worker.stop()"', async ({
   spyOnConsole,
   page,
-}) => {
+}, testInfo) => {
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
-  await gotoStaticPage(page)
+  await gotoStaticPage(page, testInfo.workerIndex)
 
   await page.evaluate(() => {
     window.worker.stop()

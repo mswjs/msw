@@ -28,7 +28,7 @@ test('intercepts a request from an iframe (nested client)', async ({
     },
   })
 
-  const frame = page.mainFrame().childFrames().find(findFrame)
+  const frame = page.mainFrame().childFrames().find(findFrame)!
   await frame.evaluate(() => window.request())
 
   const firstNameElement = await frame.waitForSelector('#first-name')
@@ -51,9 +51,9 @@ test('intercepts a request from a deeply nested iframe', async ({
   const deepFrame = page
     .mainFrame()
     .childFrames()
-    .find(findFrame)
+    .find(findFrame)!
     .childFrames()
-    .find(findFrame)
+    .find(findFrame)!
 
   await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
@@ -63,8 +63,8 @@ test('intercepts a request from a deeply nested iframe', async ({
 })
 
 test('intercepts a request from a deeply nested iframe given MSW is registered in a parent nested iframe', async ({
+  webpackServer,
   loadExample,
-  previewServer,
   page,
 }) => {
   await loadExample(require.resolve('./iframe.mocks.ts'), {
@@ -76,11 +76,11 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
 
   // Intentionally empty compilation just to serve
   // a custom page with an embedded iframe.
-  await previewServer.compile([], {
+  await webpackServer.compile([], {
     markup: `<iframe src="${page.url()}"></iframe>`,
   })
 
-  const deepFrame = page.mainFrame().childFrames().find(findFrame)
+  const deepFrame = page.mainFrame().childFrames().find(findFrame)!
   await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
@@ -89,8 +89,8 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
 })
 
 test('intercepts a request from an iframe given MSW is registered in a sibling iframe', async ({
+  webpackServer,
   loadExample,
-  previewServer,
   page,
   context,
 }) => {
@@ -99,7 +99,7 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
 
   // A request-issuing frame. Here lives the `window.fetch` call.
   const requestPage = await context.newPage()
-  const requestCompilation = await previewServer.compile([], {
+  const requestCompilation = await webpackServer.compile([], {
     markup: path.resolve(__dirname, 'page-in-iframe.html'),
   })
   requestCompilation.use(staticMiddleware)
@@ -107,7 +107,7 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
 
   // A parent frame that hosts two frames above.
   const parentPage = await context.newPage()
-  const parentCompilation = await previewServer.compile([], {
+  const parentCompilation = await webpackServer.compile([], {
     markup: `
 <iframe src="${requestPage.url()}"></iframe>
 <iframe src="${page.url()}"></iframe>
@@ -119,9 +119,9 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
   const frame = parentPage
     .mainFrame()
     .childFrames()
-    .find(findFrame)
+    .find(findFrame)!
     .childFrames()
-    .find(findFrame)
+    .find(findFrame)!
 
   await frame.evaluate(() => window.request())
   const firstNameElement = await frame.waitForSelector('#first-name')

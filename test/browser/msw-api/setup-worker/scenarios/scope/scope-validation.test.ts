@@ -1,12 +1,15 @@
 import { test, expect } from '../../../../playwright.extend'
-import { SERVICE_WORKER_BUILD_PATH } from '../../../../../../config/constants'
+
+const {
+  SERVICE_WORKER_BUILD_PATH,
+} = require('../../../../../../config/constants')
 
 test('warns when visiting the page outside of the worker scope', async ({
   loadExample,
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  const compilation = await loadExample(
+  const { compilation } = await loadExample(
     require.resolve('./scope-nested.mocks.ts'),
     {
       beforeNavigation(compilation) {

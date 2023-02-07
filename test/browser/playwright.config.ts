@@ -8,6 +8,7 @@ const config: PlaywrightTestConfig = {
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+
   use: {
     launchOptions: {
       devtools: !process.env.CI,
@@ -17,8 +18,6 @@ const config: PlaywrightTestConfig = {
   },
   outputDir: './test-results',
   snapshotDir: './test-snapshots',
-  retries: 2,
-  workers: 4,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
   // Run every test in parallel to ensure that tests are isolated

@@ -9545,10 +9545,10 @@ webpack-dev-server@^3.11.2:
     ws "^6.2.1"
     yargs "^13.3.2"
 
-webpack-http-server@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.3.0.tgz#f440039ceea85bddca63d700c47a11624aa56ed9"
-  integrity sha512-VCw6lK1+BA5vEQZrH3E2U2HkyFP1oVXqGBvrmTfnObQWx2Y3R4twrBL8HnL6FfLRuWMnmRK5OvRn0cDi5Ft2LQ==
+webpack-http-server@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/webpack-http-server/-/webpack-http-server-0.4.0.tgz#e644e2f7ca66ccb1c991f62f639a7372ee265fc4"
+  integrity sha512-wuPLyScbBOjTPcpnkrPfA50Ueplsp7Mh9mSu2/0E484ykziucg4tLS3Q+vrL7/zNL7R+4zwtz+/egl6A43Lreg==
   dependencies:
     "@types/express" "^4.17.13"
     "@types/mustache" "^4.2.1"

@@ -13,7 +13,7 @@ test('unregisters itself when not prompted to be activated again', async ({
   fetch,
   waitForMswActivation,
 }) => {
-  const compilation = await loadExample(
+  const { compilation } = await loadExample(
     require.resolve('./unregister.mocks.ts'),
     {
       skipActivation: true,

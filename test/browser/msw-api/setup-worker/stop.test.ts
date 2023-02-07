@@ -57,7 +57,7 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   context,
   fetch,
 }) => {
-  const compilation = await loadExample(require.resolve('./stop.mocks.ts'))
+  const { compilation } = await loadExample(require.resolve('./stop.mocks.ts'))
 
   const firstPage = await context.newPage()
   await firstPage.goto(compilation.previewUrl, {
@@ -74,7 +74,7 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   // Switch to another page.
   await secondPage.bringToFront()
 
-  const res = await fetch('https://api.github.com', null, {
+  const res = await fetch('https://api.github.com', undefined, {
     page: secondPage,
   })
   const headers = await res.allHeaders()
@@ -101,13 +101,13 @@ test('prints a warning on multiple "worker.stop()" calls', async ({
   await stopWorkerOn(page)
 
   // Prints the stop message and no warnings.
-  expect(consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
+  expect(consoleSpy.get('log')!.filter(byStopMessage)).toHaveLength(1)
   expect(consoleSpy.get('warning')).toBeUndefined()
 
   await stopWorkerOn(page)
 
   // Does not print a duplicate stop message.
-  expect(consoleSpy.get('log').filter(byStopMessage)).toHaveLength(1)
+  expect(consoleSpy.get('log')!.filter(byStopMessage)).toHaveLength(1)
 
   // Prints a warning so the user knows something is not right.
   expect(consoleSpy.get('warning')).toEqual([

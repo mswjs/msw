@@ -1,8 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { test, expect } from '../playwright.extend'
-import { SERVICE_WORKER_SOURCE_PATH } from '../../../config/constants'
 import copyServiceWorker from '../../../config/copyServiceWorker'
+
+const { SERVICE_WORKER_SOURCE_PATH } = require('../../../config/constants')
 
 test('activates the worker without errors given the latest integrity', async ({
   loadExample,

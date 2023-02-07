@@ -72,7 +72,7 @@ test('prints the start message when the worker has been registered', async ({
   spyOnConsole,
   page,
 }) => {
-  const compilation = await loadExample(...exampleOptions)
+  const { compilation } = await loadExample(...exampleOptions)
   const consoleSpy = spyOnConsole()
 
   const expectedWorkerScope = new URL('.', compilation.previewUrl).href

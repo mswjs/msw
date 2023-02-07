@@ -1,5 +1,3 @@
-import * as fs from 'fs'
-import * as path from 'path'
 import * as crypto from 'crypto'
 import { test as base, expect, type Response, Page } from '@playwright/test'
 import {
@@ -16,17 +14,17 @@ import {
   WebpackHttpServer,
 } from 'webpack-http-server'
 import { waitFor } from '../support/waitFor'
-import {
-  createWorkerConsoleServer,
-  WorkerConsole,
-} from '../support/workerConsole'
-
-const { SERVICE_WORKER_BUILD_PATH } = require('../../config/constants.js')
+import { WorkerConsole } from './setup/WorkerConsole'
+import { getWebpackServer } from './setup/webpackHttpServer'
 
 export interface TestFixtures {
+  /**
+   * Create a test server instance.
+   */
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
+  webpackServer: WebpackHttpServer
   loadExample(
-    entry: string,
+    entry: string | Array<string>,
     options?: CompilationOptions & {
       /**
        * Do not await the "Mocking enabled" message in the console.
@@ -34,7 +32,10 @@ export interface TestFixtures {
       skipActivation?: boolean
       beforeNavigation?(compilation: CompilationResult): void
     },
-  ): Promise<CompilationResult>
+  ): Promise<{
+    compilation: CompilationResult
+    workerConsole: WorkerConsole
+  }>
   fetch(
     url: string,
     init?: RequestInit,
@@ -45,11 +46,6 @@ export interface TestFixtures {
   spyOnConsole(): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
-}
-
-interface WorkerFixtures {
-  previewServer: WebpackHttpServer
-  workerConsole: WorkerConsole
 }
 
 interface FetchOptions {
@@ -69,93 +65,7 @@ interface GraphQLMultipartDataOptions {
   fileContents: string[]
 }
 
-export const test = base.extend<TestFixtures, WorkerFixtures>({
-  previewServer: [
-    async ({ workerConsole }, use) => {
-      workerConsole.consoleSpy.clear()
-
-      const server = new WebpackHttpServer({
-        before(app) {
-          // Prevent Express from responding with cached 304 responses.
-          app.set('etag', false)
-
-          app.get('/mockServiceWorker.js', (req, res) => {
-            const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
-            readable.push(
-              `
-// EVERYTHING BELOW THIS LINE IS APPENDED TO THE WORKER SCRIPT
-// ONLY DURING THE TEST RUN.
-const originals = {}
-Object.keys(console).forEach((methodName) => {
-  originals[methodName] = console[methodName]
-  console[methodName] = (...args) => {
-    fetch('${workerConsole.server.http.url('/console/')}' + methodName, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(args)
-    })
-
-    originals[methodName](...args)
-  }
-})
-`,
-              'utf8',
-            )
-
-            res.set('Content-Type', 'application/javascript; charset=utf8')
-            res.set('Content-Encoding', 'chunked')
-            readable.pipe(res)
-          })
-        },
-        webpackConfig: {
-          module: {
-            rules: [
-              {
-                test: /\.ts$/,
-                use: [
-                  {
-                    loader: 'esbuild-loader',
-                    options: {
-                      loader: 'ts',
-                      tsconfigRaw: require('../../tsconfig.json'),
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-          resolve: {
-            alias: {
-              msw: path.resolve(__dirname, '../..'),
-            },
-            extensions: ['.ts', '.js'],
-          },
-        },
-      })
-
-      await server.listen()
-      await use(server)
-      await server.close()
-    },
-    { scope: 'worker' },
-  ],
-  workerConsole: [
-    async ({}, use) => {
-      const { server, consoleSpy } = await createWorkerConsoleServer()
-      consoleSpy.clear()
-
-      await use({
-        server,
-        consoleSpy,
-      })
-
-      consoleSpy.clear()
-      await server.close()
-    },
-    { scope: 'worker' },
-  ],
+export const test = base.extend<TestFixtures>({
   async createServer({}, use) {
     let server: HttpServer | undefined
 
@@ -167,9 +77,20 @@ Object.keys(console).forEach((methodName) => {
 
     await server?.close()
   },
-  async loadExample({ page, previewServer, waitForMswActivation }, use) {
+  async webpackServer({}, use) {
+    use(await getWebpackServer())
+  },
+  async loadExample({ page, webpackServer, waitForMswActivation }, use) {
+    const workerConsole = new WorkerConsole()
+
     await use(async (entry, options = {}) => {
-      const compilation = await previewServer.compile([entry], options)
+      const compilation = await webpackServer.compile(
+        Array.prototype.concat([], entry),
+        options,
+      )
+
+      // Allow arbitrary setup code before navigating to the compilation preview.
+      // This is useful to set up console watchers and other side-effects.
       options.beforeNavigation?.(compilation)
 
       // Forward browser runtime errors/warnings to the test runner.
@@ -177,12 +98,22 @@ Object.keys(console).forEach((methodName) => {
 
       await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
 
+      // All examlpes await the MSW activation message by default.
+      // Support opting-out from this behavior for tests where activation
+      // is not expected (e.g. when testing activation errors).
       if (!options.skipActivation) {
         await waitForMswActivation()
       }
 
-      return compilation
+      await workerConsole.init(page)
+
+      return {
+        compilation,
+        workerConsole,
+      }
     })
+
+    workerConsole.removeAllListeners()
   },
   async waitFor({}, use) {
     await use(waitFor)
@@ -205,12 +136,11 @@ Object.keys(console).forEach((methodName) => {
 
     consoleSpy.clear()
   },
-  async fetch({ page, previewServer }, use) {
+  async fetch({ page }, use) {
     await use(async (url, init, options = {}) => {
       const target = options.page || page
 
       const requestId = crypto.randomBytes(16).toString('hex')
-      const resolvedUrl = new URL(url, previewServer.serverUrl).href
 
       const fetchOptions = init || {}
       const initialHeaders = fetchOptions.headers || {}
@@ -229,7 +159,7 @@ Object.keys(console).forEach((methodName) => {
       // perform multiple requests in parallel.
       target.evaluate<unknown, [string, RequestInit]>(
         ([url, init]) => fetch(url, init as RequestInit),
-        [resolvedUrl, resolvedInit],
+        [url, resolvedInit],
       )
 
       return target.waitForResponse(async (res) => {
@@ -356,9 +286,9 @@ Object.keys(console).forEach((methodName) => {
       })
     })
   },
-  async makeUrl({ previewServer }, use) {
-    await use((path) => {
-      return new URL(path, previewServer.serverUrl).href
+  async makeUrl({ webpackServer }, use) {
+    await use((pathname) => {
+      return new URL(pathname, webpackServer.serverUrl).href
     })
   },
   async spyOnConsole({ page }, use) {

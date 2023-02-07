@@ -21,14 +21,15 @@ test.beforeEach(async ({ createServer }) => {
 test('propagates a mocked network error', async ({
   loadExample,
   spyOnConsole,
-  workerConsole,
   fetch,
   page,
   waitFor,
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./network-error.mocks.ts'))
+  const { workerConsole } = await loadExample(
+    require.resolve('./network-error.mocks.ts'),
+  )
 
   const endpointUrl = makeUrl('/user')
   await until(() => page.evaluate((url) => fetch(url), endpointUrl))
@@ -41,29 +42,28 @@ test('propagates a mocked network error', async ({
   )
 
   // Expect a notification warning from the library.
-  await waitFor(() => {
-    expect(workerConsole.consoleSpy.get('warning')).toEqual(
+  await waitFor(async () => {
+    expect(workerConsole.messages.get('warn')).toEqual(
       expect.arrayContaining([
-        expect.stringContaining(
-          `[MSW] Successfully emulated a network error for the "GET ${endpointUrl}" request.`,
-        ),
+        `[MSW] Successfully emulated a network error for the "GET ${endpointUrl}" request.`,
       ]),
     )
   })
 
   // The worker must not produce any errors.
-  expect(workerConsole.consoleSpy.get('error')).toBeUndefined()
+  expect(workerConsole.messages.get('error')).toBeUndefined()
 })
 
 test('propagates a CORS violation error from a non-matching request', async ({
   loadExample,
   spyOnConsole,
-  workerConsole,
   page,
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./network-error.mocks.ts'))
+  const { workerConsole } = await loadExample(
+    require.resolve('./network-error.mocks.ts'),
+  )
 
   const endpointUrl = server.http.url('/resource')
   await until(() => page.evaluate((url) => fetch(url), endpointUrl))
@@ -78,8 +78,8 @@ test('propagates a CORS violation error from a non-matching request', async ({
   })
 
   // Expect the explanatory error message from the library.
-  await waitFor(() => {
-    expect(workerConsole.consoleSpy.get('error')).toEqual([
+  await waitFor(async () => {
+    expect(workerConsole.messages.get('error')).toEqual([
       `[MSW] Caught an exception from the "GET ${endpointUrl}" request (TypeError: Failed to fetch). This is probably not a problem with Mock Service Worker. There is likely an additional logging output above.`,
     ])
   })

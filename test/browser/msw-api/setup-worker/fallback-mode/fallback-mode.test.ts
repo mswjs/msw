@@ -57,11 +57,11 @@ function createFetchWithoutNetwork(page: Page) {
   }
 }
 
-test.beforeAll(async ({ webpackServer }, testInfo) => {
+test.beforeAll(async () => {
   await fsMock.prepare()
+})
 
-  testInfo.workerIndex
-
+test.beforeEach(async ({ webpackServer }, testInfo) => {
   const compilation = await webpackServer.compile([
     require.resolve('./fallback-mode.mocks.ts'),
   ])

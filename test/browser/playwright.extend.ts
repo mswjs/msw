@@ -9,8 +9,8 @@ import {
 import { spyOnConsole, ConsoleMessages } from 'page-with'
 import { HttpServer, HttpServerMiddleware } from '@open-draft/test-server/http'
 import {
+  Compilation,
   CompilationOptions,
-  CompilationResult,
   WebpackHttpServer,
 } from 'webpack-http-server'
 import { waitFor } from '../support/waitFor'
@@ -30,10 +30,10 @@ export interface TestFixtures {
        * Do not await the "Mocking enabled" message in the console.
        */
       skipActivation?: boolean
-      beforeNavigation?(compilation: CompilationResult): void
+      beforeNavigation?(compilation: Compilation): void
     },
   ): Promise<{
-    compilation: CompilationResult
+    compilation: Compilation
     workerConsole: WorkerConsole
   }>
   fetch(
@@ -61,8 +61,8 @@ interface GraphQLQueryOptions {
 }
 
 interface GraphQLMultipartDataOptions {
-  map: Record<string, string[]>
-  fileContents: string[]
+  map: Record<string, Array<string>>
+  fileContents: Array<string>
 }
 
 export const test = base.extend<TestFixtures>({
@@ -82,9 +82,10 @@ export const test = base.extend<TestFixtures>({
   },
   async loadExample({ page, webpackServer, waitForMswActivation }, use) {
     const workerConsole = new WorkerConsole()
+    let compilation: Compilation | undefined
 
     await use(async (entry, options = {}) => {
-      const compilation = await webpackServer.compile(
+      compilation = await webpackServer.compile(
         Array.prototype.concat([], entry),
         options,
       )
@@ -114,6 +115,7 @@ export const test = base.extend<TestFixtures>({
     })
 
     workerConsole.removeAllListeners()
+    await compilation?.dispose()
   },
   async waitFor({}, use) {
     await use(waitFor)

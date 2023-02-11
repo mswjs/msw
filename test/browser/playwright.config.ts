@@ -8,7 +8,6 @@ const config: PlaywrightTestConfig = {
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-
   use: {
     launchOptions: {
       devtools: !process.env.CI,

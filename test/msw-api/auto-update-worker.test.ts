@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import { execSync } from 'child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
+import packageJson from '../../package.json'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('auto-update-worker'),
@@ -26,12 +27,12 @@ afterAll(async () => {
 
 test('updates the worker script on the postinstall hook', async () => {
   // Pack the current state of the "msw" package.
-  execSync(`pnpm pack ${fsMock.resolve('msw.tgz')}`, {
+  execSync(`pnpm pack --pack-destination ${fsMock.resolve('.')}`, {
     stdio: 'inherit',
   })
 
   // Install "msw" from the tarball into the dummy project.
-  execSync('npm install msw.tgz', {
+  execSync(`npm install msw-${packageJson.version}.tgz`, {
     cwd: fsMock.resolve(),
     stdio: 'inherit',
   })

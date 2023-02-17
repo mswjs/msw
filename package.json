@@ -33,7 +33,6 @@
     "test": "pnpm test:unit && pnpm test:integration",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:integration": "jest --config=./test/jest.config.js --maxWorkers=1",
-    "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "ts-node test/typings/run.ts",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",

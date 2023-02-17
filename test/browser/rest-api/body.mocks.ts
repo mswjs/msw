@@ -29,7 +29,7 @@ const handleMultipartRequestBody: ResponseResolver<
   }
 
   const resBody: Record<string, string> = {}
-  for (const [name, value] of Object.entries(body)) {
+  for (const [name, value] of Object.entries(body || {})) {
     if (value instanceof File) {
       resBody[name] = await value.text()
     } else {

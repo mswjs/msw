@@ -1,5 +1,3 @@
-import * as fs from 'fs'
-import * as path from 'path'
 import * as crypto from 'crypto'
 import { test as base, expect, type Response, Page } from '@playwright/test'
 import {
@@ -82,12 +80,7 @@ export const test = base.extend<TestFixtures>({
   async webpackServer({}, use) {
     use(await getWebpackServer())
   },
-  async loadExample(
-    { page, spyOnConsole, webpackServer, waitForMswActivation },
-    use,
-    testInfo,
-  ) {
-    const consoleSpy = spyOnConsole()
+  async loadExample({ page, webpackServer, waitForMswActivation }, use) {
     const pageExceptions: Array<Error> = []
     page.on('pageerror', (error) => pageExceptions.push(error))
 
@@ -107,7 +100,13 @@ export const test = base.extend<TestFixtures>({
       // Forward browser runtime errors/warnings to the test runner.
       page.on('pageerror', console.error)
 
-      await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
+      const oncePageReady = [
+        page.waitForLoadState('domcontentloaded', { timeout: 15_000 }),
+        page.waitForEvent('load', { timeout: 30_000 }),
+        page.waitForLoadState('networkidle', { timeout: 5_000 }),
+      ]
+      page.goto(compilation.previewUrl)
+      await Promise.all(oncePageReady)
 
       // All examlpes await the MSW activation message by default.
       // Support opting-out from this behavior for tests where activation
@@ -123,33 +122,6 @@ export const test = base.extend<TestFixtures>({
         workerConsole,
       }
     })
-
-    if (testInfo.status !== testInfo.expectedStatus) {
-      // Write runtime console errors and exceptions to a log file.
-      const logFilePath = path.resolve(testInfo.outputDir, `console.log`)
-      const log = JSON.stringify(
-        {
-          exceptions: pageExceptions,
-          errors: consoleSpy.get('error'),
-          warnings: consoleSpy.get('warning'),
-        },
-        null,
-        2,
-      )
-      fs.mkdirSync(testInfo.outputDir, { recursive: true })
-      fs.writeFile(logFilePath, log, (error) => {
-        if (error) {
-          console.error(
-            'Failed writing runtime log file for test "%s"',
-            testInfo.file,
-          )
-          console.error(error)
-          return
-        }
-
-        console.log('Runtime log file written to "%s"', logFilePath)
-      })
-    }
 
     workerConsole.removeAllListeners()
     await compilation?.dispose()

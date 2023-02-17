@@ -32,11 +32,11 @@ Please use the GitHub UI to [fork this repository](https://github.com/mswjs/msw)
 
 ```bash
 $ cd msw
-$ yarn install
-$ yarn start
+$ pnpm install
+$ pnpm start
 ```
 
-> Please use [Yarn][yarn-url] while working on this project.
+> Please use [PNPM][pnpm-url] while working on this project.
 
 ## Git workflow
 
@@ -104,7 +104,7 @@ test('multiplies two given numbers', () => {
 Once your test is written, run it in isolation.
 
 ```bash
-$ yarn test:unit src/utils/multiply.test.ts
+$ pnpm test:unit src/utils/multiply.test.ts
 ```
 
 At this point, the actual implementation is not ready yet, so you can expect your test to fail. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases pass.
@@ -112,14 +112,14 @@ At this point, the actual implementation is not ready yet, so you can expect you
 #### Running all unit tests
 
 ```bash
-$ yarn test:unit
+$ pnpm test:unit
 ```
 
 ### Integration tests
 
 We follow an example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
 
-> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`yarn start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
+> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`pnpm start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
 
 #### Browser integration tests
 
@@ -227,13 +227,13 @@ test('returns a mocked response', async () => {
 #### Running all integration tests
 
 ```bash
-$ yarn test:integration
+$ pnpm test:integration
 ```
 
 #### Running a single integration test
 
 ```bash
-$ yarn test:integration test/rest-api/basic.test.ts
+$ pnpm test:integration test/rest-api/basic.test.ts
 ```
 
 ## Build
@@ -241,9 +241,9 @@ $ yarn test:integration test/rest-api/basic.test.ts
 Build the library with the following command:
 
 ```bash
-$ yarn build
+$ pnpm build
 ```
 
-[yarn-url]: https://classic.yarnpkg.com/en/
+[pnpm-url]: https://pnpm.io/
 [jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with

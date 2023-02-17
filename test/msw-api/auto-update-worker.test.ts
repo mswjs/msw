@@ -26,7 +26,7 @@ afterAll(async () => {
 
 test('updates the worker script on the postinstall hook', async () => {
   // Pack the current state of the "msw" package.
-  execSync(`yarn pack --filename ${fsMock.resolve('msw.tgz')}`, {
+  execSync(`pnpm pack ${fsMock.resolve('msw.tgz')}`, {
     stdio: 'inherit',
   })
 

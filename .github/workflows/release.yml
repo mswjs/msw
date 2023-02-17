@@ -20,7 +20,10 @@ jobs:
         with:
           node-version: 16
           always-auth: true
-          cache: yarn
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
 
       - name: Setup Git
         run: |
@@ -28,16 +31,16 @@ jobs:
           git config --local user.email "kettanaito@gmail.com"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Tests
-        run: yarn test
+        run: pnpm test
 
       - name: Release
-        run: yarn release
+        run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

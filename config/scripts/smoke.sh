@@ -9,7 +9,7 @@ echo "Mock Service Worker state at commit $COMMIT_HASH"
 
 # Pack the local build of the `msw` package
 echo "Packing 'msw' into $LOCAL_PACKAGE_PATH"
-yarn pack --filename "$LOCAL_PACKAGE_PATH"
+pnpm pack --pack-destination "$LOCAL_PACKAGE_PATH"
 
 # Clone the examples repo.
 # Use HTTPS protocol, because SSH would require a valid SSH key
@@ -20,27 +20,22 @@ git clone https://github.com/mswjs/examples.git ~/examples
 # Bootstrap the examples monorepo
 echo "Installing dependencies..."
 cd ~/examples
-yarn install --frozen-lockfile
+pnpm install
 
 # Use the local build of the `msw` package.
 mv "$LOCAL_PACKAGE_PATH" "$TARBALL_FILENAME"
 
-# The `yarn workspaces run` command works only with "yarn@0.19.x"
-echo "Ensuring Yarn version 1.19.2"
-yarn policies set-version 1.19.2
-yarn_version=$(yarn -v)
-
-if [ "$yarn_version" != "1.19.2" ]
+if [ "$pnpm_version" != "1.19.2" ]
 then
-  echo "Failed to install and use Yarn version 1.19.2"
-  echo "Current version is $yarn_version"
+  echo "Failed to install and use pnpm version 1.19.2"
+  echo "Current version is $pnpm_version"
   exit 1
 fi
 
-echo "Using Yarn $yarn_version"
+echo "Using pnpm $pnpm_version"
 
 echo "Installing the custom build of the 'msw' package..."
-yarn use-packed-msw "$TARBALL_FILENAME"
+pnpm use-packed-msw "$TARBALL_FILENAME"
 
 echo "Verifying that all examples use the custom build..."
 
@@ -67,7 +62,7 @@ echo "All examples are using the custom build of msw!"
 
 # Test all the examples.
 echo "Testing the usage examples..."
-yarn test
+pnpm test
 
 # Clean up
 echo "Cleaning up..."

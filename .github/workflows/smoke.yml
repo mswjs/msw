@@ -18,13 +18,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: yarn
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Smoke tests
-        run: yarn test:smoke
+        run: pnpm test:smoke

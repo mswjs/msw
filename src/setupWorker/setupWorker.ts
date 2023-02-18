@@ -225,8 +225,6 @@ export class SetupWorkerApi
  * @param {RequestHandler[]} handlers List of request handlers.
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
  */
-export function setupWorker(
-  ...handlers: Array<RequestHandler>
-): SetupWorkerApi {
+export function setupWorker(...handlers: Array<RequestHandler>): SetupWorker {
   return new SetupWorkerApi(...handlers)
 }

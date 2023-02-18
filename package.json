@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -16,7 +16,8 @@
       "types": "./lib/node/index.d.ts",
       "require": "./lib/node/index.js",
       "default": "./lib/node/index.mjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "bin": {
     "msw": "cli/index.js"
@@ -29,14 +30,13 @@
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "cross-env NODE_ENV=production tsup",
-    "test": "yarn test:unit && yarn test:integration",
+    "test": "pnpm test:unit && pnpm test:node && pnpm test:browser",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:node": "jest --config=./test/jest.config.js",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
-    "test:smoke": "./config/scripts/smoke.sh",
     "test:ts": "ts-node test/typings/run.ts",
-    "prepare": "yarn simple-git-hooks init",
-    "prepack": "yarn build",
+    "prepare": "pnpm simple-git-hooks init",
+    "prepack": "pnpm build",
     "release": "release publish",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
@@ -171,8 +171,8 @@
     }
   },
   "simple-git-hooks": {
-    "pre-commit": "yarn lint-staged",
-    "prepare-commit-msg": "grep -qE '^[^#]' .git/COMMIT_EDITMSG || (exec < /dev/tty && yarn cz --hook || true)",
-    "commit-msg": "yarn commitlint --edit $1"
+    "pre-commit": "pnpm lint-staged",
+    "prepare-commit-msg": "grep -qE '^[^#]' .git/COMMIT_EDITMSG || (exec < /dev/tty && pnpm cz --hook || true)",
+    "commit-msg": "pnpm commitlint --edit $1"
   }
 }

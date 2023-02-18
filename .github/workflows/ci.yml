@@ -20,19 +20,22 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: yarn
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Unit tests
-        run: yarn test:unit
+        run: pnpm test:unit
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Integration tests
-        run: yarn test:integration
+        run: pnpm test:integration
 
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.
@@ -53,18 +56,21 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: yarn
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn add typescript@${{ matrix.ts }}
+        run: pnpm add typescript@${{ matrix.ts }}
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Typings tests
         run: |
-          yarn tsc --version
-          yarn test:ts
+          pnpm tsc --version
+          pnpm test:ts

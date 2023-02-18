@@ -1,3 +1,3 @@
 module.exports = {
-  script: 'yarn publish --new-version $RELEASE_VERSION',
+  script: 'pnpm publish --no-git-checks',
 }

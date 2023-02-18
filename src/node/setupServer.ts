@@ -1,5 +1,6 @@
 import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest/index.js'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest/index.js'
+import { FetchInterceptor } from '@mswjs/interceptors/lib/interceptors/fetch/index.js'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { SetupServer } from './glossary'
 import { SetupServerApi } from './SetupServerApi'
@@ -13,7 +14,7 @@ export const setupServer = (
   ...handlers: Array<RequestHandler>
 ): SetupServer => {
   return new SetupServerApi(
-    [ClientRequestInterceptor, XMLHttpRequestInterceptor],
+    [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
     ...handlers,
   )
 }

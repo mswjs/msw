@@ -34,8 +34,18 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Integration tests
-        run: pnpm test:integration
+      - name: Node.js tests
+        run: pnpm test:node
+
+      - name: Browser tests
+        run: pnpm test:browser
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: test/browser/test-results
 
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.

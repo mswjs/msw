@@ -1,0 +1,37 @@
+import * as cookieUtils from 'cookie'
+import { test, expect } from '../playwright.extend'
+import { gql } from '../../support/graphql'
+
+test('sets cookie on the mocked GraphQL response', async ({
+  loadExample,
+  query,
+  page,
+}) => {
+  await loadExample(require.resolve('./cookies.mocks.ts'))
+
+  const res = await query('/graphql', {
+    query: gql`
+      query GetUser {
+        firstName
+      }
+    `,
+  })
+
+  const headers = await res.allHeaders()
+  const body = await res.json()
+
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(headers).not.toHaveProperty('set-cookie')
+  expect(body).toEqual({
+    data: {
+      firstName: 'John',
+    },
+  })
+
+  // Should be able to access the response cookies.
+  const cookieString = await page.evaluate(() => {
+    return document.cookie
+  })
+  const allCookies = cookieUtils.parse(cookieString)
+  expect(allCookies).toHaveProperty('test-cookie', 'value')
+})

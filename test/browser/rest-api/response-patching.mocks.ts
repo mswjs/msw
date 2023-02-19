@@ -48,7 +48,7 @@ const worker = setupWorker(
     const body = await originalResponse.json()
 
     return res(
-      ctx.set('x-custom', originalResponse.headers.get('x-custom')),
+      ctx.set('x-custom', originalResponse.headers.get('x-custom')!),
       ctx.json({
         ...body,
         mocked: true,
@@ -71,12 +71,7 @@ const worker = setupWorker(
   rest.head('*/posts', async (req, res, ctx) => {
     const originalResponse = await ctx.fetch(req.url.href, { method: 'HEAD' })
 
-    return res(
-      ctx.set('x-custom', originalResponse.headers.get('x-custom')),
-      ctx.json({
-        mocked: true,
-      }),
-    )
+    return res(ctx.set('x-custom', originalResponse.headers.get('x-custom')!))
   }),
 )
 

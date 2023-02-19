@@ -23,15 +23,27 @@ const httpServer = new HttpServer((app) => {
   })
 
   app.head('/posts', (req, res) => {
-    res.status(200).set('X-Custom', 'HEAD REQUEST PATCHED').end()
-  })
-
-  app.post('/posts', (req, res) => {
-    res.status(200).set('X-Custom', 'POST REQUEST PATCHED').json({ id: 101 })
+    res
+      .status(200)
+      .set({
+        'Access-Control-Expose-Headers': 'X-Custom',
+        'X-Custom': 'HEAD REQUEST PATCHED',
+      })
+      .end()
   })
 
   app.get('/posts', (req, res) => {
     res.status(200).json({ id: 101 })
+  })
+
+  app.post('/posts', (req, res) => {
+    res
+      .status(200)
+      .set({
+        'Access-Control-Expose-Headers': 'X-Custom',
+        'X-Custom': 'POST REQUEST PATCHED',
+      })
+      .json({ id: 101 })
   })
 })
 
@@ -71,7 +83,7 @@ test('bypasses the original request when it equals the mocked request', async ({
 
   const res = await fetch(
     httpServer.http.url('/repos/mswjs/msw?mocked=true'),
-    null,
+    undefined,
     {
       waitForResponse(res) {
         return (
@@ -122,33 +134,37 @@ test('forwards custom request headers to the original request', async ({
   expect(body).toEqual({ message: 'success' })
 })
 
-test.fixme(
-  'supports patching a HEAD request',
-  async ({ loadExample, fetch }) => {
-    await loadExample(require.resolve('./response-patching.mocks.ts'))
+test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./response-patching.mocks.ts'))
 
-    const res = await fetch(
-      httpServer.http.url('/posts'),
-      {
-        method: 'HEAD',
+  const res = await fetch(
+    httpServer.http.url('/posts'),
+    {
+      method: 'HEAD',
+    },
+    {
+      waitForResponse(res) {
+        const headers = res.headers()
+
+        return (
+          headers['x-powered-by'] === 'msw' &&
+          headers['x-msw-bypass'] !== 'true'
+        )
       },
-      {
-        waitForResponse(res) {
-          return res.headers()['x-powered-by'] === 'msw'
-        },
-      },
-    )
+    },
+  )
 
-    const status = res.status()
-    const headers = await res.allHeaders()
-    const body = await res.json()
+  const status = res.status()
+  const headers = await res.allHeaders()
 
-    expect(status).toBe(200)
-    expect(headers).toHaveProperty('x-powered-by', 'msw')
-    expect(headers).toHaveProperty('x-custom', 'HEAD REQUEST PATCHED')
-    expect(body).toEqual({ mocked: true })
-  },
-)
+  expect(status).toBe(200)
+  expect(headers).toEqual(
+    expect.objectContaining({
+      'x-powered-by': 'msw',
+      'x-custom': 'HEAD REQUEST PATCHED',
+    }),
+  )
+})
 
 test('supports patching a GET request', async ({
   loadExample,
@@ -183,43 +199,47 @@ test('supports patching a GET request', async ({
   expect(body).toEqual({ id: 101, mocked: true })
 })
 
-test.fixme(
-  'supports patching a POST request',
-  async ({ loadExample, fetch, makeUrl }) => {
-    await loadExample(require.resolve('./response-patching.mocks.ts'))
+test('supports patching a POST request', async ({
+  loadExample,
+  fetch,
+  makeUrl,
+  page,
+}) => {
+  await loadExample(require.resolve('./response-patching.mocks.ts'))
 
-    const res = await fetch(
-      httpServer.http.url('/posts'),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: 'foo',
-          body: 'bar',
-          userId: 1,
-        }),
+  const res = await fetch(
+    httpServer.http.url('/posts'),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        waitForResponse(res) {
-          return (
-            matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-              .matches && res.headers()['x-powered-by'] === 'msw'
-          )
-        },
+      body: JSON.stringify({
+        title: 'foo',
+        body: 'bar',
+        userId: 1,
+      }),
+    },
+    {
+      waitForResponse(res) {
+        return (
+          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
+            .matches && res.headers()['x-powered-by'] === 'msw'
+        )
       },
-    )
-    const status = res.status()
-    const headers = await res.allHeaders()
-    const body = await res.json()
+    },
+  )
+  const status = res.status()
+  const headers = await res.allHeaders()
+  const body = await res.json()
 
-    expect(status).toBe(200)
-    expect(headers).toHaveProperty('x-powered-by', 'msw')
-    expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
-    expect(body).toEqual({
-      id: 101,
-      mocked: true,
-    })
-  },
-)
+  await page.pause()
+
+  expect(status).toBe(200)
+  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
+  expect(body).toEqual({
+    id: 101,
+    mocked: true,
+  })
+})

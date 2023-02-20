@@ -71,18 +71,19 @@ beforeAll(async () => {
       `[unhandledException] ${req.method} ${req.url.href} ${req.id} ${error.message}`,
     )
   })
+})
 
+beforeEach(() => {
   // Supress "Expected a mocking resolver function to return a mocked response"
   // warnings. Using intentional explicit empty resolver.
   jest.spyOn(global.console, 'warn').mockImplementation()
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  jest.restoreAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
   server.close()
   await httpServer.close()
 })

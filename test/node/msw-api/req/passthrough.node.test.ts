@@ -20,20 +20,20 @@ interface ResponseBody {
 
 beforeAll(async () => {
   await httpServer.listen()
-
   server.listen()
+})
 
+beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation()
 })
 
 afterEach(() => {
   server.resetHandlers()
-  jest.resetAllMocks()
+  jest.restoreAllMocks()
 })
 
 afterAll(async () => {
   server.close()
-  jest.restoreAllMocks()
   await httpServer.close()
 })
 

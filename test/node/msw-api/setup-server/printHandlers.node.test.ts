@@ -5,7 +5,7 @@ import { bold } from 'chalk'
 import { rest, graphql } from 'msw'
 import { setupServer } from 'msw/node'
 
-const resolver = () => null
+const resolver = () => void 0
 
 const github = graphql.link('https://api.github.com')
 
@@ -19,17 +19,19 @@ const server = setupServer(
 )
 
 beforeAll(() => {
-  jest.spyOn(global.console, 'log').mockImplementation()
   server.listen()
 })
 
+beforeEach(() => {
+  jest.spyOn(global.console, 'log').mockImplementation()
+})
+
 afterEach(() => {
-  jest.resetAllMocks()
+  jest.restoreAllMocks()
   server.resetHandlers()
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
   server.close()
 })
 
@@ -84,11 +86,11 @@ test('respects runtime request handlers when listing handlers', () => {
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[rest] GET https://test.mswjs.io/book/:bookId')}
-  Declaration: ${__filename}:75:10
+  Declaration: ${__filename}:77:10
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${bold('[graphql] query GetRandomNumber (origin: *)')}
-  Declaration: ${__filename}:76:13
+  Declaration: ${__filename}:78:13
 `)
 })

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Headers } from 'headers-polyfill'
 import { Emitter } from 'strict-event-emitter'
 import { ServerLifecycleEventsMap } from '../node/glossary'

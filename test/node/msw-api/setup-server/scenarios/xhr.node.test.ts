@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'

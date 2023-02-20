@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Headers } from 'headers-polyfill'
 import { clearCookies } from '../../../test/support/utils'
 import { MockedRequest } from './MockedRequest'

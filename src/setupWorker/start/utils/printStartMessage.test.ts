@@ -1,8 +1,8 @@
 import { printStartMessage } from './printStartMessage'
 
 beforeAll(() => {
-  jest.spyOn(global.console, 'groupCollapsed').mockImplementation()
-  jest.spyOn(global.console, 'log').mockImplementation()
+  jest.spyOn(console, 'groupCollapsed').mockImplementation()
+  jest.spyOn(console, 'log').mockImplementation()
 })
 
 afterEach(() => {

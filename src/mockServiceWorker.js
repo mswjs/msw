@@ -88,11 +88,6 @@ self.addEventListener('fetch', function (event) {
   const { request } = event
   const accept = request.headers.get('accept') || ''
 
-  // Bypass server-sent events.
-  if (accept.includes('text/event-stream')) {
-    return
-  }
-
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
     return

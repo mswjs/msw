@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-import { Request } from '../../Request'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 
 test('returns an absolute request URL withouth search params', () => {

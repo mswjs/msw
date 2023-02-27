@@ -1,16 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import {
-  RestHandler,
-  RestRequestResolverExtras,
-  RestRequestParsedResult,
-} from './RestHandler'
-import { HttpResponse, Request } from '..'
-import {
-  RequestHandlerExecutionResult,
-  ResponseResolver,
-} from './RequestHandler'
+import { RestHandler, RestRequestResolverExtras } from './RestHandler'
+import { HttpResponse } from '..'
+import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
   RestRequestResolverExtras<{ userId: string }>
@@ -147,24 +140,20 @@ describe('run', () => {
     const request = new Request(new URL('/user/abc-123', location.href))
     const result = await handler.run(request)
 
-    expect(result).toEqual<
-      RequestHandlerExecutionResult<RestRequestParsedResult>
-    >({
-      handler,
-      request,
-      parsedResult: {
-        match: {
-          matches: true,
-          params: {
-            userId: 'abc-123',
-          },
+    expect(result!.handler).toEqual(handler)
+    expect(result!.parsedResult).toEqual({
+      match: {
+        matches: true,
+        params: {
+          userId: 'abc-123',
         },
-        cookies: {},
       },
-      response: expect.objectContaining({
-        status: 200,
-      }),
+      cookies: {},
     })
+    expect(result!.request.method).toBe('GET')
+    expect(result!.request.url).toBe('http://localhost/user/abc-123')
+    expect(result!.response?.status).toBe(200)
+    expect(result!.response?.statusText).toBe('OK')
     expect(await result?.response?.json()).toEqual({ userId: 'abc-123' })
   })
 

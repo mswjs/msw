@@ -493,23 +493,25 @@ describe('run', () => {
     })
     const result = await handler.run(request)
 
-    expect(result).toMatchObject({
-      handler,
-      request,
-      parsedResult: {
-        operationType: 'query',
-        operationName: 'GetUser',
-        variables: {
-          userId: 'abc-123',
-        },
+    expect(result!.handler).toEqual(handler)
+    expect(result!.parsedResult).toEqual({
+      operationType: 'query',
+      operationName: 'GetUser',
+      query: GET_USER,
+      variables: {
+        userId: 'abc-123',
       },
-      response: HttpResponse.json({
-        data: {
-          user: {
-            id: 'abc-123',
-          },
-        },
-      }),
+    })
+    expect(result!.request.method).toBe('POST')
+    expect(result!.request.url).toBe('https://example.com/')
+    expect(await result!.request.json()).toEqual({
+      query: GET_USER,
+      variables: { userId: 'abc-123' },
+    })
+    expect(result!.response?.status).toBe(200)
+    expect(result!.response?.statusText).toBe('OK')
+    expect(await result!.response?.json()).toEqual({
+      data: { user: { id: 'abc-123' } },
     })
   })
 

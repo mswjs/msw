@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-import { Response } from './Response'
 import { passthrough } from './passthrough'
 
 it('creates a 302 response with the intention header', () => {

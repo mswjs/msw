@@ -2,8 +2,6 @@
  * @jest-environment node
  */
 import { TextEncoder } from 'util'
-import { ReadableStream } from './ReadableStream'
-import { FormData } from './FormData'
 import { HttpResponse } from './HttpResponse'
 
 it('creates a plain response', async () => {

@@ -9,7 +9,8 @@ Object.defineProperties(globalThis, {
   TextEncoder: { value: TextEncoder },
 })
 
-const { Request, Response, Headers, File, Blob, FormData } = require('undici')
+const { Blob } = require('buffer')
+const { Request, Response, Headers, File, FormData } = require('undici')
 
 Object.defineProperties(globalThis, {
   Headers: { value: Headers },
@@ -20,9 +21,11 @@ Object.defineProperties(globalThis, {
   FormData: { value: FormData },
 })
 
-Object.defineProperty(navigator || {}, 'serviceWorker', {
-  writable: false,
-  value: {
-    addEventListener: () => null,
-  },
-})
+if (typeof window !== 'undefined') {
+  Object.defineProperty(navigator || {}, 'serviceWorker', {
+    writable: false,
+    value: {
+      addEventListener: () => null,
+    },
+  })
+}

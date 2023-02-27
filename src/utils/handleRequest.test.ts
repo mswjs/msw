@@ -214,11 +214,30 @@ test('returns the mocked response for a request with a matching request handler'
     ['request:end', request, requestId],
   ])
   expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponse).toHaveBeenNthCalledWith(
-    1,
-    mockedResponse,
-    lookupResult,
-  )
+
+  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  const [mockedResponseParam, lookupResultParam] =
+    callbacks.onMockedResponse.mock.calls[0]
+
+  expect(mockedResponseParam.status).toBe(mockedResponse.status)
+  expect(mockedResponseParam.statusText).toBe(mockedResponse.statusText)
+  expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual({
+    ...Object.fromEntries(mockedResponse.headers.entries()),
+    'x-powered-by': 'msw',
+  })
+
+  expect(lookupResultParam).toEqual({
+    handler: lookupResult.handler,
+    parsedRequest: lookupResult.parsedRequest,
+    request: expect.objectContaining({
+      method: lookupResult.request.method,
+      url: lookupResult.request.url,
+    }),
+    response: expect.objectContaining({
+      status: lookupResult.response.status,
+      statusText: lookupResult.response.statusText,
+    }),
+  })
 })
 
 test('returns a transformed response if the "transformResponse" option is provided', async () => {
@@ -232,10 +251,13 @@ test('returns a transformed response if the "transformResponse" option is provid
       return mockedResponse
     }),
   ]
-  const transformResponse = jest.fn().mockImplementation((response) => ({
-    body: response.body,
-  }))
-  const finalResponse = transformResponse(mockedResponse)
+  const transformResponseImpelemntation = (response: Response): Response => {
+    return new Response('transformed', response)
+  }
+  const transformResponse = jest
+    .fn<Response, [Response]>()
+    .mockImplementation(transformResponseImpelemntation)
+  const finalResponse = transformResponseImpelemntation(mockedResponse)
   const lookupResult = {
     handler: handlers[0],
     response: mockedResponse,
@@ -258,30 +280,54 @@ test('returns a transformed response if the "transformResponse" option is provid
     },
   )
 
-  expect(result).toEqual(finalResponse)
+  expect(result?.status).toEqual(finalResponse.status)
+  expect(result?.statusText).toEqual(finalResponse.statusText)
+  expect(Object.fromEntries(result!.headers.entries())).toEqual({
+    ...Object.fromEntries(finalResponse.headers.entries()),
+    'x-powered-by': 'msw',
+  })
+
   expect(events).toEqual([
     ['request:start', request, requestId],
     ['request:match', request, requestId],
     ['request:end', request, requestId],
   ])
   expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
-  expect(transformResponse).toHaveBeenNthCalledWith(
-    1,
-    expect.objectContaining({
-      status: mockedResponse.status,
-      statusText: mockedResponse.statusText,
-      headers: mockedResponse.headers,
+
+  expect(transformResponse).toHaveBeenCalledTimes(1)
+  const [responseParam] = transformResponse.mock.calls[0]
+
+  expect(responseParam.status).toBe(mockedResponse.status)
+  expect(responseParam.statusText).toBe(mockedResponse.statusText)
+  expect(Object.fromEntries(responseParam.headers.entries())).toEqual({
+    ...Object.fromEntries(mockedResponse.headers.entries()),
+    'x-powered-by': 'msw',
+  })
+
+  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  const [mockedResponseParam, lookupResultParam] =
+    callbacks.onMockedResponse.mock.calls[0]
+
+  expect(mockedResponseParam.status).toBe(finalResponse.status)
+  expect(mockedResponseParam.statusText).toBe(finalResponse.statusText)
+  expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual({
+    ...Object.fromEntries(finalResponse.headers.entries()),
+    'x-powered-by': 'msw',
+  })
+  expect(await mockedResponseParam.text()).toBe('transformed')
+
+  expect(lookupResultParam).toEqual({
+    handler: lookupResult.handler,
+    parsedRequest: lookupResult.parsedRequest,
+    request: expect.objectContaining({
+      method: lookupResult.request.method,
+      url: lookupResult.request.url,
     }),
-  )
-  expect(callbacks.onMockedResponse).toHaveBeenNthCalledWith(
-    1,
-    expect.objectContaining({
-      status: finalResponse.status,
-      statusText: finalResponse.statusText,
-      headers: finalResponse.headers,
+    response: expect.objectContaining({
+      status: lookupResult.response.status,
+      statusText: lookupResult.response.statusText,
     }),
-    lookupResult,
-  )
+  })
 })
 
 it('returns undefined without warning on a passthrough request', async () => {

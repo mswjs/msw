@@ -3,7 +3,6 @@
  */
 import { getRequestCookies } from './getRequestCookies'
 import { clearCookies } from '../../../test/support/utils'
-import { Request } from '../../Request'
 
 beforeAll(() => {
   // Emulate some `document.cookie` value.

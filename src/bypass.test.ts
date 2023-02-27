@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 import { Headers } from 'headers-polyfill'
-import { Request } from './Request'
 import { bypass } from './bypass'
 
 it('returns bypassed request given a request url string', async () => {

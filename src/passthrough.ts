@@ -1,5 +1,3 @@
-import { Response } from './Response'
-
 /**
  * Instruct Mock Service Worker to perform this request as-is.
  * Unlike `bypass()`, this will not trigger an additional request.

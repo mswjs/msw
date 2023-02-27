@@ -1,10 +1,13 @@
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
+  rootDir: './node',
   transform: {
-    '^.+\\.tsx?$': '@swc/jest',
+    '^.+\\.ts$': '@swc/jest',
   },
-  testTimeout: 10000,
+  // Limit the concurrency because some tests recompile the library,
+  // creating a moment of time when it has no "lib" files.
+  maxWorkers: 1,
   moduleNameMapper: {
-    '^msw(.*)': '<rootDir>/..$1',
+    '^msw(.*)': '<rootDir>/../..$1',
   },
-  setupFilesAfterEnv: ['./jest.setup.ts'],
 }

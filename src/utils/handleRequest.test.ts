@@ -1,13 +1,14 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Headers } from 'headers-polyfill'
 import { Emitter } from 'strict-event-emitter'
-import { ServerLifecycleEventsMap } from '../node/glossary'
-import { SharedOptions } from '../sharedOptions'
+import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { rest } from '../rest'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { RequiredDeep } from '../typeUtils'
 import { uuidv4 } from './internal/uuidv4'
-import { Request } from '../Request'
 import { HttpResponse } from '../HttpResponse'
 import { passthrough } from '../passthrough'
 
@@ -20,7 +21,7 @@ const callbacks: Partial<Record<keyof HandleRequestOptions, any>> = {
 }
 
 function setup() {
-  const emitter = new Emitter<ServerLifecycleEventsMap>()
+  const emitter = new Emitter<LifeCycleEventsMap>()
   const listener = jest.fn()
 
   const createMockListener = (name: string) => {
@@ -264,10 +265,21 @@ test('returns a transformed response if the "transformResponse" option is provid
     ['request:end', request, requestId],
   ])
   expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
-  expect(transformResponse).toHaveBeenNthCalledWith(1, mockedResponse)
+  expect(transformResponse).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({
+      status: mockedResponse.status,
+      statusText: mockedResponse.statusText,
+      headers: mockedResponse.headers,
+    }),
+  )
   expect(callbacks.onMockedResponse).toHaveBeenNthCalledWith(
     1,
-    finalResponse,
+    expect.objectContaining({
+      status: finalResponse.status,
+      statusText: finalResponse.statusText,
+      headers: finalResponse.headers,
+    }),
     lookupResult,
   )
 })

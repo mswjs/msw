@@ -1,4 +1,3 @@
-import { Response } from '../../Response'
 import type { StrictResponse } from '../../HttpResponse'
 import { decorateResponse, HttpResponseDecoratedInit } from './decorators'
 

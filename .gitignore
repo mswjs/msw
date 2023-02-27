@@ -10,3 +10,4 @@ stats.html
 msw-*.tgz
 .husky/_
 .env
+**/test-results

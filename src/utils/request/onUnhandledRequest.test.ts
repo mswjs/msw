@@ -4,7 +4,6 @@ import {
 } from './onUnhandledRequest'
 import { RestHandler, RESTMethods } from '../../handlers/RestHandler'
 import { ResponseResolver } from '../../handlers/RequestHandler'
-import { Request } from '../../Request'
 
 const resolver: ResponseResolver = () => void 0
 
@@ -38,16 +37,12 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/getting-started/mocks`,
 }
 
-beforeAll(() => {
+beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation()
   jest.spyOn(console, 'error').mockImplementation()
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
-})
-
-afterAll(() => {
   jest.restoreAllMocks()
 })
 

@@ -22,7 +22,7 @@
     "msw": "cli/index.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "scripts": {
     "start": "tsup --watch",

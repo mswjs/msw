@@ -6,14 +6,17 @@ import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io', (req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.set('x-header', 'yes'),
-      ctx.json({
+  rest.get('http://test.mswjs.io', ({ request }) => {
+    return new Response(
+      JSON.stringify({
         firstName: 'John',
         age: 32,
       }),
+      {
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: { 'x-header': 'yes' },
+      },
     )
   }),
 )

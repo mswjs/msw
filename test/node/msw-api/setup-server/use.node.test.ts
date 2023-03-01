@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { HttpResponse, rest } from 'msw'
-import { setupServer, SetupServerApi } from 'msw/node'
+import { SetupServer, setupServer } from 'msw/node'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 import { HttpServer } from '@open-draft/test-server/http'
 
@@ -15,14 +15,17 @@ const httpServer = new HttpServer((app) => {
   app.post('/login', handler)
 })
 
-let server: SetupServerApi
+let server: SetupServer
 
 beforeAll(async () => {
+  await httpServer.listen()
+
   server = setupServer(
     rest.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
       return HttpResponse.json({ title: 'Original title' })
     }),
   )
+
   server.listen()
 })
 

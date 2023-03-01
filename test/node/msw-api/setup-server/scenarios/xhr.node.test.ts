@@ -15,7 +15,10 @@ const server = setupServer(
       {
         status: 401,
         statusText: 'Unauthorized',
-        headers: { 'x-header': 'yes' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Header': 'yes',
+        },
       },
     )
   }),

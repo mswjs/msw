@@ -1,4 +1,4 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('jest').Config} */
 module.exports = {
   rootDir: './node',
   transform: {
@@ -9,5 +9,12 @@ module.exports = {
   maxWorkers: 1,
   moduleNameMapper: {
     '^msw(.*)': '<rootDir>/../..$1',
+  },
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
+  globals: {
+    Request,
+    Response,
   },
 }

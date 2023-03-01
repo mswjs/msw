@@ -4,7 +4,7 @@
 import https from 'https'
 import { rest, HttpResponse } from 'msw'
 import { setupServer, SetupServerApi } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
+import { httpsAgent, HttpServer } from '@open-draft/test-server/http'
 import { waitForClientRequest } from '../../../../support/utils'
 
 const httpServer = new HttpServer((app) => {
@@ -26,21 +26,25 @@ afterAll(async () => {
 })
 
 test('has access to request cookies', async () => {
+  const endpointUrl = httpServer.https.url('/user')
+
   server.use(
-    rest.get(httpServer.https.url('/user'), ({ cookies }) => {
+    rest.get(endpointUrl, ({ cookies }) => {
       return HttpResponse.json({ cookies })
     }),
   )
 
-  const url = new URL(httpServer.https.url('/user'))
+  const url = new URL(endpointUrl)
 
   const request = https.get({
     protocol: url.protocol,
-    host: url.host,
+    hostname: url.hostname,
     path: url.pathname,
+    port: url.port,
     headers: {
       Cookie: 'auth-token=abc-123',
     },
+    agent: httpsAgent,
   })
   const { responseText } = await waitForClientRequest(request)
 

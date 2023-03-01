@@ -4,11 +4,15 @@
 import fetch from 'node-fetch'
 import { rest, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { encodeBuffer } from '@mswjs/interceptors'
+
+function encodeBuffer(value: unknown) {
+  return Buffer.from(JSON.stringify(value)).buffer
+}
 
 const server = setupServer(
   rest.post('http://localhost/arrayBuffer', async ({ request }) => {
-    return HttpResponse.arrayBuffer(await request.arrayBuffer())
+    const requestBodyBuffer = await request.arrayBuffer()
+    return HttpResponse.arrayBuffer(requestBodyBuffer)
   }),
 )
 

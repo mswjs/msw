@@ -18,7 +18,7 @@ const schema = gql`
 `
 
 const server = setupServer(
-  graphql.query('GetUser', ({ query }) => {
+  graphql.query('GetUser', async ({ query }) => {
     const { data, errors } = await executeGraphql({
       schema: buildSchema(schema),
       source: query,

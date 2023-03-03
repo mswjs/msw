@@ -89,6 +89,7 @@
   "sideEffects": false,
   "dependencies": {
     "@mswjs/cookies": "^0.2.2",
+    "@mswjs/interceptors": "^0.22.4",
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
@@ -113,7 +114,6 @@
     "@babel/preset-env": "^7.16.11",
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
-    "@mswjs/interceptors": "^0.22.1",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.4.0",
     "@playwright/test": "^1.30.0",

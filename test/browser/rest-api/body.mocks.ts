@@ -2,7 +2,7 @@ import { setupWorker, rest, HttpResponse, ResponseResolver } from 'msw'
 
 const forwardRequestBody: ResponseResolver<any> = async ({ request }) => {
   const requestText =
-    request.headers.get('Content-Type') === 'application/json'
+    request.headers.get('Content-Type') === 'application/json' && request.body
       ? await request.json()
       : await request.text()
 

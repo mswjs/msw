@@ -1,4 +1,5 @@
 import { setupWorker, graphql, bypass, HttpResponse } from 'msw'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 interface GetUserQuery {
   user: {
@@ -28,4 +29,20 @@ const worker = setupWorker(
 // @ts-ignore
 window.msw = {
   registration: worker.start(),
+}
+
+// @ts-ignore
+window.dispatchGraphQLQuery = (uri: string) => {
+  const client = createGraphQLClient({ uri })
+
+  return client({
+    query: gql`
+      query GetUser {
+        user {
+          firstName
+          lastName
+        }
+      }
+    `,
+  })
 }

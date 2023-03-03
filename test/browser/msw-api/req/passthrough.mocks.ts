@@ -1,4 +1,4 @@
-import { setupWorker, rest, passthrough } from 'msw'
+import { setupWorker, rest, passthrough, HttpResponse } from 'msw'
 
 const worker = setupWorker(
   rest.post('/', () => {
@@ -13,4 +13,5 @@ window.msw = {
   worker,
   rest,
   passthrough,
+  HttpResponse,
 }

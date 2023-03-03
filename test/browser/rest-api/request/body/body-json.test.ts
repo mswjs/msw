@@ -3,7 +3,7 @@ import { test, expect } from '../../../playwright.extend'
 test('reads request body as json', async ({ loadExample, fetch, page }) => {
   await loadExample(require.resolve('./body.mocks.ts'))
 
-  const res = await fetch('/deprecated', {
+  const res = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ test('reads a single number as json request body', async ({
 }) => {
   await loadExample(require.resolve('./body.mocks.ts'))
 
-  const res = await fetch('/deprecated', {
+  const res = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

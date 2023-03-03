@@ -1,8 +1,8 @@
 import { setupWorker, rest, HttpResponse, bypass } from 'msw'
 
 const worker = setupWorker(
-  rest.get('*/user', async () => {
-    const fetchArgs = await bypass('/user')
+  rest.get('*/user', async ({ request }) => {
+    const fetchArgs = await bypass(request.url)
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
@@ -25,7 +25,8 @@ const worker = setupWorker(
   }),
 
   rest.get('*/headers', async ({ request }) => {
-    const fetchArgs = await bypass('/headers-proxy', {
+    const proxyUrl = new URL('/headers-proxy', request.url)
+    const fetchArgs = await bypass(proxyUrl, {
       method: 'POST',
       headers: request.headers,
     })

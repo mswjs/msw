@@ -1,4 +1,4 @@
-import { rest, SetupWorkerApi } from 'msw'
+import { HttpResponse, passthrough, rest, SetupWorkerApi } from 'msw'
 import { test, expect } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
@@ -7,6 +7,8 @@ declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
     rest: typeof rest
+    passthrough: typeof passthrough
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -32,10 +34,10 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, rest, passthrough } = window.msw
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      rest.post<never, ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
     )
   }, endpointUrl)
@@ -69,14 +71,14 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, rest, passthrough, HttpResponse } = window.msw
 
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      rest.post<never, ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
-      rest.post<never, ResponseBody>(endpointUrl, (req, res, ctx) => {
-        return res(ctx.json({ name: 'Kate' }))
+      rest.post<never, ResponseBody>(endpointUrl, () => {
+        return HttpResponse.json({ name: 'Kate' })
       }),
     )
   }, endpointUrl)

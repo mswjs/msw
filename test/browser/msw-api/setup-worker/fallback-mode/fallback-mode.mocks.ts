@@ -1,8 +1,8 @@
-import { setupWorker, rest } from 'msw'
+import { setupWorker, rest, HttpResponse } from 'msw'
 
 const worker = setupWorker(
-  rest.get('*/user', (req, res, ctx) => {
-    return res(ctx.json({ name: 'John Maverick' }))
+  rest.get('*/user', () => {
+    return HttpResponse.json({ name: 'John Maverick' })
   }),
 )
 

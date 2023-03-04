@@ -9,7 +9,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^0.2.2
-  '@mswjs/interceptors': ^0.22.4
+  '@mswjs/interceptors': ^0.22.6
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^1.0.3
   '@ossjs/release': ^0.4.0
@@ -76,7 +76,7 @@ specifiers:
 
 dependencies:
   '@mswjs/cookies': 0.2.2
-  '@mswjs/interceptors': 0.22.4
+  '@mswjs/interceptors': 0.22.6
   '@open-draft/until': 1.0.3
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2123,8 +2123,8 @@ packages:
       set-cookie-parser: 2.5.1
     dev: false
 
-  /@mswjs/interceptors/0.22.4:
-    resolution: {integrity: sha512-gEzL9hx1jNMbYu6a1HZpb6Om5DnmSKscdnsZtsD0KeG7OGTyXT9rW+RM+VDRc/Y0wwTcVKZibi+E8XTX83wFYQ==}
+  /@mswjs/interceptors/0.22.6:
+    resolution: {integrity: sha512-8VSiVkZjeiNcC0SdYSnaHY/wP8Ecs4hQAPLkhhM7Lx1Q1CCY7F+T1V7LfoQKvQyptHNO9UK+8WaKMNBLjl9hJQ==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.1.0

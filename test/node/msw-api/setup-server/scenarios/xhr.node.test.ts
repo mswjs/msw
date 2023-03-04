@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io', ({ request }) => {
+  rest.get('http://localhost:3001/resource', ({ request }) => {
     return new Response(
       JSON.stringify({
         firstName: 'John',
@@ -39,7 +39,7 @@ describe('given I perform an XMLHttpRequest', () => {
 
   beforeAll((done) => {
     const req = new XMLHttpRequest()
-    req.open('GET', 'http://test.mswjs.io')
+    req.open('GET', 'http://localhost:3001/resource')
     req.onload = function () {
       statusCode = this.status
       body = JSON.parse(this.response)

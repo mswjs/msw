@@ -37,12 +37,12 @@ const requestEndListner: ServerLifecycleEventsMap['request:end'] = (
 worker.events.on('request:end', requestEndListner)
 
 worker.events.on('response:mocked', async (response, request, requestId) => {
-  const body = await response.text()
+  const body = await response.clone().text()
   console.warn(`[response:mocked] ${body} ${requestId}`)
 })
 
 worker.events.on('response:bypass', async (response, request, requestId) => {
-  const body = await response.text()
+  const body = await response.clone().text()
   console.warn(`[response:bypass] ${body} ${requestId}`)
 })
 

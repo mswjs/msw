@@ -1,10 +1,20 @@
+import fs from 'fs'
 import path from 'path'
-import fs from 'fs-extra'
 import crypto from 'crypto'
 import minify from 'babel-minify'
 import { invariant } from 'outvariant'
 import type { Plugin } from 'esbuild'
 import copyServiceWorker from '../../copyServiceWorker'
+
+const SERVICE_WORKER_ENTRY_PATH = path.resolve(
+  process.cwd(),
+  './src/mockServiceWorker.js',
+)
+
+const SERVICE_WORKER_OUTPUT_PATH = path.resolve(
+  process.cwd(),
+  './lib/mockServiceWorker.js',
+)
 
 function getChecksum(contents: string): string {
   const { code } = minify(
@@ -19,47 +29,37 @@ function getChecksum(contents: string): string {
   return crypto.createHash('md5').update(code, 'utf8').digest('hex')
 }
 
-let hasRunAlready = false
+export function getWorkerChecksum(): string {
+  const workerContents = fs.readFileSync(SERVICE_WORKER_ENTRY_PATH, 'utf8')
+  return getChecksum(workerContents)
+}
 
-export function workerScriptPlugin(): Plugin {
+export function copyWorkerPlugin(checksum: string): Plugin {
   return {
-    name: 'workerScriptPlugin',
+    name: 'copyWorkerPlugin',
     async setup(build) {
-      const workerSourcePath = path.resolve(
-        process.cwd(),
-        './src/mockServiceWorker.js',
-      )
-      const workerOutputPath = path.resolve(
-        process.cwd(),
-        './lib/mockServiceWorker.js',
-      )
-
       invariant(
-        workerSourcePath,
+        SERVICE_WORKER_ENTRY_PATH,
         'Failed to locate the worker script source file',
       )
-      invariant(
-        workerOutputPath,
-        'Failed to locate the worker script output file',
-      )
+
+      if (fs.existsSync(SERVICE_WORKER_OUTPUT_PATH)) {
+        console.warn(
+          'Skipped copying the worker script to "%s": already exists',
+          SERVICE_WORKER_OUTPUT_PATH,
+        )
+        return
+      }
 
       // Generate the checksum from the worker script's contents.
-      const workerContents = await fs.readFile(workerSourcePath, 'utf8')
-      const checksum = getChecksum(workerContents)
+      // const workerContents = await fs.readFile(workerSourcePath, 'utf8')
+      // const checksum = getChecksum(workerContents)
 
       // Inject the global "SERVICE_WORKER_CHECKSUM" variable
       // for runtime worker integrity check.
       build.initialOptions.define = {
         SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
       }
-
-      // Prevent from copying the worker script multiple times.
-      // esbuild will execute this plugin for *each* format.
-      if (hasRunAlready) {
-        return
-      }
-
-      hasRunAlready = true
 
       build.onLoad({ filter: /mockServiceWorker\.js$/ }, async () => {
         return {
@@ -73,9 +73,13 @@ export function workerScriptPlugin(): Plugin {
         console.log('worker script checksum:', checksum)
 
         // Copy the worker script on the next tick.
-        setTimeout(async () => {
-          await copyServiceWorker(workerSourcePath, workerOutputPath, checksum)
-        }, 100)
+        process.nextTick(async () => {
+          await copyServiceWorker(
+            SERVICE_WORKER_ENTRY_PATH,
+            SERVICE_WORKER_OUTPUT_PATH,
+            checksum,
+          )
+        })
       })
     },
   }

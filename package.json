@@ -2,20 +2,36 @@
   "name": "msw",
   "version": "0.0.0-fetch.rc-5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./lib/browser/index.js",
+  "types": "./lib/browser/index.d.ts",
   "exports": {
     ".": {
-      "default": "./lib/index.js"
+      "node": {
+        "types": "./lib/node/index.d.ts",
+        "import": "./lib/node/index.mjs",
+        "require": "./lib/node/index.js",
+        "default": "./lib/node/index.js"
+      },
+      "browser": {
+        "types": "./lib/browser/index.d.ts",
+        "import": "./lib/browser/index.mjs",
+        "require": "./lib/browser/index.js",
+        "default": "./lib/browser/index.js"
+      }
     },
     "./native": {
+      "browser": null,
       "types": "./lib/native/index.d.ts",
+      "import": "./lib/native/index.mjs",
+      "requier": "./lib/native/index.js",
       "default": "./lib/native/index.js"
     },
     "./node": {
-      "types": "./lib/node/index.d.ts",
-      "require": "./lib/node/index.js",
-      "default": "./lib/node/index.mjs"
+      "browser": null,
+      "types": "./lib/node/node/index.d.ts",
+      "require": "./lib/node/node/index.js",
+      "import": "./lib/node/node/index.mjs",
+      "default": "./lib/node/node/index.mjs"
     },
     "./package.json": "./package.json"
   },

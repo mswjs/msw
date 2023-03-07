@@ -2,8 +2,9 @@
   "name": "msw",
   "version": "0.0.0-fetch.rc-5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
-  "main": "./lib/browser/index.js",
-  "types": "./lib/browser/index.d.ts",
+  "main": "./lib/node/index.js",
+  "types": "./lib/node/index.d.ts",
+  "browser": "./lib/browser/index.js",
   "exports": {
     ".": {
       "node": {

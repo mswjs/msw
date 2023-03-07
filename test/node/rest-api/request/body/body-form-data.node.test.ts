@@ -19,7 +19,7 @@ afterAll(() => {
   server.close()
 })
 
-test.skip('reads FormData request body', async () => {
+test('reads FormData request body', async () => {
   // Note that creating a `FormData` instance in Node/JSDOM differs
   // from the same instance in a real browser. Follow the instructions
   // of your `fetch` polyfill to learn more.

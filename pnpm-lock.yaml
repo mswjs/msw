@@ -65,7 +65,7 @@ specifiers:
   ts-node: ^10.9.1
   tsup: ^5.12.8
   type-fest: ^2.19.0
-  typescript: ^5.0.0
+  typescript: ^5.0.2
   url-loader: ^4.1.1
   webpack: ^5.68.0
   webpack-dev-server: ^3.11.2

@@ -84,7 +84,11 @@ export function isDocumentNode(
 export class GraphQLRequest<
   Variables extends GraphQLVariables,
 > extends MockedRequest<GraphQLRequestBody<Variables>> {
-  constructor(request: MockedRequest, public readonly variables: Variables) {
+  constructor(
+    request: MockedRequest,
+    public readonly variables: Variables,
+    public readonly operationName: string,
+  ) {
     super(request.url, {
       ...request,
       /**
@@ -160,7 +164,11 @@ export class GraphQLHandler<
     request: Request,
     parsedResult: ParsedGraphQLRequest,
   ): GraphQLRequest<any> {
-    return new GraphQLRequest(request, parsedResult?.variables || {})
+    return new GraphQLRequest(
+      request,
+      parsedResult?.variables ?? {},
+      parsedResult?.operationName ?? '',
+    )
   }
 
   predicate(request: MockedRequest, parsedResult: ParsedGraphQLRequest) {

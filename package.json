@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -151,14 +151,14 @@
     "statuses": "^2.0.0",
     "ts-node": "^10.9.1",
     "tsup": "^5.12.8",
-    "typescript": "^4.9.3",
+    "typescript": "^5.0.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.68.0",
     "webpack-dev-server": "^3.11.2",
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "typescript": ">= 4.4.x <= 4.9.x"
+    "typescript": ">= 4.4.x <= 5.0.x"
   },
   "peerDependenciesMeta": {
     "typescript": {

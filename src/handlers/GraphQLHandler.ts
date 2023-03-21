@@ -31,6 +31,7 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
 
 export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
+  operationName: string
   variables: Variables
 }
 
@@ -156,6 +157,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
   ) {
     return {
       query: parsedResult?.query || '',
+      operationName: parsedResult?.operationName || '',
       variables: parsedResult?.variables || {},
     }
   }

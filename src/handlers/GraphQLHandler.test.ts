@@ -552,3 +552,32 @@ describe('isDocumentNode', () => {
     expect(isDocumentNode(/value/)).toEqual(false)
   })
 })
+
+describe('request', () => {
+  it('has parsed operationName', async () => {
+    const matchAllResolver = jest.fn()
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      /.*/,
+      '*',
+      matchAllResolver,
+    )
+    const request = createPostGraphQLRequest({
+      query: `
+          query GetAllUsers {
+            user {
+              id
+            }
+          }
+        `,
+    })
+
+    await handler.run(request)
+
+    expect(matchAllResolver).toHaveBeenCalledTimes(1)
+    expect(matchAllResolver.mock.calls[0][0]).toHaveProperty(
+      'operationName',
+      'GetAllUsers',
+    )
+  })
+})

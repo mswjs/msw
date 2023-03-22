@@ -96,7 +96,7 @@
     "chokidar": "^3.4.2",
     "cookie": "^0.4.2",
     "graphql": "^15.0.0 || ^16.0.0",
-    "headers-polyfill": "^3.1.0",
+    "headers-polyfill": "^3.1.2",
     "inquirer": "^8.2.0",
     "is-node-process": "^1.0.1",
     "js-levenshtein": "^1.1.6",

@@ -14,7 +14,7 @@ import {
   WebpackHttpServer,
 } from 'webpack-http-server'
 import { waitFor } from '../support/waitFor'
-import { WorkerConsole } from './setup/WorkerConsole'
+import { WorkerConsole } from './setup/workerConsole'
 import { getWebpackServer } from './setup/webpackHttpServer'
 
 export interface TestFixtures {

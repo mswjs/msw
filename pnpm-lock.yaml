@@ -9,7 +9,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^0.2.2
-  '@mswjs/interceptors': ^0.22.6
+  '@mswjs/interceptors': ^0.22.10
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.0.0
   '@ossjs/release': ^0.4.0
@@ -76,7 +76,7 @@ specifiers:
 
 dependencies:
   '@mswjs/cookies': 0.2.2
-  '@mswjs/interceptors': 0.22.9
+  '@mswjs/interceptors': 0.22.10
   '@open-draft/until': 2.0.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2312,12 +2312,12 @@ packages:
       set-cookie-parser: 2.5.1
     dev: false
 
-  /@mswjs/interceptors/0.22.9:
-    resolution: {integrity: sha512-U+CBfa9nrpu2p14I8Q3+bTL5IN1+wHGYSD/HpepSBAPONpucek6g67S+qaG8+qFL+At1pll2DhgJ6w7SEFC59g==}
+  /@mswjs/interceptors/0.22.10:
+    resolution: {integrity: sha512-Dapt96ciy7Qg6e/QRgrzI58AD2+xhkPkhOuTmLVVRuoxFAttft8itRHdNaF4o2BSDfswOn8SI8isqECSe1yq7g==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.1.0
-      '@open-draft/until': 1.0.3
+      '@open-draft/until': 2.0.0
       '@types/debug': 4.1.7
       debug: 4.3.4
       headers-polyfill: 3.1.2
@@ -2370,6 +2370,7 @@ packages:
 
   /@open-draft/until/1.0.3:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
+    dev: true
 
   /@open-draft/until/2.0.0:
     resolution: {integrity: sha512-0zJhDjNR0aH1d68TiD6GnYr18dcuOiyTx8xV/I7fp9+z/VQ20e305aObW1/DO5/fiCOztscmvJsCjJDYDhFW6w==}

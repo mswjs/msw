@@ -54,7 +54,7 @@ export async function handleRequest(
   }
 
   // Resolve a mocked response from the list of request handlers.
-  const [lookupError, lookupResult] = await until(() => {
+  const lookupResult = await until(() => {
     return getResponse(
       request,
       handlers,
@@ -62,13 +62,13 @@ export async function handleRequest(
     )
   })
 
-  if (lookupError) {
+  if (lookupResult.error) {
     // Allow developers to react to unhandled exceptions in request handlers.
-    emitter.emit('unhandledException', lookupError, request, requestId)
-    throw lookupError
+    emitter.emit('unhandledException', lookupResult.error, request, requestId)
+    throw lookupResult.error
   }
 
-  const { handler, response } = lookupResult
+  const { handler, response } = lookupResult.data
 
   // When there's no handler for the request, consider it unhandled.
   // Allow the developer to react to such cases.
@@ -119,7 +119,7 @@ Expected response resolver to return a mocked response Object, but got %s. The o
   emitter.emit('request:match', request, requestId)
 
   const requiredLookupResult =
-    lookupResult as RequiredDeep<ResponseLookupResult>
+    lookupResult.data as RequiredDeep<ResponseLookupResult>
 
   const transformedResponse =
     handleRequestOptions?.transformResponse?.(response) ||

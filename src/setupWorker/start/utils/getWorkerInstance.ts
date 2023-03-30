@@ -50,7 +50,7 @@ export const getWorkerInstance = async (
   }
 
   // When the Service Worker wasn't found, register it anew and return the reference.
-  const [error, instance] = await until<ServiceWorkerInstanceTuple>(
+  const registrationResult = await until<Error, ServiceWorkerInstanceTuple>(
     async () => {
       const registration = await navigator.serviceWorker.register(url, options)
       return [
@@ -63,8 +63,8 @@ export const getWorkerInstance = async (
   )
 
   // Handle Service Worker registration errors.
-  if (error) {
-    const isWorkerMissing = error.message.includes('(404)')
+  if (registrationResult.error) {
+    const isWorkerMissing = registrationResult.error.message.includes('(404)')
 
     // Produce a custom error message when given a non-existing Service Worker url.
     // Suggest developers to check their setup.
@@ -85,10 +85,10 @@ Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/i
     throw new Error(
       devUtils.formatMessage(
         'Failed to register the Service Worker:\n\n%s',
-        error.message,
+        registrationResult.error.message,
       ),
     )
   }
 
-  return instance
+  return registrationResult.data
 }

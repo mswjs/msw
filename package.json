@@ -107,7 +107,7 @@
   "dependencies": {
     "@mswjs/cookies": "^0.2.2",
     "@mswjs/interceptors": "^0.22.6",
-    "@open-draft/until": "^1.0.3",
+    "@open-draft/until": "^2.0.0",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
     "chalk": "4.1.1",

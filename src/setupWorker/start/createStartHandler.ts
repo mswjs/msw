@@ -76,13 +76,13 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       })
 
       // Check if the active Service Worker is the latest published one
-      const [integrityError] = await until(() =>
+      const integrityCheckResult = await until(() =>
         requestIntegrityCheck(context, worker),
       )
 
-      if (integrityError) {
+      if (integrityCheckResult.error) {
         devUtils.error(`\
-Detected outdated Service Worker: ${integrityError.message}
+Detected outdated Service Worker: ${integrityCheckResult.error.message}
 
 The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:
 

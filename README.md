@@ -207,9 +207,20 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 <br />
 
-<a href="https://www.chromatic.com/" target="_blank">
-  <img src="media/sponsors/chromatic.svg" alt="Chromatic" width="75" />
-</a>
+<table>
+  <tr>
+    <td>
+      <a href="https://www.replay.io/" target="_blank">
+        <img src="media/sponsors/replay.svg" alt="Replay" width="75" />
+      </a>
+    </td>
+    <td>
+      <a href="https://www.chromatic.com/" target="_blank">
+        <img src="media/sponsors/chromatic.svg" alt="Chromatic" width="75" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ### Bronze Sponsors
 

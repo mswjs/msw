@@ -3,11 +3,11 @@
  */
 import fetch from 'node-fetch'
 import { HttpResponse, rest } from 'msw'
-import { setupServer, SetupServerApi } from 'msw/node'
+import { setupServer, SetupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
-let server: SetupServerApi
+let server: SetupServer
 
 const httpServer = new HttpServer((app) => {
   const handler: ExpressRequestHandler = (req, res) => {

@@ -1,7 +1,7 @@
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
-import { RequestHandler } from '../handlers/RequestHandler'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { SetupServer } from './glossary'
 import { SetupServerApi } from './SetupServerApi'
 

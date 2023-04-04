@@ -1,7 +1,7 @@
-// Include the root-level common exports so that the browser bundle
-// can export everything from a single module ("msw" import root).
-export * from '..'
+// Re-export the code MSW API (e.g. "rest", "RequestHandler") because
+// they are available from the "msw" (browser) root-level export.
+export * from '../core'
 
-export { setupWorker } from '../setupWorker/setupWorker'
-export type { SetupWorker, StartOptions } from '../setupWorker/glossary'
-export { SetupWorkerApi } from '../setupWorker/setupWorker'
+export { setupWorker } from './setupWorker/setupWorker'
+export type { SetupWorker, StartOptions } from './setupWorker/glossary'
+export { SetupWorkerApi } from './setupWorker/setupWorker'

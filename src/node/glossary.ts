@@ -2,12 +2,12 @@ import type { PartialDeep } from 'type-fest'
 import {
   RequestHandler,
   RequestHandlerDefaultInfo,
-} from '../handlers/RequestHandler'
+} from '~/core/handlers/RequestHandler'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
   SharedOptions,
-} from '../sharedOptions'
+} from '~/core/sharedOptions'
 
 export interface SetupServer {
   /**

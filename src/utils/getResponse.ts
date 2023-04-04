@@ -1,9 +1,14 @@
 import { MockedResponse } from '../response'
 import {
+  DefaultBodyType,
   RequestHandler,
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
 import { MockedRequest } from './request/MockedRequest'
+import { Headers } from 'headers-polyfill'
+import { batchGraphQLHandler } from '../handlers/BatchGraphQLHandler'
+import { GraphQLRequest, GraphQLVariables } from '../handlers/GraphQLHandler'
+import { encodeBuffer } from '@mswjs/interceptors'
 
 export interface ResponseLookupResult {
   handler?: RequestHandler
@@ -14,6 +19,57 @@ export interface ResponseLookupResult {
 
 export interface ResponseResolutionContext {
   baseUrl?: string
+}
+
+export const getBatchResponse = async <
+  Request extends MockedRequest,
+  Handler extends RequestHandler[],
+>(
+  request: Request,
+  handlers: Handler,
+  resolutionContext?: ResponseResolutionContext,
+): Promise<ResponseLookupResult> => {
+  if (request.body && Array.isArray(request.body)) {
+    const results: ResponseLookupResult[] = await Promise.all(
+      request.body.map((value: GraphQLRequest<GraphQLVariables>) => {
+        return getResponse(
+          new MockedRequest<DefaultBodyType>(request.url, {
+            ...request,
+            body: encodeBuffer(JSON.stringify(value)),
+          }),
+          handlers,
+          resolutionContext,
+        )
+      }),
+    )
+
+    const body = results
+      .filter((value) => {
+        return value.response !== undefined
+      })
+      .map((value) => {
+        return JSON.parse(value.response?.body)
+      })
+
+    const response = {
+      body: JSON.stringify(body),
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      once: false,
+      passthrough: false,
+    }
+
+    return {
+      handler: batchGraphQLHandler,
+      response,
+    }
+  }
+
+  return {
+    handler: undefined,
+    response: undefined,
+  }
 }
 
 /**

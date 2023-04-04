@@ -1,19 +1,20 @@
 /**
  * @jest-environment jsdom
  */
-import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
-import { Headers } from 'headers-polyfill'
-import { context, MockedRequest, MockedRequestInit } from '..'
+import { context } from '..'
 import { response } from '../response'
 import {
   GraphQLContext,
   GraphQLHandler,
   GraphQLRequest,
-  GraphQLRequestBody,
   isDocumentNode,
 } from './GraphQLHandler'
 import { ResponseResolver } from './RequestHandler'
+import {
+  createGetGraphQLRequest,
+  createPostGraphQLRequest,
+} from '../utils/internal/testUtils'
 
 const resolver: ResponseResolver<
   GraphQLRequest<{ userId: string }>,
@@ -24,29 +25,6 @@ const resolver: ResponseResolver<
       user: { id: req.variables.userId },
     }),
   )
-}
-
-function createGetGraphQLRequest(
-  body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
-) {
-  const requestUrl = new URL(hostname)
-  requestUrl.searchParams.set('query', body?.query)
-  requestUrl.searchParams.set('variables', JSON.stringify(body?.variables))
-  return new MockedRequest(requestUrl)
-}
-
-function createPostGraphQLRequest(
-  body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
-  requestInit: MockedRequestInit = {},
-) {
-  return new MockedRequest(new URL(hostname), {
-    method: 'POST',
-    ...requestInit,
-    headers: new Headers({ 'Content-Type': 'application/json' }),
-    body: encodeBuffer(JSON.stringify(body)),
-  })
 }
 
 const GET_USER = `

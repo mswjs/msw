@@ -1,0 +1,11 @@
+{
+  "operationName": "GetUser",
+  "variables": {
+    "context": {
+      "siteId": 1234,
+      "locale": "en_US",
+      "currency": "USD"
+    }
+  },
+  "query": "query GetUser($context: ContextInput!) {\n  user(context: $context) {\n    id }\n}\n"
+}

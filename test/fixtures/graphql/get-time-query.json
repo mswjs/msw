@@ -1,0 +1,11 @@
+{
+  "operationName": "GetTime",
+  "variables": {
+    "context": {
+      "siteId": 1234,
+      "locale": "en_US",
+      "currency": "USD"
+    }
+  },
+  "query": "query GetTime($context: ContextInput!) {\n  time(context: $context) {\n    timezone }\n}\n"
+}

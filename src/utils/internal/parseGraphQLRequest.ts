@@ -149,6 +149,7 @@ function getGraphQLInput(request: MockedRequest<any>): GraphQLInput | null {
 export function parseGraphQLRequest(
   request: MockedRequest<any>,
 ): ParsedGraphQLRequest {
+  // parses the body of the request to get
   const input = getGraphQLInput(request)
 
   if (!input || !input.query) {
@@ -156,6 +157,7 @@ export function parseGraphQLRequest(
   }
 
   const { query, variables } = input
+  // gets a document (an object) representing the query itself
   const parsedResult = parseQuery(query)
 
   if (parsedResult instanceof Error) {

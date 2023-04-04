@@ -5,11 +5,16 @@ import { ServerLifecycleEventsMap } from '../node/glossary'
 import { MockedResponse } from '../response'
 import { SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
-import { ResponseLookupResult, getResponse } from './getResponse'
+import {
+  ResponseLookupResult,
+  getResponse,
+  getBatchResponse,
+} from './getResponse'
 import { devUtils } from './internal/devUtils'
 import { MockedRequest } from './request/MockedRequest'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
+import { isValidBatchedGraphQLRequest } from './internal/isValidBatchedGraphQLRequest'
 
 export interface HandleRequestOptions<ResponseType> {
   /**
@@ -59,6 +64,14 @@ export async function handleRequest<
 
   // Resolve a mocked response from the list of request handlers.
   const [lookupError, lookupResult] = await until(() => {
+    if (request.body && isValidBatchedGraphQLRequest(request.body)) {
+      return getBatchResponse(
+        request,
+        handlers,
+        handleRequestOptions?.resolutionContext,
+      )
+    }
+
     return getResponse(
       request,
       handlers,

@@ -9,8 +9,15 @@ import { RequestHandler } from '../handlers/RequestHandler'
 import { rest } from '../rest'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { response } from '../response'
-import { context, MockedRequest } from '..'
+import { context, graphql, MockedRequest } from '..'
+// @ts-ignore
+import getUserQueryResponse from '../../test/fixtures/graphql/get-user-query-response.json'
+// @ts-ignore
+import getUserQuery from '../../test/fixtures/graphql/get-user-query.json'
+// @ts-ignore
+import getTimeQuery from '../../test/fixtures/graphql/get-time-query.json'
 import { RequiredDeep } from '../typeUtils'
+import { createPostGraphQLRequest } from './internal/testUtils'
 
 const options: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: jest.fn(),
@@ -207,6 +214,62 @@ test('returns the mocked response for a request with a matching request handler'
     mockedResponse,
     lookupResult,
   )
+})
+
+test('returns the mocked response for a batch request with a matching request handler', async () => {
+  const { emitter, events } = setup()
+  const expected = JSON.stringify(Array.of(getUserQueryResponse))
+  const request = createPostGraphQLRequest(Array.of(getUserQuery))
+  const handlers: Array<RequestHandler> = [
+    graphql.query('GetUser', (req, res, context) => {
+      return res(context.data(getUserQueryResponse.data))
+    }),
+  ]
+
+  const result = await handleRequest(
+    request,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(result.body).toEqual(expected)
+  expect(events).toEqual([
+    ['request:start', request],
+    ['request:match', request],
+    ['request:end', request],
+  ])
+  expect(options.onUnhandledRequest).not.toHaveBeenCalled()
+  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
+})
+
+test('returns the mocked response for a batch request with a matching and unmatching request handler', async () => {
+  const { emitter, events } = setup()
+  const expected = JSON.stringify(Array.of(getUserQueryResponse))
+  const request = createPostGraphQLRequest(Array.of(getUserQuery, getTimeQuery))
+  const handlers: Array<RequestHandler> = [
+    graphql.query('GetUser', (req, res, context) => {
+      return res(context.data(getUserQueryResponse.data))
+    }),
+  ]
+
+  const result = await handleRequest(
+    request,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(result.body).toEqual(expected)
+  expect(events).toEqual([
+    ['request:start', request],
+    ['request:match', request],
+    ['request:end', request],
+  ])
+  expect(options.onUnhandledRequest).not.toHaveBeenCalled()
+  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
 })
 
 test('returns a transformed response if the "transformResponse" option is provided', async () => {

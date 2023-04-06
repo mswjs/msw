@@ -18,7 +18,7 @@ export { cleanUrl } from './utils/url/cleanUrl'
  * Type definitions.
  */
 
-export type { SharedOptions } from './sharedOptions'
+export type { SharedOptions, LifeCycleEventsMap } from './sharedOptions'
 
 export type {
   ResponseResolver,

@@ -2,7 +2,7 @@
 const SOURCE_FRAME = /[\/\\]msw[\/\\]src[\/\\](.+)/
 
 const BUILD_FRAME =
-  /(node_modules)?[\/\\]lib[\/\\](browser|node|native|iife)[\/\\]|^[^\/\\]*$/
+  /(node_modules)?[\/\\]lib[\/\\](core|browser|node|native|iife)[\/\\]|^[^\/\\]*$/
 
 /**
  * Return the stack trace frame of a function's invocation.

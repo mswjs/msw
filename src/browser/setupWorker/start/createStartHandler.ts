@@ -1,13 +1,13 @@
 import { until } from '@open-draft/until'
+import { devUtils } from '~/core/utils/internal/devUtils'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
-import { requestIntegrityCheck } from '~/core/utils/internal/requestIntegrityCheck'
-import { deferNetworkRequestsUntil } from '~/core/utils/deferNetworkRequestsUntil'
+import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
+import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
-import { devUtils } from '~/core/utils/internal/devUtils'
 
 export const createStartHandler = (
   context: SetupWorkerInternalContext,

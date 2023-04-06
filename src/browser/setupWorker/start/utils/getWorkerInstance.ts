@@ -1,6 +1,6 @@
 import { until } from '@open-draft/until'
-import { getAbsoluteWorkerUrl } from '~/core/utils/url/getAbsoluteWorkerUrl'
 import { devUtils } from '~/core/utils/internal/devUtils'
+import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerUrl'
 import { getWorkerByRegistration } from './getWorkerByRegistration'
 import { ServiceWorkerInstanceTuple, FindWorker } from '../../glossary'
 

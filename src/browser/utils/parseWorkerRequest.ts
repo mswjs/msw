@@ -1,5 +1,5 @@
-import type { ServiceWorkerIncomingRequest } from '../../../browser/setupWorker/glossary'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
+import type { ServiceWorkerIncomingRequest } from '../setupWorker/glossary'
 
 /**
  * Converts a given request received from the Service Worker

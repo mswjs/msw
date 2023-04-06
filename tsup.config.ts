@@ -28,9 +28,6 @@ const coreConfig: Options = {
   bundle: false,
   splitting: false,
   dts: true,
-  define: {
-    SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
-  },
 }
 
 const nodeConfig: Options = {
@@ -59,9 +56,9 @@ const browserConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
-  // define: {
-  //   SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
-  // },
+  define: {
+    SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
+  },
   esbuildPlugins: [
     resolveCoreImportsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),

@@ -1,4 +1,4 @@
-import { SetupWorkerInternalContext } from '../../../browser/setupWorker/glossary'
+import type { SetupWorkerInternalContext } from '../setupWorker/glossary'
 
 export async function requestIntegrityCheck(
   context: SetupWorkerInternalContext,

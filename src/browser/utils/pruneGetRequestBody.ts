@@ -1,4 +1,4 @@
-import { ServiceWorkerIncomingRequest } from '../../../browser/setupWorker/glossary'
+import type { ServiceWorkerIncomingRequest } from '../setupWorker/glossary'
 
 type Input = Pick<ServiceWorkerIncomingRequest, 'method' | 'body'>
 

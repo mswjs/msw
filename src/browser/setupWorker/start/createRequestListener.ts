@@ -8,7 +8,7 @@ import {
   WorkerChannel,
 } from './utils/createMessageChannel'
 import { NetworkError } from '~/core/NetworkError'
-import { parseWorkerRequest } from '~/core/utils/request/parseWorkerRequest'
+import { parseWorkerRequest } from '../../utils/parseWorkerRequest'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'

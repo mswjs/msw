@@ -4,7 +4,7 @@ const worker = setupWorker(
   rest.get('https://api.github.com/users/:username', () => {
     // @ts-ignore
     nonExisting()
-    return null
+    return
   }),
 )
 

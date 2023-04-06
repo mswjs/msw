@@ -1,11 +1,11 @@
-import { SetupWorkerApi } from 'msw'
+import type { SetupWorker } from 'msw/lib/browser'
 import { HttpServer } from '@open-draft/test-server/http'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
-    worker: SetupWorkerApi
+    worker: SetupWorker
   }
 }
 
@@ -14,10 +14,10 @@ const ON_EXAMPLE = require.resolve('./on.mocks.ts')
 let server: HttpServer
 
 export function getRequestId(messages: ConsoleMessages) {
-  const requestStartMessage = messages.get('warning').find((message) => {
+  const requestStartMessage = messages.get('warning')?.find((message) => {
     return message.startsWith('[request:start]')
   })
-  return requestStartMessage.split(' ')[3]
+  return requestStartMessage?.split(' ')?.[3]
 }
 
 test.beforeEach(async ({ createServer }) => {

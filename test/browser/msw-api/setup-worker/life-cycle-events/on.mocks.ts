@@ -1,5 +1,4 @@
-import { HttpResponse, rest, setupWorker } from 'msw'
-import { ServerLifecycleEventsMap } from 'msw/src/node/glossary'
+import { HttpResponse, rest, setupWorker, LifeCycleEventsMap } from 'msw'
 
 const worker = setupWorker(
   rest.get('*/user', () => {
@@ -27,10 +26,9 @@ worker.events.on('request:unhandled', (request, requestId) => {
   )
 })
 
-const requestEndListner: ServerLifecycleEventsMap['request:end'] = (
-  request,
-  requestId,
-) => {
+const requestEndListner: (
+  ...args: LifeCycleEventsMap['request:end']
+) => void = (request, requestId) => {
   console.warn(`[request:end] ${request.method} ${request.url} ${requestId}`)
 }
 

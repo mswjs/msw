@@ -7,17 +7,17 @@
   "browser": "./lib/browser/index.js",
   "exports": {
     ".": {
-      "node": {
-        "types": "./lib/node/index.d.ts",
-        "import": "./lib/node/index.mjs",
-        "require": "./lib/node/index.js",
-        "default": "./lib/node/index.js"
-      },
       "browser": {
         "types": "./lib/browser/index.d.ts",
         "import": "./lib/browser/index.mjs",
         "require": "./lib/browser/index.js",
         "default": "./lib/browser/index.js"
+      },
+      "node": {
+        "types": "./lib/node/index.d.ts",
+        "import": "./lib/node/index.mjs",
+        "require": "./lib/node/index.js",
+        "default": "./lib/node/index.js"
       }
     },
     "./native": {

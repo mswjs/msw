@@ -2,8 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
-import { setupServer, SetupServer } from 'msw/node'
+import { HttpResponse, rest, setupServer, SetupServer } from 'msw'
 import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 

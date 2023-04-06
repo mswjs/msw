@@ -13,8 +13,8 @@ class ErrorWithStack extends Error {
 test('supports Node.js (Linux, MacOS) error stack', () => {
   const linuxError = new ErrorWithStack([
     'Error: ',
-    '    at getCallFrame (/Users/mock/github/msw/lib/umd/index.js:3735:22)',
-    '    at Object.get (/Users/mock/github/msw/lib/umd/index.js:3776:29)',
+    '    at getCallFrame (/Users/mock/github/msw/lib/node/index.js:3735:22)',
+    '    at Object.get (/Users/mock/github/msw/lib/node/index.js:3776:29)',
     '    at Object.<anonymous> (/Users/mock/github/msw/test/msw-api/setup-server/printHandlers.test.ts:13:8)', // <-- this one
     '    at Runtime._execModule (/Users/mock/github/msw/node_modules/jest-runtime/build/index.js:1299:24)',
     '    at Runtime._loadModule (/Users/mock/github/msw/node_modules/jest-runtime/build/index.js:898:12)',
@@ -29,9 +29,9 @@ test('supports Node.js (Linux, MacOS) error stack', () => {
 
   const macOsError = new ErrorWithStack([
     'Error: ',
-    '    at getCallFrame (/Users/mock/git/msw/lib/umd/index.js:3735:22)',
-    '    at graphQLRequestHandler (/Users/mock/git/msw/lib/umd/index.js:7071:25)',
-    '    at Object.query (/Users/mock/git/msw/lib/umd/index.js:7182:18)',
+    '    at getCallFrame (/Users/mock/git/msw/lib/node/index.js:3735:22)',
+    '    at graphQLRequestHandler (/Users/mock/git/msw/lib/node/index.js:7071:25)',
+    '    at Object.query (/Users/mock/git/msw/lib/node/index.js:7182:18)',
     '    at Object.<anonymous> (/Users/mock/git/msw/test/msw-api/setup-server/printHandlers.test.ts:14:11)', // <-- this one
     '    at Runtime._execModule (/Users/mock/git/msw/node_modules/jest-runtime/build/index.js:1299:24)',
     '    at Runtime._loadModule (/Users/mock/git/msw/node_modules/jest-runtime/build/index.js:898:12)',
@@ -49,9 +49,9 @@ test('supports Node.js (Linux, MacOS) error stack', () => {
 test('supports Node.js (Windows) error stack', () => {
   const error = new ErrorWithStack([
     'Error: ',
-    '    at getCallFrame (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:3735:22)',
-    '    at graphQLRequestHandler (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:7071:25)',
-    '    at Object.query (C:\\Users\\mock\\git\\msw\\lib\\umd\\index.js:7182:18)',
+    '    at getCallFrame (C:\\Users\\mock\\git\\msw\\lib\\node\\index.js:3735:22)',
+    '    at graphQLRequestHandler (C:\\Users\\mock\\git\\msw\\lib\\node\\index.js:7071:25)',
+    '    at Object.query (C:\\Users\\mock\\git\\msw\\lib\\node\\index.js:7182:18)',
     '    at Object.<anonymous> (C:\\Users\\mock\\git\\msw\\test\\msw-api\\setup-server\\printHandlers.test.ts:75:13)', // <-- this one
     '    at Object.asyncJestTest (C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\jasmineAsyncInstall.js:106:37)',
     '    at C:\\Users\\mock\\git\\msw\\node_modules\\jest-jasmine2\\build\\queueRunner.js:45:12',
@@ -68,8 +68,8 @@ test('supports Node.js (Windows) error stack', () => {
 test('supports Chrome and Edge error stack', () => {
   const error = new ErrorWithStack([
     'Error',
-    '    at getCallFrame (webpack:///./lib/esm/getCallFrame-deps.js?:272:20)',
-    '    at Object.eval [as get] (webpack:///./lib/esm/rest-deps.js?:1402:90)',
+    '    at getCallFrame (webpack:///./lib/browser/getCallFrame-deps.js?:272:20)',
+    '    at Object.eval [as get] (webpack:///./lib/browser/rest-deps.js?:1402:90)',
     '    at eval (webpack:///./test/msw-api/setup-worker/printHandlers.mocks.ts?:6:113)', // <-- this one
     '    at Module../test/msw-api/setup-worker/printHandlers.mocks.ts (http://localhost:59464/main.js:1376:1)',
     '    at __webpack_require__ (http://localhost:59464/main.js:790:30)',
@@ -87,8 +87,8 @@ test('supports Chrome and Edge error stack', () => {
 
 test('supports Firefox (MacOS, Windows) error stack', () => {
   const error = new ErrorWithStack([
-    'getCallFrame@webpack:///./lib/esm/getCallFrame-deps.js?:272:20',
-    'createRestHandler/<@webpack:///./lib/esm/rest-deps.js?:1402:90',
+    'getCallFrame@webpack:///./lib/browser/getCallFrame-deps.js?:272:20',
+    'createRestHandler/<@webpack:///./lib/browser/rest-deps.js?:1402:90',
     '@webpack:///./test/msw-api/setup-worker/printHandlers.mocks.ts?:6:113', // <-- this one
     './test/msw-api/setup-worker/printHandlers.mocks.ts@http://localhost:59464/main.js:1376:1',
     '__webpack_require__@http://localhost:59464/main.js:790:30',

@@ -28,6 +28,9 @@ const coreConfig: Options = {
   bundle: false,
   splitting: false,
   dts: true,
+  define: {
+    SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
+  },
 }
 
 const nodeConfig: Options = {
@@ -42,6 +45,7 @@ const nodeConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
+
   esbuildPlugins: [resolveCoreImportsPlugin()],
 }
 
@@ -55,9 +59,9 @@ const browserConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
-  define: {
-    SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
-  },
+  // define: {
+  //   SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
+  // },
   esbuildPlugins: [
     resolveCoreImportsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
@@ -86,7 +90,6 @@ const iifeConfig: Options = {
   format: ['iife'],
   legacyOutput: true,
   bundle: true,
-  sourcemap: true,
   splitting: false,
   dts: false,
   define: {

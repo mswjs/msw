@@ -4,10 +4,7 @@ export function forceEsmExtensionsPlugin(): Plugin {
   return {
     name: 'forceEsmExtensionsPlugin',
     setup(build) {
-      // This plugin is relevant only for ESM targets.
-      if (build.initialOptions.format !== 'esm') {
-        return
-      }
+      const isEsm = build.initialOptions.format === 'esm'
 
       build.onEnd(async (result) => {
         if (result.errors.length > 0) {
@@ -15,15 +12,8 @@ export function forceEsmExtensionsPlugin(): Plugin {
         }
 
         for (const outputFile of result.outputFiles || []) {
-          const isEsm = outputFile.path.endsWith('.mjs')
-
-          // Ignore non-ESM files in the build output.
-          if (!isEsm) {
-            continue
-          }
-
           const fileContents = outputFile.text
-          const nextFileContents = modifyRelativeImports(fileContents)
+          const nextFileContents = modifyRelativeImports(fileContents, isEsm)
 
           outputFile.contents = Buffer.from(nextFileContents)
         }
@@ -32,18 +22,33 @@ export function forceEsmExtensionsPlugin(): Plugin {
   }
 }
 
-const ESM_RELATIVE_IMPORT_EXP = /from ["'](\..+)["'];?/gm
+const CJS_RELATIVE_IMPORT_EXP = /require\(["'](\..+)["']\)(;)?/gm
+const ESM_RELATIVE_IMPORT_EXP = /from ["'](\..+)["'](;)?/gm
 
-function modifyRelativeImports(contents: string): string {
-  return contents.replace(ESM_RELATIVE_IMPORT_EXP, (_, importPath) => {
-    if (importPath.endsWith('.') || importPath.endsWith('/')) {
-      return `from '${importPath}/index.mjs'`
-    }
+function modifyRelativeImports(contents: string, isEsm: boolean): string {
+  const extension = isEsm ? '.mjs' : '.js'
+  const importExpression = isEsm
+    ? ESM_RELATIVE_IMPORT_EXP
+    : CJS_RELATIVE_IMPORT_EXP
 
-    if (importPath.endsWith('.mjs')) {
-      return `from '${importPath}'`
-    }
+  return contents.replace(
+    importExpression,
+    (_, importPath, maybeSemicolon = '') => {
+      if (importPath.endsWith('.') || importPath.endsWith('/')) {
+        return isEsm
+          ? `from '${importPath}/index${extension}'${maybeSemicolon}`
+          : `require("${importPath}/index${extension}")${maybeSemicolon}`
+      }
 
-    return `from '${importPath}.mjs'`
-  })
+      if (importPath.endsWith(extension)) {
+        return isEsm
+          ? `from '${importPath}'${maybeSemicolon}`
+          : `require("${importPath}")${maybeSemicolon}`
+      }
+
+      return isEsm
+        ? `from '${importPath}${extension}'${maybeSemicolon}`
+        : `require("${importPath}${extension}")${maybeSemicolon}`
+    },
+  )
 }

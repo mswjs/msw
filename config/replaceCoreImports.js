@@ -1,14 +1,7 @@
-function replaceCoreImports(fileContents, isEsm, overrideExtension) {
+function replaceCoreImports(fileContents, isEsm) {
   const importPattern = isEsm
     ? /from ["'](~\/core(.*))["'](;)?$/gm
     : /require\(["'](~\/core(.*))["']\)(;)?/gm
-
-  const forcedExtension =
-    typeof overrideExtension !== 'undefined'
-      ? overrideExtension
-      : isEsm
-      ? '.mjs'
-      : '.js'
 
   return fileContents.replace(
     importPattern,
@@ -17,8 +10,8 @@ function replaceCoreImports(fileContents, isEsm, overrideExtension) {
       const semicolon = maybeSemicolon || ''
 
       return isEsm
-        ? `from "../core${submodulePath}${forcedExtension}"${semicolon}`
-        : `require("../core${submodulePath}${forcedExtension}")${semicolon}`
+        ? `from "../core${submodulePath}"${semicolon}`
+        : `require("../core${submodulePath}")${semicolon}`
     },
   )
 }

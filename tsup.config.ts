@@ -45,7 +45,7 @@ const nodeConfig: Options = {
   splitting: false,
   dts: true,
 
-  esbuildPlugins: [resolveCoreImportsPlugin()],
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const browserConfig: Options = {
@@ -63,6 +63,7 @@ const browserConfig: Options = {
   },
   esbuildPlugins: [
     resolveCoreImportsPlugin(),
+    forceEsmExtensionsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
   ],
 }
@@ -77,7 +78,7 @@ const reactNativeConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
-  esbuildPlugins: [resolveCoreImportsPlugin()],
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const iifeConfig: Options = {

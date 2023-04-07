@@ -18,7 +18,7 @@ async function patchTypeDefs() {
 
     // Treat ".d.ts" files as ESM to replace "import" statements.
     // Force no extension on the ".d.ts" imports.
-    const nextFileContents = replaceCoreImports(fileContents, true, '')
+    const nextFileContents = replaceCoreImports(fileContents, true)
 
     fs.writeFileSync(typeDefsPath, nextFileContents, 'utf8')
 

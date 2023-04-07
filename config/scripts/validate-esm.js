@@ -197,12 +197,17 @@ function validateBundle(bundlePath, isEsm = false) {
       getCodeSnippetAt(contents, match.index),
     )
 
-    invariant(
-      relativeImportPath.endsWith(expectedExtension),
-      `Found a "core" import without "${expectedExtension}" extension at "%s":\n\n%s`,
-      absoluteBundlePath,
-      getCodeSnippetAt(contents, match.index),
-    )
+    if (isEsm) {
+      // Ensure that all relative imports in the ESM bundle end with ".mjs".
+      // This way bundlers can distinguish between the referenced modules
+      // since the "core" directory contains both ".js" and ".mjs" modules on the same level.
+      invariant(
+        relativeImportPath.endsWith('.mjs'),
+        `Found a "core" import without "${expectedExtension}" extension at "%s":\n\n%s`,
+        absoluteBundlePath,
+        getCodeSnippetAt(contents, match.index),
+      )
+    }
   }
 
   console.log('✅ Validated bundle at "%s"', bundlePath)

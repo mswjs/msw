@@ -5,6 +5,7 @@ import {
   copyWorkerPlugin,
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
+import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
 
 // Externalize the in-house dependencies so that the user
 // would get the latest published version automatically.
@@ -28,6 +29,7 @@ const coreConfig: Options = {
   bundle: false,
   splitting: false,
   dts: true,
+  esbuildPlugins: [forceEsmExtensionsPlugin()],
 }
 
 const nodeConfig: Options = {

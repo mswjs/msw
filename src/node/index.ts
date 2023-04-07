@@ -1,4 +1,4 @@
-export * from '../core'
+export * from '~/core'
 
 export type { SetupServer } from './glossary'
 export { SetupServerApi } from './SetupServerApi'

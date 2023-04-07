@@ -49,6 +49,7 @@
     "prebuild": "rimraf ./lib",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
+    "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:node": "jest --config=./test/jest.config.js --forceExit",

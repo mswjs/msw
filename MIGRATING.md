@@ -12,6 +12,7 @@ npm install msw@next --save-dev
 
 To help you navigate, we've structured this guide on the feature basis. You can read it top-to-bottom, or you can jump to a particular feature you have trouble migrating from.
 
+- [**Imports**](#imports)
 - [**Response resolver**](#response-resolver) (call signature change)
 - [Request changes](#request-changes)
 - [req.params](#reqparams)
@@ -36,6 +37,17 @@ To help you navigate, we've structured this guide on the feature basis. You can 
 - [Common issues](#common-issues)
 
 ---
+
+## Imports
+
+The `setupWorker` API, alongside any related type definitions, are no longer exported from the root of `msw`. Instead, import them from `msw/browser`:
+
+```diff
+-import { setupWorker } from 'msw'
++import { setupWorker } from 'msw/browser
+```
+
+> Note that the request handlers like `rest` and `graphql`, as well as the utility functions like `bypass` and `passthrough` must still be imported from the root-level `msw`.
 
 ## Response resolver
 
@@ -503,7 +515,7 @@ It is still possible to create custom handlers and resolvers, just make sure to 
 
 As this release removes the concept of response composition via `res()`, you can no longer compose context utilities or abstract their partial composed state to a helper function.
 
-Instead, you can abstract a common response logic into a plain function that creates a new `Response` or  modifies a provided instance.
+Instead, you can abstract a common response logic into a plain function that creates a new `Response` or modifies a provided instance.
 
 ```js
 // utils.js
@@ -511,7 +523,7 @@ import { HttpResponse } from 'msw'
 
 export function augmentResponse(json) {
   const response = HttpResponse.json(json, {
-    // Come up with some reusable defaults here. 
+    // Come up with some reusable defaults here.
   })
   return response
 }

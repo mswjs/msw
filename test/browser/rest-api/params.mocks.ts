@@ -1,9 +1,5 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
-
-// interface ResponseType {
-//   username: string
-//   messageId: string
-// }
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 type RequestParams = {
   username: string

@@ -1,4 +1,5 @@
-import { SetupWorkerApi, graphql } from 'msw'
+import { graphql } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../../../playwright.extend'
 
 declare namespace window {
@@ -21,8 +22,8 @@ test.describe('GraphQL API', () => {
     page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
-        graphql.mutation('SubmitCheckout', () => null),
-        graphql.query('GetUserPaymentHistory', () => null),
+        graphql.mutation('SubmitCheckout', () => void 0),
+        graphql.query('GetUserPaymentHistory', () => void 0),
       )
     })
 
@@ -67,8 +68,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
-        graphql.mutation('GetLatestActiveUser', () => null),
-        graphql.query('GetUser', () => null),
+        graphql.mutation('GetLatestActiveUser', () => void 0),
+        graphql.query('GetUser', () => void 0),
       )
     })
 
@@ -115,8 +116,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
-        graphql.query('GetCheckoutSummary', () => null),
-        graphql.mutation('SubmitCheckout', () => null),
+        graphql.query('GetCheckoutSummary', () => void 0),
+        graphql.mutation('SubmitCheckout', () => void 0),
       )
     })
 
@@ -163,8 +164,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     page.evaluate(() => {
       const { worker, graphql } = window.msw
       worker.use(
-        graphql.mutation('ActivateUser', () => null),
-        graphql.query('ActiveUser', () => null),
+        graphql.mutation('ActivateUser', () => void 0),
+        graphql.query('ActiveUser', () => void 0),
       )
     })
 

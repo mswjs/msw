@@ -1,4 +1,5 @@
-import { setupWorker, graphql, HttpResponse } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const github = graphql.link('https://api.github.com/graphql')
 const stripe = graphql.link('https://api.stripe.com/graphql')

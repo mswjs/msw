@@ -1,5 +1,6 @@
 import { parse } from 'graphql'
-import { setupWorker, graphql, HttpResponse } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const GetUser = parse(`
   query GetUser {
@@ -44,7 +45,7 @@ const worker = setupWorker(
       },
     })
   }),
-  graphql.mutation<unknown, { username: string }>(Login, ({ variables }) => {
+  graphql.mutation<object, { username: string }>(Login, ({ variables }) => {
     return HttpResponse.json({
       data: {
         session: {

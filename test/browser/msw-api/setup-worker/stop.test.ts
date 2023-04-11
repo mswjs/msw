@@ -1,4 +1,4 @@
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { Page } from '@playwright/test'
 import { test, expect } from '../../playwright.extend'
 

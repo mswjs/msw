@@ -1,4 +1,5 @@
-import { setupWorker, rest } from 'msw'
+import { rest } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/user', () => {
@@ -15,8 +16,8 @@ window.msw = {
         return scriptURL === mockServiceWorkerUrl
       },
     })
-    .then((reg) => {
-      console.log('Registration Promise resolved', reg)
-      return reg.constructor.name
+    .then((registration) => {
+      console.log('Registration Promise resolved', registration)
+      return registration?.constructor.name
     }),
 }

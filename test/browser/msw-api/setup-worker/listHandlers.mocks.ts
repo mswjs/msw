@@ -1,6 +1,7 @@
-import { setupWorker, rest, graphql } from 'msw'
+import { rest, graphql } from 'msw'
+import { setupWorker } from 'msw/browser'
 
-const resolver = () => null
+const resolver = () => void 0
 
 const github = graphql.link('https://api.github.com')
 

@@ -1,4 +1,5 @@
-import { setupWorker, rest, delay, DelayMode, HttpResponse } from 'msw'
+import { rest, delay, DelayMode, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/delay', async ({ request }) => {

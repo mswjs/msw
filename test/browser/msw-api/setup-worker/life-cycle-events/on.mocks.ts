@@ -1,4 +1,5 @@
-import { HttpResponse, rest, setupWorker, LifeCycleEventsMap } from 'msw'
+import { HttpResponse, rest, LifeCycleEventsMap } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('*/user', () => {

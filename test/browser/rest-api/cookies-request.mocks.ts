@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   // Use wildcard so that we capture any "GET /user" requests

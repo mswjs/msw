@@ -1,4 +1,5 @@
-import { SetupWorkerApi, rest, graphql } from 'msw'
+import { rest, graphql } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
@@ -53,8 +54,8 @@ test('includes runtime request handlers', async ({
   await page.evaluate(() => {
     const { worker, rest, graphql } = window.msw
     worker.use(
-      rest.post('/profile', () => null),
-      graphql.query('SubmitTransaction', () => null),
+      rest.post('/profile', () => void 0),
+      graphql.query('SubmitTransaction', () => void 0),
     )
 
     worker.printHandlers()

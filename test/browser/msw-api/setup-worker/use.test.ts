@@ -1,4 +1,5 @@
-import { SetupWorkerApi, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {

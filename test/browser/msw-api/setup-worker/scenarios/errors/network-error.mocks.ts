@@ -1,4 +1,5 @@
-import { setupWorker, rest, NetworkError } from 'msw'
+import { rest, NetworkError } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/user', () => {

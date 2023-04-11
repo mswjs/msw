@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { TestFixtures, test, expect } from '../../../playwright.extend'
 
 declare namespace window {

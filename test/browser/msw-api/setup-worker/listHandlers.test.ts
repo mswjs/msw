@@ -1,4 +1,5 @@
-import { SetupWorkerApi, rest, graphql } from 'msw'
+import { rest, graphql } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {

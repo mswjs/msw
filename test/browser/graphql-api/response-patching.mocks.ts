@@ -1,4 +1,5 @@
-import { setupWorker, graphql, bypass, HttpResponse } from 'msw'
+import { graphql, bypass, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
 interface GetUserQuery {

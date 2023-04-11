@@ -71,7 +71,8 @@ In-browser usage is what sets Mock Service Worker apart from other tools. Utiliz
 ```js
 // src/mocks.js
 // 1. Import the library.
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 // 2. Describe network behavior with request handlers.
 const worker = setupWorker(

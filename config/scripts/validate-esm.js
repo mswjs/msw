@@ -16,7 +16,7 @@ function validatePackageExports() {
 
   // Validate the "main", "browser", and "types" root fields.
   invariant('main' in PKG_JSON, 'Missing "main" field in package.json')
-  invariant('browser' in PKG_JSON, 'Missing "browser" field in package.json')
+  invariant('module' in PKG_JSON, 'Missing "module" field in package.json')
   invariant('types' in PKG_JSON, 'Missing "types" field in package.json')
 
   invariant(
@@ -24,65 +24,40 @@ function validatePackageExports() {
     'The "main" field points at a non-existing path at "%s"',
     PKG_JSON.main,
   )
-  invariant(
-    fs.existsSync(fromRoot(PKG_JSON.browser)),
-    'The "browser" field points at a non-existing path at "%s"',
-    PKG_JSON.browser,
-  )
-  invariant(
-    fs.existsSync(fromRoot(PKG_JSON.types)),
-    'The "types" field points at a non-existing path at "%s"',
-    PKG_JSON.types,
-  )
 
   // The "exports" key must be present.
   invariant(exports, 'package.json must have an "exports" field')
 
   // The "exports" must list expected paths.
-  const expectedExportPaths = ['.', './node', './package.json', './native']
+  const expectedExportPaths = [
+    '.',
+    './browser',
+    './node',
+    './package.json',
+    './native',
+  ]
   expectedExportPaths.forEach((exportPath) => {
     invariant(exportPath in exports, 'Missing exports path "%s"', exportPath)
   })
 
   // Must describe the root export properly.
   const rootExport = exports['.']
-  const expectedRootExportPaths = ['browser', 'node']
 
-  expectedRootExportPaths.forEach((rootExportPath) => {
-    invariant(
-      rootExportPath in rootExport,
-      'Missing root export path "%s"',
-      rootExportPath,
-    )
-  })
+  validateExportConditions(`exports['.']`, rootExport)
+  validateBundle(rootExport.require, false)
+  validateBundle(rootExport.import, true)
+  validateTypeDefs(rootExport.types)
 
-  const rootExportKeys = Object.keys(rootExport)
-
+  // Validate "./browser" exports.
+  const browserExports = exports['./browser']
+  validateExportConditions(`exports['./browser']`, browserExports)
   invariant(
-    rootExportKeys.includes('browser'),
-    'Missing "browser" root-level export',
+    browserExports.node === null,
+    'The "browser" export must set the "node" field to null',
   )
-  invariant(
-    rootExportKeys.includes('node'),
-    'Missing "import" root-level export',
-  )
-
-  // Listing the "browser" field first is crucial when forcing TS
-  // to resolve the "browser" field first.
-  invariant(
-    rootExportKeys[0] === 'browser',
-    'Must list the "browser" field first in the root-level exports',
-  )
-
-  validateExportConditions(`exports['.'].browser`, rootExport.browser)
-  validateBundle(rootExport.browser.require, false)
-  validateBundle(rootExport.browser.import, true)
-  validateTypeDefs(rootExport.browser.types)
-
-  validateExportConditions(`exports['.'].node`, rootExport.node)
-  validateBundle(rootExport.node.require, false)
-  validateBundle(rootExport.node.import, true)
-  validateTypeDefs(rootExport.node.types)
+  validateBundle(browserExports.require, false)
+  validateBundle(browserExports.import, true)
+  validateTypeDefs(browserExports.types)
 
   // Validate "./node" exports.
   const nodeExports = exports['./node']

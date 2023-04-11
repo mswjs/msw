@@ -13,6 +13,7 @@
       "default": "./lib/core/index.js"
     },
     "./browser": {
+      "node": null,
       "types": "./lib/browser/index.d.ts",
       "require": "./lib/browser/index.js",
       "import": "./lib/browser/index.mjs",

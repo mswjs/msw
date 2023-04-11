@@ -6,13 +6,13 @@ import {
   Interceptor,
   InterceptorReadyState,
 } from '@mswjs/interceptors'
-import { SetupApi } from '../SetupApi'
-import { RequestHandler } from '../handlers/RequestHandler'
-import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
-import { RequiredDeep } from '../typeUtils'
-import { mergeRight } from '../utils/internal/mergeRight'
-import { handleRequest } from '../utils/handleRequest'
-import { devUtils } from '../utils/internal/devUtils'
+import { SetupApi } from '~/core/SetupApi'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
+import { RequiredDeep } from '~/core/typeUtils'
+import { mergeRight } from '~/core/utils/internal/mergeRight'
+import { handleRequest } from '~/core/utils/handleRequest'
+import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
 
 /**

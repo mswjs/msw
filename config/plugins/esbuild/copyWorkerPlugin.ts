@@ -55,12 +55,6 @@ export function copyWorkerPlugin(checksum: string): Plugin {
       // const workerContents = await fs.readFile(workerSourcePath, 'utf8')
       // const checksum = getChecksum(workerContents)
 
-      // Inject the global "SERVICE_WORKER_CHECKSUM" variable
-      // for runtime worker integrity check.
-      build.initialOptions.define = {
-        SERVICE_WORKER_CHECKSUM: JSON.stringify(checksum),
-      }
-
       build.onLoad({ filter: /mockServiceWorker\.js$/ }, async () => {
         return {
           // Prevent the worker script from being transpiled.

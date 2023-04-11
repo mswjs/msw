@@ -7,32 +7,32 @@
   "browser": "./lib/browser/index.js",
   "exports": {
     ".": {
-      "node": {
-        "types": "./lib/node/index.d.ts",
-        "import": "./lib/node/index.mjs",
-        "require": "./lib/node/index.js",
-        "default": "./lib/node/index.js"
-      },
       "browser": {
         "types": "./lib/browser/index.d.ts",
         "import": "./lib/browser/index.mjs",
         "require": "./lib/browser/index.js",
         "default": "./lib/browser/index.js"
+      },
+      "node": {
+        "types": "./lib/node/index.d.ts",
+        "import": "./lib/node/index.mjs",
+        "require": "./lib/node/index.js",
+        "default": "./lib/node/index.js"
       }
     },
     "./native": {
       "browser": null,
       "types": "./lib/native/index.d.ts",
       "import": "./lib/native/index.mjs",
-      "requier": "./lib/native/index.js",
+      "require": "./lib/native/index.js",
       "default": "./lib/native/index.js"
     },
     "./node": {
       "browser": null,
-      "types": "./lib/node/node/index.d.ts",
-      "require": "./lib/node/node/index.js",
-      "import": "./lib/node/node/index.mjs",
-      "default": "./lib/node/node/index.mjs"
+      "types": "./lib/node/index.d.ts",
+      "require": "./lib/node/index.js",
+      "import": "./lib/node/index.mjs",
+      "default": "./lib/node/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -47,7 +47,9 @@
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "prebuild": "rimraf ./lib",
-    "build": "cross-env NODE_ENV=production tsup",
+    "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
+    "patch:dts": "node \"./config/scripts/patch-ts.js\"",
+    "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
     "test:node": "jest --config=./test/jest.config.js --forceExit",
@@ -138,6 +140,7 @@
     "@swc/jest": "^0.2.24",
     "@types/express": "^4.17.17",
     "@types/fs-extra": "^9.0.13",
+    "@types/glob": "^8.1.0",
     "@types/jest": "^29.4.0",
     "@types/json-bigint": "^1.0.1",
     "@types/node": "18.x",
@@ -151,6 +154,7 @@
     "cross-env": "^7.0.3",
     "cross-fetch": "^3.1.5",
     "cz-conventional-changelog": "3.3.0",
+    "esbuild": "^0.17.15",
     "esbuild-loader": "^2.21.0",
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
@@ -158,6 +162,7 @@
     "express": "^4.18.2",
     "fs-extra": "^10.0.0",
     "fs-teardown": "^0.3.0",
+    "glob": "^9.3.4",
     "jest": "^29.4.3",
     "jest-environment-jsdom": "^29.4.3",
     "json-bigint": "^1.0.0",

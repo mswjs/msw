@@ -2,12 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
-import { setupServer, SetupServerApi } from 'msw/node'
+import { HttpResponse, rest, setupServer, SetupServer } from 'msw'
 import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
-let server: SetupServerApi
+let server: SetupServer
 
 const httpServer = new HttpServer((app) => {
   const handler: ExpressRequestHandler = (req, res) => {

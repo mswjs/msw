@@ -1,5 +1,5 @@
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { RequestHandler } from '../handlers/RequestHandler'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { SetupServerApi } from '../node/SetupServerApi'
 
 /**

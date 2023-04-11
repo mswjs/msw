@@ -1,59 +1,84 @@
 import { defineConfig, Options } from 'tsup'
+import * as glob from 'glob'
 import {
   getWorkerChecksum,
   copyWorkerPlugin,
 } from './config/plugins/esbuild/copyWorkerPlugin'
+import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
+import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
 
-// Prevent from bunlding the "@mswjs/*" packages
-// so that the users get the latest versions without
-// having to bump them in "msw'."
+// Externalize the in-house dependencies so that the user
+// would get the latest published version automatically.
 const ecosystemDependencies = /^@mswjs\/(.+)$/
 
+// Externalize the core functionality (reused across environments)
+// so that it can be shared between the environments.
+const mswCore = /\/core(\/.+)?$/
+
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
+
+const coreConfig: Options = {
+  name: 'core',
+  platform: 'neutral',
+  entry: glob.sync('./src/core/**/*.ts', {
+    ignore: '**/*.test.ts',
+  }),
+  external: [ecosystemDependencies],
+  format: ['esm', 'cjs'],
+  outDir: './lib/core',
+  bundle: false,
+  splitting: false,
+  dts: true,
+  esbuildPlugins: [forceEsmExtensionsPlugin()],
+}
 
 const nodeConfig: Options = {
   name: 'node',
   platform: 'node',
-  entry: ['./src/index.ts', './src/node/index.ts'],
+  entry: ['./src/node/index.ts'],
   inject: ['./config/polyfills-node.ts'],
-  external: [ecosystemDependencies],
+  external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/node',
-  sourcemap: true,
-  clean: true,
+  sourcemap: false,
   bundle: true,
   splitting: false,
   dts: true,
-}
 
-const reactNativeConfig: Options = {
-  name: 'react-native',
-  platform: 'node',
-  entry: ['./src/native/index.ts'],
-  format: ['esm', 'cjs'],
-  outDir: './lib/native',
-  clean: true,
-  bundle: true,
-  splitting: false,
-  external: ['chalk', 'util', 'events', ecosystemDependencies],
-  dts: true,
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const browserConfig: Options = {
   name: 'browser',
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
-  external: [ecosystemDependencies],
+  external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/browser',
-  clean: true,
   bundle: true,
   splitting: false,
   dts: true,
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
-  esbuildPlugins: [copyWorkerPlugin(SERVICE_WORKER_CHECKSUM)],
+  esbuildPlugins: [
+    resolveCoreImportsPlugin(),
+    forceEsmExtensionsPlugin(),
+    copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
+  ],
+}
+
+const reactNativeConfig: Options = {
+  name: 'react-native',
+  platform: 'node',
+  entry: ['./src/native/index.ts'],
+  external: ['chalk', 'util', 'events', mswCore, ecosystemDependencies],
+  format: ['esm', 'cjs'],
+  outDir: './lib/native',
+  bundle: true,
+  splitting: false,
+  dts: true,
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const iifeConfig: Options = {
@@ -64,9 +89,7 @@ const iifeConfig: Options = {
   outDir: './lib',
   format: ['iife'],
   legacyOutput: true,
-  clean: true,
   bundle: true,
-  sourcemap: true,
   splitting: false,
   dts: false,
   define: {
@@ -77,6 +100,7 @@ const iifeConfig: Options = {
 }
 
 export default defineConfig([
+  coreConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,

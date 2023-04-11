@@ -1,4 +1,4 @@
-import { StatusCodeColor } from '../../../src/utils/logging/getStatusCodeColor'
+import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
 import { waitFor } from '../../support/waitFor'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
@@ -25,7 +25,7 @@ test('prints a log for a GraphQL query', async ({
   })
 
   await waitFor(() => {
-    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -56,7 +56,7 @@ test('prints a log for a GraphQL mutation', async ({
   })
 
   await waitFor(() => {
-    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -87,7 +87,7 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
   })
 
   await waitFor(() => {
-    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -118,7 +118,7 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
   })
 
   await waitFor(() => {
-    expect(consoleSpy.get('raw').get('startGroupCollapsed')).toEqual(
+    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(

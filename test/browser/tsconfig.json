@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node16",
+    "customConditions": ["browser"]
+  },
+  "include": ["**/*.mocks.ts"]
+}

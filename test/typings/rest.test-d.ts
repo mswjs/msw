@@ -1,4 +1,4 @@
-import { rest, HttpResponse } from '../../src'
+import { rest, HttpResponse } from 'msw'
 
 /**
  * Request path parameters.

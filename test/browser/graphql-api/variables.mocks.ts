@@ -1,4 +1,5 @@
-import { setupWorker, graphql, HttpResponse } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 interface GetGitHubUserQuery {
   user: {

@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 import * as JSONbig from 'json-bigint'
 
 const worker = setupWorker(

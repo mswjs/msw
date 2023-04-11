@@ -1,4 +1,5 @@
-import { SetupWorkerApi, rest } from 'msw'
+import { rest } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../../../playwright.extend'
 
 declare namespace window {
@@ -21,8 +22,8 @@ test.describe('REST API', () => {
     page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
-        rest.get('/user', () => null),
-        rest.post('/user-contact-details', () => null),
+        rest.get('/user', () => void 0),
+        rest.post('/user-contact-details', () => void 0),
       )
     })
 
@@ -52,7 +53,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
 
     page.evaluate(() => {
       const { worker, rest } = window.msw
-      worker.use(rest.get('/user', () => null))
+      worker.use(rest.get('/user', () => void 0))
     })
 
     await fetch('/users')
@@ -84,8 +85,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
-        rest.get('/user', () => null),
-        rest.post('/user-contact-details', () => null),
+        rest.get('/user', () => void 0),
+        rest.post('/user-contact-details', () => void 0),
       )
     })
 
@@ -120,8 +121,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     page.evaluate(() => {
       const { worker, rest } = window.msw
       worker.use(
-        rest.post('/payment', () => null),
-        rest.get('/payments', () => null),
+        rest.post('/payment', () => void 0),
+        rest.get('/payments', () => void 0),
       )
     })
 

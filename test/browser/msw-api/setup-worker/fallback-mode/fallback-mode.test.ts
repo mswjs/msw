@@ -1,4 +1,4 @@
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
 import { Page } from '@playwright/test'
 import { HttpServer } from '@open-draft/test-server/http'

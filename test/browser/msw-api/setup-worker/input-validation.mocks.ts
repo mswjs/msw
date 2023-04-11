@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 // The next line will be ignored because we want to test that an Error
 // should be trown when `setupWorker` parameters are not valid

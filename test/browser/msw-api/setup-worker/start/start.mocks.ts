@@ -1,4 +1,5 @@
-import { setupWorker, rest } from 'msw'
+import { rest } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/user', () => {

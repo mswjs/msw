@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse } from 'msw'
+import { rest, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 import base64Image from 'url-loader!../../../../fixtures/image.jpg'
 
 const worker = setupWorker(

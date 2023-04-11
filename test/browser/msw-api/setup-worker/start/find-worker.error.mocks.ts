@@ -1,4 +1,5 @@
-import { setupWorker, rest } from 'msw'
+import { rest } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/user', () => {
@@ -15,10 +16,10 @@ window.msw = {
         return scriptURL.includes('some-bad-filename-that-does-not-exist.js')
       },
     })
-    .then((reg) => {
+    .then((registration) => {
       console.log('Registration Promise resolved')
       // This will throw as as there is no instance returned with a non-matching worker name.
-      return reg.constructor.name
+      return registration?.constructor.name
     })
     .catch((error) => {
       console.error('Error - no worker instance after starting', error)

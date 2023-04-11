@@ -85,7 +85,11 @@ const iifeConfig: Options = {
   name: 'iife',
   platform: 'browser',
   globalName: 'MockServiceWorker',
-  entry: ['./src/browser/index.ts'],
+  entry: ['./src/iife/index.ts'],
+  /**
+   * @note Legacy output format will automatically create
+   * a "iife" directory under the "outDir".
+   */
   outDir: './lib',
   format: ['iife'],
   legacyOutput: true,

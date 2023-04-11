@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse, bypass } from 'msw'
+import { rest, HttpResponse, bypass } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('*/user', async ({ request }) => {

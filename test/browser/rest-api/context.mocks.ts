@@ -1,4 +1,5 @@
-import { setupWorker, rest, HttpResponse, delay } from 'msw'
+import { rest, HttpResponse, delay } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('https://test.mswjs.io/', async () => {

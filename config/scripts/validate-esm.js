@@ -209,4 +209,39 @@ function validateTypeDefs(typeDefsPath) {
   console.log('✅ Validated type definitions at "%s"', typeDefsPath)
 }
 
+function validatePackageFiles() {
+  const { files } = PKG_JSON
+
+  const expectedFiles = [
+    'config/constants.js',
+    'config/scripts/postinstall.js',
+    'cli',
+    'lib',
+    'browser',
+    'node',
+    'native',
+  ]
+
+  // Must list all the expcted files.
+  expectedFiles.forEach((expectedFile) => {
+    invariant(
+      files.includes(expectedFile),
+      '"%s" is not listed in "files" in package.json',
+      expectedFile,
+    )
+  })
+
+  // All the listed files must exist.
+  expectedFiles.every((expectedFile) => {
+    invariant(
+      fs.existsSync(fromRoot(expectedFile)),
+      'The file "%s" in "files" points at non-existing file',
+      expectedFile,
+    )
+  })
+
+  console.log('✅ Validated package.json "files" field')
+}
+
 validatePackageExports()
+validatePackageFiles()

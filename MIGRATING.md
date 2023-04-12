@@ -44,7 +44,7 @@ The `setupWorker` API, alongside any related type definitions, are no longer exp
 
 ```diff
 -import { setupWorker } from 'msw'
-+import { setupWorker } from 'msw/browser
++import { setupWorker } from 'msw/browser'
 ```
 
 > Note that the request handlers like `rest` and `graphql`, as well as the utility functions like `bypass` and `passthrough` must still be imported from the root-level `msw`.

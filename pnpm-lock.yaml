@@ -9,7 +9,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^0.2.2
-  '@mswjs/interceptors': ^0.22.10
+  '@mswjs/interceptors': ^0.22.11
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.0.0
   '@ossjs/release': ^0.4.0
@@ -79,7 +79,7 @@ specifiers:
 
 dependencies:
   '@mswjs/cookies': 0.2.2
-  '@mswjs/interceptors': 0.22.10
+  '@mswjs/interceptors': 0.22.11
   '@open-draft/until': 2.0.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2318,19 +2318,16 @@ packages:
       set-cookie-parser: 2.5.1
     dev: false
 
-  /@mswjs/interceptors/0.22.10:
-    resolution: {integrity: sha512-Dapt96ciy7Qg6e/QRgrzI58AD2+xhkPkhOuTmLVVRuoxFAttft8itRHdNaF4o2BSDfswOn8SI8isqECSe1yq7g==}
+  /@mswjs/interceptors/0.22.11:
+    resolution: {integrity: sha512-r/gLCFiFItPXRaJc2vRy3BljFTUiLkOWkgY/Vxdr+UOitDptYXetu3pWKDZLHVUrBawN7scP98W2t8On/pyt8g==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.1.0
+      '@open-draft/logger': 0.2.0
       '@open-draft/until': 2.0.0
-      '@types/debug': 4.1.7
-      debug: 4.3.4
       headers-polyfill: 3.1.2
       outvariant: 1.4.0
       strict-event-emitter: 0.5.0
-    transitivePeerDependencies:
-      - supports-color
     dev: false
 
   /@nodelib/fs.scandir/2.1.5:
@@ -2356,6 +2353,13 @@ packages:
 
   /@open-draft/deferred-promise/2.1.0:
     resolution: {integrity: sha512-Rzd5JrXZX8zErHzgcGyngh4fmEbSHqTETdGj9rXtejlqMIgXFlyKBA7Jn1Xp0Ls0M0Y22+xHcWiEzbmdWl0BOA==}
+    dev: false
+
+  /@open-draft/logger/0.2.0:
+    resolution: {integrity: sha512-/s7NLIXIvLcRUlrs94GFj7hcxH87JZaJNr9SlDhdvDIS8ke9GcflqjNzs47kTOG7dH2AjMZ9rJgX3l7tREUVxA==}
+    dependencies:
+      is-node-process: 1.2.0
+      outvariant: 1.4.0
     dev: false
 
   /@open-draft/test-server/0.4.2:
@@ -2635,6 +2639,7 @@ packages:
     resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
     dependencies:
       '@types/ms': 0.7.31
+    dev: true
 
   /@types/eslint-scope/3.7.4:
     resolution: {integrity: sha512-9K4zoImiZc3HlIp6AVUDE4CWYx22a+lhSZMYNpbjW04+YF0KWj4pJXnEMjdnFTiQibFFmElcsasJXDbdI/EPhA==}
@@ -2758,6 +2763,7 @@ packages:
 
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
+    dev: true
 
   /@types/mustache/4.2.2:
     resolution: {integrity: sha512-MUSpfpW0yZbTgjekDbH0shMYBUD+X/uJJJMm9LXN1d5yjl5lCY1vN/eWKD6D1tOtjA6206K0zcIPnUaFMurdNA==}
@@ -4555,6 +4561,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /debug/4.3.4_supports-color@6.1.0:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -7735,6 +7742,7 @@ packages:
 
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+    dev: true
 
   /ms/2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}

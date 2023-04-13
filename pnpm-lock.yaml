@@ -26,6 +26,7 @@ specifiers:
   '@types/node': 18.x
   '@types/node-fetch': ^2.5.11
   '@types/puppeteer': ^5.4.4
+  '@types/statuses': ^2.0.1
   '@typescript-eslint/eslint-plugin': ^5.11.0
   '@typescript-eslint/parser': ^5.11.0
   babel-loader: ^8.2.3
@@ -64,7 +65,7 @@ specifiers:
   regenerator-runtime: ^0.13.9
   rimraf: ^3.0.2
   simple-git-hooks: ^2.8.0
-  statuses: ^2.0.0
+  statuses: ^2.0.1
   strict-event-emitter: ^0.5.0
   ts-node: ^10.9.1
   tsup: ^6.7.0
@@ -83,6 +84,7 @@ dependencies:
   '@open-draft/until': 2.0.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
+  '@types/statuses': 2.0.1
   chalk: 4.1.1
   chokidar: 3.4.1
   cookie: 0.4.2
@@ -95,6 +97,7 @@ dependencies:
   node-fetch: 2.6.9
   outvariant: 1.4.0
   path-to-regexp: 6.2.1
+  statuses: 2.0.1
   strict-event-emitter: 0.5.0
   type-fest: 2.19.0
   yargs: 17.7.0
@@ -143,7 +146,6 @@ devDependencies:
   regenerator-runtime: 0.13.11
   rimraf: 3.0.2
   simple-git-hooks: 2.8.1
-  statuses: 2.0.1
   ts-node: 10.9.1_rtqtuii6mqwmhbrzzpdx2vdzzq
   tsup: 6.7.0_4s7jzcjqpdttwnwh3e3glkuq6y
   typescript: 5.0.2
@@ -2839,6 +2841,10 @@ packages:
   /@types/stack-utils/2.0.1:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
     dev: true
+
+  /@types/statuses/2.0.1:
+    resolution: {integrity: sha512-vVRgv7WXbhIZzILgr58b4Ki2uqpN/dlVCUBWCMkPbMDlV1CrQrgCl5hnIoUlMrgymGcTmdfVqbs1yWj/IRIRtQ==}
+    dev: false
 
   /@types/tough-cookie/4.0.2:
     resolution: {integrity: sha512-Q5vtl1W5ue16D+nIaW8JWebSSraJVlK+EthKn7e7UcD4KWsaSJ8BqGPXNaPghgtcn/fhvrN17Tv8ksUsQpiplw==}
@@ -9380,7 +9386,6 @@ packages:
   /statuses/2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
-    dev: true
 
   /stream-combiner2/1.1.1:
     resolution: {integrity: sha512-3PnJbYgS56AeWgtKF5jtJRT6uFJe56Z0Hc5Ngg/6sI6rIt8iiMBTa9cvdyFfpMQjaVHr8dusbNeFGIIonxOvKw==}

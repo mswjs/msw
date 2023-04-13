@@ -1,4 +1,4 @@
-import httpStatusTexts from 'statuses/codes.json'
+import { message } from 'statuses'
 import type { HttpResponseInit } from '../../HttpResponse'
 
 export interface HttpResponseDecoratedInit extends HttpResponseInit {
@@ -11,10 +11,7 @@ export function decorateResponseInit(
   init: HttpResponseInit = {},
 ): HttpResponseDecoratedInit {
   const status = init?.status || 200
-  const statusText =
-    init?.statusText ||
-    httpStatusTexts[status.toString() as keyof typeof httpStatusTexts] ||
-    ''
+  const statusText = init?.statusText || message[status] || ''
   const headers = new Headers(init?.headers)
 
   return {

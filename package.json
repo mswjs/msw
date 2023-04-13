@@ -112,6 +112,7 @@
     "@open-draft/until": "^2.0.0",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
+    "@types/statuses": "^2.0.1",
     "chalk": "4.1.1",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.2",
@@ -124,6 +125,7 @@
     "node-fetch": "^2.6.7",
     "outvariant": "^1.4.0",
     "path-to-regexp": "^6.2.0",
+    "statuses": "^2.0.1",
     "strict-event-emitter": "^0.5.0",
     "type-fest": "^2.19.0",
     "yargs": "^17.3.1"
@@ -172,7 +174,6 @@
     "regenerator-runtime": "^0.13.9",
     "rimraf": "^3.0.2",
     "simple-git-hooks": "^2.8.0",
-    "statuses": "^2.0.0",
     "ts-node": "^10.9.1",
     "tsup": "^6.7.0",
     "typescript": "^5.0.2",

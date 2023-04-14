@@ -51,7 +51,7 @@
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser",
     "test:unit": "cross-env BABEL_ENV=test jest --maxWorkers=3",
-    "test:node": "jest --config=./test/jest.config.js",
+    "test:node": "jest --config=./test/jest.config.js --forceExit",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
     "test:ts": "ts-node test/typings/run.ts",
     "prepare": "pnpm simple-git-hooks init",

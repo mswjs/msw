@@ -1,5 +1,7 @@
-import { message } from 'statuses'
+import statuses from 'statuses'
 import type { HttpResponseInit } from '../../HttpResponse'
+
+const { message } = statuses
 
 export interface HttpResponseDecoratedInit extends HttpResponseInit {
   status: number

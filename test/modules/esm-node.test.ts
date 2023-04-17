@@ -63,35 +63,43 @@ afterAll(async () => {
   await fsMock.cleanup()
 })
 
-it('resolves exports in ESM Node.js', async () => {
+it('runs in a ESM Node.js project', async () => {
   await fsMock.create({
-    'index.mjs': `
+    'resolve.mjs': `
 console.log('msw:', await import.meta.resolve('msw'))
 console.log('msw/node:', await import.meta.resolve('msw/node'))
 console.log('msw/native:', await import.meta.resolve('msw/native'))
 `,
+    'runtime.mjs': `
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+const server = setupServer(
+  rest.get('/resource', () => new Response())
+)
+console.log(typeof server.listen)
+`,
   })
 
-  const runtimeStdio = await fsMock.exec(
+  const resolveStdio = await fsMock.exec(
     /**
      * @note Using the import meta resolve flag
      * to enable the "import.meta.resolve" API to see
      * what library imports resolve to in Node.js ESM.
      */
-    'node --experimental-import-meta-resolve ./index.mjs',
+    'node --experimental-import-meta-resolve ./resolve.mjs',
   )
-  expect(runtimeStdio.stderr).toBe('')
+  expect(resolveStdio.stderr).toBe('')
   /**
    * @todo Take these expected export paths from package.json.
    * That should be the source of truth.
    */
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
   )
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
   )
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.mjs/m,
   )
 
@@ -100,49 +108,46 @@ console.log('msw/native:', await import.meta.resolve('msw/native'))
    * saying that the "./browser" export is not defined.
    * That's correct, it's exlpicitly set as "browser: null" for Node.js.
    */
-})
 
-it('runs ESM bundle in the ESM Node.js', async () => {
-  await fsMock.create({
-    'entry.mjs': `
-import { rest } from 'msw'
-import { setupServer } from 'msw/node'
-
-const server = setupServer(
-  rest.get('/resource', () => new Response())
-)
-
-console.log(typeof server.listen)
-    `,
-  })
-
-  const runtimeStdio = await fsMock.exec('node ./entry.mjs')
+  const runtimeStdio = await fsMock.exec('node ./runtime.mjs')
   expect(runtimeStdio.stderr).toBe('')
   expect(runtimeStdio.stdout).toMatch(/function/m)
 })
 
-it('resolves exports in CJS Node.js', async () => {
+it('runs in a CJS Node.js project', async () => {
   await fsMock.create({
-    'index.cjs': `
+    'resolve.cjs': `
 console.log('msw:', require.resolve('msw'))
 console.log('msw/node:', require.resolve('msw/node'))
 console.log('msw/native:', require.resolve('msw/native'))
 `,
+    'runtime.cjs': `
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+const server = setupServer(
+  rest.get('/resource', () => new Response())
+)
+console.log(typeof server.listen)
+`,
   })
 
-  const runtimeStdio = await fsMock.exec('node ./index.cjs')
-  expect(runtimeStdio.stderr).toBe('')
+  const resolveStdio = await fsMock.exec('node ./resolve.cjs')
+  expect(resolveStdio.stderr).toBe('')
   /**
    * @todo Take these expected export paths from package.json.
    * That should be the source of truth.
    */
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
   )
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
   )
-  expect(runtimeStdio.stdout).toMatch(
+  expect(resolveStdio.stdout).toMatch(
     /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
   )
+
+  const runtimeStdio = await fsMock.exec('node ./runtime.mjs')
+  expect(runtimeStdio.stderr).toBe('')
+  expect(runtimeStdio.stdout).toMatch(/function/m)
 })

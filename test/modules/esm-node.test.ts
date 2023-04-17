@@ -102,6 +102,25 @@ console.log('msw/native:', await import.meta.resolve('msw/native'))
    */
 })
 
+it('runs ESM bundle in the ESM Node.js', async () => {
+  await fsMock.create({
+    'entry.mjs': `
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+
+const server = setupServer(
+  rest.get('/resource', () => new Response())
+)
+
+console.log(typeof server.listen)
+    `,
+  })
+
+  const runtimeStdio = await fsMock.exec('node ./entry.mjs')
+  expect(runtimeStdio.stderr).toBe('')
+  expect(runtimeStdio.stdout).toMatch(/function/m)
+})
+
 it('resolves exports in CJS Node.js', async () => {
   await fsMock.create({
     'index.cjs': `

@@ -114,7 +114,6 @@
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
     "@types/statuses": "^2.0.1",
-    "chalk": "4.1.1",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.2",
     "formdata-node": "4.4.1",

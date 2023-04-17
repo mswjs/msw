@@ -1,9 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import chalk from 'chalk'
 import { until } from '@open-draft/until'
-
-const { cyan } = chalk
 
 /**
  * Copies the given Service Worker source file into the destination.
@@ -48,5 +45,5 @@ export default async function copyServiceWorker(
     throw new Error(`Failed to write file.\n${writeFileResult.error.message}`)
   }
 
-  console.log('Service Worker copied to: %s', cyan(destFilePath))
+  console.log('Service Worker copied to: %s', destFilePath)
 }

@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
@@ -14,11 +13,6 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
-
-/**
- * @see https://github.com/mswjs/msw/pull/1399
- */
-const { bold } = chalk
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -114,7 +108,7 @@ export class SetupServerApi
         : '[rest]'
 
       console.log(`\
-${bold(`${pragma} ${header}`)}
+${`${pragma} ${header}`}
   Declaration: ${callFrame}
 `)
     })

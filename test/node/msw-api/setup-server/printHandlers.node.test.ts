@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-import { bold } from 'chalk'
 import { rest, graphql } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -42,32 +41,32 @@ test('lists all current request handlers', () => {
   expect(console.log).toBeCalledTimes(6)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[rest] GET https://test.mswjs.io/book/:bookId')}
+${'[rest] GET https://test.mswjs.io/book/:bookId'}
   Declaration: ${__filename}:13:8
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] query GetUser (origin: *)')}
+${'[graphql] query GetUser (origin: *)'}
   Declaration: ${__filename}:14:11
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] mutation UpdatePost (origin: *)')}
+${'[graphql] mutation UpdatePost (origin: *)'}
   Declaration: ${__filename}:15:11
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] all (origin: *)')}
+${'[graphql] all (origin: *)'}
   Declaration: ${__filename}:16:11
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] query GetRepo (origin: https://api.github.com)')}
+${'[graphql] query GetRepo (origin: https://api.github.com)'}
   Declaration: ${__filename}:17:10
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] all (origin: https://api.github.com)')}
+${'[graphql] all (origin: https://api.github.com)'}
   Declaration: ${__filename}:18:10
 `)
 })
@@ -85,12 +84,12 @@ test('respects runtime request handlers when listing handlers', () => {
   expect(console.log).toBeCalledTimes(8)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[rest] GET https://test.mswjs.io/book/:bookId')}
+${'[rest] GET https://test.mswjs.io/book/:bookId'}
   Declaration: ${__filename}:77:10
 `)
 
   expect(console.log).toBeCalledWith(`\
-${bold('[graphql] query GetRandomNumber (origin: *)')}
+${'[graphql] query GetRandomNumber (origin: *)'}
   Declaration: ${__filename}:78:13
 `)
 })

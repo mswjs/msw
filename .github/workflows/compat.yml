@@ -33,6 +33,9 @@ jobs:
       - name: Validate package.json exports
         run: pnpm check:exports
 
+      - name: Test modules
+        run: pnpm test:modules
+
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.
   typescript:

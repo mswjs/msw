@@ -42,32 +42,32 @@ test('lists all current request handlers', () => {
 
   expect(console.log).toBeCalledWith(`\
 ${'[rest] GET https://test.mswjs.io/book/:bookId'}
-  Declaration: ${__filename}:13:8
+  Declaration: ${__filename}:12:8
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] query GetUser (origin: *)'}
-  Declaration: ${__filename}:14:11
+  Declaration: ${__filename}:13:11
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] mutation UpdatePost (origin: *)'}
-  Declaration: ${__filename}:15:11
+  Declaration: ${__filename}:14:11
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] all (origin: *)'}
-  Declaration: ${__filename}:16:11
+  Declaration: ${__filename}:15:11
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] query GetRepo (origin: https://api.github.com)'}
-  Declaration: ${__filename}:17:10
+  Declaration: ${__filename}:16:10
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] all (origin: https://api.github.com)'}
-  Declaration: ${__filename}:18:10
+  Declaration: ${__filename}:17:10
 `)
 })
 
@@ -85,11 +85,11 @@ test('respects runtime request handlers when listing handlers', () => {
 
   expect(console.log).toBeCalledWith(`\
 ${'[rest] GET https://test.mswjs.io/book/:bookId'}
-  Declaration: ${__filename}:77:10
+  Declaration: ${__filename}:76:10
 `)
 
   expect(console.log).toBeCalledWith(`\
 ${'[graphql] query GetRandomNumber (origin: *)'}
-  Declaration: ${__filename}:78:13
+  Declaration: ${__filename}:77:13
 `)
 })

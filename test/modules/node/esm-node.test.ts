@@ -1,8 +1,6 @@
-import * as fs from 'fs'
 import * as path from 'path'
 import { createTeardown } from 'fs-teardown'
-import { spawnSync } from 'child_process'
-import { invariant } from 'outvariant'
+import { installLibrary } from '../module-utils'
 
 const fsMock = createTeardown({
   rootDir: path.resolve(__dirname, 'node-esm-tests'),
@@ -11,52 +9,9 @@ const fsMock = createTeardown({
   },
 })
 
-async function getLibraryTarball(): Promise<string> {
-  const ROOT_PATH = path.resolve(__dirname, '../..')
-  const { version } = require(`${ROOT_PATH}/package.json`)
-  const packFilename = `msw-${version}.tgz`
-  const packPath = path.resolve(ROOT_PATH, packFilename)
-
-  if (fs.existsSync(packPath)) {
-    return packPath
-  }
-
-  const out = spawnSync('pnpm', ['pack'], { cwd: ROOT_PATH })
-
-  if (out.error) {
-    console.error(out.error)
-  }
-
-  invariant(
-    fs.existsSync(packPath),
-    'Failed to pack the library at "%s"',
-    packPath,
-  )
-
-  return packPath
-}
-
-async function installLibrary() {
-  const TARBALL_PATH = await getLibraryTarball()
-  const installStdio = await fsMock.exec(`pnpm install $TARBALL_PATH`, {
-    env: { TARBALL_PATH },
-  })
-
-  if (installStdio.stderr) {
-    console.error(installStdio.stderr)
-    return Promise.reject(
-      'Failed to install the library. See the stderr output above.',
-    )
-  }
-
-  /** @todo Assert that pnpm printed success:
-   * + msw 0.0.0-fetch.rc-11
-   */
-}
-
 beforeAll(async () => {
   await fsMock.prepare()
-  await installLibrary()
+  await installLibrary(fsMock.resolve('.'))
 })
 
 afterAll(async () => {

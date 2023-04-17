@@ -62,7 +62,7 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
         alias: {
           msw: path.resolve(__dirname, '../../..'),
         },
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js', '.mjs'],
       },
     },
   })

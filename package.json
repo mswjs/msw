@@ -151,6 +151,7 @@
     "@types/puppeteer": "^5.4.4",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
+    "@web/dev-server": "^0.1.38",
     "babel-loader": "^8.2.3",
     "babel-minify": "^0.5.1",
     "commitizen": "^4.2.4",

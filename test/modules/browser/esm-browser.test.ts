@@ -1,9 +1,14 @@
 import * as path from 'path'
+import { invariant } from 'outvariant'
 import { createTeardown } from 'fs-teardown'
-import { WebpackHttpServer } from 'webpack-http-server'
+import * as express from 'express'
+import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '@playwright/test'
 import { spyOnConsole } from 'page-with'
+import { startDevServer } from '@web/dev-server'
 import { installLibrary } from '../module-utils'
+
+type DevServer = Awaited<ReturnType<typeof startDevServer>>
 
 const fsMock = createTeardown({
   rootDir: path.resolve(__dirname, 'esm-browser-tests'),
@@ -12,27 +17,43 @@ const fsMock = createTeardown({
   },
 })
 
-const webpackServer = new WebpackHttpServer({
-  before(app) {
-    app.get('/favicon.ico', (req, res) => res.status(200).end())
-  },
-  webpackConfig: {
-    context: fsMock.resolve('.'),
-    target: 'web',
-    resolve: {
-      extensions: ['.mjs', '.js'],
-    },
-  },
+let devServer: DevServer
+
+function getDevServerUrl(): string {
+  const address = devServer.server.address()
+
+  invariant(address, 'Failed to retrieve dev server url: null')
+
+  if (typeof address === 'string') {
+    return new URL(address).href
+  }
+
+  return new URL(`http://localhost:${address.port}`).href
+}
+
+const httpServer = new HttpServer((app) => {
+  app.use(express.static(fsMock.resolve('.')))
 })
 
 test.beforeAll(async () => {
-  await webpackServer.listen()
+  devServer = await startDevServer({
+    config: {
+      rootDir: fsMock.resolve('.'),
+      nodeResolve: {
+        exportConditions: ['browser'],
+      },
+    },
+    logStartMessage: false,
+  })
+
+  await httpServer.listen()
   await fsMock.prepare()
   await installLibrary(fsMock.resolve('.'))
 })
 
 test.afterAll(async () => {
-  await webpackServer.close()
+  await devServer?.stop()
+  await httpServer.close()
   await fsMock.cleanup()
 })
 
@@ -47,15 +68,15 @@ const worker = setupWorker(
 )
 console.log(typeof worker.start)
     `,
+    'index.html': `
+<script type="module" src="./entry.mjs"></script>
+    `,
   })
   const consoleSpy = spyOnConsole(page)
   const pageErrors: Array<string> = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
 
-  const compilation = await webpackServer.compile(['./entry.mjs'])
-  await page.goto(compilation.previewUrl, { waitUntil: 'networkidle' })
-
-  await compilation.dispose()
+  await page.goto(getDevServerUrl(), { waitUntil: 'networkidle' })
 
   expect(pageErrors).toEqual([])
   expect(consoleSpy.get('error')).toBeUndefined()

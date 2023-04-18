@@ -9,6 +9,10 @@ export async function getLibraryTarball(): Promise<string> {
   const packFilename = `msw-${version}.tgz`
   const packPath = path.resolve(ROOT_PATH, packFilename)
 
+  /**
+   * @note Beware that you need to remove the tarball after
+   * the test run is done. Don't want to use a stale tgarball, do you?
+   */
   if (fs.existsSync(packPath)) {
     return packPath
   }

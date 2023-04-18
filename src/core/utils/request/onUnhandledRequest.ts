@@ -1,4 +1,5 @@
-import getStringMatchScore from 'js-levenshtein'
+// @ts-ignore
+import * as jsLevenshtein from 'js-levenshtein'
 import { RequestHandler, RestHandler, GraphQLHandler } from '../..'
 import {
   ParsedGraphQLQuery,
@@ -7,6 +8,8 @@ import {
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { devUtils } from '../internal/devUtils'
+
+const getStringMatchScore = (jsLevenshtein as any).default
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4

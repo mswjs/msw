@@ -39,6 +39,7 @@ test.beforeAll(async () => {
   devServer = await startDevServer({
     config: {
       rootDir: fsMock.resolve('.'),
+      port: 0,
       nodeResolve: {
         exportConditions: ['browser'],
       },
@@ -74,7 +75,9 @@ console.log(typeof worker.start)
   })
   const consoleSpy = spyOnConsole(page)
   const pageErrors: Array<string> = []
-  page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('pageerror', (error) =>
+    pageErrors.push(`${error.message}\n${error.stack}`),
+  )
 
   await page.goto(getDevServerUrl(), { waitUntil: 'networkidle' })
 

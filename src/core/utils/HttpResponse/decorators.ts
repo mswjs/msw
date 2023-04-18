@@ -1,4 +1,4 @@
-import statuses from 'statuses'
+import * as statuses from 'statuses'
 import type { HttpResponseInit } from '../../HttpResponse'
 
 const { message } = statuses

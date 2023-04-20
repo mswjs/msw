@@ -109,6 +109,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
+    "@bundled-es-modules/cookie": "^2.0.0",
     "@mswjs/cookies": "^1.0.0",
     "@mswjs/interceptors": "^0.22.12",
     "@open-draft/until": "^2.1.0",
@@ -116,7 +117,6 @@
     "@types/js-levenshtein": "^1.1.1",
     "@types/statuses": "^2.0.1",
     "chokidar": "^3.4.2",
-    "cookie": "^0.4.2",
     "formdata-node": "4.4.1",
     "graphql": "^15.0.0 || ^16.0.0",
     "headers-polyfill": "^3.1.2",

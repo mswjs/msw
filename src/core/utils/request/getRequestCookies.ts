@@ -1,14 +1,14 @@
-import * as cookieUtils from 'cookie'
+import * as cookieUtils from '@bundled-es-modules/cookie'
 import { store } from '@mswjs/cookies'
 
 function getAllDocumentCookies() {
   return cookieUtils.parse(document.cookie)
 }
 
+/** @todo Rename this to "getDocumentCookies" */
 /**
  * Returns relevant document cookies based on the request `credentials` option.
  */
-/** @todo Rename this to "getDocumentCookies" */
 export function getRequestCookies(request: Request): Record<string, string> {
   /**
    * @note No cookies persist on the document in Node.js: no document.

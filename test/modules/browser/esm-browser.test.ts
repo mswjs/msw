@@ -70,6 +70,11 @@ const worker = setupWorker(
 console.log(typeof worker.start)
     `,
     'index.html': `
+<!--
+  "graphql" ships a bug where they access "process" in the browser.
+  Fix: https://github.com/graphql/graphql-js/pull/3887
+-->
+<script>globalThis.process = { env: { NODE_ENV: 'production' } }</script>
 <script type="module" src="./entry.mjs"></script>
     `,
   })

@@ -5,7 +5,7 @@ import { TextEncoder } from 'util'
 import { HttpResponse } from './HttpResponse'
 
 it('creates a plain response', async () => {
-  const response = HttpResponse.plain(null, { status: 301 })
+  const response = new HttpResponse(null, { status: 301 })
   expect(response.status).toBe(301)
   expect(response.statusText).toBe('Moved Permanently')
   expect(response.body).toBe(null)
@@ -54,7 +54,7 @@ it('creates an array buffer response', async () => {
 it('creates a form data response', async () => {
   const formData = new FormData()
   formData.append('firstName', 'John')
-  const response = HttpResponse.plain(formData)
+  const response = HttpResponse.formData(formData)
 
   expect(response.status).toBe(200)
   expect(response.statusText).toBe('OK')

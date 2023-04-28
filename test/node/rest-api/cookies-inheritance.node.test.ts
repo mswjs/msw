@@ -22,7 +22,7 @@ beforeAll(async () => {
 
   server = setupServer(
     rest.post(httpServer.https.url('/login'), () => {
-      return HttpResponse.plain(null, {
+      return new HttpResponse(null, {
         headers: {
           'Set-Cookie': 'authToken=abc-123',
         },

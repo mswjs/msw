@@ -316,7 +316,7 @@ import { Headers, HttpResponse, rest } from 'msw'
 
 export const handlers = [
   rest.get('/resource', () => {
-    return HttpResponse.plain(null, {
+    return new HttpResponse(null, {
       headers: new Headers([
         // Mock a multi-value response cookie header.
         ['Set-Cookie', 'sessionId=123'],
@@ -336,7 +336,7 @@ import { rest, HttpResponse } from 'msw'
 
 export const handlers = [
   rest.get('/resource', () => {
-    return HttpResponse.raw('any-body')
+    return new HttpResponse('any-body')
   }),
 ]
 ```
@@ -585,7 +585,7 @@ rest.get('/greeting', () => {
     },
   })
 
-  return HttpResponse.plain(stream)
+  return new HttpResponse(stream)
 })
 ```
 

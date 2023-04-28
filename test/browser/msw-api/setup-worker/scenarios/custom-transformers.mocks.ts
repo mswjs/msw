@@ -4,7 +4,7 @@ import * as JSONbig from 'json-bigint'
 
 const worker = setupWorker(
   rest.get('/user', () => {
-    return HttpResponse.plain(
+    return new HttpResponse(
       JSONbig.stringify({
         username: 'john.maverick',
         balance: BigInt(1597928668063727616),

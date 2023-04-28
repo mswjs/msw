@@ -3,7 +3,7 @@ import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   rest.get('/api/books', () => {
-    return HttpResponse.plain(null, { status: 204 })
+    return new HttpResponse(null, { status: 204 })
   }),
 )
 

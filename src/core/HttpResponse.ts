@@ -1,12 +1,19 @@
 import type { DefaultBodyType } from './handlers/RequestHandler'
-import { createResponse } from './utils/HttpResponse/createResponse'
-import { decorateResponseInit } from './utils/HttpResponse/decorators'
+import {
+  decorateResponse,
+  normalizeResponseInit,
+} from './utils/HttpResponse/decorators'
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
 declare const bodyType: unique symbol
+
+export interface StrictRequest<BodyType extends DefaultBodyType>
+  extends Request {
+  json(): Promise<BodyType>
+}
 
 /**
  * Opaque `Response` type that supports strict body type.
@@ -16,19 +23,17 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
   readonly [bodyType]: BodyType
 }
 
-export interface StrictRequest<BodyType extends DefaultBodyType>
-  extends Request {
-  json(): Promise<BodyType>
-}
-
-export const HttpResponse = {
-  plain<BodyType extends BodyInit>(
-    body?: BodyType | null,
-    init?: HttpResponseInit,
-  ): Response {
-    const responseInit = decorateResponseInit(init)
-    return createResponse(body, responseInit)
-  },
+/**
+ * A `Response` class superset with a stricter response body type.
+ * @example
+ * new HttpResponse('Hello world', { status: 201 })
+ */
+export class HttpResponse extends Response {
+  constructor(body?: BodyInit | null, init?: HttpResponseInit) {
+    const responseInit = normalizeResponseInit(init)
+    super(body, responseInit)
+    decorateResponse(this, responseInit)
+  }
 
   /**
    * Create a `Response` with a `Content-Type: "text/plain"` body.
@@ -36,14 +41,14 @@ export const HttpResponse = {
    * HttpResponse.text('hello world')
    * HttpResponse.text('Error', { status: 500 })
    */
-  text<BodyType extends string>(
+  static text<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
-    const responseInit = decorateResponseInit(init)
+    const responseInit = normalizeResponseInit(init)
     responseInit.headers.set('Content-Type', 'text/plain')
-    return createResponse(body, responseInit)
-  },
+    return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
+  }
 
   /**
    * Create a `Response` with a `Content-Type: "application/json"` body.
@@ -51,14 +56,17 @@ export const HttpResponse = {
    * HttpResponse.json({ firstName: 'John' })
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
-  json<BodyType extends DefaultBodyType>(
+  static json<BodyType extends DefaultBodyType>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
-    const responseInit = decorateResponseInit(init)
+    const responseInit = normalizeResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')
-    return createResponse(JSON.stringify(body), responseInit)
-  },
+    return new HttpResponse(
+      JSON.stringify(body),
+      responseInit,
+    ) as StrictResponse<BodyType>
+  }
 
   /**
    * Create a `Response` with a `Content-Type: "application/xml"` body.
@@ -66,14 +74,14 @@ export const HttpResponse = {
    * HttpResponse.xml(`<user name="John" />`)
    * HttpResponse.xml(`<article id="abc-123" />`, { status: 201 })
    */
-  xml<BodyType extends string>(
+  static xml<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): Response {
-    const responseInit = decorateResponseInit(init)
+    const responseInit = normalizeResponseInit(init)
     responseInit.headers.set('Content-Type', 'text/xml')
-    return createResponse(body, responseInit)
-  },
+    return new HttpResponse(body, responseInit)
+  }
 
   /**
    * Create a `Response` with an `ArrayBuffer` body.
@@ -84,15 +92,15 @@ export const HttpResponse = {
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
-    const responseInit = decorateResponseInit(init)
+  static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+    const responseInit = normalizeResponseInit(init)
 
     if (body) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return createResponse(body, responseInit)
-  },
+    return new HttpResponse(body, responseInit)
+  }
 
   /**
    * Create a `Response` with a `FormData` body.
@@ -102,8 +110,7 @@ export const HttpResponse = {
    *
    * HttpResponse.formData(data)
    */
-  formData(data?: FormData, init?: HttpResponseInit): Response {
-    const responseInit = decorateResponseInit(init)
-    return createResponse(data, responseInit)
-  },
+  static formData(body?: FormData, init?: HttpResponseInit): Response {
+    return new HttpResponse(body, normalizeResponseInit(init))
+  }
 }

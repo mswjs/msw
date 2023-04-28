@@ -5,7 +5,7 @@ import { setupServer } from 'msw/node'
 
 const server = setupServer(
   rest.get('http://test.mswjs.io/me', () => {
-    return HttpResponse.plain(
+    return new HttpResponse(
       JSONbig.stringify({
         username: 'john.maverick',
         balance: BigInt(1597928668063727616),

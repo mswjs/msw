@@ -9,7 +9,7 @@ export interface HttpResponseDecoratedInit extends HttpResponseInit {
   headers: Headers
 }
 
-export function decorateResponseInit(
+export function normalizeResponseInit(
   init: HttpResponseInit = {},
 ): HttpResponseDecoratedInit {
   const status = init?.status || 200

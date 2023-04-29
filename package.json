@@ -110,7 +110,7 @@
   "sideEffects": false,
   "dependencies": {
     "@bundled-es-modules/cookie": "^2.0.0",
-    "@bundled-es-modules/js-levenshtein": "^2.0.0",
+    "@bundled-es-modules/js-levenshtein": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@mswjs/cookies": "^1.0.0",
     "@mswjs/interceptors": "^0.22.12",

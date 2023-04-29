@@ -7,7 +7,7 @@ specifiers:
   '@babel/core': ^7.17.2
   '@babel/preset-env': ^7.16.11
   '@bundled-es-modules/cookie': ^2.0.0
-  '@bundled-es-modules/js-levenshtein': ^2.0.0
+  '@bundled-es-modules/js-levenshtein': ^2.0.1
   '@bundled-es-modules/statuses': ^1.0.1
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
@@ -81,7 +81,7 @@ specifiers:
 
 dependencies:
   '@bundled-es-modules/cookie': 2.0.0
-  '@bundled-es-modules/js-levenshtein': 2.0.0
+  '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.0.0
   '@mswjs/interceptors': 0.22.12
@@ -1375,8 +1375,8 @@ packages:
       cookie: 0.5.0
     dev: false
 
-  /@bundled-es-modules/js-levenshtein/2.0.0:
-    resolution: {integrity: sha512-KSVIngpi1QztKcUxXr50ru6JCK3zO2TZuax92MdupxosHAZMJrPWkb9U4tyVg878+IBYbsplW1yEyJE3s10cFg==}
+  /@bundled-es-modules/js-levenshtein/2.0.1:
+    resolution: {integrity: sha512-DERMS3yfbAljKsQc0U2wcqGKUWpdFjwqWuoMugEJlqBnKO180/n+4SR/J8MRDt1AN48X1ovgoD9KrdVXcaa3Rg==}
     dependencies:
       js-levenshtein: 1.1.6
     dev: false

@@ -5,6 +5,6 @@ declare module '@bundled-es-modules/cookie' {
 }
 
 declare module '@bundled-es-modules/statuses' {
-  const source_default: any
-  export { source_default as default }
+  import * as statuses from 'statuses'
+  export default statuses
 }

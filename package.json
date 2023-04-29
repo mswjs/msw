@@ -110,6 +110,8 @@
   "sideEffects": false,
   "dependencies": {
     "@bundled-es-modules/cookie": "^2.0.0",
+    "@bundled-es-modules/js-levenshtein": "^2.0.0",
+    "@bundled-es-modules/statuses": "^1.0.1",
     "@mswjs/cookies": "^1.0.0",
     "@mswjs/interceptors": "^0.22.12",
     "@open-draft/until": "^2.1.0",
@@ -126,7 +128,6 @@
     "node-fetch": "^2.6.7",
     "outvariant": "^1.4.0",
     "path-to-regexp": "^6.2.0",
-    "statuses": "^2.0.1",
     "strict-event-emitter": "^0.5.0",
     "type-fest": "^2.19.0",
     "yargs": "^17.3.1"

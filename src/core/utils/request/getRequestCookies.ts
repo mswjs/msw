@@ -1,4 +1,4 @@
-import * as cookieUtils from '@bundled-es-modules/cookie'
+import cookieUtils from '@bundled-es-modules/cookie'
 import { store } from '@mswjs/cookies'
 
 function getAllDocumentCookies() {

@@ -1,5 +1,5 @@
 // @ts-ignore
-import * as jsLevenshtein from 'js-levenshtein'
+import jsLevenshtein from '@bundled-es-modules/js-levenshtein'
 import { RequestHandler, RestHandler, GraphQLHandler } from '../..'
 import {
   ParsedGraphQLQuery,
@@ -9,7 +9,7 @@ import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
 import { isStringEqual } from '../internal/isStringEqual'
 import { devUtils } from '../internal/devUtils'
 
-const getStringMatchScore = (jsLevenshtein as any).default
+const getStringMatchScore = jsLevenshtein
 
 const MAX_MATCH_SCORE = 3
 const MAX_SUGGESTION_COUNT = 4

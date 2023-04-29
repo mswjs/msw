@@ -1,4 +1,4 @@
-import * as statuses from 'statuses'
+import statuses from '@bundled-es-modules/statuses'
 import type { HttpResponseInit } from '../../HttpResponse'
 
 const { message } = statuses

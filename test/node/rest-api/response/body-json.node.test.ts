@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -23,19 +22,15 @@ afterAll(() => {
 })
 
 test('responds with a JSON response body', async () => {
-  const res = await fetch('http://localhost/json')
+  const response = await fetch('http://localhost/json')
 
-  expect(res.headers.get('content-type')).toBe('application/json')
-
-  const json = await res.json()
-  expect(json).toEqual({ firstName: 'John' })
+  expect(response.headers.get('content-type')).toBe('application/json')
+  expect(await response.json()).toEqual({ firstName: 'John' })
 })
 
 test('responds with a single number JSON response body', async () => {
-  const res = await fetch('http://localhost/number')
+  const response = await fetch('http://localhost/number')
 
-  expect(res.headers.get('content-type')).toBe('application/json')
-
-  const json = await res.json()
-  expect(json).toEqual(123)
+  expect(response.headers.get('content-type')).toBe('application/json')
+  expect(await response.json()).toEqual(123)
 })

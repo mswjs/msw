@@ -8,9 +8,7 @@ import { HttpResponse, rest } from 'msw'
 import { setupServer } from 'msw/node'
 
 function getImageBuffer() {
-  return fs.readFileSync(
-    path.resolve(__dirname, '../../../../fixtures/image.jpg'),
-  )
+  return fs.readFileSync(path.resolve(__dirname, '../../../fixtures/image.jpg'))
 }
 
 const server = setupServer(

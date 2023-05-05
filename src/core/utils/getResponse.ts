@@ -14,14 +14,6 @@ export interface ResponseResolutionContext {
   baseUrl?: string
 }
 
-async function filterAsync<Item>(
-  target: Array<Item>,
-  predicate: (item: Item) => Promise<boolean>,
-): Promise<Array<Item>> {
-  const results = await Promise.all(target.map(predicate))
-  return target.filter((_, index) => results[index])
-}
-
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
@@ -30,44 +22,51 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   handlers: Handler,
   resolutionContext?: ResponseResolutionContext,
 ): Promise<ResponseLookupResult> => {
-  const relevantHandlers = await filterAsync(handlers, (handler) => {
-    return handler.test(request, resolutionContext).catch(() => false)
-  })
+  let result: RequestHandlerExecutionResult<any> | null = null
 
-  if (relevantHandlers.length === 0) {
-    return {
-      request,
-      handler: undefined,
-      response: undefined,
+  for (const handler of handlers) {
+    result = await handler.run(request, resolutionContext)
+
+    // If the handler yields no result, it doesn't match this request.
+    // We should continue iterating through handlers.
+    if (result === null) {
+      continue
+    }
+
+    // If the handler yields a response, it matched this request
+    // and its resolved has produced a mocked response. The rest
+    // of the handlers can have no effect on this request anymore.
+    if (typeof result.response !== 'undefined') {
+      break
     }
   }
 
-  const result = await relevantHandlers.reduce<
-    Promise<RequestHandlerExecutionResult<any> | null>
-  >(async (executionResult, handler) => {
-    const previousResults = await executionResult
+  // const result = await handlers.reduce<
+  //   Promise<RequestHandlerExecutionResult<any> | null>
+  // >(async (executionResult, handler) => {
+  //   const previousResults = await executionResult
 
-    if (!!previousResults?.response) {
-      return executionResult
-    }
+  //   if (!!previousResults?.response) {
+  //     return executionResult
+  //   }
 
-    const result = await handler.run(request, resolutionContext)
+  //   const result = await handler.run(request, resolutionContext)
 
-    if (result === null) {
-      return null
-    }
+  //   if (result === null) {
+  //     return null
+  //   }
 
-    if (!result.response) {
-      return {
-        request: result.request,
-        handler: result.handler,
-        response: undefined,
-        parsedResult: result.parsedResult,
-      }
-    }
+  //   if (!result.response) {
+  //     return {
+  //       request: result.request,
+  //       handler: result.handler,
+  //       response: undefined,
+  //       parsedResult: result.parsedResult,
+  //     }
+  //   }
 
-    return result
-  }, Promise.resolve(null))
+  //   return result
+  // }, Promise.resolve(null))
 
   // Although reducing a list of relevant request handlers, it's possible
   // that in the end there will be no handler associted with the request

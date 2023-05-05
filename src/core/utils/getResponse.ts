@@ -4,9 +4,8 @@ import {
 } from '../handlers/RequestHandler'
 
 export interface ResponseLookupResult {
-  handler?: RequestHandler
-  request: Request
-  parsedRequest?: any
+  handler: RequestHandler
+  parsedRequest: any
   response?: Response
 }
 
@@ -21,68 +20,36 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   request: Request,
   handlers: Handler,
   resolutionContext?: ResponseResolutionContext,
-): Promise<ResponseLookupResult> => {
+): Promise<ResponseLookupResult | null> => {
+  let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
     result = await handler.run(request, resolutionContext)
 
-    // If the handler yields no result, it doesn't match this request.
-    // We should continue iterating through handlers.
-    if (result === null) {
-      continue
+    // If the handler produces some result for this request,
+    // it automatically becomes matching.
+    if (result !== null) {
+      matchingHandler = handler
     }
 
-    // If the handler yields a response, it matched this request
-    // and its resolved has produced a mocked response. The rest
-    // of the handlers can have no effect on this request anymore.
-    if (typeof result.response !== 'undefined') {
+    // Stop the lookup if this handler returns a mocked response.
+    // If it doesn't, it will still be considered the last matching
+    // handler until any of them returns a response. This way we can
+    // distinguish between fallthrough handlers without responses
+    // and the lack of a matching handler.
+    if (result?.response) {
       break
     }
   }
 
-  // const result = await handlers.reduce<
-  //   Promise<RequestHandlerExecutionResult<any> | null>
-  // >(async (executionResult, handler) => {
-  //   const previousResults = await executionResult
-
-  //   if (!!previousResults?.response) {
-  //     return executionResult
-  //   }
-
-  //   const result = await handler.run(request, resolutionContext)
-
-  //   if (result === null) {
-  //     return null
-  //   }
-
-  //   if (!result.response) {
-  //     return {
-  //       request: result.request,
-  //       handler: result.handler,
-  //       response: undefined,
-  //       parsedResult: result.parsedResult,
-  //     }
-  //   }
-
-  //   return result
-  // }, Promise.resolve(null))
-
-  // Although reducing a list of relevant request handlers, it's possible
-  // that in the end there will be no handler associted with the request
-  // (i.e. if relevant handlers are fall-through).
-  if (!result) {
+  if (matchingHandler) {
     return {
-      request,
-      handler: undefined,
-      response: undefined,
+      handler: matchingHandler,
+      parsedRequest: result?.parsedResult,
+      response: result?.response,
     }
   }
 
-  return {
-    handler: result.handler,
-    request: result.request,
-    parsedRequest: result.parsedResult,
-    response: result.response,
-  }
+  return null
 }

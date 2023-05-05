@@ -137,7 +137,7 @@ test('reports request as unhandled when it has no matching request handlers', as
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
 })
 
-test('returns undefined and warns on a request handler that returns no response', async () => {
+test('returns undefined on a request handler that returns no response', async () => {
   const { emitter, events } = setup()
 
   const requestId = uuidv4()
@@ -167,14 +167,10 @@ test('returns undefined and warns on a request handler that returns no response'
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
 
-  expect(console.warn).toHaveBeenCalledTimes(1)
-  const warning = (console.warn as unknown as jest.SpyInstance).mock.calls[0][0]
-
-  expect(warning).toContain(
-    '[MSW] Expected response resolver to return a mocked response Object, but got undefined. The original response is going to be used instead.',
-  )
-  expect(warning).toContain('GET /user')
-  expect(warning).toMatch(/\d+:\d+/)
+  /**
+   * @note Returning undefined from a resolver no longer prints a warning.
+   */
+  expect(console.warn).toHaveBeenCalledTimes(0)
 })
 
 test('returns the mocked response for a request with a matching request handler', async () => {
@@ -229,10 +225,6 @@ test('returns the mocked response for a request with a matching request handler'
   expect(lookupResultParam).toEqual({
     handler: lookupResult.handler,
     parsedRequest: lookupResult.parsedRequest,
-    request: expect.objectContaining({
-      method: lookupResult.request.method,
-      url: lookupResult.request.url,
-    }),
     response: expect.objectContaining({
       status: lookupResult.response.status,
       statusText: lookupResult.response.statusText,
@@ -319,10 +311,6 @@ test('returns a transformed response if the "transformResponse" option is provid
   expect(lookupResultParam).toEqual({
     handler: lookupResult.handler,
     parsedRequest: lookupResult.parsedRequest,
-    request: expect.objectContaining({
-      method: lookupResult.request.method,
-      url: lookupResult.request.url,
-    }),
     response: expect.objectContaining({
       status: lookupResult.response.status,
       statusText: lookupResult.response.statusText,

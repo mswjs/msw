@@ -20,13 +20,14 @@ const server = setupServer(
 )
 
 beforeAll(() => {
-  // Supress the "Expeted mocking resolver function to return a mocked response" warnings.
-  jest.spyOn(global.console, 'warn').mockImplementation()
   server.listen()
 })
 
+afterEach(() => {
+  jest.resetAllMocks()
+})
+
 afterAll(() => {
-  jest.restoreAllMocks()
   server.close()
 })
 
@@ -37,8 +38,8 @@ test('falls through all relevant request handlers until response is returned', a
   expect(body).toEqual({
     firstName: 'John',
   })
-  expect(log).toBeCalledWith('[get] first')
-  expect(log).toBeCalledWith('[get] second')
+  expect(log).toHaveBeenNthCalledWith(1, '[get] first')
+  expect(log).toHaveBeenNthCalledWith(2, '[get] second')
   expect(log).not.toBeCalledWith('[get] third')
 })
 
@@ -49,6 +50,6 @@ test('falls through all relevant handlers even if none return response', async (
   const { status } = res
 
   expect(status).toBe(404)
-  expect(log).toBeCalledWith('[post] first')
-  expect(log).toBeCalledWith('[post] second')
+  expect(log).toHaveBeenNthCalledWith(1, '[post] first')
+  expect(log).toHaveBeenNthCalledWith(2, '[post] second')
 })

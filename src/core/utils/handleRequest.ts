@@ -4,7 +4,6 @@ import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
-import { devUtils } from './internal/devUtils'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
@@ -68,11 +67,9 @@ export async function handleRequest(
     throw lookupResult.error
   }
 
-  const { handler, response } = lookupResult.data
-
-  // When there's no handler for the request, consider it unhandled.
-  // Allow the developer to react to such cases.
-  if (!handler) {
+  // If the handler lookup returned nothing, no request handler was found
+  // matching this request. Report the request as unhandled.
+  if (!lookupResult.data) {
     await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
     emitter.emit('request:unhandled', request, requestId)
     emitter.emit('request:end', request, requestId)
@@ -80,28 +77,18 @@ export async function handleRequest(
     return
   }
 
+  const { response } = lookupResult.data
+
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {
-    devUtils.warn(
-      `\
-Expected response resolver to return a mocked response Object, but got %s. The original response is going to be used instead.\
-\n
-  \u2022 %s
-    %s\
-`,
-      response,
-      handler.info.header,
-      handler.info.callFrame,
-    )
-
     emitter.emit('request:end', request, requestId)
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 
-  // When the developer explicitly returned "req.passthrough()" do not warn them.
-  // Perform the request as-is.
+  // Perform the request as-is when the developer explicitly returned "req.passthrough()".
+  // This produces no warning as the request was handled.
   if (
     response.status === 302 &&
     response.headers.get('x-msw-intention') === 'passthrough'

@@ -83,6 +83,10 @@ export class SetupServerApi
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
 
+    this.subscriptions.push(() => {
+      this.interceptor.dispose()
+    })
+
     // Assert that the interceptor has been applied successfully.
     // Also guards us from forgetting to call "interceptor.apply()"
     // as a part of the "listen" method.
@@ -115,7 +119,6 @@ ${`${pragma} ${header}`}
   }
 
   public close(): void {
-    super.dispose()
-    this.interceptor.dispose()
+    this.dispose()
   }
 }

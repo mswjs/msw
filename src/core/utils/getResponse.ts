@@ -5,7 +5,7 @@ import {
 
 export interface ResponseLookupResult {
   handler: RequestHandler
-  parsedRequest: any
+  parsedRequest?: any
   response?: Response
 }
 

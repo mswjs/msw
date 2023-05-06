@@ -1,4 +1,5 @@
-import { HttpResponse, passthrough, rest, SetupWorkerApi } from 'msw'
+import { HttpResponse, passthrough, rest } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
@@ -94,10 +95,9 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   expect(consoleSpy.get('warning')).toBeUndefined()
 })
 
-test('prints a warning and performs a request as-is if nothing was returned from the resolver', async ({
+test('performs a request as-is if nothing was returned from the resolver', async ({
   createServer,
   loadExample,
-  spyOnConsole,
   fetch,
   page,
 }) => {
@@ -107,7 +107,6 @@ test('prints a warning and performs a request as-is if nothing was returned from
     })
   })
 
-  const consoleSpy = spyOnConsole()
   await loadExample(PASSTHROUGH_EXAMPLE)
   const endpointUrl = server.http.url('/user')
 
@@ -128,12 +127,4 @@ test('prints a warning and performs a request as-is if nothing was returned from
   expect(json).toEqual({
     name: 'John',
   })
-
-  expect(consoleSpy.get('warning')).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining(
-        '[MSW] Expected response resolver to return a mocked response Object, but got undefined. The original response is going to be used instead.',
-      ),
-    ]),
-  )
 })

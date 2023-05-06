@@ -41,10 +41,7 @@ export const createRequestListener = (
           onPassthroughResponse() {
             messageChannel.postMessage('NOT_FOUND')
           },
-          async onMockedResponse(
-            response,
-            { request, handler, parsedRequest },
-          ) {
+          async onMockedResponse(response, { handler, parsedRequest }) {
             // Clone the mocked response so its body could be read
             // to buffer to be sent to the worker and also in the
             // ".log()" method of the request handler.

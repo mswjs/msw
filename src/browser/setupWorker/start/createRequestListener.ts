@@ -29,6 +29,7 @@ export const createRequestListener = (
 
     const requestId = message.payload.id
     const request = parseWorkerRequest(message.payload)
+    const requestCloneForLogs = request.clone()
 
     try {
       await handleRequest(
@@ -62,7 +63,7 @@ export const createRequestListener = (
 
             if (!options.quiet) {
               context.emitter.once('response:mocked', (response) => {
-                handler.log(request, response, parsedRequest)
+                handler.log(requestCloneForLogs, response, parsedRequest)
               })
             }
           },

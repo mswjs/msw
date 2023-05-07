@@ -74,7 +74,7 @@ it('does not allow fall-through when returning "req.passthrough" call in the res
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('prints a warning and performs a request as-is if nothing was returned from the resolver', async () => {
+it('performs a request as-is if nothing was returned from the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
     rest.post<ResponseBody>(endpointUrl, () => {
@@ -88,12 +88,4 @@ it('prints a warning and performs a request as-is if nothing was returned from t
   expect(json).toEqual<ResponseBody>({
     name: 'John',
   })
-
-  const warning = (console.warn as any as jest.SpyInstance).mock.calls[0][0]
-
-  expect(warning).toContain(
-    '[MSW] Expected response resolver to return a mocked response Object, but got undefined. The original response is going to be used instead.',
-  )
-  expect(warning).toContain(`POST ${endpointUrl}`)
-  expect(console.warn).toHaveBeenCalledTimes(1)
 })

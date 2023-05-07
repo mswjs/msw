@@ -2,7 +2,7 @@ import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/getResponse'
-import type { MaybePromise } from '..//typeUtils'
+import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
@@ -177,16 +177,19 @@ export abstract class RequestHandler<
       return null
     }
 
+    const mainRequestRef = request.clone()
+
     // Immediately mark the handler as used.
     // Can't await the resolver to be resolved because it's potentially
     // asynchronous, and there may be multiple requests hitting this handler.
     this.isUsed = true
 
-    const requestClone = request.clone()
-
-    const parsedResult = await this.parse(request.clone(), resolutionContext)
+    const parsedResult = await this.parse(
+      mainRequestRef.clone(),
+      resolutionContext,
+    )
     const shouldInterceptRequest = this.predicate(
-      request.clone(),
+      mainRequestRef.clone(),
       parsedResult,
       resolutionContext,
     )
@@ -208,7 +211,7 @@ export abstract class RequestHandler<
     const executionResult = this.createExecutionResult(
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      requestClone,
+      mainRequestRef,
       parsedResult,
       mockedResponse,
     )

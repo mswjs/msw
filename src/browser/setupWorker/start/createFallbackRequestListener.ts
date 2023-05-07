@@ -19,6 +19,8 @@ export function createFallbackRequestListener(
   })
 
   interceptor.on('request', async (request, requestId) => {
+    const requestCloneForLogs = request.clone()
+
     const response = await handleRequest(
       request,
       requestId,
@@ -26,10 +28,10 @@ export function createFallbackRequestListener(
       options,
       context.emitter,
       {
-        onMockedResponse(_, { handler, request, parsedRequest }) {
+        onMockedResponse(_, { handler, parsedRequest }) {
           if (!options.quiet) {
             context.emitter.once('response:mocked', (response) => {
-              handler.log(request, response, parsedRequest)
+              handler.log(requestCloneForLogs, response, parsedRequest)
             })
           }
         },

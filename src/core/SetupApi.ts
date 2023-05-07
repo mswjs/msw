@@ -8,11 +8,12 @@ import { LifeCycleEventEmitter } from './sharedOptions'
 import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
+import { Disposable } from './utils/internal/Disposable'
 
 /**
  * Generic class for the mock API setup.
  */
-export abstract class SetupApi<EventsMap extends EventMap> {
+export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
   protected initialHandlers: ReadonlyArray<RequestHandler>
   protected currentHandlers: Array<RequestHandler>
   protected readonly emitter: Emitter<EventsMap>
@@ -21,6 +22,8 @@ export abstract class SetupApi<EventsMap extends EventMap> {
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
   constructor(...initialHandlers: Array<RequestHandler>) {
+    super()
+
     this.validateHandlers(...initialHandlers)
 
     this.initialHandlers = toReadonlyArray(initialHandlers)
@@ -31,6 +34,11 @@ export abstract class SetupApi<EventsMap extends EventMap> {
     pipeEvents(this.emitter, this.publicEmitter)
 
     this.events = this.createLifeCycleEvents()
+
+    this.subscriptions.push(() => {
+      this.emitter.removeAllListeners()
+      this.publicEmitter.removeAllListeners()
+    })
   }
 
   private validateHandlers(...handlers: ReadonlyArray<RequestHandler>): void {
@@ -44,11 +52,6 @@ export abstract class SetupApi<EventsMap extends EventMap> {
         this.constructor.name,
       )
     }
-  }
-
-  protected dispose(): void {
-    this.emitter.removeAllListeners()
-    this.publicEmitter.removeAllListeners()
   }
 
   public use(...runtimeHandlers: Array<RequestHandler>): void {

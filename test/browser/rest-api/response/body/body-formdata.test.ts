@@ -1,9 +1,6 @@
 import { test, expect } from '../.././../playwright.extend'
 
-test('sends a FormData in a mocked response', async ({
-  loadExample,
-  fetch,
-}) => {
+test('responds to a request with FormData', async ({ loadExample, fetch }) => {
   await loadExample(require.resolve('./body-formdata.mocks.ts'))
   const res = await fetch('/user')
 

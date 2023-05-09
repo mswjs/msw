@@ -17,6 +17,8 @@ test('handles FormData as a request body', async ({
 
   await page.evaluate(() => window.makeRequest())
 
+  await page.pause()
+
   const res = await page.waitForResponse(makeUrl('/formData'))
   const status = res.status()
   const json = await res.json()
@@ -24,6 +26,7 @@ test('handles FormData as a request body', async ({
   expect(status).toBe(200)
   expect(json).toEqual({
     name: 'Alice',
-    fileText: 'hello world',
+    file: 'hello world',
+    ids: [1, 2, 3],
   })
 })

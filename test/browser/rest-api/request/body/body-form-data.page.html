@@ -6,6 +6,12 @@
         const data = new FormData()
         data.set('name', 'Alice')
         data.set('file', new File(['hello world'], 'file.txt'))
+        data.set(
+          'ids',
+          new Blob([JSON.stringify([1, 2, 3])], {
+            type: 'application/json',
+          }),
+        )
 
         fetch('/formData', {
           method: 'POST',

@@ -16,10 +16,13 @@ const worker = setupWorker(
     const name = data.get('name')
     const file = data.get('file') as File
     const fileText = await file.text()
+    const ids = data.get('ids') as File
+    const idsJson = JSON.parse(await ids.text())
 
     return HttpResponse.json({
       name,
-      fileText,
+      file: fileText,
+      ids: idsJson,
     })
   }),
 )

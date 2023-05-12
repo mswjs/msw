@@ -114,6 +114,7 @@
     "@bundled-es-modules/statuses": "^1.0.1",
     "@mswjs/cookies": "^1.0.0",
     "@mswjs/interceptors": "^0.22.13",
+    "@open-draft/deferred-promise": "^2.1.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
@@ -129,6 +130,8 @@
     "node-fetch": "^2.6.7",
     "outvariant": "^1.4.0",
     "path-to-regexp": "^6.2.0",
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1",
     "strict-event-emitter": "^0.5.0",
     "type-fest": "^2.19.0",
     "yargs": "^17.3.1"

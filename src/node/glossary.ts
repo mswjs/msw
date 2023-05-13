@@ -14,7 +14,7 @@ export interface SetupServer {
    * Starts requests interception based on the previously provided request handlers.
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()`}
    */
-  listen(options?: PartialDeep<SharedOptions>): Promise<void>
+  listen(options?: PartialDeep<SharedOptions>): void
 
   /**
    * Stops requests interception by restoring all augmented modules.

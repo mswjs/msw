@@ -47,6 +47,8 @@ export class SetupServerApi
     })
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
+    this.syncServerPromise = this.connectToSyncServer()
+
     this.init()
   }
 
@@ -55,9 +57,11 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async (request, requestId) => {
-      console.log('[server] handling request:', request.method, request.url)
-
-      const { syncServer } = this
+      console.log(
+        '[server] interceptor "request" event:',
+        request.method,
+        request.url,
+      )
 
       const response = await handleRequest(
         request,
@@ -67,6 +71,26 @@ export class SetupServerApi
            * Try to resolve the request from the sync WebSocket server.
            */
           rest.all('*', async ({ request }) => {
+            console.log(
+              '[server] [handleRequest] rest.all("*")',
+              request.method,
+              request.url,
+            )
+
+            /**
+             * @note Bypass the socket.io HTTP handshake
+             * so the WS connection doesn't hang forever.
+             */
+            if (request.url.includes('socket.io')) {
+              return
+            }
+
+            const syncServer = await this.syncServerPromise
+            console.log(
+              '\n\n [server] awaited sync server promise:',
+              typeof syncServer,
+            )
+
             console.log('[server] fixed handler:', request.method, request.url)
 
             if (syncServer == null) {
@@ -125,14 +149,11 @@ export class SetupServerApi
     })
   }
 
-  public async listen(options: Partial<SharedOptions> = {}): Promise<void> {
+  public listen(options: Partial<SharedOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
     ) as RequiredDeep<SharedOptions>
-
-    // Lazily connect to the sync server, if it exists.
-    this.syncServer = await this.connectToSyncServer()
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
@@ -176,18 +197,16 @@ ${`${pragma} ${header}`}
     this.dispose()
   }
 
-  private syncServer: Socket | null = null
+  private syncServerPromise: Promise<Socket | null>
 
   private async connectToSyncServer(): Promise<Socket | null> {
     const connectionPromise = new DeferredPromise<Socket | null>()
-    const socket = io('http://localhost:50222', {
-      // timeout: 300,
-    })
+    const socket = io('http://localhost:50222')
 
     console.log('[server] connecting to the sync server...')
 
     socket.on('connect', () => {
-      console.log('[server] CONNECTED TO THE SYNC SERVER!')
+      console.log('>>> `[server] CONNECTED TO THE SYNC SERVER!')
       connectionPromise.resolve(socket)
     })
 

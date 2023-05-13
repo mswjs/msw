@@ -17,6 +17,7 @@ export async function useRemoteHandlers(
    * Phase 1: Create a sync WS server.
    */
   const ws = await createSyncServer()
+  ws.removeAllListeners()
 
   console.log('[useRemoteHandlers] created a WS server (*)!', typeof ws)
 
@@ -47,9 +48,15 @@ export async function useRemoteHandlers(
           emitter,
         )
 
-        console.log('[useRemoteHandlers] outgoing "response":', response)
+        console.log('[useRemoteHandlers] outgoing "response":', typeof response)
 
         if (response) {
+          console.log(
+            '[useRemoteHandlers]',
+            response.status,
+            response.statusText,
+          )
+
           socket.emit('response', {
             status: response.status,
             statusText: response.statusText,

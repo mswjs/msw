@@ -3,8 +3,8 @@ import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
-import { serializeRequest } from '../utils/logging/serializeRequest'
-import { serializeResponse } from '../utils/logging/serializeResponse'
+import { requestToLoggableObject } from '../utils/logging/requestToLoggableObject'
+import { responseToLoggableObject } from '../utils/logging/responseToLoggableObject'
 import {
   Match,
   matchRequestUrl,
@@ -145,8 +145,8 @@ export class RestHandler extends RequestHandler<
 
   async log(request: Request, response: Response) {
     const publicUrl = getPublicUrlFromRequest(request)
-    const loggedRequest = await serializeRequest(request)
-    const loggedResponse = await serializeResponse(response)
+    const loggedRequest = await requestToLoggableObject(request)
+    const loggedResponse = await responseToLoggableObject(response)
     const statusColor = getStatusCodeColor(response.status)
 
     console.groupCollapsed(

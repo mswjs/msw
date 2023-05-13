@@ -7,8 +7,8 @@ import {
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
-import { serializeRequest } from '../utils/logging/serializeRequest'
-import { serializeResponse } from '../utils/logging/serializeResponse'
+import { requestToLoggableObject } from '../utils/logging/requestToLoggableObject'
+import { responseToLoggableObject } from '../utils/logging/responseToLoggableObject'
 import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
@@ -167,8 +167,8 @@ Consider naming this operation or using "graphql.operation()" request handler to
     response: Response,
     parsedRequest: ParsedGraphQLRequest,
   ) {
-    const loggedRequest = await serializeRequest(request)
-    const loggedResponse = await serializeResponse(response)
+    const loggedRequest = await requestToLoggableObject(request)
+    const loggedResponse = await responseToLoggableObject(response)
     const statusColor = getStatusCodeColor(response.status)
     const requestInfo = parsedRequest?.operationName
       ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`

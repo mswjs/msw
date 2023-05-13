@@ -5,12 +5,21 @@ import { DeferredPromise } from '@open-draft/deferred-promise'
 import { RequestHandler, handleRequest } from '~/core'
 import {
   SerializedRequest,
+  SerializedResponse,
   deserializeRequest,
   serializeResponse,
 } from '~/core/utils/request/serializeUtils'
 
 declare global {
   var syncServer: WebSocketServer | undefined
+}
+
+export interface SyncServerEventsMap {
+  request(
+    serializedRequest: SerializedRequest,
+    requestId: string,
+  ): Promise<void> | void
+  response(serializedResponse?: SerializedResponse): Promise<void> | void
 }
 
 export async function useRemoteHandlers(
@@ -23,27 +32,27 @@ export async function useRemoteHandlers(
   // since the code below adds the socket listeners once again.
   ws.removeAllListeners()
 
+  /**
+   * @todo Decide if remote handlers expose life-cycle events API.
+   */
   const emitter = new Emitter<any>()
 
   ws.on('connection', (socket) => {
-    socket.on(
-      'request',
-      async (serializedRequest: SerializedRequest, requestId: string) => {
-        const request = deserializeRequest(serializedRequest)
-        const response = await handleRequest(
-          request,
-          requestId,
-          handlers,
-          { onUnhandledRequest() {} },
-          emitter,
-        )
+    socket.on('request', async (serializedRequest, requestId) => {
+      const request = deserializeRequest(serializedRequest)
+      const response = await handleRequest(
+        request,
+        requestId,
+        handlers,
+        { onUnhandledRequest() {} },
+        emitter,
+      )
 
-        socket.emit(
-          'response',
-          response ? await serializeResponse(response) : undefined,
-        )
-      },
-    )
+      socket.emit(
+        'response',
+        response ? await serializeResponse(response) : undefined,
+      )
+    })
   })
 
   process.on('SIGTERM', () => closeSyncServer(ws))
@@ -52,7 +61,9 @@ export async function useRemoteHandlers(
   return
 }
 
-async function createSyncServer(): Promise<WebSocketServer> {
+async function createSyncServer(): Promise<
+  WebSocketServer<SyncServerEventsMap>
+> {
   const existingSyncServer = globalThis.syncServer
 
   // Reuse the existing WebSocket server reference if it exists.
@@ -61,10 +72,12 @@ async function createSyncServer(): Promise<WebSocketServer> {
     return existingSyncServer
   }
 
-  const serverReady = new DeferredPromise<WebSocketServer>()
+  const serverReady = new DeferredPromise<
+    WebSocketServer<SyncServerEventsMap>
+  >()
 
   const httpServer = http.createServer()
-  const ws = new WebSocketServer(httpServer, {
+  const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],

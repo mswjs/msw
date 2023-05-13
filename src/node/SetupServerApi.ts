@@ -5,11 +5,9 @@ import {
   Interceptor,
   InterceptorReadyState,
 } from '@mswjs/interceptors'
-
 import { io, Socket } from 'socket.io-client'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { rest } from '~/core'
-
 import { SetupApi } from '~/core/SetupApi'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
@@ -20,9 +18,9 @@ import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
 import {
   deserializeResponse,
-  SerializedResponse,
   serializeRequest,
 } from '~/core/utils/request/serializeUtils'
+import { SyncServerEventsMap } from './useRemoteHandler'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -100,18 +98,13 @@ export class SetupServerApi
              * @todo Handle timeouts.
              * @todo Handle socket errors.
              */
-            syncServer.on(
-              'response',
-              (serializedResponse: SerializedResponse) => {
-                console.log('[server] response from WS:', serializedResponse)
-
-                responsePromise.resolve(
-                  serializedResponse
-                    ? deserializeResponse(serializedResponse)
-                    : undefined,
-                )
-              },
-            )
+            syncServer.on('response', (serializedResponse) => {
+              responsePromise.resolve(
+                serializedResponse
+                  ? deserializeResponse(serializedResponse)
+                  : undefined,
+              )
+            })
 
             return await responsePromise
           }),
@@ -185,10 +178,11 @@ ${`${pragma} ${header}`}
     this.dispose()
   }
 
-  private syncServerPromise: Promise<Socket | null>
+  private syncServerPromise: Promise<Socket<SyncServerEventsMap> | null>
 
   private async connectToSyncServer(): Promise<Socket | null> {
-    const connectionPromise = new DeferredPromise<Socket | null>()
+    const connectionPromise =
+      new DeferredPromise<Socket<SyncServerEventsMap> | null>()
     const socket = io('http://localhost:50222')
 
     console.log('[server] connecting to the sync server...')

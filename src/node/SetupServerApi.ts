@@ -18,6 +18,11 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
+import {
+  deserializeResponse,
+  SerializedResponse,
+  serializeRequest,
+} from '~/core/utils/request/serializeUtils'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -57,75 +62,58 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async (request, requestId) => {
-      console.log(
-        '[server] interceptor "request" event:',
-        request.method,
-        request.url,
-      )
-
       const response = await handleRequest(
         request,
         requestId,
         [
-          /**
-           * Try to resolve the request from the sync WebSocket server.
-           */
           rest.all('*', async ({ request }) => {
-            console.log(
-              '[server] [handleRequest] rest.all("*")',
-              request.method,
-              request.url,
-            )
-
             /**
              * @note Bypass the socket.io HTTP handshake
-             * so the WS connection doesn't hang forever.
+             * so the sync WS server connection doesn't hang forever.
+             * Check this as the first thing to unblock the handling.
+             *
+             * @todo Rely on the internal request header instead so
+             * we don't interfere if the user is using socket.io.
              */
             if (request.url.includes('socket.io')) {
               return
             }
 
             const syncServer = await this.syncServerPromise
-            console.log(
-              '\n\n [server] awaited sync server promise:',
-              typeof syncServer,
-            )
 
-            console.log('[server] fixed handler:', request.method, request.url)
-
+            // If the sync server hasn't been started or failed to connect,
+            // skip this request handler altogether, it has no effect.
             if (syncServer == null) {
               console.log('[server] no sync ws open, skipping...')
               return
             }
 
-            console.log('[server] ws:', syncServer.connected)
-
-            console.log('[server] sync ws is open! emitting "request"...')
             syncServer.emit(
               'request',
-              {
-                method: request.method,
-                url: request.url,
-                // headers: Object.fromEntries(request.headers.entries()),
-                body: ['HEAD', 'GET'].includes(request.method)
-                  ? undefined
-                  : await request.clone().arrayBuffer(),
-              },
+              await serializeRequest(request),
               requestId,
             )
 
-            return new Promise<Response | void>((resolve) => {
-              syncServer.on('response', (responseInit: Record<string, any>) => {
-                console.log('[server] response from WS:', responseInit)
+            const responsePromise = new DeferredPromise<Response | undefined>()
 
-                if (!responseInit) {
-                  return resolve()
-                }
+            /**
+             * @todo Handle timeouts.
+             * @todo Handle socket errors.
+             */
+            syncServer.on(
+              'response',
+              (serializedResponse: SerializedResponse) => {
+                console.log('[server] response from WS:', serializedResponse)
 
-                const response = new Response(responseInit.body, responseInit)
-                resolve(response)
-              })
-            })
+                responsePromise.resolve(
+                  serializedResponse
+                    ? deserializeResponse(serializedResponse)
+                    : undefined,
+                )
+              },
+            )
+
+            return await responsePromise
           }),
           ...this.currentHandlers,
         ],

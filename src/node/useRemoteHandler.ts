@@ -3,6 +3,11 @@ import { Server as WebSocketServer } from 'socket.io'
 import { Emitter } from 'strict-event-emitter'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { RequestHandler, handleRequest } from '~/core'
+import {
+  SerializedRequest,
+  deserializeRequest,
+  serializeResponse,
+} from '~/core/utils/request/serializeUtils'
 
 declare global {
   var syncServer: WebSocketServer | undefined
@@ -11,35 +16,20 @@ declare global {
 export async function useRemoteHandlers(
   ...handlers: Array<RequestHandler>
 ): Promise<void> {
-  console.log('[useRemoteHandlers] call, creating a server...')
-
-  /**
-   * Phase 1: Create a sync WS server.
-   */
   const ws = await createSyncServer()
-  ws.removeAllListeners()
 
-  console.log('[useRemoteHandlers] created a WS server (*)!', typeof ws)
+  // Remove all the listeners from the persisted WS instance.
+  // This ensures that there's no memory leak between hot updates
+  // since the code below adds the socket listeners once again.
+  ws.removeAllListeners()
 
   const emitter = new Emitter<any>()
 
-  /**
-   * @todo Need to remove these listeners because hot updates
-   * cause them to accumulate, resulting in a memory leak.
-   */
   ws.on('connection', (socket) => {
-    console.log('[useRemoteHandlers] incoming "connection"', socket.id)
-
-    /**
-     * Phase 2: Handle incoming requests from other processes.
-     */
     socket.on(
       'request',
-      async (requestInit: Record<string, any>, requestId: string) => {
-        console.log('[useRemoteHandlers] incoming "request":', requestInit)
-
-        const request = new Request(requestInit.url, requestInit)
-
+      async (serializedRequest: SerializedRequest, requestId: string) => {
+        const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
           request,
           requestId,
@@ -48,25 +38,10 @@ export async function useRemoteHandlers(
           emitter,
         )
 
-        console.log('[useRemoteHandlers] outgoing "response":', typeof response)
-
-        if (response) {
-          console.log(
-            '[useRemoteHandlers]',
-            response.status,
-            response.statusText,
-          )
-
-          socket.emit('response', {
-            status: response.status,
-            statusText: response.statusText,
-            // headers: Object.fromEntries(response.headers.entries()),
-            body: await response.arrayBuffer(),
-          })
-          return
-        }
-
-        socket.emit('response', undefined)
+        socket.emit(
+          'response',
+          response ? await serializeResponse(response) : undefined,
+        )
       },
     )
   })
@@ -80,28 +55,24 @@ export async function useRemoteHandlers(
 async function createSyncServer(): Promise<WebSocketServer> {
   const existingSyncServer = globalThis.syncServer
 
+  // Reuse the existing WebSocket server reference if it exists.
+  // It persists on the global scope between hot updates.
   if (existingSyncServer) {
-    console.log('[useRemoteHandlers] reusing existing sync server')
     return existingSyncServer
   }
 
   const serverReady = new DeferredPromise<WebSocketServer>()
 
   const httpServer = http.createServer()
-  const ws =
-    globalThis.syncServer ||
-    new WebSocketServer(httpServer, {
-      cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-      },
-    })
-
-  // Assign the server instance on global scope
-  // so it could survive hot updates.
-  globalThis.syncServer = ws
+  const ws = new WebSocketServer(httpServer, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+  })
 
   httpServer.listen(50222, 'localhost', () => {
+    globalThis.syncServer = ws
     serverReady.resolve(ws)
   })
 

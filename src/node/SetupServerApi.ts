@@ -65,15 +65,11 @@ export class SetupServerApi
         requestId,
         [
           rest.all('*', async ({ request }) => {
-            /**
-             * @note Bypass the socket.io HTTP handshake
-             * so the sync WS server connection doesn't hang forever.
-             * Check this as the first thing to unblock the handling.
-             *
-             * @todo Rely on the internal request header instead so
-             * we don't interfere if the user is using socket.io.
-             */
-            if (request.url.includes('socket.io')) {
+            // Bypass the socket.io HTTP handshake so the sync WS server connection
+            // doesn't hang forever. Check this as the first thing to unblock the handling.
+            if (
+              request.headers.get('x-msw-request-type') === 'internal-request'
+            ) {
               return
             }
 
@@ -183,7 +179,11 @@ ${`${pragma} ${header}`}
   private async connectToSyncServer(): Promise<Socket | null> {
     const connectionPromise =
       new DeferredPromise<Socket<SyncServerEventsMap> | null>()
-    const socket = io('http://localhost:50222')
+    const socket = io('http://localhost:50222', {
+      extraHeaders: {
+        'x-msw-request-type': 'internal-request',
+      },
+    })
 
     console.log('[server] connecting to the sync server...')
 

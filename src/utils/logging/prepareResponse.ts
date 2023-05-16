@@ -8,9 +8,24 @@ import { parseBody } from '../request/parseBody'
 export function prepareResponse(res: SerializedResponse<any>) {
   const responseHeaders = objectToHeaders(res.headers)
 
+  // Parse a response JSON body for preview in the logs
+  let parsedBody: ReturnType<typeof parseBody> | Promise<any> = parseBody(
+    res.body,
+    responseHeaders,
+  )
+
+  if (parsedBody instanceof ReadableStream) {
+    const response = new Response(parsedBody, { headers: responseHeaders })
+
+    const hasJsonContent = (
+      responseHeaders?.get('content-type')?.toLowerCase() || ''
+    ).includes('json')
+
+    parsedBody = hasJsonContent ? response.json() : response.text()
+  }
+
   return {
     ...res,
-    // Parse a response JSON body for preview in the logs
-    body: parseBody(res.body, responseHeaders),
+    body: parsedBody,
   }
 }

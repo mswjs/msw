@@ -18,12 +18,16 @@ import { SetupServer } from './glossary'
 import {
   SYNC_SERVER_URL,
   SyncServerEventsMap,
-  syncServerResolver,
-} from './useRemoteHandler'
+  createRemoteServerResolver,
+} from './setupRemoteServer'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
+
+export type InterceptorsList = Array<{
+  new (): Interceptor<HttpRequestEventMap>
+}>
 
 export class SetupServerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -36,9 +40,7 @@ export class SetupServerApi
   private resolvedOptions: RequiredDeep<SharedOptions>
 
   constructor(
-    interceptors: Array<{
-      new (): Interceptor<HttpRequestEventMap>
-    }>,
+    interceptors: InterceptorsList,
     ...handlers: Array<RequestHandler>
   ) {
     super(...handlers)
@@ -49,7 +51,7 @@ export class SetupServerApi
     })
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
-    this.syncSocketPromise = this.connectToSyncServer()
+    this.syncSocketPromise = this.createSyncServerConnection()
 
     this.init()
   }
@@ -63,7 +65,7 @@ export class SetupServerApi
         request,
         requestId,
         [
-          syncServerResolver({
+          createRemoteServerResolver({
             requestId,
             socketPromise: this.syncSocketPromise,
           }),
@@ -142,7 +144,7 @@ ${`${pragma} ${header}`}
     this.dispose()
   }
 
-  private syncSocketPromise: Promise<Socket<SyncServerEventsMap> | null>
+  private syncSocketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
 
   private async pingSyncServer(): Promise<boolean> {
     return fetch(SYNC_SERVER_URL, {
@@ -153,13 +155,14 @@ ${`${pragma} ${header}`}
     )
   }
 
-  private async connectToSyncServer(): Promise<Socket | null> {
+  private async createSyncServerConnection(): Promise<Socket | undefined> {
     if (!(await this.pingSyncServer())) {
-      return Promise.resolve(null)
+      return Promise.resolve(undefined)
     }
 
-    const connectionPromise =
-      new DeferredPromise<Socket<SyncServerEventsMap> | null>()
+    const connectionPromise = new DeferredPromise<
+      Socket<SyncServerEventsMap> | undefined
+    >()
     const socket = io(SYNC_SERVER_URL, {
       timeout: 200,
       reconnection: false,
@@ -172,8 +175,8 @@ ${`${pragma} ${header}`}
       connectionPromise.resolve(socket)
     })
 
-    socket.io.on('error', (error) => {
-      connectionPromise.resolve(null)
+    socket.io.on('error', () => {
+      connectionPromise.resolve(undefined)
     })
 
     return connectionPromise

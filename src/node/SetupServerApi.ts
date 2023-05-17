@@ -38,6 +38,7 @@ export class SetupServerApi
     HttpRequestEventMap
   >
   private resolvedOptions: RequiredDeep<SharedOptions>
+  private syncSocketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
 
   constructor(
     interceptors: InterceptorsList,
@@ -51,7 +52,7 @@ export class SetupServerApi
     })
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
-    this.syncSocketPromise = this.createSyncServerConnection()
+    this.syncSocketPromise = Promise.resolve(undefined)
 
     this.init()
   }
@@ -102,6 +103,8 @@ export class SetupServerApi
       options,
     ) as RequiredDeep<SharedOptions>
 
+    this.syncSocketPromise = this.createSyncServerConnection()
+
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
 
@@ -144,26 +147,11 @@ ${`${pragma} ${header}`}
     this.dispose()
   }
 
-  private syncSocketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
-
-  private async pingSyncServer(): Promise<boolean> {
-    return fetch(SYNC_SERVER_URL, {
-      method: 'HEAD',
-    }).then(
-      (res) => res.ok,
-      () => false,
-    )
-  }
-
   private async createSyncServerConnection(): Promise<Socket | undefined> {
-    if (!(await this.pingSyncServer())) {
-      return Promise.resolve(undefined)
-    }
-
     const connectionPromise = new DeferredPromise<
       Socket<SyncServerEventsMap> | undefined
     >()
-    const socket = io(SYNC_SERVER_URL, {
+    const socket = io(SYNC_SERVER_URL.href, {
       timeout: 200,
       reconnection: false,
       extraHeaders: {

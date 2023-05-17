@@ -50,18 +50,21 @@ export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
-  protected handlers: Array<RequestHandler>
   protected emitter: Emitter<LifeCycleEventsMap>
 
   constructor(...handlers: Array<RequestHandler>) {
     super(...handlers)
 
-    this.handlers = handlers
     this.emitter = new Emitter()
   }
 
   public async listen(): Promise<void> {
     const server = await createSyncServer()
+    server.removeAllListeners()
+
+    process
+      .on('SIGTERM', () => closeSyncServer(server))
+      .on('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
       socket.on('request', async (serializedRequest, requestId) => {
@@ -69,7 +72,7 @@ export class SetupRemoteServerApi
         const response = await handleRequest(
           request,
           requestId,
-          this.handlers,
+          this.currentHandlers,
           { onUnhandledRequest() {} },
           this.emitter,
         )
@@ -184,13 +187,17 @@ async function createSyncServer(): Promise<
   const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
     cors: {
       origin: '*',
-      methods: ['GET', 'POST'],
+      methods: ['HEAD', 'GET', 'POST'],
     },
   })
 
   httpServer.listen(+SYNC_SERVER_URL.port, SYNC_SERVER_URL.hostname, () => {
     globalThis.syncServer = ws
     serverReadyPromise.resolve(ws)
+  })
+
+  httpServer.on('error', (error) => {
+    serverReadyPromise.reject(error)
   })
 
   return serverReadyPromise

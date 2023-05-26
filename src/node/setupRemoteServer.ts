@@ -21,8 +21,12 @@ import {
 } from '~/core/utils/request/serializeUtils'
 import { LifeCycleEventEmitter } from '~/core/sharedOptions'
 
-export const SYNC_SERVER_URL = new URL('http://localhost:50222')
+const SYNC_SERVER_PORT = +(process.env.MSW_INTERNAL_WEBSOCKET_PORT || 50222)
+export const SYNC_SERVER_URL = new URL(`http://localhost:${SYNC_SERVER_PORT}`)
 
+/**
+ * Enables API mocking in a remote Node.js process.
+ */
 export function setupRemoteServer(...handlers: Array<RequestHandler>) {
   return new SetupRemoteServerApi(...handlers)
 }
@@ -30,7 +34,6 @@ export function setupRemoteServer(...handlers: Array<RequestHandler>) {
 export interface SetupRemoteServer {
   listen(): Promise<void>
   close(): Promise<void>
-
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }
 

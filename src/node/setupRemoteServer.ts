@@ -20,6 +20,7 @@ import {
   serializeResponse,
 } from '~/core/utils/request/serializeUtils'
 import { LifeCycleEventEmitter } from '~/core/sharedOptions'
+import { devUtils } from '~/core/utils/internal/devUtils'
 
 const SYNC_SERVER_PORT = +(process.env.MSW_INTERNAL_WEBSOCKET_PORT || 50222)
 export const SYNC_SERVER_URL = new URL(`http://localhost:${SYNC_SERVER_PORT}`)
@@ -121,7 +122,9 @@ ${`${pragma} ${header}`}
 
     invariant(
       syncServer,
-      'Failed to close a remote server: no server is running. Did you forget to call and await ".listen()"?',
+      devUtils.formatMessage(
+        'Failed to close a remote server: no server is running. Did you forget to call and await ".listen()"?',
+      ),
     )
 
     await closeSyncServer(syncServer)
@@ -171,6 +174,9 @@ export function createRemoteServerResolver(options: {
   })
 }
 
+/**
+ * Creates an internal WebSocket sync server.
+ */
 async function createSyncServer(): Promise<
   WebSocketServer<SyncServerEventsMap>
 > {
@@ -233,9 +239,15 @@ export async function createSyncClient(): Promise<
   >()
 
   const socket = io(SYNC_SERVER_URL.href, {
+    // Keep a low timeout and no reconnection logic because
+    // the user is expected to enable remote interception
+    // before the actual application with "setupServer" uses
+    // this function to try and connect to a potentially running server.
     timeout: 200,
     reconnection: false,
     extraHeaders: {
+      // Mark all Socket.io requests with an internal header
+      // so they are always bypassed in the remote request handler.
       'x-msw-request-type': 'internal-request',
     },
   })

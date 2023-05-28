@@ -5,8 +5,7 @@ import {
   Interceptor,
   InterceptorReadyState,
 } from '@mswjs/interceptors'
-import { io, Socket } from 'socket.io-client'
-import { DeferredPromise } from '@open-draft/deferred-promise'
+import { type Socket } from 'socket.io-client'
 import { SetupApi } from '~/core/SetupApi'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
@@ -16,8 +15,8 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
 import {
-  SYNC_SERVER_URL,
   SyncServerEventsMap,
+  createSyncClient,
   createRemoteServerResolver,
 } from './setupRemoteServer'
 
@@ -103,7 +102,7 @@ export class SetupServerApi
       options,
     ) as RequiredDeep<SharedOptions>
 
-    this.syncSocketPromise = this.createSyncServerConnection()
+    this.syncSocketPromise = createSyncClient()
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
@@ -145,28 +144,5 @@ ${`${pragma} ${header}`}
 
   public close(): void {
     this.dispose()
-  }
-
-  private async createSyncServerConnection(): Promise<Socket | undefined> {
-    const connectionPromise = new DeferredPromise<
-      Socket<SyncServerEventsMap> | undefined
-    >()
-    const socket = io(SYNC_SERVER_URL.href, {
-      timeout: 200,
-      reconnection: false,
-      extraHeaders: {
-        'x-msw-request-type': 'internal-request',
-      },
-    })
-
-    socket.on('connect', () => {
-      connectionPromise.resolve(socket)
-    })
-
-    socket.io.on('error', () => {
-      connectionPromise.resolve(undefined)
-    })
-
-    return connectionPromise
   }
 }

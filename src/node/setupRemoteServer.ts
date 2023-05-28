@@ -1,7 +1,7 @@
 import * as http from 'http'
 import { invariant } from 'outvariant'
 import { Server as WebSocketServer } from 'socket.io'
-import type { Socket } from 'socket.io-client'
+import { Socket, io } from 'socket.io-client'
 import { Emitter } from 'strict-event-emitter'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import {
@@ -219,4 +219,34 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
   })
 
   return serverClosePromise
+}
+
+/**
+ * Creates a WebSocket client connected to the internal
+ * WebSocket sync server of MSW.
+ */
+export async function createSyncClient(): Promise<
+  Socket<SyncServerEventsMap> | undefined
+> {
+  const connectionPromise = new DeferredPromise<
+    Socket<SyncServerEventsMap> | undefined
+  >()
+
+  const socket = io(SYNC_SERVER_URL.href, {
+    timeout: 200,
+    reconnection: false,
+    extraHeaders: {
+      'x-msw-request-type': 'internal-request',
+    },
+  })
+
+  socket.on('connect', () => {
+    connectionPromise.resolve(socket)
+  })
+
+  socket.io.on('error', () => {
+    connectionPromise.resolve(undefined)
+  })
+
+  return connectionPromise
 }

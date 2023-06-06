@@ -9,20 +9,23 @@ import {
   RequestHandler,
   SetupApi,
   handleRequest,
-  rest,
 } from '~/core'
 import {
   SerializedRequest,
   SerializedResponse,
   deserializeRequest,
-  deserializeResponse,
-  serializeRequest,
   serializeResponse,
 } from '~/core/utils/request/serializeUtils'
 import { LifeCycleEventEmitter } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
+import { deserializeEventPayload } from '~/core/utils/internal/emitterUtils'
 
-const SYNC_SERVER_PORT = +(process.env.MSW_INTERNAL_WEBSOCKET_PORT || 50222)
+const SYNC_SERVER_DEFAULT_PORT = 50222
+const SYNC_SERVER_ENV_VARIABLE_NAME = 'MSW_INTERNAL_WEBSOCKET_PORT'
+const SYNC_SERVER_PORT =
+  Number.parseInt(process.env[SYNC_SERVER_ENV_VARIABLE_NAME] || '') ||
+  SYNC_SERVER_DEFAULT_PORT
+
 export const SYNC_SERVER_URL = new URL(`http://localhost:${SYNC_SERVER_PORT}`)
 
 /**
@@ -38,12 +41,38 @@ export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }
 
+export type SerializedLifeCycleEventsMap = {
+  'request:start': [request: SerializedRequest, requestId: string]
+  'request:match': [request: SerializedRequest, requestId: string]
+  'request:unhandled': [request: SerializedRequest, requestId: string]
+  'request:end': [request: SerializedRequest, requestId: string]
+  'response:mocked': [
+    response: SerializedResponse,
+    request: SerializedRequest,
+    requestId: string,
+  ]
+  'response:bypass': [
+    response: SerializedResponse,
+    request: SerializedRequest,
+    requestId: string,
+  ]
+  unhandledException: [
+    error: Error,
+    request: SerializedRequest,
+    requestId: string,
+  ]
+}
+
 export interface SyncServerEventsMap {
   request(
     serializedRequest: SerializedRequest,
     requestId: string,
   ): Promise<void> | void
   response(serializedResponse?: SerializedResponse): Promise<void> | void
+  lifeCycleEventForward<EventName extends keyof SerializedLifeCycleEventsMap>(
+    eventName: EventName,
+    ...data: SerializedLifeCycleEventsMap[EventName]
+  ): void
 }
 
 declare global {
@@ -54,15 +83,12 @@ export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
-  protected emitter: Emitter<LifeCycleEventsMap>
-
   constructor(...handlers: Array<RequestHandler>) {
     super(...handlers)
-
-    this.emitter = new Emitter()
   }
 
   public async listen(): Promise<void> {
+    const placeholderEmitter = new Emitter<LifeCycleEventsMap>()
     const server = await createSyncServer()
     server.removeAllListeners()
 
@@ -77,8 +103,11 @@ export class SetupRemoteServerApi
           request,
           requestId,
           this.currentHandlers,
+          /**
+           * @todo Support resolve options from the `.listen()` call.
+           */
           { onUnhandledRequest() {} },
-          this.emitter,
+          placeholderEmitter,
         )
 
         socket.emit(
@@ -87,16 +116,10 @@ export class SetupRemoteServerApi
         )
       })
 
-      /**
-       * @todo Have the socket signal back whichever response
-       * was used for whichever request. Include request ID
-       * and somehow let this API know whether the response was
-       * the mocked one or note.
-       */
-      // socket.on('response', (serializedResponse) => {
-      //   const response = deserializeResponse(serializedResponse)
-      //   this.emitter.emit('response', response, requestId)
-      // })
+      socket.on('lifeCycleEventForward', async (eventName, ...data) => {
+        const deserializedData: any = await deserializeEventPayload(data)
+        this.emitter.emit(eventName, ...deserializedData)
+      })
     })
   }
 
@@ -132,49 +155,6 @@ ${`${pragma} ${header}`}
 }
 
 /**
- * A request handler that resolves any outgoing HTTP requests
- * against any established `setupRemoteServer()` WebSocket instance.
- */
-export function createRemoteServerResolver(options: {
-  requestId: string
-  socketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
-}) {
-  return rest.all('*', async ({ request }) => {
-    // Bypass the socket.io HTTP handshake so the sync WS server connection
-    // doesn't hang forever. Check this as the first thing to unblock the handling.
-    if (request.headers.get('x-msw-request-type') === 'internal-request') {
-      return
-    }
-
-    const socket = await options.socketPromise
-
-    // If the sync server hasn't been started or failed to connect,
-    // skip this request handler altogether, it has no effect.
-    if (socket == null) {
-      return
-    }
-
-    socket.emit('request', await serializeRequest(request), options.requestId)
-
-    const responsePromise = new DeferredPromise<Response | undefined>()
-
-    /**
-     * @todo Handle timeouts.
-     * @todo Handle socket errors.
-     */
-    socket.on('response', (serializedResponse) => {
-      responsePromise.resolve(
-        serializedResponse
-          ? deserializeResponse(serializedResponse)
-          : undefined,
-      )
-    })
-
-    return await responsePromise
-  })
-}
-
-/**
  * Creates an internal WebSocket sync server.
  */
 async function createSyncServer(): Promise<
@@ -200,12 +180,28 @@ async function createSyncServer(): Promise<
     },
   })
 
-  httpServer.listen(+SYNC_SERVER_URL.port, SYNC_SERVER_URL.hostname, () => {
-    globalThis.syncServer = ws
-    serverReadyPromise.resolve(ws)
-  })
+  httpServer.listen(
+    Number.parseInt(SYNC_SERVER_URL.port),
+    SYNC_SERVER_URL.hostname,
+    () => {
+      globalThis.syncServer = ws
+      serverReadyPromise.resolve(ws)
+    },
+  )
 
-  httpServer.on('error', (error) => {
+  httpServer.on('error', (error: Error | NodeJS.ErrnoException) => {
+    if (
+      'code' in error &&
+      error.code === 'EADDRINUSE' &&
+      Number.parseInt(SYNC_SERVER_URL.port) === SYNC_SERVER_DEFAULT_PORT
+    ) {
+      devUtils.warn(
+        'The default internal WebSocket server port (%d) is in use. Please consider freeing the port or specifying a different port using the "%s" environment variable.',
+        SYNC_SERVER_DEFAULT_PORT,
+        SYNC_SERVER_ENV_VARIABLE_NAME,
+      )
+    }
+
     serverReadyPromise.reject(error)
   })
 

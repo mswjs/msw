@@ -14,11 +14,12 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
+import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
 import {
-  SyncServerEventsMap,
-  createSyncClient,
-  createRemoteServerResolver,
-} from './setupRemoteServer'
+  onAnyEvent,
+  serializeEventPayload,
+} from '~/core/utils/internal/emitterUtils'
+import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -65,15 +66,10 @@ export class SetupServerApi
         request,
         requestId,
         [
-          createRemoteServerResolver({
+          new RemoteRequestHandler({
             requestId,
             socketPromise: this.syncSocketPromise,
           }),
-          /**
-           * @todo Spreading the list of all request handlers can be costly.
-           * Consider finding another way of always running the sync server resolver
-           * first.
-           */
           ...this.currentHandlers,
         ],
         this.resolvedOptions,
@@ -103,6 +99,59 @@ export class SetupServerApi
     ) as RequiredDeep<SharedOptions>
 
     this.syncSocketPromise = createSyncClient()
+
+    // Once the connection to the remote WebSocket server succeeds,
+    // pipe any life-cycle events from this process through that socket.
+    onAnyEvent(this.emitter, async (eventName, ...data) => {
+      const socket = await this.syncSocketPromise
+
+      if (!socket) {
+        return
+      }
+
+      const forwardLifeCycleEvent = async () => {
+        const payload = await serializeEventPayload(data)
+        socket.emit(
+          'lifeCycleEventForward',
+          /**
+           * @todo Annotating serialized/desirialized mirror channels is tough.
+           */
+          ...([eventName, ...payload] as any),
+        )
+      }
+
+      switch (eventName) {
+        case 'request:start':
+        case 'request:match':
+        case 'request:unhandled':
+        case 'request:end': {
+          const request = data[0] as Request
+
+          if (
+            request.headers.get('x-msw-request-type') === 'internal-request'
+          ) {
+            return
+          }
+
+          forwardLifeCycleEvent()
+          break
+        }
+
+        case 'response:bypass':
+        case 'response:mocked': {
+          const request = data[1] as Request
+
+          if (
+            request.headers.get('x-msw-request-type') === 'internal-request'
+          ) {
+            return
+          }
+
+          forwardLifeCycleEvent()
+          break
+        }
+      }
+    })
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()

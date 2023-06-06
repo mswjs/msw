@@ -3,8 +3,10 @@ import {
   flattenHeadersObject,
   type FlatHeadersObject,
 } from 'headers-polyfill'
+import { isObject } from '../internal/isObject'
 
 export interface SerializedRequest {
+  __serializedType: 'request'
   method: string
   url: string
   headers: FlatHeadersObject
@@ -12,6 +14,7 @@ export interface SerializedRequest {
 }
 
 export interface SerializedResponse {
+  __serializedType: 'response'
   status: number
   statusText?: string
   headers: FlatHeadersObject
@@ -31,11 +34,22 @@ export async function serializeRequest(
     : await request.clone().arrayBuffer()
 
   return {
+    __serializedType: 'request',
     method: request.method,
     url: request.url,
     headers: flattenHeadersObject(headersToObject(request.headers)),
     body: requestBody,
   }
+}
+
+export function isSerializedRequest(
+  value: unknown,
+): value is SerializedRequest {
+  return (
+    isObject(value) &&
+    '__serializedType' in value &&
+    value.__serializedType === 'request'
+  )
 }
 
 /**
@@ -44,13 +58,11 @@ export async function serializeRequest(
  * serialized requests during a message channel transfer.
  */
 export function deserializeRequest(serialized: SerializedRequest): Request {
-  const request = new Request(serialized.url, {
+  return new Request(serialized.url, {
     method: serialized.method,
     headers: serialized.headers,
     body: serialized.body,
   })
-
-  return request
 }
 
 /**
@@ -64,11 +76,22 @@ export async function serializeResponse(
   const responseBody = await response.clone().arrayBuffer()
 
   return {
+    __serializedType: 'response',
     status: response.status,
     statusText: response.statusText,
     headers: flattenHeadersObject(headersToObject(response.headers)),
     body: responseBody,
   }
+}
+
+export function isSerializedResponse(
+  value: unknown,
+): value is SerializedResponse {
+  return (
+    isObject(value) &&
+    '__serializedType' in value &&
+    value.__serializedType === 'response'
+  )
 }
 
 /**
@@ -77,11 +100,9 @@ export async function serializeResponse(
  * serialized responses during a message channel transfer.
  */
 export function deserializeResponse(serialized: SerializedResponse): Response {
-  const response = new Response(serialized.body, {
+  return new Response(serialized.body, {
     status: serialized.status,
     statusText: serialized.statusText,
     headers: serialized.headers,
   })
-
-  return response
 }

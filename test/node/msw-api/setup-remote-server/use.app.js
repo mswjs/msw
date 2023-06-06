@@ -22,6 +22,29 @@ app.get('/resource', async (req, res) => {
   res.set(200).json(data)
 })
 
+app.use('/proxy', async (req, res) => {
+  const response = await fetch(req.header('location'), {
+    method: req.method,
+    headers: req.headers,
+  })
+  res.writeHead(response.status, response.statusText)
+
+  if (response.body) {
+    const reader = response.body.getReader()
+    reader.read().then(function processResult(result) {
+      if (result.done) {
+        res.end()
+        return
+      }
+
+      res.write(Buffer.from(result.value))
+      reader.read().then(processResult)
+    })
+  } else {
+    res.end()
+  }
+})
+
 const httpServer = app.listen(() => {
   if (!process.send) {
     throw new Error(

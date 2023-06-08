@@ -193,12 +193,18 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 <br />
 
-<a href="https://www.github.com/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
-    <img src="media/sponsors/github.svg" alt="GitHub" width="75" />
-  </picture>
-</a>
+<table>
+  <tr>
+    <td>
+      <a href="https://www.github.com/" target="_blank">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
+          <img src="media/sponsors/github.svg" alt="GitHub" width="75" />
+        </picture>
+      </a>
+    </td>
+  </tr>
+</table>
 
 ### Silver Sponsors
 
@@ -228,6 +234,18 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 > Become our first _bronze sponsor_ and get your profile image and link featured in this section.
 >
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
+
+<br />
+
+<table>
+  <tr>
+    <td>
+      <a href="https://materialize.com/" target="_blank">
+        <img src="media/sponsors/materialize.svg" alt="Materialize" width="75" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ## Awards & Mentions
 

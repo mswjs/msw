@@ -48,10 +48,10 @@ export function createFallbackRequestListener(
         },
         onMockedResponse(_, { handler, publicRequest, parsedRequest }) {
           if (!options.quiet) {
-            context.emitter.once('response:mocked', (response) => {
+            context.emitter.once('response:mocked', async (response) => {
               handler.log(
                 publicRequest,
-                serializeResponse(response),
+                await serializeResponse(response),
                 parsedRequest,
               )
             })

@@ -5,12 +5,14 @@ import { parseBody } from '../request/parseBody'
 /**
  * Formats a mocked response for introspection in the browser's console.
  */
-export function prepareResponse(res: SerializedResponse<any>) {
+export function prepareResponse(res: SerializedResponse<string>) {
   const responseHeaders = objectToHeaders(res.headers)
+
+  // Parse a response JSON body for preview in the logs
+  const parsedBody = parseBody(res.body, responseHeaders)
 
   return {
     ...res,
-    // Parse a response JSON body for preview in the logs
-    body: parseBody(res.body, responseHeaders),
+    body: parsedBody,
   }
 }

@@ -1,7 +1,7 @@
 import { prepareResponse } from './prepareResponse'
 
-test('parses a JSON response body given a "Content-Type:*/json" header', () => {
-  const res = prepareResponse({
+test('parses a JSON response body given a "Content-Type:*/json" header', async () => {
+  const res = await prepareResponse({
     status: 200,
     statusText: 'OK',
     headers: {

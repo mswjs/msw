@@ -1,7 +1,7 @@
 import { prepareResponse } from './prepareResponse'
 
-test('parses a JSON response body given a "Content-Type:*/json" header', () => {
-  const res = prepareResponse({
+test('parses a JSON response body given a "Content-Type:*/json" header', async () => {
+  const res = await prepareResponse({
     status: 200,
     statusText: 'OK',
     headers: {
@@ -49,38 +49,4 @@ test('returns a non-JSON response body as-is', () => {
 
   // Returns a non-JSON response body as-is
   expect(res.body).toEqual('text-body')
-})
-
-test('parse the json of a readableStream', async () => {
-  const res = prepareResponse({
-    status: 200,
-    statusText: 'OK',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(`{"property":2}`))
-        controller.close()
-      },
-    }),
-  })
-
-  expect(await res.body).toEqual({ property: 2 })
-})
-
-test('return the text of a readableStream', async () => {
-  const res = prepareResponse({
-    status: 200,
-    statusText: 'OK',
-    headers: {},
-    body: new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(`{"property":2}`))
-        controller.close()
-      },
-    }),
-  })
-
-  expect(await res.body).toEqual(`{"property":2}`)
 })

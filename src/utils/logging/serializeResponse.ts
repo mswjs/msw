@@ -1,11 +1,16 @@
 import { flattenHeadersObject, headersToObject } from 'headers-polyfill'
 import type { SerializedResponse } from '../../setupWorker/glossary'
 
-export function serializeResponse(source: Response): SerializedResponse<any> {
+export async function serializeResponse(
+  response: Response,
+): Promise<SerializedResponse<string>> {
   return {
-    status: source.status,
-    statusText: source.statusText,
-    headers: flattenHeadersObject(headersToObject(source.headers)),
-    body: source.body,
+    status: response.status,
+    statusText: response.statusText,
+    headers: flattenHeadersObject(headersToObject(response.headers)),
+    // Serialize the response body to a string
+    // so it's easier to process further down the chain in "prepareResponse" (browser-only)
+    // and "parseBody" (ambiguous).
+    body: await response.text(),
   }
 }

@@ -8,7 +8,7 @@ it('serializes response without body', async () => {
   const result = await serializeResponse(new Response(null))
 
   expect(result.status).toBe(200)
-  expect(result.statusText).toBe('')
+  expect(result.statusText).toBe('OK')
   expect(result.headers).toEqual({})
   expect(result.body).toBe('')
 })

@@ -147,7 +147,7 @@ export class RestHandler extends RequestHandler<
     const publicUrl = getPublicUrlFromRequest(request)
     const loggedRequest = await serializeRequest(request)
     const loggedResponse = await serializeResponse(response)
-    const statusColor = getStatusCodeColor(response.status)
+    const statusColor = getStatusCodeColor(loggedResponse.status)
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s %s (%c%s%c)'),
@@ -155,7 +155,7 @@ export class RestHandler extends RequestHandler<
       request.method,
       publicUrl,
       `color:${statusColor}`,
-      `${response.status} ${response.statusText}`,
+      `${loggedResponse.status} ${loggedResponse.statusText}`,
       'color:inherit',
     )
     console.log('Request', loggedRequest)

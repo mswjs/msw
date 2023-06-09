@@ -169,7 +169,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
   ) {
     const loggedRequest = await serializeRequest(request)
     const loggedResponse = await serializeResponse(response)
-    const statusColor = getStatusCodeColor(response.status)
+    const statusColor = getStatusCodeColor(loggedResponse.status)
     const requestInfo = parsedRequest?.operationName
       ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`
       : `anonymous ${parsedRequest?.operationType}`
@@ -179,7 +179,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
       getTimestamp(),
       `${requestInfo}`,
       `color:${statusColor}`,
-      `${response.status} ${response.statusText}`,
+      `${loggedResponse.status} ${loggedResponse.statusText}`,
       'color:inherit',
     )
     console.log('Request:', loggedRequest)

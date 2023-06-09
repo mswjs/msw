@@ -1,13 +1,7 @@
 import { test, expect } from '../playwright.extend'
 
-test('mocks response to a GET request', async ({
-  loadExample,
-  fetch,
-  page,
-}) => {
+test('mocks response to a GET request', async ({ loadExample, fetch }) => {
   await loadExample(require.resolve('./basic.mocks.ts'))
-
-  await page.pause()
 
   const response = await fetch('https://example.com/users/octocat')
   const status = response.status()

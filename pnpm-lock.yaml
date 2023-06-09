@@ -12,7 +12,7 @@ specifiers:
   '@mswjs/interceptors': ^0.17.5
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^1.0.3
-  '@ossjs/release': ^0.4.0
+  '@ossjs/release': ^0.5.1
   '@playwright/test': ^1.30.0
   '@swc/core': ^1.3.35
   '@swc/jest': ^0.2.24
@@ -99,7 +99,7 @@ devDependencies:
   '@commitlint/cli': 16.3.0_@swc+core@1.3.35
   '@commitlint/config-conventional': 16.2.4
   '@open-draft/test-server': 0.4.2
-  '@ossjs/release': 0.4.0
+  '@ossjs/release': 0.5.1
   '@playwright/test': 1.30.0
   '@swc/core': 1.3.35
   '@swc/jest': 0.2.24_@swc+core@1.3.35
@@ -2156,6 +2156,10 @@ packages:
       fastq: 1.15.0
     dev: true
 
+  /@open-draft/deferred-promise/2.1.0:
+    resolution: {integrity: sha512-Rzd5JrXZX8zErHzgcGyngh4fmEbSHqTETdGj9rXtejlqMIgXFlyKBA7Jn1Xp0Ls0M0Y22+xHcWiEzbmdWl0BOA==}
+    dev: true
+
   /@open-draft/test-server/0.4.2:
     resolution: {integrity: sha512-J9wbdQkPx5WKcDNtgfnXsx5ew4UJd6BZyGr89YlHeaUkOShkO2iO5QIyCCsG4qpjIvr2ZTkEYJA9ujOXXyO6Pg==}
     dependencies:
@@ -2179,10 +2183,11 @@ packages:
     resolution: {integrity: sha512-0zJhDjNR0aH1d68TiD6GnYr18dcuOiyTx8xV/I7fp9+z/VQ20e305aObW1/DO5/fiCOztscmvJsCjJDYDhFW6w==}
     dev: true
 
-  /@ossjs/release/0.4.0:
-    resolution: {integrity: sha512-cfW+gk3GdVqjrawkAG8q6MXPmTJouwwPegmBAVNvYvKq/tKQHgluxiueTlNTdJRryI76rpe6y5+EXlHdisrwdg==}
+  /@ossjs/release/0.5.1:
+    resolution: {integrity: sha512-pp1VL1sOK7+E8rVRhnNvCcof0l8cN256dYLypLN0yOFqk9KxALZ9Rb5/Xft+PkHbsZyeca7SOEnuaWxAqJUt9g==}
     hasBin: true
     dependencies:
+      '@open-draft/deferred-promise': 2.1.0
       '@open-draft/until': 2.0.0
       '@types/conventional-commits-parser': 3.0.3
       '@types/issue-parser': 3.0.1

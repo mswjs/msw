@@ -18,7 +18,7 @@ export function createFallbackRequestListener(
     interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
   })
 
-  interceptor.on('request', async (request, requestId) => {
+  interceptor.on('request', async ({ request, requestId }) => {
     const requestCloneForLogs = request.clone()
 
     const response = await handleRequest(
@@ -43,17 +43,17 @@ export function createFallbackRequestListener(
     }
   })
 
-  interceptor.on('response', (response, request, requestId) => {
-    /**
-     * @todo @fixme Don't rely on this response header since it's not set anymore.
-     * Instead, extend the Interceptors to deliver the "isMockedResponse" flag in the args.
-     */
-    if (response.headers.get('x-powered-by') === 'msw') {
-      context.emitter.emit('response:mocked', response, request, requestId)
-    } else {
-      context.emitter.emit('response:bypass', response, request, requestId)
-    }
-  })
+  interceptor.on(
+    'response',
+    ({ response, isMockedResponse, request, requestId }) => {
+      context.emitter.emit(
+        isMockedResponse ? 'response:mocked' : 'response:bypass',
+        response,
+        request,
+        requestId,
+      )
+    },
+  )
 
   interceptor.apply()
 

@@ -49,7 +49,7 @@ export class SetupServerApi
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async (request, requestId) => {
+    this.interceptor.on('request', async ({ request, requestId }) => {
       const response = await handleRequest(
         request,
         requestId,
@@ -65,17 +65,17 @@ export class SetupServerApi
       return
     })
 
-    this.interceptor.on('response', (response, request, requestId) => {
-      /**
-       * @todo @fixme Don't rely on this response header since it's not set anymore.
-       * Instead, extend the Interceptors to deliver the "isMockedResponse" flag in the args.
-       */
-      if (response.headers.get('x-powered-by') === 'msw') {
-        this.emitter.emit('response:mocked', response, request, requestId)
-      } else {
-        this.emitter.emit('response:bypass', response, request, requestId)
-      }
-    })
+    this.interceptor.on(
+      'response',
+      ({ response, isMockedResponse, request, requestId }) => {
+        this.emitter.emit(
+          isMockedResponse ? 'response:mocked' : 'response:bypass',
+          response,
+          request,
+          requestId,
+        )
+      },
+    )
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {

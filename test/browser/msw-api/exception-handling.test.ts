@@ -19,11 +19,10 @@ test('transforms uncaught exceptions into a 500 response', async ({
   const consoleSpy = spyOnConsole()
 
   const res = await fetch('https://api.github.com/users/octocat')
-  const headers = await res.allHeaders()
 
   expect(res.status()).toBe(500)
   expect(res.statusText()).toBe('Request Handler Error')
-  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
 
   expect(await res.json()).toEqual({
     name: 'ReferenceError',

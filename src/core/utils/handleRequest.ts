@@ -98,8 +98,6 @@ export async function handleRequest(
     return
   }
 
-  response.headers.set('x-powered-by', 'msw')
-
   // Store all the received response cookies in the virtual cookie store.
   readResponseCookies(request, response)
 

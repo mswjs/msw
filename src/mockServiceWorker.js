@@ -9,6 +9,7 @@
  */
 
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
+const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
 
 self.addEventListener('install', function () {
@@ -154,6 +155,7 @@ async function handleRequest(event, requestId) {
           type: 'RESPONSE',
           payload: {
             requestId,
+            isMockedResponse: IS_MOCKED_RESPONSE in response,
             type: responseClone.type,
             status: responseClone.status,
             statusText: responseClone.statusText,
@@ -302,5 +304,11 @@ function sendToClient(client, message, transferrables = []) {
 }
 
 async function respondWithMock(response) {
-  return new Response(response.body, response)
+  const mockedResponse = new Response(response.body, response)
+  Reflect.defineProperty(mockedResponse, IS_MOCKED_RESPONSE, {
+    value: true,
+    enumerable: true,
+  })
+
+  return mockedResponse
 }

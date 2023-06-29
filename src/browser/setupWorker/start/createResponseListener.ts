@@ -26,9 +26,8 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     }
 
     const response = new Response(responseJson.body, responseJson)
-    const isMockedResponse = response.headers.get('x-powered-by') === 'msw'
 
-    if (isMockedResponse) {
+    if (responseJson.isMockedResponse) {
       context.emitter.emit(
         'response:mocked',
         response,

@@ -40,10 +40,9 @@ test('unregisters itself when not prompted to be activated again', async ({
 
   // Should have the mocking enabled.
   const firstResponse = await fetch(resourceUrl)
-  const headers = firstResponse.headers()
   const body = await firstResponse.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(firstResponse.fromServiceWorker()).toBe(true)
   expect(body).toEqual({ mocked: true })
 
   // Reload the page, not starting the worker manually this time.
@@ -52,7 +51,7 @@ test('unregisters itself when not prompted to be activated again', async ({
   const secondResponse = await fetch(resourceUrl)
   const secondBody = await secondResponse.json()
 
-  expect(secondResponse.headers()).not.toHaveProperty('x-powered-by', 'msw')
+  expect(secondResponse.fromServiceWorker()).toBe(false)
   expect(secondBody).toEqual({ original: true })
 
   // Refresh the page the second time.
@@ -60,6 +59,6 @@ test('unregisters itself when not prompted to be activated again', async ({
   const thirdResponse = await fetch(resourceUrl)
   const thirdBody = await thirdResponse.json()
 
-  expect(secondResponse.headers()).not.toHaveProperty('x-powered-by', 'msw')
+  expect(secondResponse.fromServiceWorker()).toBe(false)
   expect(thirdBody).toEqual({ original: true })
 })

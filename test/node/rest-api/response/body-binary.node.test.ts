@@ -34,7 +34,6 @@ test('returns given buffer in the mocked response', async () => {
   const expectedImageBuffer = getImageBuffer()
 
   expect(status).toBe(200)
-  expect(headers.get('x-powered-by')).toBe('msw')
   expect(headers.get('content-length')).toBe(
     actualImageBuffer.byteLength.toString(),
   )
@@ -51,7 +50,6 @@ test('returns given blob in the mocked response', async () => {
   const expectedImageBuffer = getImageBuffer()
 
   expect(status).toBe(200)
-  expect(headers.get('x-powered-by')).toBe('msw')
   expect(blob.type).toBe('image/jpeg')
   expect(blob.size).toBe(Number(headers.get('content-length')))
   expect(Buffer.compare(actualImageBuffer, expectedImageBuffer)).toBe(0)

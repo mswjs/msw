@@ -46,6 +46,7 @@ export type ServiceWorkerIncomingResponse = Pick<
   'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
 > & {
   requestId: string
+  isMockedResponse: boolean
 }
 
 /**

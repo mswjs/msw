@@ -63,11 +63,10 @@ test('responds with a combination of the mocked and original responses', async (
 
   const res = await fetch(httpServer.http.url('/user'))
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     name: 'The Octocat',
     location: 'San Francisco',
@@ -97,11 +96,10 @@ test('bypasses the original request when it equals the mocked request', async ({
   )
 
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     name: 'msw',
     stargazers_count: 9999,
@@ -155,7 +153,7 @@ test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
   )
 
   const status = res.status()
-  const headers = await res.allHeaders()
+  const headers = res.headers()
 
   expect(status).toBe(200)
   expect(headers).toEqual(
@@ -191,11 +189,10 @@ test('supports patching a GET request', async ({
     },
   )
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({ id: 101, mocked: true })
 })
 
@@ -203,7 +200,6 @@ test('supports patching a POST request', async ({
   loadExample,
   fetch,
   makeUrl,
-  page,
 }) => {
   await loadExample(require.resolve('./response-patching.mocks.ts'))
 
@@ -230,13 +226,11 @@ test('supports patching a POST request', async ({
     },
   )
   const status = res.status()
-  const headers = await res.allHeaders()
+  const headers = res.headers()
   const body = await res.json()
 
-  await page.pause()
-
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
   expect(body).toEqual({
     id: 101,

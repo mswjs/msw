@@ -66,6 +66,10 @@ export class SetupServerApi
     })
 
     this.interceptor.on('response', (response, request, requestId) => {
+      /**
+       * @todo @fixme Don't rely on this response header since it's not set anymore.
+       * Instead, extend the Interceptors to deliver the "isMockedResponse" flag in the args.
+       */
       if (response.headers.get('x-powered-by') === 'msw') {
         this.emitter.emit('response:mocked', response, request, requestId)
       } else {

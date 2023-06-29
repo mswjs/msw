@@ -43,10 +43,9 @@ test('disables the mocking when the worker is stopped', async ({
   await stopWorkerOn(page)
 
   const res = await fetch('https://api.github.com')
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(false)
   expect(body).not.toEqual({
     mocked: true,
   })
@@ -77,10 +76,9 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   const res = await fetch('https://api.github.com', undefined, {
     page: secondPage,
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     mocked: true,
   })

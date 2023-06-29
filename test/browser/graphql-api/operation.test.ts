@@ -39,11 +39,10 @@ test('intercepts and mocks a GraphQL query', async ({
       id: 'abc-123',
     },
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: GET_USER_QUERY,
@@ -87,9 +86,7 @@ test('intercepts and mocks an anonymous GraphQL query', async ({
   expect(consoleSpy.get('warning')).toBeUndefined()
 
   expect(res.status()).toBe(200)
-
-  const headers = await res.allHeaders()
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
 
   const body = await res.json()
   expect(body).toEqual({
@@ -128,11 +125,10 @@ test('intercepts and mocks a GraphQL mutation', async ({
       password: 'super-secret',
     },
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: LOGIN_MUTATION,
@@ -184,12 +180,10 @@ test('bypasses seemingly compatible REST requests', async ({
   const res = await query(server.http.url('/search'), {
     query: 'favorite books',
   })
-
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)
-  expect(headers).not.toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     results: [1, 2, 3],
   })

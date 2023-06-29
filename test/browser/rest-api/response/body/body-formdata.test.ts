@@ -9,7 +9,7 @@ test('responds to a request with FormData', async ({ loadExample, fetch }) => {
     'content-type',
     expect.stringContaining('multipart/form-data'),
   )
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
 
   const text = await res.text()
   expect(text).toMatch(

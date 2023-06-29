@@ -74,11 +74,10 @@ afterAll(async () => {
 
 test('returns a combination of mocked and original responses', async () => {
   const res = await fetch('https://test.mswjs.io/user')
-  const { status, headers } = res
+  const { status } = res
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers.get('x-powered-by')).toBe('msw')
   expect(body).toEqual<ResponseBody>({
     id: 101,
     mocked: true,
@@ -89,7 +88,6 @@ test('bypasses a mocked request when using "bypass()"', async () => {
   const res = await fetch('https://test.mswjs.io/complex-request?bypass=true')
 
   expect(res.status).toBe(200)
-  expect(res.headers.get('x-powered-by')).toBe('msw')
   expect(await res.json()).toEqual<ResponseBody>({
     id: 202,
     mocked: true,
@@ -100,7 +98,6 @@ test('falls into the mocked request when using "fetch" directly', async () => {
   const res = await fetch('https://test.mswjs.io/complex-request')
 
   expect(res.status).toBe(200)
-  expect(res.headers.get('x-powered-by')).toBe('msw')
   expect(await res.json()).toEqual<ResponseBody>({
     id: 303,
     mocked: true,

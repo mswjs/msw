@@ -113,7 +113,7 @@
     "@bundled-es-modules/js-levenshtein": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@mswjs/cookies": "^1.0.0",
-    "@mswjs/interceptors": "^0.22.13",
+    "@mswjs/interceptors": "^0.23.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",

@@ -218,7 +218,7 @@ test('returns the mocked response for a request with a matching request handler'
   expect(mockedResponseParam.status).toBe(mockedResponse.status)
   expect(mockedResponseParam.statusText).toBe(mockedResponse.statusText)
   expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual(
-    mockedResponse.headers.entries(),
+    Object.fromEntries(mockedResponse.headers.entries()),
   )
 
   expect(lookupResultParam).toEqual({
@@ -274,7 +274,7 @@ test('returns a transformed response if the "transformResponse" option is provid
   expect(result?.status).toEqual(finalResponse.status)
   expect(result?.statusText).toEqual(finalResponse.statusText)
   expect(Object.fromEntries(result!.headers.entries())).toEqual(
-    mockedResponse.headers.entries(),
+    Object.fromEntries(mockedResponse.headers.entries()),
   )
 
   expect(events).toEqual([
@@ -290,7 +290,7 @@ test('returns a transformed response if the "transformResponse" option is provid
   expect(responseParam.status).toBe(mockedResponse.status)
   expect(responseParam.statusText).toBe(mockedResponse.statusText)
   expect(Object.fromEntries(responseParam.headers.entries())).toEqual(
-    mockedResponse.headers.entries(),
+    Object.fromEntries(mockedResponse.headers.entries()),
   )
 
   expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
@@ -300,7 +300,7 @@ test('returns a transformed response if the "transformResponse" option is provid
   expect(mockedResponseParam.status).toBe(finalResponse.status)
   expect(mockedResponseParam.statusText).toBe(finalResponse.statusText)
   expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual(
-    mockedResponse.headers.entries(),
+    Object.fromEntries(mockedResponse.headers.entries()),
   )
   expect(await mockedResponseParam.text()).toBe('transformed')
 

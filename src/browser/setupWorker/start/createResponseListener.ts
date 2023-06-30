@@ -25,7 +25,10 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
       return
     }
 
-    const response = new Response(responseJson.body, responseJson)
+    const response =
+      responseJson.status === 0
+        ? Response.error()
+        : new Response(responseJson.body, responseJson)
 
     if (responseJson.isMockedResponse) {
       context.emitter.emit(

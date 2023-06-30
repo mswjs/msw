@@ -89,7 +89,7 @@ test('bypasses the original request when it equals the mocked request', async ({
           // Await the response from MSW so that the original response
           // from the same URL would not interfere.
           matchRequestUrl(new URL(res.request().url()), res.url()).matches &&
-          res.headers()['x-powered-by'] === 'msw'
+          res.headers()['x-source'] === 'msw'
         )
       },
     },
@@ -145,8 +145,7 @@ test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
         const headers = res.headers()
 
         return (
-          headers['x-powered-by'] === 'msw' &&
-          headers['x-msw-bypass'] !== 'true'
+          headers['x-source'] === 'msw' && headers['x-msw-bypass'] !== 'true'
         )
       },
     },
@@ -158,7 +157,7 @@ test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
   expect(status).toBe(200)
   expect(headers).toEqual(
     expect.objectContaining({
-      'x-powered-by': 'msw',
+      'x-source': 'msw',
       'x-custom': 'HEAD REQUEST PATCHED',
     }),
   )
@@ -183,7 +182,7 @@ test('supports patching a GET request', async ({
       waitForResponse(res) {
         return (
           matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-            .matches && res.headers()['x-powered-by'] === 'msw'
+            .matches && res.headers()['x-source'] === 'msw'
         )
       },
     },
@@ -220,7 +219,7 @@ test('supports patching a POST request', async ({
       waitForResponse(res) {
         return (
           matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-            .matches && res.headers()['x-powered-by'] === 'msw'
+            .matches && res.headers()['x-source'] === 'msw'
         )
       },
     },

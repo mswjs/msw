@@ -7,11 +7,18 @@ const worker = setupWorker(
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
-    return HttpResponse.json({
-      name: body.name,
-      location: body.location,
-      mocked: true,
-    })
+    return HttpResponse.json(
+      {
+        name: body.name,
+        location: body.location,
+        mocked: true,
+      },
+      {
+        headers: {
+          'X-Source': 'msw',
+        },
+      },
+    )
   }),
 
   rest.get('*/repos/:owner/:repoName', async ({ request }) => {
@@ -19,10 +26,17 @@ const worker = setupWorker(
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
-    return HttpResponse.json({
-      name: body.name,
-      stargazers_count: 9999,
-    })
+    return HttpResponse.json(
+      {
+        name: body.name,
+        stargazers_count: 9999,
+      },
+      {
+        headers: {
+          'X-Source': 'msw',
+        },
+      },
+    )
   }),
 
   rest.get('*/headers', async ({ request }) => {
@@ -34,7 +48,11 @@ const worker = setupWorker(
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
-    return HttpResponse.json(body)
+    return HttpResponse.json(body, {
+      headers: {
+        'X-Source': 'msw',
+      },
+    })
   }),
 
   rest.post('*/posts', async ({ request }) => {
@@ -49,6 +67,7 @@ const worker = setupWorker(
       },
       {
         headers: {
+          'X-Source': 'msw',
           'X-Custom': originalResponse.headers.get('x-custom') || '',
         },
       },
@@ -60,10 +79,17 @@ const worker = setupWorker(
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
 
-    return HttpResponse.json({
-      ...body,
-      mocked: true,
-    })
+    return HttpResponse.json(
+      {
+        ...body,
+        mocked: true,
+      },
+      {
+        headers: {
+          'X-Source': 'msw',
+        },
+      },
+    )
   }),
 
   rest.head('*/posts', async ({ request }) => {
@@ -76,6 +102,7 @@ const worker = setupWorker(
       },
       {
         headers: {
+          'X-Source': 'msw',
           'X-Custom': originalResponse.headers.get('x-custom') || '',
         },
       },

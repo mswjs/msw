@@ -76,6 +76,7 @@ export class MockedRequest<
   public readonly cache: RequestCache
   public readonly cookies: Record<string, string>
   public readonly destination: RequestDestination
+  public readonly headers: Headers;
   public readonly integrity: string
   public readonly keepalive: boolean
   public readonly mode: RequestMode

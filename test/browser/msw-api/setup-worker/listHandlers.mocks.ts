@@ -14,6 +14,8 @@ const worker = setupWorker(
   github.operation(resolver),
 )
 
+worker.start()
+
 // @ts-ignore
 window.msw = {
   worker,

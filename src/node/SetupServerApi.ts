@@ -107,23 +107,6 @@ export class SetupServerApi
     )
   }
 
-  public printHandlers(): void {
-    const handlers = this.listHandlers()
-
-    handlers.forEach((handler) => {
-      const { header, callFrame } = handler.info
-
-      const pragma = handler.info.hasOwnProperty('operationType')
-        ? '[graphql]'
-        : '[rest]'
-
-      console.log(`\
-${`${pragma} ${header}`}
-  Declaration: ${callFrame}
-`)
-    })
-  }
-
   public close(): void {
     this.dispose()
   }

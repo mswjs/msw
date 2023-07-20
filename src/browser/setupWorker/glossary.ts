@@ -240,11 +240,5 @@ export interface SetupWorker {
    */
   listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
 
-  /**
-   * Lists all active request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/print-handlers `worker.printHandlers()`}
-   */
-  printHandlers: () => void
-
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }

@@ -46,11 +46,5 @@ export interface SetupServer {
    */
   listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
 
-  /**
-   * Lists all active request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-server/print-handlers `server.print-handlers()`}
-   */
-  printHandlers(): void
-
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }

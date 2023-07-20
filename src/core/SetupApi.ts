@@ -88,6 +88,4 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       },
     }
   }
-
-  abstract printHandlers(): void
 }

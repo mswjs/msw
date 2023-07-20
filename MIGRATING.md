@@ -32,6 +32,7 @@ To help you navigate, we've structured this guide on the feature basis. You can 
   - [ctx.delay](#ctxdelay)
   - [ctx.fetch](#ctx-fetch)
 - [Life-cycle events](#life-cycle-events)
+- [`.printHandlers()`](#print-handlers)
 - [Advanced](#advanced)
 - [**What's new in this release?**](#whats-new)
 - [Common issues](#common-issues)
@@ -510,6 +511,17 @@ The `response:*` events now always contain the response reference, the related r
 worker.events.on('response:mocked', ({ response, request, requestId }) => {
   console.log('response to %s %s is:', request.method, request.url, response)
 })
+```
+
+---
+
+## `.printHandlers()
+
+The `worker.prinHandlers()` and `server.printHandlers()` methods were removed. Use the `.listHandlers()` method instead:
+
+```diff
+-worker.printHandlers()
++console.log(worker.listHandlers())
 ```
 
 ---

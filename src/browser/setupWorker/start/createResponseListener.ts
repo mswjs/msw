@@ -30,24 +30,17 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
         ? Response.error()
         : new Response(responseJson.body, responseJson)
 
-    if (responseJson.isMockedResponse) {
-      context.emitter.emit(
-        'response:mocked',
+    context.emitter.emit(
+      responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
+      {
         response,
         /**
          * @todo @fixme In this context, we don't know anything about
          * the request.
          */
-        null as any,
-        responseJson.requestId,
-      )
-    } else {
-      context.emitter.emit(
-        'response:bypass',
-        response,
-        null as any,
-        responseJson.requestId,
-      )
-    }
+        request: null as any,
+        requestId: responseJson.requestId,
+      },
+    )
   }
 }

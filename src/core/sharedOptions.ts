@@ -14,13 +14,51 @@ export interface SharedOptions {
 }
 
 export type LifeCycleEventsMap = {
-  'request:start': [request: Request, requestId: string]
-  'request:match': [request: Request, requestId: string]
-  'request:unhandled': [request: Request, requestId: string]
-  'request:end': [request: Request, requestId: string]
-  'response:mocked': [response: Response, request: Request, requestId: string]
-  'response:bypass': [response: Response, request: Request, requestId: string]
-  unhandledException: [error: Error, request: Request, requestId: string]
+  'request:start': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:match': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:unhandled': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:end': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'response:mocked': [
+    args: {
+      response: Response
+      request: Request
+      requestId: string
+    },
+  ]
+  'response:bypass': [
+    args: {
+      response: Response
+      request: Request
+      requestId: string
+    },
+  ]
+  unhandledException: [
+    args: {
+      error: Error
+      request: Request
+      requestId: string
+    },
+  ]
 }
 
 export type LifeCycleEventEmitter<

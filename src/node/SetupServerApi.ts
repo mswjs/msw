@@ -70,9 +70,11 @@ export class SetupServerApi
       ({ response, isMockedResponse, request, requestId }) => {
         this.emitter.emit(
           isMockedResponse ? 'response:mocked' : 'response:bypass',
-          response,
-          request,
-          requestId,
+          {
+            response,
+            request,
+            requestId,
+          },
         )
       },
     )

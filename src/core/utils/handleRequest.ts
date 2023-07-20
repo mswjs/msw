@@ -43,11 +43,11 @@ export async function handleRequest(
   emitter: Emitter<LifeCycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions,
 ): Promise<Response | undefined> {
-  emitter.emit('request:start', request, requestId)
+  emitter.emit('request:start', { request, requestId })
 
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
   if (request.headers.get('x-msw-intention') === 'bypass') {
-    emitter.emit('request:end', request, requestId)
+    emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -63,7 +63,11 @@ export async function handleRequest(
 
   if (lookupResult.error) {
     // Allow developers to react to unhandled exceptions in request handlers.
-    emitter.emit('unhandledException', lookupResult.error, request, requestId)
+    emitter.emit('unhandledException', {
+      error: lookupResult.error,
+      request,
+      requestId,
+    })
     throw lookupResult.error
   }
 
@@ -71,8 +75,8 @@ export async function handleRequest(
   // matching this request. Report the request as unhandled.
   if (!lookupResult.data) {
     await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
-    emitter.emit('request:unhandled', request, requestId)
-    emitter.emit('request:end', request, requestId)
+    emitter.emit('request:unhandled', { request, requestId })
+    emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -82,7 +86,7 @@ export async function handleRequest(
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {
-    emitter.emit('request:end', request, requestId)
+    emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -93,7 +97,7 @@ export async function handleRequest(
     response.status === 302 &&
     response.headers.get('x-msw-intention') === 'passthrough'
   ) {
-    emitter.emit('request:end', request, requestId)
+    emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
@@ -101,7 +105,7 @@ export async function handleRequest(
   // Store all the received response cookies in the virtual cookie store.
   readResponseCookies(request, response)
 
-  emitter.emit('request:match', request, requestId)
+  emitter.emit('request:match', { request, requestId })
 
   const requiredLookupResult =
     lookupResult.data as RequiredDeep<ResponseLookupResult>
@@ -115,7 +119,7 @@ export async function handleRequest(
     requiredLookupResult,
   )
 
-  emitter.emit('request:end', request, requestId)
+  emitter.emit('request:end', { request, requestId })
 
   return transformedResponse
 }

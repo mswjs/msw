@@ -474,12 +474,19 @@ bypass(request, {
 
 ## Life-cycle events
 
+The life-cycle events listeners now accept a single argument being an object with contextual properties.
+
+```diff
+-server.events.on('request:start', (request, requestId) = {})
++server.events.on('request:start', ({ request, requestId}) => {})
+```
+
 The request and response instances exposed in the life-cycle API have also been updated to return Fetch API `Request` and `Response` respectively.
 
 The request ID is now exposed as a standalone argument (previously, `req.id`).
 
 ```js
-server.events.on('request:start', (request, requestId) => {
+server.events.on('request:start', ({ request, requestId }) => {
   console.log(request.method, request.url)
 })
 ```
@@ -487,7 +494,7 @@ server.events.on('request:start', (request, requestId) => {
 To read a request body, make sure to clone the request first. Otherwise, it won't be performed as it would be already read.
 
 ```js
-server.events.on('request:match', async (request) => {
+server.events.on('request:match', async ({ request }) => {
   // Make sure to clone the request so it could be
   // processed further down the line.
   const clone = request.clone()
@@ -500,7 +507,7 @@ server.events.on('request:match', async (request) => {
 The `response:*` events now always contain the response reference, the related request, and its id in the listener arguments.
 
 ```js
-worker.events.on('response:mocked', (response, request, requestId) => {
+worker.events.on('response:mocked', ({ response, request, requestId }) => {
   console.log('response to %s %s is:', request.method, request.url, response)
 })
 ```

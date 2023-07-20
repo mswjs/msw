@@ -42,33 +42,33 @@ beforeAll(async () => {
   )
   server.listen()
 
-  server.events.on('request:start', (request, requestId) => {
+  server.events.on('request:start', ({ request, requestId }) => {
     listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('request:match', (request, requestId) => {
+  server.events.on('request:match', ({ request, requestId }) => {
     listener(`[request:match] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('request:unhandled', (request, requestId) => {
+  server.events.on('request:unhandled', ({ request, requestId }) => {
     listener(
       `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
     )
   })
 
-  server.events.on('request:end', (request, requestId) => {
+  server.events.on('request:end', ({ request, requestId }) => {
     listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('response:mocked', async (response, _, requestId) => {
+  server.events.on('response:mocked', async ({ response, requestId }) => {
     listener(`[response:mocked] ${await response.text()} ${requestId}`)
   })
 
-  server.events.on('response:bypass', async (response, _, requestId) => {
+  server.events.on('response:bypass', async ({ response, requestId }) => {
     listener(`[response:bypass] ${await response.text()} ${requestId}`)
   })
 
-  server.events.on('unhandledException', (error, request, requestId) => {
+  server.events.on('unhandledException', ({ error, request, requestId }) => {
     listener(
       `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,
     )

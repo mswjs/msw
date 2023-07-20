@@ -71,8 +71,8 @@ test('returns undefined for a request with the "x-msw-intention" header equal to
 
   expect(result).toBeUndefined()
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
@@ -125,9 +125,9 @@ test('reports request as unhandled when it has no matching request handlers', as
 
   expect(result).toBeUndefined()
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:unhandled', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:unhandled', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).toHaveBeenNthCalledWith(1, request, {
     warning: expect.any(Function),
@@ -160,8 +160,8 @@ test('returns undefined on a request handler that returns no response', async ()
 
   expect(result).toBeUndefined()
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
@@ -205,9 +205,9 @@ test('returns the mocked response for a request with a matching request handler'
 
   expect(result).toEqual(mockedResponse)
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:match', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:match', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
 
@@ -278,9 +278,9 @@ test('returns a transformed response if the "transformResponse" option is provid
   )
 
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:match', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:match', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
 
@@ -336,8 +336,8 @@ it('returns undefined without warning on a passthrough request', async () => {
 
   expect(result).toBeUndefined()
   expect(events).toEqual([
-    ['request:start', request, requestId],
-    ['request:end', request, requestId],
+    ['request:start', { request, requestId }],
+    ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)

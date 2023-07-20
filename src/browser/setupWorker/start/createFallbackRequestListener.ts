@@ -30,7 +30,7 @@ export function createFallbackRequestListener(
       {
         onMockedResponse(_, { handler, parsedRequest }) {
           if (!options.quiet) {
-            context.emitter.once('response:mocked', (response) => {
+            context.emitter.once('response:mocked', ({ response }) => {
               handler.log(requestCloneForLogs, response, parsedRequest)
             })
           }
@@ -48,9 +48,11 @@ export function createFallbackRequestListener(
     ({ response, isMockedResponse, request, requestId }) => {
       context.emitter.emit(
         isMockedResponse ? 'response:mocked' : 'response:bypass',
-        response,
-        request,
-        requestId,
+        {
+          response,
+          request,
+          requestId,
+        },
       )
     },
   )

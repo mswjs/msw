@@ -54,6 +54,7 @@ export const createRequestListener = (
             }
 
             const responseInstance = new Response(response.body, response)
+            const responseForLogs = responseInstance.clone()
             const responseBodyBuffer = await responseInstance.arrayBuffer()
 
             // If the mocked response has no body, keep it that way.
@@ -73,10 +74,10 @@ export const createRequestListener = (
             )
 
             if (!options.quiet) {
-              context.emitter.once('response:mocked', async (response) => {
+              context.emitter.once('response:mocked', async () => {
                 handler.log(
                   publicRequest,
-                  await serializeResponse(response),
+                  await serializeResponse(responseForLogs),
                   parsedRequest,
                 )
               })

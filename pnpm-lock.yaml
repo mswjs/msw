@@ -43,7 +43,7 @@ specifiers:
   express: ^4.18.2
   fs-extra: ^10.0.0
   fs-teardown: ^0.3.0
-  graphql: ^15.0.0 || ^16.0.0
+  graphql: ^15.0.0 || >=16.0.0 <16.7.0
   headers-polyfill: ^3.1.2
   inquirer: ^8.2.0
   is-node-process: ^1.2.0

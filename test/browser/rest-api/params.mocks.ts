@@ -1,4 +1,4 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 type RequestParams = {
@@ -7,7 +7,7 @@ type RequestParams = {
 }
 
 const worker = setupWorker(
-  rest.get<RequestParams>(
+  http.get<RequestParams>(
     'https://api.github.com/users/:username/messages/:messageId',
     ({ params }) => {
       const { username, messageId } = params

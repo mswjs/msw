@@ -4,7 +4,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 function getImageBuffer() {
@@ -12,7 +12,7 @@ function getImageBuffer() {
 }
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io/image', () => {
+  http.get('http://test.mswjs.io/image', () => {
     const imageBuffer = getImageBuffer()
 
     return HttpResponse.arrayBuffer(imageBuffer, {

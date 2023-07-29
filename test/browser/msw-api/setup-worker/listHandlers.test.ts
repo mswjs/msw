@@ -1,11 +1,11 @@
-import { rest, graphql } from 'msw'
+import { http, graphql } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
     graphql: typeof graphql
   }
 }
@@ -56,9 +56,9 @@ test('includes runtime request handlers when listing handlers', async ({
   await loadExample(LIST_HANDLER_EXAMPLE)
 
   const handlerHeaders = await page.evaluate(() => {
-    const { worker, rest, graphql } = window.msw
+    const { worker, http, graphql } = window.msw
     worker.use(
-      rest.get('https://test.mswjs.io/book/:bookId', () => void 0),
+      http.get('https://test.mswjs.io/book/:bookId', () => void 0),
       graphql.query('GetRandomNumber', () => void 0),
     )
     const handlers = worker.listHandlers()

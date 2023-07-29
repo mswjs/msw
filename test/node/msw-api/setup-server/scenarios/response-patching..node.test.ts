@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { HttpServer } from '@open-draft/test-server/http'
-import { HttpResponse, rest, bypass } from 'msw'
+import { HttpResponse, http, bypass } from 'msw'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {
@@ -20,7 +20,7 @@ interface ResponseBody {
 }
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/user', async () => {
+  http.get('https://test.mswjs.io/user', async () => {
     const fetchArgs = await bypass(httpServer.http.url('/user'))
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
@@ -30,7 +30,7 @@ const server = setupServer(
       mocked: true,
     })
   }),
-  rest.get('https://test.mswjs.io/complex-request', async ({ request }) => {
+  http.get('https://test.mswjs.io/complex-request', async ({ request }) => {
     const url = new URL(request.url)
 
     const shouldBypass = url.searchParams.get('bypass') === 'true'
@@ -53,7 +53,7 @@ const server = setupServer(
       mocked: true,
     })
   }),
-  rest.post('https://httpbin.org/post', () => {
+  http.post('https://httpbin.org/post', () => {
     return HttpResponse.json({ id: 303 })
   }),
 )

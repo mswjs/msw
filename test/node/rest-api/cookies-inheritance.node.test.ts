@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer, SetupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
@@ -21,14 +21,14 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server = setupServer(
-    rest.post(httpServer.https.url('/login'), () => {
+    http.post(httpServer.https.url('/login'), () => {
       return new HttpResponse(null, {
         headers: {
           'Set-Cookie': 'authToken=abc-123',
         },
       })
     }),
-    rest.get<
+    http.get<
       never,
       never,
       { firstName: string; lastName: string } | { error: string }

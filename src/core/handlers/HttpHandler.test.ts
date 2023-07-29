@@ -1,19 +1,19 @@
 /**
  * @jest-environment jsdom
  */
-import { RestHandler, RestRequestResolverExtras } from './RestHandler'
+import { HttpHandler, HttpRequestResolverExtras } from './HttpHandler'
 import { HttpResponse } from '..'
 import { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<
-  RestRequestResolverExtras<{ userId: string }>
+  HttpRequestResolverExtras<{ userId: string }>
 > = ({ params }) => {
   return HttpResponse.json({ userId: params.userId })
 }
 
 describe('info', () => {
   test('exposes request handler information', () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
 
     expect(handler.info.header).toEqual('GET /user/:userId')
     expect(handler.info.method).toEqual('GET')
@@ -24,7 +24,7 @@ describe('info', () => {
 
 describe('parse', () => {
   test('parses a URL given a matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
     expect(await handler.parse(request)).toEqual({
@@ -39,7 +39,7 @@ describe('parse', () => {
   })
 
   test('parses a URL and ignores the request method', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/def-456', location.href), {
       method: 'POST',
     })
@@ -56,7 +56,7 @@ describe('parse', () => {
   })
 
   test('returns negative match result given a non-matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/login', location.href))
 
     expect(await handler.parse(request)).toEqual({
@@ -71,7 +71,7 @@ describe('parse', () => {
 
 describe('predicate', () => {
   test('returns true given a matching request', async () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/login', location.href), {
       method: 'POST',
     })
@@ -80,7 +80,7 @@ describe('predicate', () => {
   })
 
   test('respects RegExp as the request method', async () => {
-    const handler = new RestHandler(/.+/, '/login', resolver)
+    const handler = new HttpHandler(/.+/, '/login', resolver)
     const requests = [
       new Request(new URL('/login', location.href)),
       new Request(new URL('/login', location.href), { method: 'POST' }),
@@ -95,7 +95,7 @@ describe('predicate', () => {
   })
 
   test('returns false given a non-matching request', async () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
     expect(handler.predicate(request, await handler.parse(request))).toBe(false)
@@ -104,7 +104,7 @@ describe('predicate', () => {
 
 describe('test', () => {
   test('returns true given a matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test(
       new Request(new URL('/user/abc-123', location.href)),
     )
@@ -117,7 +117,7 @@ describe('test', () => {
   })
 
   test('returns false given a non-matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test(
       new Request(new URL('/login', location.href)),
     )
@@ -136,7 +136,7 @@ describe('test', () => {
 
 describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
-    const handler = new RestHandler('GET', '/user/:userId', resolver)
+    const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
     const result = await handler.run(request)
 
@@ -158,7 +158,7 @@ describe('run', () => {
   })
 
   test('returns null given a non-matching request', async () => {
-    const handler = new RestHandler('POST', '/login', resolver)
+    const handler = new HttpHandler('POST', '/login', resolver)
     const result = await handler.run(
       new Request(new URL('/users', location.href)),
     )
@@ -167,7 +167,7 @@ describe('run', () => {
   })
 
   test('returns an empty "params" object given request with no URL parameters', async () => {
-    const handler = new RestHandler('GET', '/users', resolver)
+    const handler = new HttpHandler('GET', '/users', resolver)
     const result = await handler.run(
       new Request(new URL('/users', location.href)),
     )
@@ -176,7 +176,7 @@ describe('run', () => {
   })
 
   test('exhauses resolver until its generator completes', async () => {
-    const handler = new RestHandler('GET', '/users', function* () {
+    const handler = new HttpHandler('GET', '/users', function* () {
       let count = 0
 
       while (count < 5) {

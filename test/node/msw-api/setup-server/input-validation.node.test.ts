@@ -1,4 +1,4 @@
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 test('throws an error given an Array of request handlers to setupServer', () => {
@@ -7,7 +7,7 @@ test('throws an error given an Array of request handlers to setupServer', () => 
     // should be thrown when `setupServer` parameters are not valid
     // @ts-ignore
     return setupServer([
-      rest.get('https://test.mswjs.io/book/:bookId', () => {
+      http.get('https://test.mswjs.io/book/:bookId', () => {
         return HttpResponse.json({ title: 'Original title' })
       }),
     ])

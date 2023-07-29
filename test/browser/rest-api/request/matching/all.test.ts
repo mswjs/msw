@@ -41,7 +41,7 @@ test('respects custom path when matching requests', async ({
   }
 
   // Mismatched request.
-  // There's a fallback "rest.all()" in this test that acts
+  // There's a fallback "http.all()" in this test that acts
   // as a fallback request handler for all otherwise mismatched requests.
   const mismatchedResponses = await forEachMethod((method) => {
     return fetch('http://localhost/foo', { method })

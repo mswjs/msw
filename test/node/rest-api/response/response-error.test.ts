@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer()
@@ -20,7 +20,7 @@ afterAll(() => {
 
 it('responds with a mocked error response using "Response.error" shorthand', async () => {
   server.use(
-    rest.get('https://api.example.com/resource', () => {
+    http.get('https://api.example.com/resource', () => {
       return Response.error()
     }),
   )

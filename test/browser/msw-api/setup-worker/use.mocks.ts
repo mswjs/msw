@@ -1,8 +1,8 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/book/:bookId', function originalResolver() {
+  http.get('/book/:bookId', function originalResolver() {
     return HttpResponse.json({
       title: 'Original title',
     })
@@ -12,10 +12,10 @@ const worker = setupWorker(
 worker.start()
 
 // @ts-ignore
-// Propagate the worker and `rest` references to be globally available.
+// Propagate the worker and `http` references to be globally available.
 // This would allow to modify request handlers on runtime.
 window.msw = {
   worker,
-  rest,
+  http,
   HttpResponse,
 }

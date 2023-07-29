@@ -3,7 +3,7 @@
  * Unlike `bypass()`, this will not trigger an additional request.
  *
  * @example
- * rest.get('/user', () => {
+ * http.get('/user', () => {
  *   return passthrough()
  * })
  */

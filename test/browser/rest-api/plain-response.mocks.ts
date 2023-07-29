@@ -1,8 +1,8 @@
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/greeting', () => {
+  http.get('/greeting', () => {
     return new Response('Hello, world!')
   }),
 )

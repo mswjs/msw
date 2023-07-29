@@ -1,11 +1,11 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
     HttpResponse: typeof HttpResponse
   }
 }
@@ -18,10 +18,10 @@ test('returns a mocked response from the used one-time request handler when rest
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, http, HttpResponse } = window.msw
 
     worker.use(
-      rest.get<{ bookId: string }>(
+      http.get<{ bookId: string }>(
         '/book/:bookId',
         () => {
           return HttpResponse.json({ title: 'One-time override' })

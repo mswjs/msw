@@ -21,14 +21,14 @@ import {
   ResponseResolver,
 } from './RequestHandler'
 
-type RestHandlerMethod = string | RegExp
+type HttpHandlerMethod = string | RegExp
 
-export interface RestHandlerInfo extends RequestHandlerDefaultInfo {
-  method: RestHandlerMethod
+export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
+  method: HttpHandlerMethod
   path: Path
 }
 
-export enum RESTMethods {
+export enum HttpMethods {
   HEAD = 'HEAD',
   GET = 'GET',
   POST = 'POST',
@@ -42,29 +42,29 @@ export type RequestQuery = {
   [queryName: string]: string
 }
 
-export type RestRequestParsedResult = {
+export type HttpRequestParsedResult = {
   match: Match
   cookies: Record<string, string>
 }
 
-export type RestRequestResolverExtras<Params extends PathParams> = {
+export type HttpRequestResolverExtras<Params extends PathParams> = {
   params: Params
   cookies: Record<string, string | Array<string>>
 }
 
 /**
- * Request handler for REST API requests.
+ * Request handler for HTTP requests.
  * Provides request matching based on method and URL.
  */
-export class RestHandler extends RequestHandler<
-  RestHandlerInfo,
-  RestRequestParsedResult,
-  RestRequestResolverExtras<any>
+export class HttpHandler extends RequestHandler<
+  HttpHandlerInfo,
+  HttpRequestParsedResult,
+  HttpRequestResolverExtras<any>
 > {
   constructor(
-    method: RestHandlerMethod,
+    method: HttpHandlerMethod,
     path: Path,
-    resolver: ResponseResolver<RestRequestResolverExtras<any>, any, any>,
+    resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerPublicOptions,
   ) {
     super({
@@ -121,7 +121,7 @@ export class RestHandler extends RequestHandler<
     }
   }
 
-  predicate(request: Request, parsedResult: RestRequestParsedResult) {
+  predicate(request: Request, parsedResult: HttpRequestParsedResult) {
     const hasMatchingMethod = this.matchMethod(request.method)
     const hasMatchingUrl = parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl
@@ -135,7 +135,7 @@ export class RestHandler extends RequestHandler<
 
   protected extendInfo(
     _request: Request,
-    parsedResult: RestRequestParsedResult,
+    parsedResult: HttpRequestParsedResult,
   ) {
     return {
       params: parsedResult.match?.params || {},

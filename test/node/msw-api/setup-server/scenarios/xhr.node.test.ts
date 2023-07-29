@@ -1,12 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'
 
 const server = setupServer(
-  rest.get('http://localhost:3001/resource', ({ request }) => {
+  http.get('http://localhost:3001/resource', ({ request }) => {
     return new Response(
       JSON.stringify({
         firstName: 'John',

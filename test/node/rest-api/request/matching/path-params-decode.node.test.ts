@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<{ url: string }>(
+  http.get<{ url: string }>(
     'https://test.mswjs.io/reflect-url/:url',
     ({ params }) => {
       return HttpResponse.json({ url: params.url })

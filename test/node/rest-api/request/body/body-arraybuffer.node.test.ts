@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 function encodeBuffer(value: unknown) {
@@ -10,7 +10,7 @@ function encodeBuffer(value: unknown) {
 }
 
 const server = setupServer(
-  rest.post('http://localhost/arrayBuffer', async ({ request }) => {
+  http.post('http://localhost/arrayBuffer', async ({ request }) => {
     const requestBodyBuffer = await request.arrayBuffer()
     return HttpResponse.arrayBuffer(requestBodyBuffer)
   }),

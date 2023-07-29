@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import https from 'https'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer()
@@ -21,7 +21,7 @@ afterAll(() => {
 
 test('intercepts and mocks a request made via "https"', (done) => {
   server.use(
-    rest.get('https://api.example.com/resource', () => {
+    http.get('https://api.example.com/resource', () => {
       return HttpResponse.text('Hello, world!')
     }),
   )

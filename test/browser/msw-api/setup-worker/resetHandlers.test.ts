@@ -1,4 +1,4 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
@@ -6,7 +6,7 @@ declare namespace window {
   // Annotate global references to the worker and rest request handlers.
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
     HttpResponse: typeof HttpResponse
   }
 }
@@ -25,7 +25,7 @@ test('removes all runtime request handlers when resetting without explicit next 
 
     // Add a request handler on runtime
     msw.worker.use(
-      msw.rest.post('/login', () => {
+      msw.http.post('/login', () => {
         return msw.HttpResponse.json({ accepted: true })
       }),
     )
@@ -74,7 +74,7 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     const { msw } = window
 
     msw.worker.use(
-      msw.rest.post('/login', () => {
+      msw.http.post('/login', () => {
         return msw.HttpResponse.json({ accepted: true })
       }),
     )
@@ -85,7 +85,7 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     const { msw } = window
 
     msw.worker.resetHandlers(
-      msw.rest.get('/products', () => {
+      msw.http.get('/products', () => {
         return msw.HttpResponse.json([1, 2, 3])
       }),
     )

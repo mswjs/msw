@@ -71,12 +71,12 @@ In-browser usage is what sets Mock Service Worker apart from other tools. Utiliz
 ```js
 // src/mocks.js
 // 1. Import the library.
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 // 2. Describe network behavior with request handlers.
 const worker = setupWorker(
-  rest.get('https://github.com/octocat', ({ request, params, cookies }) => {
+  http.get('https://github.com/octocat', ({ request, params, cookies }) => {
     return HttpResponse.json(
       {
         message: 'Mocked response',
@@ -121,7 +121,7 @@ Take a look at the example of an integration test in Jest that uses [React Testi
 // test/Dashboard.test.js
 
 import React from 'react'
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { render, screen, waitFor } from '@testing-library/react'
 import Dashboard from '../src/components/Dashboard'
@@ -130,7 +130,7 @@ const server = setupServer(
   // Describe network behavior with request handlers.
   // Tip: move the handlers into their own module and
   // import it across your browser and Node.js setups!
-  rest.get('/posts', ({ request, params, cookies }) => {
+  http.get('/posts', ({ request, params, cookies }) => {
     return HttpResponse.json([
       {
         id: 'f8dd058f-9006-4174-8d49-e3086bc39c21',

@@ -1,9 +1,9 @@
 /**
  * @jest-environment node
  */
-import http from 'http'
+import nodeHttp from 'http'
 import { HttpServer } from '@open-draft/test-server/http'
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { waitForClientRequest } from '../../../../support/utils'
 
@@ -22,7 +22,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   server.use(
-    rest.get(httpServer.http.url('/resource'), () => {
+    http.get(httpServer.http.url('/resource'), () => {
       return HttpResponse.json(
         { firstName: 'John' },
         {
@@ -46,7 +46,7 @@ afterAll(async () => {
 })
 
 it('returns a mocked response to an "http.get" request', async () => {
-  const request = http.get(httpServer.http.url('/resource'))
+  const request = nodeHttp.get(httpServer.http.url('/resource'))
   const { response, responseText } = await waitForClientRequest(request)
 
   expect(response.statusCode).toBe(401)
@@ -60,7 +60,7 @@ it('returns a mocked response to an "http.get" request', async () => {
 })
 
 it('returns a mocked response to an "http.request" request', async () => {
-  const request = http.request(httpServer.http.url('/resource'))
+  const request = nodeHttp.request(httpServer.http.url('/resource'))
   request.end()
   const { response, responseText } = await waitForClientRequest(request)
 

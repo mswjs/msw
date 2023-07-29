@@ -1,8 +1,8 @@
-import { rest, passthrough, HttpResponse } from 'msw'
+import { http, passthrough, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.post('/', () => {
+  http.post('/', () => {
     return passthrough()
   }),
 )
@@ -12,7 +12,7 @@ worker.start()
 // @ts-ignore
 window.msw = {
   worker,
-  rest,
+  http,
   passthrough,
   HttpResponse,
 }

@@ -1,15 +1,15 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.post('/login', () => {
+  http.post('/login', () => {
     return HttpResponse.text(null, {
       headers: {
         'Set-Cookie': 'authToken=abc-123',
       },
     })
   }),
-  rest.get('/user', ({ cookies }) => {
+  http.get('/user', ({ cookies }) => {
     if (cookies.authToken == null) {
       return HttpResponse.json(
         { error: 'Auth token not found' },

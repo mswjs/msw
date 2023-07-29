@@ -1,8 +1,8 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get<{ maxCount: string }>('/polling/:maxCount', function* ({ params }) {
+  http.get<{ maxCount: string }>('/polling/:maxCount', function* ({ params }) {
     const { maxCount } = params
     let count = 0
 
@@ -21,7 +21,7 @@ const worker = setupWorker(
     })
   }),
 
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     '/polling/once/:maxCount',
     function* ({ params }) {
       const { maxCount } = params
@@ -43,7 +43,7 @@ const worker = setupWorker(
     },
     { once: true },
   ),
-  rest.get('/polling/once/:maxCount', () => {
+  http.get('/polling/once/:maxCount', () => {
     return HttpResponse.json({ status: 'done' })
   }),
 )

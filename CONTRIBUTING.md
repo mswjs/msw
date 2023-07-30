@@ -36,7 +36,7 @@ $ pnpm install
 $ pnpm start
 ```
 
-> Please use [PNPM][pnpm-url] while working on this project.
+> Please use [PNPM][pnpm-url] version specified in the `package.json` file while working on this project. You can use [corepack][corepack-url] to manage multiple pnpm versions.
 
 ## Git workflow
 
@@ -272,3 +272,4 @@ $ pnpm build
 [pnpm-url]: https://pnpm.io/
 [jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with
+[corepack-url]: https://github.com/nodejs/corepack

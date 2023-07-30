@@ -32,7 +32,6 @@ export type ResponseResolverReturnType<
 > =
   | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
   | undefined
-  | void
 
 export type MaybeAsyncResponseResolverReturnType<
   BodyType extends DefaultBodyType,

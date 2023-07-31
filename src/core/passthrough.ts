@@ -1,9 +1,12 @@
 /**
- * Instruct Mock Service Worker to perform this request as-is.
+ * Performs the captured request as-is.
+ *
+ * This stops request handler lookup so no other handlers
+ * can affect this request past this point.
  * Unlike `bypass()`, this will not trigger an additional request.
  *
  * @example
- * http.get('/user', () => {
+ * http.get('/resource', () => {
  *   return passthrough()
  * })
  */

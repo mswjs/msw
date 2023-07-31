@@ -2,14 +2,14 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('/books', () => {
+  http.get('/books', () => {
     return HttpResponse.json([1, 2, 3])
   }),
-  rest.get('https://api.backend.com/path', () => {
+  http.get('https://api.backend.com/path', () => {
     return HttpResponse.json({ success: true })
   }),
 )

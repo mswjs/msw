@@ -1,8 +1,8 @@
-import { rest, HttpResponse, bypass } from 'msw'
+import { http, HttpResponse, bypass } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('*/user', async ({ request }) => {
+  http.get('*/user', async ({ request }) => {
     const fetchArgs = await bypass(request.url)
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
@@ -21,7 +21,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('*/repos/:owner/:repoName', async ({ request }) => {
+  http.get('*/repos/:owner/:repoName', async ({ request }) => {
     const fetchArgs = await bypass(request)
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
@@ -39,7 +39,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('*/headers', async ({ request }) => {
+  http.get('*/headers', async ({ request }) => {
     const proxyUrl = new URL('/headers-proxy', request.url)
     const fetchArgs = await bypass(proxyUrl, {
       method: 'POST',
@@ -55,7 +55,7 @@ const worker = setupWorker(
     })
   }),
 
-  rest.post('*/posts', async ({ request }) => {
+  http.post('*/posts', async ({ request }) => {
     const fetchArgs = await bypass(request)
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
@@ -74,7 +74,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.get('*/posts', async ({ request }) => {
+  http.get('*/posts', async ({ request }) => {
     const fetchArgs = await bypass(request)
     const originalResponse = await fetch(...fetchArgs)
     const body = await originalResponse.json()
@@ -92,7 +92,7 @@ const worker = setupWorker(
     )
   }),
 
-  rest.head('*/posts', async ({ request }) => {
+  http.head('*/posts', async ({ request }) => {
     const fetchArgs = await bypass(request)
     const originalResponse = await fetch(...fetchArgs)
 

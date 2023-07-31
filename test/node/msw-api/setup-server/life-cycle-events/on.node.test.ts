@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { waitFor } from '../../../../support/waitFor'
@@ -30,13 +30,13 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.url('/user'), () => {
+    http.get(httpServer.http.url('/user'), () => {
       return HttpResponse.text('response-body')
     }),
-    rest.post(httpServer.http.url('/no-response'), () => {
+    http.post(httpServer.http.url('/no-response'), () => {
       return
     }),
-    rest.get(httpServer.http.url('/unhandled-exception'), () => {
+    http.get(httpServer.http.url('/unhandled-exception'), () => {
       throw new Error('Unhandled resolver error')
     }),
   )

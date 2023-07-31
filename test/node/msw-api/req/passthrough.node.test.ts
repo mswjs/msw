@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, passthrough, rest } from 'msw'
+import { HttpResponse, passthrough, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 
@@ -40,7 +40,7 @@ afterAll(async () => {
 it('performs request as-is when returning "req.passthrough" call in the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
-    rest.post<ResponseBody>(endpointUrl, () => {
+    http.post<ResponseBody>(endpointUrl, () => {
       return passthrough()
     }),
   )
@@ -57,10 +57,10 @@ it('performs request as-is when returning "req.passthrough" call in the resolver
 it('does not allow fall-through when returning "req.passthrough" call in the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
-    rest.post<ResponseBody>(endpointUrl, () => {
+    http.post<ResponseBody>(endpointUrl, () => {
       return passthrough()
     }),
-    rest.post<ResponseBody>(endpointUrl, () => {
+    http.post<ResponseBody>(endpointUrl, () => {
       return HttpResponse.json({ name: 'Kate' })
     }),
   )
@@ -77,7 +77,7 @@ it('does not allow fall-through when returning "req.passthrough" call in the res
 it('performs a request as-is if nothing was returned from the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
-    rest.post<ResponseBody>(endpointUrl, () => {
+    http.post<ResponseBody>(endpointUrl, () => {
       return
     }),
   )

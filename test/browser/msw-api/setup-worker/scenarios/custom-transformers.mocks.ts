@@ -1,9 +1,9 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 import * as JSONbig from 'json-bigint'
 
 const worker = setupWorker(
-  rest.get('/user', () => {
+  http.get('/user', () => {
     return new HttpResponse(
       JSONbig.stringify({
         username: 'john.maverick',

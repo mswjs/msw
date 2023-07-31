@@ -5,7 +5,7 @@ import { Headers } from 'headers-polyfill'
 import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
-import { rest } from '../rest'
+import { http } from '../http'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { RequiredDeep } from '../typeUtils'
 import { uuidv4 } from './internal/uuidv4'
@@ -88,7 +88,7 @@ test('does not bypass a request with "x-msw-intention" header set to arbitrary v
     }),
   })
   const handlers: Array<RequestHandler> = [
-    rest.get('/user', () => {
+    http.get('/user', () => {
       return HttpResponse.text('hello world')
     }),
   ]
@@ -143,7 +143,7 @@ test('returns undefined on a request handler that returns no response', async ()
   const requestId = uuidv4()
   const request = new Request(new URL('http://localhost/user'))
   const handlers: Array<RequestHandler> = [
-    rest.get('/user', () => {
+    http.get('/user', () => {
       // Intentionally blank response resolver.
       return
     }),
@@ -180,7 +180,7 @@ test('returns the mocked response for a request with a matching request handler'
   const request = new Request(new URL('http://localhost/user'))
   const mockedResponse = HttpResponse.json({ firstName: 'John' })
   const handlers: Array<RequestHandler> = [
-    rest.get('/user', () => {
+    http.get('/user', () => {
       return mockedResponse
     }),
   ]
@@ -238,7 +238,7 @@ test('returns a transformed response if the "transformResponse" option is provid
   const request = new Request(new URL('http://localhost/user'))
   const mockedResponse = HttpResponse.json({ firstName: 'John' })
   const handlers: Array<RequestHandler> = [
-    rest.get('/user', () => {
+    http.get('/user', () => {
       return mockedResponse
     }),
   ]
@@ -320,7 +320,7 @@ it('returns undefined without warning on a passthrough request', async () => {
   const requestId = uuidv4()
   const request = new Request(new URL('http://localhost/user'))
   const handlers: Array<RequestHandler> = [
-    rest.get('/user', () => {
+    http.get('/user', () => {
       return passthrough()
     }),
   ]

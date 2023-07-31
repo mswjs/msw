@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest, NetworkError } from 'msw'
+import { http, NetworkError } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer()
@@ -12,7 +12,7 @@ afterAll(() => server.close())
 
 test('throws a network error when used with fetch', async () => {
   server.use(
-    rest.get('http://test.io/user', () => {
+    http.get('http://test.io/user', () => {
       throw new NetworkError('Custom network error message')
     }),
   )

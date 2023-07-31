@@ -1,14 +1,14 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('*', () => console.log('[get] first')),
-  rest.get('/us*', () => console.log('[get] second')),
-  rest.get('/user', () => HttpResponse.json({ firstName: 'John' })),
-  rest.get('/user', () => console.log('[get] third')),
+  http.get('*', () => console.log('[get] first')),
+  http.get('/us*', () => console.log('[get] second')),
+  http.get('/user', () => HttpResponse.json({ firstName: 'John' })),
+  http.get('/user', () => console.log('[get] third')),
 
-  rest.post('/blog/*', () => console.log('[post] first')),
-  rest.post('/blog/article', () => console.log('[post] second')),
+  http.post('/blog/*', () => console.log('[post] first')),
+  http.post('/blog/article', () => console.log('[post] second')),
 )
 
 worker.start()

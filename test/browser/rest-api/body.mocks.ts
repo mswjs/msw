@@ -1,4 +1,4 @@
-import { rest, HttpResponse, ResponseResolver } from 'msw'
+import { http, HttpResponse, ResponseResolver } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const forwardRequestBody: ResponseResolver<any> = async ({ request }) => {
@@ -34,9 +34,9 @@ const forwardMultipartRequestBody: ResponseResolver<any> = async ({
 }
 
 const worker = setupWorker(
-  rest.get('/resource', forwardRequestBody),
-  rest.post('/resource', forwardRequestBody),
-  rest.post('/upload', forwardMultipartRequestBody),
+  http.get('/resource', forwardRequestBody),
+  http.post('/resource', forwardRequestBody),
+  http.post('/upload', forwardMultipartRequestBody),
 )
 
 worker.start()

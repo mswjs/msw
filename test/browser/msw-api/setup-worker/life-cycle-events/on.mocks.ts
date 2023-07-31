@@ -1,14 +1,14 @@
-import { HttpResponse, rest, LifeCycleEventsMap } from 'msw'
+import { HttpResponse, http, LifeCycleEventsMap } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('*/user', () => {
+  http.get('*/user', () => {
     return HttpResponse.text('response-body')
   }),
-  rest.post('*/no-response', () => {
+  http.post('*/no-response', () => {
     return
   }),
-  rest.get('*/unhandled-exception', () => {
+  http.get('*/unhandled-exception', () => {
     throw new Error('Unhandled resolver error')
   }),
 )

@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
 import * as JSONbig from 'json-bigint'
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io/me', () => {
+  http.get('http://test.mswjs.io/me', () => {
     return new HttpResponse(
       JSONbig.stringify({
         username: 'john.maverick',

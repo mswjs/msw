@@ -1,8 +1,8 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/greeting', async () => {
+  http.get('/greeting', async () => {
     const blob = new Blob(['hello world'], {
       type: 'text/plain',
     })

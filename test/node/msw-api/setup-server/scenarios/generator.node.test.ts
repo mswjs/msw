@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/:maxCount',
     function* ({ params }) {
       const maxCount = parseInt(params.maxCount)
@@ -27,7 +27,7 @@ const server = setupServer(
     },
   ),
 
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
     function* ({ params }) {
       const maxCount = parseInt(params.maxCount)
@@ -48,7 +48,7 @@ const server = setupServer(
     },
     { once: true },
   ),
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
     () => {
       return HttpResponse.json({ status: 'done' })

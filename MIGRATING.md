@@ -41,6 +41,29 @@ To help you navigate, we've structured this guide on the feature basis. You can 
 
 ## Imports
 
+### `rest` becomes `http`
+
+The `rest` request handler namespace has been renamed to `http`.
+
+```diff
+-import { rest } from 'msw'
++import { http } from 'msw'
+```
+
+This affects the request handlers declaration as well:
+
+```js
+import { http } from 'msw'
+
+export const handlers = [
+  http.get('/resource', resolver),
+  http.post('/resource', resolver),
+  http.all('*', resolver),
+]
+```
+
+### Browser imports
+
 The `setupWorker` API, alongside any related type definitions, are no longer exported from the root of `msw`. Instead, import them from `msw/browser`:
 
 ```diff
@@ -75,7 +98,7 @@ A response resolver now exposes a single object argument instead of `(req, res, 
 To mock responses, you should now return a Fetch API `Response` instance from the response resolver. You no longer need to compose a response via `res()`, and all the context utilities have also [been removed](#context-utilities).
 
 ```js
-rest.get('/greet/:name', ({ request, params }) => {
+http.get('/greet/:name', ({ request, params }) => {
   console.log('Captured %s %s', request.method, request.url)
   return new Response(`hello, ${params.name}!`)
 })
@@ -84,10 +107,10 @@ rest.get('/greet/:name', ({ request, params }) => {
 Now, a more complex example for both REST and GraphQL requests.
 
 ```js
-import { rest, graphql } from 'msw'
+import { http, graphql } from 'msw'
 
 export const handlers = [
-  rest.put('/user/:id', async ({ request, params, cookies }) => {
+  http.put('/user/:id', async ({ request, params, cookies }) => {
     // Read request body as you'd normally do with Fetch.
     const payload = await request.json()
     // Access path parameters like before.
@@ -127,7 +150,7 @@ Since the returned `request` is now an instance of Fetch API `Request`, there ar
 The `request.url` property is a string (previously, a `URL` instance). If you wish to operate with it like a `URL`, you need to construct it manually:
 
 ```js
-rest.get('/product', ({ request }) => {
+http.get('/product', ({ request }) => {
   // For example, this is how you would access
   // request search parameters now.
   const url = new URL(request.url)
@@ -140,7 +163,7 @@ rest.get('/product', ({ request }) => {
 Path parameters are now exposed directly on the [Resolver info](#resolver-info) object (previously, `req.params`).
 
 ```js
-rest.get('/resource', ({ params }) => {
+http.get('/resource', ({ params }) => {
   console.log('Request path parameters:', params)
 })
 ```
@@ -150,7 +173,7 @@ rest.get('/resource', ({ params }) => {
 Request cookies are now exposed directly on the [Resolver info](#resolver-info) object (previously, `req.cookies`).
 
 ```js
-rest.get('/resource', ({ cookies }) => {
+http.get('/resource', ({ cookies }) => {
   console.log('Request cookies:', cookies)
 })
 ```
@@ -164,7 +187,7 @@ The library now does no assumptions when reading the intercepted request's body 
 For example, this is how you would read request body:
 
 ```js
-rest.post('/resource', async ({ request }) => {
+http.post('/resource', async ({ request }) => {
   const data = await request.json()
   // request.formData() / request.arrayBuffer() / etc.
 })
@@ -175,10 +198,10 @@ rest.post('/resource', async ({ request }) => {
 Using the Fetch API `Response` instance may get quite verbose. To give you more convenient means of declaring mocked responses while remaining specification compliant and compatible, the library now exports an `HttpResponse` object. You can use that object to construct response instances faster.
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/user', () => {
+  http.get('/user', () => {
     // This is synonymous to "ctx.json()":
     // HttpResponse.json() stringifies the given body
     // and sets the correct "Content-Type" response header
@@ -197,10 +220,10 @@ Although MSW now respects the Fetch API specification, the older versions of Nod
 To account for this, the library exports a `Response` class that you should use when declaring request handlers. Behind the hood, that response class is resolved to a compatible polyfill in Node.js; in the browser, it only aliases `global.Response` without introducing additional behaviors.
 
 ```js
-import { rest, Response } from 'msw'
+import { http,Response } from 'msw'
 
 setupServer(
-  rest.get('/ping', () => {
+  http.get('/ping', () => {
     return new Response('hello world)
   })
 )
@@ -216,7 +239,7 @@ To create a one-time request handler, pass it an object as the third argument wi
 import { HttpResponse, rest } from 'msw'
 
 export const handlers = [
-  rest.get(
+  http.get(
     '/user',
     () => {
       return HttpResponse.text('hello')
@@ -229,10 +252,10 @@ export const handlers = [
 ## `req.passthrough`
 
 ```js
-import { rest, passthrough } from 'msw'
+import { http, passthrough } from 'msw'
 
 export const handlers = [
-  rest.get('/user', () => {
+  http.get('/user', () => {
     // Previously, "req.passthrough()".
     return passthrough()
   }),
@@ -249,7 +272,7 @@ Most of the context utilities you'd normally use via `ctx.*` were removed. Inste
 import { HttpResponse, rest } from 'msw'
 
 export const handlers = [
-  rest.post('/user', () => {
+  http.post('/user', () => {
     // ctx.json()
     return HttpResponse.json(
       { firstName: 'John' },
@@ -269,10 +292,10 @@ Let's go through each previously existing context utility and see how to declare
 ### `ctx.status`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.text('hello', { status: 201 })
   }),
 ]
@@ -281,10 +304,10 @@ export const handlers = [
 ### `ctx.set`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.text('hello', {
       headers: {
         'Content-Type': 'text/plain; charset=windows-1252',
@@ -300,7 +323,7 @@ export const handlers = [
 import { HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.text('hello', {
       headers: {
         'Set-Cookie': 'token=abc-123',
@@ -316,7 +339,7 @@ When you provide an object as the `ResponseInit.headers` value, you cannot speci
 import { Headers, HttpResponse, rest } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return new HttpResponse(null, {
       headers: new Headers([
         // Mock a multi-value response cookie header.
@@ -333,10 +356,10 @@ export const handlers = [
 ### `ctx.body`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return new HttpResponse('any-body')
   }),
 ]
@@ -347,10 +370,10 @@ export const handlers = [
 ### `ctx.text`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.text('hello')
   }),
 ]
@@ -359,10 +382,10 @@ export const handlers = [
 ### `ctx.json`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.json({ firstName: 'John' })
   }),
 ]
@@ -371,10 +394,10 @@ export const handlers = [
 ### `ctx.xml`
 
 ```js
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.xml('<user id="abc-123" />')
   }),
 ]
@@ -388,7 +411,7 @@ The `ctx.data` utility has been removed in favor of constructing a mocked JSON r
 import { HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.json({
       data: {
         user: {
@@ -408,7 +431,7 @@ The `ctx.errors` utility has been removed in favor of constructing a mocked JSON
 import { HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', () => {
+  http.get('/resource', () => {
     return HttpResponse.json({
       errors: [
         {
@@ -423,10 +446,10 @@ export const handlers = [
 ### `ctx.delay`
 
 ```js
-import { rest, HttpResponse, delay } from 'msw'
+import { http, HttpResponse, delay } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', async () => {
+  http.get('/resource', async () => {
     await delay()
     return HttpResponse.text('hello')
   }),
@@ -445,10 +468,10 @@ await delay('infinite')
 The `ctx.fetch()` function has been removed in favor of the `bypass()` function. You should now always perform a regular `fetch()` call and wrap the request in the `bypass()` function if you wish for it to ignore any otherwise matching request handlers.
 
 ```js
-import { rest, HttpResponse, bypass } from 'msw'
+import { http, HttpResponse, bypass } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', async ({ request }) => {
+  http.get('/resource', async ({ request }) => {
     const fetchArgs = await bypass(request)
 
     // Use the regular "fetch" from your environment.
@@ -553,7 +576,7 @@ import { rest } from 'msw'
 import { augmentResponse } from './utils'
 
 export const handlers = [
-  rest.get('/user', () => {
+  http.get('/user', () => {
     return augmentResponse({ id: 1 })
   }),
 ]
@@ -579,7 +602,7 @@ For example, this is how you would read the request as `Blob`:
 import { rest } from 'msw'
 
 export const handlers = [
-  rest.get('/resource', async ({ request }) => {
+  http.get('/resource', async ({ request }) => {
     const blob = await request.blob()
   }),
 ]
@@ -590,9 +613,9 @@ export const handlers = [
 You can now send a `ReadableStream` as the mocked response body. This is great for mocking any kind of streaming in HTTP responses.
 
 ```js
-import { rest, HttpResponse, ReadableStream, delay } from 'msw'
+import { http, HttpResponse, ReadableStream, delay } from 'msw'
 
-rest.get('/greeting', () => {
+http.get('/greeting', () => {
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {

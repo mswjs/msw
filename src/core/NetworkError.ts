@@ -3,9 +3,9 @@
  * processing a request.
  *
  * @example
- * import { rest, NetworkError } from 'msw'
+ * import { http, NetworkError } from 'msw'
  *
- * rest.get('/user', () => {
+ * http.get('/user', () => {
  *   throw new NetworkError('Failed to fetch')
  * })
  */

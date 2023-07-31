@@ -3,7 +3,7 @@
  */
 import fetch, { Response } from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
-import { RESTMethods, rest, HttpResponse } from 'msw'
+import { HttpMethods, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {
@@ -31,21 +31,21 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-async function forEachMethod(callback: (method: RESTMethods) => unknown) {
-  for (const method of Object.values(RESTMethods)) {
+async function forEachMethod(callback: (method: HttpMethods) => unknown) {
+  for (const method of Object.values(HttpMethods)) {
     await callback(method)
   }
 }
 
 test('matches all requests given no custom path', async () => {
   server.use(
-    rest.all('*', () => {
+    http.all('*', () => {
       return HttpResponse.text('welcome to the jungle')
     }),
   )
 
   const responses = await Promise.all(
-    Object.values(RESTMethods).reduce<Promise<Response>[]>((all, method) => {
+    Object.values(HttpMethods).reduce<Promise<Response>[]>((all, method) => {
       return all.concat(
         [
           httpServer.http.url('/'),
@@ -64,7 +64,7 @@ test('matches all requests given no custom path', async () => {
 
 test('respects custom path when matching requests', async () => {
   server.use(
-    rest.all(httpServer.http.url('/api/*'), () => {
+    http.all(httpServer.http.url('/api/*'), () => {
       return HttpResponse.text('hello world')
     }),
   )

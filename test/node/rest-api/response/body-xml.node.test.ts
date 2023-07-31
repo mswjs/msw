@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('http://localhost/xml', () => {
+  http.get('http://localhost/xml', () => {
     return HttpResponse.xml(`
 <user>
   <id>abc-123</id>

@@ -1,16 +1,16 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/user', () => {
+  http.get('/user', () => {
     return HttpResponse.json({ firstName: 'John' })
   }),
-  rest.post('/explicit-return', () => {
+  http.post('/explicit-return', () => {
     // Short-circuiting in a handler makes it perform the request as-is,
     // but still treats this request as handled.
     return
   }),
-  rest.post('/implicit-return', () => {
+  http.post('/implicit-return', () => {
     // The handler that has no return also performs the request as-is,
     // still treating this request as handled.
   }),

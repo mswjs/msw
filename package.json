@@ -5,6 +5,7 @@
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
   "types": "./lib/core/index.d.ts",
+  "packageManager": "pnpm@7.12.2",
   "exports": {
     ".": {
       "types": "./lib/core/index.d.ts",
@@ -39,7 +40,8 @@
     "msw": "cli/index.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "pnpm": "~7.12"
   },
   "scripts": {
     "start": "tsup --watch",

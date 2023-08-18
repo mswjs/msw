@@ -3,6 +3,7 @@ import jsLevenshtein from '@bundled-es-modules/js-levenshtein'
 import { RequestHandler, HttpHandler, GraphQLHandler } from '../..'
 import {
   ParsedGraphQLQuery,
+  ParsedGraphQLRequest,
   parseGraphQLRequest,
 } from '../internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
@@ -144,6 +145,7 @@ export async function onUnhandledRequest(
   const parsedGraphQLQuery = await parseGraphQLRequest(request).catch(
     () => null,
   )
+  const publicUrl = getPublicUrlFromRequest(request)
 
   function generateHandlerSuggestion(): string {
     /**
@@ -169,10 +171,19 @@ export async function onUnhandledRequest(
       : ''
   }
 
+  function getGraphQLRequestHeader(
+    parsedGraphQLRequest: ParsedGraphQLRequest<any>,
+  ): string {
+    if (!parsedGraphQLRequest?.operationName) {
+      return `anonymous ${parsedGraphQLRequest?.operationType} (${request.method} ${publicUrl})`
+    }
+
+    return `${parsedGraphQLRequest.operationType} ${parsedGraphQLRequest.operationName} (${request.method} ${publicUrl})`
+  }
+
   function generateUnhandledRequestMessage(): string {
-    const publicUrl = getPublicUrlFromRequest(request)
     const requestHeader = parsedGraphQLQuery
-      ? `${parsedGraphQLQuery.operationType} ${parsedGraphQLQuery.operationName} (${request.method} ${publicUrl})`
+      ? getGraphQLRequestHeader(parsedGraphQLQuery)
       : `${request.method} ${publicUrl}`
     const handlerSuggestion = generateHandlerSuggestion()
 

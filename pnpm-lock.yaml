@@ -29,7 +29,7 @@ specifiers:
   '@typescript-eslint/parser': ^5.11.0
   babel-loader: ^8.2.3
   babel-minify: ^0.5.1
-  chalk: 4.1.1
+  chalk: ^4.1.1
   chokidar: 3.4.1
   commitizen: ^4.2.4
   cookie: ^0.4.2

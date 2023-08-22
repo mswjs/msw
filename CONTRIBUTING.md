@@ -36,7 +36,8 @@ $ pnpm install
 $ pnpm start
 ```
 
-> Please use [PNPM][pnpm-url] while working on this project.
+> Please use [PNPM][pnpm-url] version 7.12 while working on this project.
+> Guide on how to install a specific PNPM version can be [found here][pnpm-install-guide-url].
 
 ## Git workflow
 
@@ -272,3 +273,4 @@ $ pnpm build
 [pnpm-url]: https://pnpm.io/
 [jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with
+[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version

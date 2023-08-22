@@ -11,6 +11,6 @@ export async function serializeResponse(
     // Serialize the response body to a string
     // so it's easier to process further down the chain in "prepareResponse" (browser-only)
     // and "parseBody" (ambiguous).
-    body: await response.text(),
+    body: await response.clone().text(),
   }
 }

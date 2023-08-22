@@ -94,7 +94,7 @@
     "@open-draft/until": "^1.0.3",
     "@types/cookie": "^0.4.1",
     "@types/js-levenshtein": "^1.1.1",
-    "chalk": "4.1.1",
+    "chalk": "^4.1.1",
     "chokidar": "^3.4.2",
     "cookie": "^0.4.2",
     "graphql": "^15.0.0 || ^16.0.0",

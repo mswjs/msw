@@ -24,8 +24,7 @@
     "msw": "cli/index.js"
   },
   "engines": {
-    "node": ">=14",
-    "pnpm": "~7.12"
+    "node": ">=14"
   },
   "scripts": {
     "start": "tsup --watch",

@@ -199,7 +199,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
       <a href="https://www.github.com/" target="_blank">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
-          <img src="media/sponsors/github.svg" alt="GitHub" width="75" />
+          <img src="media/sponsors/github.svg" alt="GitHub" height="64" />
         </picture>
       </a>
     </td>
@@ -218,12 +218,12 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
   <tr>
     <td>
       <a href="https://www.replay.io/" target="_blank">
-        <img src="media/sponsors/replay.svg" alt="Replay" width="75" />
+        <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
       </a>
     </td>
     <td>
       <a href="https://www.chromatic.com/" target="_blank">
-        <img src="media/sponsors/chromatic.svg" alt="Chromatic" width="75" />
+        <img src="media/sponsors/chromatic.svg" alt="Chromatic" height="64" />
       </a>
     </td>
   </tr>
@@ -241,7 +241,12 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
   <tr>
     <td>
       <a href="https://materialize.com/" target="_blank">
-        <img src="media/sponsors/materialize.svg" alt="Materialize" width="75" />
+        <img src="media/sponsors/materialize.svg" alt="Materialize" height="64" />
+      </a>
+    </td>
+     <td>
+      <a href="https://trigger.dev/" target="_blank">
+          <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
       </a>
     </td>
   </tr>

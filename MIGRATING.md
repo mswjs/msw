@@ -637,4 +637,8 @@ http.get('/greeting', () => {
 
 ### `Response is not defined`
 
-Make sure to import the `Response` class from the `msw` package. See [this](#responses-in-nodejs).
+This likely means that you are running an old version of Node.js. Please use Node.js v18.14.0 and higher with this version of MSW. Also, see [this](#responses-in-nodejs).
+
+### `multipart/form-data is not supported` in Node.js
+
+Earlier versions of Node.js 18, like v18.8.0, had no support for `request.formData()`. Please upgrade to the latest Node.js version where Undici have added the said support to resolve the issue.

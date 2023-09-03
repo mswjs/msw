@@ -114,7 +114,7 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@open-draft/test-server": "^0.4.2",
-    "@ossjs/release": "^0.5.1",
+    "@ossjs/release": "^0.7.2",
     "@playwright/test": "^1.30.0",
     "@swc/core": "^1.3.35",
     "@swc/jest": "^0.2.24",

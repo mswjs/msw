@@ -12,7 +12,7 @@ specifiers:
   '@mswjs/interceptors': ^0.17.5
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^1.0.3
-  '@ossjs/release': ^0.5.1
+  '@ossjs/release': ^0.7.2
   '@playwright/test': ^1.30.0
   '@swc/core': ^1.3.35
   '@swc/jest': ^0.2.24
@@ -99,7 +99,7 @@ devDependencies:
   '@commitlint/cli': 16.3.0_@swc+core@1.3.35
   '@commitlint/config-conventional': 16.2.4
   '@open-draft/test-server': 0.4.2
-  '@ossjs/release': 0.5.1
+  '@ossjs/release': 0.7.2
   '@playwright/test': 1.30.0
   '@swc/core': 1.3.35
   '@swc/jest': 0.2.24_@swc+core@1.3.35
@@ -2179,23 +2179,23 @@ packages:
   /@open-draft/until/1.0.3:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
 
-  /@open-draft/until/2.0.0:
-    resolution: {integrity: sha512-0zJhDjNR0aH1d68TiD6GnYr18dcuOiyTx8xV/I7fp9+z/VQ20e305aObW1/DO5/fiCOztscmvJsCjJDYDhFW6w==}
+  /@open-draft/until/2.1.0:
+    resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
     dev: true
 
-  /@ossjs/release/0.5.1:
-    resolution: {integrity: sha512-pp1VL1sOK7+E8rVRhnNvCcof0l8cN256dYLypLN0yOFqk9KxALZ9Rb5/Xft+PkHbsZyeca7SOEnuaWxAqJUt9g==}
+  /@ossjs/release/0.7.2:
+    resolution: {integrity: sha512-s8w7VRC6Xf1vfpIsDG2CflWinSg9O7H/6nckxaBCiMWClkeaZ3JuXzZEIcybc6jeAFc1Rz7UilCvgZflb06Y5g==}
     hasBin: true
     dependencies:
       '@open-draft/deferred-promise': 2.1.0
-      '@open-draft/until': 2.0.0
+      '@open-draft/until': 2.1.0
       '@types/conventional-commits-parser': 3.0.3
       '@types/issue-parser': 3.0.1
       '@types/node': 16.18.12
       '@types/node-fetch': 2.6.2
       '@types/rc': 1.2.1
       '@types/registry-auth-token': 4.2.1
-      '@types/semver': 7.3.13
+      '@types/semver': 7.5.1
       '@types/yargs': 17.0.22
       conventional-commits-parser: 3.2.4
       get-stream: 6.0.1
@@ -2207,8 +2207,8 @@ packages:
       pino-pretty: 7.6.1
       rc: 1.2.8
       registry-auth-token: 4.2.2
-      semver: 7.3.8
-      yargs: 17.7.0
+      semver: 7.5.4
+      yargs: 17.7.2
     transitivePeerDependencies:
       - encoding
     dev: true
@@ -2615,6 +2615,10 @@ packages:
 
   /@types/semver/7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
+    dev: true
+
+  /@types/semver/7.5.1:
+    resolution: {integrity: sha512-cJRQXpObxfNKkFAZbJl2yjWtJCqELQIdShsogr1d2MilP8dKD9TE/nEKHkJgUNHdGKCQaf9HbIynuV2csLGVLg==}
     dev: true
 
   /@types/serve-static/1.15.0:
@@ -8891,6 +8895,14 @@ packages:
       lru-cache: 6.0.0
     dev: true
 
+  /semver/7.5.4:
+    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      lru-cache: 6.0.0
+    dev: true
+
   /send/0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
     engines: {node: '>= 0.8.0'}
@@ -10576,6 +10588,19 @@ packages:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  /yargs/17.7.2:
+    resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
+    engines: {node: '>=12'}
+    dependencies:
+      cliui: 8.0.1
+      escalade: 3.1.1
+      get-caller-file: 2.0.5
+      require-directory: 2.1.1
+      string-width: 4.2.3
+      y18n: 5.0.8
+      yargs-parser: 21.1.1
+    dev: true
 
   /yn/3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}

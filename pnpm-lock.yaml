@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.0.0
-  '@mswjs/interceptors': ^0.25.0
+  '@mswjs/interceptors': ^0.25.1
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.7.2
@@ -85,7 +85,7 @@ dependencies:
   '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.0.0
-  '@mswjs/interceptors': 0.25.0
+  '@mswjs/interceptors': 0.25.1
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2347,11 +2347,11 @@ packages:
     engines: {node: '>=14'}
     dev: false
 
-  /@mswjs/interceptors/0.25.0:
-    resolution: {integrity: sha512-w1Q5SWRBavRc5eY2uWIOiB/CO8r6FcyWp44jv975y4lxLgMZItrwMg8JwVHVmHwK58dQdA3260AF09tmiOlC7g==}
+  /@mswjs/interceptors/0.25.1:
+    resolution: {integrity: sha512-iM/2Qp+y7zKrX1sf45sPvvE7CGly8AKSR8Ua7cXAszXCK/To5i/L8AwiheEaBSVcZ6R7Em7kTcyZWN5H2ivcEQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@open-draft/deferred-promise': 2.1.0
+      '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
       '@open-draft/until': 2.1.0
       is-node-process: 1.2.0
@@ -2382,6 +2382,11 @@ packages:
 
   /@open-draft/deferred-promise/2.1.0:
     resolution: {integrity: sha512-Rzd5JrXZX8zErHzgcGyngh4fmEbSHqTETdGj9rXtejlqMIgXFlyKBA7Jn1Xp0Ls0M0Y22+xHcWiEzbmdWl0BOA==}
+    dev: true
+
+  /@open-draft/deferred-promise/2.2.0:
+    resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
+    dev: false
 
   /@open-draft/logger/0.3.0:
     resolution: {integrity: sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ==}

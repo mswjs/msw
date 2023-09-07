@@ -26,10 +26,10 @@ console.log('msw/node:', await import.meta.resolve('msw/node'))
 console.log('msw/native:', await import.meta.resolve('msw/native'))
 `,
     'runtime.mjs': `
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupServer } from 'msw/node'
 const server = setupServer(
-  rest.get('/resource', () => new Response())
+  http.get('/resource', () => new Response())
 )
 console.log(typeof server.listen)
 `,
@@ -77,10 +77,10 @@ console.log('msw/node:', require.resolve('msw/node'))
 console.log('msw/native:', require.resolve('msw/native'))
 `,
     'runtime.cjs': `
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupServer } from 'msw/node'
 const server = setupServer(
-  rest.get('/resource', () => new Response())
+  http.get('/resource', () => new Response())
 )
 console.log(typeof server.listen)
 `,

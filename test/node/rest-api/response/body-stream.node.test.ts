@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import https from 'https'
-import { HttpResponse, rest, delay } from 'msw'
+import { HttpResponse, http, delay } from 'msw'
 import { setupServer } from 'msw/node'
 
 const encoder = new TextEncoder()
@@ -22,7 +22,7 @@ afterAll(() => {
 
 test('responds with a ReadableStream', async () => {
   server.use(
-    rest.get('https://api.example.com/stream', () => {
+    http.get('https://api.example.com/stream', () => {
       const stream = new ReadableStream({
         start(controller) {
           controller.enqueue(encoder.encode('hello'))
@@ -51,7 +51,7 @@ test('responds with a ReadableStream', async () => {
 
 test('supports delays when enqueuing chunks', (done) => {
   server.use(
-    rest.get('https://api.example.com/stream', () => {
+    http.get('https://api.example.com/stream', () => {
       const stream = new ReadableStream({
         async start(controller) {
           controller.enqueue(encoder.encode('first'))

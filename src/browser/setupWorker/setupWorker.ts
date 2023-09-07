@@ -176,26 +176,6 @@ export class SetupWorkerApi
     return await this.startHandler(this.context.startOptions, options)
   }
 
-  public printHandlers(): void {
-    const handlers = this.listHandlers()
-
-    handlers.forEach((handler) => {
-      const { header, callFrame } = handler.info
-      const pragma = handler.info.hasOwnProperty('operationType')
-        ? '[graphql]'
-        : '[rest]'
-
-      console.groupCollapsed(`${pragma} ${header}`)
-
-      if (callFrame) {
-        console.log(`Declaration: ${callFrame}`)
-      }
-
-      console.log('Handler:', handler)
-      console.groupEnd()
-    })
-  }
-
   public stop(): void {
     super.dispose()
     this.context.events.removeAllListeners()

@@ -5,7 +5,7 @@ import {
   onUnhandledRequest,
   UnhandledRequestCallback,
 } from './onUnhandledRequest'
-import { RestHandler, RESTMethods } from '../../handlers/RestHandler'
+import { HttpHandler, HttpMethods } from '../../handlers/HttpHandler'
 import { ResponseResolver } from '../../handlers/RequestHandler'
 
 const resolver: ResponseResolver = () => void 0
@@ -143,8 +143,8 @@ test('does not print any suggestions given no handlers are similar', async () =>
     [
       // None of the defined request handlers match the actual request URL
       // to be used as suggestions.
-      new RestHandler(RESTMethods.GET, 'https://api.github.com', resolver),
-      new RestHandler(RESTMethods.GET, 'https://api.stripe.com', resolver),
+      new HttpHandler(HttpMethods.GET, 'https://api.github.com', resolver),
+      new HttpHandler(HttpMethods.GET, 'https://api.stripe.com', resolver),
     ],
     'warn',
   )
@@ -155,7 +155,7 @@ test('does not print any suggestions given no handlers are similar', async () =>
 test('respects RegExp as a request handler method', async () => {
   await onUnhandledRequest(
     new Request(new URL('http://localhost/api')),
-    [new RestHandler(/^GE/, 'http://localhost/api', resolver)],
+    [new HttpHandler(/^GE/, 'http://localhost/api', resolver)],
     'warn',
   )
 
@@ -166,9 +166,9 @@ test('sorts the suggestions by relevance', async () => {
   await onUnhandledRequest(
     new Request(new URL('http://localhost/api')),
     [
-      new RestHandler(RESTMethods.GET, '/', resolver),
-      new RestHandler(RESTMethods.GET, 'https://api.example.com/api', resolver),
-      new RestHandler(RESTMethods.POST, '/api', resolver),
+      new HttpHandler(HttpMethods.GET, '/', resolver),
+      new HttpHandler(HttpMethods.GET, 'https://api.example.com/api', resolver),
+      new HttpHandler(HttpMethods.POST, '/api', resolver),
     ],
     'warn',
   )
@@ -184,12 +184,12 @@ test('does not print more than 4 suggestions', async () => {
   await onUnhandledRequest(
     new Request(new URL('http://localhost/api')),
     [
-      new RestHandler(RESTMethods.GET, '/ap', resolver),
-      new RestHandler(RESTMethods.GET, '/api', resolver),
-      new RestHandler(RESTMethods.GET, '/api-1', resolver),
-      new RestHandler(RESTMethods.GET, '/api-2', resolver),
-      new RestHandler(RESTMethods.GET, '/api-3', resolver),
-      new RestHandler(RESTMethods.GET, '/api-4', resolver),
+      new HttpHandler(HttpMethods.GET, '/ap', resolver),
+      new HttpHandler(HttpMethods.GET, '/api', resolver),
+      new HttpHandler(HttpMethods.GET, '/api-1', resolver),
+      new HttpHandler(HttpMethods.GET, '/api-2', resolver),
+      new HttpHandler(HttpMethods.GET, '/api-3', resolver),
+      new HttpHandler(HttpMethods.GET, '/api-4', resolver),
     ],
     'warn',
   )

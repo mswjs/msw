@@ -1,4 +1,4 @@
-import { HttpResponse, passthrough, rest } from 'msw'
+import { HttpResponse, passthrough, http } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
@@ -7,7 +7,7 @@ const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
     passthrough: typeof passthrough
     HttpResponse: typeof HttpResponse
   }
@@ -35,9 +35,9 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest, passthrough } = window.msw
+    const { worker, http, passthrough } = window.msw
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, () => {
+      http.post<never, ResponseBody>(endpointUrl, () => {
         return passthrough()
       }),
     )
@@ -72,13 +72,13 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest, passthrough, HttpResponse } = window.msw
+    const { worker, http, passthrough, HttpResponse } = window.msw
 
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, () => {
+      http.post<never, ResponseBody>(endpointUrl, () => {
         return passthrough()
       }),
-      rest.post<never, ResponseBody>(endpointUrl, () => {
+      http.post<never, ResponseBody>(endpointUrl, () => {
         return HttpResponse.json({ name: 'Kate' })
       }),
     )
@@ -111,9 +111,9 @@ test('performs a request as-is if nothing was returned from the resolver', async
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, http } = window.msw
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, () => {
+      http.post<never, ResponseBody>(endpointUrl, () => {
         return
       }),
     )

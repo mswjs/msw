@@ -27,7 +27,6 @@ test('supports the usage of the iife bundle in a <script> tag', async ({
   const response = await fetch('/user')
 
   expect(response.status()).toBe(200)
-  expect(await response.allHeaders()).toHaveProperty('x-powered-by', 'msw')
   expect(await response.json()).toEqual({
     firstName: 'John',
   })

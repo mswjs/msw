@@ -1,8 +1,8 @@
-import { rest } from './rest'
+import { http } from './http'
 
 test('exports all REST API methods', () => {
-  expect(rest).toBeDefined()
-  expect(Object.keys(rest)).toEqual([
+  expect(http).toBeDefined()
+  expect(Object.keys(http)).toEqual([
     'all',
     'head',
     'get',

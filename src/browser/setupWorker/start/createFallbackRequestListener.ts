@@ -18,7 +18,7 @@ export function createFallbackRequestListener(
     interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
   })
 
-  interceptor.on('request', async (request, requestId) => {
+  interceptor.on('request', async ({ request, requestId }) => {
     const requestCloneForLogs = request.clone()
 
     const response = await handleRequest(
@@ -30,7 +30,7 @@ export function createFallbackRequestListener(
       {
         onMockedResponse(_, { handler, parsedRequest }) {
           if (!options.quiet) {
-            context.emitter.once('response:mocked', (response) => {
+            context.emitter.once('response:mocked', ({ response }) => {
               handler.log(requestCloneForLogs, response, parsedRequest)
             })
           }
@@ -43,13 +43,19 @@ export function createFallbackRequestListener(
     }
   })
 
-  interceptor.on('response', (response, request, requestId) => {
-    if (response.headers.get('x-powered-by') === 'msw') {
-      context.emitter.emit('response:mocked', response, request, requestId)
-    } else {
-      context.emitter.emit('response:bypass', response, request, requestId)
-    }
-  })
+  interceptor.on(
+    'response',
+    ({ response, isMockedResponse, request, requestId }) => {
+      context.emitter.emit(
+        isMockedResponse ? 'response:mocked' : 'response:bypass',
+        {
+          response,
+          request,
+          requestId,
+        },
+      )
+    },
+  )
 
   interceptor.apply()
 

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { SetupServer, setupServer } from 'msw/node'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -21,7 +21,7 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server = setupServer(
-    rest.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
+    http.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
       return HttpResponse.json({ title: 'Original title' })
     }),
   )
@@ -40,7 +40,7 @@ afterAll(async () => {
 
 test('returns a mocked response from a runtime request handler upon match', async () => {
   server.use(
-    rest.post(httpServer.http.url('/login'), () => {
+    http.post(httpServer.http.url('/login'), () => {
       return HttpResponse.json({ accepted: true })
     }),
   )
@@ -61,7 +61,7 @@ test('returns a mocked response from a runtime request handler upon match', asyn
 
 test('returns a mocked response from a persistent request handler override', async () => {
   server.use(
-    rest.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
+    http.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
       return HttpResponse.json({ title: 'Permanent override' })
     }),
   )
@@ -80,7 +80,7 @@ test('returns a mocked response from a persistent request handler override', asy
 
 test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
   server.use(
-    rest.get<{ bookId: string }>(
+    http.get<{ bookId: string }>(
       httpServer.http.url('/book/:bookId'),
       () => {
         return HttpResponse.json({ title: 'One-time override' })
@@ -101,7 +101,7 @@ test('returns a mocked response from a one-time request handler override only up
 
 test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
   server.use(
-    rest.get<{ bookId: string }>(
+    http.get<{ bookId: string }>(
       httpServer.http.url('/book/:bookId'),
       ({ params }) => {
         return HttpResponse.json({

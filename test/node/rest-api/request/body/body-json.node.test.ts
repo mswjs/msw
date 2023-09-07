@@ -2,12 +2,12 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { encodeBuffer } from '@mswjs/interceptors'
 
 const server = setupServer(
-  rest.post('http://localhost/json', async ({ request }) => {
+  http.post('http://localhost/json', async ({ request }) => {
     return HttpResponse.json(await request.json())
   }),
 )

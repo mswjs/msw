@@ -61,7 +61,7 @@ export class SetupServerApi
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async (request, requestId) => {
+    this.interceptor.on('request', async ({ request, requestId }) => {
       const response = await handleRequest(
         request,
         requestId,
@@ -83,13 +83,19 @@ export class SetupServerApi
       return
     })
 
-    this.interceptor.on('response', (response, request, requestId) => {
-      if (response.headers.get('x-powered-by') === 'msw') {
-        this.emitter.emit('response:mocked', response, request, requestId)
-      } else {
-        this.emitter.emit('response:bypass', response, request, requestId)
-      }
-    })
+    this.interceptor.on(
+      'response',
+      ({ response, isMockedResponse, request, requestId }) => {
+        this.emitter.emit(
+          isMockedResponse ? 'response:mocked' : 'response:bypass',
+          {
+            response,
+            request,
+            requestId,
+          },
+        )
+      },
+    )
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {
@@ -102,7 +108,7 @@ export class SetupServerApi
 
     // Once the connection to the remote WebSocket server succeeds,
     // pipe any life-cycle events from this process through that socket.
-    onAnyEvent(this.emitter, async (eventName, ...data) => {
+    onAnyEvent(this.emitter, async (eventName, listenerArgs) => {
       const socket = await this.syncSocketPromise
 
       if (!socket) {
@@ -110,13 +116,14 @@ export class SetupServerApi
       }
 
       const forwardLifeCycleEvent = async () => {
-        const payload = await serializeEventPayload(data)
+        const args = await serializeEventPayload(listenerArgs)
         socket.emit(
           'lifeCycleEventForward',
           /**
            * @todo Annotating serialized/desirialized mirror channels is tough.
            */
-          ...([eventName, ...payload] as any),
+          eventName,
+          args as any,
         )
       }
 
@@ -125,7 +132,7 @@ export class SetupServerApi
         case 'request:match':
         case 'request:unhandled':
         case 'request:end': {
-          const request = data[0] as Request
+          const { request } = listenerArgs
 
           if (
             request.headers.get('x-msw-request-type') === 'internal-request'
@@ -139,7 +146,7 @@ export class SetupServerApi
 
         case 'response:bypass':
         case 'response:mocked': {
-          const request = data[1] as Request
+          const { request } = listenerArgs
 
           if (
             request.headers.get('x-msw-request-type') === 'internal-request'
@@ -172,23 +179,6 @@ export class SetupServerApi
       ),
       'https://github.com/mswjs/msw/issues/new/choose',
     )
-  }
-
-  public printHandlers(): void {
-    const handlers = this.listHandlers()
-
-    handlers.forEach((handler) => {
-      const { header, callFrame } = handler.info
-
-      const pragma = handler.info.hasOwnProperty('operationType')
-        ? '[graphql]'
-        : '[rest]'
-
-      console.log(`\
-${`${pragma} ${header}`}
-  Declaration: ${callFrame}
-`)
-    })
   }
 
   public close(): void {

@@ -20,10 +20,9 @@ test('keeps the mocking enabled after hard-reload of the page', async ({
   await waitForMswActivation()
 
   const res = await fetch('https://example.com/resource')
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   // Still intercepts and mocks responses after a hard-reload.
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({ mocked: true })
 })

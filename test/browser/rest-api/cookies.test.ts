@@ -14,7 +14,7 @@ test('allows setting cookies on the mocked response', async ({
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(headers).not.toHaveProperty('set-cookie')
   expect(body).toEqual({
     mocked: true,
@@ -38,7 +38,7 @@ test('allows setting multiple response cookies', async ({
   const res = await fetch('/order')
   const headers = await res.allHeaders()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(headers).not.toHaveProperty('set-cookie')
 
   const cookieString = await page.evaluate(() => {

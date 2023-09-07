@@ -18,7 +18,10 @@ import {
 } from '~/core/utils/request/serializeUtils'
 import { LifeCycleEventEmitter } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { deserializeEventPayload } from '~/core/utils/internal/emitterUtils'
+import {
+  SerializedLifeCycleEventsMap,
+  deserializeEventPayload,
+} from '~/core/utils/internal/emitterUtils'
 
 const SYNC_SERVER_DEFAULT_PORT = 50222
 const SYNC_SERVER_ENV_VARIABLE_NAME = 'MSW_INTERNAL_WEBSOCKET_PORT'
@@ -41,28 +44,6 @@ export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }
 
-export type SerializedLifeCycleEventsMap = {
-  'request:start': [request: SerializedRequest, requestId: string]
-  'request:match': [request: SerializedRequest, requestId: string]
-  'request:unhandled': [request: SerializedRequest, requestId: string]
-  'request:end': [request: SerializedRequest, requestId: string]
-  'response:mocked': [
-    response: SerializedResponse,
-    request: SerializedRequest,
-    requestId: string,
-  ]
-  'response:bypass': [
-    response: SerializedResponse,
-    request: SerializedRequest,
-    requestId: string,
-  ]
-  unhandledException: [
-    error: Error,
-    request: SerializedRequest,
-    requestId: string,
-  ]
-}
-
 export interface SyncServerEventsMap {
   request(
     serializedRequest: SerializedRequest,
@@ -71,7 +52,7 @@ export interface SyncServerEventsMap {
   response(serializedResponse?: SerializedResponse): Promise<void> | void
   lifeCycleEventForward<EventName extends keyof SerializedLifeCycleEventsMap>(
     eventName: EventName,
-    ...data: SerializedLifeCycleEventsMap[EventName]
+    args: SerializedLifeCycleEventsMap[EventName],
   ): void
 }
 
@@ -116,9 +97,9 @@ export class SetupRemoteServerApi
         )
       })
 
-      socket.on('lifeCycleEventForward', async (eventName, ...data) => {
-        const deserializedData: any = await deserializeEventPayload(data)
-        this.emitter.emit(eventName, ...deserializedData)
+      socket.on('lifeCycleEventForward', async (eventName, args) => {
+        const deserializedArgs = await deserializeEventPayload(args)
+        this.emitter.emit(eventName, deserializedArgs as any)
       })
     })
   }

@@ -62,7 +62,7 @@ export const createRequestListener = (
             )
 
             if (!options.quiet) {
-              context.emitter.once('response:mocked', (response) => {
+              context.emitter.once('response:mocked', ({ response }) => {
                 handler.log(requestCloneForLogs, response, parsedRequest)
               })
             }

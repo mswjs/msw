@@ -1,7 +1,8 @@
 import { type EventMap, type Emitter } from 'strict-event-emitter'
+import type { LifeCycleEventsMap } from '../../sharedOptions'
 import {
-  SerializedRequest,
-  SerializedResponse,
+  type SerializedRequest,
+  type SerializedResponse,
   deserializeRequest,
   deserializeResponse,
   isSerializedRequest,
@@ -9,6 +10,22 @@ import {
   serializeRequest,
   serializeResponse,
 } from '../request/serializeUtils'
+
+export type SerializedLifeCycleEventListenerArgs<
+  Args extends LifeCycleEventsMap[keyof LifeCycleEventsMap][0],
+> = {
+  [Key in keyof Args]: Args[Key] extends Request
+    ? SerializedRequest
+    : Args[Key] extends Response
+    ? SerializedResponse
+    : Args[Key]
+}
+
+export type SerializedLifeCycleEventsMap = {
+  [EventName in keyof LifeCycleEventsMap]: [
+    SerializedLifeCycleEventListenerArgs<LifeCycleEventsMap[EventName][0]>,
+  ]
+}
 
 export type TransformEventsFunction<
   FromEvents extends EventMap,
@@ -33,38 +50,50 @@ export function onAnyEvent<Events extends EventMap>(
   }
 }
 
-export async function serializeEventPayload(
-  payload: Array<unknown>,
-): Promise<Array<unknown>> {
-  return Promise.all(
-    payload.map(async (data) => {
-      if (data instanceof Request) {
-        return serializeRequest(data)
-      }
+export async function serializeEventPayload<
+  Args extends LifeCycleEventsMap[keyof LifeCycleEventsMap][0],
+>(args: Args): Promise<SerializedLifeCycleEventListenerArgs<Args>> {
+  const serializedArgs = {} as SerializedLifeCycleEventListenerArgs<Args>
 
-      if (data instanceof Response) {
-        return serializeResponse(data)
-      }
+  for (const key in args) {
+    const value = args[key]
 
-      return data
-    }),
-  )
+    if (value instanceof Request) {
+      Reflect.set(serializedArgs, key, await serializeRequest(value))
+      continue
+    }
+
+    if (value instanceof Response) {
+      Reflect.set(serializedArgs, key, await serializeResponse(value))
+      continue
+    }
+
+    Reflect.set(serializedArgs, key, value)
+  }
+
+  return serializedArgs
 }
 
 export async function deserializeEventPayload(
-  payload: Array<SerializedRequest | SerializedResponse | unknown>,
-): Promise<Array<unknown>> {
-  return Promise.all(
-    payload.map(async (data) => {
-      if (isSerializedRequest(data)) {
-        return deserializeRequest(data)
-      }
+  serializedArgs: SerializedLifeCycleEventsMap[keyof LifeCycleEventsMap],
+): Promise<LifeCycleEventsMap[keyof LifeCycleEventsMap][0]> {
+  const args = {} as LifeCycleEventsMap[keyof LifeCycleEventsMap][0]
 
-      if (isSerializedResponse(data)) {
-        return deserializeResponse(data)
-      }
+  for (const key in serializedArgs) {
+    const value = serializedArgs[key]
 
-      return data
-    }),
-  )
+    if (isSerializedRequest(value)) {
+      Reflect.set(args, key, deserializeRequest(value))
+      continue
+    }
+
+    if (isSerializedResponse(value)) {
+      Reflect.set(args, key, deserializeResponse(value))
+      continue
+    }
+
+    Reflect.set(args, key, value)
+  }
+
+  return args
 }

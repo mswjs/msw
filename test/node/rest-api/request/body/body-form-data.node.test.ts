@@ -1,11 +1,11 @@
 /**
  * @jest-environment node
  */
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.post('http://localhost/resource', async ({ request }) => {
+  http.post('http://localhost/resource', async ({ request }) => {
     const formData = await request.formData()
     return HttpResponse.json(Array.from(formData.entries()))
   }),

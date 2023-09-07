@@ -36,7 +36,8 @@ $ pnpm install
 $ pnpm start
 ```
 
-> Please use [PNPM][pnpm-url] while working on this project.
+> Please use [PNPM][pnpm-url] version 7.12 while working on this project.
+> Guide on how to install a specific PNPM version can be [found here][pnpm-install-guide-url].
 
 ## Git workflow
 
@@ -147,10 +148,11 @@ Let's write an example integration test that asserts the interception of a GET r
 
 ```js
 // test/browser/example.mocks.ts
-import { rest, setupWorker, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/books', () => {
+  http.get('/books', () => {
     return HttpResponse.json([
       {
         id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
@@ -214,11 +216,11 @@ Let's replicate the same `GET /books` integration test in Node.js.
 ```ts
 // test/node/example.test.ts
 import fetch from 'node-fetch'
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('/books', () => {
+  http.get('/books', () => {
     return HttpResponse.json([
       {
         id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
@@ -269,3 +271,4 @@ $ pnpm build
 [pnpm-url]: https://pnpm.io/
 [jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with
+[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version

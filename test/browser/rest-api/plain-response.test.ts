@@ -10,12 +10,11 @@ test('returns a plain Response as a mocked response', async ({
 
   const response = await fetch('/greeting')
   const status = response.status()
-  const headers = response.headers()
   const body = await response.text()
 
   // Must return the correct response.
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual('Hello, world!')
 
   // Must print the correct log message in the console.

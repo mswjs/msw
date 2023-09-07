@@ -1,16 +1,16 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 /**
  * Request path parameters.
  */
-rest.get<{ id: string }>('/user/:id', ({ params }) => {
+http.get<{ id: string }>('/user/:id', ({ params }) => {
   params.id.toUpperCase()
 
   // @ts-expect-error Unknown path parameter
   params.unknown
 })
 
-rest.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
+http.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
   params.a.toUpperCase()
   params.b.map((x) => x)
 
@@ -20,7 +20,7 @@ rest.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
 
 // Supports path parameters declaration via type.
 type UserPathParams = { id: string }
-rest.get<UserPathParams>('/user/:id', ({ params }) => {
+http.get<UserPathParams>('/user/:id', ({ params }) => {
   params.id.toUpperCase()
 
   // @ts-expect-error Unknown path parameter
@@ -31,14 +31,14 @@ rest.get<UserPathParams>('/user/:id', ({ params }) => {
 interface PostPathParameters {
   id: string
 }
-rest.get<PostPathParameters>('/user/:id', ({ params }) => {
+http.get<PostPathParameters>('/user/:id', ({ params }) => {
   params.id.toUpperCase()
 
   // @ts-expect-error Unknown path parameter
   params.unknown
 })
 
-rest.get<never>('/user/:a/:b', ({ params }) => {
+http.get<never>('/user/:a/:b', ({ params }) => {
   // @ts-expect-error Unknown path parameter
   params.a.toUpperCase()
   // @ts-expect-error Unknown path parameter
@@ -48,7 +48,7 @@ rest.get<never>('/user/:a/:b', ({ params }) => {
 /**
  * Request body generic.
  */
-rest.post<never, { id: string }>('/user', async ({ request }) => {
+http.post<never, { id: string }>('/user', async ({ request }) => {
   const data = await request.json()
   data.id
 
@@ -61,7 +61,7 @@ rest.post<never, { id: string }>('/user', async ({ request }) => {
   text.id
 })
 
-rest.get<never, null>('/user', async ({ request }) => {
+http.get<never, null>('/user', async ({ request }) => {
   const data = await request.json()
   // @ts-expect-error Null is not an object
   Object.keys(data)
@@ -70,19 +70,19 @@ rest.get<never, null>('/user', async ({ request }) => {
 /**
  * Response body generic.
  */
-rest.get('/user', () => {
+http.get('/user', () => {
   // Allows responding with a plain Response
   // when no response body generic is set.
   return new Response('hello')
 })
 
-rest.get<never, never, { id: number }>('/user', () => {
+http.get<never, never, { id: number }>('/user', () => {
   return HttpResponse.json({ id: 1 })
 })
 
 // Supports explicit response data declared via type.
 type ResponseBodyType = { id: number }
-rest.get<never, never, ResponseBodyType>('/user', () => {
+http.get<never, never, ResponseBodyType>('/user', () => {
   const data: ResponseBodyType = { id: 1 }
   return HttpResponse.json(data)
 })
@@ -91,18 +91,18 @@ rest.get<never, never, ResponseBodyType>('/user', () => {
 interface ResponseBodyInterface {
   id: number
 }
-rest.get<never, never, ResponseBodyInterface>('/user', () => {
+http.get<never, never, ResponseBodyInterface>('/user', () => {
   const data: ResponseBodyInterface = { id: 1 }
   return HttpResponse.json(data)
 })
 
-rest.get<never, never, { id: number }>(
+http.get<never, never, { id: number }>(
   '/user',
   // @ts-expect-error String not assignable to number
   () => HttpResponse.json({ id: 'invalid' }),
 )
 
-rest.get<never, never, { id: number }>(
+http.get<never, never, { id: number }>(
   '/user',
   // @ts-expect-error Missing property "id"
   () => HttpResponse.json({}),
@@ -110,12 +110,12 @@ rest.get<never, never, { id: number }>(
 
 // Response resolver can return a response body of a
 // narrower type than defined in the generic.
-rest.get<never, never, string | string[]>('/user', () =>
+http.get<never, never, string | string[]>('/user', () =>
   HttpResponse.json(['value']),
 )
 
 // Response resolver can return a more specific type
 // than provided in the response generic.
-rest.get<never, never, { label: boolean }>('/user', () =>
+http.get<never, never, { label: boolean }>('/user', () =>
   HttpResponse.json({ label: true }),
 )

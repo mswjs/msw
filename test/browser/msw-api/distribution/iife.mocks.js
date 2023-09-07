@@ -1,7 +1,7 @@
-const { setupWorker, rest, HttpResponse } = MockServiceWorker
+const { setupWorker, http, HttpResponse } = MockServiceWorker
 
 const worker = setupWorker(
-  rest.get('/user', () => {
+  http.get('/user', () => {
     return HttpResponse.json({ firstName: 'John' })
   }),
 )

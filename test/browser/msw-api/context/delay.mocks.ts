@@ -1,8 +1,8 @@
-import { rest, delay, DelayMode, HttpResponse } from 'msw'
+import { http, delay, DelayMode, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/delay', async ({ request }) => {
+  http.get('/delay', async ({ request }) => {
     const url = new URL(request.url)
     const mode = url.searchParams.get('mode') as DelayMode
     const duration = url.searchParams.get('duration')

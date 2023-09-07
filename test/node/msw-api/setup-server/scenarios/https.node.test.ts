@@ -3,7 +3,7 @@
  */
 import https from 'https'
 import { HttpServer, httpsAgent } from '@open-draft/test-server/http'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { waitForClientRequest } from '../../../../support/utils'
 
@@ -22,7 +22,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   server.use(
-    rest.get(httpServer.https.url('/resource'), () => {
+    http.get(httpServer.https.url('/resource'), () => {
       return HttpResponse.json(
         {
           firstName: 'John',

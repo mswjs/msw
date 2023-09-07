@@ -85,3 +85,16 @@ test('returns false given a GraphQL-incompatible request', async () => {
   })
   expect(await parseGraphQLRequest(postRequest)).toBeUndefined()
 })
+
+test('does not read the original request body', async () => {
+  const request = new Request(new URL('http://localhost/api'), {
+    method: 'POST',
+    body: JSON.stringify({ payload: 'value' }),
+  })
+
+  await parseGraphQLRequest(request)
+
+  // Must not read the original request body because GraphQL parsing
+  // is an internal operation that must not lock the body stream.
+  expect(request.bodyUsed).toBe(false)
+})

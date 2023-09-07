@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io', () => {
+  http.get('http://test.mswjs.io', () => {
     return HttpResponse.json(
       {
         firstName: 'John',
@@ -17,7 +17,7 @@ const server = setupServer(
       },
     )
   }),
-  rest.post('https://test.mswjs.io', async ({ request }) => {
+  http.post('https://test.mswjs.io', async ({ request }) => {
     return HttpResponse.json(await request.json(), {
       status: 403,
       headers: {

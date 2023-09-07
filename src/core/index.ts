@@ -4,8 +4,8 @@ export { SetupApi } from './SetupApi'
 
 /* Request handlers */
 export { RequestHandler } from './handlers/RequestHandler'
-export { rest } from './rest'
-export { RestHandler, RESTMethods } from './handlers/RestHandler'
+export { http } from './http'
+export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 export { graphql } from './graphql'
 export { GraphQLHandler } from './handlers/GraphQLHandler'
 
@@ -30,8 +30,8 @@ export type {
 
 export type {
   RequestQuery,
-  RestRequestParsedResult,
-} from './handlers/RestHandler'
+  HttpRequestParsedResult,
+} from './handlers/HttpHandler'
 
 export type {
   GraphQLVariables,

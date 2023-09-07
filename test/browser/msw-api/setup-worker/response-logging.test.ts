@@ -24,7 +24,7 @@ test('prints the response info to the console', async ({
   }
 
   const getResponseLogs = (exp: RegExp) => {
-    return consoleSpy.get('startGroupCollapsed').filter((log) => {
+    return consoleSpy.get('startGroupCollapsed')?.filter((log) => {
       return exp.test(log)
     })
   }

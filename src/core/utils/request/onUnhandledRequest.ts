@@ -1,8 +1,9 @@
 // @ts-ignore
 import jsLevenshtein from '@bundled-es-modules/js-levenshtein'
-import { RequestHandler, RestHandler, GraphQLHandler } from '../..'
+import { RequestHandler, HttpHandler, GraphQLHandler } from '../..'
 import {
   ParsedGraphQLQuery,
+  ParsedGraphQLRequest,
   parseGraphQLRequest,
 } from '../internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
@@ -32,7 +33,7 @@ export type UnhandledRequestStrategy =
   | UnhandledRequestCallback
 
 interface RequestHandlerGroups {
-  rest: Array<RestHandler>
+  http: Array<HttpHandler>
   graphql: Array<GraphQLHandler>
 }
 
@@ -41,8 +42,8 @@ function groupHandlersByType(
 ): RequestHandlerGroups {
   return handlers.reduce<RequestHandlerGroups>(
     (groups, handler) => {
-      if (handler instanceof RestHandler) {
-        groups.rest.push(handler)
+      if (handler instanceof HttpHandler) {
+        groups.http.push(handler)
       }
 
       if (handler instanceof GraphQLHandler) {
@@ -52,7 +53,7 @@ function groupHandlersByType(
       return groups
     },
     {
-      rest: [],
+      http: [],
       graphql: [],
     },
   )
@@ -65,7 +66,7 @@ type ScoreGetterFn<RequestHandlerType extends RequestHandler> = (
   handler: RequestHandlerType,
 ) => number
 
-function getRestHandlerScore(): ScoreGetterFn<RestHandler> {
+function getHttpHandlerScore(): ScoreGetterFn<HttpHandler> {
   return (request, handler) => {
     const { path, method } = handler.info
 
@@ -109,8 +110,8 @@ function getGraphQLHandlerScore(
 
 function getSuggestedHandler(
   request: Request,
-  handlers: Array<RestHandler> | Array<GraphQLHandler>,
-  getScore: ScoreGetterFn<RestHandler> | ScoreGetterFn<GraphQLHandler>,
+  handlers: Array<HttpHandler> | Array<GraphQLHandler>,
+  getScore: ScoreGetterFn<HttpHandler> | ScoreGetterFn<GraphQLHandler>,
 ): Array<RequestHandler> {
   const suggestedHandlers = (handlers as Array<RequestHandler>)
     .reduce<Array<RequestHandlerSuggestion>>((suggestions, handler) => {
@@ -144,6 +145,7 @@ export async function onUnhandledRequest(
   const parsedGraphQLQuery = await parseGraphQLRequest(request).catch(
     () => null,
   )
+  const publicUrl = getPublicUrlFromRequest(request)
 
   function generateHandlerSuggestion(): string {
     /**
@@ -154,14 +156,14 @@ export async function onUnhandledRequest(
     const handlerGroups = groupHandlersByType(handlers)
     const relevantHandlers = parsedGraphQLQuery
       ? handlerGroups.graphql
-      : handlerGroups.rest
+      : handlerGroups.http
 
     const suggestedHandlers = getSuggestedHandler(
       request,
       relevantHandlers,
       parsedGraphQLQuery
         ? getGraphQLHandlerScore(parsedGraphQLQuery)
-        : getRestHandlerScore(),
+        : getHttpHandlerScore(),
     )
 
     return suggestedHandlers.length > 0
@@ -169,10 +171,19 @@ export async function onUnhandledRequest(
       : ''
   }
 
+  function getGraphQLRequestHeader(
+    parsedGraphQLRequest: ParsedGraphQLRequest<any>,
+  ): string {
+    if (!parsedGraphQLRequest?.operationName) {
+      return `anonymous ${parsedGraphQLRequest?.operationType} (${request.method} ${publicUrl})`
+    }
+
+    return `${parsedGraphQLRequest.operationType} ${parsedGraphQLRequest.operationName} (${request.method} ${publicUrl})`
+  }
+
   function generateUnhandledRequestMessage(): string {
-    const publicUrl = getPublicUrlFromRequest(request)
     const requestHeader = parsedGraphQLQuery
-      ? `${parsedGraphQLQuery.operationType} ${parsedGraphQLQuery.operationName} (${request.method} ${publicUrl})`
+      ? getGraphQLRequestHeader(parsedGraphQLQuery)
       : `${request.method} ${publicUrl}`
     const handlerSuggestion = generateHandlerSuggestion()
 

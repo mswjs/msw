@@ -46,6 +46,7 @@ export type ServiceWorkerIncomingResponse = Pick<
   'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
 > & {
   requestId: string
+  isMockedResponse: boolean
 }
 
 /**
@@ -238,12 +239,6 @@ export interface SetupWorker {
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()`}
    */
   listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
-
-  /**
-   * Lists all active request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/print-handlers `worker.printHandlers()`}
-   */
-  printHandlers: () => void
 
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }

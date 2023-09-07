@@ -25,27 +25,22 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
       return
     }
 
-    const response = new Response(responseJson.body, responseJson)
-    const isMockedResponse = response.headers.get('x-powered-by') === 'msw'
+    const response =
+      responseJson.status === 0
+        ? Response.error()
+        : new Response(responseJson.body, responseJson)
 
-    if (isMockedResponse) {
-      context.emitter.emit(
-        'response:mocked',
+    context.emitter.emit(
+      responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
+      {
         response,
         /**
          * @todo @fixme In this context, we don't know anything about
          * the request.
          */
-        null as any,
-        responseJson.requestId,
-      )
-    } else {
-      context.emitter.emit(
-        'response:bypass',
-        response,
-        null as any,
-        responseJson.requestId,
-      )
-    }
+        request: null as any,
+        requestId: responseJson.requestId,
+      },
+    )
   }
 }

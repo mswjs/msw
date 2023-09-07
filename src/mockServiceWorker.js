@@ -9,6 +9,7 @@
  */
 
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
+const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
 
 self.addEventListener('install', function () {
@@ -154,6 +155,7 @@ async function handleRequest(event, requestId) {
           type: 'RESPONSE',
           payload: {
             requestId,
+            isMockedResponse: IS_MOCKED_RESPONSE in response,
             type: responseClone.type,
             status: responseClone.status,
             statusText: responseClone.statusText,
@@ -302,5 +304,20 @@ function sendToClient(client, message, transferrables = []) {
 }
 
 async function respondWithMock(response) {
-  return new Response(response.body, response)
+  // Setting response status code to 0 is a no-op.
+  // However, when responding with a "Response.error()", the produced Response
+  // instance will have status code set to 0. Since it's not possible to create
+  // a Response instance with status code 0, handle that use-case separately.
+  if (response.status === 0) {
+    return Response.error()
+  }
+
+  const mockedResponse = new Response(response.body, response)
+
+  Reflect.defineProperty(mockedResponse, IS_MOCKED_RESPONSE, {
+    value: true,
+    enumerable: true,
+  })
+
+  return mockedResponse
 }

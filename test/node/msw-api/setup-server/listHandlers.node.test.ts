@@ -1,14 +1,14 @@
 /**
  * @jest-environment node
  */
-import { rest, graphql } from 'msw'
+import { http, graphql } from 'msw'
 import { setupServer } from 'msw/node'
 
 const resolver = () => null
 const github = graphql.link('https://api.github.com')
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/book/:bookId', resolver),
+  http.get('https://test.mswjs.io/book/:bookId', resolver),
   graphql.query('GetUser', resolver),
   graphql.mutation('UpdatePost', resolver),
   graphql.operation(resolver),
@@ -58,7 +58,7 @@ test('forbids from modifying the list of handlers', () => {
 
 test('includes runtime request handlers when listing handlers', () => {
   server.use(
-    rest.get('https://test.mswjs.io/book/:bookId', resolver),
+    http.get('https://test.mswjs.io/book/:bookId', resolver),
     graphql.query('GetRandomNumber', resolver),
   )
 

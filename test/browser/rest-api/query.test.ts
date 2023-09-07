@@ -10,11 +10,10 @@ test('retrieves a single request URL query parameter', async ({
 
   const res = await fetch('https://test.mswjs.io/api/books?id=abc-123')
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     bookId: 'abc-123',
   })
@@ -30,11 +29,10 @@ test('retrieves multiple request URL query parameters', async ({
     method: 'POST',
   })
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     productIds: ['1', '2', '3'],
   })

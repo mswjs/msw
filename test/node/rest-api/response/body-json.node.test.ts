@@ -1,14 +1,14 @@
 /**
  * @jest-environment node
  */
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('http://localhost/json', () => {
+  http.get('http://localhost/json', () => {
     return HttpResponse.json({ firstName: 'John' })
   }),
-  rest.get('http://localhost/number', () => {
+  http.get('http://localhost/number', () => {
     return HttpResponse.json(123)
   }),
 )

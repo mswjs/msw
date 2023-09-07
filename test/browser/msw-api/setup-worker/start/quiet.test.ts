@@ -30,11 +30,9 @@ test('does not log the captured request when the "quiet" option is set to "true"
   expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 
   const res = await fetch('/user')
-
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     firstName: 'John',
     age: 32,

@@ -1,13 +1,13 @@
 import type { Socket } from 'socket.io-client'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { RestHandler } from './RestHandler'
+import { HttpHandler } from './HttpHandler'
 import type { SyncServerEventsMap } from '../../node/setupRemoteServer'
 import {
   deserializeResponse,
   serializeRequest,
 } from '../utils/request/serializeUtils'
 
-export class RemoteRequestHandler extends RestHandler {
+export class RemoteRequestHandler extends HttpHandler {
   constructor(args: {
     requestId: string
     socketPromise: Promise<Socket<SyncServerEventsMap> | undefined>

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { waitFor } from '../../../../support/waitFor'
@@ -30,45 +30,45 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.url('/user'), () => {
+    http.get(httpServer.http.url('/user'), () => {
       return HttpResponse.text('response-body')
     }),
-    rest.post(httpServer.http.url('/no-response'), () => {
+    http.post(httpServer.http.url('/no-response'), () => {
       return
     }),
-    rest.get(httpServer.http.url('/unhandled-exception'), () => {
+    http.get(httpServer.http.url('/unhandled-exception'), () => {
       throw new Error('Unhandled resolver error')
     }),
   )
   server.listen()
 
-  server.events.on('request:start', (request, requestId) => {
+  server.events.on('request:start', ({ request, requestId }) => {
     listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('request:match', (request, requestId) => {
+  server.events.on('request:match', ({ request, requestId }) => {
     listener(`[request:match] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('request:unhandled', (request, requestId) => {
+  server.events.on('request:unhandled', ({ request, requestId }) => {
     listener(
       `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
     )
   })
 
-  server.events.on('request:end', (request, requestId) => {
+  server.events.on('request:end', ({ request, requestId }) => {
     listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('response:mocked', async (response, _, requestId) => {
+  server.events.on('response:mocked', async ({ response, requestId }) => {
     listener(`[response:mocked] ${await response.text()} ${requestId}`)
   })
 
-  server.events.on('response:bypass', async (response, _, requestId) => {
+  server.events.on('response:bypass', async ({ response, requestId }) => {
     listener(`[response:bypass] ${await response.text()} ${requestId}`)
   })
 
-  server.events.on('unhandledException', (error, request, requestId) => {
+  server.events.on('unhandledException', ({ error, request, requestId }) => {
     listener(
       `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,
     )

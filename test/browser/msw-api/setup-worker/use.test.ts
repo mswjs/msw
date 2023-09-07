@@ -1,11 +1,11 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
     HttpResponse: typeof HttpResponse
   }
 }
@@ -18,10 +18,10 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, http, HttpResponse } = window.msw
 
     worker.use(
-      rest.post('/login', function postLoginResolver() {
+      http.post('/login', function postLoginResolver() {
         return HttpResponse.json({ accepted: true })
       }),
     )
@@ -51,10 +51,10 @@ test('returns a mocked response from a persistent request handler override', asy
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, http, HttpResponse } = window.msw
 
     worker.use(
-      rest.get('/book/:bookId', function permanentOverride() {
+      http.get('/book/:bookId', function permanentOverride() {
         return HttpResponse.json({ title: 'Permanent override' })
       }),
     )
@@ -81,10 +81,10 @@ test('returns a mocked response from a one-time request handler override only up
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, http, HttpResponse } = window.msw
 
     worker.use(
-      rest.get(
+      http.get(
         '/book/:bookId',
         function oneTimeOverride() {
           return HttpResponse.json({ title: 'One-time override' })
@@ -115,10 +115,10 @@ test('returns a mocked response from a one-time request handler override only up
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { worker, rest, HttpResponse } = window.msw
+    const { worker, http, HttpResponse } = window.msw
 
     worker.use(
-      rest.get<{ bookId: string }>(
+      http.get<{ bookId: string }>(
         '/book/:bookId',
         function oneTimeOverride({ params }) {
           const { bookId } = params

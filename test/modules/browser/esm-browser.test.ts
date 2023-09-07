@@ -61,20 +61,15 @@ test.afterAll(async () => {
 test('runs in an ESM browser project', async ({ page }) => {
   await fsMock.create({
     'entry.mjs': `
-import { rest, HttpResponse } from 'msw'
+import { http,HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 const worker = setupWorker(
-  rest.get('/resource', () => new Response()),
-  rest.post('/login', () => HttpResponse.json([1, 2, 3]))
+  http.get('/resource', () => new Response()),
+  http.post('/login', () => HttpResponse.json([1, 2, 3]))
 )
 console.log(typeof worker.start)
     `,
     'index.html': `
-<!--
-  "graphql" ships a bug where they access "process" in the browser.
-  Fix: https://github.com/graphql/graphql-js/pull/3887
--->
-<script>globalThis.process = { env: { NODE_ENV: 'production' } }</script>
 <script type="module" src="./entry.mjs"></script>
     `,
   })

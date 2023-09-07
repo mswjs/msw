@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/:maxCount',
     function* ({ params }) {
       const maxCount = parseInt(params.maxCount)
@@ -27,7 +27,7 @@ const server = setupServer(
     },
   ),
 
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
     function* ({ params }) {
       const maxCount = parseInt(params.maxCount)
@@ -48,7 +48,7 @@ const server = setupServer(
     },
     { once: true },
   ),
-  rest.get<{ maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
     () => {
       return HttpResponse.json({ status: 'done' })
@@ -74,7 +74,6 @@ test('supports generator as the response resolver', async () => {
     const res = await fetch('https://example.com/polling/3')
     const body = await res.json()
     expect(res.status).toBe(200)
-    expect(res.headers.get('x-powered-by')).toBe('msw')
     expect(body).toEqual(expectedBody)
   }
 
@@ -101,7 +100,6 @@ test('supports one-time handlers with the generator as the response resolver', a
     const res = await fetch('https://example.com/polling/once/3')
     const body = await res.json()
     expect(res.status).toBe(200)
-    expect(res.headers.get('x-powered-by')).toBe('msw')
     expect(body).toEqual(expectedBody)
   }
 

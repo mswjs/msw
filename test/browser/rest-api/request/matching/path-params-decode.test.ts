@@ -9,7 +9,7 @@ test('decodes url componets', async ({ loadExample, fetch }) => {
   )
 
   expect(res.status()).toBe(200)
-  expect(await res.allHeaders()).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(await res.json()).toEqual({
     url,
   })

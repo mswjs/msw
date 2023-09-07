@@ -1,10 +1,10 @@
 const express = require('express')
-const { rest, HttpResponse } = require('msw')
+const { http, HttpResponse } = require('msw')
 const { setupServer } = require('msw/node')
 
 // Enable API mocking as usual.
 const server = setupServer(
-  rest.get('https://example.com/resource', () => {
+  http.get('https://example.com/resource', () => {
     return HttpResponse.json([1, 2, 3])
   }),
 )

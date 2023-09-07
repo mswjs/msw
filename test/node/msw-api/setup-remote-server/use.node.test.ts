@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupRemoteServer } from 'msw/node'
 import { TestNodeApp } from './utils'
 
@@ -34,7 +34,7 @@ it('returns a mocked response defined in the app by default', async () => {
 
 it('returns a mocked response from the matching runtime request handler', async () => {
   remote.use(
-    rest.get('https://example.com/resource', () => {
+    http.get('https://example.com/resource', () => {
       return HttpResponse.json({ mocked: true })
     }),
   )

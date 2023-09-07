@@ -23,11 +23,10 @@ test('allows referencing the request body in the GraphQL query handler', async (
       id: 'abc-123',
     },
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: GET_USER_QUERY,
@@ -58,11 +57,10 @@ test('allows referencing the request body in the GraphQL mutation handler', asyn
       password: 'super-secret',
     },
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: LOGIN_MUTATION,

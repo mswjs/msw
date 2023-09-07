@@ -1,15 +1,15 @@
-import { rest, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/api/books', ({ request }) => {
+  http.get('https://test.mswjs.io/api/books', ({ request }) => {
     const url = new URL(request.url)
     const bookId = url.searchParams.get('id')
 
     return HttpResponse.json({ bookId })
   }),
 
-  rest.post('https://test.mswjs.io/products', ({ request }) => {
+  http.post('https://test.mswjs.io/products', ({ request }) => {
     const url = new URL(request.url)
     const productIds = url.searchParams.getAll('id')
 

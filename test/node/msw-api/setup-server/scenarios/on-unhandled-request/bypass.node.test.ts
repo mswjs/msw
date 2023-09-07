@@ -4,7 +4,7 @@
 import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { setupServer } from 'msw/node'
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 const httpServer = new HttpServer((app) => {
   app.get('/', (req, res) => {
@@ -21,7 +21,7 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.url('/user'), () => {
+    http.get(httpServer.http.url('/user'), () => {
       return HttpResponse.json({ firstName: 'John' })
     }),
   )

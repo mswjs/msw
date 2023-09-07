@@ -90,10 +90,9 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
 }
 
 async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
-  const url = new URL(request.url)
-
   switch (request.method) {
     case 'GET': {
+      const url = new URL(request.url)
       const query = url.searchParams.get('query')
       const variables = url.searchParams.get('variables') || ''
 
@@ -104,12 +103,16 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
     }
 
     case 'POST': {
+      // Clone the request so we could read its body without locking
+      // the body stream to the downward consumers.
+      const requestClone = request.clone()
+
       // Handle multipart body GraphQL operations.
       if (
         request.headers.get('content-type')?.includes('multipart/form-data')
       ) {
         const responseJson = parseMultipartData<GraphQLMultipartRequestBody>(
-          await request.text(),
+          await requestClone.text(),
           request.headers,
         )
 
@@ -147,7 +150,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
         query: string
         variables?: GraphQLVariables
         operations?: any /** @todo Annotate this */
-      } = await request.json().catch(() => null)
+      } = await requestClone.json().catch(() => null)
 
       if (requestJson?.query) {
         const { query, variables } = requestJson

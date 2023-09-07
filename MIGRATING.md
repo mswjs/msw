@@ -19,6 +19,7 @@ To help you navigate, we've structured this guide on the feature basis. You can 
 - [req.cookies](#request-cookies)
 - [req.passthrough](#reqpassthrough)
 - [res.once](#resonce)
+- [res.networkError](#resnetworkerror)
 - [Context utilities](#context-utilities)
   - [ctx.status](#ctxstatus)
   - [ctx.set](#ctxset)
@@ -248,6 +249,22 @@ export const handlers = [
   ),
 ]
 ```
+
+## `res.networkError`
+
+To respond to a request with a network error, use the `HttpResponse.error()` static method:
+
+```js
+import { http, HttpResponse } from 'msw'
+
+export const handlers = [
+  http.get('/resource', () => {
+    return HttpResponse.error()
+  }),
+]
+```
+
+> Note that we are dropping support for custom network error messages to be more compliant with the standard [`Response.error()`](https://developer.mozilla.org/en-US/docs/Web/API/Response/error_static) network errors, which don't support custom error messages.
 
 ## `req.passthrough`
 

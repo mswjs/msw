@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.0.0
-  '@mswjs/interceptors': ^0.23.0
+  '@mswjs/interceptors': ^0.25.0
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.7.2
@@ -85,7 +85,7 @@ dependencies:
   '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.0.0
-  '@mswjs/interceptors': 0.23.0
+  '@mswjs/interceptors': 0.25.0
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2347,14 +2347,14 @@ packages:
     engines: {node: '>=14'}
     dev: false
 
-  /@mswjs/interceptors/0.23.0:
-    resolution: {integrity: sha512-JytvDa7pBbxXvCTXBYQs+0eE6MqxpqH/H4peRNY6zVAlvJ6d/hAWLHAef1D9lWN4zuIigN0VkakGOAUrX7FWLg==}
+  /@mswjs/interceptors/0.25.0:
+    resolution: {integrity: sha512-w1Q5SWRBavRc5eY2uWIOiB/CO8r6FcyWp44jv975y4lxLgMZItrwMg8JwVHVmHwK58dQdA3260AF09tmiOlC7g==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.1.0
       '@open-draft/logger': 0.3.0
       '@open-draft/until': 2.1.0
-      headers-polyfill: 3.2.3
+      is-node-process: 1.2.0
       outvariant: 1.4.0
       strict-event-emitter: 0.5.0
     dev: false

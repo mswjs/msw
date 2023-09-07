@@ -7,7 +7,6 @@ import {
   ServiceWorkerMessage,
   WorkerChannel,
 } from './utils/createMessageChannel'
-import { NetworkError } from '~/core/NetworkError'
 import { parseWorkerRequest } from '../../utils/parseWorkerRequest'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
@@ -70,17 +69,6 @@ export const createRequestListener = (
         },
       )
     } catch (error) {
-      if (error instanceof NetworkError) {
-        // Treat emulated network error differently,
-        // as it is an intended exception in a request handler.
-        messageChannel.postMessage('NETWORK_ERROR', {
-          name: error.name,
-          message: error.message,
-        })
-
-        return
-      }
-
       if (error instanceof Error) {
         devUtils.error(
           `Uncaught exception in the request handler for "%s %s":

@@ -112,15 +112,6 @@ self.addEventListener('fetch', function (event) {
 
   event.respondWith(
     handleRequest(event, requestId).catch((error) => {
-      if (error.name === 'NetworkError') {
-        console.warn(
-          '[MSW] Successfully emulated a network error for the "%s %s" request.',
-          request.method,
-          request.url,
-        )
-        return
-      }
-
       // At this point, any exception indicates an issue with the original request/response.
       console.error(
         `\
@@ -269,15 +260,6 @@ async function getResponse(event, client, requestId) {
 
     case 'MOCK_NOT_FOUND': {
       return passthrough()
-    }
-
-    case 'NETWORK_ERROR': {
-      const { name, message } = clientMessage.data
-      const networkError = new Error(message)
-      networkError.name = name
-
-      // Rejecting a "respondWith" promise emulates a network error.
-      throw networkError
     }
   }
 

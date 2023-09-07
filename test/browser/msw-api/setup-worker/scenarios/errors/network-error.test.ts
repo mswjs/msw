@@ -23,7 +23,6 @@ test('propagates a mocked network error', async ({
   spyOnConsole,
   fetch,
   page,
-  waitFor,
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -40,15 +39,6 @@ test('propagates a mocked network error', async ({
       expect.stringContaining('Failed to load resource: net::ERR_FAILED'),
     ]),
   )
-
-  // Expect a notification warning from the library.
-  await waitFor(async () => {
-    expect(workerConsole.messages.get('warn')).toEqual(
-      expect.arrayContaining([
-        `[MSW] Successfully emulated a network error for the "GET ${endpointUrl}" request.`,
-      ]),
-    )
-  })
 
   // The worker must not produce any errors.
   expect(workerConsole.messages.get('error')).toBeUndefined()

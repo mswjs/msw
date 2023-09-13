@@ -9,7 +9,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^0.2.2
-  '@mswjs/interceptors': ^0.17.5
+  '@mswjs/interceptors': ^0.17.10
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^1.0.3
   '@ossjs/release': ^0.7.2
@@ -74,7 +74,7 @@ specifiers:
 
 dependencies:
   '@mswjs/cookies': 0.2.2
-  '@mswjs/interceptors': 0.17.7
+  '@mswjs/interceptors': 0.17.10
   '@open-draft/until': 1.0.3
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2119,8 +2119,8 @@ packages:
       set-cookie-parser: 2.5.1
     dev: false
 
-  /@mswjs/interceptors/0.17.7:
-    resolution: {integrity: sha512-dPInyLEF6ybLxfKGY99euI+mbT6ls4PVO9qPgGIsRk3+2VZVfT7fo9Sq6Q8eKT9W38QtUyhG74hN7xMtKWioGw==}
+  /@mswjs/interceptors/0.17.10:
+    resolution: {integrity: sha512-N8x7eSLGcmUFNWZRxT1vsHvypzIRgQYdG0rJey/rZCy6zT/30qDt8Joj7FxzGNLSwXbeZqJOMqDurp7ra4hgbw==}
     engines: {node: '>=14'}
     dependencies:
       '@open-draft/until': 1.0.3

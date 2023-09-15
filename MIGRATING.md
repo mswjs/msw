@@ -99,7 +99,7 @@ A response resolver now exposes a single object argument instead of `(req, res, 
 To mock responses, you should now return a Fetch API `Response` instance from the response resolver. You no longer need to compose a response via `res()`, and all the context utilities have also [been removed](#context-utilities).
 
 ```js
-import { http, Response } from 'msw'
+import { http } from 'msw'
 
 http.get('/greet/:name', ({ request, params }) => {
   console.log('Captured %s %s', request.method, request.url)
@@ -110,7 +110,7 @@ http.get('/greet/:name', ({ request, params }) => {
 Now, a more complex example for both REST and GraphQL requests.
 
 ```js
-import { http, graphql, Response } from 'msw'
+import { http, graphql } from 'msw'
 
 export const handlers = [
   http.put('/user/:id', async ({ request, params, cookies }) => {
@@ -229,7 +229,7 @@ Although MSW now respects the Fetch API specification, the older versions of Nod
 To account for this, the library exports a `Response` class that you should use when declaring request handlers. Behind the hood, that response class is resolved to a compatible polyfill in Node.js; in the browser, it only aliases `global.Response` without introducing additional behaviors.
 
 ```js
-import { http, Response } from 'msw'
+import { http } from 'msw'
 
 setupServer(
   http.get('/ping', () => {
@@ -294,7 +294,7 @@ export const handlers = [
 Most of the context utilities you'd normally use via `ctx.*` were removed. Instead, we encourage you to set respective properties directly on the response instance:
 
 ```js
-import { http, HttpResponse, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 export const handlers = [
   http.post('/user', () => {
@@ -527,7 +527,7 @@ The life-cycle events listeners now accept a single argument being an object wit
 
 ```diff
 -server.events.on('request:start', (request, requestId) = {})
-+server.events.on('request:start', ({ request, requestId}) => {})
++server.events.on('request:start', ({ request, requestId }) => {})
 ```
 
 The request and response instances exposed in the life-cycle API have also been updated to return Fetch API `Request` and `Response` respectively.

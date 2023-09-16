@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-import { Headers } from 'headers-polyfill'
 import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'

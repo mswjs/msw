@@ -1,14 +1,17 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
-import { ResponseResolver } from './handlers/RequestHandler'
+import {
+  type ResponseResolver,
+  type RequestHandlerOptions,
+} from './handlers/RequestHandler'
 import {
   GraphQLHandler,
-  GraphQLVariables,
-  ExpectedOperationTypeNode,
-  GraphQLHandlerNameSelector,
-  GraphQLResolverExtras,
-  GraphQLResponseBody,
+  type GraphQLVariables,
+  type ExpectedOperationTypeNode,
+  type GraphQLHandlerNameSelector,
+  type GraphQLResolverExtras,
+  type GraphQLResponseBody,
 } from './handlers/GraphQLHandler'
-import { Path } from './utils/matching/matchRequestUrl'
+import { type Path } from './utils/matching/matchRequestUrl'
 
 export interface TypedDocumentNode<
   Result = { [key: string]: any },
@@ -36,8 +39,15 @@ function createScopedGraphQLHandler(
       null,
       GraphQLResponseBody<Query>
     >,
+    options: RequestHandlerOptions = {},
   ) => {
-    return new GraphQLHandler(operationType, operationName, url, resolver)
+    return new GraphQLHandler(
+      operationType,
+      operationName,
+      url,
+      resolver,
+      options,
+    )
   }
 }
 

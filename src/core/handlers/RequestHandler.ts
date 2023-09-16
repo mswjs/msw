@@ -61,13 +61,12 @@ export type ResponseResolver<
   info: ResponseResolverInfo<ResolverExtraInfo, RequestBodyType>,
 ) => AsyncResponseResolverReturnType<ResponseBodyType>
 
-export interface RequestHandlerOptions<HandlerInfo>
-  extends RequestHandlerPublicOptions {
+export interface RequestHandlerArgs<HandlerInfo> extends RequestHandlerOptions {
   info: HandlerInfo
   resolver: ResponseResolver<any>
 }
 
-export interface RequestHandlerPublicOptions {
+export interface RequestHandlerOptions {
   once?: boolean
 }
 
@@ -101,14 +100,14 @@ export abstract class RequestHandler<
   private resolverGeneratorResult?: Response | StrictResponse<any>
   private once: boolean
 
-  constructor(options: RequestHandlerOptions<HandlerInfo>) {
-    this.resolver = options.resolver
-    this.once = options.once || false
+  constructor(args: RequestHandlerArgs<HandlerInfo>) {
+    this.resolver = args.resolver
+    this.once = args.once || false
 
     const callFrame = getCallFrame(new Error())
 
     this.info = {
-      ...options.info,
+      ...args.info,
       callFrame,
     }
 

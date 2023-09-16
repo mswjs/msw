@@ -3,6 +3,7 @@ import {
   DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
+  RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
@@ -73,6 +74,7 @@ export class GraphQLHandler extends RequestHandler<
     operationName: GraphQLHandlerNameSelector,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
+    options?: RequestHandlerOptions,
   ) {
     let resolvedOperationName = operationName
 
@@ -106,6 +108,7 @@ export class GraphQLHandler extends RequestHandler<
         operationName: resolvedOperationName,
       },
       resolver,
+      once: options?.once,
     })
 
     this.endpoint = endpoint

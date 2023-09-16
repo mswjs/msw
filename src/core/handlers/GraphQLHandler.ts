@@ -108,7 +108,7 @@ export class GraphQLHandler extends RequestHandler<
         operationName: resolvedOperationName,
       },
       resolver,
-      once: options?.once,
+      options,
     })
 
     this.endpoint = endpoint

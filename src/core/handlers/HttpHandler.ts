@@ -74,7 +74,7 @@ export class HttpHandler extends RequestHandler<
         method,
       },
       resolver,
-      once: options?.once,
+      options,
     })
 
     this.checkRedundantQueryParameters()

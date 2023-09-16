@@ -17,7 +17,6 @@ interface WorkerChannelEventsMap {
     transfer?: [ReadableStream<Uint8Array>],
   ]
   NOT_FOUND: []
-  NETWORK_ERROR: [data: { name: string; message: string }]
 }
 
 export class WorkerChannel {

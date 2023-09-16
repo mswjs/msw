@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.0.0
-  '@mswjs/interceptors': ^0.23.0
+  '@mswjs/interceptors': ^0.25.1
   '@open-draft/deferred-promise': ^2.1.0
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
@@ -88,8 +88,8 @@ dependencies:
   '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.0.0
-  '@mswjs/interceptors': 0.23.0
-  '@open-draft/deferred-promise': 2.1.0
+  '@mswjs/interceptors': 0.25.1
+  '@open-draft/deferred-promise': 2.2.0
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2353,14 +2353,14 @@ packages:
     engines: {node: '>=14'}
     dev: false
 
-  /@mswjs/interceptors/0.23.0:
-    resolution: {integrity: sha512-JytvDa7pBbxXvCTXBYQs+0eE6MqxpqH/H4peRNY6zVAlvJ6d/hAWLHAef1D9lWN4zuIigN0VkakGOAUrX7FWLg==}
+  /@mswjs/interceptors/0.25.1:
+    resolution: {integrity: sha512-iM/2Qp+y7zKrX1sf45sPvvE7CGly8AKSR8Ua7cXAszXCK/To5i/L8AwiheEaBSVcZ6R7Em7kTcyZWN5H2ivcEQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@open-draft/deferred-promise': 2.1.0
+      '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
       '@open-draft/until': 2.1.0
-      headers-polyfill: 3.2.3
+      is-node-process: 1.2.0
       outvariant: 1.4.0
       strict-event-emitter: 0.5.0
     dev: false
@@ -2386,8 +2386,8 @@ packages:
       fastq: 1.15.0
     dev: true
 
-  /@open-draft/deferred-promise/2.1.0:
-    resolution: {integrity: sha512-Rzd5JrXZX8zErHzgcGyngh4fmEbSHqTETdGj9rXtejlqMIgXFlyKBA7Jn1Xp0Ls0M0Y22+xHcWiEzbmdWl0BOA==}
+  /@open-draft/deferred-promise/2.2.0:
+    resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
 
   /@open-draft/logger/0.3.0:
     resolution: {integrity: sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ==}
@@ -2419,7 +2419,7 @@ packages:
     resolution: {integrity: sha512-s8w7VRC6Xf1vfpIsDG2CflWinSg9O7H/6nckxaBCiMWClkeaZ3JuXzZEIcybc6jeAFc1Rz7UilCvgZflb06Y5g==}
     hasBin: true
     dependencies:
-      '@open-draft/deferred-promise': 2.1.0
+      '@open-draft/deferred-promise': 2.2.0
       '@open-draft/until': 2.1.0
       '@types/conventional-commits-parser': 3.0.3
       '@types/issue-parser': 3.0.1

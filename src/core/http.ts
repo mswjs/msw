@@ -1,6 +1,6 @@
 import {
   DefaultBodyType,
-  RequestHandlerPublicOptions,
+  RequestHandlerOptions,
   ResponseResolver,
 } from './handlers/RequestHandler'
 import {
@@ -24,7 +24,7 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
       RequestBodyType,
       ResponseBodyType
     >,
-    options: RequestHandlerPublicOptions = {},
+    options: RequestHandlerOptions = {},
   ) => {
     return new HttpHandler(method, path, resolver, options)
   }

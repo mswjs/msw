@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.0.0-fetch.rc-18",
+  "version": "0.0.0-fetch.rc-19",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -114,7 +114,7 @@
     "@bundled-es-modules/js-levenshtein": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@mswjs/cookies": "^1.0.0",
-    "@mswjs/interceptors": "^0.23.0",
+    "@mswjs/interceptors": "^0.25.1",
     "@open-draft/deferred-promise": "^2.1.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.4.1",

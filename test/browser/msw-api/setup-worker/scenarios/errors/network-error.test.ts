@@ -1,29 +1,11 @@
 import { until } from '@open-draft/until'
-import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '../../../../playwright.extend'
-
-let server: HttpServer
-
-test.beforeEach(async ({ createServer }) => {
-  server = await createServer((app) => {
-    app.use((_, res, next) => {
-      // Configure CORS to fail all requests issued from the test.
-      res.setHeader('Access-Control-Allow-Origin', 'https://mswjs.io')
-      next()
-    })
-
-    app.get('/resource', (req, res) => {
-      res.send('ok').end()
-    })
-  })
-})
 
 test('propagates a mocked network error', async ({
   loadExample,
   spyOnConsole,
   fetch,
   page,
-  waitFor,
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -41,15 +23,6 @@ test('propagates a mocked network error', async ({
     ]),
   )
 
-  // Expect a notification warning from the library.
-  await waitFor(async () => {
-    expect(workerConsole.messages.get('warn')).toEqual(
-      expect.arrayContaining([
-        `[MSW] Successfully emulated a network error for the "GET ${endpointUrl}" request.`,
-      ]),
-    )
-  })
-
   // The worker must not produce any errors.
   expect(workerConsole.messages.get('error')).toBeUndefined()
 })
@@ -61,14 +34,11 @@ test('propagates a CORS violation error from a non-matching request', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  const { workerConsole } = await loadExample(
-    require.resolve('./network-error.mocks.ts'),
-  )
+  await loadExample(require.resolve('./network-error.mocks.ts'))
 
-  const endpointUrl = server.http.url('/resource')
-  await until(() => page.evaluate((url) => fetch(url), endpointUrl))
+  await until(() => page.evaluate(() => fetch('/user')))
 
-  // Expect the default fetch error message.
+  // Must print the failed fetch error to the console.
   await waitFor(() => {
     expect(consoleSpy.get('error')).toEqual(
       expect.arrayContaining([
@@ -77,10 +47,10 @@ test('propagates a CORS violation error from a non-matching request', async ({
     )
   })
 
-  // Expect the explanatory error message from the library.
-  await waitFor(async () => {
-    expect(workerConsole.messages.get('error')).toEqual([
-      `[MSW] Caught an exception from the "GET ${endpointUrl}" request (TypeError: Failed to fetch). This is probably not a problem with Mock Service Worker. There is likely an additional logging output above.`,
-    ])
-  })
+  /**
+   * @todo Ideally, assert the Chromium warning about
+   * the Service Worker responding to the fetch event
+   * with a network error response. For some reason,
+   * it never appears in the console/worker console messages.
+   */
 })

@@ -61,13 +61,16 @@ export type ResponseResolver<
   info: ResponseResolverInfo<ResolverExtraInfo, RequestBodyType>,
 ) => AsyncResponseResolverReturnType<ResponseBodyType>
 
-export interface RequestHandlerOptions<HandlerInfo>
-  extends RequestHandlerPublicOptions {
+export interface RequestHandlerArgs<
+  HandlerInfo,
+  HandlerOptions extends RequestHandlerOptions,
+> {
   info: HandlerInfo
   resolver: ResponseResolver<any>
+  options?: HandlerOptions
 }
 
-export interface RequestHandlerPublicOptions {
+export interface RequestHandlerOptions {
   once?: boolean
 }
 
@@ -84,6 +87,7 @@ export abstract class RequestHandler<
   HandlerInfo extends RequestHandlerDefaultInfo = RequestHandlerDefaultInfo,
   ParsedResult extends Record<string, any> | undefined = any,
   ResolverExtras extends Record<string, unknown> = any,
+  HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
 > {
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
@@ -99,16 +103,16 @@ export abstract class RequestHandler<
     MaybeAsyncResponseResolverReturnType<any>
   >
   private resolverGeneratorResult?: Response | StrictResponse<any>
-  private once: boolean
+  private options?: HandlerOptions
 
-  constructor(options: RequestHandlerOptions<HandlerInfo>) {
-    this.resolver = options.resolver
-    this.once = options.once || false
+  constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
+    this.resolver = args.resolver
+    this.options = args.options
 
     const callFrame = getCallFrame(new Error())
 
     this.info = {
-      ...options.info,
+      ...args.info,
       callFrame,
     }
 
@@ -173,7 +177,7 @@ export abstract class RequestHandler<
     request: StrictRequest<any>,
     resolutionContext?: ResponseResolutionContext,
   ): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
-    if (this.isUsed && this.once) {
+    if (this.isUsed && this.options?.once) {
       return null
     }
 

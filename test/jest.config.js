@@ -23,5 +23,7 @@ module.exports = {
   globals: {
     Request,
     Response,
+    TextEncoder,
+    TextDecoder,
   },
 }

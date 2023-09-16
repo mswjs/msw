@@ -6,8 +6,8 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
 import {
-  Match,
   matchRequestUrl,
+  Match,
   Path,
   PathParams,
 } from '../utils/matching/matchRequestUrl'
@@ -17,7 +17,7 @@ import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
   RequestHandler,
   RequestHandlerDefaultInfo,
-  RequestHandlerPublicOptions,
+  RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
 
@@ -65,7 +65,7 @@ export class HttpHandler extends RequestHandler<
     method: HttpHandlerMethod,
     path: Path,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
-    options?: RequestHandlerPublicOptions,
+    options?: RequestHandlerOptions,
   ) {
     super({
       info: {
@@ -74,7 +74,7 @@ export class HttpHandler extends RequestHandler<
         method,
       },
       resolver,
-      once: options?.once,
+      options,
     })
 
     this.checkRedundantQueryParameters()

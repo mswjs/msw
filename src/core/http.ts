@@ -1,12 +1,12 @@
 import {
-  type DefaultBodyType,
-  type RequestHandlerOptions,
-  type ResponseResolver,
+  DefaultBodyType,
+  RequestHandlerOptions,
+  ResponseResolver,
 } from './handlers/RequestHandler'
 import {
   HttpMethods,
   HttpHandler,
-  type HttpRequestResolverExtras,
+  HttpRequestResolverExtras,
 } from './handlers/HttpHandler'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 

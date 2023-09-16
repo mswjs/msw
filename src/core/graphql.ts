@@ -1,17 +1,17 @@
 import type { DocumentNode, OperationTypeNode } from 'graphql'
 import {
-  type ResponseResolver,
-  type RequestHandlerOptions,
+  ResponseResolver,
+  RequestHandlerOptions,
 } from './handlers/RequestHandler'
 import {
   GraphQLHandler,
-  type GraphQLVariables,
-  type ExpectedOperationTypeNode,
-  type GraphQLHandlerNameSelector,
-  type GraphQLResolverExtras,
-  type GraphQLResponseBody,
+  GraphQLVariables,
+  ExpectedOperationTypeNode,
+  GraphQLHandlerNameSelector,
+  GraphQLResolverExtras,
+  GraphQLResponseBody,
 } from './handlers/GraphQLHandler'
-import { type Path } from './utils/matching/matchRequestUrl'
+import type { Path } from './utils/matching/matchRequestUrl'
 
 export interface TypedDocumentNode<
   Result = { [key: string]: any },

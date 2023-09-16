@@ -1,5 +1,4 @@
 import { encodeBuffer } from '@mswjs/interceptors'
-import { Headers } from 'headers-polyfill'
 import { serializeRequest } from './serializeRequest'
 
 test('serializes given Request instance into a plain object', async () => {

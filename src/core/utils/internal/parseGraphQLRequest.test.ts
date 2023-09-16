@@ -3,7 +3,6 @@
  */
 import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode } from 'graphql'
-import { Headers } from 'headers-polyfill'
 import {
   ParsedGraphQLRequest,
   parseGraphQLRequest,

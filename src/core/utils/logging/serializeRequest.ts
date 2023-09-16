@@ -1,9 +1,7 @@
-import { HeadersObject, headersToObject } from 'headers-polyfill'
-
 export interface LoggedRequest {
   url: URL
   method: string
-  headers: HeadersObject
+  headers: Record<string, string>
   body: string
 }
 
@@ -19,7 +17,7 @@ export async function serializeRequest(
   return {
     url: new URL(request.url),
     method: request.method,
-    headers: headersToObject(request.headers),
+    headers: Object.fromEntries(request.headers.entries()),
     body: requestText,
   }
 }

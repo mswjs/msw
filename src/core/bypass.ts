@@ -1,5 +1,4 @@
 import { invariant } from 'outvariant'
-import { Headers } from 'headers-polyfill'
 
 export type BypassRequestInput = string | URL | Request
 

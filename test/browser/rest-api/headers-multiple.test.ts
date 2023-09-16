@@ -1,4 +1,3 @@
-import { Headers } from 'headers-polyfill'
 import { test, expect } from '../playwright.extend'
 
 const EXAMPLE_PATH = require.resolve('./headers-multiple.mocks.ts')
@@ -14,7 +13,7 @@ test('receives all headers from the request header with multiple values', async 
 
   const res = await fetch('https://test.mswjs.io', {
     method: 'POST',
-    headers: headers.all(),
+    headers: Object.fromEntries(headers.entries()),
   })
   const status = res.status()
   const body = await res.json()

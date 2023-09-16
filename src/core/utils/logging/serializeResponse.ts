@@ -1,12 +1,11 @@
 import statuses from '@bundled-es-modules/statuses'
-import { HeadersObject, headersToObject } from 'headers-polyfill'
 
 const { message } = statuses
 
 export interface SerializedResponse {
   status: number
   statusText: string
-  headers: HeadersObject
+  headers: Record<string, any>
   body: string
 }
 
@@ -26,7 +25,7 @@ export async function serializeResponse(
   return {
     status: responseStatus,
     statusText: responseStatusText,
-    headers: headersToObject(responseClone.headers),
+    headers: Object.fromEntries(responseClone.headers.entries()),
     body: responseText,
   }
 }

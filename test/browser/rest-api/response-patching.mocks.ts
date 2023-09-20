@@ -3,8 +3,7 @@ import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   http.get('*/user', async ({ request }) => {
-    const fetchArgs = await bypass(request.url)
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request.url))
     const body = await originalResponse.json()
 
     return HttpResponse.json(
@@ -22,8 +21,7 @@ const worker = setupWorker(
   }),
 
   http.get('*/repos/:owner/:repoName', async ({ request }) => {
-    const fetchArgs = await bypass(request)
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json(
@@ -41,11 +39,12 @@ const worker = setupWorker(
 
   http.get('*/headers', async ({ request }) => {
     const proxyUrl = new URL('/headers-proxy', request.url)
-    const fetchArgs = await bypass(proxyUrl, {
-      method: 'POST',
-      headers: request.headers,
-    })
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(
+      bypass(proxyUrl, {
+        method: 'POST',
+        headers: request.headers,
+      }),
+    )
     const body = await originalResponse.json()
 
     return HttpResponse.json(body, {
@@ -56,8 +55,7 @@ const worker = setupWorker(
   }),
 
   http.post('*/posts', async ({ request }) => {
-    const fetchArgs = await bypass(request)
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json(
@@ -75,8 +73,7 @@ const worker = setupWorker(
   }),
 
   http.get('*/posts', async ({ request }) => {
-    const fetchArgs = await bypass(request)
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request))
     const body = await originalResponse.json()
 
     return HttpResponse.json(
@@ -93,8 +90,7 @@ const worker = setupWorker(
   }),
 
   http.head('*/posts', async ({ request }) => {
-    const fetchArgs = await bypass(request)
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request))
 
     return HttpResponse.json(
       {

@@ -489,10 +489,8 @@ import { http, HttpResponse, bypass } from 'msw'
 
 export const handlers = [
   http.get('/resource', async ({ request }) => {
-    const fetchArgs = await bypass(request)
-
     // Use the regular "fetch" from your environment.
-    const originalResponse = await fetch(...fetchArgs)
+    const originalResponse = await fetch(bypass(request))
     const json = await originalResponse.json()
 
     // ...handle the original response, maybe return a mocked one.

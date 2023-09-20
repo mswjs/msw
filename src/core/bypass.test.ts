@@ -4,20 +4,23 @@
 import { bypass } from './bypass'
 
 it('returns bypassed request given a request url string', async () => {
-  const [url, init] = await bypass('/user')
-  const headers = new Headers(init.headers)
+  const request = bypass('https://api.example.com/resource')
 
   // Relative URLs are rebased against the current location.
-  expect(url).toBe('/user')
-  expect(headers.get('x-msw-intention')).toBe('bypass')
+  expect(request.method).toBe('GET')
+  expect(request.url).toBe('https://api.example.com/resource')
+  expect(Object.fromEntries(request.headers.entries())).toEqual({
+    'x-msw-intention': 'bypass',
+  })
 })
 
 it('returns bypassed request given a request url', async () => {
-  const [url, init] = await bypass(new URL('/user', 'https://api.github.com'))
-  const headers = new Headers(init.headers)
+  const request = bypass(new URL('/resource', 'https://api.example.com'))
 
-  expect(url).toBe('https://api.github.com/user')
-  expect(headers.get('x-msw-intention')).toBe('bypass')
+  expect(request.url).toBe('https://api.example.com/resource')
+  expect(Object.fromEntries(request.headers)).toEqual({
+    'x-msw-intention': 'bypass',
+  })
 })
 
 it('returns bypassed request given request instance', async () => {
@@ -28,12 +31,17 @@ it('returns bypassed request given request instance', async () => {
     },
     body: 'hello world',
   })
-  const [url, init] = await bypass(original)
-  const headers = new Headers(init.headers)
+  const request = bypass(original)
 
-  expect(url).toBe('http://localhost/resource')
-  expect(init.method).toBe('POST')
-  expect(init.body).toEqual(await original.arrayBuffer())
-  expect(headers.get('x-msw-intention')).toBe('bypass')
-  expect(headers.get('x-my-header')).toBe('value')
+  expect(request.method).toBe('POST')
+  expect(request.url).toBe('http://localhost/resource')
+
+  const bypassedRequestBody = await request.text()
+  expect(original.bodyUsed).toBe(false)
+
+  expect(bypassedRequestBody).toEqual(await original.text())
+  expect(Object.fromEntries(request.headers.entries())).toEqual({
+    ...Object.fromEntries(original.headers.entries()),
+    'x-msw-intention': 'bypass',
+  })
 })

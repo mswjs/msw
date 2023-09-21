@@ -72,7 +72,7 @@ The `setupWorker` API, alongside any related type definitions, are no longer exp
 +import { setupWorker } from 'msw/browser'
 ```
 
-> Note that the request handlers like `rest` and `graphql`, as well as the utility functions like `bypass` and `passthrough` must still be imported from the root-level `msw`.
+> Note that the request handlers like `http` and `graphql`, as well as the utility functions like `bypass` and `passthrough` must still be imported from the root-level `msw`.
 
 ## Response resolver
 
@@ -237,7 +237,7 @@ Relying on a single universal `Response` class will allow you to write request h
 To create a one-time request handler, pass it an object as the third argument with `once: true` set:
 
 ```js
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 export const handlers = [
   http.get(
@@ -286,7 +286,7 @@ export const handlers = [
 Most of the context utilities you'd normally use via `ctx.*` were removed. Instead, we encourage you to set respective properties directly on the response instance:
 
 ```js
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 export const handlers = [
   http.post('/user', () => {
@@ -353,7 +353,7 @@ export const handlers = [
 When you provide an object as the `ResponseInit.headers` value, you cannot specify multiple response cookies with the same name. Instead, to support multiple response cookies, provide a `Headers` instance:
 
 ```js
-import { HttpResponse, rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 export const handlers = [
   http.get('/resource', () => {

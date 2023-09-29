@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 
 /**
  * Mock Service Worker (<PACKAGE_VERSION>).

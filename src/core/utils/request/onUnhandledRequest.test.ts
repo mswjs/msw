@@ -12,7 +12,7 @@ const resolver: ResponseResolver = () => void 0
 
 const fixtures = {
   warningWithoutSuggestions: `\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /api
 
@@ -20,7 +20,7 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/getting-started/mocks`,
 
   errorWithoutSuggestions: `\
-[MSW] Error: captured a request without a matching request handler:
+[MSW] Error: intercepted a request without a matching request handler:
 
   • GET /api
 
@@ -28,7 +28,7 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/getting-started/mocks`,
 
   warningWithSuggestions: (suggestions: string) => `\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /api
 

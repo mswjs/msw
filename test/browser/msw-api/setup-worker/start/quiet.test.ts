@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-test('does not log the captured request when the "quiet" option is set to "true"', async ({
+test('does not log the intercepted request when the "quiet" option is set to "true"', async ({
   loadExample,
   spyOnConsole,
   page,

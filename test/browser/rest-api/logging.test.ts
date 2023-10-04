@@ -2,7 +2,7 @@ import { test, expect } from '../playwright.extend'
 import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
 import { waitFor } from '../../support/waitFor'
 
-test('prints a captured request info into browser console', async ({
+test('prints the intercepted request info into browser console', async ({
   loadExample,
   spyOnConsole,
   fetch,

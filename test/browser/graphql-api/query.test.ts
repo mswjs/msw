@@ -85,7 +85,7 @@ test('mocks a GraphQL query issued with a POST request', async ({
   })
 })
 
-test('prints a warning when captured an anonymous GraphQL query', async ({
+test('prints a warning when intercepted an anonymous GraphQL query', async ({
   loadExample,
   spyOnConsole,
   query,

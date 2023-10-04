@@ -32,7 +32,7 @@ test.describe('REST API', () => {
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /user-details
 
@@ -61,7 +61,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /users
 
@@ -97,7 +97,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • POST /users
 
@@ -131,7 +131,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /pamyents
 

@@ -120,7 +120,7 @@ export abstract class RequestHandler<
   }
 
   /**
-   * Determine if the captured request should be mocked.
+   * Determine if the intercepted request should be mocked.
    */
   abstract predicate(
     request: Request,
@@ -138,7 +138,7 @@ export abstract class RequestHandler<
   ): void
 
   /**
-   * Parse the captured request to extract additional information from it.
+   * Parse the intercepted request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
   async parse(

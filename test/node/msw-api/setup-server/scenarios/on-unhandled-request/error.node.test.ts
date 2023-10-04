@@ -62,7 +62,7 @@ test('errors on unhandled request when using the "error" value', async () => {
     `request to ${endpointUrl} failed, reason: [MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
   )
   expect(console.error)
-    .toHaveBeenCalledWith(`[MSW] Error: captured a request without a matching request handler:
+    .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:
 
   • GET ${endpointUrl}
 

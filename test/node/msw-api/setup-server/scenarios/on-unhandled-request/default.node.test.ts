@@ -30,7 +30,7 @@ test('warns on unhandled requests by default', async () => {
 
   expect(console.error).not.toBeCalled()
   expect(console.warn).toBeCalledWith(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET https://test.mswjs.io/
 

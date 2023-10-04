@@ -68,7 +68,7 @@ function createGraphQLOperationHandler(url: Path) {
 
 const standardGraphQLHandlers = {
   /**
-   * Captures a GraphQL query by a given name.
+   * Intercepts a GraphQL query by a given name.
    *
    * @example
    * graphql.query('GetUser', () => {

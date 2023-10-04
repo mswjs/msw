@@ -188,7 +188,7 @@ export async function onUnhandledRequest(
     const handlerSuggestion = generateHandlerSuggestion()
 
     const messageTemplate = [
-      `captured a request without a matching request handler:`,
+      `intercepted a request without a matching request handler:`,
       `  \u2022 ${requestHeader}`,
       handlerSuggestion,
       `\

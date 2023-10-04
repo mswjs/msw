@@ -82,7 +82,7 @@ A response resolver now exposes a single object argument instead of `(req, res, 
 
 #### General
 
-- `request`, a Fetch API `Request` instance representing a captured request.
+- `request`, a Fetch API `Request` instance representing an intercepted request.
 - `cookies`, a parsed cookies object based on the request cookies.
 
 #### REST-specific
@@ -100,7 +100,7 @@ To mock responses, you should now return a Fetch API `Response` instance from th
 
 ```js
 http.get('/greet/:name', ({ request, params }) => {
-  console.log('Captured %s %s', request.method, request.url)
+  console.log('Intercepted %s %s', request.method, request.url)
   return new Response(`hello, ${params.name}!`)
 })
 ```

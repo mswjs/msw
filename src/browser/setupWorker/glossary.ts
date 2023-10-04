@@ -35,7 +35,7 @@ type RequestWithoutMethods = Omit<
 export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   /**
    * Unique ID of the request generated once the request is
-   * captured by the "fetch" event in the Service Worker.
+   * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
   body?: ArrayBuffer | null
@@ -174,7 +174,7 @@ export interface StartOptions extends SharedOptions {
   }
 
   /**
-   * Disables the logging of captured requests
+   * Disables the logging of the intercepted requests
    * into browser's console.
    * @default false
    */

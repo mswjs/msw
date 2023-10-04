@@ -16,7 +16,7 @@ beforeAll(() =>
     onUnhandledRequest(request) {
       /**
        * @fixme @todo For some reason, the exception from the "onUnhandledRequest"
-       * callback doesn't propagate to the captured request but instead is thrown
+       * callback doesn't propagate to the intercepted request but instead is thrown
        * in this test's context.
        */
       throw new Error(`Custom error for ${request.method} ${request.url}`)

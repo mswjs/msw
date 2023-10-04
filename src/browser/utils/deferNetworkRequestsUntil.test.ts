@@ -31,7 +31,7 @@ test('defers any requests that happen while a given promise is pending', async (
     events.push('promise resolved')
   })
 
-  // Calling this functions captures all requests that happen while
+  // Calling this functions intercepts all requests that happen while
   // the given promise is pending, and defers their execution
   // until the promise is resolved.
   deferNetworkRequestsUntil(workerPromise)

@@ -187,7 +187,8 @@ export class SetupWorkerApi
 /**
  * Sets up a requests interception in the browser with the given request handlers.
  * @param {RequestHandler[]} handlers List of request handlers.
- * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker`}
+ *
+ * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
 export function setupWorker(...handlers: Array<RequestHandler>): SetupWorker {
   return new SetupWorkerApi(...handlers)

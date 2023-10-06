@@ -5,7 +5,7 @@ import {
 
 export interface ResponseLookupResult {
   handler: RequestHandler
-  parsedRequest?: any
+  parsedResult?: any
   response?: Response
 }
 
@@ -46,7 +46,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   if (matchingHandler) {
     return {
       handler: matchingHandler,
-      parsedRequest: result?.parsedResult,
+      parsedResult: result?.parsedResult,
       response: result?.response,
     }
   }

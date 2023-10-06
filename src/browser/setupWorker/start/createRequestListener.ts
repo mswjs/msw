@@ -41,7 +41,7 @@ export const createRequestListener = (
           onPassthroughResponse() {
             messageChannel.postMessage('NOT_FOUND')
           },
-          async onMockedResponse(response, { handler, parsedRequest }) {
+          async onMockedResponse(response, { handler, parsedResult }) {
             // Clone the mocked response so its body could be read
             // to buffer to be sent to the worker and also in the
             // ".log()" method of the request handler.
@@ -62,7 +62,11 @@ export const createRequestListener = (
 
             if (!options.quiet) {
               context.emitter.once('response:mocked', ({ response }) => {
-                handler.log(requestCloneForLogs, response, parsedRequest)
+                handler.log({
+                  request: requestCloneForLogs,
+                  response,
+                  parsedResult,
+                })
               })
             }
           },

@@ -159,7 +159,7 @@ describe('parse', () => {
         query: GET_USER,
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -181,7 +181,7 @@ describe('parse', () => {
         },
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -202,7 +202,7 @@ describe('parse', () => {
         query: GET_USER,
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -224,7 +224,7 @@ describe('parse', () => {
         },
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -247,7 +247,7 @@ describe('parse', () => {
         query: LOGIN,
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -269,7 +269,7 @@ describe('parse', () => {
         },
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -290,7 +290,7 @@ describe('parse', () => {
         query: LOGIN,
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -312,7 +312,7 @@ describe('parse', () => {
         },
       })
 
-      expect(await handler.parse(request)).toEqual({
+      expect(await handler.parse({ request })).toEqual({
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -339,9 +339,17 @@ describe('predicate', () => {
       query: LOGIN,
     })
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(true)
     expect(
-      handler.predicate(alienRequest, await handler.parse(alienRequest)),
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(true)
+    expect(
+      handler.predicate({
+        request: alienRequest,
+        parsedResult: await handler.parse({ request: alienRequest }),
+      }),
     ).toBe(false)
   })
 
@@ -365,9 +373,17 @@ describe('predicate', () => {
         `,
     })
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(true)
     expect(
-      handler.predicate(alienRequest, await handler.parse(alienRequest)),
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(true)
+    expect(
+      handler.predicate({
+        request: alienRequest,
+        parsedResult: await handler.parse({ request: alienRequest }),
+      }),
     ).toBe(false)
   })
 
@@ -384,7 +400,12 @@ describe('predicate', () => {
       `,
     })
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(true)
+    expect(
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(true)
   })
 
   test('respects custom endpoint', async () => {
@@ -404,9 +425,17 @@ describe('predicate', () => {
       query: GET_USER,
     })
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(true)
     expect(
-      handler.predicate(alienRequest, await handler.parse(alienRequest)),
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(true)
+    expect(
+      handler.predicate({
+        request: alienRequest,
+        parsedResult: await handler.parse({ request: alienRequest }),
+      }),
     ).toBe(false)
   })
 })
@@ -426,8 +455,8 @@ describe('test', () => {
       query: LOGIN,
     })
 
-    expect(await handler.test(request)).toBe(true)
-    expect(await handler.test(alienRequest)).toBe(false)
+    expect(await handler.test({ request })).toBe(true)
+    expect(await handler.test({ request: alienRequest })).toBe(false)
   })
 
   test('respects operation name', async () => {
@@ -450,8 +479,8 @@ describe('test', () => {
         `,
     })
 
-    expect(await handler.test(request)).toBe(true)
-    expect(await handler.test(alienRequest)).toBe(false)
+    expect(await handler.test({ request })).toBe(true)
+    expect(await handler.test({ request: alienRequest })).toBe(false)
   })
 
   test('respects custom endpoint', async () => {
@@ -471,8 +500,8 @@ describe('test', () => {
       query: GET_USER,
     })
 
-    expect(await handler.test(request)).toBe(true)
-    expect(await handler.test(alienRequest)).toBe(false)
+    expect(await handler.test({ request })).toBe(true)
+    expect(await handler.test({ request: alienRequest })).toBe(false)
   })
 })
 
@@ -490,7 +519,7 @@ describe('run', () => {
         userId: 'abc-123',
       },
     })
-    const result = await handler.run(request)
+    const result = await handler.run({ request })
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
@@ -524,7 +553,7 @@ describe('run', () => {
     const request = createPostGraphQLRequest({
       query: LOGIN,
     })
-    const result = await handler.run(request)
+    const result = await handler.run({ request })
 
     expect(result).toBeNull()
   })
@@ -571,7 +600,7 @@ describe('request', () => {
         `,
     })
 
-    await handler.run(request)
+    await handler.run({ request })
 
     expect(matchAllResolver).toHaveBeenCalledTimes(1)
     expect(matchAllResolver.mock.calls[0][0]).toHaveProperty(

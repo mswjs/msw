@@ -27,7 +27,7 @@ describe('parse', () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
-    expect(await handler.parse(request)).toEqual({
+    expect(await handler.parse({ request })).toEqual({
       match: {
         matches: true,
         params: {
@@ -44,7 +44,7 @@ describe('parse', () => {
       method: 'POST',
     })
 
-    expect(await handler.parse(request)).toEqual({
+    expect(await handler.parse({ request })).toEqual({
       match: {
         matches: true,
         params: {
@@ -59,7 +59,7 @@ describe('parse', () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/login', location.href))
 
-    expect(await handler.parse(request)).toEqual({
+    expect(await handler.parse({ request })).toEqual({
       match: {
         matches: false,
         params: {},
@@ -76,7 +76,12 @@ describe('predicate', () => {
       method: 'POST',
     })
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(true)
+    expect(
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(true)
   })
 
   test('respects RegExp as the request method', async () => {
@@ -88,9 +93,12 @@ describe('predicate', () => {
     ]
 
     for (const request of requests) {
-      expect(handler.predicate(request, await handler.parse(request))).toBe(
-        true,
-      )
+      expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).toBe(true)
     }
   })
 
@@ -98,19 +106,24 @@ describe('predicate', () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
-    expect(handler.predicate(request, await handler.parse(request))).toBe(false)
+    expect(
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).toBe(false)
   })
 })
 
 describe('test', () => {
   test('returns true given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
-    const firstTest = await handler.test(
-      new Request(new URL('/user/abc-123', location.href)),
-    )
-    const secondTest = await handler.test(
-      new Request(new URL('/user/def-456', location.href)),
-    )
+    const firstTest = await handler.test({
+      request: new Request(new URL('/user/abc-123', location.href)),
+    })
+    const secondTest = await handler.test({
+      request: new Request(new URL('/user/def-456', location.href)),
+    })
 
     expect(firstTest).toBe(true)
     expect(secondTest).toBe(true)
@@ -118,15 +131,15 @@ describe('test', () => {
 
   test('returns false given a non-matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
-    const firstTest = await handler.test(
-      new Request(new URL('/login', location.href)),
-    )
-    const secondTest = await handler.test(
-      new Request(new URL('/user/', location.href)),
-    )
-    const thirdTest = await handler.test(
-      new Request(new URL('/user/abc-123/extra', location.href)),
-    )
+    const firstTest = await handler.test({
+      request: new Request(new URL('/login', location.href)),
+    })
+    const secondTest = await handler.test({
+      request: new Request(new URL('/user/', location.href)),
+    })
+    const thirdTest = await handler.test({
+      request: new Request(new URL('/user/abc-123/extra', location.href)),
+    })
 
     expect(firstTest).toBe(false)
     expect(secondTest).toBe(false)
@@ -138,7 +151,7 @@ describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
-    const result = await handler.run(request)
+    const result = await handler.run({ request })
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
@@ -159,18 +172,18 @@ describe('run', () => {
 
   test('returns null given a non-matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
-    const result = await handler.run(
-      new Request(new URL('/users', location.href)),
-    )
+    const result = await handler.run({
+      request: new Request(new URL('/users', location.href)),
+    })
 
     expect(result).toBeNull()
   })
 
   test('returns an empty "params" object given request with no URL parameters', async () => {
     const handler = new HttpHandler('GET', '/users', resolver)
-    const result = await handler.run(
-      new Request(new URL('/users', location.href)),
-    )
+    const result = await handler.run({
+      request: new Request(new URL('/users', location.href)),
+    })
 
     expect(result?.parsedResult?.match?.params).toEqual({})
   })
@@ -188,9 +201,9 @@ describe('run', () => {
     })
 
     const run = async () => {
-      const result = await handler.run(
-        new Request(new URL('/users', location.href)),
-      )
+      const result = await handler.run({
+        request: new Request(new URL('/users', location.href)),
+      })
       return result?.response?.text()
     }
 

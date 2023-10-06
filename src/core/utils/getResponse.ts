@@ -5,7 +5,7 @@ import {
 
 export interface ResponseLookupResult {
   handler: RequestHandler
-  parsedRequest?: any
+  parsedResult?: any
   response?: Response
 }
 
@@ -25,7 +25,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
-    result = await handler.run(request, resolutionContext)
+    result = await handler.run({ request, resolutionContext })
 
     // If the handler produces some result for this request,
     // it automatically becomes matching.
@@ -46,7 +46,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   if (matchingHandler) {
     return {
       handler: matchingHandler,
-      parsedRequest: result?.parsedResult,
+      parsedResult: result?.parsedResult,
       response: result?.response,
     }
   }

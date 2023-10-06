@@ -167,7 +167,7 @@ export abstract class RequestHandler<
     })
   }
 
-  protected extendInfo(_args: {
+  protected extendResolverArgs(_args: {
     request: Request
     parsedResult: ParsedResult
   }): ResolverExtras {
@@ -211,7 +211,7 @@ export abstract class RequestHandler<
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
 
-    const resolverExtras = this.extendInfo({
+    const resolverExtras = this.extendResolverArgs({
       request: args.request,
       parsedResult,
     })

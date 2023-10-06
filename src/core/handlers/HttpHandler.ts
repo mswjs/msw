@@ -136,7 +136,7 @@ export class HttpHandler extends RequestHandler<
       : isStringEqual(this.info.method, actualMethod)
   }
 
-  protected extendInfo(args: {
+  protected extendResolverArgs(args: {
     request: Request
     parsedResult: HttpRequestParsedResult
   }) {

@@ -156,7 +156,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
     )
   }
 
-  protected extendInfo(args: {
+  protected extendResolverArgs(args: {
     request: Request
     parsedResult: ParsedGraphQLRequest<GraphQLVariables>
   }) {

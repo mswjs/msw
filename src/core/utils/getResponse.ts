@@ -25,7 +25,7 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
-    result = await handler.run(request, resolutionContext)
+    result = await handler.run({ request, resolutionContext })
 
     // If the handler produces some result for this request,
     // it automatically becomes matching.

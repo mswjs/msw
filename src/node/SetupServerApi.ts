@@ -1,3 +1,4 @@
+import { setMaxListeners, defaultMaxListeners } from 'node:events'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
@@ -50,6 +51,18 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
+      // Bump the maximum number of event listeners on the
+      // request's "AbortSignal". This prepares the request
+      // for each request handler cloning it at least once.
+      // Note that cloning a request automatically appends a
+      // new "abort" event listener to the parent request's
+      // "AbortController" so if the parent aborts, all the
+      // clones are automatically aborted.
+      setMaxListeners(
+        Math.max(defaultMaxListeners, this.currentHandlers.length),
+        request.signal,
+      )
+
       const response = await handleRequest(
         request,
         requestId,

@@ -156,7 +156,7 @@ export abstract class RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }): Promise<boolean> {
     const parsedResult = await this.parse({
-      request: args.request.clone(),
+      request: args.request,
       resolutionContext: args.resolutionContext,
     })
 
@@ -186,6 +186,8 @@ export abstract class RequestHandler<
       return null
     }
 
+    // Clone the request instance before it's passed to the handler phases
+    // and the response resolver so we can always read it for logging.
     const mainRequestRef = args.request.clone()
 
     // Immediately mark the handler as used.
@@ -194,11 +196,11 @@ export abstract class RequestHandler<
     this.isUsed = true
 
     const parsedResult = await this.parse({
-      request: mainRequestRef.clone(),
+      request: args.request,
       resolutionContext: args.resolutionContext,
     })
     const shouldInterceptRequest = this.predicate({
-      request: mainRequestRef.clone(),
+      request: args.request,
       parsedResult,
       resolutionContext: args.resolutionContext,
     })

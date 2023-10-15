@@ -12,6 +12,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { toResponseInit } from '~/core/utils/toResponseInit'
+import { supportsReadableStreamTransfer } from '../../utils/supportsReadableStreamTransfer'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -47,18 +48,29 @@ export const createRequestListener = (
             // ".log()" method of the request handler.
             const responseClone = response.clone()
             const responseInit = toResponseInit(response)
-            const responseStream = responseClone.body
 
-            messageChannel.postMessage(
-              'MOCK_RESPONSE',
-              {
+            /**
+             * @note Safari doesn't support transferring a "ReadableStream".
+             * Check that the browser supports that before sending it to the worker.
+             */
+            if (supportsReadableStreamTransfer()) {
+              const responseStream = response.body
+              messageChannel.postMessage(
+                'MOCK_RESPONSE',
+                {
+                  ...responseInit,
+                  body: responseStream,
+                },
+                responseStream ? [responseStream] : undefined,
+              )
+            } else {
+              // As a fallback, send the response body buffer to the worker.
+              const responseBuffer = await responseClone.arrayBuffer()
+              messageChannel.postMessage('MOCK_RESPONSE', {
                 ...responseInit,
-                body: responseStream,
-              },
-              // Transfer response's buffer so it could
-              // be sent over to the worker.
-              responseStream ? [responseStream] : undefined,
-            )
+                body: responseBuffer,
+              })
+            }
 
             if (!options.quiet) {
               context.emitter.once('response:mocked', ({ response }) => {

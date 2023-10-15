@@ -20,6 +20,7 @@ import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { LifeCycleEventsMap } from '~/core/sharedOptions'
 import { SetupWorker } from './glossary'
+import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 
 interface Listener {
   target: EventTarget
@@ -144,6 +145,9 @@ export class SetupWorkerApi
       },
       useFallbackMode:
         !('serviceWorker' in navigator) || location.protocol === 'file:',
+      supports: {
+        readableStreamTransfer: supportsReadableStreamTransfer(),
+      },
     }
 
     /**

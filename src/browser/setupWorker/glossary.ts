@@ -147,6 +147,9 @@ export interface SetupWorkerInternalContext {
     >
   }
   useFallbackMode: boolean
+  supports: {
+    readableStreamTransfer: boolean
+  }
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 

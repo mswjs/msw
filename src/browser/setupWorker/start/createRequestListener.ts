@@ -12,7 +12,6 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { toResponseInit } from '~/core/utils/toResponseInit'
-import { supportsReadableStreamTransfer } from '../../utils/supportsReadableStreamTransfer'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -53,7 +52,7 @@ export const createRequestListener = (
              * @note Safari doesn't support transferring a "ReadableStream".
              * Check that the browser supports that before sending it to the worker.
              */
-            if (supportsReadableStreamTransfer()) {
+            if (context.supports.readableStreamTransfer) {
               const responseStream = response.body
               messageChannel.postMessage(
                 'MOCK_RESPONSE',

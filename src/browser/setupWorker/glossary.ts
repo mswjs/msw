@@ -146,8 +146,8 @@ export interface SetupWorkerInternalContext {
       ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
     >
   }
-  useFallbackMode: boolean
   supports: {
+    serviceWorkerApi: boolean
     readableStreamTransfer: boolean
   }
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>

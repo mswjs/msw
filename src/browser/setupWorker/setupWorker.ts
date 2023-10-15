@@ -20,6 +20,7 @@ import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { LifeCycleEventsMap } from '~/core/sharedOptions'
 import { SetupWorker } from './glossary'
+import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 
 interface Listener {
   target: EventTarget
@@ -142,8 +143,11 @@ export class SetupWorkerApi
           })
         },
       },
-      useFallbackMode:
-        !('serviceWorker' in navigator) || location.protocol === 'file:',
+      supports: {
+        serviceWorkerApi:
+          !('serviceWorker' in navigator) || location.protocol === 'file:',
+        readableStreamTransfer: supportsReadableStreamTransfer(),
+      },
     }
 
     /**
@@ -156,11 +160,11 @@ export class SetupWorkerApi
       },
     })
 
-    this.startHandler = context.useFallbackMode
+    this.startHandler = context.supports.serviceWorkerApi
       ? createFallbackStart(context)
       : createStartHandler(context)
 
-    this.stopHandler = context.useFallbackMode
+    this.stopHandler = context.supports.serviceWorkerApi
       ? createFallbackStop(context)
       : createStop(context)
 

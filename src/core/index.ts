@@ -24,6 +24,7 @@ export type {
   ResponseResolver,
   ResponseResolverReturnType,
   AsyncResponseResolverReturnType,
+  RequestHandlerOptions,
   DefaultBodyType,
   DefaultRequestMultipartBody,
 } from './handlers/RequestHandler'
@@ -31,6 +32,7 @@ export type {
 export type {
   RequestQuery,
   HttpRequestParsedResult,
+  HttpRequestResolverExtras,
 } from './handlers/HttpHandler'
 
 export type {

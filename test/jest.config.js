@@ -20,6 +20,7 @@ module.exports = {
     customExportConditions: [''],
   },
   globals: {
+    fetch,
     Request,
     Response,
     TextEncoder,

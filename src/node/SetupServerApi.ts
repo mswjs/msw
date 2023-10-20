@@ -14,6 +14,7 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
+import { isNodeException } from './utils/isNodeException'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -62,10 +63,28 @@ export class SetupServerApi
         // new "abort" event listener to the parent request's
         // "AbortController" so if the parent aborts, all the
         // clones are automatically aborted.
-        setMaxListeners(
-          Math.max(defaultMaxListeners, this.currentHandlers.length),
-          request.signal,
-        )
+        try {
+          setMaxListeners(
+            Math.max(defaultMaxListeners, this.currentHandlers.length),
+            request.signal,
+          )
+        } catch (error: unknown) {
+          /**
+           * @note Mock environments (JSDOM, ...) are not able to implement an internal
+           * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
+           * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
+           * At the same time, mock environments are also not able to implement the
+           * internal "events.maxEventTargetListenersWarned" Symbol, which results in
+           * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
+           * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
+           * which won't be printed anyway if `setMaxListeners` fails.
+           */
+          if (
+            !(isNodeException(error) && error.code === 'ERR_INVALID_ARG_TYPE')
+          ) {
+            throw error
+          }
+        }
       }
 
       const response = await handleRequest(

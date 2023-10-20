@@ -32,7 +32,6 @@ export type {
 export type {
   RequestQuery,
   HttpRequestParsedResult,
-  HttpRequestResolverExtras,
 } from './handlers/HttpHandler'
 
 export type {

@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "0.0.0-fetch.rc-23",
+  "version": "0.0.0-fetch.rc-24",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",

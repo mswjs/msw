@@ -1,5 +1,12 @@
 /**
  * @jest-environment jsdom
+ *
+ * @note In JSDOM, the "AbortSignal" class is polyfilled instead of
+ * using the Node.js global. Because of that, its instances won't
+ * pass the instance check of "require('event').setMaxListeners"
+ * (that's based on the internal Node.js symbol), resulting in
+ * an exception.
+ * @see https://github.com/mswjs/msw/pull/1779
  */
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

@@ -62,10 +62,23 @@ export class SetupServerApi
         // new "abort" event listener to the parent request's
         // "AbortController" so if the parent aborts, all the
         // clones are automatically aborted.
-        setMaxListeners(
-          Math.max(defaultMaxListeners, this.currentHandlers.length),
-          request.signal,
-        )
+        try {
+          setMaxListeners(
+            Math.max(defaultMaxListeners, this.currentHandlers.length),
+            request.signal,
+          )
+        } catch (e: unknown) {
+          /**
+           * @note Mock environments (JSDOM, ...) are not able to implement an internal
+           * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
+           * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
+           * At the same time, mock environments are also not able to implement the
+           * internal "events.maxEventTargetListenersWarned" Symbol, which results in
+           * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
+           * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
+           * which won't be printed anyway if `setMaxListeners` fails.
+           */
+        }
       }
 
       const response = await handleRequest(

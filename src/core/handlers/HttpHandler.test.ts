@@ -216,3 +216,45 @@ describe('run', () => {
     expect(await run()).toBe('complete')
   })
 })
+
+describe('once', () => {
+  it('marks a matching one-time handler as used', async () => {
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      () => {
+        return HttpResponse.text('Mocked')
+      },
+      {
+        once: true,
+      },
+    )
+
+    const request = new Request(new URL('/resource', location.href))
+    const result = await handler.run({
+      request,
+    })
+
+    expect(handler.isUsed).toBe(true)
+    expect(result?.handler).toEqual(handler)
+    expect(await result?.response?.text()).toBe('Mocked')
+
+    const resultAfterUsed = await handler.run({
+      request,
+    })
+    expect(handler.isUsed).toBe(true)
+    expect(resultAfterUsed?.handler).toBeUndefined()
+  })
+
+  it('does not mark a non-matching one-time-handler as used', async () => {
+    const handler = new HttpHandler('GET', '/resource', () => undefined, {
+      once: true,
+    })
+
+    const result = await handler.run({
+      request: new Request(new URL('/non-matching', location.href)),
+    })
+
+    expect(result?.handler).toBeUndefined()
+  })
+})

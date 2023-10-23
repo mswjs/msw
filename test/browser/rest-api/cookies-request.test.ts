@@ -21,10 +21,9 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   const res = await fetch('/user', {
     credentials: 'include',
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     cookies: {
       'auth-token': 'abc-123',
@@ -44,10 +43,9 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   const res = await fetch('/user', {
     credentials: 'same-origin',
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     cookies: {
       'auth-token': 'abc-123',
@@ -67,10 +65,9 @@ test('returns no cookies in "req.cookies" for "same-origin" credentials and requ
   const res = await fetch('https://test.mswjs.io/user', {
     credentials: 'same-origin',
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     cookies: {},
   })
@@ -87,10 +84,9 @@ test('returns no cookies in "req.cookies" for "omit" credentials', async ({
   const res = await fetch('/user', {
     credentials: 'omit',
   })
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     cookies: {},
   })

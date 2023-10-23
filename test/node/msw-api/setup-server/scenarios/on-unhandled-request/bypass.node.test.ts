@@ -4,7 +4,7 @@
 import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 const httpServer = new HttpServer((app) => {
   app.get('/', (req, res) => {
@@ -21,8 +21,8 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
-      return res(ctx.json({ firstName: 'John' }))
+    http.get(httpServer.http.url('/user'), () => {
+      return HttpResponse.json({ firstName: 'John' })
     }),
   )
   server.listen({ onUnhandledRequest: 'bypass' })
@@ -41,7 +41,7 @@ test('bypasses unhandled requests', async () => {
   const res = await fetch(httpServer.http.url('/'))
 
   // Request should be performed as-is
-  expect(res.status).toEqual(200)
+  expect(res.status).toBe(200)
   expect(await res.text()).toEqual('root')
 
   // No warnings/errors should be printed

@@ -1,11 +1,12 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('*/numbers', (req, res, ctx) => {
-    return res(ctx.json([1, 2, 3]))
+  http.get('*/numbers', () => {
+    return HttpResponse.json([1, 2, 3])
   }),
-  rest.get('*/letters', (req, res, ctx) => {
-    return res(ctx.json(['a', 'b', 'c']))
+  http.get('*/letters', () => {
+    return HttpResponse.json(['a', 'b', 'c'])
   }),
 )
 

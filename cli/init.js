@@ -21,14 +21,14 @@ module.exports = async function init(args) {
 
   if (!dirExists) {
     // Try to create the directory if it doesn't exist
-    const [createDirectoryError] = await until(() =>
+    const createDirectoryResult = await until(() =>
       fs.promises.mkdir(absolutePublicDir, { recursive: true }),
     )
     invariant(
-      createDirectoryError == null,
+      createDirectoryResult.error == null,
       'Failed to create a Service Worker at "%s": directory does not exist and could not be created.\nMake sure to include a relative path to the root directory of your server.\n\nSee the original error below:\n%s',
       absolutePublicDir,
-      createDirectoryError,
+      createDirectoryResult.error,
     )
   }
 

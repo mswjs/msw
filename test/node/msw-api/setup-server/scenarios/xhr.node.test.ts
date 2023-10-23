@@ -1,19 +1,25 @@
 /**
  * @jest-environment jsdom
  */
-import { rest } from 'msw'
+import { http } from 'msw'
 import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'
 
 const server = setupServer(
-  rest.get('http://test.mswjs.io', (req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.set('x-header', 'yes'),
-      ctx.json({
+  http.get('http://localhost:3001/resource', ({ request }) => {
+    return new Response(
+      JSON.stringify({
         firstName: 'John',
         age: 32,
       }),
+      {
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Header': 'yes',
+        },
+      },
     )
   }),
 )
@@ -33,7 +39,7 @@ describe('given I perform an XMLHttpRequest', () => {
 
   beforeAll((done) => {
     const req = new XMLHttpRequest()
-    req.open('GET', 'http://test.mswjs.io')
+    req.open('GET', 'http://localhost:3001/resource')
     req.onload = function () {
       statusCode = this.status
       body = JSON.parse(this.response)

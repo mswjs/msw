@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {
@@ -23,15 +23,15 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.use(
-    rest.get(httpServer.http.url('/user'), (req, res, ctx) => {
-      return res(ctx.json({ mocked: true }))
+    http.get(httpServer.http.url('/user'), () => {
+      return HttpResponse.json({ mocked: true })
     }),
-    rest.post(httpServer.http.url('/explicit-return'), () => {
+    http.post(httpServer.http.url('/explicit-return'), () => {
       // Short-circuiting in a handler makes it perform the request as-is,
       // but still treats this request as handled.
       return
     }),
-    rest.post(httpServer.http.url('/implicit-return'), () => {
+    http.post(httpServer.http.url('/implicit-return'), () => {
       // The handler that has no return also performs the request as-is,
       // still treating this request as handled.
     }),
@@ -62,7 +62,7 @@ test('errors on unhandled request when using the "error" value', async () => {
     `request to ${endpointUrl} failed, reason: [MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
   )
   expect(console.error)
-    .toHaveBeenCalledWith(`[MSW] Error: captured a request without a matching request handler:
+    .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:
 
   • GET ${endpointUrl}
 

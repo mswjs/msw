@@ -1,10 +1,12 @@
-import { SetupWorkerApi, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -16,12 +18,16 @@ test('returns a mocked response from the used one-time request handler when rest
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { msw } = window
+    const { worker, http, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', (req, res, ctx) => {
-        return res.once(ctx.json({ title: 'One-time override' }))
-      }),
+    worker.use(
+      http.get<{ bookId: string }>(
+        '/book/:bookId',
+        () => {
+          return HttpResponse.json({ title: 'One-time override' })
+        },
+        { once: true },
+      ),
     )
   })
 
@@ -43,9 +49,8 @@ test('returns a mocked response from the used one-time request handler when rest
 
   // Restore the one-time request handlers, marking them as unused.
   await page.evaluate(() => {
-    const { msw } = window
-
-    msw.worker.restoreHandlers()
+    const { worker } = window.msw
+    worker.restoreHandlers()
   })
 
   // Once restored, one-time request handler affect network again.

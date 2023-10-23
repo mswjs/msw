@@ -3,15 +3,15 @@
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  http.get('https://test.mswjs.io/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
-const logs = []
+const logs: Array<string> = []
 
 beforeAll(() =>
   server.listen({

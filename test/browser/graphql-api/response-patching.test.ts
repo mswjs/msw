@@ -1,6 +1,6 @@
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql } from 'graphql'
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
@@ -49,7 +49,7 @@ test.afterEach(async () => {
   await httpServer.close()
 })
 
-test('patches a GraphQL response', async ({ loadExample, page, query }) => {
+test('patches a GraphQL response', async ({ loadExample, page }) => {
   await loadExample(require.resolve('./response-patching.mocks.ts'))
   const endpointUrl = httpServer.http.url('/graphql')
 
@@ -57,24 +57,16 @@ test('patches a GraphQL response', async ({ loadExample, page, query }) => {
     return window.msw.registration
   })
 
-  const res = await query(endpointUrl, {
-    query: gql`
-      query GetUser {
-        user {
-          firstName
-          lastName
-        }
-      }
-    `,
-  })
-  const body = await res.json()
-
-  expect(body).toEqual({
-    data: {
-      user: {
-        firstName: 'Christian',
-        lastName: 'Maverick',
-      },
+  const res = await page.evaluate(
+    ([url]) => {
+      return window.dispatchGraphQLQuery(url)
     },
+    [endpointUrl],
+  )
+
+  expect(res.errors).toBeUndefined()
+  expect(res.data).toHaveProperty('user', {
+    firstName: 'Christian',
+    lastName: 'Maverick',
   })
 })

@@ -49,7 +49,7 @@ test('sends a mocked response to a GraphQL mutation', async ({
   })
 })
 
-test('prints a warning when captured an anonymous GraphQL mutation', async ({
+test('prints a warning when intercepted an anonymous GraphQL mutation', async ({
   loadExample,
   spyOnConsole,
   query,

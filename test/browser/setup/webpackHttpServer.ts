@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { WebpackHttpServer } from 'webpack-http-server'
-import { getWorkerScriptPatch } from './WorkerConsole'
+import { getWorkerScriptPatch } from './workerConsole'
 
 const { SERVICE_WORKER_BUILD_PATH } = require('../../../config/constants.js')
 
@@ -62,7 +62,7 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
         alias: {
           msw: path.resolve(__dirname, '../../..'),
         },
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js', '.mjs'],
       },
     },
   })

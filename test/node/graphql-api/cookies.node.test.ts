@@ -4,7 +4,7 @@
 import * as cookieUtils from 'cookie'
 import fetch from 'node-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
-import { graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { gql } from '../../support/graphql'
 
@@ -19,10 +19,10 @@ const schema = gql`
 `
 
 const server = setupServer(
-  graphql.query('GetUser', async (req, res, ctx) => {
+  graphql.query('GetUser', async ({ query }) => {
     const { data, errors } = await executeGraphql({
       schema: buildSchema(schema),
-      source: req.body.query,
+      source: query,
       rootValue: {
         user: {
           firstName: 'John',
@@ -30,10 +30,16 @@ const server = setupServer(
       },
     })
 
-    return res(
-      ctx.cookie('test-cookie', 'value'),
-      ctx.data(data),
-      ctx.errors(errors),
+    return HttpResponse.json(
+      {
+        data,
+        errors,
+      },
+      {
+        headers: {
+          'Set-Cookie': 'test-cookie=value',
+        },
+      },
     )
   }),
 )

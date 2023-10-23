@@ -2,12 +2,12 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/books', (req, res, ctx) => {
-    return res(ctx.json({ title: 'Original title' }))
+  http.get('https://test.mswjs.io/books', () => {
+    return HttpResponse.json({ title: 'Original title' })
   }),
 )
 
@@ -23,8 +23,8 @@ afterAll(() => {
 
 test('removes all runtime request handlers when resetting without explicit next handlers', async () => {
   server.use(
-    rest.post('https://test.mswjs.io/login', (req, res, ctx) => {
-      return res(ctx.json({ accepted: true }))
+    http.post('https://test.mswjs.io/login', () => {
+      return HttpResponse.json({ accepted: true })
     }),
   )
 
@@ -53,16 +53,16 @@ test('removes all runtime request handlers when resetting without explicit next 
 
 test('replaces all handlers with the explicit next runtime handlers upon reset', async () => {
   server.use(
-    rest.post('https://test.mswjs.io/login', (req, res, ctx) => {
-      return res(ctx.json({ accepted: true }))
+    http.post('https://test.mswjs.io/login', () => {
+      return HttpResponse.json({ accepted: true })
     }),
   )
 
   // Once reset with explicit next requets handlers,
   // replaces all present requets handlers with those.
   server.resetHandlers(
-    rest.get('https://test.mswjs.io/products', (req, res, ctx) => {
-      return res(ctx.json([1, 2, 3]))
+    http.get('https://test.mswjs.io/products', () => {
+      return HttpResponse.json([1, 2, 3])
     }),
   )
 

@@ -1,48 +1,53 @@
-import { rest, setupWorker } from 'msw'
-import { ServerLifecycleEventsMap } from 'msw/src/node/glossary'
+import { HttpResponse, http, LifeCycleEventsMap } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('*/user', (req, res, ctx) => {
-    return res(ctx.text('response-body'))
+  http.get('*/user', () => {
+    return HttpResponse.text('response-body')
   }),
-  rest.post('*/no-response', () => {
+  http.post('*/no-response', () => {
     return
   }),
-  rest.get('*/unhandled-exception', () => {
+  http.get('*/unhandled-exception', () => {
     throw new Error('Unhandled resolver error')
   }),
 )
 
-worker.events.on('request:start', (req) => {
-  console.warn(`[request:start] ${req.method} ${req.url.href} ${req.id}`)
+worker.events.on('request:start', ({ request, requestId }) => {
+  console.warn(`[request:start] ${request.method} ${request.url} ${requestId}`)
 })
 
-worker.events.on('request:match', (req) => {
-  console.warn(`[request:match] ${req.method} ${req.url.href} ${req.id}`)
+worker.events.on('request:match', ({ request, requestId }) => {
+  console.warn(`[request:match] ${request.method} ${request.url} ${requestId}`)
 })
 
-worker.events.on('request:unhandled', (req) => {
-  console.warn(`[request:unhandled] ${req.method} ${req.url.href} ${req.id}`)
+worker.events.on('request:unhandled', ({ request, requestId }) => {
+  console.warn(
+    `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
+  )
 })
 
-const requestEndListner: ServerLifecycleEventsMap['request:end'] = (req) => {
-  console.warn(`[request:end] ${req.method} ${req.url.href} ${req.id}`)
+const requestEndListner: (
+  ...args: LifeCycleEventsMap['request:end']
+) => void = ({ request, requestId }) => {
+  console.warn(`[request:end] ${request.method} ${request.url} ${requestId}`)
 }
+
 worker.events.on('request:end', requestEndListner)
 
-worker.events.on('response:mocked', async (res, requestId) => {
-  const body = await res.text()
+worker.events.on('response:mocked', async ({ response, requestId }) => {
+  const body = await response.clone().text()
   console.warn(`[response:mocked] ${body} ${requestId}`)
 })
 
-worker.events.on('response:bypass', async (res, requestId) => {
-  const body = await res.text()
+worker.events.on('response:bypass', async ({ response, requestId }) => {
+  const body = await response.clone().text()
   console.warn(`[response:bypass] ${body} ${requestId}`)
 })
 
-worker.events.on('unhandledException', (error, req) => {
+worker.events.on('unhandledException', ({ error, request, requestId }) => {
   console.warn(
-    `[unhandledException] ${req.method} ${req.url.href} ${req.id} ${error.message}`,
+    `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,
   )
 })
 

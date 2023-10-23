@@ -2,63 +2,56 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get<never, { maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/:maxCount',
-    function* (req, res, ctx) {
-      const maxCount = parseInt(req.params.maxCount)
+    function* ({ params }) {
+      const maxCount = parseInt(params.maxCount)
       let count = 0
 
       while (count < maxCount) {
         count += 1
-        yield res(
-          ctx.json({
-            status: 'pending',
-            count,
-          }),
-        )
+        yield HttpResponse.json({
+          status: 'pending',
+          count,
+        })
       }
 
-      return res(
-        ctx.json({
-          status: 'complete',
-          count,
-        }),
-      )
+      return HttpResponse.json({
+        status: 'complete',
+        count,
+      })
     },
   ),
 
-  rest.get<never, { maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
-    function* (req, res, ctx) {
-      const maxCount = parseInt(req.params.maxCount)
+    function* ({ params }) {
+      const maxCount = parseInt(params.maxCount)
       let count = 0
 
       while (count < maxCount) {
         count += 1
-        yield res(
-          ctx.json({
-            status: 'pending',
-            count,
-          }),
-        )
+        yield HttpResponse.json({
+          status: 'pending',
+          count,
+        })
       }
 
-      return res.once(
-        ctx.json({
-          status: 'complete',
-          count,
-        }),
-      )
+      return HttpResponse.json({
+        status: 'complete',
+        count,
+      })
     },
+    { once: true },
   ),
-  rest.get<never, { maxCount: string }>(
+  http.get<{ maxCount: string }>(
     'https://example.com/polling/once/:maxCount',
-    (req, res, ctx) => {
-      return res(ctx.json({ status: 'done' }))
+    () => {
+      return HttpResponse.json({ status: 'done' })
     },
   ),
 )
@@ -81,7 +74,6 @@ test('supports generator as the response resolver', async () => {
     const res = await fetch('https://example.com/polling/3')
     const body = await res.json()
     expect(res.status).toBe(200)
-    expect(res.headers.get('x-powered-by')).toEqual('msw')
     expect(body).toEqual(expectedBody)
   }
 
@@ -108,7 +100,6 @@ test('supports one-time handlers with the generator as the response resolver', a
     const res = await fetch('https://example.com/polling/once/3')
     const body = await res.json()
     expect(res.status).toBe(200)
-    expect(res.headers.get('x-powered-by')).toEqual('msw')
     expect(body).toEqual(expectedBody)
   }
 

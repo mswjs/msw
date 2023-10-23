@@ -7,7 +7,6 @@ test('responds with a given binary body', async ({ loadExample, fetch }) => {
 
   const res = await fetch('/images/abc-123')
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.body()
 
   const expectedBuffer = fs.readFileSync(
@@ -15,6 +14,6 @@ test('responds with a given binary body', async ({ loadExample, fetch }) => {
   )
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(new Uint8Array(body)).toEqual(new Uint8Array(expectedBuffer))
 })

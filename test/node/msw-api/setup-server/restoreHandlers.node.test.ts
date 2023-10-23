@@ -2,12 +2,12 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/book/:bookId', (req, res, ctx) => {
-    return res(ctx.json({ title: 'Original title' }))
+  http.get('https://test.mswjs.io/book/:bookId', () => {
+    return HttpResponse.json({ title: 'Original title' })
   }),
 )
 
@@ -16,9 +16,13 @@ afterAll(() => server.close())
 
 test('returns a mocked response from the used one-time request handler when restored', async () => {
   server.use(
-    rest.get('https://test.mswjs.io/book/:bookId', (req, res, ctx) => {
-      return res.once(ctx.json({ title: 'Overridden title' }))
-    }),
+    http.get(
+      'https://test.mswjs.io/book/:bookId',
+      () => {
+        return HttpResponse.json({ title: 'Overridden title' })
+      },
+      { once: true },
+    ),
   )
 
   const firstResponse = await fetch('https://test.mswjs.io/book/abc-123')

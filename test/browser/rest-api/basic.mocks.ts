@@ -1,15 +1,14 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('https://example.com/users/:username', (req, res, ctx) => {
-    const { username } = req.params
+  http.get('https://example.com/users/:username', ({ params }) => {
+    const { username } = params
 
-    return res(
-      ctx.json({
-        name: 'John Maverick',
-        originalUsername: username,
-      }),
-    )
+    return HttpResponse.json({
+      name: 'John Maverick',
+      originalUsername: username,
+    })
   }),
 )
 

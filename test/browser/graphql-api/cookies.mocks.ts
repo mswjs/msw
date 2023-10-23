@@ -1,12 +1,19 @@
-import { setupWorker, graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  graphql.query('GetUser', (req, res, ctx) => {
-    return res(
-      ctx.cookie('test-cookie', 'value'),
-      ctx.data({
-        firstName: 'John',
-      }),
+  graphql.query('GetUser', () => {
+    return HttpResponse.json(
+      {
+        data: {
+          firstName: 'John',
+        },
+      },
+      {
+        headers: {
+          'Set-Cookie': 'test-cookie=value',
+        },
+      },
     )
   }),
 )

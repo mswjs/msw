@@ -1,19 +1,30 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
-    return res(
-      ctx.cookie('myCookie', 'value'),
-      ctx.json({
+  http.get('/user', () => {
+    return HttpResponse.json(
+      {
         mocked: true,
-      }),
+      },
+      {
+        headers: {
+          'Set-Cookie': 'myCookie=value; Max-Age=2000',
+        },
+      },
     )
   }),
-  rest.get('/order', (req, res, ctx) => {
-    return res(
-      ctx.cookie('firstCookie', 'yes'),
-      ctx.cookie('secondCookie', 'no'),
-      ctx.json({ mocked: true }),
+  http.get('/order', () => {
+    return HttpResponse.json(
+      {
+        mocked: true,
+      },
+      {
+        headers: [
+          ['Set-Cookie', 'firstCookie=yes'],
+          ['Set-Cookie', 'secondCookie=no; Max-Age=1000'],
+        ],
+      },
     )
   }),
 )

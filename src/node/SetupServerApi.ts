@@ -1,36 +1,27 @@
-import chalk from 'chalk'
+import { setMaxListeners, defaultMaxListeners } from 'node:events'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
   HttpRequestEventMap,
   Interceptor,
   InterceptorReadyState,
-  IsomorphicResponse,
-  MockedResponse as MockedInterceptedResponse,
 } from '@mswjs/interceptors'
-import { SetupApi } from '../SetupApi'
-import { RequestHandler } from '../handlers/RequestHandler'
-import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
-import { RequiredDeep } from '../typeUtils'
-import { mergeRight } from '../utils/internal/mergeRight'
-import { MockedRequest } from '../utils/request/MockedRequest'
-import { handleRequest } from '../utils/handleRequest'
-import { devUtils } from '../utils/internal/devUtils'
+import { SetupApi } from '~/core/SetupApi'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
+import { RequiredDeep } from '~/core/typeUtils'
+import { mergeRight } from '~/core/utils/internal/mergeRight'
+import { handleRequest } from '~/core/utils/handleRequest'
+import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
-
-/**
- * @see https://github.com/mswjs/msw/pull/1399
- */
-const { bold } = chalk
-
-export type ServerLifecycleEventsMap = LifeCycleEventsMap<IsomorphicResponse>
+import { isNodeException } from './utils/isNodeException'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
 export class SetupServerApi
-  extends SetupApi<ServerLifecycleEventsMap>
+  extends SetupApi<LifeCycleEventsMap>
   implements SetupServer
 {
   protected readonly interceptor: BatchInterceptor<
@@ -60,59 +51,70 @@ export class SetupServerApi
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async (request) => {
-      const mockedRequest = new MockedRequest(request.url, {
-        ...request,
-        body: await request.arrayBuffer(),
-      })
+    this.interceptor.on('request', async ({ request, requestId }) => {
+      /**
+       * @note React Native doesn't have "node:events".
+       */
+      if (typeof setMaxListeners === 'function') {
+        // Bump the maximum number of event listeners on the
+        // request's "AbortSignal". This prepares the request
+        // for each request handler cloning it at least once.
+        // Note that cloning a request automatically appends a
+        // new "abort" event listener to the parent request's
+        // "AbortController" so if the parent aborts, all the
+        // clones are automatically aborted.
+        try {
+          setMaxListeners(
+            Math.max(defaultMaxListeners, this.currentHandlers.length),
+            request.signal,
+          )
+        } catch (error: unknown) {
+          /**
+           * @note Mock environments (JSDOM, ...) are not able to implement an internal
+           * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
+           * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
+           * At the same time, mock environments are also not able to implement the
+           * internal "events.maxEventTargetListenersWarned" Symbol, which results in
+           * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
+           * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
+           * which won't be printed anyway if `setMaxListeners` fails.
+           */
+          if (
+            !(isNodeException(error) && error.code === 'ERR_INVALID_ARG_TYPE')
+          ) {
+            throw error
+          }
+        }
+      }
 
-      const response = await handleRequest<
-        MockedInterceptedResponse & { delay?: number }
-      >(
-        mockedRequest,
+      const response = await handleRequest(
+        request,
+        requestId,
         this.currentHandlers,
         this.resolvedOptions,
         this.emitter,
-        {
-          transformResponse(response) {
-            return {
-              status: response.status,
-              statusText: response.statusText,
-              headers: response.headers.all(),
-              body: response.body,
-              delay: response.delay,
-            }
-          },
-        },
       )
 
       if (response) {
-        // Delay Node.js responses in the listener so that
-        // the response lookup logic is not concerned with responding
-        // in any way. The same delay is implemented in the worker.
-        if (response.delay) {
-          await new Promise((resolve) => {
-            setTimeout(resolve, response.delay)
-          })
-        }
-
         request.respondWith(response)
       }
 
       return
     })
 
-    this.interceptor.on('response', (request, response) => {
-      if (!request.id) {
-        return
-      }
-
-      if (response.headers.get('x-powered-by') === 'msw') {
-        this.emitter.emit('response:mocked', response, request.id)
-      } else {
-        this.emitter.emit('response:bypass', response, request.id)
-      }
-    })
+    this.interceptor.on(
+      'response',
+      ({ response, isMockedResponse, request, requestId }) => {
+        this.emitter.emit(
+          isMockedResponse ? 'response:mocked' : 'response:bypass',
+          {
+            response,
+            request,
+            requestId,
+          },
+        )
+      },
+    )
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {
@@ -123,6 +125,10 @@ export class SetupServerApi
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
+
+    this.subscriptions.push(() => {
+      this.interceptor.dispose()
+    })
 
     // Assert that the interceptor has been applied successfully.
     // Also guards us from forgetting to call "interceptor.apply()"
@@ -138,25 +144,7 @@ export class SetupServerApi
     )
   }
 
-  public printHandlers(): void {
-    const handlers = this.listHandlers()
-
-    handlers.forEach((handler) => {
-      const { header, callFrame } = handler.info
-
-      const pragma = handler.info.hasOwnProperty('operationType')
-        ? '[graphql]'
-        : '[rest]'
-
-      console.log(`\
-${bold(`${pragma} ${header}`)}
-  Declaration: ${callFrame}
-`)
-    })
-  }
-
   public close(): void {
-    super.dispose()
-    this.interceptor.dispose()
+    this.dispose()
   }
 }

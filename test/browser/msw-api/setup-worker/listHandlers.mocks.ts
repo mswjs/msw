@@ -1,11 +1,12 @@
-import { setupWorker, rest, graphql } from 'msw'
+import { http, graphql } from 'msw'
+import { setupWorker } from 'msw/browser'
 
-const resolver = () => null
+const resolver = () => void 0
 
 const github = graphql.link('https://api.github.com')
 
 const worker = setupWorker(
-  rest.get('https://test.mswjs.io/book/:bookId', resolver),
+  http.get('https://test.mswjs.io/book/:bookId', resolver),
   graphql.query('GetUser', resolver),
   graphql.mutation('UpdatePost', resolver),
   graphql.operation(resolver),
@@ -13,9 +14,11 @@ const worker = setupWorker(
   github.operation(resolver),
 )
 
+worker.start()
+
 // @ts-ignore
 window.msw = {
   worker,
-  rest,
+  http,
   graphql,
 }

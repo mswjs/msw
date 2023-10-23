@@ -1,13 +1,14 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  http.get('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
 worker.start({
-  onUnhandledRequest(req) {
-    console.log(`Oops, unhandled ${req.method} ${req.url.href}`)
+  onUnhandledRequest(request) {
+    console.log(`Oops, unhandled ${request.method} ${request.url}`)
   },
 })

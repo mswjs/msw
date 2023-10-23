@@ -1,4 +1,4 @@
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-test('does not log the captured request when the "quiet" option is set to "true"', async ({
+test('does not log the intercepted request when the "quiet" option is set to "true"', async ({
   loadExample,
   spyOnConsole,
   page,
@@ -30,11 +30,9 @@ test('does not log the captured request when the "quiet" option is set to "true"
   expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
 
   const res = await fetch('/user')
-
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     firstName: 'John',
     age: 32,

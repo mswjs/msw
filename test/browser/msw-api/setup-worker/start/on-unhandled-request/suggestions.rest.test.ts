@@ -1,10 +1,11 @@
-import { SetupWorkerApi, rest } from 'msw'
+import { http } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
   }
 }
 
@@ -19,10 +20,10 @@ test.describe('REST API', () => {
     await loadExample(require.resolve('./suggestions.mocks.ts'))
 
     page.evaluate(() => {
-      const { worker, rest } = window.msw
+      const { worker, http } = window.msw
       worker.use(
-        rest.get('/user', () => null),
-        rest.post('/user-contact-details', () => null),
+        http.get('/user', () => void 0),
+        http.post('/user-contact-details', () => void 0),
       )
     })
 
@@ -31,7 +32,7 @@ test.describe('REST API', () => {
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /user-details
 
@@ -51,8 +52,8 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     await loadExample(require.resolve('./suggestions.mocks.ts'))
 
     page.evaluate(() => {
-      const { worker, rest } = window.msw
-      worker.use(rest.get('/user', () => null))
+      const { worker, http } = window.msw
+      worker.use(http.get('/user', () => void 0))
     })
 
     await fetch('/users')
@@ -60,7 +61,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /users
 
@@ -82,10 +83,10 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     await loadExample(require.resolve('./suggestions.mocks.ts'))
 
     page.evaluate(() => {
-      const { worker, rest } = window.msw
+      const { worker, http } = window.msw
       worker.use(
-        rest.get('/user', () => null),
-        rest.post('/user-contact-details', () => null),
+        http.get('/user', () => void 0),
+        http.post('/user-contact-details', () => void 0),
       )
     })
 
@@ -96,7 +97,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • POST /users
 
@@ -118,10 +119,10 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     await loadExample(require.resolve('./suggestions.mocks.ts'))
 
     page.evaluate(() => {
-      const { worker, rest } = window.msw
+      const { worker, http } = window.msw
       worker.use(
-        rest.post('/payment', () => null),
-        rest.get('/payments', () => null),
+        http.post('/payment', () => void 0),
+        http.get('/payments', () => void 0),
       )
     })
 
@@ -130,7 +131,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /pamyents
 

@@ -1,8 +1,11 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('https://example.com/users/:username', (req, res, ctx) => {
-    return res(ctx.json({ mocked: true }))
+  http.get('https://example.com/users/:username', () => {
+    return HttpResponse.json({
+      mocked: true,
+    })
   }),
 )
 

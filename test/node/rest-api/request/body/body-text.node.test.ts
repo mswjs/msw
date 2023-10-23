@@ -2,14 +2,13 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { encodeBuffer } from '@mswjs/interceptors'
 
 const server = setupServer(
-  rest.post('http://localhost/resource', async (req, res, ctx) => {
-    const body = await req.text()
-    return res(ctx.body(body))
+  http.post('http://localhost/resource', async ({ request }) => {
+    return HttpResponse.text(await request.text())
   }),
 )
 
@@ -63,7 +62,7 @@ test('reads array buffer request body as text', async () => {
 test('reads null request body as empty text', async () => {
   const res = await fetch('http://localhost/resource', {
     method: 'POST',
-    body: null,
+    body: null as any,
   })
   const body = await res.text()
 

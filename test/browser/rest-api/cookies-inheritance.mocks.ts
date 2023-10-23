@@ -1,25 +1,26 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.post('/login', (req, res, ctx) => {
-    return res(ctx.cookie('authToken', 'abc-123'))
+  http.post('/login', () => {
+    return HttpResponse.text(null, {
+      headers: {
+        'Set-Cookie': 'authToken=abc-123',
+      },
+    })
   }),
-  rest.get('/user', (req, res, ctx) => {
-    if (req.cookies.authToken == null) {
-      return res(
-        ctx.status(403),
-        ctx.json({
-          error: 'Auth token not found',
-        }),
+  http.get('/user', ({ cookies }) => {
+    if (cookies.authToken == null) {
+      return HttpResponse.json(
+        { error: 'Auth token not found' },
+        { status: 403 },
       )
     }
 
-    return res(
-      ctx.json({
-        firstName: 'John',
-        lastName: 'Maverick',
-      }),
-    )
+    return HttpResponse.json({
+      firstName: 'John',
+      lastName: 'Maverick',
+    })
   }),
 )
 

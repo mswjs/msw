@@ -1,10 +1,12 @@
-import { SetupWorkerApi, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -16,11 +18,11 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { msw } = window
+    const { worker, http, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.post('/login', function postLoginResolver(req, res, ctx) {
-        return res(ctx.json({ accepted: true }))
+    worker.use(
+      http.post('/login', function postLoginResolver() {
+        return HttpResponse.json({ accepted: true })
       }),
     )
   })
@@ -49,11 +51,11 @@ test('returns a mocked response from a persistent request handler override', asy
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { msw } = window
+    const { worker, http, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', function permanentOverride(req, res, ctx) {
-        return res(ctx.json({ title: 'Permanent override' }))
+    worker.use(
+      http.get('/book/:bookId', function permanentOverride() {
+        return HttpResponse.json({ title: 'Permanent override' })
       }),
     )
   })
@@ -79,12 +81,16 @@ test('returns a mocked response from a one-time request handler override only up
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { msw } = window
+    const { worker, http, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', function oneTimeOverride(req, res, ctx) {
-        return res.once(ctx.json({ title: 'One-time override' }))
-      }),
+    worker.use(
+      http.get(
+        '/book/:bookId',
+        function oneTimeOverride() {
+          return HttpResponse.json({ title: 'One-time override' })
+        },
+        { once: true },
+      ),
     )
   })
 
@@ -109,13 +115,18 @@ test('returns a mocked response from a one-time request handler override only up
   await loadExample(require.resolve('./use.mocks.ts'))
 
   await page.evaluate(() => {
-    const { msw } = window
+    const { worker, http, HttpResponse } = window.msw
 
-    msw.worker.use(
-      msw.rest.get('/book/:bookId', function oneTimeOverride(req, res, ctx) {
-        const { bookId } = req.params
-        return res.once(ctx.json({ title: 'One-time override', bookId }))
-      }),
+    worker.use(
+      http.get<{ bookId: string }>(
+        '/book/:bookId',
+        function oneTimeOverride({ params }) {
+          const { bookId } = params
+
+          return HttpResponse.json({ title: 'One-time override', bookId })
+        },
+        { once: true },
+      ),
     )
   })
 

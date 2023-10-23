@@ -44,10 +44,9 @@ test('uses explicit server response delay', async ({ loadExample, fetch }) => {
   expect(timing.responseStart).toRoughlyEqual(1200, 250)
 
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({ mocked: true })
 })
@@ -64,10 +63,9 @@ test('uses realistic server response delay when no delay value is provided', asy
   expect(timing.responseStart).toRoughlyEqual(250, 300)
 
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({
     mocked: true,
@@ -85,10 +83,9 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   expect(timing.responseStart).toRoughlyEqual(250, 300)
 
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({
     mocked: true,

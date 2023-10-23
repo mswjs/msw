@@ -1,8 +1,9 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/user', (_, res) => {
-    return res.networkError('Custom network error message')
+  http.get('/user', () => {
+    return HttpResponse.error()
   }),
 )
 

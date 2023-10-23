@@ -1,4 +1,5 @@
-import { rest, SetupWorkerApi } from 'msw'
+import { HttpResponse, passthrough, http } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
@@ -6,7 +7,9 @@ const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    rest: typeof rest
+    http: typeof http
+    passthrough: typeof passthrough
+    HttpResponse: typeof HttpResponse
   }
 }
 
@@ -32,10 +35,10 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, http, passthrough } = window.msw
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      http.post<never, ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
     )
   }, endpointUrl)
@@ -69,14 +72,14 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, http, passthrough, HttpResponse } = window.msw
 
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, (req) => {
-        return req.passthrough()
+      http.post<never, ResponseBody>(endpointUrl, () => {
+        return passthrough()
       }),
-      rest.post<never, ResponseBody>(endpointUrl, (req, res, ctx) => {
-        return res(ctx.json({ name: 'Kate' }))
+      http.post<never, ResponseBody>(endpointUrl, () => {
+        return HttpResponse.json({ name: 'Kate' })
       }),
     )
   }, endpointUrl)
@@ -92,10 +95,9 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   expect(consoleSpy.get('warning')).toBeUndefined()
 })
 
-test('prints a warning and performs a request as-is if nothing was returned from the resolver', async ({
+test('performs a request as-is if nothing was returned from the resolver', async ({
   createServer,
   loadExample,
-  spyOnConsole,
   fetch,
   page,
 }) => {
@@ -105,14 +107,13 @@ test('prints a warning and performs a request as-is if nothing was returned from
     })
   })
 
-  const consoleSpy = spyOnConsole()
   await loadExample(PASSTHROUGH_EXAMPLE)
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
-    const { worker, rest } = window.msw
+    const { worker, http } = window.msw
     worker.use(
-      rest.post<never, ResponseBody>(endpointUrl, () => {
+      http.post<never, ResponseBody>(endpointUrl, () => {
         return
       }),
     )
@@ -126,12 +127,4 @@ test('prints a warning and performs a request as-is if nothing was returned from
   expect(json).toEqual({
     name: 'John',
   })
-
-  expect(consoleSpy.get('warning')).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining(
-        '[MSW] Expected response resolver to return a mocked response Object, but got undefined. The original response is going to be used instead.',
-      ),
-    ]),
-  )
 })

@@ -2,12 +2,12 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import { rest } from 'msw'
-import { setupServer, SetupServerApi } from 'msw/node'
+import { HttpResponse, http } from 'msw'
+import { setupServer, SetupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
-let server: SetupServerApi
+let server: SetupServer
 
 const httpServer = new HttpServer((app) => {
   const handler: ExpressRequestHandler = (req, res) => {
@@ -21,25 +21,31 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server = setupServer(
-    rest.post(httpServer.https.url('/login'), (req, res, ctx) => {
-      return res(ctx.cookie('authToken', 'abc-123'))
+    http.post(httpServer.https.url('/login'), () => {
+      return new HttpResponse(null, {
+        headers: {
+          'Set-Cookie': 'authToken=abc-123',
+        },
+      })
     }),
-    rest.get(httpServer.https.url('/user'), (req, res, ctx) => {
-      if (req.cookies.authToken == null) {
-        return res(
-          ctx.status(403),
-          ctx.json({
+    http.get<
+      never,
+      never,
+      { firstName: string; lastName: string } | { error: string }
+    >(httpServer.https.url('/user'), ({ cookies }) => {
+      if (cookies.authToken == null) {
+        return HttpResponse.json(
+          {
             error: 'Auth token not found',
-          }),
+          },
+          { status: 403 },
         )
       }
 
-      return res(
-        ctx.json({
-          firstName: 'John',
-          lastName: 'Maverick',
-        }),
-      )
+      return HttpResponse.json({
+        firstName: 'John',
+        lastName: 'Maverick',
+      })
     }),
   )
 

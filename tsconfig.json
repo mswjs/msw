@@ -4,13 +4,18 @@
     "target": "es6",
     "module": "ESNext",
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": false,
+    "esModuleInterop": false,
     "resolveJsonModule": true,
     "declaration": true,
     "declarationDir": "lib/types",
     "noEmit": true,
-    "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
+    "lib": ["DOM", "DOM.Iterable", "ESNext.AsyncIterable"],
+    "baseUrl": "./src",
+    "paths": {
+      "~/core": ["./core"],
+      "~/core/*": ["./core/*"]
+    }
   },
   "include": ["global.d.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]

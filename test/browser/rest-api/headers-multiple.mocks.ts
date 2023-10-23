@@ -1,22 +1,25 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.post('https://test.mswjs.io', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        'x-header': req.headers.get('x-header'),
-      }),
-    )
+  http.post('https://test.mswjs.io', ({ request }) => {
+    return HttpResponse.json({
+      'x-header': request.headers.get('x-header'),
+    })
   }),
 
-  rest.get('https://test.mswjs.io', (req, res, ctx) => {
-    return res(
-      ctx.set({
-        Accept: ['application/json', 'image/png'],
-      }),
-      ctx.json({
+  http.get('https://test.mswjs.io', () => {
+    return HttpResponse.json(
+      {
         mocked: true,
-      }),
+      },
+      {
+        headers: {
+          // List header values separated by comma
+          // to set multie-value header on the mocked response.
+          Accept: 'application/json, image/png',
+        },
+      },
     )
   }),
 )

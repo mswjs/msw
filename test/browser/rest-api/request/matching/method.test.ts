@@ -29,11 +29,10 @@ test('sends a mocked response to a matching method and url', async ({
     method: 'POST',
   })
   const status = res.status()
-  const headers = await res.allHeaders()
   const body = await res.json()
 
   expect(status).toBe(200)
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     mocked: true,
   })

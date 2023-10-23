@@ -1,5 +1,6 @@
-import { setupWorker, graphql } from 'msw'
-// import { createGraphQLClient, gql } from '../../support/graphql'
+import { graphql, bypass, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 interface GetUserQuery {
   user: {
@@ -9,19 +10,19 @@ interface GetUserQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<GetUserQuery>('GetUser', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch(req)
+  graphql.query<GetUserQuery>('GetUser', async ({ request }) => {
+    const originalResponse = await fetch(bypass(request))
     const originalJson = await originalResponse.json()
 
-    return res(
-      ctx.data({
+    return HttpResponse.json({
+      data: {
         user: {
           firstName: 'Christian',
           lastName: originalJson.data?.user?.lastName,
         },
-      }),
-      ctx.errors(originalJson.errors),
-    )
+      },
+      errors: originalJson.errors,
+    })
   }),
 )
 
@@ -31,17 +32,17 @@ window.msw = {
 }
 
 // @ts-ignore
-// window.dispatchGraphQLQuery = (uri: string) => {
-//   const client = createGraphQLClient({ uri })
+window.dispatchGraphQLQuery = (uri: string) => {
+  const client = createGraphQLClient({ uri })
 
-//   return client({
-//     query: gql`
-//       query GetUser {
-//         user {
-//           firstName
-//           lastName
-//         }
-//       }
-//     `,
-//   })
-// }
+  return client({
+    query: gql`
+      query GetUser {
+        user {
+          firstName
+          lastName
+        }
+      }
+    `,
+  })
+}

@@ -3,11 +3,11 @@
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 const server = setupServer(
-  rest.get('https://test.mswjs.io/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  http.get('https://test.mswjs.io/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
@@ -30,7 +30,7 @@ test('warns on unhandled requests by default', async () => {
 
   expect(console.error).not.toBeCalled()
   expect(console.warn).toBeCalledWith(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET https://test.mswjs.io/
 

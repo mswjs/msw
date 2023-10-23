@@ -1,11 +1,12 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.all('*/api/*', (req, res, ctx) => {
-    return res(ctx.text('hello world'))
+  http.all('*/api/*', () => {
+    return HttpResponse.text('hello world')
   }),
-  rest.all('*', (req, res, ctx) => {
-    return res(ctx.text('welcome to the jungle'))
+  http.all('*', () => {
+    return HttpResponse.text('welcome to the jungle')
   }),
 )
 

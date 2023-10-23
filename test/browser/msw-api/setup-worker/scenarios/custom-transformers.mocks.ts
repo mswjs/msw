@@ -1,20 +1,19 @@
-import { ResponseTransformer, compose, context, setupWorker, rest } from 'msw'
-import * as JSONBig from 'json-bigint'
-
-const jsonBig = (body: Record<string, any>): ResponseTransformer => {
-  return compose(
-    context.set('Content-Type', 'application/json'),
-    context.body(JSONBig.stringify(body)),
-  )
-}
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
+import * as JSONbig from 'json-bigint'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res) => {
-    return res(
-      jsonBig({
+  http.get('/user', () => {
+    return new HttpResponse(
+      JSONbig.stringify({
         username: 'john.maverick',
         balance: BigInt(1597928668063727616),
       }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
     )
   }),
 )

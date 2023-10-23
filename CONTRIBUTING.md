@@ -148,19 +148,18 @@ Let's write an example integration test that asserts the interception of a GET r
 
 ```js
 // test/browser/example.mocks.ts
-import { rest, setupWorker } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/books', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-          title: 'The Lord of the Rings',
-          publishedAt: -486867600,
-        },
-      ]),
-    )
+  http.get('/books', () => {
+    return HttpResponse.json([
+      {
+        id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+        title: 'The Lord of the Rings',
+        publishedAt: -486867600,
+      },
+    ])
   }),
 )
 
@@ -217,24 +216,23 @@ Let's replicate the same `GET /books` integration test in Node.js.
 ```ts
 // test/node/example.test.ts
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('/books', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-          title: 'The Lord of the Rings',
-          publishedAt: -486867600,
-        },
-      ]),
-    )
+  http.get('/books', () => {
+    return HttpResponse.json([
+      {
+        id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+        title: 'The Lord of the Rings',
+        publishedAt: -486867600,
+      },
+    ])
   }),
 )
 
 beforeAll(() => server.listen())
+
 afterAll(() => server.close())
 
 test('returns a mocked response', async () => {

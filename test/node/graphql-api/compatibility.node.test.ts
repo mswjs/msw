@@ -1,6 +1,6 @@
 import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
-import { graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
@@ -15,10 +15,10 @@ const schema = gql`
 `
 
 const server = setupServer(
-  graphql.query('GetUser', async (req, res, ctx) => {
+  graphql.query('GetUser', async ({ query }) => {
     const executionResult = await executeGraphql({
       schema: buildSchema(schema),
-      source: req.body.query,
+      source: query,
       rootValue: {
         user: {
           firstName: 'John',
@@ -26,10 +26,10 @@ const server = setupServer(
       },
     })
 
-    return res(
-      ctx.data(executionResult.data),
-      ctx.errors(executionResult.errors),
-    )
+    return HttpResponse.json({
+      data: executionResult.data,
+      errors: executionResult.errors,
+    })
   }),
 )
 

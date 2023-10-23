@@ -1,4 +1,5 @@
-import { setupWorker, graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 interface GetGitHubUserQuery {
   user: {
@@ -28,55 +29,55 @@ interface GetActiveUserQuery {
 }
 
 interface GetActiveUserQueryVariables {
-  foo: string
+  userId: string
 }
 
 const worker = setupWorker(
   graphql.query<GetGitHubUserQuery, GetGitHubUserQueryVariables>(
     'GetGithubUser',
-    (req, res, ctx) => {
-      const { username } = req.variables
+    ({ variables }) => {
+      const { username } = variables
 
-      return res(
-        ctx.data({
+      return HttpResponse.json({
+        data: {
           user: {
             username,
             firstName: 'John',
           },
-        }),
-      )
+        },
+      })
     },
   ),
 
   graphql.mutation<DeletePostQuery, DeletePostQueryVariables>(
     'DeletePost',
-    (req, res, ctx) => {
-      const { postId } = req.variables
+    ({ variables }) => {
+      const { postId } = variables
 
-      return res(
-        ctx.data({
+      return HttpResponse.json({
+        data: {
           deletePost: {
             postId,
           },
-        }),
-      )
+        },
+      })
     },
   ),
 
   graphql.query<GetActiveUserQuery, GetActiveUserQueryVariables>(
     'GetActiveUser',
-    (req, res, ctx) => {
+    ({ variables }) => {
       // Intentionally unused variable
       // eslint-disable-next-line
-      const { foo } = req.variables
+      const { userId } = variables
 
-      return res(
-        ctx.data({
+      return HttpResponse.json({
+        data: {
           user: {
             id: 1,
           },
-        }),
-      )
+        },
+      })
     },
   ),
 )

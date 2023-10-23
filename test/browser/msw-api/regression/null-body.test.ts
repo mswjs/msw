@@ -8,13 +8,13 @@ test('gracefully handles a 204 response null body during life-cycle events', asy
 }) => {
   await loadExample(require.resolve('./null-body.mocks.ts'))
 
-  let error: Error
+  const errors: Array<Error> = []
   page.on('pageerror', (pageError) => {
-    error = pageError
+    errors.push(pageError)
   })
 
-  await fetch('https://test.mswjs.io/api/books')
+  await fetch('/api/books')
   await sleep(500)
 
-  expect(error).not.toBeDefined()
+  expect(errors).toEqual([])
 })

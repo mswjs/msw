@@ -1,4 +1,5 @@
-import { setupWorker, graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 interface LogoutQuery {
   logout: {
@@ -7,14 +8,14 @@ interface LogoutQuery {
 }
 
 const worker = setupWorker(
-  graphql.mutation<LogoutQuery>('Logout', (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.mutation<LogoutQuery>('Logout', () => {
+    return HttpResponse.json({
+      data: {
         logout: {
           userSession: false,
         },
-      }),
-    )
+      },
+    })
   }),
 )
 

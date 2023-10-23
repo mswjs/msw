@@ -1,0 +1,78 @@
+name: compat
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Validate the package.json exports and emitted CJS/ESM bundles.
+  exports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Validate package.json exports
+        run: pnpm check:exports
+
+      - name: Test modules (Node.js)
+        run: pnpm test:modules:node
+
+      - name: Test modules (browser)
+        run: pnpm test:modules:browser
+
+  # Checks the library's compatibility with different
+  # TypeScript versions to discover type regressions.
+  typescript:
+    runs-on: macos-latest
+    # Skip TypeScript compatibility check on "main".
+    # A merged pull request implies passing "typescript" job.
+    if: github.ref != 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: pnpm add typescript@${{ matrix.ts }}
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typings tests
+        run: |
+          pnpm tsc --version
+          pnpm test:ts

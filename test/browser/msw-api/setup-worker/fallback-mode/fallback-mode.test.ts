@@ -1,4 +1,4 @@
-import { SetupWorkerApi } from 'msw'
+import { SetupWorkerApi } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
 import { Page } from '@playwright/test'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -126,7 +126,6 @@ test('responds with a mocked response to a handled request', async ({
   // Responds with a mocked response.
   expect(response.status).toEqual(200)
   expect(response.statusText).toEqual('OK')
-  expect(response.headers).toHaveProperty('x-powered-by', 'msw')
   expect(response.body).toEqual({
     name: 'John Maverick',
   })
@@ -145,7 +144,7 @@ test('warns on the unhandled request by default', async ({
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET ${server.http.url('/unknown-resource')}
 

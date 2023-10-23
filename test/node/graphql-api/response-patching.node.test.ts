@@ -1,20 +1,19 @@
 /**
  * @jest-environment node
  */
-import { graphql } from 'msw'
+import { bypass, graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { HttpServer } from '@open-draft/test-server/http'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
 const server = setupServer(
-  graphql.query('GetUser', async (req, res, ctx) => {
-    const originalResponse = await ctx.fetch(req)
+  graphql.query('GetUser', async ({ request }) => {
+    const originalResponse = await fetch(bypass(request))
     const { requestHeaders, queryResult } = await originalResponse.json()
 
-    return res(
-      ctx.data({
+    return HttpResponse.json({
+      data: {
         user: {
           firstName: 'Christian',
           lastName: queryResult.data?.user?.lastName,
@@ -22,9 +21,9 @@ const server = setupServer(
         // Setting the request headers on the response data on purpose
         // to access them in the response of the Apollo client.
         requestHeaders,
-      }),
-      ctx.errors(queryResult.errors),
-    )
+      },
+      errors: queryResult.errors,
+    })
   }),
 )
 
@@ -87,7 +86,13 @@ test('patches a GraphQL response', async () => {
     fetch,
   })
 
-  const res = await client({
+  const res = await client<{
+    user: {
+      firstName: string
+      lastName: string
+    }
+    requestHeaders: Record<string, string>
+  }>({
     query: gql`
       query GetUser {
         user {
@@ -107,7 +112,7 @@ test('patches a GraphQL response', async () => {
     firstName: 'Christian',
     lastName: 'Maverick',
   })
-  expect(res.data.requestHeaders).toHaveProperty('x-msw-bypass', 'true')
-  expect(res.data.requestHeaders).not.toHaveProperty('_headers')
-  expect(res.data.requestHeaders).not.toHaveProperty('_names')
+  expect(res.data?.requestHeaders).toHaveProperty('x-msw-intention', 'bypass')
+  expect(res.data?.requestHeaders).not.toHaveProperty('_headers')
+  expect(res.data?.requestHeaders).not.toHaveProperty('_names')
 })

@@ -1,8 +1,9 @@
-import { setupWorker, rest } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/user', (req, res) => {
-    return res()
+  http.get('/user', () => {
+    return new HttpResponse()
   }),
 )
 

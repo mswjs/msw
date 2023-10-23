@@ -24,7 +24,7 @@ test('prints the response info to the console', async ({
   }
 
   const getResponseLogs = (exp: RegExp) => {
-    return consoleSpy.get('startGroupCollapsed').filter((log) => {
+    return consoleSpy.get('startGroupCollapsed')?.filter((log) => {
       return exp.test(log)
     })
   }
@@ -36,14 +36,14 @@ test('prints the response info to the console', async ({
   // Must print the response summary to the console.
   expect(getResponseLogs(firstResponseLogRegexp)).toHaveLength(1)
 
-  const secondResopnseLogRegexp = createResponseLogRegexp('john.doe')
+  const secondResponseLogRegExp = createResponseLogRegexp('john.doe')
   await fetch('https://example.com/users/john.doe')
-  await waitForResponseLog(secondResopnseLogRegexp)
+  await waitForResponseLog(secondResponseLogRegExp)
 
   /**
    * Must not duplicate response logs for the current and previous requests.
    * @see https://github.com/mswjs/msw/issues/1411
    */
-  expect(getResponseLogs(secondResopnseLogRegexp)).toHaveLength(1)
+  expect(getResponseLogs(secondResponseLogRegExp)).toHaveLength(1)
   expect(getResponseLogs(firstResponseLogRegexp)).toHaveLength(1)
 })

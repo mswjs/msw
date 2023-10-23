@@ -20,7 +20,7 @@ test('sets cookie on the mocked GraphQL response', async ({
   const headers = await res.allHeaders()
   const body = await res.json()
 
-  expect(headers).toHaveProperty('x-powered-by', 'msw')
+  expect(res.fromServiceWorker()).toBe(true)
   expect(headers).not.toHaveProperty('set-cookie')
   expect(body).toEqual({
     data: {

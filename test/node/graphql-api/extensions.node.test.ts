@@ -1,11 +1,11 @@
 /**
  * @jest-environment node
  */
+import fetch from 'node-fetch'
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql as executeGraphql } from 'graphql'
-import { graphql } from 'msw'
+import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import fetch from 'node-fetch'
 import { gql } from '../../support/graphql'
 
 const schema = gql`
@@ -18,10 +18,10 @@ const schema = gql`
 `
 
 const server = setupServer(
-  graphql.query('GetUser', async (req, res, ctx) => {
+  graphql.query('GetUser', async ({ query }) => {
     const { data, errors } = await executeGraphql({
       schema: buildSchema(schema),
-      source: req.body.query,
+      source: query,
       rootValue: {
         user: {
           firstName: 'John',
@@ -29,16 +29,16 @@ const server = setupServer(
       },
     })
 
-    return res(
-      ctx.data(data),
-      ctx.errors(errors),
-      ctx.extensions({
+    return HttpResponse.json({
+      data,
+      errors,
+      extensions: {
         tracking: {
           version: 1,
           page: '/test',
         },
-      }),
-    )
+      },
+    })
   }),
 )
 
@@ -69,7 +69,7 @@ test('adds extensions to the original response data', async () => {
   })
   const body: ExecutionResult = await res.json()
 
-  expect(res.status).toEqual(200)
+  expect(res.status).toBe(200)
   expect(body.data).toEqual({
     user: {
       firstName: 'John',

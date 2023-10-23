@@ -1,5 +1,11 @@
 import { test, expect } from '../../../playwright.extend'
 
+declare global {
+  interface Window {
+    makeRequest(): void
+  }
+}
+
 test('handles FormData as a request body', async ({
   loadExample,
   page,
@@ -9,15 +15,18 @@ test('handles FormData as a request body', async ({
     markup: require.resolve('./body-form-data.page.html'),
   })
 
-  page.click('button')
+  await page.evaluate(() => window.makeRequest())
 
-  const res = await page.waitForResponse(makeUrl('/deprecated'))
+  await page.pause()
+
+  const res = await page.waitForResponse(makeUrl('/formData'))
   const status = res.status()
   const json = await res.json()
 
   expect(status).toBe(200)
   expect(json).toEqual({
-    username: 'john.maverick',
-    password: 'secret123',
+    name: 'Alice',
+    file: 'hello world',
+    ids: [1, 2, 3],
   })
 })

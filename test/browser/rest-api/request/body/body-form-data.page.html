@@ -1,18 +1,23 @@
-<form id="sign-in-form">
-  <input name="username" value="john.maverick" />
-  <input name="password" type="password" value="secret123" />
-  <button>Sign in</button>
-</form>
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      window.makeRequest = () => {
+        const data = new FormData()
+        data.set('name', 'Alice')
+        data.set('file', new File(['hello world'], 'file.txt'))
+        data.set(
+          'ids',
+          new Blob([JSON.stringify([1, 2, 3])], {
+            type: 'application/json',
+          }),
+        )
 
-<script>
-  const form = document.getElementById('sign-in-form')
-  form.addEventListener('submit', (event) => {
-    event.preventDefault()
-    const formData = new FormData(form)
-
-    fetch('/deprecated', {
-      method: 'POST',
-      body: formData,
-    })
-  })
-</script>
+        fetch('/formData', {
+          method: 'POST',
+          body: data,
+        })
+      }
+    </script>
+  </body>
+</html>

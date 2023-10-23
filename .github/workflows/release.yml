@@ -41,7 +41,7 @@ jobs:
         run: pnpm test
 
       - name: Release
-        run: pnpm release
+        run: pnpm release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

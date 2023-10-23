@@ -21,6 +21,7 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { LifeCycleEventsMap } from '~/core/sharedOptions'
 import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
+import { isProduction } from '~/core/utils/internal/isProduction'
 
 interface Listener {
   target: EventTarget
@@ -176,6 +177,14 @@ export class SetupWorkerApi
       DEFAULT_START_OPTIONS,
       options,
     ) as SetupWorkerInternalContext['startOptions']
+
+    invariant(
+      !this.context.startOptions.dangerouslyRunInProduction && isProduction(),
+      devUtils.formatMessage(
+        'The flag dangerouslyRunInProduction is false but you are in a production environment',
+      ),
+      'https://github.com/mswjs/msw/issues/1703',
+    )
 
     return await this.startHandler(this.context.startOptions, options)
   }

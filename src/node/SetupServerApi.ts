@@ -15,9 +15,11 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
 import { isNodeException } from './utils/isNodeException'
+import { isProduction } from '~/core/utils/internal/isProduction'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
+  dangerouslyRunInProduction: false,
 }
 
 export class SetupServerApi
@@ -123,6 +125,13 @@ export class SetupServerApi
       options,
     ) as RequiredDeep<SharedOptions>
 
+    invariant(
+      !this.resolvedOptions.dangerouslyRunInProduction && isProduction(),
+      devUtils.formatMessage(
+        'The flag dangerouslyRunInProduction is false but you are in a production environment',
+      ),
+      'https://github.com/mswjs/msw/issues/1703',
+    )
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
 

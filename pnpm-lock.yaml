@@ -153,7 +153,7 @@ devDependencies:
   ts-node: 10.9.1_x2vjra2lmmhd46xm3mchw7ztui
   tsup: 6.7.0_4s7jzcjqpdttwnwh3e3glkuq6y
   typescript: 5.0.2
-  undici: 5.23.0
+  undici: 5.26.2
   url-loader: 4.1.1_webpack@5.75.0
   webpack: 5.75.0_mtsvlg4x4u5udzh2pohivgt4x4
   webpack-dev-server: 3.11.3_webpack@5.75.0
@@ -2026,6 +2026,11 @@ packages:
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@fastify/busboy/2.0.0:
+    resolution: {integrity: sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==}
+    engines: {node: '>=14'}
     dev: true
 
   /@humanwhocodes/config-array/0.5.0:
@@ -4147,13 +4152,6 @@ packages:
     dependencies:
       esbuild: 0.17.19
       load-tsconfig: 0.2.3
-    dev: true
-
-  /busboy/1.6.0:
-    resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
-    engines: {node: '>=10.16.0'}
-    dependencies:
-      streamsearch: 1.1.0
     dev: true
 
   /bytes/3.0.0:
@@ -9945,11 +9943,6 @@ packages:
     resolution: {integrity: sha512-AiisoFqQ0vbGcZgQPY1cdP2I76glaVA/RauYR4G4thNFgkTqr90yXTo4LYX60Jl+sIlPNHHdGSwo01AvbKUSVQ==}
     dev: true
 
-  /streamsearch/1.1.0:
-    resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
-    engines: {node: '>=10.0.0'}
-    dev: true
-
   /strict-event-emitter/0.5.0:
     resolution: {integrity: sha512-sqnMpVJLSB3daNO6FcvsEk4Mq5IJeAwDeH80DP1S8+pgxrF6yZnE1+VeapesGled7nEcIkz1Ax87HzaIy+02kA==}
     dev: false
@@ -10575,11 +10568,11 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /undici/5.23.0:
-    resolution: {integrity: sha512-1D7w+fvRsqlQ9GscLBwcAJinqcZGHUKjbOmXdlE/v8BvEGXjeWAax+341q44EuTcHXXnfyKNbKRq4Lg7OzhMmg==}
+  /undici/5.26.2:
+    resolution: {integrity: sha512-a4PDLQgLTPHVzOK+x3F79/M4GtyYPl+aX9AAK7aQxpwxDwCqkeZCScy7Gk5kWT3JtdFq1uhO3uZJdLtHI4dK9A==}
     engines: {node: '>=14.0'}
     dependencies:
-      busboy: 1.6.0
+      '@fastify/busboy': 2.0.0
     dev: true
 
   /unicode-canonical-property-names-ecmascript/2.0.0:

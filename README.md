@@ -1,5 +1,5 @@
 > [!IMPORTANT]\
-> **MSW 2.0 is finally here! 🎉** Read the [Release notes](https://github.com/mswjs/msw/releases/tag/v2.0.0) and please follow the [**Migration guidelines**](https://mswjs.io/docs/migrations/1.x-to-2.x) to upgrade. If you're having any questions while upgrading, please reach out in our [Discord server](https://discord.gg/z29WbnfDC5).
+> **MSW 2.0 is finally here! 🎉** Read the [Release notes](https://github.com/mswjs/msw/releases/tag/v2.0.0) and please follow the [**Migration guidelines**](https://mswjs.io/docs/migrations/1.x-to-2.x) to upgrade. If you're having any questions while upgrading, please reach out in our [Discord server](https://kettanaito.com/discord).
 
 <br />
 

@@ -41,8 +41,7 @@
 This README will give you a brief overview on the library but there's no better place to start with Mock Service Worker than its official documentation.
 
 - [Documentation](https://mswjs.io/docs)
-- [**Getting started**](https://mswjs.io/docs/getting-started/install)
-- [Recipes](https://mswjs.io/docs/recipes)
+- [**Getting started**](https://mswjs.io/docs/getting-started)
 - [FAQ](https://mswjs.io/docs/faq)
 
 ## Examples
@@ -51,7 +50,7 @@ This README will give you a brief overview on the library but there's no better 
 
 ## Browser
 
-- [Learn more about using MSW in a browser](https://mswjs.io/docs/getting-started/integrate/browser)
+- [Learn more about using MSW in a browser](https://mswjs.io/docs/integrations/browser)
 - [`setupWorker` API](https://mswjs.io/docs/api/setup-worker)
 
 ### How does it work?
@@ -104,7 +103,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ## Node.js
 
-- [Learn more about using MSW in Node.js](https://mswjs.io/docs/getting-started/integrate/node)
+- [Learn more about using MSW in Node.js](https://mswjs.io/docs/integrations/node)
 - [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
 ### How does it work?
@@ -178,7 +177,7 @@ it('displays the list of recent posts', async () => {
 })
 ```
 
-> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started/install) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
+> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
 
 Despite the API being called `setupServer`, there are no actual servers involved! The name was chosen for familiarity, and the API was designed to resemble operating with an actual server.
 

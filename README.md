@@ -205,6 +205,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         </picture>
       </a>
     </td>
+     <td>
+      <a href="https://www.codacy.com/" target="_blank">
+        <img src="media/sponsors/codacy.svg" alt="Codacy" height="64" />
+      </a>
+    </td>
   </tr>
 </table>
 

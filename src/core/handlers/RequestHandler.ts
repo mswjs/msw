@@ -120,52 +120,57 @@ export abstract class RequestHandler<
   }
 
   /**
-   * Determine if the captured request should be mocked.
+   * Determine if the intercepted request should be mocked.
    */
-  abstract predicate(
-    request: Request,
-    parsedResult: ParsedResult,
-    resolutionContext?: ResponseResolutionContext,
-  ): boolean
+  abstract predicate(args: {
+    request: Request
+    parsedResult: ParsedResult
+    resolutionContext?: ResponseResolutionContext
+  }): boolean
 
   /**
    * Print out the successfully handled request.
    */
-  abstract log(
-    request: Request,
-    response: Response,
-    parsedResult: ParsedResult,
-  ): void
+  abstract log(args: {
+    request: Request
+    response: Response
+    parsedResult: ParsedResult
+  }): void
 
   /**
-   * Parse the captured request to extract additional information from it.
+   * Parse the intercepted request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  async parse(
-    _request: Request,
-    _resolutionContext?: ResponseResolutionContext,
-  ): Promise<ParsedResult> {
+  async parse(_args: {
+    request: Request
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<ParsedResult> {
     return {} as ParsedResult
   }
 
   /**
    * Test if this handler matches the given request.
    */
-  public async test(
-    request: Request,
-    resolutionContext?: ResponseResolutionContext,
-  ): Promise<boolean> {
-    return this.predicate(
-      request,
-      await this.parse(request.clone(), resolutionContext),
-      resolutionContext,
-    )
+  public async test(args: {
+    request: Request
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<boolean> {
+    const parsedResult = await this.parse({
+      request: args.request,
+      resolutionContext: args.resolutionContext,
+    })
+
+    return this.predicate({
+      request: args.request,
+      parsedResult,
+      resolutionContext: args.resolutionContext,
+    })
   }
 
-  protected extendInfo(
-    _request: Request,
-    _parsedResult: ParsedResult,
-  ): ResolverExtras {
+  protected extendResolverArgs(_args: {
+    request: Request
+    parsedResult: ParsedResult
+  }): ResolverExtras {
     return {} as ResolverExtras
   }
 
@@ -173,30 +178,32 @@ export abstract class RequestHandler<
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
    */
-  public async run(
-    request: StrictRequest<any>,
-    resolutionContext?: ResponseResolutionContext,
-  ): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
+  public async run(args: {
+    request: StrictRequest<any>
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
       return null
     }
 
-    const mainRequestRef = request.clone()
+    // Clone the request instance before it's passed to the handler phases
+    // and the response resolver so we can always read it for logging.
+    const mainRequestRef = args.request.clone()
 
     // Immediately mark the handler as used.
     // Can't await the resolver to be resolved because it's potentially
     // asynchronous, and there may be multiple requests hitting this handler.
     this.isUsed = true
 
-    const parsedResult = await this.parse(
-      mainRequestRef.clone(),
-      resolutionContext,
-    )
-    const shouldInterceptRequest = this.predicate(
-      mainRequestRef.clone(),
+    const parsedResult = await this.parse({
+      request: args.request,
+      resolutionContext: args.resolutionContext,
+    })
+    const shouldInterceptRequest = this.predicate({
+      request: args.request,
       parsedResult,
-      resolutionContext,
-    )
+      resolutionContext: args.resolutionContext,
+    })
 
     if (!shouldInterceptRequest) {
       return null
@@ -206,19 +213,22 @@ export abstract class RequestHandler<
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
 
-    const resolverExtras = this.extendInfo(request, parsedResult)
+    const resolverExtras = this.extendResolverArgs({
+      request: args.request,
+      parsedResult,
+    })
     const mockedResponse = (await executeResolver({
       ...resolverExtras,
-      request,
+      request: args.request,
     })) as Response
 
-    const executionResult = this.createExecutionResult(
+    const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      mainRequestRef,
+      request: mainRequestRef,
+      response: mockedResponse,
       parsedResult,
-      mockedResponse,
-    )
+    })
 
     return executionResult
   }
@@ -272,16 +282,16 @@ export abstract class RequestHandler<
     }
   }
 
-  private createExecutionResult(
-    request: Request,
-    parsedResult: ParsedResult,
-    response?: Response,
-  ): RequestHandlerExecutionResult<ParsedResult> {
+  private createExecutionResult(args: {
+    request: Request
+    parsedResult: ParsedResult
+    response?: Response
+  }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
-      parsedResult,
-      request,
-      response,
+      request: args.request,
+      response: args.response,
+      parsedResult: args.parsedResult,
     }
   }
 }

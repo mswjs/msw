@@ -26,7 +26,7 @@ test('warns on unhandled request when using the "warn" value', async () => {
 
   expect(res).toHaveProperty('status', 404)
   expect(console.warn).toBeCalledWith(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET https://test.mswjs.io/
 

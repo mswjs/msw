@@ -35,7 +35,7 @@ type RequestWithoutMethods = Omit<
 export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   /**
    * Unique ID of the request generated once the request is
-   * captured by the "fetch" event in the Service Worker.
+   * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
   body?: ArrayBuffer | null
@@ -72,7 +72,7 @@ export type ServiceWorkerOutgoingEventTypes =
   | 'CLIENT_CLOSED'
 
 export interface StringifiedResponse extends ResponseInit {
-  body: string | ReadableStream<Uint8Array> | null
+  body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
 /**
@@ -146,7 +146,10 @@ export interface SetupWorkerInternalContext {
       ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
     >
   }
-  useFallbackMode: boolean
+  supports: {
+    serviceWorkerApi: boolean
+    readableStreamTransfer: boolean
+  }
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 
@@ -174,7 +177,7 @@ export interface StartOptions extends SharedOptions {
   }
 
   /**
-   * Disables the logging of captured requests
+   * Disables the logging of the intercepted requests
    * into browser's console.
    * @default false
    */
@@ -204,41 +207,53 @@ export type StopHandler = () => void
 export interface SetupWorker {
   /**
    * Registers and activates the mock Service Worker.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()` API reference}
    */
   start: (options?: StartOptions) => StartReturnType
 
   /**
    * Stops requests interception for the current client.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()` API reference}
    */
   stop: StopHandler
 
   /**
    * Prepends given request handlers to the list of existing handlers.
    * @param {RequestHandler[]} handlers List of runtime request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()` API reference}
    */
   use: (...handlers: RequestHandler[]) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/restore-handlers `worker.restoreHandlers()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/restore-handlers `worker.restoreHandlers()` API reference}
    */
   restoreHandlers: () => void
 
   /**
    * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
    * @param {RequestHandler[]} nextHandlers List of the new initial request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()` API reference}
    */
   resetHandlers: (...nextHandlers: RequestHandler[]) => void
 
   /**
    * Returns a readonly list of currently active request handlers.
-   * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()` API reference}
    */
   listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
 
+  /**
+   * Life-cycle events.
+   * Life-cycle events allow you to subscribe to the internal library events occurring during the request/response handling.
+   *
+   * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
+   */
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }

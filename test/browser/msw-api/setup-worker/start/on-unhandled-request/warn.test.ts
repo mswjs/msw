@@ -15,7 +15,7 @@ test('warns on an unhandled REST API request with an absolute URL', async ({
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET https://mswjs.io/non-existing-page
 
@@ -40,7 +40,7 @@ test('warns on an unhandled REST API request with a relative URL', async ({
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET /user-details
 
@@ -65,7 +65,7 @@ test('does not warn on request which handler explicitly returns no mocked respon
   expect(consoleSpy.get('warning')).toEqual(
     expect.not.arrayContaining([
       expect.stringContaining(
-        '[MSW] Warning: captured a request without a matching request handler',
+        '[MSW] Warning: intercepted a request without a matching request handler',
       ),
     ]),
   )
@@ -86,7 +86,7 @@ test('does not warn on request which handler implicitly returns no mocked respon
   expect(consoleSpy.get('warning')).toEqual(
     expect.not.arrayContaining([
       expect.stringContaining(
-        '[MSW] Warning: captured a request without a matching request handler',
+        '[MSW] Warning: intercepted a request without a matching request handler',
       ),
     ]),
   )

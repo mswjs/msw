@@ -9,8 +9,7 @@ import { createGraphQLClient, gql } from '../../support/graphql'
 
 const server = setupServer(
   graphql.query('GetUser', async ({ request }) => {
-    const requestInfo = await bypass(request)
-    const originalResponse = await fetch(...requestInfo)
+    const originalResponse = await fetch(bypass(request))
     const { requestHeaders, queryResult } = await originalResponse.json()
 
     return HttpResponse.json({

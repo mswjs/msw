@@ -10,7 +10,13 @@
     "declaration": true,
     "declarationDir": "lib/types",
     "noEmit": true,
-    "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"],
+    "lib": [
+      "es2017",
+      "ESNext.AsyncIterable",
+      "dom",
+      "dom.iterable",
+      "webworker"
+    ],
     "baseUrl": "./src",
     "paths": {
       "~/core": ["./core"],

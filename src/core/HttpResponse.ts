@@ -24,9 +24,15 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
 }
 
 /**
- * A `Response` class superset with a stricter response body type.
+ * A drop-in replacement for the standard `Response` class
+ * to allow additional features, like mocking the response `Set-Cookie` header.
+ *
  * @example
  * new HttpResponse('Hello world', { status: 201 })
+ * HttpResponse.json({ name: 'John' })
+ * HttpResponse.formData(form)
+ *
+ * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
 export class HttpResponse extends Response {
   constructor(body?: BodyInit | null, init?: HttpResponseInit) {

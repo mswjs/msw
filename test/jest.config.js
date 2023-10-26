@@ -10,7 +10,6 @@ module.exports = {
   moduleNameMapper: {
     '^msw(.*)': '<rootDir>/../..$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/../../jest.setup.js'],
   testEnvironmentOptions: {
     // Force JSDOM to use the Node module resolution because we're still in Node.js.
     // Using browser resolution won't work by design because JSDOM is not a browser
@@ -21,6 +20,7 @@ module.exports = {
     customExportConditions: [''],
   },
   globals: {
+    fetch,
     Request,
     Response,
     TextEncoder,

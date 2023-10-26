@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-import { Headers } from 'headers-polyfill'
 import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
@@ -188,7 +187,7 @@ test('returns the mocked response for a request with a matching request handler'
     handler: handlers[0],
     response: mockedResponse,
     request,
-    parsedRequest: {
+    parsedResult: {
       match: { matches: true, params: {} },
       cookies: {},
     },
@@ -223,7 +222,7 @@ test('returns the mocked response for a request with a matching request handler'
 
   expect(lookupResultParam).toEqual({
     handler: lookupResult.handler,
-    parsedRequest: lookupResult.parsedRequest,
+    parsedResult: lookupResult.parsedResult,
     response: expect.objectContaining({
       status: lookupResult.response.status,
       statusText: lookupResult.response.statusText,
@@ -253,7 +252,7 @@ test('returns a transformed response if the "transformResponse" option is provid
     handler: handlers[0],
     response: mockedResponse,
     request,
-    parsedRequest: {
+    parsedResult: {
       match: { matches: true, params: {} },
       cookies: {},
     },
@@ -306,7 +305,7 @@ test('returns a transformed response if the "transformResponse" option is provid
 
   expect(lookupResultParam).toEqual({
     handler: lookupResult.handler,
-    parsedRequest: lookupResult.parsedRequest,
+    parsedResult: lookupResult.parsedResult,
     response: expect.objectContaining({
       status: lookupResult.response.status,
       statusText: lookupResult.response.statusText,

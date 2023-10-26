@@ -1,3 +1,12 @@
+> **MSW 2.0 is finally here! 🎉** Read the [Release notes](https://github.com/mswjs/msw/releases/tag/v2.0.0) and please follow the [**Migration guidelines**](https://mswjs.io/docs/migrations/1.x-to-2.x) to upgrade. If you're having any questions while upgrading, please reach out in our [Discord server](https://kettanaito.com/discord).
+>
+> We've also recorded the most comprehensive introduction to MSW ever. Learn how to mock APIs like a pro in our official video course:
+
+<a href="https://egghead.io/courses/mock-rest-and-graphql-apis-with-mock-service-worker-8d471ece?af=8mci9b" target="_blank">
+  <img src="media/egghead-banner.png" alt="Mock REST and GraphQL APIs with Mock Service Worker" />
+</a>
+
+<br />
 <br />
 
 <p align="center">
@@ -21,11 +30,13 @@
 
 <br />
 
+<br />
+
 ## Features
 
 - **Seamless**. A dedicated layer of requests interception at your disposal. Keep your application's code and tests unaware of whether something is mocked or not.
 - **Deviation-free**. Request the same production resources and test the actual behavior of your app. Augment an existing API, or design it as you go when there is none.
-- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to capture requests. Use parameters, wildcards, and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
+- **Familiar & Powerful**. Use [Express](https://github.com/expressjs/express)-like routing syntax to intercept requests. Use parameters, wildcards, and regular expressions to match requests, and respond with necessary status codes, headers, cookies, delays, or completely custom resolvers.
 
 ---
 
@@ -38,8 +49,7 @@
 This README will give you a brief overview on the library but there's no better place to start with Mock Service Worker than its official documentation.
 
 - [Documentation](https://mswjs.io/docs)
-- [**Getting started**](https://mswjs.io/docs/getting-started/install)
-- [Recipes](https://mswjs.io/docs/recipes)
+- [**Getting started**](https://mswjs.io/docs/getting-started)
 - [FAQ](https://mswjs.io/docs/faq)
 
 ## Examples
@@ -48,12 +58,12 @@ This README will give you a brief overview on the library but there's no better 
 
 ## Browser
 
-- [Learn more about using MSW in a browser](https://mswjs.io/docs/getting-started/integrate/browser)
+- [Learn more about using MSW in a browser](https://mswjs.io/docs/integrations/browser)
 - [`setupWorker` API](https://mswjs.io/docs/api/setup-worker)
 
 ### How does it work?
 
-In-browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), which can intercept requests for the purpose of caching, Mock Service Worker responds to captured requests with your mock definition on the network level. This way your application knows nothing about the mocking.
+In-browser usage is what sets Mock Service Worker apart from other tools. Utilizing the [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), which can intercept requests for the purpose of caching, Mock Service Worker responds to intercepted requests with your mock definition on the network level. This way your application knows nothing about the mocking.
 
 **Take a look at this quick presentation on how Mock Service Worker functions in a browser:**
 
@@ -101,7 +111,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ## Node.js
 
-- [Learn more about using MSW in Node.js](https://mswjs.io/docs/getting-started/integrate/node)
+- [Learn more about using MSW in Node.js](https://mswjs.io/docs/integrations/node)
 - [`setupServer` API](https://mswjs.io/docs/api/setup-server)
 
 ### How does it work?
@@ -175,7 +185,7 @@ it('displays the list of recent posts', async () => {
 })
 ```
 
-> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started/install) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
+> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
 
 Despite the API being called `setupServer`, there are no actual servers involved! The name was chosen for familiarity, and the API was designed to resemble operating with an actual server.
 
@@ -201,6 +211,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
           <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
           <img src="media/sponsors/github.svg" alt="GitHub" height="64" />
         </picture>
+      </a>
+    </td>
+     <td>
+      <a href="https://www.codacy.com/" target="_blank">
+        <img src="media/sponsors/codacy.svg" alt="Codacy" height="64" />
       </a>
     </td>
   </tr>

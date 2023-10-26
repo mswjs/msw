@@ -1,3 +1,4 @@
+import { setMaxListeners, defaultMaxListeners } from 'node:events'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
@@ -20,6 +21,7 @@ import {
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
+import { isNodeException } from './utils/isNodeException'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -62,6 +64,41 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
+      /**
+       * @note React Native doesn't have "node:events".
+       */
+      if (typeof setMaxListeners === 'function') {
+        // Bump the maximum number of event listeners on the
+        // request's "AbortSignal". This prepares the request
+        // for each request handler cloning it at least once.
+        // Note that cloning a request automatically appends a
+        // new "abort" event listener to the parent request's
+        // "AbortController" so if the parent aborts, all the
+        // clones are automatically aborted.
+        try {
+          setMaxListeners(
+            Math.max(defaultMaxListeners, this.currentHandlers.length),
+            request.signal,
+          )
+        } catch (error: unknown) {
+          /**
+           * @note Mock environments (JSDOM, ...) are not able to implement an internal
+           * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
+           * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
+           * At the same time, mock environments are also not able to implement the
+           * internal "events.maxEventTargetListenersWarned" Symbol, which results in
+           * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
+           * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
+           * which won't be printed anyway if `setMaxListeners` fails.
+           */
+          if (
+            !(isNodeException(error) && error.code === 'ERR_INVALID_ARG_TYPE')
+          ) {
+            throw error
+          }
+        }
+      }
+
       const response = await handleRequest(
         request,
         requestId,

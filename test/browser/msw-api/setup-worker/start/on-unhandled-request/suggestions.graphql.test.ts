@@ -46,7 +46,7 @@ test.describe('GraphQL API', () => {
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • query PaymentHistory (POST /graphql)
 
@@ -92,7 +92,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • query GetUsers (POST /graphql)
 
@@ -140,7 +140,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • query SubmitCheckout (POST /graphql)
 
@@ -188,7 +188,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`),
     expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • query ActiveUsers (POST /graphql)
 

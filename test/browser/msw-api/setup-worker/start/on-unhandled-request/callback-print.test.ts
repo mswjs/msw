@@ -24,7 +24,7 @@ test('executes a default "warn" strategy in a custom callback', async ({
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
-[MSW] Warning: captured a request without a matching request handler:
+[MSW] Warning: intercepted a request without a matching request handler:
 
   • GET https://mswjs.io/use-warn
 
@@ -58,7 +58,7 @@ test('executes a default "error" strategy in a custom callback', async ({
   expect(consoleSpy.get('error')).toEqual(
     expect.arrayContaining([
       expect.stringContaining(`\
-[MSW] Error: captured a request without a matching request handler:
+[MSW] Error: intercepted a request without a matching request handler:
 
   • GET https://mswjs.io/use-error
 

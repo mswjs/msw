@@ -8,8 +8,8 @@ import {
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
-import { requestToLoggableObject } from '../utils/logging/requestToLoggableObject'
-import { responseToLoggableObject } from '../utils/logging/responseToLoggableObject'
+import { serializeRequest } from '../utils/logging/serializeRequest'
+import { serializeResponse } from '../utils/logging/serializeResponse'
 import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
@@ -114,37 +114,40 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  async parse(request: Request) {
-    return parseGraphQLRequest(request).catch((error) => {
+  async parse(args: { request: Request }) {
+    return parseGraphQLRequest(args.request).catch((error) => {
       console.error(error)
       return undefined
     })
   }
 
-  predicate(request: Request, parsedResult: ParsedGraphQLRequest) {
-    if (!parsedResult) {
+  predicate(args: { request: Request; parsedResult: ParsedGraphQLRequest }) {
+    if (!args.parsedResult) {
       return false
     }
 
-    if (!parsedResult.operationName && this.info.operationType !== 'all') {
-      const publicUrl = getPublicUrlFromRequest(request)
+    if (!args.parsedResult.operationName && this.info.operationType !== 'all') {
+      const publicUrl = getPublicUrlFromRequest(args.request)
 
       devUtils.warn(`\
-Failed to intercept a GraphQL request at "${request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
+Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation`)
       return false
     }
 
-    const hasMatchingUrl = matchRequestUrl(new URL(request.url), this.endpoint)
+    const hasMatchingUrl = matchRequestUrl(
+      new URL(args.request.url),
+      this.endpoint,
+    )
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
-      parsedResult.operationType === this.info.operationType
+      args.parsedResult.operationType === this.info.operationType
 
     const hasMatchingOperationName =
       this.info.operationName instanceof RegExp
-        ? this.info.operationName.test(parsedResult.operationName || '')
-        : parsedResult.operationName === this.info.operationName
+        ? this.info.operationName.test(args.parsedResult.operationName || '')
+        : args.parsedResult.operationName === this.info.operationName
 
     return (
       hasMatchingUrl.matches &&
@@ -153,28 +156,28 @@ Consider naming this operation or using "graphql.operation()" request handler to
     )
   }
 
-  protected extendInfo(
-    _request: Request,
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>,
-  ) {
+  protected extendResolverArgs(args: {
+    request: Request
+    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+  }) {
     return {
-      query: parsedResult?.query || '',
-      operationName: parsedResult?.operationName || '',
-      variables: parsedResult?.variables || {},
+      query: args.parsedResult?.query || '',
+      operationName: args.parsedResult?.operationName || '',
+      variables: args.parsedResult?.variables || {},
     }
   }
 
-  async log(
-    request: Request,
-    response: Response,
-    parsedRequest: ParsedGraphQLRequest,
-  ) {
-    const loggedRequest = await requestToLoggableObject(request)
-    const loggedResponse = await responseToLoggableObject(response)
+  async log(args: {
+    request: Request
+    response: Response
+    parsedResult: ParsedGraphQLRequest
+  }) {
+    const loggedRequest = await serializeRequest(args.request)
+    const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
-    const requestInfo = parsedRequest?.operationName
-      ? `${parsedRequest?.operationType} ${parsedRequest?.operationName}`
-      : `anonymous ${parsedRequest?.operationType}`
+    const requestInfo = args.parsedResult?.operationName
+      ? `${args.parsedResult?.operationType} ${args.parsedResult?.operationName}`
+      : `anonymous ${args.parsedResult?.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s (%c%s%c)'),

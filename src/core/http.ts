@@ -30,6 +30,15 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
   }
 }
 
+/**
+ * A namespace to intercept and mock HTTP requests.
+ *
+ * @example
+ * http.get('/user', resolver)
+ * http.post('/post/:id', resolver)
+ *
+ * @see {@link https://mswjs.io/docs/api/http `http` API reference}
+ */
 export const http = {
   all: createHttpHandler(/.+/),
   head: createHttpHandler(HttpMethods.HEAD),

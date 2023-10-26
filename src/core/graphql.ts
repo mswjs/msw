@@ -68,34 +68,41 @@ function createGraphQLOperationHandler(url: Path) {
 
 const standardGraphQLHandlers = {
   /**
-   * Captures any GraphQL operation, regardless of its name, under the current scope.
-   * @example
-   * graphql.operation(() => {
-   *   return HttpResponse.json({ data: { name: 'John' } })
-   * })
-   * @see {@link https://mswjs.io/docs/api/graphql/operation `graphql.operation()`}
-   */
-  operation: createGraphQLOperationHandler('*'),
-
-  /**
-   * Captures a GraphQL query by a given name.
+   * Intercepts a GraphQL query by a given name.
+   *
    * @example
    * graphql.query('GetUser', () => {
    *   return HttpResponse.json({ data: { user: { name: 'John' } } })
    * })
-   * @see {@link https://mswjs.io/docs/api/graphql/query `graphql.query()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/graphql#graphqlqueryqueryname-resolver `graphql.query()` API reference}
    */
   query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
 
   /**
-   * Captures a GraphQL mutation by a given name.
+   * Intercepts a GraphQL mutation by its name.
+   *
    * @example
    * graphql.mutation('SavePost', () => {
    *   return HttpResponse.json({ data: { post: { id: 'abc-123 } } })
    * })
-   * @see {@link https://mswjs.io/docs/api/graphql/mutation `graphql.mutation()`}
+   *
+   * @see {@link https://mswjs.io/docs/api/graphql#graphqlmutationmutationname-resolver `graphql.query()` API reference}
+   *
    */
   mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
+
+  /**
+   * Intercepts any GraphQL operation, regardless of its type or name.
+   *
+   * @example
+   * graphql.operation(() => {
+   *   return HttpResponse.json({ data: { name: 'John' } })
+   * })
+   *
+   * @see {@link https://mswjs.io/docs/api/graphql#graphloperationresolver `graphql.operation()` API reference}
+   */
+  operation: createGraphQLOperationHandler('*'),
 }
 
 function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
@@ -106,7 +113,26 @@ function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
   }
 }
 
+/**
+ * A namespace to intercept and mock GraphQL operations
+ *
+ * @example
+ * graphql.query('GetUser', resolver)
+ * graphql.mutation('DeletePost', resolver)
+ *
+ * @see {@link https://mswjs.io/docs/api/graphql `graphql` API reference}
+ */
 export const graphql = {
   ...standardGraphQLHandlers,
+
+  /**
+   * Intercepts GraphQL operations scoped by the given URL.
+   *
+   * @example
+   * const github = graphql.link('https://api.github.com/graphql')
+   * github.query('GetRepo', resolver)
+   *
+   * @see {@link https://mswjs.io/docs/api/graphql#graphqllinkurl `graphql.link()` API reference}
+   */
   link: createGraphQLLink,
 }

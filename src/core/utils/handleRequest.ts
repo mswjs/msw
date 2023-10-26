@@ -6,7 +6,6 @@ import { RequiredDeep } from '../typeUtils'
 import { ResponseLookupResult, getResponse } from './getResponse'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
-import { RemoteRequestHandler } from '../handlers/RemoteRequestHandler'
 
 export interface HandleRequestOptions {
   /**
@@ -82,22 +81,11 @@ export async function handleRequest(
     return
   }
 
-  const { handler, response } = lookupResult.data
+  const { response } = lookupResult.data
 
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
   if (!response) {
-    // Prevent the internal request handler for "setupRemoteServer" to mark
-    // requests as handled. Also, prevent it from marking internal requests,
-    // such as WebSocket internal events, as handled.
-    if (
-      handler instanceof RemoteRequestHandler &&
-      request.headers.get('x-msw-request-type') !== 'internal-request'
-    ) {
-      await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
-      emitter.emit('request:unhandled', { request, requestId })
-    }
-
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return

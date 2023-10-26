@@ -14,7 +14,7 @@ test('warns on unhandled requests by default', async ({
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
       expect.stringMatching(
-        /\[MSW\] Warning: captured a request without a matching request handler/,
+        /\[MSW\] Warning: intercepted a request without a matching request handler/,
       ),
     ]),
   )

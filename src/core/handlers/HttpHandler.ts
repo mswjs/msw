@@ -3,8 +3,8 @@ import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
-import { requestToLoggableObject } from '../utils/logging/requestToLoggableObject'
-import { responseToLoggableObject } from '../utils/logging/responseToLoggableObject'
+import { serializeRequest } from '../utils/logging/serializeRequest'
+import { serializeResponse } from '../utils/logging/serializeResponse'
 import {
   matchRequestUrl,
   Match,
@@ -106,14 +106,17 @@ export class HttpHandler extends RequestHandler<
     )
   }
 
-  async parse(request: Request, resolutionContext?: ResponseResolutionContext) {
-    const url = new URL(request.url)
+  async parse(args: {
+    request: Request
+    resolutionContext?: ResponseResolutionContext
+  }) {
+    const url = new URL(args.request.url)
     const match = matchRequestUrl(
       url,
       this.info.path,
-      resolutionContext?.baseUrl,
+      args.resolutionContext?.baseUrl,
     )
-    const cookies = getAllRequestCookies(request)
+    const cookies = getAllRequestCookies(args.request)
 
     return {
       match,
@@ -121,9 +124,9 @@ export class HttpHandler extends RequestHandler<
     }
   }
 
-  predicate(request: Request, parsedResult: HttpRequestParsedResult) {
-    const hasMatchingMethod = this.matchMethod(request.method)
-    const hasMatchingUrl = parsedResult.match.matches
+  predicate(args: { request: Request; parsedResult: HttpRequestParsedResult }) {
+    const hasMatchingMethod = this.matchMethod(args.request.method)
+    const hasMatchingUrl = args.parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl
   }
 
@@ -133,26 +136,26 @@ export class HttpHandler extends RequestHandler<
       : isStringEqual(this.info.method, actualMethod)
   }
 
-  protected extendInfo(
-    _request: Request,
-    parsedResult: HttpRequestParsedResult,
-  ) {
+  protected extendResolverArgs(args: {
+    request: Request
+    parsedResult: HttpRequestParsedResult
+  }) {
     return {
-      params: parsedResult.match?.params || {},
-      cookies: parsedResult.cookies,
+      params: args.parsedResult.match?.params || {},
+      cookies: args.parsedResult.cookies,
     }
   }
 
-  async log(request: Request, response: Response) {
-    const publicUrl = getPublicUrlFromRequest(request)
-    const loggedRequest = await requestToLoggableObject(request)
-    const loggedResponse = await responseToLoggableObject(response)
+  async log(args: { request: Request; response: Response }) {
+    const publicUrl = getPublicUrlFromRequest(args.request)
+    const loggedRequest = await serializeRequest(args.request)
+    const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
 
     console.groupCollapsed(
       devUtils.formatMessage('%s %s %s (%c%s%c)'),
       getTimestamp(),
-      request.method,
+      args.request.method,
       publicUrl,
       `color:${statusColor}`,
       `${loggedResponse.status} ${loggedResponse.statusText}`,

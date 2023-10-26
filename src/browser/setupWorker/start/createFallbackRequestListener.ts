@@ -28,10 +28,14 @@ export function createFallbackRequestListener(
       options,
       context.emitter,
       {
-        onMockedResponse(_, { handler, parsedRequest }) {
+        onMockedResponse(_, { handler, parsedResult }) {
           if (!options.quiet) {
             context.emitter.once('response:mocked', ({ response }) => {
-              handler.log(requestCloneForLogs, response, parsedRequest)
+              handler.log({
+                request: requestCloneForLogs,
+                response,
+                parsedResult,
+              })
             })
           }
         },

@@ -46,6 +46,7 @@ export const createRequestListener = (
             // to buffer to be sent to the worker and also in the
             // ".log()" method of the request handler.
             const responseClone = response.clone()
+            const responseCloneForLogs = response.clone()
             const responseInit = toResponseInit(response)
 
             /**
@@ -72,10 +73,10 @@ export const createRequestListener = (
             }
 
             if (!options.quiet) {
-              context.emitter.once('response:mocked', ({ response }) => {
+              context.emitter.once('response:mocked', () => {
                 handler.log({
                   request: requestCloneForLogs,
-                  response,
+                  response: responseCloneForLogs,
                   parsedResult,
                 })
               })

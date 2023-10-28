@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import https from 'https'
 import { http, HttpResponse } from 'msw'

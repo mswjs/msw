@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import * as fs from 'fs'
 import { execSync } from 'child_process'

@@ -1,12 +1,12 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { deferNetworkRequestsUntil } from './deferNetworkRequestsUntil'
 
 beforeAll(() => {
   // Stubs native `fetch` function to remove any external
   // asynchronicity from this test suite.
-  window.fetch = jest.fn().mockImplementation(() => {
+  window.fetch = vi.fn().mockImplementation(() => {
     return Promise.resolve({
       json: () => ({
         response: 'body',
@@ -16,7 +16,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('defers any requests that happen while a given promise is pending', async () => {

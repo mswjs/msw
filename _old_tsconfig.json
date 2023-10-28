@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es6",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": false,
+    "esModuleInterop": false,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationDir": "lib/types",
+    "noEmit": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext.AsyncIterable"],
+    "baseUrl": "./src",
+    "paths": {
+      "~/core": ["./core"],
+      "~/core/*": ["./core/*"]
+    }
+  },
+  "include": ["global.d.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}

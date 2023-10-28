@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { HttpHandler, HttpRequestResolverExtras } from './HttpHandler'
 import { HttpResponse } from '..'

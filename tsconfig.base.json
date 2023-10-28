@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
+    "target": "es6",
+    "module": "esnext",
+    "moduleResolution": "node"
+  },
+  "include": ["global.d.ts"],
+  "exclude": ["node_modules", "lib"]
+}

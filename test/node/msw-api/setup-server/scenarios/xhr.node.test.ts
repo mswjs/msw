@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { http } from 'msw'
 import { setupServer } from 'msw/node'

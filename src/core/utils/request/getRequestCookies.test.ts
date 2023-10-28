@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { getRequestCookies } from './getRequestCookies'
 import { clearCookies } from '../../../../test/support/utils'

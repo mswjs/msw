@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  *
  * @note In JSDOM, the "AbortSignal" class is polyfilled instead of
  * using the Node.js global. Because of that, its instances won't

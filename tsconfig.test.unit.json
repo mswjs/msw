@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "esnext",
+    "module": "esnext",
+    "types": ["vitest/globals"]
+  },
+  "include": ["./src/**/*.test.ts", "./test/support"],
+  "references": [
+    {
+      "path": "./tsconfig.src.json"
+    }
+  ]
+}

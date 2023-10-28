@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import { http, graphql } from 'msw'
 import { setupServer } from 'msw/node'

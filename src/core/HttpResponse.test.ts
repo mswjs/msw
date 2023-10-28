@@ -30,6 +30,22 @@ it('creates a json response', async () => {
   expect(await response.json()).toEqual({ firstName: 'John' })
 })
 
+it('creates an empty response with no-content status', async () => {
+  const response = HttpResponse.empty()
+
+  expect(response.status).toBe(204)
+  expect(response.statusText).toBe('No Content')
+  expect(response.body).toBeNull()
+})
+
+it('creates an empty response with overwritten status', async () => {
+  const response = HttpResponse.empty({ status: 201 })
+
+  expect(response.status).toBe(201)
+  expect(response.statusText).toBe('Created')
+  expect(response.body).toBeNull()
+})
+
 it('creates an xml response', async () => {
   const response = HttpResponse.xml('<user name="John" />')
 

@@ -6,5 +6,5 @@
 export function isNodeException(
   error: unknown,
 ): error is NodeJS.ErrnoException {
-  return error instanceof Error && 'code' in error
+  return !!error && typeof error === 'object' && 'code' in error 
 }

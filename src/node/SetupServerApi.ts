@@ -14,7 +14,7 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
-import { isNodeException } from './utils/isNodeException'
+import { isNodeExceptionLike } from './utils/isNodeException'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -80,7 +80,10 @@ export class SetupServerApi
            * which won't be printed anyway if `setMaxListeners` fails.
            */
           if (
-            !(isNodeException(error) && error.code === 'ERR_INVALID_ARG_TYPE')
+            !(
+              isNodeExceptionLike(error) &&
+              error.code === 'ERR_INVALID_ARG_TYPE'
+            )
           ) {
             throw error
           }

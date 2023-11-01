@@ -1,4 +1,6 @@
 {
+  // Configuration for the unit tests living
+  // next to the source code.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
@@ -9,7 +11,7 @@
   "include": ["./src/**/*.test.ts", "./test/support"],
   "references": [
     {
-      "path": "./tsconfig.src.json"
+      "path": "./src/tsconfig.src.json"
     }
   ]
 }

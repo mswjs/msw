@@ -1,15 +1,15 @@
 {
   // Common configuration for everything
   // living in the "src" directory.
-  "extends": "./tsconfig.base.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "baseUrl": "src",
+    "baseUrl": "./",
     "paths": {
       "~/core": ["core"],
       "~/core/*": ["core/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["**/*.test.ts"]
+  "include": ["../global.d.ts", "./**/*.ts"],
+  "exclude": ["./**/*.test.ts"]
 }

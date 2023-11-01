@@ -342,3 +342,137 @@ it('returns undefined without warning on a passthrough request', async () => {
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
 })
+
+it('marks the first matching one-time handler as used', async () => {
+  const { emitter } = setup()
+
+  const oneTimeHandler = http.get(
+    '/resource',
+    () => {
+      return HttpResponse.text('One-time')
+    },
+    { once: true },
+  )
+  const anotherHandler = http.get('/resource', () => {
+    return HttpResponse.text('Another')
+  })
+  const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
+
+  const requestId = uuidv4()
+  const request = new Request('http://localhost/resource')
+  const firstResult = await handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await firstResult?.text()).toBe('One-time')
+  expect(oneTimeHandler.isUsed).toBe(true)
+  expect(anotherHandler.isUsed).toBe(false)
+
+  const secondResult = await handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await secondResult?.text()).toBe('Another')
+  expect(anotherHandler.isUsed).toBe(true)
+  expect(oneTimeHandler.isUsed).toBe(true)
+})
+
+it('does not mark non-matching one-time handlers as used', async () => {
+  const { emitter } = setup()
+
+  const oneTimeHandler = http.get(
+    '/resource',
+    () => {
+      return HttpResponse.text('One-time')
+    },
+    { once: true },
+  )
+  const anotherHandler = http.get(
+    '/another',
+    () => {
+      return HttpResponse.text('Another')
+    },
+    { once: true },
+  )
+  const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
+
+  const requestId = uuidv4()
+  const firstResult = await handleRequest(
+    new Request('http://localhost/another'),
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await firstResult?.text()).toBe('Another')
+  expect(oneTimeHandler.isUsed).toBe(false)
+  expect(anotherHandler.isUsed).toBe(true)
+
+  const secondResult = await handleRequest(
+    new Request('http://localhost/resource'),
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await secondResult?.text()).toBe('One-time')
+  expect(anotherHandler.isUsed).toBe(true)
+  expect(oneTimeHandler.isUsed).toBe(true)
+})
+
+it('handles parallel requests with one-time handlers', async () => {
+  const { emitter } = setup()
+
+  const oneTimeHandler = http.get(
+    '/resource',
+    () => {
+      return HttpResponse.text('One-time')
+    },
+    { once: true },
+  )
+  const anotherHandler = http.get('/resource', () => {
+    return HttpResponse.text('Another')
+  })
+  const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
+
+  const requestId = uuidv4()
+  const request = new Request('http://localhost/resource')
+  const firstResultPromise = handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+  const secondResultPromise = handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  const firstResult = await firstResultPromise
+  const secondResult = await secondResultPromise
+
+  expect(await firstResult?.text()).toBe('One-time')
+  expect(await secondResult?.text()).toBe('Another')
+  expect(oneTimeHandler.isUsed).toBe(true)
+  expect(anotherHandler.isUsed).toBe(true)
+})

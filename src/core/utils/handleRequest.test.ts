@@ -342,3 +342,47 @@ it('returns undefined without warning on a passthrough request', async () => {
   expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
   expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
 })
+
+it('marks the first matching one-time handler as used', async () => {
+  const { emitter } = setup()
+
+  const oneTimeHandler = http.get(
+    '/resource',
+    () => {
+      return HttpResponse.text('One-time')
+    },
+    { once: true },
+  )
+  const anotherHandler = http.get('/resource', () => {
+    return HttpResponse.text('Another')
+  })
+  const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
+
+  const requestId = uuidv4()
+  const request = new Request('http://localhost/resource')
+  const firstResult = await handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await firstResult?.text()).toBe('One-time')
+  expect(oneTimeHandler.isUsed).toBe(true)
+  expect(anotherHandler.isUsed).toBe(false)
+
+  const secondResult = await handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    callbacks,
+  )
+
+  expect(await secondResult?.text()).toBe('Another')
+  expect(anotherHandler.isUsed).toBe(true)
+  expect(oneTimeHandler.isUsed).toBe(true)
+})

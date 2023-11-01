@@ -23,7 +23,7 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
   </a>
-   <a href="https://kcd.im/discord" target="_blank">
+   <a href="https://kettanaito.com/discord" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
   </a>
 </p>

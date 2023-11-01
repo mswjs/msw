@@ -66,7 +66,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
    * is pure-er.
    */
   for (const [name, value] of Object.entries(forwardedCookies)) {
-    request.headers.append('cookie', `${name}=${value}`)
+    request.headers.append('cookie', encodeURIComponent(`${name}=${value}`))
   }
 
   return {

@@ -46,7 +46,6 @@
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
-    "prebuild": "rimraf ./lib",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "check:exports": "node \"./config/scripts/validate-esm.js\"",

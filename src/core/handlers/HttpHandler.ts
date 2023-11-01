@@ -153,13 +153,21 @@ export class HttpHandler extends RequestHandler<
     const statusColor = getStatusCodeColor(loggedResponse.status)
 
     console.groupCollapsed(
-      devUtils.formatMessage('%s %s %s (%c%s%c)'),
-      getTimestamp(),
-      args.request.method,
-      publicUrl,
-      `color:${statusColor}`,
-      `${loggedResponse.status} ${loggedResponse.statusText}`,
-      'color:inherit',
+      devUtils.formatMessage(
+        `${getTimestamp()} ${args.request.method} ${publicUrl} (%c${
+          loggedResponse.status
+        } ${loggedResponse.statusText}%c)`,
+        `color:${statusColor}`,
+        'color:inherit',
+      ),
+
+      // '%s %s %s (%c%s%c)',
+      // getTimestamp(),
+      // args.request.method,
+      // publicUrl,
+      // `color:${statusColor}`,
+      // `${loggedResponse.status} ${loggedResponse.statusText}`,
+      // 'color:inherit',
     )
     console.log('Request', loggedRequest)
     console.log('Handler:', this)

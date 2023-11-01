@@ -180,12 +180,22 @@ Consider naming this operation or using "graphql.operation()" request handler to
       : `anonymous ${args.parsedResult?.operationType}`
 
     console.groupCollapsed(
-      devUtils.formatMessage('%s %s (%c%s%c)'),
-      getTimestamp(),
-      `${requestInfo}`,
-      `color:${statusColor}`,
-      `${loggedResponse.status} ${loggedResponse.statusText}`,
-      'color:inherit',
+      devUtils.formatMessage(
+        `${getTimestamp()} ${requestInfo} (%c${loggedResponse.status} ${
+          loggedResponse.statusText
+        }%c)`,
+        `color:${statusColor}`,
+        'color:inherit',
+      ),
+
+      // devUtils.formatMessage(
+      //   '%s %s (%c%s%c)',
+      //   getTimestamp(),
+      //   `${requestInfo}`,
+      //   `color:${statusColor}`,
+      //   `${loggedResponse.status} ${loggedResponse.statusText}`,
+      //   'color:inherit',
+      // ),
     )
     console.log('Request:', loggedRequest)
     console.log('Handler:', this)

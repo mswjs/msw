@@ -23,7 +23,7 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
   </a>
-   <a href="https://kcd.im/discord" target="_blank">
+   <a href="https://kettanaito.com/discord" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
   </a>
 </p>
@@ -125,7 +125,7 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 ### Usage example
 
-Take a look at the example of an integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+Take a look at the example of an integration test in Vitest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
 
 ```js
 // test/Dashboard.test.js

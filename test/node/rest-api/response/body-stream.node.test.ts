@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import https from 'https'
 import { HttpResponse, http, delay } from 'msw'
@@ -49,7 +49,7 @@ test('responds with a ReadableStream', async () => {
   expect(await response.text()).toBe('helloworld')
 })
 
-test('supports delays when enqueuing chunks', (done) => {
+test('supports delays when enqueuing chunks', async () => {
   server.use(
     http.get('https://api.example.com/stream', () => {
       const stream = new ReadableStream({
@@ -74,29 +74,31 @@ test('supports delays when enqueuing chunks', (done) => {
     }),
   )
 
-  const request = https.get('https://api.example.com/stream', (response) => {
-    const chunks: Array<{ buffer: Buffer; timestamp: number }> = []
+  await new Promise<void>((resolve, reject) => {
+    const request = https.get('https://api.example.com/stream', (response) => {
+      const chunks: Array<{ buffer: Buffer; timestamp: number }> = []
 
-    response.on('data', (data) => {
-      chunks.push({
-        buffer: Buffer.from(data),
-        timestamp: Date.now(),
+      response.on('data', (data) => {
+        chunks.push({
+          buffer: Buffer.from(data),
+          timestamp: Date.now(),
+        })
+      })
+
+      response.once('end', () => {
+        const textChunks = chunks.map((chunk) => chunk.buffer.toString('utf8'))
+        expect(textChunks).toEqual(['first', 'second', 'third'])
+
+        // Ensure that the chunks were sent over time,
+        // respecting the delay set in the mocked stream.
+        const chunkTimings = chunks.map((chunk) => chunk.timestamp)
+        expect(chunkTimings[1] - chunkTimings[0]).toBeGreaterThanOrEqual(490)
+        expect(chunkTimings[2] - chunkTimings[1]).toBeGreaterThanOrEqual(490)
+
+        resolve()
       })
     })
 
-    response.once('end', () => {
-      const textChunks = chunks.map((chunk) => chunk.buffer.toString('utf8'))
-      expect(textChunks).toEqual(['first', 'second', 'third'])
-
-      // Ensure that the chunks were sent over time,
-      // respecting the delay set in the mocked stream.
-      const chunkTimings = chunks.map((chunk) => chunk.timestamp)
-      expect(chunkTimings[1] - chunkTimings[0]).toBeGreaterThanOrEqual(490)
-      expect(chunkTimings[2] - chunkTimings[1]).toBeGreaterThanOrEqual(490)
-
-      done()
-    })
+    request.on('error', (error) => reject(error))
   })
-
-  request.on('error', done)
 })

@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
@@ -13,12 +13,12 @@ const server = setupServer(
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'warn' })
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 
 afterAll(() => {
   server.close()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('warns on unhandled request when using the "warn" value', async () => {

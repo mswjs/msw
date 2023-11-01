@@ -1,0 +1,17 @@
+{
+  // Configuration for the unit tests living
+  // next to the source code.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "esnext",
+    "module": "esnext",
+    "types": ["vitest/globals"]
+  },
+  "include": ["./src/**/*.test.ts", "./test/support"],
+  "references": [
+    {
+      "path": "./src/tsconfig.src.json"
+    }
+  ]
+}

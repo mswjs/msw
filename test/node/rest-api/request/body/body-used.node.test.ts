@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import { HttpResponse, http, graphql } from 'msw'
 import { setupServer } from 'msw/node'
@@ -21,7 +21,7 @@ beforeAll(async () => {
 
 afterEach(() => {
   server.resetHandlers()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 afterAll(async () => {
@@ -31,7 +31,7 @@ afterAll(async () => {
 
 it('does not read the body while parsing an unhandled request', async () => {
   // Expecting an unhandled request warning in this test.
-  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const requestUrl = httpServer.http.url('/resource')
   const response = await fetch(requestUrl, {

@@ -13,7 +13,7 @@ This directory categorizes all test suites based on the library's execution or A
 Example-driven test consists of two parts:
 
 - `*.mocks.ts`, a usage example and also a code snippet to test.
-- `*.test.ts`, an actual test suite for Jest.
+- `*.test.ts`, an actual test suite for Vitest.
 
 ## Contributing
 

@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'cross-fetch'
 import { graphql, HttpResponse } from 'msw'

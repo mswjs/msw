@@ -14,7 +14,7 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupServer } from './glossary'
-import { isNodeExceptionLike } from './utils/isNodeException'
+import { isNodeExceptionLike } from './utils/isNodeExceptionLike'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',

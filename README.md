@@ -125,7 +125,7 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 ### Usage example
 
-Take a look at the example of an integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+Take a look at the example of an integration test in Vitest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
 
 ```js
 // test/Dashboard.test.js

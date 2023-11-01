@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import { TextEncoder } from 'util'
 import { HttpResponse } from './HttpResponse'

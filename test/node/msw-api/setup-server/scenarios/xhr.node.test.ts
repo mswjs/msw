@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { http } from 'msw'
 import { setupServer } from 'msw/node'
@@ -37,16 +37,22 @@ describe('given I perform an XMLHttpRequest', () => {
   let headers: Headers
   let body: string
 
-  beforeAll((done) => {
+  beforeAll(async () => {
     const req = new XMLHttpRequest()
     req.open('GET', 'http://localhost:3001/resource')
-    req.onload = function () {
-      statusCode = this.status
-      body = JSON.parse(this.response)
-      headers = stringToHeaders(this.getAllResponseHeaders())
-      done()
-    }
+
+    const requestFinishPromise = new Promise<void>((resolve, reject) => {
+      req.onload = function () {
+        statusCode = this.status
+        body = JSON.parse(this.response)
+        headers = stringToHeaders(this.getAllResponseHeaders())
+        resolve()
+      }
+      req.onerror = reject.bind(req)
+    })
     req.send()
+
+    await requestFinishPromise
   })
 
   test('returns mocked status code', () => {

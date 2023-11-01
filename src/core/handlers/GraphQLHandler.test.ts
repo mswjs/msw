@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
@@ -583,7 +583,7 @@ describe('isDocumentNode', () => {
 
 describe('request', () => {
   it('has parsed operationName', async () => {
-    const matchAllResolver = jest.fn()
+    const matchAllResolver = vi.fn()
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       /.*/,

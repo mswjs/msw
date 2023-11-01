@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'

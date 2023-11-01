@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
@@ -12,12 +12,12 @@ const server = setupServer(
 )
 
 beforeAll(() => {
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
   server.listen()
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
 })
 

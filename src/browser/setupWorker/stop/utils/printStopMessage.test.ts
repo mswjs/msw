@@ -1,15 +1,15 @@
 import { printStopMessage } from './printStopMessage'
 
 beforeAll(() => {
-  jest.spyOn(global.console, 'log').mockImplementation()
+  vi.spyOn(global.console, 'log').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('prints a stop message to the console', () => {

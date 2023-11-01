@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -21,16 +21,16 @@ const server = setupServer(graphql.query('GetUser', () => {}))
 beforeAll(async () => {
   server.listen()
   await httpServer.listen()
-  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
 afterEach(() => {
   server.resetHandlers()
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
   await httpServer.close()
 })

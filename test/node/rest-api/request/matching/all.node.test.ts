@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch, { Response } from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'

@@ -3,13 +3,13 @@ import { getTimestamp } from './getTimestamp'
 beforeAll(() => {
   // Stub native `Date` prototype methods used in the tested module,
   // to always produce a predictable value for testing purposes.
-  jest.spyOn(global.Date.prototype, 'getHours').mockImplementation(() => 12)
-  jest.spyOn(global.Date.prototype, 'getMinutes').mockImplementation(() => 4)
-  jest.spyOn(global.Date.prototype, 'getSeconds').mockImplementation(() => 8)
+  vi.spyOn(global.Date.prototype, 'getHours').mockImplementation(() => 12)
+  vi.spyOn(global.Date.prototype, 'getMinutes').mockImplementation(() => 4)
+  vi.spyOn(global.Date.prototype, 'getSeconds').mockImplementation(() => 8)
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('returns a timestamp string of the invocation time', () => {

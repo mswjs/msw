@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'node-fetch'
 import type { ExecutionResult } from 'graphql'

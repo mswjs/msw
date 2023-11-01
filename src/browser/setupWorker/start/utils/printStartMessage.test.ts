@@ -1,12 +1,12 @@
 import { printStartMessage } from './printStartMessage'
 
 beforeEach(() => {
-  jest.spyOn(console, 'groupCollapsed').mockImplementation()
-  jest.spyOn(console, 'log').mockImplementation()
+  vi.spyOn(console, 'groupCollapsed').mockImplementation(() => void 0)
+  vi.spyOn(console, 'log').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('prints out a default start message into console', () => {

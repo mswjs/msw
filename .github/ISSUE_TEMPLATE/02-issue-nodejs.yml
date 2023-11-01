@@ -1,5 +1,5 @@
 name: 'Bug report (Node.js)'
-description: I experience unexpected behavior using the library in Node.js (Jest/React Native/Express/etc.).
+description: I experience unexpected behavior using the library in Node.js (Vitest/React Native/Express/etc.).
 labels: ['bug', 'scope:node', 'needs:triage']
 body:
   - type: markdown

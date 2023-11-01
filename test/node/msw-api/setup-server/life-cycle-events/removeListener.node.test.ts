@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
@@ -32,8 +32,8 @@ afterAll(async () => {
 
 test('removes a listener by the event name', async () => {
   const listeners = {
-    requestStart: jest.fn(),
-    requestEnd: jest.fn(),
+    requestStart: vi.fn(),
+    requestEnd: vi.fn(),
   }
   server.events.on('request:start', listeners.requestStart)
   server.events.on('request:end', listeners.requestEnd)

@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import express from 'express'
 import { test, expect } from '../../../../playwright.extend'

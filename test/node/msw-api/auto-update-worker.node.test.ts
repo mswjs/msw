@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import { execSync } from 'child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../../support/utils'
-import packageJson from '../../../package.json'
+import * as packageJson from '../../../package.json'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('auto-update-worker'),

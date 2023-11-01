@@ -21,16 +21,16 @@ const server = setupServer(graphql.query('GetUser', () => {}))
 beforeAll(async () => {
   server.listen()
   await httpServer.listen()
-  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
 afterEach(() => {
   server.resetHandlers()
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
   await httpServer.close()
 })

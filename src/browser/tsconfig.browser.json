@@ -5,5 +5,5 @@
     // source code under the "src/browser" directory.
     "lib": ["DOM", "WebWorker"]
   },
-  "include": ["./global.browser.d.ts", "./**/*.ts"]
+  "include": ["../../global.d.ts", "./global.browser.d.ts", "./**/*.ts"]
 }

@@ -12,12 +12,12 @@ const server = setupServer(
 )
 
 beforeAll(() => {
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
   server.listen()
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
 })
 

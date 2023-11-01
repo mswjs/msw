@@ -1,5 +1,5 @@
 /**
- * @vitest-environment node
+ * @vitest-environment jsdom
  */
 import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
@@ -61,11 +61,15 @@ test('inherits cookies set from a preceeding request', async () => {
   const res = await fetch(httpServer.https.url('/login'), {
     method: 'POST',
   }).then(() => {
+    // Fetch the user after requesting login to see
+    // if the response cookies set in the login request handler
+    // are automatically forwarded to the "GET /user" request.
     return fetch(httpServer.https.url('/user'))
   })
-  const json = await res.json()
 
   expect(res.status).toBe(200)
+
+  const json = await res.json()
   expect(json).toEqual({
     firstName: 'John',
     lastName: 'Maverick',

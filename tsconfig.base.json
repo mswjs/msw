@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
+    "strict": true,
     "target": "es6",
     "module": "esnext",
     "moduleResolution": "node",
-    "strict": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": false

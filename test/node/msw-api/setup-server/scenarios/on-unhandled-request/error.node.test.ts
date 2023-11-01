@@ -40,16 +40,16 @@ beforeAll(async () => {
 })
 
 beforeEach(() => {
-  jest.spyOn(global.console, 'error').mockImplementation()
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'error').mockImplementation(() => void 0)
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
   await httpServer.close()
 })

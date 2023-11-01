@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
-const log = jest.fn()
+const log = vi.fn()
 
 const server = setupServer(
   http.get('https://test.mswjs.io/*', () => log('[get] first')),
@@ -24,7 +24,7 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(() => {

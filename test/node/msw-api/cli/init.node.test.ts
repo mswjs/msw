@@ -37,7 +37,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   await fsMock.cleanup()
 })
 
@@ -170,15 +170,15 @@ test('does not produce eslint errors or warnings', async () => {
 test('errors and shuts down if creating a directory fails', async () => {
   const init = require('../../../../cli/init')
   const error = new Error('Could not create this directory')
-  jest.spyOn(fs.promises, 'mkdir').mockRejectedValue(error)
+  vi.spyOn(fs.promises, 'mkdir').mockRejectedValue(error)
 
-  const exitSpy = jest.spyOn(process, 'exit').mockImplementationOnce(() => {
+  const exitSpy = vi.spyOn(process, 'exit').mockImplementationOnce(() => {
     throw error
   })
 
-  const consoleSpy = jest
+  const consoleSpy = vi
     .spyOn(console, 'error')
-    .mockImplementationOnce(jest.fn())
+    .mockImplementationOnce(() => void 0)
 
   const publicDir = 'public'
 

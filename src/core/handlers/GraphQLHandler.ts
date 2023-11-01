@@ -184,18 +184,9 @@ Consider naming this operation or using "graphql.operation()" request handler to
         `${getTimestamp()} ${requestInfo} (%c${loggedResponse.status} ${
           loggedResponse.statusText
         }%c)`,
-        `color:${statusColor}`,
-        'color:inherit',
       ),
-
-      // devUtils.formatMessage(
-      //   '%s %s (%c%s%c)',
-      //   getTimestamp(),
-      //   `${requestInfo}`,
-      //   `color:${statusColor}`,
-      //   `${loggedResponse.status} ${loggedResponse.statusText}`,
-      //   'color:inherit',
-      // ),
+      `color:${statusColor}`,
+      'color:inherit',
     )
     console.log('Request:', loggedRequest)
     console.log('Handler:', this)

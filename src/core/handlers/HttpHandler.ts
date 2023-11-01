@@ -157,17 +157,9 @@ export class HttpHandler extends RequestHandler<
         `${getTimestamp()} ${args.request.method} ${publicUrl} (%c${
           loggedResponse.status
         } ${loggedResponse.statusText}%c)`,
-        `color:${statusColor}`,
-        'color:inherit',
       ),
-
-      // '%s %s %s (%c%s%c)',
-      // getTimestamp(),
-      // args.request.method,
-      // publicUrl,
-      // `color:${statusColor}`,
-      // `${loggedResponse.status} ${loggedResponse.statusText}`,
-      // 'color:inherit',
+      `color:${statusColor}`,
+      'color:inherit',
     )
     console.log('Request', loggedRequest)
     console.log('Handler:', this)

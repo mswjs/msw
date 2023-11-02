@@ -38,6 +38,8 @@ export type {
   GraphQLVariables,
   GraphQLRequestBody,
   GraphQLJsonRequestBody,
+  GraphQLResolverExtras,
+  GraphQLResponseBody,
 } from './handlers/GraphQLHandler'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'

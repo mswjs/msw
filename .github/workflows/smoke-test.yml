@@ -7,14 +7,11 @@ on:
     workflows: ['ci']
     branches: [main]
     types: [completed]
-  # Also allow on-demand smoke test runs.
-  # Useful when testing a particular branch
-  # for compatibility with the examples.
   workflow_dispatch:
 
 jobs:
   examples:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-latest
     steps:
       - name: Checkout

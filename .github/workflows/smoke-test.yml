@@ -1,0 +1,60 @@
+name: smoke-test
+
+on:
+  # Always run smoke tests upon a successful
+  # "ci" job completion on "main".
+  workflow_run:
+    workflows: ['ci']
+    branches: [main]
+    types: [completed]
+  # Also allow on-demand smoke test runs.
+  # Useful when testing a particular branch
+  # for compatibility with the examples.
+  workflow_dispatch:
+
+jobs:
+  examples:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Override package.json version
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "Latest commit: $COMMIT_HASH"
+          pnpm version $COMMIT_HASH
+
+      - name: Pack
+        run: pnpm pack
+
+      - name: Clone examples
+        run: git clone git@github.com:mswjs/examples.git
+
+      - name: Install example dependencies
+        working_directory: ./examples
+        run: pnpm install
+
+      - name: Link MSW build
+        working_directory: ./examples
+        run: |
+          pnpm link ../msw-$COMMIT_HASH.tgz
+          pnpm ls msw
+
+      - name: Tests
+        working_directory: ./examples
+        run: pnpm test

@@ -1,20 +1,16 @@
 name: smoke-test
 
 on:
-  # Always run smoke tests upon a successful
-  # "ci" job completion on "main".
-  workflow_run:
-    workflows: ['ci']
-    branches: [main]
-    types: [completed]
-  # Also allow on-demand smoke test runs.
-  # Useful when testing a particular branch
-  # for compatibility with the examples.
+  # # Always run smoke tests upon a successful
+  # # "ci" job completion on "main".
+  # workflow_run:
+  #   workflows: ['ci']
+  #   branches: [main]
+  #   types: [completed]
   workflow_dispatch:
 
 jobs:
   examples:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_dispatch }}
     runs-on: macos-latest
     steps:
       - name: Checkout

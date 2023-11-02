@@ -29,7 +29,7 @@ test('prints a log for a GraphQL query', async ({
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `^\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetUserDetail color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetUserDetail \\(%c200 OK%c\\) color:${StatusCodeColor.Success} color:inherit$`,
           ),
         ),
       ]),
@@ -60,7 +60,7 @@ test('prints a log for a GraphQL mutation', async ({
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation Login color:${StatusCodeColor.Success} 200 OK color:inherit$`,
+            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation Login \\(%c200 OK%c\\) color:${StatusCodeColor.Success} color:inherit$`,
           ),
         ),
       ]),
@@ -91,7 +91,7 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} query GetLatestPosts color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetLatestPosts \\(%c301 Moved Permanently%c\\) color:${StatusCodeColor.Warning} color:inherit$`,
           ),
         ),
       ]),
@@ -122,7 +122,7 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `\\[MSW\\] %s %s \\(%c%s%c\\) \\d{2}:\\d{2}:\\d{2} mutation CreatePost color:${StatusCodeColor.Warning} 301 Moved Permanently color:inherit$`,
+            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation CreatePost \\(%c301 Moved Permanently%c\\) color:${StatusCodeColor.Warning} color:inherit$`,
           ),
         ),
       ]),

@@ -2,7 +2,7 @@ import cookieUtils from '@bundled-es-modules/cookie'
 import { store } from '@mswjs/cookies'
 
 function getAllDocumentCookies() {
-  return cookieUtils.parse(document.cookie)
+  return cookieUtils.parse(document.cookie, { decode: (value) => value })
 }
 
 /** @todo Rename this to "getDocumentCookies" */
@@ -67,6 +67,9 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
    */
   for (const [name, value] of Object.entries(forwardedCookies)) {
     request.headers.append('cookie', cookieUtils.serialize(name, value))
+    if (value.indexOf('%') !== -1) {
+      forwardedCookies[name] = decodeURIComponent(value)
+    }
   }
 
   return {

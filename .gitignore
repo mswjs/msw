@@ -11,3 +11,7 @@ msw-*.tgz
 .husky/_
 .env
 **/test-results
+
+# Smoke test temporary files.
+/package.json.copy
+/examples

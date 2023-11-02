@@ -190,11 +190,6 @@ export abstract class RequestHandler<
     // and the response resolver so we can always read it for logging.
     const mainRequestRef = args.request.clone()
 
-    // Immediately mark the handler as used.
-    // Can't await the resolver to be resolved because it's potentially
-    // asynchronous, and there may be multiple requests hitting this handler.
-    this.isUsed = true
-
     const parsedResult = await this.parse({
       request: args.request,
       resolutionContext: args.resolutionContext,
@@ -208,6 +203,14 @@ export abstract class RequestHandler<
     if (!shouldInterceptRequest) {
       return null
     }
+
+    // Re-check isUsed, in case another request hit this handler while we were
+    // asynchronously parsing the request.
+    if (this.isUsed && this.options?.once) {
+      return null
+    }
+
+    this.isUsed = true
 
     // Create a response extraction wrapper around the resolver
     // since it can be both an async function and a generator.

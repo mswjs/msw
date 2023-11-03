@@ -7,8 +7,7 @@ const { execSync } = require('child_process')
 // NPM stores the parent project directory in the "INIT_CWD" env variable.
 const parentPackageCwd = process.env.INIT_CWD
 
-function postinstall() {
-  // 1. Check if "package.json" has "msw.workerDirectory" property set.
+function postInstall() {
   const packageJson = JSON.parse(
     fs.readFileSync(path.resolve(parentPackageCwd, 'package.json'), 'utf8'),
   )
@@ -19,39 +18,19 @@ function postinstall() {
 
   const cliExecutable = path.resolve(process.cwd(), 'cli/index.js')
 
-  // 2. Check if the worker directory is an existing path.
-  const workerDirectories = Array.prototype.concat(
-    packageJson.msw.workerDirectory,
-  )
-
-  for (const workerDirectory of workerDirectories) {
-    const absoluteWorkerDirectory = path.resolve(
-      parentPackageCwd,
-      workerDirectory,
+  try {
+    /**
+     * @note Call the "init" command directly. It will now copy the worker script
+     * to all saved paths in "msw.workerDirectory"
+     */
+    execSync(`node ${cliExecutable} init`, {
+      cwd: parentPackageCwd,
+    })
+  } catch (error) {
+    console.error(
+      `[MSW] Failed to automatically update the worker script.\n\n${error}`,
     )
-
-    console.log({ absoluteWorkerDirectory })
-
-    if (!fs.existsSync(absoluteWorkerDirectory)) {
-      console.warn(
-        `[MSW] Failed to automatically update the worker script at "%s": given path does not exist.`,
-        workerDirectory,
-      )
-      continue
-    }
-
-    // 3. Update the worker script.
-    try {
-      execSync(`node ${cliExecutable} init ${absoluteWorkerDirectory}`, {
-        cwd: parentPackageCwd,
-      })
-    } catch (error) {
-      console.error(
-        `[MSW] Failed to automatically update the worker script at "${absoluteWorkerDirectory}":\n${error}`,
-      )
-      continue
-    }
   }
 }
 
-postinstall()
+postInstall()

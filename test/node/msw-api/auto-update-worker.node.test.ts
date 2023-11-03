@@ -11,21 +11,21 @@ const fsMock = createTeardown({
   rootDir: fromTemp('auto-update-worker'),
 })
 
-beforeAll(async () => {
-  await fsMock.prepare()
-})
-
-afterEach(async () => {
-  // await fsMock.reset()
-})
-
-afterAll(async () => {
-  await fsMock.cleanup()
-})
-
 describe.sequential(
-  'worker script auto-updates',
+  'worker script auto-update',
   () => {
+    beforeAll(async () => {
+      await fsMock.prepare()
+    })
+
+    afterEach(async () => {
+      await fsMock.reset()
+    })
+
+    afterAll(async () => {
+      await fsMock.cleanup()
+    })
+
     test('updates the worker script on the postinstall hook', async () => {
       await fsMock.create({
         'package.json': JSON.stringify({
@@ -71,7 +71,6 @@ describe.sequential(
         `npm install msw-${packageJson.version}.tgz`,
       )
       expect(installCommand.stderr).toBe('')
-      console.log(installCommand.stdout)
 
       expect(
         fs.existsSync(fsMock.resolve('packages/one/mockServiceWorker.js')),
@@ -81,5 +80,8 @@ describe.sequential(
       ).toEqual(true)
     })
   },
-  { timeout: 60_000 },
+  {
+    // These tests actually build, pack, and install MSW so they may take time.
+    timeout: 60_000,
+  },
 )

@@ -17,31 +17,40 @@ function postinstall() {
     return
   }
 
-  // 2. Check if the worker directory is an existing path.
-  const { workerDirectory } = packageJson.msw
-  const absoluteWorkerDirectory = path.resolve(
-    parentPackageCwd,
-    workerDirectory,
-  )
-
-  if (!fs.existsSync(absoluteWorkerDirectory)) {
-    return console.error(
-      `[MSW] Failed to automatically update the worker script at "%s": given path does not exist.`,
-      workerDirectory,
-    )
-  }
-
-  // 3. Update the worker script.
   const cliExecutable = path.resolve(process.cwd(), 'cli/index.js')
 
-  try {
-    execSync(`node ${cliExecutable} init ${absoluteWorkerDirectory}`, {
-      cwd: parentPackageCwd,
-    })
-  } catch (error) {
-    console.error(
-      `[MSW] Failed to automatically update the worker script:\n${error}`,
+  // 2. Check if the worker directory is an existing path.
+  const workerDirectories = Array.prototype.concat(
+    packageJson.msw.workerDirectory,
+  )
+
+  for (const workerDirectory of workerDirectories) {
+    const absoluteWorkerDirectory = path.resolve(
+      parentPackageCwd,
+      workerDirectory,
     )
+
+    console.log({ absoluteWorkerDirectory })
+
+    if (!fs.existsSync(absoluteWorkerDirectory)) {
+      console.warn(
+        `[MSW] Failed to automatically update the worker script at "%s": given path does not exist.`,
+        workerDirectory,
+      )
+      continue
+    }
+
+    // 3. Update the worker script.
+    try {
+      execSync(`node ${cliExecutable} init ${absoluteWorkerDirectory}`, {
+        cwd: parentPackageCwd,
+      })
+    } catch (error) {
+      console.error(
+        `[MSW] Failed to automatically update the worker script at "${absoluteWorkerDirectory}":\n${error}`,
+      )
+      continue
+    }
   }
 }
 

@@ -30,7 +30,7 @@ export interface RequestHandlerInternalInfo {
 export type ResponseResolverReturnType<
   BodyType extends DefaultBodyType = undefined,
 > =
-  | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
+  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
   | undefined
   | void
 
@@ -265,7 +265,7 @@ export abstract class RequestHandler<
 
           // Clone the previously stored response from the generator
           // so that it could be read again.
-          return this.resolverGeneratorResult.clone()
+          return this.resolverGeneratorResult.clone() as StrictResponse<any>
         }
 
         if (!this.resolverGenerator) {

@@ -19,6 +19,14 @@ export type DefaultBodyType =
   | null
   | undefined
 
+export type JsonBodyType =
+  | Record<string, any>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+
 export interface RequestHandlerDefaultInfo {
   header: string
 }

@@ -1,4 +1,4 @@
-import type { DefaultBodyType } from './handlers/RequestHandler'
+import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
 import {
   decorateResponse,
   normalizeResponseInit,
@@ -62,7 +62,7 @@ export class HttpResponse extends Response {
    * HttpResponse.json({ firstName: 'John' })
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
-  static json<BodyType extends DefaultBodyType>(
+  static json<BodyType extends JsonBodyType>(
     body?: BodyType | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {

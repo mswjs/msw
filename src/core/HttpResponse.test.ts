@@ -10,6 +10,7 @@ it('creates a plain response', async () => {
   expect(response.statusText).toBe('Moved Permanently')
   expect(response.body).toBe(null)
   expect(await response.text()).toBe('')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
 it('creates a text response', async () => {
@@ -19,15 +20,83 @@ it('creates a text response', async () => {
   expect(response.statusText).toBe('Created')
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(await response.text()).toBe('hello world')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': 'text/plain',
+  })
 })
 
-it('creates a json response', async () => {
-  const response = HttpResponse.json({ firstName: 'John' })
+describe('HttpResponse.json()', () => {
+  it('creates a json response given an object', async () => {
+    const response = HttpResponse.json({ firstName: 'John' })
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(response.body).toBeInstanceOf(ReadableStream)
-  expect(await response.json()).toEqual({ firstName: 'John' })
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ firstName: 'John' })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given an array', async () => {
+    const response = HttpResponse.json([1, 2, 3])
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual([1, 2, 3])
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a plain string', async () => {
+    const response = HttpResponse.json(`"hello"`)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toBe(`"hello"`)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a number', async () => {
+    const response = HttpResponse.json(123)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toBe(123)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a json ReadableStream', async () => {
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`{"firstName`))
+        controller.enqueue(encoder.encode(`":"John`))
+        controller.enqueue(encoder.encode(`"}`))
+        controller.close()
+      },
+    })
+    const response = HttpResponse.json(stream)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    // A ReadableStream instance is not a valid body init
+    // for the "Response.json()" static method. It gets serialized
+    // into a plain object.
+    expect(await response.json()).toEqual({})
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
 })
 
 it('creates an xml response', async () => {
@@ -37,6 +106,9 @@ it('creates an xml response', async () => {
   expect(response.statusText).toBe('OK')
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(await response.text()).toBe('<user name="John" />')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': 'text/xml',
+  })
 })
 
 it('creates an array buffer response', async () => {
@@ -49,6 +121,9 @@ it('creates an array buffer response', async () => {
 
   const responseData = await response.arrayBuffer()
   expect(responseData).toEqual(buffer.buffer)
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-length': '11',
+  })
 })
 
 it('creates a form data response', async () => {
@@ -62,4 +137,9 @@ it('creates a form data response', async () => {
 
   const responseData = await response.formData()
   expect(responseData.get('firstName')).toBe('John')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': expect.stringContaining(
+      'multipart/form-data; boundary=----',
+    ),
+  })
 })

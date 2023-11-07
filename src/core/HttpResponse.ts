@@ -52,7 +52,11 @@ export class HttpResponse extends Response {
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
-    responseInit.headers.set('Content-Type', 'text/plain')
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'text/plain')
+    }
+
     return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
   }
 
@@ -67,7 +71,11 @@ export class HttpResponse extends Response {
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
-    responseInit.headers.set('Content-Type', 'application/json')
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'application/json')
+    }
+
     return new HttpResponse(
       JSON.stringify(body),
       responseInit,
@@ -85,7 +93,11 @@ export class HttpResponse extends Response {
     init?: HttpResponseInit,
   ): Response {
     const responseInit = normalizeResponseInit(init)
-    responseInit.headers.set('Content-Type', 'text/xml')
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'text/xml')
+    }
+
     return new HttpResponse(body, responseInit)
   }
 

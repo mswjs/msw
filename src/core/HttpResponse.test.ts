@@ -13,15 +13,33 @@ it('creates a plain response', async () => {
   expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
-it('creates a text response', async () => {
-  const response = HttpResponse.text('hello world', { status: 201 })
+describe('HttpResponse.text()', () => {
+  it('creates a text response', async () => {
+    const response = HttpResponse.text('hello world', { status: 201 })
 
-  expect(response.status).toBe(201)
-  expect(response.statusText).toBe('Created')
-  expect(response.body).toBeInstanceOf(ReadableStream)
-  expect(await response.text()).toBe('hello world')
-  expect(Object.fromEntries(response.headers.entries())).toEqual({
-    'content-type': 'text/plain',
+    expect(response.status).toBe(201)
+    expect(response.statusText).toBe('Created')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('hello world')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/plain',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.text('hello world', {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('hello world')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/plain; charset=utf-8',
+    })
   })
 })
 
@@ -97,17 +115,54 @@ describe('HttpResponse.json()', () => {
       'content-type': 'application/json',
     })
   })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.json(
+      { a: 1 },
+      {
+        headers: {
+          'Content-Type': 'application/hal+json',
+        },
+      },
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ a: 1 })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/hal+json',
+    })
+  })
 })
 
-it('creates an xml response', async () => {
-  const response = HttpResponse.xml('<user name="John" />')
+describe('HttpResponse.xml()', () => {
+  it('creates an xml response', async () => {
+    const response = HttpResponse.xml('<user name="John" />')
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(response.body).toBeInstanceOf(ReadableStream)
-  expect(await response.text()).toBe('<user name="John" />')
-  expect(Object.fromEntries(response.headers.entries())).toEqual({
-    'content-type': 'text/xml',
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<user name="John" />')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/xml',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.xml('<user name="John" />', {
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<user name="John" />')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/xml; charset=utf-8',
+    })
   })
 })
 

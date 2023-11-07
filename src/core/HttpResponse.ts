@@ -69,7 +69,7 @@ export class HttpResponse extends Response {
     const responseInit = normalizeResponseInit(init)
     responseInit.headers.set('Content-Type', 'application/json')
     return new HttpResponse(
-      JSON.stringify(body),
+      body instanceof ReadableStream ? body : JSON.stringify(body),
       responseInit,
     ) as StrictResponse<BodyType>
   }

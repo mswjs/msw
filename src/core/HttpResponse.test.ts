@@ -25,15 +25,62 @@ it('creates a text response', async () => {
   })
 })
 
-it('creates a json response', async () => {
-  const response = HttpResponse.json({ firstName: 'John' })
+describe('HttpResponse.json()', () => {
+  it('creates a json response given an object', async () => {
+    const response = HttpResponse.json({ firstName: 'John' })
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(response.body).toBeInstanceOf(ReadableStream)
-  expect(await response.json()).toEqual({ firstName: 'John' })
-  expect(Object.fromEntries(response.headers.entries())).toEqual({
-    'content-type': 'application/json',
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ firstName: 'John' })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a plain string', async () => {
+    const response = HttpResponse.json(`"hello"`)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toBe(`"hello"`)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a number', async () => {
+    const response = HttpResponse.json(123)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toBe(123)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given a json ReadableStream', async () => {
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`{"firstName`))
+        controller.enqueue(encoder.encode(`":"John`))
+        controller.enqueue(encoder.encode(`"}`))
+        controller.close()
+      },
+    })
+    const response = HttpResponse.json(stream)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ firstName: 'John' })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
   })
 })
 

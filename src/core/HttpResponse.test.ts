@@ -10,6 +10,7 @@ it('creates a plain response', async () => {
   expect(response.statusText).toBe('Moved Permanently')
   expect(response.body).toBe(null)
   expect(await response.text()).toBe('')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
 it('creates a text response', async () => {
@@ -19,6 +20,9 @@ it('creates a text response', async () => {
   expect(response.statusText).toBe('Created')
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(await response.text()).toBe('hello world')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': 'text/plain',
+  })
 })
 
 it('creates a json response', async () => {
@@ -28,6 +32,9 @@ it('creates a json response', async () => {
   expect(response.statusText).toBe('OK')
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(await response.json()).toEqual({ firstName: 'John' })
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': 'application/json',
+  })
 })
 
 it('creates an xml response', async () => {
@@ -37,6 +44,9 @@ it('creates an xml response', async () => {
   expect(response.statusText).toBe('OK')
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(await response.text()).toBe('<user name="John" />')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': 'text/xml',
+  })
 })
 
 it('creates an array buffer response', async () => {
@@ -49,6 +59,9 @@ it('creates an array buffer response', async () => {
 
   const responseData = await response.arrayBuffer()
   expect(responseData).toEqual(buffer.buffer)
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-length': '11',
+  })
 })
 
 it('creates a form data response', async () => {
@@ -62,4 +75,9 @@ it('creates a form data response', async () => {
 
   const responseData = await response.formData()
   expect(responseData.get('firstName')).toBe('John')
+  expect(Object.fromEntries(response.headers.entries())).toEqual({
+    'content-type': expect.stringContaining(
+      'multipart/form-data; boundary=----',
+    ),
+  })
 })

@@ -119,3 +119,13 @@ http.get<never, never, string | string[]>('/user', () =>
 http.get<never, never, { label: boolean }>('/user', () =>
   HttpResponse.json({ label: true }),
 )
+
+// Empty response body requires a strict response
+http.get<never, never, null>(
+  '/user',
+  // @ts-expect-error HttpResponse is not StrictResponse<null>
+  () => new HttpResponse(),
+)
+
+// Empty response can be used for en empty response body
+http.get<never, never, null>('/user', () => HttpResponse.empty())

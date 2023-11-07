@@ -75,6 +75,20 @@ export class HttpResponse extends Response {
   }
 
   /**
+   * Create a `Response` with an empty body and status code 204 by default.
+   * @example
+   * HttpResponse.empty()
+   * HttpResponse.empty({ status: 201 })
+   */
+  static empty(init?: HttpResponseInit): StrictResponse<null> {
+    const noContentInit: HttpResponseInit = init
+      ? { ...init, status: init.status ?? 204 }
+      : { status: 204 }
+    const responseInit = normalizeResponseInit(noContentInit)
+    return new HttpResponse(null, responseInit) as StrictResponse<null>
+  }
+
+  /**
    * Create a `Response` with a `Content-Type: "application/xml"` body.
    * @example
    * HttpResponse.xml(`<user name="John" />`)

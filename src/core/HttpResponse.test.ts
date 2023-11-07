@@ -38,6 +38,18 @@ describe('HttpResponse.json()', () => {
     })
   })
 
+  it('creates a json response given an array', async () => {
+    const response = HttpResponse.json([1, 2, 3])
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual([1, 2, 3])
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'application/json',
+    })
+  })
+
   it('creates a json response given a plain string', async () => {
     const response = HttpResponse.json(`"hello"`)
 
@@ -77,7 +89,10 @@ describe('HttpResponse.json()', () => {
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.json()).toEqual({ firstName: 'John' })
+    // A ReadableStream instance is not a valid body init
+    // for the "Response.json()" static method. It gets serialized
+    // into a plain object.
+    expect(await response.json()).toEqual({})
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'application/json',
     })

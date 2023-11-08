@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.0.0
-  '@mswjs/interceptors': ^0.25.1
+  '@mswjs/interceptors': ^0.25.8
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.8.0
@@ -82,7 +82,7 @@ dependencies:
   '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.0.0
-  '@mswjs/interceptors': 0.25.1
+  '@mswjs/interceptors': 0.25.8
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2261,8 +2261,8 @@ packages:
     engines: {node: '>=14'}
     dev: false
 
-  /@mswjs/interceptors/0.25.1:
-    resolution: {integrity: sha512-iM/2Qp+y7zKrX1sf45sPvvE7CGly8AKSR8Ua7cXAszXCK/To5i/L8AwiheEaBSVcZ6R7Em7kTcyZWN5H2ivcEQ==}
+  /@mswjs/interceptors/0.25.8:
+    resolution: {integrity: sha512-d++BpUPAnuPYkvdrqjNpFRmWb1CMEohcVb/wiOQa80giAJZZn34sUzeuaztRmP1Z0NGyIQGJYPeMJoUc3ksDpw==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
@@ -2270,7 +2270,7 @@ packages:
       '@open-draft/until': 2.1.0
       is-node-process: 1.2.0
       outvariant: 1.4.0
-      strict-event-emitter: 0.5.0
+      strict-event-emitter: 0.5.1
     dev: false
 
   /@nodelib/fs.scandir/2.1.5:
@@ -9197,6 +9197,10 @@ packages:
 
   /strict-event-emitter/0.5.0:
     resolution: {integrity: sha512-sqnMpVJLSB3daNO6FcvsEk4Mq5IJeAwDeH80DP1S8+pgxrF6yZnE1+VeapesGled7nEcIkz1Ax87HzaIy+02kA==}
+    dev: false
+
+  /strict-event-emitter/0.5.1:
+    resolution: {integrity: sha512-vMgjE/GGEPEFnhFub6pa4FmJBRBVOLpIII2hvCZ8Kzb7K0hlHo7mQv6xYrBvCL2LtAIBwFUK8wvuJgTVSQ5MFQ==}
     dev: false
 
   /string-argv/0.3.1:

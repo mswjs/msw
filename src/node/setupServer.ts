@@ -1,15 +1,21 @@
-import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
-import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/XMLHttpRequest'
-import { createSetupServer } from './createSetupServer'
+import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
+import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { SetupServer } from './glossary'
+import { SetupServerApi } from './SetupServerApi'
 
 /**
  * Sets up a requests interception in Node.js with the given request handlers.
- * @param {RequestHandler[]} requestHandlers List of request handlers.
- * @see {@link https://mswjs.io/docs/api/setup-server `setupServer`}
+ * @param {RequestHandler[]} handlers List of request handlers.
+ *
+ * @see {@link https://mswjs.io/docs/api/setup-server `setupServer()` API reference}
  */
-export const setupServer = createSetupServer(
-  // List each interceptor separately instead of using the "node" preset
-  // so that MSW wouldn't bundle the unnecessary classes (i.e. "SocketPolyfill").
-  ClientRequestInterceptor,
-  XMLHttpRequestInterceptor,
-)
+export const setupServer = (
+  ...handlers: Array<RequestHandler>
+): SetupServer => {
+  return new SetupServerApi(
+    [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
+    ...handlers,
+  )
+}

@@ -2,8 +2,7 @@ const path = require('path')
 
 const SERVICE_WORKER_SOURCE_PATH = path.resolve(
   __dirname,
-  '../',
-  'src/mockServiceWorker.js',
+  '../src/mockServiceWorker.js',
 )
 
 const SERVICE_WORKER_BUILD_PATH = path.resolve(

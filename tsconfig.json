@@ -1,17 +1,17 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "target": "es6",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationDir": "lib/types",
-    "noEmit": true,
-    "lib": ["es2017", "ESNext.AsyncIterable", "dom", "webworker"]
-  },
-  "include": ["global.d.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+  "extends": "./tsconfig.base.json",
+  "references": [
+    // Source.
+    {
+      "path": "./src/browser/tsconfig.browser.json"
+    },
+    {
+      "path": "./src/tsconfig.node.json"
+    },
+
+    // Tests.
+    {
+      "path": "./tsconfig.test.unit.json"
+    }
+  ]
 }

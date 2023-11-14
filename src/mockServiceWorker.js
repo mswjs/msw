@@ -9,6 +9,7 @@
  */
 
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
+const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
 
 self.addEventListener('install', function () {
@@ -86,12 +87,6 @@ self.addEventListener('message', async function (event) {
 
 self.addEventListener('fetch', function (event) {
   const { request } = event
-  const accept = request.headers.get('accept') || ''
-
-  // Bypass server-sent events.
-  if (accept.includes('text/event-stream')) {
-    return
-  }
 
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
@@ -112,29 +107,8 @@ self.addEventListener('fetch', function (event) {
   }
 
   // Generate unique request ID.
-  const requestId = Math.random().toString(16).slice(2)
-
-  event.respondWith(
-    handleRequest(event, requestId).catch((error) => {
-      if (error.name === 'NetworkError') {
-        console.warn(
-          '[MSW] Successfully emulated a network error for the "%s %s" request.',
-          request.method,
-          request.url,
-        )
-        return
-      }
-
-      // At this point, any exception indicates an issue with the original request/response.
-      console.error(
-        `\
-[MSW] Caught an exception from the "%s %s" request (%s). This is probably not a problem with Mock Service Worker. There is likely an additional logging output above.`,
-        request.method,
-        request.url,
-        `${error.name}: ${error.message}`,
-      )
-    }),
-  )
+  const requestId = crypto.randomUUID()
+  event.respondWith(handleRequest(event, requestId))
 })
 
 async function handleRequest(event, requestId) {
@@ -146,21 +120,29 @@ async function handleRequest(event, requestId) {
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
     ;(async function () {
-      const clonedResponse = response.clone()
-      sendToClient(client, {
-        type: 'RESPONSE',
-        payload: {
-          requestId,
-          type: clonedResponse.type,
-          ok: clonedResponse.ok,
-          status: clonedResponse.status,
-          statusText: clonedResponse.statusText,
-          body:
-            clonedResponse.body === null ? null : await clonedResponse.text(),
-          headers: Object.fromEntries(clonedResponse.headers.entries()),
-          redirected: clonedResponse.redirected,
+      const responseClone = response.clone()
+      // When performing original requests, response body will
+      // always be a ReadableStream, even for 204 responses.
+      // But when creating a new Response instance on the client,
+      // the body for a 204 response must be null.
+      const responseBody = response.status === 204 ? null : responseClone.body
+
+      sendToClient(
+        client,
+        {
+          type: 'RESPONSE',
+          payload: {
+            requestId,
+            isMockedResponse: IS_MOCKED_RESPONSE in response,
+            type: responseClone.type,
+            status: responseClone.status,
+            statusText: responseClone.statusText,
+            body: responseBody,
+            headers: Object.fromEntries(responseClone.headers.entries()),
+          },
         },
-      })
+        [responseBody],
+      )
     })()
   }
 
@@ -174,7 +156,7 @@ async function handleRequest(event, requestId) {
 async function resolveMainClient(event) {
   const client = await self.clients.get(event.clientId)
 
-  if (client.frameType === 'top-level') {
+  if (client?.frameType === 'top-level') {
     return client
   }
 
@@ -196,20 +178,20 @@ async function resolveMainClient(event) {
 
 async function getResponse(event, client, requestId) {
   const { request } = event
-  const clonedRequest = request.clone()
+
+  // Clone the request because it might've been already used
+  // (i.e. its body has been read and sent to the client).
+  const requestClone = request.clone()
 
   function passthrough() {
-    // Clone the request because it might've been already used
-    // (i.e. its body has been read and sent to the client).
-    const headers = Object.fromEntries(clonedRequest.headers.entries())
+    const headers = Object.fromEntries(requestClone.headers.entries())
 
-    // Remove MSW-specific request headers so the bypassed requests
-    // comply with the server's CORS preflight check.
-    // Operate with the headers as an object because request "Headers"
-    // are immutable.
-    delete headers['x-msw-bypass']
+    // Remove internal MSW request header so the passthrough request
+    // complies with any potential CORS preflight checks on the server.
+    // Some servers forbid unknown request headers.
+    delete headers['x-msw-intention']
 
-    return fetch(clonedRequest, { headers })
+    return fetch(requestClone, { headers })
   }
 
   // Bypass mocking when the client is not active.
@@ -227,31 +209,36 @@ async function getResponse(event, client, requestId) {
 
   // Bypass requests with the explicit bypass header.
   // Such requests can be issued by "ctx.fetch()".
-  if (request.headers.get('x-msw-bypass') === 'true') {
+  const mswIntention = request.headers.get('x-msw-intention')
+  if (['bypass', 'passthrough'].includes(mswIntention)) {
     return passthrough()
   }
 
   // Notify the client that a request has been intercepted.
-  const clientMessage = await sendToClient(client, {
-    type: 'REQUEST',
-    payload: {
-      id: requestId,
-      url: request.url,
-      method: request.method,
-      headers: Object.fromEntries(request.headers.entries()),
-      cache: request.cache,
-      mode: request.mode,
-      credentials: request.credentials,
-      destination: request.destination,
-      integrity: request.integrity,
-      redirect: request.redirect,
-      referrer: request.referrer,
-      referrerPolicy: request.referrerPolicy,
-      body: await request.text(),
-      bodyUsed: request.bodyUsed,
-      keepalive: request.keepalive,
+  const requestBuffer = await request.arrayBuffer()
+  const clientMessage = await sendToClient(
+    client,
+    {
+      type: 'REQUEST',
+      payload: {
+        id: requestId,
+        url: request.url,
+        mode: request.mode,
+        method: request.method,
+        headers: Object.fromEntries(request.headers.entries()),
+        cache: request.cache,
+        credentials: request.credentials,
+        destination: request.destination,
+        integrity: request.integrity,
+        redirect: request.redirect,
+        referrer: request.referrer,
+        referrerPolicy: request.referrerPolicy,
+        body: requestBuffer,
+        keepalive: request.keepalive,
+      },
     },
-  })
+    [requestBuffer],
+  )
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
@@ -261,21 +248,12 @@ async function getResponse(event, client, requestId) {
     case 'MOCK_NOT_FOUND': {
       return passthrough()
     }
-
-    case 'NETWORK_ERROR': {
-      const { name, message } = clientMessage.data
-      const networkError = new Error(message)
-      networkError.name = name
-
-      // Rejecting a "respondWith" promise emulates a network error.
-      throw networkError
-    }
   }
 
   return passthrough()
 }
 
-function sendToClient(client, message) {
+function sendToClient(client, message, transferrables = []) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
@@ -287,17 +265,28 @@ function sendToClient(client, message) {
       resolve(event.data)
     }
 
-    client.postMessage(message, [channel.port2])
-  })
-}
-
-function sleep(timeMs) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, timeMs)
+    client.postMessage(
+      message,
+      [channel.port2].concat(transferrables.filter(Boolean)),
+    )
   })
 }
 
 async function respondWithMock(response) {
-  await sleep(response.delay)
-  return new Response(response.body, response)
+  // Setting response status code to 0 is a no-op.
+  // However, when responding with a "Response.error()", the produced Response
+  // instance will have status code set to 0. Since it's not possible to create
+  // a Response instance with status code 0, handle that use-case separately.
+  if (response.status === 0) {
+    return Response.error()
+  }
+
+  const mockedResponse = new Response(response.body, response)
+
+  Reflect.defineProperty(mockedResponse, IS_MOCKED_RESPONSE, {
+    value: true,
+    enumerable: true,
+  })
+
+  return mockedResponse
 }

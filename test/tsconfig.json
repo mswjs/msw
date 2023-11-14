@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "strict": true,
     "target": "ES2015",
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "declaration": false,
     "noEmit": true,
@@ -12,7 +13,7 @@
       "msw": [".."],
       "msw/*": ["../*"]
     },
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
   "include": ["**/*.ts"]
 }

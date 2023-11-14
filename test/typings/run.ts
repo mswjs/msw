@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { spawnSync } from 'child_process'
 import { invariant } from 'outvariant'
-import tsPackageJson from 'typescript/package.json'
+import * as tsPackageJson from 'typescript/package.json'
 
 const tsInstalledVersion = tsPackageJson.version
 invariant(

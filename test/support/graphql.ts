@@ -10,7 +10,7 @@ export const gql = (str: TemplateStringsArray) => {
 
 interface GraphQLClientOPtions {
   uri: string
-  fetch?: typeof fetch
+  fetch?: (input: any, init?: any) => Promise<Response>
 }
 
 interface GraphQLOperationInput {
@@ -25,8 +25,10 @@ interface GraphQLOperationInput {
 export function createGraphQLClient(options: GraphQLClientOPtions) {
   const fetchFn = options.fetch || fetch
 
-  return async (input: GraphQLOperationInput): Promise<ExecutionResult> => {
-    const res = await fetchFn(options.uri, {
+  return async <Data extends Record<string, unknown>>(
+    input: GraphQLOperationInput,
+  ): Promise<ExecutionResult<Data>> => {
+    const response = await fetchFn(options.uri, {
       method: 'POST',
       headers: {
         accept: '*/*',
@@ -38,6 +40,6 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
     // No need to transform the JSON into `ExecutionResult`,
     // because that's the responsibility of an actual server
     // or an MSW request handler.
-    return res.json()
+    return response.json()
   }
 }

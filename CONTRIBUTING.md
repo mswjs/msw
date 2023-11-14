@@ -7,18 +7,18 @@ Hey! Thank you for deciding to contribute to Mock Service Worker! This page will
 Getting yourself familiar with the tools below will substantially ease your contribution experience.
 
 - [TypeScript](https://www.typescriptlang.org/)
-- [Jest](https://jestjs.io/)
+- [Vitest](https://vitest.dev/)
+- [Playwright](https://playwright.dev/)
 
 ## Dependencies
 
 Mock Service Worker depends on multiple other libraries.
 
-| Library name                                                | Purpose                                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [cookies](https://github.com/mswjs/cookies)                 | Enables cookies persistance and inference between environments.          |
-| [headers-utils](https://github.com/mswjs/headers-utils)     | `Headers` polyfill to manage request/response headers.                   |
-| [interceptors](https://github.com/mswjs/interceptors)       | Provisions request interception in Node.js (internals of `setupServer`). |
-| [node-match-path](https://github.com/mswjs/node-match-path) | Matches a request URL against a path.                                    |
+| Library name                                            | Purpose                                                                  |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [cookies](https://github.com/mswjs/cookies)             | Enables cookies persistence and inference between environments.          |
+| [headers-utils](https://github.com/mswjs/headers-utils) | `Headers` polyfill to manage request/response headers.                   |
+| [interceptors](https://github.com/mswjs/interceptors)   | Provisions request interception in Node.js (internals of `setupServer`). |
 
 There are cases when an issue originates from one of the said dependencies. Don't hesitate to address it in the respective repository, as they all are governed by the same team.
 
@@ -32,11 +32,12 @@ Please use the GitHub UI to [fork this repository](https://github.com/mswjs/msw)
 
 ```bash
 $ cd msw
-$ yarn install
-$ yarn start
+$ pnpm install
+$ pnpm start
 ```
 
-> Please use [Yarn][yarn-url] while working on this project.
+> Please use [PNPM][pnpm-url] version 7.12 while working on this project.
+> Guide on how to install a specific PNPM version can be [found here][pnpm-install-guide-url].
 
 ## Git workflow
 
@@ -64,6 +65,14 @@ We are using [Conventional Commits](https://conventionalcommits.org/) naming con
 Once you have pushed the changes to your remote feature branch, [create a pull request](https://github.com/open-draft/msw/compare) on GitHub. Undergo the process of code review, where the maintainers of the library will help you get the changes from good to great, and enjoy your implementation merged to the default branch.
 
 > Please be respectful when requesting and going through the code review. Everyone on the team is interested in merging quality and well tested code, and we're hopeful that you have the same goal. It may take some time and iterations to get it right, and we will assist you throughout the process.
+
+## Build
+
+Build the library with the following command:
+
+```bash
+$ pnpm build
+```
 
 ## Tests
 
@@ -104,7 +113,7 @@ test('multiplies two given numbers', () => {
 Once your test is written, run it in isolation.
 
 ```bash
-$ yarn test:unit src/utils/multiply.test.ts
+$ pnpm test:unit src/utils/multiply.test.ts
 ```
 
 At this point, the actual implementation is not ready yet, so you can expect your test to fail. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases pass.
@@ -112,63 +121,66 @@ At this point, the actual implementation is not ready yet, so you can expect you
 #### Running all unit tests
 
 ```bash
-$ yarn test:unit
+$ pnpm test:unit
 ```
 
 ### Integration tests
 
 We follow an example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
 
-> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`yarn start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
+> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`pnpm start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
 
 #### Browser integration tests
 
-In-browser integration tests are powered by the [page-with][page-with-url] library (Chrome automation tool) and still run in Jest. These tests usually consists of two parts:
+You can find all the browser integration tests under `./test/browser`. Those tests are run with Playwright and usually consist of two parts:
 
-- `[test-name].mocks.ts`, the actual usage example.
+- `[test-name].mocks.ts`, the usage example of MSW;
 - `[test-name].test.ts`, the test suite that loads the usage example, does actions and performs assertions.
 
-Let's write an integration test that asserts the interception of a GET request. First, start with the `*.mocks.ts` file:
+It's also a great idea to get familiar with our Playwright configuration and extensions:
+
+- [**Playwright configuration file**](./test/browser/playwright.config.ts)
+- [Playwright extensions](./test/browser/playwright.extend.ts)
+
+Let's write an example integration test that asserts the interception of a GET request. First, start with the `*.mocks.ts` file:
 
 ```js
-// test/rest-api/basic.mocks.ts
-import { rest, setupWorker } from 'msw'
+// test/browser/example.mocks.ts
+import { http, HttpResponse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  rest.get('/books', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-          title: 'The Lord of the Rings',
-          publishedAt: -486867600,
-        },
-      ]),
-    )
+  http.get('/books', () => {
+    return HttpResponse.json([
+      {
+        id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+        title: 'The Lord of the Rings',
+        publishedAt: -486867600,
+      },
+    ])
   }),
 )
 
 worker.start()
 ```
 
-> Notice how there's nothing test-specific in the example? The `basic.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
+> Notice how there's nothing test-specific in the example? The `example.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
 
 Once the `*.mocks.ts` file is written, proceed by creating a test file:
 
 ```ts
-// test/rest-api/basic.test.ts
+// test/browser/example.test.ts
 import * as path from 'path'
-import { pageWith } from 'page-with'
+import { test, expect } from './playwright.extend'
 
-test('returns a mocked response', async () => {
-  // Create a Chrome instance with the usage example loaded.
-  const runtime = await pageWith({
-    example: path(__dirname, 'basic.mocks.ts'),
-  })
+test('returns a mocked response', async ({ loadExample, fetch }) => {
+  // Compile the given usage example on runtime.
+  await loadExample(require.resolve('./example.mocks.ts'))
 
-  // Dispatch a "GET /books" request.
-  const res = await runtime.request('/books')
+  // Perform the "GET /books" request in the browser.
+  const res = await fetch('/books')
 
+  // Assert the returned response body.
   expect(await res.json()).toEqual([
     {
       id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
@@ -179,41 +191,51 @@ test('returns a mocked response', async () => {
 })
 ```
 
-> Read more about all the `page-with` features in its [documentation](https://github.com/kettanaito/page-with).
+##### Running all browser tests
+
+```sh
+pnpm test:browser
+```
+
+#### Running a single browser test
+
+```sh
+pnpm test:browser ./test/browser/example.test.ts
+```
 
 #### Node.js integration test
 
-Integration tests showcase a usage example in Node.js and are often placed next to the in-browser tests. A Node.js integration test file has the `*.node.test.ts` suffix.
+Integration tests showcase a usage example in Node.js and are often placed next to the in-browser tests. Node.js integration tests reside in the `./test/node` directory.
 
 Similar to the browser tests, these are going to contain a usage example and the assertions over it. However, for Node.js tests there is no need to create a separate `*.mocks.ts` file. Instead, keep the usage example in the test file directly.
 
 Let's replicate the same `GET /books` integration test in Node.js.
 
 ```ts
-// test/setup-server/basic.test.ts
+// test/node/example.test.ts
 import fetch from 'node-fetch'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  rest.get('/books', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-          title: 'The Lord of the Rings',
-          publishedAt: -486867600,
-        },
-      ]),
-    )
+  http.get('/books', () => {
+    return HttpResponse.json([
+      {
+        id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
+        title: 'The Lord of the Rings',
+        publishedAt: -486867600,
+      },
+    ])
   }),
 )
 
 beforeAll(() => server.listen())
+
 afterAll(() => server.close())
 
 test('returns a mocked response', async () => {
   const res = await fetch('/books')
+
   expect(await res.json()).toEqual([
     {
       id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
@@ -224,16 +246,16 @@ test('returns a mocked response', async () => {
 })
 ```
 
-#### Running all integration tests
+##### Running all Node.js tests
 
-```bash
-$ yarn test:integration
+```sh
+pnpm test:node
 ```
 
-#### Running a single integration test
+##### Running a single Node.js test
 
-```bash
-$ yarn test:integration test/rest-api/basic.test.ts
+```sh
+pnpm test:node ./test/node/example.test.ts
 ```
 
 ## Build
@@ -241,9 +263,9 @@ $ yarn test:integration test/rest-api/basic.test.ts
 Build the library with the following command:
 
 ```bash
-$ yarn build
+$ pnpm build
 ```
 
-[yarn-url]: https://classic.yarnpkg.com/en/
-[jest-url]: https://jestjs.io
+[pnpm-url]: https://pnpm.io/
 [page-with-url]: https://github.com/kettanaito/page-with
+[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version

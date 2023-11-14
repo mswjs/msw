@@ -1,0 +1,8 @@
+{
+  "profiles": [
+    {
+      "name": "latest",
+      "use": "pnpm publish --no-git-checks"
+    }
+  ]
+}

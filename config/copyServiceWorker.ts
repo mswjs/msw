@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import chalk from 'chalk'
 import { until } from '@open-draft/until'
 
 /**
@@ -14,11 +13,11 @@ export default async function copyServiceWorker(
 ): Promise<void> {
   console.log('Compiling Service Worker...')
 
-  const [readError, fileContent] = await until(() =>
+  const readFileResult = await until(() =>
     fs.promises.readFile(sourceFilePath, 'utf8'),
   )
 
-  if (readError) {
+  if (readFileResult.error) {
     throw new Error('Failed to read file.\n${readError.message}')
   }
 
@@ -34,17 +33,17 @@ export default async function copyServiceWorker(
     fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
   )
 
-  const nextFileContent = fileContent
+  const nextFileContent = readFileResult.data
     .replace('<INTEGRITY_CHECKSUM>', checksum)
     .replace('<PACKAGE_VERSION>', packageJson.version)
 
-  const [writeFileError] = await until(() =>
+  const writeFileResult = await until(() =>
     fs.promises.writeFile(destFilePath, nextFileContent),
   )
 
-  if (writeFileError) {
-    throw new Error(`Failed to write file.\n${writeFileError.message}`)
+  if (writeFileResult.error) {
+    throw new Error(`Failed to write file.\n${writeFileResult.error.message}`)
   }
 
-  console.log('Service Worker copied to: %s', chalk.cyan(destFilePath))
+  console.log('Service Worker copied to: %s', destFilePath)
 }

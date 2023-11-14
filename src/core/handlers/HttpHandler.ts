@@ -49,7 +49,7 @@ export type HttpRequestParsedResult = {
 
 export type HttpRequestResolverExtras<Params extends PathParams> = {
   params: Params
-  cookies: Record<string, string | Array<string>>
+  cookies: Record<string, string>
 }
 
 /**

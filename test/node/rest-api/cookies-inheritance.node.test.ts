@@ -1,10 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer, SetupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer, httpsAgent } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
 let server: SetupServer

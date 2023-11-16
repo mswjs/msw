@@ -45,12 +45,11 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
 
   store.hydrate()
 
-  const cookiesFromStore = Array.from(store.get(request)?.entries()).reduce(
-    (cookies, [name, { value }]) => {
-      return Object.assign(cookies, { [name.trim()]: value })
-    },
-    {} as Record<string, string>,
-  )
+  const cookiesFromStore = Array.from(store.get(request)?.entries()).reduce<
+    Record<string, string>
+  >((cookies, [name, { value }]) => {
+    return Object.assign(cookies, { [name.trim()]: value })
+  }, {})
 
   const cookiesFromDocument = getRequestCookies(request)
 

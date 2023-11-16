@@ -54,21 +54,31 @@ export const createRequestListener = (
              * Check that the browser supports that before sending it to the worker.
              */
             if (context.supports.readableStreamTransfer) {
-              const responseStream = response.body
+              const responseStreamOrNull = response.body
+
               messageChannel.postMessage(
                 'MOCK_RESPONSE',
                 {
                   ...responseInit,
-                  body: responseStream,
+                  body: responseStreamOrNull,
                 },
-                responseStream ? [responseStream] : undefined,
+                responseStreamOrNull ? [responseStreamOrNull] : undefined,
               )
             } else {
-              // As a fallback, send the response body buffer to the worker.
-              const responseBuffer = await responseClone.arrayBuffer()
+              /**
+               * @note If we are here, this means the current environment doesn't
+               * support "ReadableStream" as transferable. In that case,
+               * attempt to read the non-empty response body as ArrayBuffer, if it's not empty.
+               * @see https://github.com/mswjs/msw/issues/1827
+               */
+              const responseBufferOrNull =
+                response.body === null
+                  ? null
+                  : await responseClone.arrayBuffer()
+
               messageChannel.postMessage('MOCK_RESPONSE', {
                 ...responseInit,
-                body: responseBuffer,
+                body: responseBufferOrNull,
               })
             }
 

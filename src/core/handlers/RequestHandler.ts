@@ -19,6 +19,14 @@ export type DefaultBodyType =
   | null
   | undefined
 
+export type JsonBodyType =
+  | Record<string, any>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+
 export interface RequestHandlerDefaultInfo {
   header: string
 }
@@ -30,7 +38,7 @@ export interface RequestHandlerInternalInfo {
 export type ResponseResolverReturnType<
   BodyType extends DefaultBodyType = undefined,
 > =
-  | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
+  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
   | undefined
   | void
 
@@ -190,11 +198,6 @@ export abstract class RequestHandler<
     // and the response resolver so we can always read it for logging.
     const mainRequestRef = args.request.clone()
 
-    // Immediately mark the handler as used.
-    // Can't await the resolver to be resolved because it's potentially
-    // asynchronous, and there may be multiple requests hitting this handler.
-    this.isUsed = true
-
     const parsedResult = await this.parse({
       request: args.request,
       resolutionContext: args.resolutionContext,
@@ -208,6 +211,14 @@ export abstract class RequestHandler<
     if (!shouldInterceptRequest) {
       return null
     }
+
+    // Re-check isUsed, in case another request hit this handler while we were
+    // asynchronously parsing the request.
+    if (this.isUsed && this.options?.once) {
+      return null
+    }
+
+    this.isUsed = true
 
     // Create a response extraction wrapper around the resolver
     // since it can be both an async function and a generator.
@@ -262,7 +273,7 @@ export abstract class RequestHandler<
 
           // Clone the previously stored response from the generator
           // so that it could be read again.
-          return this.resolverGeneratorResult.clone()
+          return this.resolverGeneratorResult.clone() as StrictResponse<any>
         }
 
         if (!this.resolverGenerator) {

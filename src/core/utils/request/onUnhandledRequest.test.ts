@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import {
   onUnhandledRequest,
@@ -41,12 +41,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks`,
 }
 
 beforeEach(() => {
-  jest.spyOn(console, 'warn').mockImplementation()
-  jest.spyOn(console, 'error').mockImplementation()
+  vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+  vi.spyOn(console, 'error').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 test('supports the "bypass" request strategy', async () => {
@@ -85,11 +85,9 @@ test('supports the "error" request strategy', async () => {
 })
 
 test('supports a custom callback function', async () => {
-  const callback = jest.fn<void, Parameters<UnhandledRequestCallback>>(
-    (request) => {
-      console.warn(`callback: ${request.method} ${request.url}`)
-    },
-  )
+  const callback = vi.fn<Parameters<UnhandledRequestCallback>>((request) => {
+    console.warn(`callback: ${request.method} ${request.url}`)
+  })
   const request = new Request(new URL('/user', 'http://localhost:3000'))
   await onUnhandledRequest(request, [], callback)
 
@@ -106,7 +104,7 @@ test('supports a custom callback function', async () => {
 })
 
 test('supports calling default strategies from the custom callback function', async () => {
-  const callback = jest.fn<void, Parameters<UnhandledRequestCallback>>(
+  const callback = vi.fn<Parameters<UnhandledRequestCallback>>(
     (request, print) => {
       // Call the default "error" strategy.
       print.error()

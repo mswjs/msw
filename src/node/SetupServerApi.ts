@@ -1,4 +1,3 @@
-import { setMaxListeners, defaultMaxListeners } from 'node:events'
 import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
@@ -14,14 +13,14 @@ import { RequiredDeep } from '~/core/typeUtils'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { SetupServer } from './glossary'
+import { SetupServer, SetupServerInternalContext } from './glossary'
 import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
 import {
   onAnyEvent,
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
-import { isNodeException } from './utils/isNodeException'
+import { isNodeExceptionLike } from './utils/isNodeExceptionLike'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -35,6 +34,7 @@ export class SetupServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupServer
 {
+  private context: SetupServerInternalContext
   protected readonly interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
@@ -48,6 +48,7 @@ export class SetupServerApi
   ) {
     super(...handlers)
 
+    this.context = this.createContext()
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
@@ -59,45 +60,22 @@ export class SetupServerApi
     this.init()
   }
 
+  private createContext(): SetupServerInternalContext {
+    return {
+      get nodeEvents() {
+        return import('node:events')
+          .then((events) => events)
+          .catch(() => undefined)
+      },
+    }
+  }
+
   /**
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
-      /**
-       * @note React Native doesn't have "node:events".
-       */
-      if (typeof setMaxListeners === 'function') {
-        // Bump the maximum number of event listeners on the
-        // request's "AbortSignal". This prepares the request
-        // for each request handler cloning it at least once.
-        // Note that cloning a request automatically appends a
-        // new "abort" event listener to the parent request's
-        // "AbortController" so if the parent aborts, all the
-        // clones are automatically aborted.
-        try {
-          setMaxListeners(
-            Math.max(defaultMaxListeners, this.currentHandlers.length),
-            request.signal,
-          )
-        } catch (error: unknown) {
-          /**
-           * @note Mock environments (JSDOM, ...) are not able to implement an internal
-           * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
-           * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
-           * At the same time, mock environments are also not able to implement the
-           * internal "events.maxEventTargetListenersWarned" Symbol, which results in
-           * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
-           * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
-           * which won't be printed anyway if `setMaxListeners` fails.
-           */
-          if (
-            !(isNodeException(error) && error.code === 'ERR_INVALID_ARG_TYPE')
-          ) {
-            throw error
-          }
-        }
-      }
+      await this.setRequestAbortSignalMaxListeners(request)
 
       const response = await handleRequest(
         request,
@@ -220,5 +198,56 @@ export class SetupServerApi
 
   public close(): void {
     this.dispose()
+  }
+
+  /**
+   * Bump the maximum number of event listeners on the
+   * request's "AbortSignal". This prepares the request
+   * for each request handler cloning it at least once.
+   * Note that cloning a request automatically appends a
+   * new "abort" event listener to the parent request's
+   * "AbortController" so if the parent aborts, all the
+   * clones are automatically aborted.
+   */
+  private async setRequestAbortSignalMaxListeners(
+    request: Request,
+  ): Promise<void> {
+    const events = await this.context.nodeEvents
+
+    /**
+     * @note React Native doesn't support "node:events".
+     */
+    if (typeof events === 'undefined') {
+      return
+    }
+
+    const { setMaxListeners, defaultMaxListeners } = events
+
+    if (typeof setMaxListeners !== 'function') {
+      return
+    }
+
+    try {
+      setMaxListeners(
+        Math.max(defaultMaxListeners, this.currentHandlers.length),
+        request.signal,
+      )
+    } catch (error: unknown) {
+      /**
+       * @note Mock environments (JSDOM, ...) are not able to implement an internal
+       * "kIsNodeEventTarget" Symbol that Node.js uses to identify Node.js `EventTarget`s.
+       * `setMaxListeners` throws an error for non-Node.js `EventTarget`s.
+       * At the same time, mock environments are also not able to implement the
+       * internal "events.maxEventTargetListenersWarned" Symbol, which results in
+       * "MaxListenersExceededWarning" not being printed by Node.js for those anyway.
+       * The main reason for using `setMaxListeners` is to suppress these warnings in Node.js,
+       * which won't be printed anyway if `setMaxListeners` fails.
+       */
+      if (
+        !(isNodeExceptionLike(error) && error.code === 'ERR_INVALID_ARG_TYPE')
+      ) {
+        throw error
+      }
+    }
   }
 }

@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -26,7 +25,7 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 afterAll(async () => {
@@ -36,8 +35,8 @@ afterAll(async () => {
 
 test('removes all listeners attached to the server instance', async () => {
   const listeners = {
-    requestStart: jest.fn(),
-    requestEnd: jest.fn(),
+    requestStart: vi.fn(),
+    requestEnd: vi.fn(),
   }
   server.events.on('request:start', listeners.requestStart)
   server.events.on('request:end', listeners.requestEnd)
@@ -57,8 +56,8 @@ test('removes all listeners attached to the server instance', async () => {
 
 test('removes all the listeners by the event name', async () => {
   const listeners = {
-    requestStart: jest.fn(),
-    requestEnd: jest.fn(),
+    requestStart: vi.fn(),
+    requestEnd: vi.fn(),
   }
   server.events.on('request:start', listeners.requestStart)
   server.events.on('request:start', listeners.requestStart)
@@ -73,8 +72,8 @@ test('removes all the listeners by the event name', async () => {
 
 test('does not remove the internal listeners', async () => {
   const listeners = {
-    requestStart: jest.fn(),
-    responseMocked: jest.fn(),
+    requestStart: vi.fn(),
+    responseMocked: vi.fn(),
   }
 
   server.events.on('request:start', listeners.requestStart)

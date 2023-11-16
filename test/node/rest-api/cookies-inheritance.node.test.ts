@@ -1,10 +1,9 @@
 /**
- * @jest-environment node
+ * @vitest-environment jsdom
  */
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer, SetupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer, httpsAgent } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
 let server: SetupServer
@@ -24,7 +23,7 @@ beforeAll(async () => {
     http.post(httpServer.https.url('/login'), () => {
       return new HttpResponse(null, {
         headers: {
-          'Set-Cookie': 'authToken=abc-123',
+          'Set-Cookie': `authToken=${encodeURIComponent('abc-123-甲乙丙')}`,
         },
       })
     }),
@@ -61,11 +60,15 @@ test('inherits cookies set from a preceeding request', async () => {
   const res = await fetch(httpServer.https.url('/login'), {
     method: 'POST',
   }).then(() => {
+    // Fetch the user after requesting login to see
+    // if the response cookies set in the login request handler
+    // are automatically forwarded to the "GET /user" request.
     return fetch(httpServer.https.url('/user'))
   })
-  const json = await res.json()
 
   expect(res.status).toBe(200)
+
+  const json = await res.json()
   expect(json).toEqual({
     firstName: 'John',
     lastName: 'Maverick',

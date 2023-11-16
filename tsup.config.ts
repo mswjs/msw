@@ -1,3 +1,4 @@
+import * as path from 'node:path'
 import { defineConfig, Options } from 'tsup'
 import * as glob from 'glob'
 import {
@@ -29,6 +30,7 @@ const coreConfig: Options = {
   bundle: false,
   splitting: false,
   dts: true,
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
   esbuildPlugins: [forceEsmExtensionsPlugin()],
 }
 
@@ -44,7 +46,7 @@ const nodeConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
-
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
@@ -58,6 +60,12 @@ const browserConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
+  /**
+   * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
+   * option is set to false.
+   * @see https://github.com/egoist/tsup/issues/571
+   */
+  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
@@ -78,6 +86,7 @@ const reactNativeConfig: Options = {
   bundle: true,
   splitting: false,
   dts: true,
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
@@ -96,6 +105,7 @@ const iifeConfig: Options = {
   bundle: true,
   splitting: false,
   dts: false,
+  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {
     // Sign the IIFE build as well because any bundle containing
     // the worker API must have the the integrity checksum defined.

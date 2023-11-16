@@ -7,7 +7,7 @@ Hey! Thank you for deciding to contribute to Mock Service Worker! This page will
 Getting yourself familiar with the tools below will substantially ease your contribution experience.
 
 - [TypeScript](https://www.typescriptlang.org/)
-- [Jest](https://jestjs.io/)
+- [Vitest](https://vitest.dev/)
 - [Playwright](https://playwright.dev/)
 
 ## Dependencies
@@ -73,8 +73,6 @@ Build the library with the following command:
 ```bash
 $ pnpm build
 ```
-
-[jest-url]: https://jestjs.io
 
 ## Tests
 
@@ -215,7 +213,6 @@ Let's replicate the same `GET /books` integration test in Node.js.
 
 ```ts
 // test/node/example.test.ts
-import fetch from 'node-fetch'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -269,6 +266,5 @@ $ pnpm build
 ```
 
 [pnpm-url]: https://pnpm.io/
-[jest-url]: https://jestjs.io
 [page-with-url]: https://github.com/kettanaito/page-with
 [pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version

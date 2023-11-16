@@ -19,6 +19,7 @@ import {
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { devUtils } from '../utils/internal/devUtils'
+import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -34,6 +35,7 @@ export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
   operationName: string
   variables: Variables
+  cookies: Record<string, string>
 }
 
 export type GraphQLRequestBody<VariablesType extends GraphQLVariables> =
@@ -114,14 +116,32 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  async parse(args: { request: Request }) {
-    return parseGraphQLRequest(args.request).catch((error) => {
-      console.error(error)
+  async parse(args: {
+    request: Request
+  }): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+    const parsedResult = await parseGraphQLRequest(args.request).catch(
+      (error) => {
+        console.error(error)
+        return undefined
+      },
+    )
+
+    if (typeof parsedResult === 'undefined') {
       return undefined
-    })
+    }
+
+    return {
+      query: parsedResult.query,
+      operationType: parsedResult.operationType,
+      operationName: parsedResult.operationName,
+      variables: parsedResult.variables,
+    }
   }
 
-  predicate(args: { request: Request; parsedResult: ParsedGraphQLRequest }) {
+  predicate(args: {
+    request: Request
+    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+  }) {
     if (!args.parsedResult) {
       return false
     }
@@ -132,7 +152,7 @@ export class GraphQLHandler extends RequestHandler<
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation`)
+Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
       return false
     }
 
@@ -160,10 +180,13 @@ Consider naming this operation or using "graphql.operation()" request handler to
     request: Request
     parsedResult: ParsedGraphQLRequest<GraphQLVariables>
   }) {
+    const cookies = getAllRequestCookies(args.request)
+
     return {
       query: args.parsedResult?.query || '',
       operationName: args.parsedResult?.operationName || '',
       variables: args.parsedResult?.variables || {},
+      cookies,
     }
   }
 
@@ -180,11 +203,12 @@ Consider naming this operation or using "graphql.operation()" request handler to
       : `anonymous ${args.parsedResult?.operationType}`
 
     console.groupCollapsed(
-      devUtils.formatMessage('%s %s (%c%s%c)'),
-      getTimestamp(),
-      `${requestInfo}`,
+      devUtils.formatMessage(
+        `${getTimestamp()} ${requestInfo} (%c${loggedResponse.status} ${
+          loggedResponse.statusText
+        }%c)`,
+      ),
       `color:${statusColor}`,
-      `${loggedResponse.status} ${loggedResponse.statusText}`,
       'color:inherit',
     )
     console.log('Request:', loggedRequest)

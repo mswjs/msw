@@ -27,6 +27,7 @@ export type {
   RequestHandlerOptions,
   DefaultBodyType,
   DefaultRequestMultipartBody,
+  JsonBodyType,
 } from './handlers/RequestHandler'
 
 export type {

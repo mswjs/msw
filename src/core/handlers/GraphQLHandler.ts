@@ -35,7 +35,7 @@ export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
   operationName: string
   variables: Variables
-  cookies: Record<string, string | Array<string>>
+  cookies: Record<string, string>
 }
 
 export type GraphQLRequestBody<VariablesType extends GraphQLVariables> =

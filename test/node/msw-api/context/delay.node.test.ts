@@ -1,7 +1,6 @@
 /**
  * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { delay, HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { performance } from 'perf_hooks'

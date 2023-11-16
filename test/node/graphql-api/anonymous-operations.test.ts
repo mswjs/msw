@@ -63,7 +63,7 @@ test('warns on unhandled anonymous GraphQL operations', async () => {
   expect(console.warn).toHaveBeenCalledWith(`\
 [MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation`)
+Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
 })
 
 test('does not print a warning when using anonymous operation with "graphql.operation()"', async () => {

@@ -24,7 +24,7 @@ beforeAll(async () => {
     http.post(httpServer.https.url('/login'), () => {
       return new HttpResponse(null, {
         headers: {
-          'Set-Cookie': 'authToken=abc-123',
+          'Set-Cookie': `authToken=${encodeURIComponent('abc-123-甲乙丙')}`,
         },
       })
     }),

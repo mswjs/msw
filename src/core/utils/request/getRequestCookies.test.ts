@@ -25,7 +25,7 @@ test('returns all document cookies given "include" credentials', () => {
   expect(cookies).toEqual({
     'auth-token': 'abc-123',
     'custom-cookie': 'yes',
-    'encoded-cookie': '%E6%B5%8B%E8%AF%95',
+    'encoded-cookie': '测试',
   })
 })
 
@@ -39,7 +39,7 @@ test('returns all document cookies given "same-origin" credentials and the same 
   expect(cookies).toEqual({
     'auth-token': 'abc-123',
     'custom-cookie': 'yes',
-    'encoded-cookie': '%E6%B5%8B%E8%AF%95',
+    'encoded-cookie': '测试',
   })
 })
 

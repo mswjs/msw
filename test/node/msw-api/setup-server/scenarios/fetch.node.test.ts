@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 

@@ -2,7 +2,6 @@
  * @vitest-environment node
  */
 import cookieUtils from '@bundled-es-modules/cookie'
-import fetch from 'node-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

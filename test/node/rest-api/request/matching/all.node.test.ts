@@ -1,7 +1,6 @@
 /**
  * @vitest-environment node
  */
-import fetch, { Response } from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpMethods, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

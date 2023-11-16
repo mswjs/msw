@@ -1,7 +1,6 @@
 /**
  * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { SetupServer, setupServer } from 'msw/node'
 import { RequestHandler as ExpressRequestHandler } from 'express'

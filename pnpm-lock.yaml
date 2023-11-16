@@ -25,7 +25,6 @@ specifiers:
   '@types/js-levenshtein': ^1.1.1
   '@types/json-bigint': ^1.0.1
   '@types/node': 18.x
-  '@types/node-fetch': ^2.5.11
   '@types/puppeteer': ^5.4.4
   '@types/statuses': ^2.0.1
   '@typescript-eslint/eslint-plugin': ^5.11.0
@@ -57,7 +56,6 @@ specifiers:
   jsdom: ^22.1.0
   json-bigint: ^1.0.0
   lint-staged: ^13.0.3
-  node-fetch: ^2.6.7
   outvariant: ^1.4.0
   page-with: ^0.6.1
   path-to-regexp: ^6.2.0
@@ -96,7 +94,6 @@ dependencies:
   inquirer: 8.2.5
   is-node-process: 1.2.0
   js-levenshtein: 1.1.6
-  node-fetch: 2.6.9
   outvariant: 1.4.0
   path-to-regexp: 6.2.1
   strict-event-emitter: 0.5.0
@@ -117,7 +114,6 @@ devDependencies:
   '@types/glob': 8.1.0
   '@types/json-bigint': 1.0.1
   '@types/node': 18.17.14
-  '@types/node-fetch': 2.6.2
   '@types/puppeteer': 5.4.7
   '@typescript-eslint/eslint-plugin': 5.52.0_aaw67h7nkydj3qj4plp2jqjmxe
   '@typescript-eslint/parser': 5.52.0_jeuwjvsopuo23ctsjsevxmvjsi
@@ -7796,18 +7792,6 @@ packages:
       whatwg-url: 5.0.0
     dev: true
 
-  /node-fetch/2.6.9:
-    resolution: {integrity: sha512-DJm/CJkZkRjKKj4Zi4BsKVZh3ValV5IR5s7LVZnW+6YMh0W1BfNA8XSs6DLMGYlId5F3KnA70uu2qepcR08Qqg==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
-    dev: false
-
   /node-forge/0.10.0:
     resolution: {integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==}
     engines: {node: '>= 6.0.0'}
@@ -9806,6 +9790,7 @@ packages:
 
   /tr46/0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+    dev: true
 
   /tr46/1.0.1:
     resolution: {integrity: sha512-dTpowEjclQ7Kgx5SdBkqRzVhERQXov8/l9Ft9dVM9fmg0W0KQSVaXX9T4i6twCPNtYiZM53lpSSUAwJbFPOHxA==}
@@ -10416,6 +10401,7 @@ packages:
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
+    dev: true
 
   /webidl-conversions/4.0.2:
     resolution: {integrity: sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==}
@@ -10623,6 +10609,7 @@ packages:
     dependencies:
       tr46: 0.0.3
       webidl-conversions: 3.0.1
+    dev: true
 
   /whatwg-url/7.1.0:
     resolution: {integrity: sha512-WUu7Rg1DroM7oQvGWfOiAK21n74Gg+T4elXEQYkOhtyLeWiJFoOGLXPKI/9gzIie9CtwVLm8wtw6YJdKyxSjeg==}

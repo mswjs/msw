@@ -10,7 +10,7 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
+import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
@@ -30,6 +30,17 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationType: ExpectedOperationTypeNode
   operationName: GraphQLHandlerNameSelector
 }
+
+export type GraphQLRequestParsedResult =
+  | NonNullable<ParsedGraphQLRequest<GraphQLVariables> & { match: Match }>
+  | {
+      match: Match
+      // these are all undefined, so as to not require `in` style checks
+      query?: undefined
+      variables?: undefined
+      operationType?: undefined
+      operationName?: undefined
+    }
 
 export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
@@ -66,7 +77,7 @@ export function isDocumentNode(
 
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  ParsedGraphQLRequest,
+  GraphQLRequestParsedResult,
   GraphQLResolverExtras<any>
 > {
   private endpoint: Path
@@ -116,9 +127,14 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  async parse(args: {
-    request: Request
-  }): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+  async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
+    /**
+     * If the request doesn't match a specified endpoint, there's no
+     * need to parse it since there's no case where we would handle this
+     */
+    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    if (!match.matches) return { match }
+
     const parsedResult = await parseGraphQLRequest(args.request).catch(
       (error) => {
         console.error(error)
@@ -127,10 +143,11 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return undefined
+      return { match }
     }
 
     return {
+      match,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
@@ -140,7 +157,7 @@ export class GraphQLHandler extends RequestHandler<
 
   predicate(args: {
     request: Request
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+    parsedResult: GraphQLRequestParsedResult
   }) {
     if (!args.parsedResult) {
       return false
@@ -156,10 +173,6 @@ Consider naming this operation or using "graphql.operation()" request handler to
       return false
     }
 
-    const hasMatchingUrl = matchRequestUrl(
-      new URL(args.request.url),
-      this.endpoint,
-    )
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
@@ -170,7 +183,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
         : args.parsedResult.operationName === this.info.operationName
 
     return (
-      hasMatchingUrl.matches &&
+      args.parsedResult.match.matches &&
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
@@ -178,7 +191,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
 
   protected extendResolverArgs(args: {
     request: Request
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+    parsedResult: GraphQLRequestParsedResult
   }) {
     const cookies = getAllRequestCookies(args.request)
 
@@ -193,7 +206,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
   async log(args: {
     request: Request
     response: Response
-    parsedResult: ParsedGraphQLRequest
+    parsedResult: GraphQLRequestParsedResult
   }) {
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)

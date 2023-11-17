@@ -53,6 +53,13 @@ graphql.query<{ id: string }>('GetUser', () => {
   })
 })
 
+graphql.query<{ id: string }>('GetUser', () => {
+  return HttpResponse.json({
+    // Explicit null must be allowed.
+    data: null,
+  })
+})
+
 graphql.query<{ id: string }>(
   'GetUser',
   // @ts-expect-error "id" type is incorrect
@@ -87,6 +94,13 @@ graphql.query<{ key: string }>(
   },
 )
 
+graphql.mutation<{ key: string }>('MutateData', () => {
+  return HttpResponse.json({
+    // Explicit null in mutations must also be allowed.
+    data: null,
+  })
+})
+
 graphql.mutation<{ key: string }>(
   'MutateData',
   // @ts-expect-error Response data doesn't match the query type.
@@ -101,6 +115,10 @@ graphql.operation<{ key: string }>(
     return HttpResponse.json({ data: {} })
   },
 )
+
+graphql.operation<{ key: string }>(() => {
+  return HttpResponse.json({ data: null })
+})
 
 /**
  * Variables type.

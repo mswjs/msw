@@ -160,6 +160,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -182,6 +188,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -203,6 +215,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -225,6 +243,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -248,6 +272,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -270,6 +300,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -291,6 +327,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -313,6 +355,12 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -523,6 +571,12 @@ describe('run', () => {
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
+      match: {
+        matches: true,
+        params: {
+          '0': 'https://example.com/',
+        },
+      },
       operationType: 'query',
       operationName: 'GetUser',
       query: GET_USER,

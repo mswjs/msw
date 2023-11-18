@@ -31,16 +31,22 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationName: GraphQLHandlerNameSelector
 }
 
-export type GraphQLRequestParsedResult =
-  | NonNullable<ParsedGraphQLRequest<GraphQLVariables> & { match: Match }>
+export type GraphQLRequestParsedResult = {
+  match: Match
+} & (
+  | ParsedGraphQLRequest<GraphQLVariables>
+  /**
+   * An empty version of the ParsedGraphQLRequest
+   * which simplifies the return type of the resolver
+   * when the request is to a non-matching endpoint
+   */
   | {
-      match: Match
-      // these are all undefined, so as to not require `in` style checks
-      query?: undefined
-      variables?: undefined
       operationType?: undefined
       operationName?: undefined
+      query?: undefined
+      variables?: undefined
     }
+)
 
 export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
@@ -159,7 +165,7 @@ export class GraphQLHandler extends RequestHandler<
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
-    if (!args.parsedResult) {
+    if (args.parsedResult.operationType === undefined) {
       return false
     }
 
@@ -196,9 +202,9 @@ Consider naming this operation or using "graphql.operation()" request handler to
     const cookies = getAllRequestCookies(args.request)
 
     return {
-      query: args.parsedResult?.query || '',
-      operationName: args.parsedResult?.operationName || '',
-      variables: args.parsedResult?.variables || {},
+      query: args.parsedResult.query || '',
+      operationName: args.parsedResult.operationName || '',
+      variables: args.parsedResult.variables || {},
       cookies,
     }
   }
@@ -211,9 +217,9 @@ Consider naming this operation or using "graphql.operation()" request handler to
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
-    const requestInfo = args.parsedResult?.operationName
-      ? `${args.parsedResult?.operationType} ${args.parsedResult?.operationName}`
-      : `anonymous ${args.parsedResult?.operationType}`
+    const requestInfo = args.parsedResult.operationName
+      ? `${args.parsedResult.operationType} ${args.parsedResult.operationName}`
+      : `anonymous ${args.parsedResult.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage(

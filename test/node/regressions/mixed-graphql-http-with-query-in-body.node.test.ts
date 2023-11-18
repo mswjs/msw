@@ -4,7 +4,7 @@
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-const mswGraphql = graphql.link('https://mswjs.msw.com/query')
+const mswGraphql = graphql.link('https://mswjs.com/graphql')
 const server = setupServer()
 
 beforeAll(async () => {
@@ -21,7 +21,7 @@ afterAll(async () => {
 
 test('no console error occurs when the http handler is first', async () => {
   server.use(
-    http.post('https://localhost:3000/route', () => {
+    http.post('https://mswjs.com/example', () => {
       return HttpResponse.text('http route')
     }),
     mswGraphql.query('GetData', () => {
@@ -41,7 +41,7 @@ test('no console error occurs when the http handler is first', async () => {
   )
 
   const consoleError = vi.spyOn(console, 'error')
-  const response = await fetch('https://localhost:3000/route', {
+  const response = await fetch('https://mswjs.com/example', {
     method: 'POST',
     body: JSON.stringify({
       query: 'some query',
@@ -49,7 +49,7 @@ test('no console error occurs when the http handler is first', async () => {
   })
   await expect(response.text()).resolves.toEqual('http route')
 
-  const graphqlResponse = await fetch('https://mswjs.msw.com/query', {
+  const graphqlResponse = await fetch('https://mswjs.com/graphql', {
     method: 'POST',
     body: JSON.stringify({
       query: 'query GetData { id }',
@@ -64,7 +64,7 @@ test('no console error occurs when the http handler is first', async () => {
 
 test('no console error occurs when the http handler is first, but we apply a use after it', async () => {
   server.use(
-    http.post('https://localhost:3000/route', () => {
+    http.post('https://mswjs.com/example', () => {
       return HttpResponse.text('http route')
     }),
     mswGraphql.query('GetData', () => {
@@ -85,7 +85,7 @@ test('no console error occurs when the http handler is first, but we apply a use
   )
 
   const consoleError = vi.spyOn(console, 'error')
-  const response = await fetch('https://localhost:3000/route', {
+  const response = await fetch('https://mswjs.com/example', {
     method: 'POST',
     body: JSON.stringify({
       query: 'some query',
@@ -93,7 +93,7 @@ test('no console error occurs when the http handler is first, but we apply a use
   })
   await expect(response.text()).resolves.toEqual('http route')
 
-  const graphqlResponse = await fetch('https://mswjs.msw.com/query', {
+  const graphqlResponse = await fetch('https://mswjs.com/graphql', {
     method: 'POST',
     body: JSON.stringify({
       query: 'query GetData { id }',
@@ -114,13 +114,13 @@ test('no console error occurs when the http handler is second to the graphql han
         },
       })
     }),
-    http.post('https://localhost:3000/route', () => {
+    http.post('https://mswjs.com/example', () => {
       return HttpResponse.text('http route')
     }),
   )
 
   const consoleError = vi.spyOn(console, 'error')
-  const response = await fetch('https://localhost:3000/route', {
+  const response = await fetch('https://mswjs.com/example', {
     method: 'POST',
     body: JSON.stringify({
       query: 'some query',
@@ -128,7 +128,7 @@ test('no console error occurs when the http handler is second to the graphql han
   })
   await expect(response.text()).resolves.toEqual('http route')
 
-  const graphqlResponse = await fetch('https://mswjs.msw.com/query', {
+  const graphqlResponse = await fetch('https://mswjs.com/graphql', {
     method: 'POST',
     body: JSON.stringify({
       query: 'query GetData { id }',
@@ -149,13 +149,13 @@ test("a console error occurs when the http handler is second to the graphql hand
         },
       })
     }),
-    http.post('https://localhost:3000/route', () => {
+    http.post('https://mswjs.com/example', () => {
       return HttpResponse.text('http route')
     }),
   )
 
   const consoleError = vi.spyOn(console, 'error')
-  const response = await fetch('https://localhost:3000/route', {
+  const response = await fetch('https://mswjs.com/example', {
     method: 'POST',
     body: JSON.stringify({
       query: 'some query',
@@ -167,7 +167,7 @@ test("a console error occurs when the http handler is second to the graphql hand
     expect.stringContaining('[MSW] Failed to intercept a GraphQL request'),
   )
 
-  const graphqlResponse = await fetch('https://mswjs.msw.com/query', {
+  const graphqlResponse = await fetch('https://mswjs.com/graphql', {
     method: 'POST',
     body: JSON.stringify({
       query: 'query GetData { id }',

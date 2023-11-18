@@ -195,11 +195,6 @@ export interface StartOptions extends SharedOptions {
    * of all registered Service Workers on the page.
    */
   findWorker?: FindWorker
-
-  /**
-   * A flag to enable MSW in production (NODE_ENV === 'production'), otherwise it will throw an error
-   */
-  dangerouslyRunInProduction?: boolean
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>

@@ -181,7 +181,7 @@ export class SetupWorkerApi
     invariant(
       !this.context.startOptions.dangerouslyRunInProduction && isProduction(),
       devUtils.formatMessage(
-        'The flag dangerouslyRunInProduction is false but you are in a production environment',
+        'Failed to call "setupWorker" in a production environment. Please make sure you enable API mocking conditionally so it doesn\'t leak to production.',
       ),
       'https://github.com/mswjs/msw/issues/1703',
     )

@@ -26,9 +26,9 @@ const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
 
 function createGetGraphQLRequest(
   body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
+  graphqlEndpoint = 'https://example.com',
 ) {
-  const requestUrl = new URL(hostname)
+  const requestUrl = new URL(graphqlEndpoint)
   requestUrl.searchParams.set('query', body?.query)
   requestUrl.searchParams.set('variables', JSON.stringify(body?.variables))
   return new Request(requestUrl)
@@ -36,9 +36,9 @@ function createGetGraphQLRequest(
 
 function createPostGraphQLRequest(
   body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
+  graphqlEndpoint = 'https://example.com',
 ) {
-  return new Request(new URL(hostname), {
+  return new Request(new URL(graphqlEndpoint), {
     method: 'POST',
     headers: new Headers({ 'Content-Type': 'application/json' }),
     body: encodeBuffer(JSON.stringify(body)),
@@ -366,6 +366,64 @@ describe('parse', () => {
         query: LOGIN,
         variables: {
           userId: 'abc-123',
+        },
+      })
+    })
+  })
+
+  describe('with endpoint configuration', () => {
+    test('parses a request when the graphql.link endpoint matches', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
+      )
+      const request = createPostGraphQLRequest(
+        {
+          query: GET_USER,
+          variables: {
+            userId: 'abc-123',
+          },
+        },
+        'https://mswjs.com/graphql',
+      )
+
+      await expect(handler.parse({ request })).resolves.toEqual({
+        match: {
+          matches: true,
+          params: {},
+        },
+        operationType: 'query',
+        operationName: 'GetUser',
+        query: GET_USER,
+        variables: {
+          userId: 'abc-123',
+        },
+      })
+    })
+
+    test('parses a request when the graphql.link endpoint does not match', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
+      )
+      const request = createPostGraphQLRequest(
+        {
+          query: GET_USER,
+          variables: {
+            userId: 'abc-123',
+          },
+        },
+        'https://mswjs.com/some/other/endpoint',
+      )
+
+      await expect(handler.parse({ request })).resolves.toEqual({
+        match: {
+          matches: false,
+          params: {},
         },
       })
     })

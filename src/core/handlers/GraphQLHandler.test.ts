@@ -372,7 +372,7 @@ describe('parse', () => {
   })
 
   describe('with endpoint configuration', () => {
-    test('parses a request when the graphql.link endpoint matches', async () => {
+    test('parses the request and parses grapqhl properties from it when the graphql.link endpoint matches', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -431,7 +431,7 @@ describe('parse', () => {
       })
     })
 
-    test('parses a request when the graphql.link hostname does not match', async () => {
+    test('parses a request but does not parse graphql properties from it graphql.link hostname does not match', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -478,7 +478,7 @@ describe('parse', () => {
       })
     })
 
-    test('parses a request when the graphql.link pathname does not match', async () => {
+    test('parses a request but does not parse graphql properties from it graphql.link pathname does not match', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',

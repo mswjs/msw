@@ -379,17 +379,45 @@ describe('parse', () => {
         'https://mswjs.com/graphql',
         resolver,
       )
-      const request = createPostGraphQLRequest(
-        {
-          query: GET_USER,
-          variables: {
-            userId: 'abc-123',
-          },
-        },
-        'https://mswjs.com/graphql',
-      )
 
-      await expect(handler.parse({ request })).resolves.toEqual({
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        match: {
+          matches: true,
+          params: {},
+        },
+        operationType: 'query',
+        operationName: 'GetUser',
+        query: GET_USER,
+        variables: {
+          userId: 'abc-123',
+        },
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
         match: {
           matches: true,
           params: {},
@@ -403,24 +431,93 @@ describe('parse', () => {
       })
     })
 
-    test('parses a request when the graphql.link endpoint does not match', async () => {
+    test('parses a request when the graphql.link hostname does not match', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
         'https://mswjs.com/graphql',
         resolver,
       )
-      const request = createPostGraphQLRequest(
-        {
-          query: GET_USER,
-          variables: {
-            userId: 'abc-123',
-          },
+
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://example.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        match: {
+          matches: false,
+          params: {},
         },
-        'https://mswjs.com/some/other/endpoint',
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://example.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        match: {
+          matches: false,
+          params: {},
+        },
+      })
+    })
+
+    test('parses a request when the graphql.link pathname does not match', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
       )
 
-      await expect(handler.parse({ request })).resolves.toEqual({
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/some/other/endpoint',
+          ),
+        }),
+      ).resolves.toEqual({
+        match: {
+          matches: false,
+          params: {},
+        },
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/some/other/endpoint',
+          ),
+        }),
+      ).resolves.toEqual({
         match: {
           matches: false,
           params: {},

@@ -41,6 +41,7 @@ export function deferNetworkRequestsUntil(predicatePromise: Promise<any>) {
     return globalThis.fetch(...args)
   }
 
+  // Always restore the module patches once the predicate Promise settles.
   predicatePromise.finally(() => {
     restoreXMLHttpRequest()
     restoreFetch()

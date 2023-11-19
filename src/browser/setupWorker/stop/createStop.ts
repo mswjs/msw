@@ -6,11 +6,11 @@ export const createStop = (
   context: SetupWorkerInternalContext,
 ): StopHandler => {
   return function stop() {
-    // Warn developers calling "worker.stop()" more times than necessary.
+    // Warn developers when calling "worker.stop()" more times than necessary.
     // This likely indicates a mistake in their code.
-    if (!context.isMockingEnabled) {
+    if (context.state === 'idle') {
       devUtils.warn(
-        'Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.',
+        'Found a redundant "worker.stop()" call. Note that stopping an idle worker has no effect. Consider removing this "worker.stop()" call.',
       )
       return
     }
@@ -21,7 +21,11 @@ export const createStop = (
      * the worker-client relation. Does not affect the worker's lifecycle.
      */
     context.workerChannel.send('MOCK_DEACTIVATE')
-    context.isMockingEnabled = false
+
+    if (context.state !== 'cancelled') {
+      context.state = 'idle'
+    }
+
     window.clearInterval(context.keepAliveInterval)
 
     printStopMessage({ quiet: context.startOptions?.quiet })

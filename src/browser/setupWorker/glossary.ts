@@ -1,3 +1,4 @@
+import type { DeferredPromise } from '@open-draft/deferred-promise'
 import { Emitter } from 'strict-event-emitter'
 import {
   LifeCycleEventEmitter,
@@ -98,7 +99,7 @@ export interface StrictEventListener<EventType extends Event> {
 }
 
 export interface SetupWorkerInternalContext {
-  isMockingEnabled: boolean
+  state: 'idle' | 'activating' | 'activated' | 'cancelled'
   startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
@@ -197,11 +198,13 @@ export interface StartOptions extends SharedOptions {
   findWorker?: FindWorker
 }
 
-export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
+export type StartReturnType = Promise<ServiceWorkerRegistration>
+
 export type StartHandler = (
   options: RequiredDeep<StartOptions>,
   initialOptions: StartOptions,
-) => StartReturnType
+) => DeferredPromise<ServiceWorkerRegistration>
+
 export type StopHandler = () => void
 
 export interface SetupWorker {

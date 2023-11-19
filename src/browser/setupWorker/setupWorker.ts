@@ -1,5 +1,6 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import {
   SetupWorkerInternalContext,
   ServiceWorkerIncomingEventsMap,
@@ -36,6 +37,8 @@ export class SetupWorkerApi
   private startHandler: StartHandler = null as any
   private stopHandler: StopHandler = null as any
   private listeners: Array<Listener>
+  private workerActivationPromise: DeferredPromise<ServiceWorkerRegistration> | null =
+    null
 
   constructor(...handlers: Array<RequestHandler>) {
     super(...handlers)
@@ -55,7 +58,7 @@ export class SetupWorkerApi
     const context: SetupWorkerInternalContext = {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
-      isMockingEnabled: false,
+      state: 'idle',
       startOptions: null as any,
       worker: null,
       registration: null,
@@ -177,11 +180,32 @@ export class SetupWorkerApi
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
-    return await this.startHandler(this.context.startOptions, options)
+    this.workerActivationPromise = this.startHandler(
+      this.context.startOptions,
+      options,
+    )
+
+    this.workerActivationPromise.catch(() => {
+      this.context.state = 'cancelled'
+    })
+
+    return this.workerActivationPromise
   }
 
   public stop(): void {
     super.dispose()
+
+    if (
+      this.context.state === 'activating' &&
+      this.workerActivationPromise != null
+    ) {
+      // Reject the worker activation Promise if the "worker.stop()" method
+      // was called while the activation was in progress. This is an edge case.
+      this.workerActivationPromise.reject(
+        new Error('Worker stopped before activated'),
+      )
+    }
+
     this.context.events.removeAllListeners()
     this.context.emitter.removeAllListeners()
     this.stopHandler()

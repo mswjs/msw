@@ -5,10 +5,18 @@ import { FindWorker } from '../../glossary'
  * regardless of its state (active, installing, waiting).
  */
 export function getWorkerByRegistration(
-  registration: ServiceWorkerRegistration,
+  registration: ServiceWorkerRegistration | null,
   absoluteWorkerUrl: string,
   findWorker: FindWorker,
 ): ServiceWorker | null {
+  /**
+   * @note Worker registration may be null if the registration was cancelled
+   * by "worker.stop()" before resolving.
+   */
+  if (registration == null) {
+    return null
+  }
+
   const allStates = [
     registration.active,
     registration.installing,

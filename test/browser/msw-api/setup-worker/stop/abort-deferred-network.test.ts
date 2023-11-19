@@ -12,13 +12,18 @@ declare global {
 test('restores module patches if "worker.stop()" was called before worker registration resolved', async ({
   loadExample,
   page,
+  spyOnConsole,
 }) => {
+  const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./abort-deferred-network.mocks.ts'), {
     /**
      * @note Skip activation because the worker will never start.
      */
     skipActivation: true,
   })
+
+  const pageErrors: Array<Error> = []
+  page.on('pageerror', (error) => pageErrors.push(error))
 
   await page.evaluate(() => {
     /**
@@ -27,7 +32,6 @@ test('restores module patches if "worker.stop()" was called before worker regist
      * meanwhile and test that it restores the fetch/XHR patches correctly.
      */
     Reflect.set(navigator.serviceWorker, 'register', async () => {
-      console.warn('navigator.serviceWorker.register() CALLED!')
       await new Promise((resolve) => setTimeout(resolve, 10_000))
     })
   })
@@ -56,9 +60,16 @@ test('restores module patches if "worker.stop()" was called before worker regist
     window.worker.stop()
   })
 
-  // Assert that the module patches have been restored.
+  await page.pause()
+
+  // Module patches must be restored.
   await expect(page.evaluate(() => window.fetch.name)).resolves.toBe('fetch')
   await expect(
     page.evaluate(() => window.XMLHttpRequest.prototype.send.name),
   ).resolves.toBe('send')
+
+  // Must not print any errors (e.g. registration lookup error) or warnings.
+  expect(pageErrors).toEqual([])
+  expect(consoleSpy.get('error')).toBeUndefined()
+  expect(consoleSpy.get('warning')).toBeUndefined()
 })

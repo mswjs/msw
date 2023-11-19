@@ -15,14 +15,12 @@ export async function enableMocking(
   // Warn the developer on multiple "worker.start()" calls.
   // While this will not affect the worker in any way,
   // it likely indicates an issue with the developer's code.
-  if (context.isMockingEnabled) {
+  if (context.state === 'activated') {
     devUtils.warn(
       `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
     )
     return
   }
-
-  context.isMockingEnabled = true
 
   printStartMessage({
     quiet: options.quiet,

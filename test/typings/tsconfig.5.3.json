@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.4.7.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
+  }
+}

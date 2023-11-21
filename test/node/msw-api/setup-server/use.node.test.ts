@@ -126,3 +126,14 @@ test('returns a mocked response from a one-time request handler override only up
   expect(anotherBookResponse.status).toBe(200)
   expect(await anotherBookResponse.json()).toEqual({ title: 'Original title' })
 })
+
+test('throws if provided the invalid handlers array', async () => {
+  expect(() =>
+    server.use(
+      // @ts-expect-error Intentionally invalid input.
+      [http.get('*', () => new Response())],
+    ),
+  ).toThrow(
+    'Failed to call "use()" on "SetupServerApi": given invalid runtime handlers value. Did you forget to spread the array of request handlers?',
+  )
+})

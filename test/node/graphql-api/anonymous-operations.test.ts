@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, graphql } from 'msw'
 import { setupServer } from 'msw/node'
@@ -21,16 +20,16 @@ const server = setupServer(graphql.query('GetUser', () => {}))
 beforeAll(async () => {
   server.listen()
   await httpServer.listen()
-  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
 afterEach(() => {
   server.resetHandlers()
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
   await httpServer.close()
 })
@@ -63,7 +62,7 @@ test('warns on unhandled anonymous GraphQL operations', async () => {
   expect(console.warn).toHaveBeenCalledWith(`\
 [MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation`)
+Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
 })
 
 test('does not print a warning when using anonymous operation with "graphql.operation()"', async () => {

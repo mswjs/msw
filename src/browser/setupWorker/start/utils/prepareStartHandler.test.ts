@@ -33,7 +33,7 @@ describe('resolveStartOptions', () => {
 
 describe('prepareStartHandler', () => {
   test('exposes resolved start options to the generated star handler', () => {
-    const createStartHandler = jest.fn()
+    const createStartHandler = vi.fn()
     const context: SetupWorkerInternalContext = {} as any
     const startHandler = prepareStartHandler(createStartHandler, context)
     expect(startHandler).toBeInstanceOf(Function)

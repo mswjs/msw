@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import nodeHttp from 'http'
 import { HttpServer } from '@open-draft/test-server/http'

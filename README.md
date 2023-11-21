@@ -1,6 +1,12 @@
-> [!IMPORTANT]\
 > **MSW 2.0 is finally here! 🎉** Read the [Release notes](https://github.com/mswjs/msw/releases/tag/v2.0.0) and please follow the [**Migration guidelines**](https://mswjs.io/docs/migrations/1.x-to-2.x) to upgrade. If you're having any questions while upgrading, please reach out in our [Discord server](https://kettanaito.com/discord).
+>
+> We've also recorded the most comprehensive introduction to MSW ever. Learn how to mock APIs like a pro in our official video course:
 
+<a href="https://egghead.io/courses/mock-rest-and-graphql-apis-with-mock-service-worker-8d471ece?af=8mci9b" target="_blank">
+  <img src="media/egghead-banner.png" alt="Mock REST and GraphQL APIs with Mock Service Worker" />
+</a>
+
+<br />
 <br />
 
 <p align="center">
@@ -17,10 +23,12 @@
   <a href="https://www.npmjs.com/package/msw" target="_blank">
     <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
   </a>
-   <a href="https://kcd.im/discord" target="_blank">
+   <a href="https://kettanaito.com/discord" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
   </a>
 </p>
+
+<br />
 
 <br />
 
@@ -117,7 +125,7 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 ### Usage example
 
-Take a look at the example of an integration test in Jest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+Take a look at the example of an integration test in Vitest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
 
 ```js
 // test/Dashboard.test.js
@@ -203,6 +211,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
           <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
           <img src="media/sponsors/github.svg" alt="GitHub" height="64" />
         </picture>
+      </a>
+    </td>
+     <td>
+      <a href="https://www.codacy.com/" target="_blank">
+        <img src="media/sponsors/codacy.svg" alt="Codacy" height="64" />
       </a>
     </td>
   </tr>

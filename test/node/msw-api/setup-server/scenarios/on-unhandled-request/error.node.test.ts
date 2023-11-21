@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
@@ -40,27 +39,45 @@ beforeAll(async () => {
 })
 
 beforeEach(() => {
-  jest.spyOn(global.console, 'error').mockImplementation()
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'error').mockImplementation(() => void 0)
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 afterAll(async () => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   server.close()
   await httpServer.close()
 })
 
 test('errors on unhandled request when using the "error" value', async () => {
   const endpointUrl = httpServer.http.url('/')
-  const makeRequest = () => fetch(endpointUrl)
+  const makeRequest = () => {
+    return fetch(endpointUrl)
+      .then(() => {
+        throw new Error('Must not resolve')
+      })
+      .catch<Error>((error) => {
+        return error
+      })
+  }
 
-  await expect(() => makeRequest()).rejects.toThrow(
-    `request to ${endpointUrl} failed, reason: [MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+  const requestError = await makeRequest()
+
+  expect(requestError.message).toBe('Failed to fetch')
+  /**
+   * @note Undici wraps fetch rejections in a generic "Failed to fetch" error,
+   * forwarding the actual rejection in the "error.cause" property.
+   */
+  expect(requestError.cause).toEqual(
+    new Error(
+      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+    ),
   )
+
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:
 

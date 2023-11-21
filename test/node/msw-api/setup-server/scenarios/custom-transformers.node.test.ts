@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import * as JSONbig from 'json-bigint'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

@@ -45,12 +45,11 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
 
   store.hydrate()
 
-  const cookiesFromStore = Array.from(store.get(request)?.entries()).reduce(
-    (cookies, [name, { value }]) => {
-      return Object.assign(cookies, { [name.trim()]: value })
-    },
-    {},
-  )
+  const cookiesFromStore = Array.from(store.get(request)?.entries()).reduce<
+    Record<string, string>
+  >((cookies, [name, { value }]) => {
+    return Object.assign(cookies, { [name.trim()]: value })
+  }, {})
 
   const cookiesFromDocument = getRequestCookies(request)
 
@@ -66,7 +65,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
    * is pure-er.
    */
   for (const [name, value] of Object.entries(forwardedCookies)) {
-    request.headers.append('cookie', `${name}=${value}`)
+    request.headers.append('cookie', cookieUtils.serialize(name, value))
   }
 
   return {

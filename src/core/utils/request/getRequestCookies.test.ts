@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { getRequestCookies } from './getRequestCookies'
 import { clearCookies } from '../../../../test/support/utils'
@@ -8,6 +8,7 @@ beforeAll(() => {
   // Emulate some `document.cookie` value.
   document.cookie = 'auth-token=abc-123;'
   document.cookie = 'custom-cookie=yes;'
+  document.cookie = `encoded-cookie=${encodeURIComponent('测试')};`
 })
 
 afterAll(() => {
@@ -24,6 +25,7 @@ test('returns all document cookies given "include" credentials', () => {
   expect(cookies).toEqual({
     'auth-token': 'abc-123',
     'custom-cookie': 'yes',
+    'encoded-cookie': '测试',
   })
 })
 
@@ -37,6 +39,7 @@ test('returns all document cookies given "same-origin" credentials and the same 
   expect(cookies).toEqual({
     'auth-token': 'abc-123',
     'custom-cookie': 'yes',
+    'encoded-cookie': '测试',
   })
 })
 

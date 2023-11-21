@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -15,9 +14,9 @@ const httpServer = new HttpServer((app) => {
 
 const server = setupServer()
 
-const listener = jest.fn()
+const listener = vi.fn()
 
-function getRequestId(requestStartListener: jest.Mock) {
+function getRequestId(requestStartListener: vi.Mock) {
   const { calls } = requestStartListener.mock
   const requestStartCall = calls.find((call) => {
     return call[0].startsWith('[request:start]')
@@ -78,11 +77,11 @@ beforeAll(async () => {
 beforeEach(() => {
   // Supress "Expected a mocking resolver function to return a mocked response"
   // warnings. Using intentional explicit empty resolver.
-  jest.spyOn(global.console, 'warn').mockImplementation()
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 afterAll(async () => {

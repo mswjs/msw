@@ -13,15 +13,17 @@ test('silences exceptions by default', () => {
   expect(result).toBeUndefined()
 })
 
-test('executes a custom callback function when an exception occurs', (done) => {
-  tryCatch(
-    () => {
-      throw new Error('Exception')
-    },
-    (error) => {
-      expect(error).toBeInstanceOf(Error)
-      expect(error.message).toEqual('Exception')
-      done()
-    },
-  )
+test('executes a custom callback function when an exception occurs', async () => {
+  await new Promise<void>((resolve) => {
+    tryCatch(
+      () => {
+        throw new Error('Exception')
+      },
+      (error) => {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toEqual('Exception')
+        resolve()
+      },
+    )
+  })
 })

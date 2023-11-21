@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -29,10 +28,19 @@ afterAll(() => {
 })
 
 test('prevents a request when a custom callback throws an exception', async () => {
-  const getResponse = () => fetch('https://example.com')
+  const makeRequest = () => {
+    return fetch('https://example.com')
+      .then(() => {
+        throw new Error('Must not resolve')
+      })
+      .catch<Error>((error) => error)
+  }
+
+  const requestError = await makeRequest()
 
   // Request should be cancelled with a fetch error, since the callback threw.
-  await expect(getResponse()).rejects.toThrow(
-    'request to https://example.com/ failed, reason: Custom error for GET https://example.com/',
+  expect(requestError.message).toBe('Failed to fetch')
+  expect(requestError.cause).toEqual(
+    new Error('Custom error for GET https://example.com/'),
   )
 })

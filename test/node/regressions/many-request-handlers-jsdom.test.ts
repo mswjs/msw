@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  *
  * @note In JSDOM, the "AbortSignal" class is polyfilled instead of
  * using the Node.js global. Because of that, its instances won't
@@ -32,12 +32,12 @@ const server = setupServer(...restHandlers, ...graphqlHanlers)
 
 beforeAll(() => {
   server.listen()
-  jest.spyOn(process.stderr, 'write')
+  vi.spyOn(process.stderr, 'write')
 })
 
 afterAll(() => {
   server.close()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 it('does not print a memory leak warning when having many request handlers', async () => {

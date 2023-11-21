@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -12,12 +12,12 @@ beforeAll(() => server.listen())
 afterAll(() => server.close())
 
 test('tolerates fake timers', async () => {
-  jest.useFakeTimers()
+  vi.useFakeTimers()
 
   const res = await fetch('https://test.mswjs.io/pull')
   const body = await res.json()
 
-  jest.useRealTimers()
+  vi.useRealTimers()
 
   expect(body).toEqual({ status: 'pulled' })
 })

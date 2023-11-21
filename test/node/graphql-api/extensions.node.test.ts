@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql as executeGraphql } from 'graphql'
 import { graphql, HttpResponse } from 'msw'

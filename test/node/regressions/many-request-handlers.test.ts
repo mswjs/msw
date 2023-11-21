@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -25,12 +25,12 @@ const server = setupServer(...restHandlers, ...graphqlHanlers)
 
 beforeAll(() => {
   server.listen()
-  jest.spyOn(process.stderr, 'write')
+  vi.spyOn(process.stderr, 'write')
 })
 
 afterAll(() => {
   server.close()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 it('does not print a memory leak warning when having many request handlers', async () => {

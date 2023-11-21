@@ -1,7 +1,6 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
-import fetch from 'node-fetch'
 import { HttpResponse, passthrough, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -24,12 +23,12 @@ beforeAll(async () => {
 })
 
 beforeEach(() => {
-  jest.spyOn(console, 'warn').mockImplementation()
+  vi.spyOn(console, 'warn').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
   server.resetHandlers()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 afterAll(async () => {

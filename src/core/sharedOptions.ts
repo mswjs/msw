@@ -11,6 +11,10 @@ export interface SharedOptions {
    * @example server.listen({ onUnhandledRequest: 'error' })
    */
   onUnhandledRequest?: UnhandledRequestStrategy
+  /**
+   * A flag to enable MSW in production (NODE_ENV === 'production'), otherwise it will throw an error
+   */
+  dangerouslyRunInProduction?: boolean
 }
 
 export type LifeCycleEventsMap = {

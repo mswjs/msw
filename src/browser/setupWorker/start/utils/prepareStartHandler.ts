@@ -15,6 +15,7 @@ export const DEFAULT_START_OPTIONS: RequiredDeep<StartOptions> = {
   quiet: false,
   waitUntilReady: true,
   onUnhandledRequest: 'warn',
+  dangerouslyRunInProduction: false,
   findWorker(scriptURL, mockServiceWorkerUrl) {
     return scriptURL === mockServiceWorkerUrl
   },

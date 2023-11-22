@@ -1,5 +1,5 @@
 import { HttpResponse, http } from 'msw'
-import { setupServer } from 'msw/node'
+import { setupServer } from 'msw/native'
 
 test('throws an error given an Array of request handlers to setupServer', () => {
   const createServer = () => {
@@ -14,6 +14,6 @@ test('throws an error given an Array of request handlers to setupServer', () => 
   }
 
   expect(createServer).toThrow(
-    `[MSW] Failed to construct "SetupNodeServerApi" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.`,
+    `[MSW] Failed to construct "SetupServerApi" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.`,
   )
 })

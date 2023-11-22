@@ -19,13 +19,16 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
+type Interceptors = Array<{
+  new (): Interceptor<HttpRequestEventMap>
+}>
+
+const defaultContext = { nodeEvents: undefined }
 export class SetupServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupServer
 {
-  private context: SetupServerContext = {
-    nodeEvents: undefined,
-  } as const
+  private declare context: SetupServerContext
   protected readonly interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
@@ -33,13 +36,24 @@ export class SetupServerApi
   private resolvedOptions: RequiredDeep<SharedOptions>
 
   constructor(
-    interceptors: Array<{
-      new (): Interceptor<HttpRequestEventMap>
-    }>,
+    interceptorsOrConfig:
+      | Interceptors
+      | {
+          context?: SetupServerContext
+          interceptors?: Interceptors
+        },
     ...handlers: Array<RequestHandler>
   ) {
     super(...handlers)
 
+    let interceptors: Interceptors
+    if (Array.isArray(interceptorsOrConfig)) {
+      interceptors = interceptorsOrConfig
+      this.context = defaultContext
+    } else {
+      interceptors = interceptorsOrConfig.interceptors ?? []
+      this.context = interceptorsOrConfig.context ?? defaultContext
+    }
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
@@ -47,25 +61,6 @@ export class SetupServerApi
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
 
     this.init()
-  }
-
-  /**
-   * Appends a context onto the SetupServerApi instance,
-   * returning that instance. This is used to provide
-   * a dependency injection mechanism for the Node-specific
-   * modules.
-   *
-   * In a future major we might want to consider adding a
-   * new argument to the constructor to allow for this
-   * as a bit more streamlined setup, but this allows
-   * us to remove a dynamic `node:events` import, provide
-   * the same functionality, and remove a jest/jsdom/node bug
-   * where dynamically importing a node module could segfault
-   *
-   */
-  withContext(context: SetupServerContext) {
-    this.context = context
-    return this
   }
 
   /**

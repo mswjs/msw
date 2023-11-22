@@ -15,12 +15,19 @@ export const setupServer = (
   ...handlers: Array<RequestHandler>
 ): SetupServer => {
   return new SetupServerApi(
-    [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
-    ...handlers,
-  ).withContext({
-    nodeEvents: {
-      setMaxListeners,
-      defaultMaxListeners,
+    {
+      interceptors: [
+        ClientRequestInterceptor,
+        XMLHttpRequestInterceptor,
+        FetchInterceptor,
+      ],
+      context: {
+        nodeEvents: {
+          setMaxListeners,
+          defaultMaxListeners,
+        },
+      },
     },
-  })
+    ...handlers,
+  )
 }

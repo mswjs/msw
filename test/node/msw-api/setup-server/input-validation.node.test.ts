@@ -3,9 +3,7 @@ import { setupServer } from 'msw/node'
 
 test('throws an error given an Array of request handlers to setupServer', () => {
   const createServer = () => {
-    // The next line will be ignored because we want to test that an Error
-    // should be thrown when `setupServer` parameters are not valid
-    // @ts-ignore
+    // @ts-expect-error intentionally invalid parameters for setupServer to force it to throw
     return setupServer([
       http.get('https://test.mswjs.io/book/:bookId', () => {
         return HttpResponse.json({ title: 'Original title' })

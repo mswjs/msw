@@ -7,18 +7,19 @@ export function pipeEvents<Events extends EventMap>(
   source: Emitter<Events>,
   destination: Emitter<Events>,
 ): void {
-  const rawEmit = source.emit
+  const rawEmit: typeof source.emit & { _isPiped?: boolean } = source.emit
 
-  // @ts-ignore
   if (rawEmit._isPiped) {
     return
   }
 
-  source.emit = function (event, ...data) {
-    destination.emit(event, ...data)
-    return rawEmit.call(this, event, ...data)
-  }
+  const sourceEmit: typeof source.emit & { _isPiped?: boolean } =
+    function sourceEmit(this: typeof source, event, ...data) {
+      destination.emit(event, ...data)
+      return rawEmit.call(this, event, ...data)
+    }
 
-  // @ts-ignore
-  source.emit._isPiped = true
+  sourceEmit._isPiped = true
+
+  source.emit = sourceEmit
 }

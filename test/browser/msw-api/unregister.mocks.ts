@@ -7,7 +7,8 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.msw = {
-  worker,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+  },
+})

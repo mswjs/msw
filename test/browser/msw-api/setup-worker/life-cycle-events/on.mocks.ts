@@ -27,13 +27,13 @@ worker.events.on('request:unhandled', ({ request, requestId }) => {
   )
 })
 
-const requestEndListner: (
+const requestEndListener: (
   ...args: LifeCycleEventsMap['request:end']
 ) => void = ({ request, requestId }) => {
   console.warn(`[request:end] ${request.method} ${request.url} ${requestId}`)
 }
 
-worker.events.on('request:end', requestEndListner)
+worker.events.on('request:end', requestEndListener)
 
 worker.events.on('response:mocked', async ({ response, requestId }) => {
   const body = await response.clone().text()
@@ -55,8 +55,9 @@ worker.start({
   onUnhandledRequest: 'bypass',
 })
 
-// @ts-ignore
-window.msw = {
-  worker,
-  requestEndListner,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+    requestEndListener,
+  },
+})

@@ -27,6 +27,14 @@ export class WorkerChannel {
     ...rest: WorkerChannelEventsMap[Event]
   ): void {
     const [data, transfer] = rest
-    this.port.postMessage({ type: event, data }, { transfer })
+    this.port.postMessage(
+      { type: event, data },
+      {
+        // but TypeScript doesn't acknowledge that.
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+        // @ts-ignore ReadableStream can be transferred, but only in versions 4.8 and lower
+        transfer,
+      },
+    )
   }
 }

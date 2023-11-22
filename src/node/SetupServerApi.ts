@@ -1,18 +1,18 @@
-import { invariant } from 'outvariant'
 import {
   BatchInterceptor,
   HttpRequestEventMap,
   Interceptor,
   InterceptorReadyState,
 } from '@mswjs/interceptors'
+import { invariant } from 'outvariant'
 import { SetupApi } from '~/core/SetupApi'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { RequiredDeep } from '~/core/typeUtils'
-import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { SetupServer, SetupServerInternalContext } from './glossary'
+import { mergeRight } from '~/core/utils/internal/mergeRight'
+import { SetupServer, SetupServerContext } from './glossary'
 import { isNodeExceptionLike } from './utils/isNodeExceptionLike'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
@@ -23,7 +23,9 @@ export class SetupServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupServer
 {
-  private context: SetupServerInternalContext
+  private context: SetupServerContext = {
+    nodeEvents: undefined,
+  } as const
   protected readonly interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
@@ -38,7 +40,6 @@ export class SetupServerApi
   ) {
     super(...handlers)
 
-    this.context = this.createContext()
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
@@ -48,14 +49,23 @@ export class SetupServerApi
     this.init()
   }
 
-  private createContext(): SetupServerInternalContext {
-    return {
-      get nodeEvents() {
-        return import('node:events')
-          .then((events) => events)
-          .catch(() => undefined)
-      },
-    }
+  /**
+   * Appends a context onto the SetupServerApi instance,
+   * returning that instance. This is used to provide
+   * a dependency injection mechanism for the Node-specific
+   * modules.
+   *
+   * In a future major we might want to consider adding a
+   * new argument to the constructor to allow for this
+   * as a bit more streamlined setup, but this allows
+   * us to remove a dynamic `node:events` import, provide
+   * the same functionality, and remove a jest/jsdom/node bug
+   * where dynamically importing a node module could segfault
+   *
+   */
+  withContext(context: SetupServerContext) {
+    this.context = context
+    return this
   }
 
   /**
@@ -138,7 +148,7 @@ export class SetupServerApi
   private async setRequestAbortSignalMaxListeners(
     request: Request,
   ): Promise<void> {
-    const events = await this.context.nodeEvents
+    const events = this.context.nodeEvents
 
     /**
      * @note React Native doesn't support "node:events".

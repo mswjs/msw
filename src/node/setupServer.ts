@@ -1,10 +1,10 @@
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { defaultMaxListeners, setMaxListeners } from 'node:events'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import { SetupServer } from './glossary'
 import { SetupServerApi } from './SetupServerApi'
-
+import { SetupServer } from './glossary'
 /**
  * Sets up a requests interception in Node.js with the given request handlers.
  * @param {RequestHandler[]} handlers List of request handlers.
@@ -17,5 +17,10 @@ export const setupServer = (
   return new SetupServerApi(
     [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
     ...handlers,
-  )
+  ).withContext({
+    nodeEvents: {
+      setMaxListeners,
+      defaultMaxListeners,
+    },
+  })
 }

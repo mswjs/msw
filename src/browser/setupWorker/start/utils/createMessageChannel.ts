@@ -30,9 +30,8 @@ export class WorkerChannel {
     this.port.postMessage(
       { type: event, data },
       {
-        // but TypeScript doesn't acknowledge that.
         // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-        // @ts-ignore ReadableStream can be transferred, but only in versions 4.8 and lower
+        // @ts-ignore ReadableStream can be transferred, but this isn't handled in typescript versions 4.8 and below
         transfer,
       },
     )

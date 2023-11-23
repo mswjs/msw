@@ -13,10 +13,9 @@ export class SetupNodeServerApi extends SetupServerApi implements SetupServer {
    * "AbortController" so if the parent aborts, all the
    * clones are automatically aborted.
    */
-  protected async setRequestAbortSignalMaxListeners(
+  private async setRequestAbortSignalMaxListeners(
     request: Request,
   ): Promise<void> {
-    if (typeof setMaxListeners === 'undefined') return
     try {
       setMaxListeners(
         Math.max(defaultMaxListeners, this.currentHandlers.length),

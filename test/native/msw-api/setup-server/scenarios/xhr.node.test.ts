@@ -2,6 +2,10 @@
  * @vitest-environment jsdom
  *
  * @todo ensure that environment is react-native-like (currently not)
+ *
+ * For now this test mostly validates that the setupServer() function
+ * works for msw/native and also that a request can be intercepted
+ * without issue
  */
 import { http } from 'msw'
 import { setupServer } from 'msw/native'

@@ -1,5 +1,7 @@
 /**
  * @vitest-environment jsdom
+ *
+ * @todo ensure that environment is react-native-like (currently not)
  */
 import { http } from 'msw'
 import { setupServer } from 'msw/native'

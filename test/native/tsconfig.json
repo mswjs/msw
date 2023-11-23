@@ -2,47 +2,21 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
-    "types": ["react-native", "vitest/globals"],
-    "declaration": false,
-    "lib": [
-      "DOM",
-      "es2019",
-      "es2020.bigint",
-      "es2020.date",
-      "es2020.number",
-      "es2020.promise",
-      "es2020.string",
-      "es2020.symbol.wellknown",
-      "es2021.promise",
-      "es2021.string",
-      "es2021.weakref",
-      "es2022.array",
-      "es2022.object",
-      "es2022.string"
-    ],
+    "module": "esnext",
     "baseUrl": ".",
     "paths": {
       "msw": ["../.."],
       "msw/*": ["../../*"]
     },
-    "allowJs": true,
-    "jsx": "react-native",
     "noEmit": true,
-    "isolatedModules": true,
-    "strict": true,
-    "moduleResolution": "node",
+    "declaration": false,
     "resolveJsonModule": true,
+    // Support default imports for modules that have no default exports.
+    // This way "http" imports stay "import http from 'http'".
+    // Using wildcard there breaks request interception since it
+    // encapsulates the values under the ".default" key.
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "types": ["node", "vitest/globals"]
   },
-  "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "metro.config.js",
-    "jest.config.js"
-  ],
   "include": ["../../global.d.ts", "./**/*.test.ts"]
 }

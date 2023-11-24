@@ -17,7 +17,7 @@ class SetupNodeServerApi extends SetupServerApi implements SetupServer {
    * "AbortController" so if the parent aborts, all the
    * clones are automatically aborted.
    */
-  protected override onRequestIntercepted(request: Request): void {
+  protected override onRequest(request: Request): void {
     try {
       setMaxListeners(
         Math.max(defaultMaxListeners, this.currentHandlers.length),

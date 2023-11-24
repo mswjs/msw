@@ -47,7 +47,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       invariant(
         !Array.isArray(handler),
         devUtils.formatMessage(
-          'Failed to construct "%s" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.',
+          'Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
         ),
         this.constructor.name,
       )

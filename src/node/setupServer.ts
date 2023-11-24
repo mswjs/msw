@@ -3,11 +3,11 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { defaultMaxListeners, setMaxListeners } from 'node:events'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import { SetupServerApi } from './SetupServerApi'
+import { SetupServerApi as BaseSetupServerApi } from './SetupServerApi'
 import { SetupServer } from './glossary'
 import { isNodeExceptionLike } from './utils/isNodeExceptionLike'
 
-class SetupNodeServerApi extends SetupServerApi implements SetupServer {
+class SetupServerApi extends BaseSetupServerApi implements SetupServer {
   /**
    * Bump the maximum number of event listeners on the
    * request's "AbortSignal". This prepares the request
@@ -52,7 +52,7 @@ class SetupNodeServerApi extends SetupServerApi implements SetupServer {
 export const setupServer = (
   ...handlers: Array<RequestHandler>
 ): SetupServer => {
-  return new SetupNodeServerApi(
+  return new SetupServerApi(
     [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
     ...handlers,
   )

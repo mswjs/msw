@@ -24,7 +24,12 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
   constructor(...initialHandlers: Array<RequestHandler>) {
     super()
 
-    this.validateHandlers(...initialHandlers)
+    invariant(
+      this.validateHandlers(initialHandlers),
+      devUtils.formatMessage(
+        `Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?`,
+      ),
+    )
 
     this.initialHandlers = toReadonlyArray(initialHandlers)
     this.currentHandlers = [...initialHandlers]
@@ -41,20 +46,19 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     })
   }
 
-  private validateHandlers(...handlers: ReadonlyArray<RequestHandler>): void {
+  private validateHandlers(handlers: ReadonlyArray<RequestHandler>): boolean {
     // Guard against incorrect call signature of the setup API.
-    for (const handler of handlers) {
-      invariant(
-        !Array.isArray(handler),
-        devUtils.formatMessage(
-          'Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
-        ),
-        this.constructor.name,
-      )
-    }
+    return handlers.every((handler) => !Array.isArray(handler))
   }
 
   public use(...runtimeHandlers: Array<RequestHandler>): void {
+    invariant(
+      this.validateHandlers(runtimeHandlers),
+      devUtils.formatMessage(
+        `Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?`,
+      ),
+    )
+
     this.currentHandlers.unshift(...runtimeHandlers)
   }
 

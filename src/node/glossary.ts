@@ -60,7 +60,3 @@ export interface SetupServer {
    */
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }
-
-export type SetupServerInternalContext = {
-  get nodeEvents(): Promise<typeof import('node:events') | undefined>
-}

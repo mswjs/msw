@@ -40,6 +40,9 @@ jobs:
       - name: Browser tests
         run: pnpm test:browser
 
+      - name: Native tests
+        run: pnpm test:native
+
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v3

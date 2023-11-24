@@ -17,14 +17,7 @@ const SERVICE_WORKER_OUTPUT_PATH = path.resolve(
 )
 
 function getChecksum(contents: string): string {
-  const { code } = minify(
-    contents,
-    {},
-    {
-      // @ts-ignore "babel-minify" has no type definitions.
-      comments: false,
-    },
-  )
+  const { code } = minify(contents, {}, { comments: false })
 
   return crypto.createHash('md5').update(code, 'utf8').digest('hex')
 }

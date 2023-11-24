@@ -3,7 +3,7 @@ import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   http.get('https://api.github.com/users/:username', () => {
-    // @ts-ignore
+    // @ts-expect-error nonExisting should not be defined
     nonExisting()
     return
   }),

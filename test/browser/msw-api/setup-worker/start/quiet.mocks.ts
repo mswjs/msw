@@ -10,10 +10,11 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.msw = {
-  registration: worker.start({
-    // Disable logging of matched requests into browser's console
-    quiet: true,
-  }),
-}
+Object.assign(window, {
+  msw: {
+    registration: worker.start({
+      // Disable logging of matched requests into browser's console
+      quiet: true,
+    }),
+  },
+})

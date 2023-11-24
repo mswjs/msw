@@ -66,11 +66,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install TypeScript ${{ matrix.ts }}
-        run: pnpm add typescript@${{ matrix.ts }}
-
       - name: Build
         run: pnpm build
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: pnpm add typescript@${{ matrix.ts }}
 
       - name: Typings tests
         run: |

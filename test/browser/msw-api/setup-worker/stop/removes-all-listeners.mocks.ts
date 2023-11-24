@@ -9,7 +9,8 @@ const createWorker = () => {
   )
 }
 
-// @ts-ignore
-window.msw = {
-  createWorker,
-}
+Object.assign(window, {
+  msw: {
+    createWorker,
+  },
+})

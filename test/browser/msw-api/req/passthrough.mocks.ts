@@ -9,10 +9,11 @@ const worker = setupWorker(
 
 worker.start()
 
-// @ts-ignore
-window.msw = {
-  worker,
-  http,
-  passthrough,
-  HttpResponse,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+    http,
+    passthrough,
+    HttpResponse,
+  },
+})

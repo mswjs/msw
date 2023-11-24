@@ -9,7 +9,8 @@ const worker = setupWorker(
 
 worker.start()
 
-// @ts-ignore
-window.msw = {
-  worker,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+  },
+})

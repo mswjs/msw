@@ -10,7 +10,7 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
+import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
@@ -30,6 +30,23 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationType: ExpectedOperationTypeNode
   operationName: GraphQLHandlerNameSelector
 }
+
+export type GraphQLRequestParsedResult = {
+  match: Match
+} & (
+  | ParsedGraphQLRequest<GraphQLVariables>
+  /**
+   * An empty version of the ParsedGraphQLRequest
+   * which simplifies the return type of the resolver
+   * when the request is to a non-matching endpoint
+   */
+  | {
+      operationType?: undefined
+      operationName?: undefined
+      query?: undefined
+      variables?: undefined
+    }
+)
 
 export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
@@ -66,7 +83,7 @@ export function isDocumentNode(
 
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  ParsedGraphQLRequest,
+  GraphQLRequestParsedResult,
   GraphQLResolverExtras<any>
 > {
   private endpoint: Path
@@ -116,9 +133,14 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  async parse(args: {
-    request: Request
-  }): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+  async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
+    /**
+     * If the request doesn't match a specified endpoint, there's no
+     * need to parse it since there's no case where we would handle this
+     */
+    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    if (!match.matches) return { match }
+
     const parsedResult = await parseGraphQLRequest(args.request).catch(
       (error) => {
         console.error(error)
@@ -127,10 +149,11 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return undefined
+      return { match }
     }
 
     return {
+      match,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
@@ -140,9 +163,9 @@ export class GraphQLHandler extends RequestHandler<
 
   predicate(args: {
     request: Request
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+    parsedResult: GraphQLRequestParsedResult
   }) {
-    if (!args.parsedResult) {
+    if (args.parsedResult.operationType === undefined) {
       return false
     }
 
@@ -156,10 +179,6 @@ Consider naming this operation or using "graphql.operation()" request handler to
       return false
     }
 
-    const hasMatchingUrl = matchRequestUrl(
-      new URL(args.request.url),
-      this.endpoint,
-    )
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
@@ -170,7 +189,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
         : args.parsedResult.operationName === this.info.operationName
 
     return (
-      hasMatchingUrl.matches &&
+      args.parsedResult.match.matches &&
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
@@ -178,14 +197,14 @@ Consider naming this operation or using "graphql.operation()" request handler to
 
   protected extendResolverArgs(args: {
     request: Request
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+    parsedResult: GraphQLRequestParsedResult
   }) {
     const cookies = getAllRequestCookies(args.request)
 
     return {
-      query: args.parsedResult?.query || '',
-      operationName: args.parsedResult?.operationName || '',
-      variables: args.parsedResult?.variables || {},
+      query: args.parsedResult.query || '',
+      operationName: args.parsedResult.operationName || '',
+      variables: args.parsedResult.variables || {},
       cookies,
     }
   }
@@ -193,14 +212,14 @@ Consider naming this operation or using "graphql.operation()" request handler to
   async log(args: {
     request: Request
     response: Response
-    parsedResult: ParsedGraphQLRequest
+    parsedResult: GraphQLRequestParsedResult
   }) {
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
-    const requestInfo = args.parsedResult?.operationName
-      ? `${args.parsedResult?.operationType} ${args.parsedResult?.operationName}`
-      : `anonymous ${args.parsedResult?.operationType}`
+    const requestInfo = args.parsedResult.operationName
+      ? `${args.parsedResult.operationType} ${args.parsedResult.operationName}`
+      : `anonymous ${args.parsedResult.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage(

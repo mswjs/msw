@@ -16,9 +16,10 @@ const worker = setupWorker(
 
 worker.start()
 
-// @ts-ignore
-window.msw = {
-  worker,
-  http,
-  graphql,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+    http,
+    graphql,
+  },
+})

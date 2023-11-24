@@ -9,9 +9,10 @@ worker.start({
   onUnhandledRequest: 'warn',
 })
 
-// @ts-ignore
-window.msw = {
-  worker,
-  http,
-  graphql,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+    http,
+    graphql,
+  },
+})

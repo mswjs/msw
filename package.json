@@ -182,7 +182,7 @@
     "vitest": "^0.34.6",
     "vitest-environment-miniflare": "^2.14.1",
     "webpack": "^5.68.0",
-    "webpack-dev-server": "^3.11.2",
+    "webpack-dev-server": "^4.15.1",
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {

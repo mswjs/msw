@@ -9,5 +9,4 @@ const worker = setupWorker(
 
 worker.start()
 
-// @ts-ignore
-window.worker = worker
+Object.assign(window, { worker })

@@ -122,10 +122,13 @@ async function handleRequest(event, requestId) {
     ;(async function () {
       const responseClone = response.clone()
       // When performing original requests, response body will
-      // always be a ReadableStream, even for 204 responses.
+      // always be a ReadableStream, even for 204 / 304 responses.
       // But when creating a new Response instance on the client,
-      // the body for a 204 response must be null.
-      const responseBody = response.status === 204 ? null : responseClone.body
+      // the body for a 204 / 304 response must be null.
+      const responseBody =
+        response.status === 204 || response.status === 304
+          ? null
+          : responseClone.body
 
       sendToClient(
         client,

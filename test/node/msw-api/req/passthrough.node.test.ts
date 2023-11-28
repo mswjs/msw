@@ -9,14 +9,8 @@ const httpServer = new HttpServer((app) => {
   app.post<never, ResponseBody>('/user', (req, res) => {
     res.json({ name: 'John' })
   })
-  app.post('/code/204', (req, res) => {
-    res.status(204).send()
-  })
-  app.post('/code/205', (req, res) => {
-    res.status(205).send()
-  })
-  app.post('/code/304', (req, res) => {
-    res.status(304).send()
+  app.post('/code/:code', (req, res) => {
+    res.status(parseInt(req.params.code)).send()
   })
 })
 

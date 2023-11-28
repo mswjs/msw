@@ -1,6 +1,5 @@
 import { HttpResponse, http, passthrough } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
-import { sleep } from '../../../support/utils'
 import { expect, test } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
@@ -162,7 +161,6 @@ for (const code of [204, 205, 304]) {
 
     const res = await fetch(endpointUrl, { method: 'POST' })
     expect(res.status()).toBe(code)
-    await sleep(500)
     expect(errors).toEqual([])
   })
 
@@ -197,7 +195,6 @@ for (const code of [204, 205, 304]) {
 
     const res = await fetch(endpointUrl, { method: 'POST' })
     expect(res.status()).toBe(code)
-    await sleep(500)
     expect(errors).toEqual([])
   })
 }

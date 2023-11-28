@@ -4,6 +4,7 @@ import {
 } from '../glossary'
 import { ServiceWorkerMessage } from './utils/createMessageChannel'
 import { isResponseWithoutBody } from '@mswjs/interceptors'
+
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (
     _: MessageEvent,

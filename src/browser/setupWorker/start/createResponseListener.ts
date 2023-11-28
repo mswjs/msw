@@ -25,14 +25,21 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
       return
     }
 
-    let response: Response
-    if (responseJson.status === 0) {
-      response = Response.error()
-    } else if (isResponseWithoutBody(responseJson.status)) {
-      response = new Response(null, responseJson)
-    } else {
-      response = new Response(responseJson.body, responseJson)
-    }
+    const response =
+      responseJson.status === 0
+        ? Response.error()
+        : new Response(
+            /**
+             * Responses may be streams here, but when we create a response object
+             * with null-body status codes, like 204, 205, 304 Response will
+             * throw when passed a non-null body, so ensure it's null here
+             * for those codes
+             */
+            isResponseWithoutBody(responseJson.status)
+              ? null
+              : responseJson.body,
+            responseJson,
+          )
 
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',

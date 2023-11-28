@@ -98,9 +98,8 @@ it('performs a request as-is if nothing was returned from the resolver', async (
   })
 })
 
-it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
-  'performs a $code request as-is if nothing was returned from the resolver',
-  async ({ code }) => {
+for (const code of [204, 205, 304]) {
+  it(`performs a ${code} request as-is if nothing was returned from the resolver`, async () => {
     const endpointUrl = httpServer.http.url(`/code/${code}`)
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {
@@ -111,12 +110,9 @@ it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
     const res = await fetch(endpointUrl, { method: 'POST' })
 
     expect(res.status).toEqual(code)
-  },
-)
+  })
 
-it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
-  'performs a $code request as-is if passthrough was returned from the resolver',
-  async ({ code }) => {
+  it(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
     const endpointUrl = httpServer.http.url(`/code/${code}`)
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {
@@ -127,5 +123,5 @@ it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
     const res = await fetch(endpointUrl, { method: 'POST' })
 
     expect(res.status).toEqual(code)
-  },
-)
+  })
+}

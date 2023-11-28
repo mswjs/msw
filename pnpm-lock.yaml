@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.1.0
-  '@mswjs/interceptors': ^0.25.11
+  '@mswjs/interceptors': ^0.25.13
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.8.0
@@ -82,7 +82,7 @@ dependencies:
   '@bundled-es-modules/js-levenshtein': 2.0.1
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.1.0
-  '@mswjs/interceptors': 0.25.11
+  '@mswjs/interceptors': 0.25.13
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.4.1
   '@types/js-levenshtein': 1.1.1
@@ -2429,8 +2429,8 @@ packages:
     engines: {node: '>=18'}
     dev: false
 
-  /@mswjs/interceptors/0.25.11:
-    resolution: {integrity: sha512-27aonWAjdeoZN4j4j6QvePOSOacQUucFRUESAU8FUXsmmagDjmyOi4/NHizxzY/NHSk/HAyqF/IMhl+9puhqNw==}
+  /@mswjs/interceptors/0.25.13:
+    resolution: {integrity: sha512-xfjR81WwXPHwhDbqJRHlxYmboJuiSaIKpP4I5TJVFl/EmByOU13jOBT9hmEnxcjR3jvFYoqoNKt7MM9uqerj9A==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
@@ -3695,7 +3695,7 @@ packages:
   /axios/1.6.1:
     resolution: {integrity: sha512-vfBmhDpKafglh0EldBEbVuoe7DyAavGSLWhuSm5ZSEKQnHhBf0xAAwybbNH1IkrJNGnS/VG4I5yxig1pCEXE4g==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.4
+      follow-redirects: 1.15.2
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -5906,6 +5906,16 @@ packages:
 
   /flatted/3.2.7:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
+    dev: true
+
+  /follow-redirects/1.15.2:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
     dev: true
 
   /follow-redirects/1.15.2_debug@4.3.4:

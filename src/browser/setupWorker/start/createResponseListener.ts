@@ -3,7 +3,7 @@ import {
   SetupWorkerInternalContext,
 } from '../glossary'
 import { ServiceWorkerMessage } from './utils/createMessageChannel'
-
+import { isResponseWithoutBody } from '@mswjs/interceptors'
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (
     _: MessageEvent,
@@ -25,10 +25,14 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
       return
     }
 
-    const response =
-      responseJson.status === 0
-        ? Response.error()
-        : new Response(responseJson.body, responseJson)
+    let response: Response
+    if (responseJson.status === 0) {
+      response = Response.error()
+    } else if (isResponseWithoutBody(responseJson.status)) {
+      response = new Response(null, responseJson)
+    } else {
+      response = new Response(responseJson.body, responseJson)
+    }
 
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',

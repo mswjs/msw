@@ -128,3 +128,33 @@ test('performs a request as-is if nothing was returned from the resolver', async
     name: 'John',
   })
 })
+
+for (const code of [204, 205, 304]) {
+  test(`performs a ${code} request as-is if nothing was returned from the resolver`, async ({
+    createServer,
+    loadExample,
+    fetch,
+    page,
+  }) => {
+    const server = await createServer((app) => {
+      app.post('/user', (_, res) => {
+        res.status(code).send()
+      })
+    })
+
+    await loadExample(PASSTHROUGH_EXAMPLE)
+    const endpointUrl = server.http.url('/user')
+
+    await page.evaluate(async (endpointUrl) => {
+      const { worker, http } = window.msw
+      worker.use(
+        http.post<never, ResponseBody>(endpointUrl, () => {
+          return
+        }),
+      )
+    }, endpointUrl)
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+    expect(res.status()).toBe(code)
+  })
+}

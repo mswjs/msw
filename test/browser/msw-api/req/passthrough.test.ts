@@ -1,6 +1,7 @@
-import { HttpResponse, passthrough, http } from 'msw'
+import { HttpResponse, http, passthrough } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
-import { test, expect } from '../../playwright.extend'
+import { sleep } from '../../../support/utils'
+import { expect, test } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
 
@@ -145,6 +146,11 @@ for (const code of [204, 205, 304]) {
     await loadExample(PASSTHROUGH_EXAMPLE)
     const endpointUrl = server.http.url('/user')
 
+    const errors: Array<Error> = []
+    page.on('pageerror', (pageError) => {
+      errors.push(pageError)
+    })
+
     await page.evaluate(async (endpointUrl) => {
       const { worker, http } = window.msw
       worker.use(
@@ -156,5 +162,7 @@ for (const code of [204, 205, 304]) {
 
     const res = await fetch(endpointUrl, { method: 'POST' })
     expect(res.status()).toBe(code)
+    await sleep(500)
+    expect(errors).toEqual([])
   })
 }

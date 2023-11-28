@@ -9,6 +9,18 @@ const httpServer = new HttpServer((app) => {
   app.post<never, ResponseBody>('/user', (req, res) => {
     res.json({ name: 'John' })
   })
+  app.post('/code/:code', (req, res) => {
+    const code = req.params.code
+    if (code === '204') {
+      res.status(204).send()
+    } else if (code === '205') {
+      res.status(205).send()
+    } else if (code === '304') {
+      res.status(304).send()
+    } else {
+      res.status(500).send()
+    }
+  })
 })
 
 const server = setupServer()
@@ -88,3 +100,35 @@ it('performs a request as-is if nothing was returned from the resolver', async (
     name: 'John',
   })
 })
+
+it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
+  'performs a $code request as-is if nothing was returned from the resolver',
+  async ({ code }) => {
+    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    server.use(
+      http.post<ResponseBody>(endpointUrl, () => {
+        return
+      }),
+    )
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+
+    expect(res.status).toEqual(code)
+  },
+)
+
+it.each([{ code: 204 }, { code: 205 }, { code: 304 }])(
+  'performs a $code request as-is if passthrough was returned from the resolver',
+  async ({ code }) => {
+    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    server.use(
+      http.post<ResponseBody>(endpointUrl, () => {
+        return passthrough()
+      }),
+    )
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+
+    expect(res.status).toEqual(code)
+  },
+)

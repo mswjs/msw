@@ -165,9 +165,7 @@ for (const code of [204, 205, 304]) {
     await sleep(500)
     expect(errors).toEqual([])
   })
-}
 
-for (const code of [204, 205, 304]) {
   test(`performs a ${code} request as-is if nothing was returned from the resolver`, async ({
     createServer,
     loadExample,

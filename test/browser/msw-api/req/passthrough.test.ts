@@ -131,6 +131,43 @@ test('performs a request as-is if nothing was returned from the resolver', async
 })
 
 for (const code of [204, 205, 304]) {
+  test(`performs a ${code} request as-is if passthrough was returned from the resolver`, async ({
+    createServer,
+    loadExample,
+    fetch,
+    page,
+  }) => {
+    const server = await createServer((app) => {
+      app.post('/user', (_, res) => {
+        res.status(code).send()
+      })
+    })
+
+    await loadExample(PASSTHROUGH_EXAMPLE)
+    const endpointUrl = server.http.url('/user')
+
+    const errors: Array<Error> = []
+    page.on('pageerror', (pageError) => {
+      errors.push(pageError)
+    })
+
+    await page.evaluate((endpointUrl) => {
+      const { worker, http, passthrough } = window.msw
+      worker.use(
+        http.post<never, ResponseBody>(endpointUrl, () => {
+          return passthrough()
+        }),
+      )
+    }, endpointUrl)
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+    expect(res.status()).toBe(code)
+    await sleep(500)
+    expect(errors).toEqual([])
+  })
+}
+
+for (const code of [204, 205, 304]) {
   test(`performs a ${code} request as-is if nothing was returned from the resolver`, async ({
     createServer,
     loadExample,
@@ -151,7 +188,7 @@ for (const code of [204, 205, 304]) {
       errors.push(pageError)
     })
 
-    await page.evaluate(async (endpointUrl) => {
+    await page.evaluate((endpointUrl) => {
       const { worker, http } = window.msw
       worker.use(
         http.post<never, ResponseBody>(endpointUrl, () => {

@@ -14,7 +14,7 @@ import { passthrough } from '../passthrough'
 const options: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: vi.fn(),
 }
-const callbacks: Partial<Record<keyof HandleRequestOptions, any>> = {
+const handleRequestOptions: Partial<Record<keyof HandleRequestOptions, any>> = {
   onPassthroughResponse: vi.fn(),
   onMockedResponse: vi.fn(),
 }
@@ -65,7 +65,7 @@ test('returns undefined for a request with the "x-msw-intention" header equal to
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).toBeUndefined()
@@ -74,8 +74,11 @@ test('returns undefined for a request with the "x-msw-intention" header equal to
     ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
-  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).toHaveBeenNthCalledWith(
+    1,
+    request,
+  )
+  expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
 test('does not bypass a request with "x-msw-intention" header set to arbitrary value', async () => {
@@ -98,12 +101,12 @@ test('does not bypass a request with "x-msw-intention" header set to arbitrary v
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).not.toBeUndefined()
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  expect(handleRequestOptions.onMockedResponse).toHaveBeenCalledTimes(1)
 })
 
 test('reports request as unhandled when it has no matching request handlers', async () => {
@@ -119,7 +122,7 @@ test('reports request as unhandled when it has no matching request handlers', as
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).toBeUndefined()
@@ -132,8 +135,11 @@ test('reports request as unhandled when it has no matching request handlers', as
     warning: expect.any(Function),
     error: expect.any(Function),
   })
-  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
-  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).toHaveBeenNthCalledWith(
+    1,
+    request,
+  )
+  expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
 test('returns undefined on a request handler that returns no response', async () => {
@@ -154,7 +160,7 @@ test('returns undefined on a request handler that returns no response', async ()
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).toBeUndefined()
@@ -163,8 +169,11 @@ test('returns undefined on a request handler that returns no response', async ()
     ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
-  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).toHaveBeenNthCalledWith(
+    1,
+    request,
+  )
+  expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 
   /**
    * @note Returning undefined from a resolver no longer prints a warning.
@@ -199,7 +208,7 @@ test('returns the mocked response for a request with a matching request handler'
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).toEqual(mockedResponse)
@@ -208,11 +217,11 @@ test('returns the mocked response for a request with a matching request handler'
     ['request:match', { request, requestId }],
     ['request:end', { request, requestId }],
   ])
-  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).not.toHaveBeenCalled()
 
-  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  expect(handleRequestOptions.onMockedResponse).toHaveBeenCalledTimes(1)
   const [mockedResponseParam, lookupResultParam] =
-    callbacks.onMockedResponse.mock.calls[0]
+    handleRequestOptions.onMockedResponse.mock.calls[0]
 
   expect(mockedResponseParam.status).toBe(mockedResponse.status)
   expect(mockedResponseParam.statusText).toBe(mockedResponse.statusText)
@@ -265,7 +274,7 @@ test('returns a transformed response if the "transformResponse" option is provid
     options,
     emitter,
     {
-      ...callbacks,
+      ...handleRequestOptions,
       transformResponse,
     },
   )
@@ -281,7 +290,7 @@ test('returns a transformed response if the "transformResponse" option is provid
     ['request:match', { request, requestId }],
     ['request:end', { request, requestId }],
   ])
-  expect(callbacks.onPassthroughResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).not.toHaveBeenCalled()
 
   expect(transformResponse).toHaveBeenCalledTimes(1)
   const [responseParam] = transformResponse.mock.calls[0]
@@ -292,9 +301,9 @@ test('returns a transformed response if the "transformResponse" option is provid
     Object.fromEntries(mockedResponse.headers.entries()),
   )
 
-  expect(callbacks.onMockedResponse).toHaveBeenCalledTimes(1)
+  expect(handleRequestOptions.onMockedResponse).toHaveBeenCalledTimes(1)
   const [mockedResponseParam, lookupResultParam] =
-    callbacks.onMockedResponse.mock.calls[0]
+    handleRequestOptions.onMockedResponse.mock.calls[0]
 
   expect(mockedResponseParam.status).toBe(finalResponse.status)
   expect(mockedResponseParam.statusText).toBe(finalResponse.statusText)
@@ -330,7 +339,7 @@ it('returns undefined without warning on a passthrough request', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(result).toBeUndefined()
@@ -339,8 +348,11 @@ it('returns undefined without warning on a passthrough request', async () => {
     ['request:end', { request, requestId }],
   ])
   expect(options.onUnhandledRequest).not.toHaveBeenCalled()
-  expect(callbacks.onPassthroughResponse).toHaveBeenNthCalledWith(1, request)
-  expect(callbacks.onMockedResponse).not.toHaveBeenCalled()
+  expect(handleRequestOptions.onPassthroughResponse).toHaveBeenNthCalledWith(
+    1,
+    request,
+  )
+  expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
 it('marks the first matching one-time handler as used', async () => {
@@ -366,7 +378,7 @@ it('marks the first matching one-time handler as used', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(await firstResult?.text()).toBe('One-time')
@@ -379,7 +391,7 @@ it('marks the first matching one-time handler as used', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(await secondResult?.text()).toBe('Another')
@@ -413,7 +425,7 @@ it('does not mark non-matching one-time handlers as used', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(await firstResult?.text()).toBe('Another')
@@ -426,7 +438,7 @@ it('does not mark non-matching one-time handlers as used', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   expect(await secondResult?.text()).toBe('One-time')
@@ -457,7 +469,7 @@ it('handles parallel requests with one-time handlers', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
   const secondResultPromise = handleRequest(
     request,
@@ -465,7 +477,7 @@ it('handles parallel requests with one-time handlers', async () => {
     handlers,
     options,
     emitter,
-    callbacks,
+    handleRequestOptions,
   )
 
   const firstResult = await firstResultPromise
@@ -475,4 +487,68 @@ it('handles parallel requests with one-time handlers', async () => {
   expect(await secondResult?.text()).toBe('Another')
   expect(oneTimeHandler.isUsed).toBe(true)
   expect(anotherHandler.isUsed).toBe(true)
+})
+
+describe('[Private] - resolutionContext - used for extensions', () => {
+  describe('#baseUrl', () => {
+    test('when defined, handle requests to that base url only defining pathnames in the handler', async () => {
+      const { emitter } = setup()
+
+      const baseUrl = 'http://this-base-url-works.com'
+      const handleRequestOptionsExtra: HandleRequestOptions = {
+        ...handleRequestOptions,
+        resolutionContext: { baseUrl },
+      }
+
+      const handler = http.get('/resource', () => {
+        return HttpResponse.text('Mocked response')
+      })
+
+      const handlers: Array<RequestHandler> = [handler]
+
+      const requestId = uuidv4()
+      const request = new Request(new URL('/resource', baseUrl))
+      const response = await handleRequest(
+        request,
+        requestId,
+        handlers,
+        options,
+        emitter,
+        handleRequestOptionsExtra,
+      )
+
+      expect(await response?.text()).toBe('Mocked response')
+    })
+
+    test('when defined, do not handle requests to different base urls when defining pathnames in the handler', async () => {
+      const { emitter } = setup()
+
+      const baseUrl = 'http://this-base-url-works.com'
+      const handleRequestOptionsExtra: HandleRequestOptions = {
+        ...handleRequestOptions,
+        resolutionContext: { baseUrl },
+      }
+
+      const handler = http.get('/resource', () => {
+        return HttpResponse.text('Mocked response')
+      })
+
+      const handlers: Array<RequestHandler> = [handler]
+
+      const requestId = uuidv4()
+      const request = new Request(
+        new URL('/resource', `http://not-the-base-url.com`),
+      )
+      const response = await handleRequest(
+        request,
+        requestId,
+        handlers,
+        options,
+        emitter,
+        handleRequestOptionsExtra,
+      )
+
+      expect(response).toBeUndefined()
+    })
+  })
 })

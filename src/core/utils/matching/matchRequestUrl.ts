@@ -55,8 +55,8 @@ export function coercePath(path: string): string {
 /**
  * Returns the result of matching given request URL against a mask.
  */
-export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
-  const normalizedPath = normalizePath(path, baseUrl)
+export function matchRequestUrl(url: URL, path: Path): Match {
+  const normalizedPath = normalizePath(path)
   const cleanPath =
     typeof normalizedPath === 'string'
       ? coercePath(normalizedPath)

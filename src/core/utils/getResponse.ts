@@ -9,23 +9,18 @@ export interface ResponseLookupResult {
   response?: Response
 }
 
-export interface ResponseResolutionContext {
-  baseUrl?: string
-}
-
 /**
  * Returns a mocked response for a given request using following request handlers.
  */
 export const getResponse = async <Handler extends Array<RequestHandler>>(
   request: Request,
   handlers: Handler,
-  resolutionContext?: ResponseResolutionContext,
 ): Promise<ResponseLookupResult | null> => {
   let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
-    result = await handler.run({ request, resolutionContext })
+    result = await handler.run({ request })
 
     // If the handler produces some result for this request,
     // it automatically becomes matching.

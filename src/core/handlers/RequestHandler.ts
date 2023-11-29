@@ -1,7 +1,6 @@
 import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
-import type { ResponseResolutionContext } from '../utils/getResponse'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
 
@@ -133,7 +132,6 @@ export abstract class RequestHandler<
   abstract predicate(args: {
     request: Request
     parsedResult: ParsedResult
-    resolutionContext?: ResponseResolutionContext
   }): boolean
 
   /**
@@ -149,30 +147,8 @@ export abstract class RequestHandler<
    * Parse the intercepted request to extract additional information from it.
    * Parsed result is then exposed to other methods of this request handler.
    */
-  async parse(_args: {
-    request: Request
-    resolutionContext?: ResponseResolutionContext
-  }): Promise<ParsedResult> {
+  async parse(_args: { request: Request }): Promise<ParsedResult> {
     return {} as ParsedResult
-  }
-
-  /**
-   * Test if this handler matches the given request.
-   */
-  public async test(args: {
-    request: Request
-    resolutionContext?: ResponseResolutionContext
-  }): Promise<boolean> {
-    const parsedResult = await this.parse({
-      request: args.request,
-      resolutionContext: args.resolutionContext,
-    })
-
-    return this.predicate({
-      request: args.request,
-      parsedResult,
-      resolutionContext: args.resolutionContext,
-    })
   }
 
   protected extendResolverArgs(_args: {
@@ -188,7 +164,6 @@ export abstract class RequestHandler<
    */
   public async run(args: {
     request: StrictRequest<any>
-    resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
       return null
@@ -200,12 +175,10 @@ export abstract class RequestHandler<
 
     const parsedResult = await this.parse({
       request: args.request,
-      resolutionContext: args.resolutionContext,
     })
     const shouldInterceptRequest = this.predicate({
       request: args.request,
       parsedResult,
-      resolutionContext: args.resolutionContext,
     })
 
     if (!shouldInterceptRequest) {

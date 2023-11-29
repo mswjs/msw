@@ -18,13 +18,6 @@ test('returns a relative URL as-is given a string path', () => {
   expect(normalizePath(path)).toEqual(path)
 })
 
-test('rebases a relative URL against a custom base URL', () => {
-  const path = '/relative/url'
-  expect(normalizePath(path, 'https://test.mswjs.io')).toEqual(
-    'https://test.mswjs.io/relative/url',
-  )
-})
-
 test('removes query parameters and hashes from an absolute URL', () => {
   expect(normalizePath('https://test.mswjs.io/user?query=123')).toEqual(
     'https://test.mswjs.io/user',

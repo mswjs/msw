@@ -115,38 +115,6 @@ describe('predicate', () => {
   })
 })
 
-describe('test', () => {
-  test('returns true given a matching request', async () => {
-    const handler = new HttpHandler('GET', '/user/:userId', resolver)
-    const firstTest = await handler.test({
-      request: new Request(new URL('/user/abc-123', location.href)),
-    })
-    const secondTest = await handler.test({
-      request: new Request(new URL('/user/def-456', location.href)),
-    })
-
-    expect(firstTest).toBe(true)
-    expect(secondTest).toBe(true)
-  })
-
-  test('returns false given a non-matching request', async () => {
-    const handler = new HttpHandler('GET', '/user/:userId', resolver)
-    const firstTest = await handler.test({
-      request: new Request(new URL('/login', location.href)),
-    })
-    const secondTest = await handler.test({
-      request: new Request(new URL('/user/', location.href)),
-    })
-    const thirdTest = await handler.test({
-      request: new Request(new URL('/user/abc-123/extra', location.href)),
-    })
-
-    expect(firstTest).toBe(false)
-    expect(secondTest).toBe(false)
-    expect(thirdTest).toBe(false)
-  })
-})
-
 describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)

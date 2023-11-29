@@ -9,13 +9,6 @@ import { readResponseCookies } from './request/readResponseCookies'
 
 export interface HandleRequestOptions {
   /**
-   * Options for the response resolution process.
-   */
-  resolutionContext?: {
-    baseUrl?: string
-  }
-
-  /**
    * Transforms a `MockedResponse` instance returned from a handler
    * to a response instance supported by the lower tooling (i.e. interceptors).
    */
@@ -54,11 +47,7 @@ export async function handleRequest(
 
   // Resolve a mocked response from the list of request handlers.
   const lookupResult = await until(() => {
-    return getResponse(
-      request,
-      handlers,
-      handleRequestOptions?.resolutionContext,
-    )
+    return getResponse(request, handlers)
   })
 
   if (lookupResult.error) {

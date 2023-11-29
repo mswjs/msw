@@ -495,7 +495,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
       const { emitter } = setup()
 
       const baseUrl = 'http://this-base-url-works.com'
-      const handleRequestOptionsExtra: HandleRequestOptions = {
+      const handleRequestOptionsWithBaseUrl: HandleRequestOptions = {
         ...handleRequestOptions,
         resolutionContext: { baseUrl },
       }
@@ -514,7 +514,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
         handlers,
         options,
         emitter,
-        handleRequestOptionsExtra,
+        handleRequestOptionsWithBaseUrl,
       )
 
       expect(await response?.text()).toBe('Mocked response')
@@ -524,7 +524,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
       const { emitter } = setup()
 
       const baseUrl = 'http://this-base-url-works.com'
-      const handleRequestOptionsExtra: HandleRequestOptions = {
+      const handleRequestOptionsWithBaseUrl: HandleRequestOptions = {
         ...handleRequestOptions,
         resolutionContext: { baseUrl },
       }
@@ -545,7 +545,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
         handlers,
         options,
         emitter,
-        handleRequestOptionsExtra,
+        handleRequestOptionsWithBaseUrl,
       )
 
       expect(response).toBeUndefined()

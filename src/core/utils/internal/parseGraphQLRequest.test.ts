@@ -97,3 +97,46 @@ test('does not read the original request body', async () => {
   // is an internal operation that must not lock the body stream.
   expect(request.bodyUsed).toBe(false)
 })
+
+test('memoizes parsing result from grapqhl requests', async () => {
+  const request = new Request(new URL('http://localhost/api'), {
+    method: 'POST',
+    body: encodeBuffer(
+      JSON.stringify({
+        query: `query GetUser { user { firstName } }`,
+      }),
+    ),
+  })
+
+  const result1 = await parseGraphQLRequest(request)
+  const result2 = await parseGraphQLRequest(request)
+  expect(result1).toBeDefined()
+  expect(result2).toBeDefined()
+  expect(result1).toBe(result2)
+})
+
+test('returns a new object from similar requests', async () => {
+  const request = new Request(new URL('http://localhost/api'), {
+    method: 'POST',
+    body: encodeBuffer(
+      JSON.stringify({
+        query: `query GetUser { user { firstName } }`,
+      }),
+    ),
+  })
+  const request2 = new Request(new URL('http://localhost/api'), {
+    method: 'POST',
+    body: encodeBuffer(
+      JSON.stringify({
+        query: `query GetUser { user { firstName } }`,
+      }),
+    ),
+  })
+
+  const result1 = await parseGraphQLRequest(request)
+  const result2 = await parseGraphQLRequest(request2)
+  expect(result1).toBeDefined()
+  expect(result2).toBeDefined()
+  expect(result1).not.toBe(result2)
+  expect(result1).toEqual(result2)
+})

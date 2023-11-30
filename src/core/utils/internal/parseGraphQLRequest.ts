@@ -167,6 +167,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
   }
 }
 
+const parsedGraphQLRequestCache = new WeakMap<Request, ParsedGraphQLRequest>()
 /**
  * Determines if a given request can be considered a GraphQL request.
  * Does not parse the query and does not guarantee its validity.
@@ -174,32 +175,36 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
 export async function parseGraphQLRequest(
   request: Request,
 ): Promise<ParsedGraphQLRequest> {
-  const input = await getGraphQLInput(request)
+  if (!parsedGraphQLRequestCache.has(request)) {
+    const input = await getGraphQLInput(request)
 
-  if (!input || !input.query) {
-    return
+    if (!input || !input.query) {
+      parsedGraphQLRequestCache.set(request, undefined)
+      return
+    }
+
+    const { query, variables } = input
+    const parsedResult = parseQuery(query)
+
+    if (parsedResult instanceof Error) {
+      const requestPublicUrl = getPublicUrlFromRequest(request)
+      parsedGraphQLRequestCache.set(request, undefined)
+      throw new Error(
+        devUtils.formatMessage(
+          'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%s',
+          request.method,
+          requestPublicUrl,
+          parsedResult.message,
+        ),
+      )
+    }
+
+    parsedGraphQLRequestCache.set(request, {
+      query: input.query,
+      operationType: parsedResult.operationType,
+      operationName: parsedResult.operationName,
+      variables,
+    })
   }
-
-  const { query, variables } = input
-  const parsedResult = parseQuery(query)
-
-  if (parsedResult instanceof Error) {
-    const requestPublicUrl = getPublicUrlFromRequest(request)
-
-    throw new Error(
-      devUtils.formatMessage(
-        'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%s',
-        request.method,
-        requestPublicUrl,
-        parsedResult.message,
-      ),
-    )
-  }
-
-  return {
-    query: input.query,
-    operationType: parsedResult.operationType,
-    operationName: parsedResult.operationName,
-    variables,
-  }
+  return parsedGraphQLRequestCache.get(request)
 }

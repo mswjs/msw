@@ -158,6 +158,10 @@ export abstract class RequestHandler<
 
   /**
    * Test if this handler matches the given request.
+   *
+   * This method is not used internally but is exposed
+   * as a convenience method for consumers writing custom
+   * handlers.
    */
   public async test(args: {
     request: Request

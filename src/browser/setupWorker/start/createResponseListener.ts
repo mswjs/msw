@@ -3,6 +3,7 @@ import {
   SetupWorkerInternalContext,
 } from '../glossary'
 import { ServiceWorkerMessage } from './utils/createMessageChannel'
+import { isResponseWithoutBody } from '@mswjs/interceptors'
 
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (
@@ -28,7 +29,18 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     const response =
       responseJson.status === 0
         ? Response.error()
-        : new Response(responseJson.body, responseJson)
+        : new Response(
+            /**
+             * Responses may be streams here, but when we create a response object
+             * with null-body status codes, like 204, 205, 304 Response will
+             * throw when passed a non-null body, so ensure it's null here
+             * for those codes
+             */
+            isResponseWithoutBody(responseJson.status)
+              ? null
+              : responseJson.body,
+            responseJson,
+          )
 
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',

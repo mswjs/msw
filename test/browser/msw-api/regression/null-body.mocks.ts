@@ -2,8 +2,8 @@ import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
-  http.get('/api/books', () => {
-    return new HttpResponse(null, { status: 204 })
+  http.get<{ code: string }>('/api/:code', ({ params }) => {
+    return new HttpResponse(null, { status: parseInt(params.code) })
   }),
 )
 

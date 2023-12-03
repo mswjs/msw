@@ -87,6 +87,10 @@ export interface RequestHandlerExecutionResult<
 > {
   handler: RequestHandler
   parsedResult?: ParsedResult
+  /**
+   * @deprecated do we need this request?
+   */
+  request: Request
   response?: Response
 }
 
@@ -185,6 +189,7 @@ export abstract class RequestHandler<
     return {} as ResolverExtras
   }
 
+  static mainRefCache = new WeakMap<Request, Request>()
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
@@ -196,6 +201,17 @@ export abstract class RequestHandler<
     if (this.isUsed && this.options?.once) {
       return null
     }
+
+    const mainRequestRef = (() => {
+      if (RequestHandler.mainRefCache.has(args.request)) {
+        return RequestHandler.mainRefCache.get(
+          args.request,
+        ) as StrictRequest<any>
+      }
+      const clone = args.request.clone()
+      RequestHandler.mainRefCache.set(args.request, clone)
+      return clone
+    })()
 
     const parsedResult = await this.parse({
       request: args.request,
@@ -233,6 +249,7 @@ export abstract class RequestHandler<
     })) as Response
 
     const executionResult = this.createExecutionResult({
+      request: mainRequestRef,
       response: mockedResponse,
       parsedResult,
     })
@@ -290,11 +307,13 @@ export abstract class RequestHandler<
   }
 
   private createExecutionResult(args: {
+    request: Request
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
+      request: args.request,
       response: args.response,
       parsedResult: args.parsedResult,
     }

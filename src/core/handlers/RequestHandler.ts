@@ -202,6 +202,15 @@ export abstract class RequestHandler<
       return null
     }
 
+    /**
+     * @deprecated do we need this request?
+     * Or, can we pass it into run instead,
+     * since it's _only_ used in the execution result,
+     * but then never read or utilized.
+     *
+     * We don't want to copy this for _every_ handler, as it
+     * is expensive to do so.
+     */
     const mainRequestRef = (() => {
       if (RequestHandler.mainRefCache.has(args.request)) {
         return RequestHandler.mainRefCache.get(

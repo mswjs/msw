@@ -20,6 +20,7 @@ import {
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { memoizedUrl } from '../utils/memoizedUrl'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -138,7 +139,7 @@ export class GraphQLHandler extends RequestHandler<
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
-    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const match = matchRequestUrl(memoizedUrl(args.request.url), this.endpoint)
     if (!match.matches) return { match }
 
     const parsedResult = await parseGraphQLRequest(args.request).catch(

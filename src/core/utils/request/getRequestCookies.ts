@@ -1,5 +1,6 @@
 import cookieUtils from '@bundled-es-modules/cookie'
 import { store } from '@mswjs/cookies'
+import { memoizedUrl } from '../memoizedUrl'
 
 function getAllDocumentCookies() {
   return cookieUtils.parse(document.cookie)
@@ -19,7 +20,7 @@ export function getRequestCookies(request: Request): Record<string, string> {
 
   switch (request.credentials) {
     case 'same-origin': {
-      const url = new URL(request.url)
+      const url = memoizedUrl(request.url)
 
       // Return document cookies only when requested a resource
       // from the same origin as the current document.
@@ -37,7 +38,9 @@ export function getRequestCookies(request: Request): Record<string, string> {
   }
 }
 
+const cache = new WeakMap<Request, Record<string, string>>()
 export function getAllRequestCookies(request: Request): Record<string, string> {
+  if (cache.has(request)) return cache.get(request) as Record<string, string>
   const requestCookiesString = request.headers.get('cookie')
   const cookiesFromHeaders = requestCookiesString
     ? cookieUtils.parse(requestCookiesString)
@@ -68,8 +71,10 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
     request.headers.append('cookie', cookieUtils.serialize(name, value))
   }
 
-  return {
+  const c = {
     ...forwardedCookies,
     ...cookiesFromHeaders,
   }
+  cache.set(request, c)
+  return c
 }

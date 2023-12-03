@@ -1,3 +1,5 @@
+import { memoizedUrl } from '../memoizedUrl'
+
 /**
  * Returns a relative URL if the given request URL is relative to the current origin.
  * Otherwise returns an absolute URL.
@@ -7,7 +9,7 @@ export function getPublicUrlFromRequest(request: Request): string {
     return request.url
   }
 
-  const url = new URL(request.url)
+  const url = memoizedUrl(request.url)
 
   return url.origin === location.origin
     ? url.pathname

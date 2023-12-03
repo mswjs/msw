@@ -87,7 +87,6 @@ export interface RequestHandlerExecutionResult<
 > {
   handler: RequestHandler
   parsedResult?: ParsedResult
-  request: Request
   response?: Response
 }
 
@@ -198,10 +197,6 @@ export abstract class RequestHandler<
       return null
     }
 
-    // Clone the request instance before it's passed to the handler phases
-    // and the response resolver so we can always read it for logging.
-    const mainRequestRef = args.request.clone()
-
     const parsedResult = await this.parse({
       request: args.request,
       resolutionContext: args.resolutionContext,
@@ -238,9 +233,6 @@ export abstract class RequestHandler<
     })) as Response
 
     const executionResult = this.createExecutionResult({
-      // Pass the cloned request to the result so that logging
-      // and other consumers could read its body once more.
-      request: mainRequestRef,
       response: mockedResponse,
       parsedResult,
     })
@@ -298,13 +290,11 @@ export abstract class RequestHandler<
   }
 
   private createExecutionResult(args: {
-    request: Request
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
-      request: args.request,
       response: args.response,
       parsedResult: args.parsedResult,
     }

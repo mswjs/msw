@@ -1,3 +1,5 @@
+import { memoizedUrl } from '../memoizedUrl'
+
 export interface LoggedRequest {
   url: URL
   method: string
@@ -15,7 +17,7 @@ export async function serializeRequest(
   const requestText = await requestClone.text()
 
   return {
-    url: new URL(request.url),
+    url: memoizedUrl(request.url),
     method: request.method,
     headers: Object.fromEntries(request.headers.entries()),
     body: requestText,

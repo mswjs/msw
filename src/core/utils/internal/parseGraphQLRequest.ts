@@ -167,6 +167,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
   }
 }
 
+const cache = new WeakMap<Request, ParsedGraphQLRequest>()
 /**
  * Determines if a given request can be considered a GraphQL request.
  * Does not parse the query and does not guarantee its validity.
@@ -174,9 +175,11 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
 export async function parseGraphQLRequest(
   request: Request,
 ): Promise<ParsedGraphQLRequest> {
+  if (cache.has(request)) return cache.get(request)
   const input = await getGraphQLInput(request)
 
   if (!input || !input.query) {
+    cache.set(request, undefined)
     return
   }
 
@@ -185,7 +188,7 @@ export async function parseGraphQLRequest(
 
   if (parsedResult instanceof Error) {
     const requestPublicUrl = getPublicUrlFromRequest(request)
-
+    cache.set(request, undefined)
     throw new Error(
       devUtils.formatMessage(
         'Failed to intercept a GraphQL request to "%s %s": cannot parse query. See the error message from the parser below.\n\n%s',
@@ -196,10 +199,12 @@ export async function parseGraphQLRequest(
     )
   }
 
-  return {
+  const data = {
     query: input.query,
     operationType: parsedResult.operationType,
     operationName: parsedResult.operationName,
     variables,
   }
+  cache.set(request, data)
+  return data
 }

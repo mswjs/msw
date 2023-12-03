@@ -11,6 +11,7 @@ import {
   Path,
   PathParams,
 } from '../utils/matching/matchRequestUrl'
+import { memoizedUrl } from '../utils/memoizedUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
@@ -110,7 +111,7 @@ export class HttpHandler extends RequestHandler<
     request: Request
     resolutionContext?: ResponseResolutionContext
   }) {
-    const url = new URL(args.request.url)
+    const url = memoizedUrl(args.request.url)
     const match = matchRequestUrl(
       url,
       this.info.path,

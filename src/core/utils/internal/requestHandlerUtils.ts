@@ -4,7 +4,9 @@ export function use(
   currentHandlers: Array<RequestHandler>,
   ...handlers: Array<RequestHandler>
 ): void {
-  currentHandlers.unshift(...handlers)
+  for (let i = handlers.length - 1; i >= 0; i--) {
+    currentHandlers.unshift(handlers[i])
+  }
 }
 
 export function restoreHandlers(handlers: Array<RequestHandler>): void {

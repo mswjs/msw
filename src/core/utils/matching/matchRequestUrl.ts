@@ -52,10 +52,13 @@ export function coercePath(path: string): string {
   )
 }
 
+const cache = new Map<string, Match>()
 /**
  * Returns the result of matching given request URL against a mask.
  */
 export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
+  const key = `${url}|${path}|${baseUrl}`
+  if (cache.has(key)) return cache.get(key) as Match
   const normalizedPath = normalizePath(path, baseUrl)
   const cleanPath =
     typeof normalizedPath === 'string'
@@ -66,8 +69,10 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)
   const params = (result && (result.params as PathParams)) || {}
 
-  return {
+  const matchObject = {
     matches: result !== false,
     params,
   }
+  cache.set(key, matchObject)
+  return matchObject
 }

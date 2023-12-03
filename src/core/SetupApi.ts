@@ -59,7 +59,9 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.currentHandlers.unshift(...runtimeHandlers)
+    for (let i = runtimeHandlers.length - 1; i >= 0; i--) {
+      this.currentHandlers.unshift(runtimeHandlers[i])
+    }
   }
 
   public restoreHandlers(): void {

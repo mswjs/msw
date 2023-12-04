@@ -118,38 +118,42 @@ If this message still persists after updating, please report an issue: https://g
         return registration
       }
 
-    registerWorker().then(async (pendingWorkerRegistration) => {
-      // If the activation was cancelled (e.g. by calling "worker.stop()"),
-      // short-circuit: nothing to return.
-      if (pendingWorkerRegistration == null) {
-        return
-      }
+    registerWorker()
+      .then(async (pendingWorkerRegistration) => {
+        // If the activation was cancelled (e.g. by calling "worker.stop()"),
+        // short-circuit: nothing to return.
+        if (pendingWorkerRegistration == null) {
+          return
+        }
 
-      const pendingWorker =
-        pendingWorkerRegistration.installing ||
-        pendingWorkerRegistration.waiting
+        const pendingWorker =
+          pendingWorkerRegistration.installing ||
+          pendingWorkerRegistration.waiting
 
-      // Wait until the worker is activated.
-      // Assume the worker is already activated if there's no pending registration
-      // (i.e. when reloading the page after a successful activation).
-      if (pendingWorker) {
-        await new Promise<void>((resolve) => {
-          const stateChangeListener = () => {
-            if (pendingWorker.state === 'activated') {
-              pendingWorker.removeEventListener(
-                'statechange',
-                stateChangeListener,
-              )
-              resolve()
+        // Wait until the worker is activated.
+        // Assume the worker is already activated if there's no pending registration
+        // (i.e. when reloading the page after a successful activation).
+        if (pendingWorker) {
+          await new Promise<void>((resolve) => {
+            const stateChangeListener = () => {
+              if (pendingWorker.state === 'activated') {
+                pendingWorker.removeEventListener(
+                  'statechange',
+                  stateChangeListener,
+                )
+                resolve()
+              }
             }
-          }
 
-          pendingWorker.addEventListener('statechange', stateChangeListener)
-        })
-      }
+            pendingWorker.addEventListener('statechange', stateChangeListener)
+          })
+        }
 
-      workerActivationPromise.resolve(pendingWorkerRegistration)
-    })
+        workerActivationPromise.resolve(pendingWorkerRegistration)
+      })
+      .catch((error) => {
+        workerActivationPromise.reject(error)
+      })
 
     workerActivationPromise.then(async () => {
       // Print the activation message once the worker has been activated.

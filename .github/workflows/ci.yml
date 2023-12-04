@@ -127,6 +127,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Rebuild
+        run: pnpm rebuild
+
       - name: Browser tests
         run: pnpm test:browser
 

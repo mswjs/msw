@@ -25,8 +25,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Build
         run: pnpm build
+
+      - name: Cache build output
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
   test_unit:
     needs: build
@@ -44,8 +60,21 @@ jobs:
         with:
           version: 7.12
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Unit tests
         run: pnpm test:unit
@@ -66,10 +95,23 @@ jobs:
         with:
           version: 7.12
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
-      - name: Unit tests
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Node.js tests
         run: pnpm test:node
 
   test_browser:
@@ -88,8 +130,21 @@ jobs:
         with:
           version: 7.12
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Browser tests
         run: pnpm test:browser
@@ -117,8 +172,21 @@ jobs:
         with:
           version: 7.12
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Native tests
         run: pnpm test:native

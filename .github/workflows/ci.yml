@@ -76,6 +76,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Unit tests
         run: pnpm test:unit
 
@@ -111,6 +114,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Node.js tests
         run: pnpm test:node
 
@@ -145,6 +151,9 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Browser tests
         run: pnpm test:browser
@@ -187,6 +196,9 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Native tests
         run: pnpm test:native

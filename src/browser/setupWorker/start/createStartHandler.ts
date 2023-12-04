@@ -136,13 +136,15 @@ If this message still persists after updating, please report an issue: https://g
         await new Promise<void>((resolve) => {
           const stateChangeListener = () => {
             if (pendingWorker.state === 'activated') {
+              pendingWorker.removeEventListener(
+                'statechange',
+                stateChangeListener,
+              )
               resolve()
             }
           }
 
-          pendingWorker.addEventListener('statechange', stateChangeListener, {
-            once: true,
-          })
+          pendingWorker.addEventListener('statechange', stateChangeListener)
         })
       }
 

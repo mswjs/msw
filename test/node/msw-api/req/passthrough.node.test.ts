@@ -9,6 +9,9 @@ const httpServer = new HttpServer((app) => {
   app.post<never, ResponseBody>('/user', (req, res) => {
     res.json({ name: 'John' })
   })
+  app.post('/code/:code', (req, res) => {
+    res.status(parseInt(req.params.code)).send()
+  })
 })
 
 const server = setupServer()
@@ -88,3 +91,31 @@ it('performs a request as-is if nothing was returned from the resolver', async (
     name: 'John',
   })
 })
+
+for (const code of [204, 205, 304]) {
+  it(`performs a ${code} request as-is if nothing was returned from the resolver`, async () => {
+    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    server.use(
+      http.post<ResponseBody>(endpointUrl, () => {
+        return
+      }),
+    )
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+
+    expect(res.status).toEqual(code)
+  })
+
+  it(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
+    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    server.use(
+      http.post<ResponseBody>(endpointUrl, () => {
+        return passthrough()
+      }),
+    )
+
+    const res = await fetch(endpointUrl, { method: 'POST' })
+
+    expect(res.status).toEqual(code)
+  })
+}

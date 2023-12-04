@@ -10,22 +10,23 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.init = () => {
-  // By default, starting the worker defers the network requests
-  // until the worker is ready to intercept them.
-  worker.start({
-    serviceWorker: {
-      url: './worker.js',
-    },
-  })
+Object.assign(window, {
+  init: () => {
+    // By default, starting the worker defers the network requests
+    // until the worker is ready to intercept them.
+    worker.start({
+      serviceWorker: {
+        url: './worker.js',
+      },
+    })
 
-  // Although this request is performed alongside an asynchronous
-  // worker registration, it's being deferred by `worker.start`,
-  // so it will happen only when the worker is ready.
-  fetch('./numbers')
+    // Although this request is performed alongside an asynchronous
+    // worker registration, it's being deferred by `worker.start`,
+    // so it will happen only when the worker is ready.
+    fetch('./numbers')
 
-  const req = new XMLHttpRequest()
-  req.open('GET', './letters')
-  req.send()
-}
+    const req = new XMLHttpRequest()
+    req.open('GET', './letters')
+    req.send()
+  },
+})

@@ -9,9 +9,16 @@ import { readResponseCookies } from './request/readResponseCookies'
 
 export interface HandleRequestOptions {
   /**
-   * Options for the response resolution process.
+   * `resolutionContext` is not part of the general public api
+   * but is exposed to aid in creating extensions like
+   * `@mswjs/http-middleware`.
    */
   resolutionContext?: {
+    /**
+     * A base url to use when resolving relative urls.
+     * @note This is primarily used by the `@mswjs/http-middleware`
+     * to resolve relative urls in the context of the running server
+     */
     baseUrl?: string
   }
 

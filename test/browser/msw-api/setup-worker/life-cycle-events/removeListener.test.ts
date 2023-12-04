@@ -4,7 +4,7 @@ import { test, expect } from '../../../playwright.extend'
 declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
-    requestEndListner: any
+    requestEndListener: any
   }
 }
 
@@ -21,7 +21,7 @@ test('removes a listener by the event name', async ({
 
   await page.evaluate(() => {
     const { msw } = window
-    msw.worker.events.removeListener('request:end', msw.requestEndListner)
+    msw.worker.events.removeListener('request:end', msw.requestEndListener)
   })
 
   const url = makeUrl('/user')

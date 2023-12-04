@@ -10,17 +10,18 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.init = () => {
-  worker.start({
-    // Force an exception during Service Worker registration.
-    // @ts-expect-error Providing invalid option value.
-    serviceWorker: 'invalid-value',
-  })
+Object.assign(window, {
+  init: () => {
+    worker.start({
+      // Force an exception during Service Worker registration.
+      // @ts-expect-error Providing invalid option value.
+      serviceWorker: 'invalid-value',
+    })
 
-  fetch('./numbers')
+    fetch('./numbers')
 
-  const req = new XMLHttpRequest()
-  req.open('GET', './letters')
-  req.send()
-}
+    const req = new XMLHttpRequest()
+    req.open('GET', './letters')
+    req.send()
+  },
+})

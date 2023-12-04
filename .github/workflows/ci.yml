@@ -127,8 +127,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Rebuild
-        run: pnpm rebuild
+      - name: Playwright install
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Browser tests
         run: pnpm test:browser

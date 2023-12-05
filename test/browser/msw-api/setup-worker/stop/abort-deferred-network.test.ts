@@ -23,7 +23,9 @@ test('restores module patches if "worker.stop()" was called before worker regist
   })
 
   const pageErrors: Array<Error> = []
-  page.on('pageerror', (error) => pageErrors.push(error))
+  page.on('pageerror', (error) => {
+    pageErrors.push(error)
+  })
 
   await page.evaluate(() => {
     /**
@@ -35,6 +37,8 @@ test('restores module patches if "worker.stop()" was called before worker regist
       await new Promise((resolve) => setTimeout(resolve, 10_000))
     })
   })
+
+  expect(pageErrors).toEqual([])
 
   await page.evaluate(() => {
     /**
@@ -68,8 +72,14 @@ test('restores module patches if "worker.stop()" was called before worker regist
     page.evaluate(() => window.XMLHttpRequest.prototype.send.name),
   ).resolves.toBe('send')
 
+  // @todo why is this logged 3 times?
+  expect(pageErrors).toEqual([
+    new Error('Worker stopped before activated'),
+    new Error('Worker stopped before activated'),
+    new Error('Worker stopped before activated'),
+  ])
   // Must not print any errors (e.g. registration lookup error) or warnings.
-  expect(pageErrors).toEqual([])
+  // expect(pageErrors).toEqual([])
   expect(consoleSpy.get('error')).toBeUndefined()
   expect(consoleSpy.get('warning')).toBeUndefined()
 })

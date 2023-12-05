@@ -1,4 +1,4 @@
 import { setupWorker } from 'msw/browser'
 
-// @ts-ignore
+// @ts-expect-error
 window.worker = setupWorker()

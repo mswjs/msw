@@ -8,45 +8,71 @@
  * an exception.
  * @see https://github.com/mswjs/msw/pull/1779
  */
+import { HttpServer } from '@open-draft/test-server/http'
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
+import * as nodeEvents from 'node:events'
 
-// Create a large number of request handlers.
-const restHandlers = new Array(100).fill(null).map((_, index) => {
-  return http.post(
-    `https://example.com/resource/${index}`,
-    async ({ request }) => {
-      const text = await request.text()
-      return HttpResponse.text(text + index.toString())
-    },
-  )
-})
-
-const graphqlHanlers = new Array(100).fill(null).map((_, index) => {
-  return graphql.query(`Get${index}`, () => {
-    return HttpResponse.json({ data: { index } })
+const httpServer = new HttpServer((app) => {
+  app.post('/graphql', (_, res) => {
+    return res.status(500).send('original-response')
   })
 })
 
-const server = setupServer(...restHandlers, ...graphqlHanlers)
+vi.mock('node:events', async () => {
+  const actual = (await vi.importActual('node:events')) as import('node:events')
+  return {
+    ...actual,
+    /**
+     * setMaxListeners is not defined in jsdom, so we mock it, and make sure it isn't called
+     */
+    setMaxListeners: vi.fn(),
+  }
+})
 
-beforeAll(() => {
-  server.listen()
+let server: ReturnType<typeof setupServer>
+
+const spy = vi.mocked(nodeEvents.setMaxListeners)
+
+beforeAll(async () => {
+  await httpServer.listen()
+
+  // Create a large number of request handlers.
+  const restHandlers = new Array(100).fill(null).map((_, index) => {
+    return http.post(
+      httpServer.http.url(`/resource/${index}`),
+      async ({ request }) => {
+        const text = await request.text()
+        return HttpResponse.text(text + index.toString())
+      },
+    )
+  })
+
+  const graphqlHandlers = new Array(100).fill(null).map((_, index) => {
+    return graphql.query(`Get${index}`, () => {
+      return HttpResponse.json({ data: { index } })
+    })
+  })
+
+  server = setupServer(...restHandlers, ...graphqlHandlers)
+  server.listen({ onUnhandledRequest: 'bypass' })
   vi.spyOn(process.stderr, 'write')
 })
 
-afterAll(() => {
+afterAll(async () => {
   server.close()
   vi.restoreAllMocks()
+  await httpServer.close()
 })
 
 it('does not print a memory leak warning when having many request handlers', async () => {
-  const httpResponse = await fetch('https://example.com/resource/42', {
+  const httpResponse = await fetch(`${httpServer.http.url(`/resource/42`)}`, {
     method: 'POST',
     body: 'request-body-',
   }).then((response) => response.text())
+  expect(spy).not.toHaveBeenCalled()
 
-  const graphqlResponse = await fetch('https://example.com', {
+  const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -56,10 +82,27 @@ it('does not print a memory leak warning when having many request handlers', asy
     }),
   }).then((response) => response.json())
 
+  expect(spy).not.toHaveBeenCalled()
   // Must not print any memory leak warnings.
   expect(process.stderr.write).not.toHaveBeenCalled()
 
   // Must return the mocked response.
   expect(httpResponse).toBe('request-body-42')
   expect(graphqlResponse).toEqual({ data: { index: 42 } })
+
+  const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: `query NotDefinedAtAll { index }`,
+    }),
+  })
+
+  expect(unhandledResponse.status).toEqual(500)
+
+  expect(spy).not.toHaveBeenCalled()
+  // Must not print any memory leak warnings.
+  expect(process.stderr.write).not.toHaveBeenCalled()
 })

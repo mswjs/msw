@@ -19,10 +19,12 @@ class SetupServerApi extends BaseSetupServerApi implements SetupServer {
    */
   protected override onRequest(request: Request): void {
     try {
-      setMaxListeners(
-        Math.max(defaultMaxListeners, this.currentHandlers.length),
-        request.signal,
-      )
+      if (typeof setMaxListeners === 'function') {
+        setMaxListeners(
+          Math.max(defaultMaxListeners, this.currentHandlers.length),
+          request.signal,
+        )
+      }
     } catch (error: unknown) {
       /**
        * @note Mock environments (JSDOM, ...) are not able to implement an internal

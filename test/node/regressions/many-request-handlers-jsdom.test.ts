@@ -55,7 +55,7 @@ beforeAll(async () => {
   })
 
   server = setupServer(...restHandlers, ...graphqlHandlers)
-  server.listen({ onUnhandledRequest: 'bypass' })
+  server.listen()
   vi.spyOn(process.stderr, 'write')
 })
 

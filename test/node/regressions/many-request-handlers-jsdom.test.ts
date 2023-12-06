@@ -66,7 +66,7 @@ afterAll(async () => {
 })
 
 it('does not print a memory leak warning when having many request handlers', async () => {
-  const httpResponse = await fetch(`${httpServer.http.url(`/resource/42`)}`, {
+  const httpResponse = await fetch(`${httpServer.http.url(`/resource/99`)}`, {
     method: 'POST',
     body: 'request-body-',
   }).then((response) => response.text())
@@ -78,7 +78,7 @@ it('does not print a memory leak warning when having many request handlers', asy
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      query: `query Get42 { index }`,
+      query: `query Get99 { index }`,
     }),
   }).then((response) => response.json())
 
@@ -87,8 +87,8 @@ it('does not print a memory leak warning when having many request handlers', asy
   expect(process.stderr.write).not.toHaveBeenCalled()
 
   // Must return the mocked response.
-  expect(httpResponse).toBe('request-body-42')
-  expect(graphqlResponse).toEqual({ data: { index: 42 } })
+  expect(httpResponse).toBe('request-body-99')
+  expect(graphqlResponse).toEqual({ data: { index: 99 } })
 
   const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',

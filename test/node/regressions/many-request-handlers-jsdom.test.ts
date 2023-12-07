@@ -6,14 +6,6 @@ import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import * as nodeEvents from 'node:events'
 
-const httpServer = new HttpServer((app) => {
-  app.post('/graphql', (_, res) => {
-    return res.status(500).send('original-response')
-  })
-})
-
-const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
-
 vi.mock('node:events', async () => {
   const actual = (await vi.importActual('node:events')) as import('node:events')
   return {
@@ -22,33 +14,31 @@ vi.mock('node:events', async () => {
   }
 })
 
-let server: ReturnType<typeof setupServer>
+const httpServer = new HttpServer((app) => {
+  app.post('/graphql', (_, res) => {
+    return res.status(500).send('original-response')
+  })
+  app.post('/resource/not-defined', (_, res) => {
+    return res.status(500).send('original-response')
+  })
+})
 
-const spy = vi.mocked(nodeEvents.setMaxListeners)
+const server = setupServer()
+
+const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
+const setMaxListenersSpy = vi.mocked(nodeEvents.setMaxListeners)
+const stdErrSpy = vi.spyOn(process.stderr, 'write')
+
+const NUMBER_OF_REQUEST_HANDLERS = 100
 
 beforeAll(async () => {
   await httpServer.listen()
-
-  // Create a large number of request handlers.
-  const restHandlers = new Array(100).fill(null).map((_, index) => {
-    return http.post(
-      httpServer.http.url(`/resource/${index}`),
-      async ({ request }) => {
-        const text = await request.text()
-        return HttpResponse.text(text + index.toString())
-      },
-    )
-  })
-
-  const graphqlHandlers = new Array(100).fill(null).map((_, index) => {
-    return graphql.query(`Get${index}`, () => {
-      return HttpResponse.json({ data: { index } })
-    })
-  })
-
-  server = setupServer(...restHandlers, ...graphqlHandlers)
   server.listen()
-  vi.spyOn(process.stderr, 'write')
+})
+
+afterEach(() => {
+  server.resetHandlers()
+  vi.clearAllMocks()
 })
 
 afterAll(async () => {
@@ -57,55 +47,102 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('does not print a memory leak warning when having many request handlers', async () => {
-  const httpResponse = await fetch(`${httpServer.http.url(`/resource/99`)}`, {
-    method: 'POST',
-    body: 'request-body-',
-  }).then((response) => response.text())
-  expect(spy).not.toHaveBeenCalled()
-  // Each clone is a new AbortSignal listener which needs to be registered
-  expect(requestCloneSpy).toHaveBeenCalledTimes(100)
-  expect(process.stderr.write).not.toHaveBeenCalled()
-  requestCloneSpy.mockClear()
-
-  const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `query Get99 { index }`,
-    }),
-  }).then((response) => response.json())
-
-  expect(spy).not.toHaveBeenCalled()
-  // Each clone is a new AbortSignal listener which needs to be registered
-  expect(requestCloneSpy).toHaveBeenCalledTimes(300)
-  requestCloneSpy.mockClear()
-
-  // Must not print any memory leak warnings.
-  // expect(process.stderr.write).not.toHaveBeenCalled()
-
-  // Must return the mocked response.
-  expect(httpResponse).toBe('request-body-99')
-  expect(graphqlResponse).toEqual({ data: { index: 99 } })
-  // Must not print any memory leak warnings.
-  expect(process.stderr.write).not.toHaveBeenCalled()
-
-  const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `query NotDefinedAtAll { index }`,
-    }),
+describe('http handlers', () => {
+  beforeEach(() => {
+    server.use(
+      ...new Array(NUMBER_OF_REQUEST_HANDLERS).fill(null).map((_, index) => {
+        return http.post(
+          httpServer.http.url(`/resource/${index}`),
+          async ({ request }) => {
+            const text = await request.text()
+            return HttpResponse.text(text + index.toString())
+          },
+        )
+      }),
+    )
   })
 
-  expect(unhandledResponse.status).toEqual(500)
+  it('does not print a memory leak warning for the last handler', async () => {
+    const httpResponse = await fetch(
+      `${httpServer.http.url(`/resource/${NUMBER_OF_REQUEST_HANDLERS - 1}`)}`,
+      {
+        method: 'POST',
+        body: 'request-body-',
+      },
+    ).then((response) => response.text())
+    expect(setMaxListenersSpy).not.toHaveBeenCalled()
+    // Each clone is a new AbortSignal listener which needs to be registered
+    expect(requestCloneSpy).toHaveBeenCalledTimes(NUMBER_OF_REQUEST_HANDLERS)
+    expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
+    expect(stdErrSpy).not.toHaveBeenCalled()
+  })
 
-  expect(requestCloneSpy).toHaveBeenCalledTimes(301)
-  expect(spy).not.toHaveBeenCalled()
-  // Must not print any memory leak warnings.
-  expect(process.stderr.write).not.toHaveBeenCalled()
+  it('does not print a memory leak warning for onUnhandledRequest', async () => {
+    const httpResponse = await fetch(
+      `${httpServer.http.url(`/resource/not-defined`)}`,
+      {
+        method: 'POST',
+        body: 'request-body-',
+      },
+    )
+    expect(setMaxListenersSpy).not.toHaveBeenCalled()
+    // Each clone is a new AbortSignal listener which needs to be registered
+    expect(requestCloneSpy).toHaveBeenCalledTimes(
+      NUMBER_OF_REQUEST_HANDLERS + 1,
+    )
+    expect(httpResponse.status).toBe(500)
+    expect(stdErrSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('graphql handlers', () => {
+  beforeEach(() => {
+    server.use(
+      ...new Array(NUMBER_OF_REQUEST_HANDLERS).fill(null).map((_, index) => {
+        return graphql.query(`Get${index}`, () => {
+          return HttpResponse.json({ data: { index } })
+        })
+      }),
+    )
+  })
+  it('does not print a memory leak warning', async () => {
+    const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `query Get${NUMBER_OF_REQUEST_HANDLERS - 1} { index }`,
+      }),
+    }).then((response) => response.json())
+
+    expect(setMaxListenersSpy).not.toHaveBeenCalled()
+    // Each clone is a new AbortSignal listener which needs to be registered
+    expect(requestCloneSpy).toHaveBeenCalledTimes(
+      NUMBER_OF_REQUEST_HANDLERS * 2,
+    )
+    expect(graphqlResponse).toEqual({
+      data: { index: NUMBER_OF_REQUEST_HANDLERS - 1 },
+    })
+    expect(stdErrSpy).not.toHaveBeenCalled()
+  })
+  it('does not print a memory leak warning for onUnhandledRequest', async () => {
+    const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `query NotDefinedAtAll { index }`,
+      }),
+    })
+
+    expect(unhandledResponse.status).toEqual(500)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(
+      NUMBER_OF_REQUEST_HANDLERS * 2 + 1,
+    )
+    expect(setMaxListenersSpy).not.toHaveBeenCalled()
+    // Must not print any memory leak warnings.
+    expect(stdErrSpy).not.toHaveBeenCalled()
+  })
 })

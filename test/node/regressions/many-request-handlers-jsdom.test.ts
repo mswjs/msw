@@ -1,12 +1,5 @@
 /**
  * @vitest-environment jsdom
- *
- * @note In JSDOM, the "AbortSignal" class is polyfilled instead of
- * using the Node.js global. Because of that, its instances won't
- * pass the instance check of "require('event').setMaxListeners"
- * (that's based on the internal Node.js symbol), resulting in
- * an exception.
- * @see https://github.com/mswjs/msw/pull/1779
  */
 import { HttpServer } from '@open-draft/test-server/http'
 import { graphql, http, HttpResponse } from 'msw'
@@ -19,14 +12,13 @@ const httpServer = new HttpServer((app) => {
   })
 })
 
+const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
+
 vi.mock('node:events', async () => {
   const actual = (await vi.importActual('node:events')) as import('node:events')
   return {
     ...actual,
-    /**
-     * setMaxListeners is not defined in jsdom, so we mock it, and make sure it isn't called
-     */
-    setMaxListeners: vi.fn(),
+    setMaxListeners: vi.fn(actual.setMaxListeners),
   }
 })
 
@@ -71,6 +63,10 @@ it('does not print a memory leak warning when having many request handlers', asy
     body: 'request-body-',
   }).then((response) => response.text())
   expect(spy).not.toHaveBeenCalled()
+  // Each clone is a new AbortSignal listener which needs to be registered
+  expect(requestCloneSpy).toHaveBeenCalledTimes(100)
+  expect(process.stderr.write).not.toHaveBeenCalled()
+  requestCloneSpy.mockClear()
 
   const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
@@ -83,12 +79,18 @@ it('does not print a memory leak warning when having many request handlers', asy
   }).then((response) => response.json())
 
   expect(spy).not.toHaveBeenCalled()
+  // Each clone is a new AbortSignal listener which needs to be registered
+  expect(requestCloneSpy).toHaveBeenCalledTimes(300)
+  requestCloneSpy.mockClear()
+
   // Must not print any memory leak warnings.
-  expect(process.stderr.write).not.toHaveBeenCalled()
+  // expect(process.stderr.write).not.toHaveBeenCalled()
 
   // Must return the mocked response.
   expect(httpResponse).toBe('request-body-99')
   expect(graphqlResponse).toEqual({ data: { index: 99 } })
+  // Must not print any memory leak warnings.
+  expect(process.stderr.write).not.toHaveBeenCalled()
 
   const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
@@ -102,6 +104,7 @@ it('does not print a memory leak warning when having many request handlers', asy
 
   expect(unhandledResponse.status).toEqual(500)
 
+  expect(requestCloneSpy).toHaveBeenCalledTimes(301)
   expect(spy).not.toHaveBeenCalled()
   // Must not print any memory leak warnings.
   expect(process.stderr.write).not.toHaveBeenCalled()

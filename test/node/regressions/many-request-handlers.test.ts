@@ -75,7 +75,7 @@ describe('http handlers', () => {
       expect.any(AbortSignal),
     )
     // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(NUMBER_OF_REQUEST_HANDLERS)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -93,9 +93,7 @@ describe('http handlers', () => {
       expect.any(AbortSignal),
     )
     // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS + 1,
-    )
+    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -128,7 +126,7 @@ describe('graphql handlers', () => {
     )
     // Each clone is a new AbortSignal listener which needs to be registered
     expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS * 2,
+      NUMBER_OF_REQUEST_HANDLERS + 1,
     )
     expect(graphqlResponse).toEqual({
       data: { index: NUMBER_OF_REQUEST_HANDLERS - 1 },
@@ -148,7 +146,7 @@ describe('graphql handlers', () => {
 
     expect(unhandledResponse.status).toEqual(500)
     expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS * 2 + 1,
+      NUMBER_OF_REQUEST_HANDLERS + 2,
     )
     expect(setMaxListenersSpy).toHaveBeenCalledWith(
       NUMBER_OF_REQUEST_HANDLERS,

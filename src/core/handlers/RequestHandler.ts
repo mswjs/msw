@@ -186,6 +186,10 @@ export abstract class RequestHandler<
     return {} as ResolverExtras
   }
 
+  static #mainRequestRefCache = new WeakMap<
+    StrictRequest<any>,
+    StrictRequest<any>
+  >()
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
@@ -200,7 +204,16 @@ export abstract class RequestHandler<
 
     // Clone the request instance before it's passed to the handler phases
     // and the response resolver so we can always read it for logging.
-    const mainRequestRef = args.request.clone()
+    if (!RequestHandler.#mainRequestRefCache.has(args.request)) {
+      RequestHandler.#mainRequestRefCache.set(
+        args.request,
+        args.request.clone(),
+      )
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const mainRequestRef = RequestHandler.#mainRequestRefCache.get(
+      args.request,
+    )!
 
     const parsedResult = await this.parse({
       request: args.request,

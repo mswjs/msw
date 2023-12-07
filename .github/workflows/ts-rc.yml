@@ -32,7 +32,7 @@ jobs:
     runs-on: macos-latest
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
-    if: ${{ needs.compare-versions-job.outputs.latest_version != needs.compare-versions-job.outputs.latest_version.rc_version }}
+    if: ${{ needs.compare-versions-job.outputs.latest_version != needs.compare-versions-job.outputs.rc_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
 
       - name: Write tsconfig
         run: |
-          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare-versions-job.outputs.latest_version.rc_version}.json
+          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare-versions-job.outputs.rc_version}.json
 
       - name: Typings tests
         run: |

@@ -12,6 +12,8 @@ const httpServer = new HttpServer((app) => {
   })
 })
 
+const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
+
 vi.mock('node:events', async () => {
   const actual = (await vi.importActual('node:events')) as import('node:events')
   return {
@@ -61,6 +63,10 @@ it('does not print a memory leak warning when having many request handlers', asy
     body: 'request-body-',
   }).then((response) => response.text())
   expect(spy).toHaveBeenNthCalledWith(1, 200, expect.any(AbortSignal))
+  // Each clone is a new AbortSignal listener which needs to be registered
+  expect(requestCloneSpy).toHaveBeenCalledTimes(100)
+  expect(process.stderr.write).not.toHaveBeenCalled()
+  requestCloneSpy.mockClear()
 
   const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
@@ -73,12 +79,18 @@ it('does not print a memory leak warning when having many request handlers', asy
   }).then((response) => response.json())
 
   expect(spy).toHaveBeenNthCalledWith(2, 200, expect.any(AbortSignal))
+  // Each clone is a new AbortSignal listener which needs to be registered
+  expect(requestCloneSpy).toHaveBeenCalledTimes(300)
+  requestCloneSpy.mockClear()
+
   // Must not print any memory leak warnings.
-  expect(process.stderr.write).not.toHaveBeenCalled()
+  // expect(process.stderr.write).not.toHaveBeenCalled()
 
   // Must return the mocked response.
   expect(httpResponse).toBe('request-body-99')
   expect(graphqlResponse).toEqual({ data: { index: 99 } })
+  // Must not print any memory leak warnings.
+  expect(process.stderr.write).not.toHaveBeenCalled()
 
   const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
@@ -92,6 +104,7 @@ it('does not print a memory leak warning when having many request handlers', asy
 
   expect(unhandledResponse.status).toEqual(500)
 
+  expect(requestCloneSpy).toHaveBeenCalledTimes(301)
   expect(spy).toHaveBeenNthCalledWith(3, 200, expect.any(AbortSignal))
   // Must not print any memory leak warnings.
   expect(process.stderr.write).not.toHaveBeenCalled()

@@ -190,6 +190,20 @@ export abstract class RequestHandler<
     StrictRequest<any>,
     StrictRequest<any>
   >()
+
+  // Clone the request instance before it's passed to the handler phases
+  // and the response resolver so we can always read it for logging.
+  // We only clone it once per request to avoid unnecessary overhead.
+  #getCachedMainRequestRef(args: {
+    request: StrictRequest<any>
+  }): StrictRequest<any> {
+    let currentClone = RequestHandler.#mainRequestRefCache.get(args.request)
+    if (!currentClone) {
+      currentClone = args.request.clone()
+      RequestHandler.#mainRequestRefCache.set(args.request, currentClone)
+    }
+    return currentClone
+  }
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
@@ -202,18 +216,9 @@ export abstract class RequestHandler<
       return null
     }
 
-    // Clone the request instance before it's passed to the handler phases
-    // and the response resolver so we can always read it for logging.
-    if (!RequestHandler.#mainRequestRefCache.has(args.request)) {
-      RequestHandler.#mainRequestRefCache.set(
-        args.request,
-        args.request.clone(),
-      )
-    }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const mainRequestRef = RequestHandler.#mainRequestRefCache.get(
-      args.request,
-    )!
+    const mainRequestRef = this.#getCachedMainRequestRef({
+      request: args.request,
+    })
 
     const parsedResult = await this.parse({
       request: args.request,

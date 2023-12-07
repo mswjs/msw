@@ -4,15 +4,6 @@
 import { HttpServer } from '@open-draft/test-server/http'
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import * as nodeEvents from 'node:events'
-
-vi.mock('node:events', async () => {
-  const actual = (await vi.importActual('node:events')) as import('node:events')
-  return {
-    ...actual,
-    setMaxListeners: vi.fn(actual.setMaxListeners),
-  }
-})
 
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', (_, res) => {
@@ -26,7 +17,6 @@ const httpServer = new HttpServer((app) => {
 const server = setupServer()
 
 const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
-const setMaxListenersSpy = vi.mocked(nodeEvents.setMaxListeners)
 const stdErrSpy = vi.spyOn(process.stderr, 'write')
 
 const NUMBER_OF_REQUEST_HANDLERS = 100
@@ -70,9 +60,8 @@ describe('http handlers', () => {
         body: 'request-body-',
       },
     ).then((response) => response.text())
-    expect(setMaxListenersSpy).not.toHaveBeenCalled()
     // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(NUMBER_OF_REQUEST_HANDLERS)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -85,11 +74,8 @@ describe('http handlers', () => {
         body: 'request-body-',
       },
     )
-    expect(setMaxListenersSpy).not.toHaveBeenCalled()
     // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS + 1,
-    )
+    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -116,11 +102,7 @@ describe('graphql handlers', () => {
       }),
     }).then((response) => response.json())
 
-    expect(setMaxListenersSpy).not.toHaveBeenCalled()
-    // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS * 2,
-    )
+    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(graphqlResponse).toEqual({
       data: { index: NUMBER_OF_REQUEST_HANDLERS - 1 },
     })
@@ -138,10 +120,7 @@ describe('graphql handlers', () => {
     })
 
     expect(unhandledResponse.status).toEqual(500)
-    expect(requestCloneSpy).toHaveBeenCalledTimes(
-      NUMBER_OF_REQUEST_HANDLERS * 2 + 1,
-    )
-    expect(setMaxListenersSpy).not.toHaveBeenCalled()
+    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
     // Must not print any memory leak warnings.
     expect(stdErrSpy).not.toHaveBeenCalled()
   })

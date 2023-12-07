@@ -50,8 +50,6 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
-      this.onRequest(request)
-
       const response = await handleRequest(
         request,
         requestId,
@@ -111,12 +109,5 @@ export class SetupServerApi
 
   public close(): void {
     this.dispose()
-  }
-
-  protected onRequest(request: Request): void {
-    // Do nothing here.
-    // Subclasses may hook into the request being intercepted
-    // to provide additional functionality (e.g. setting the max
-    // event listener count on request's "AbortController" in Node.js).
   }
 }

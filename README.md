@@ -197,7 +197,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 ### Golden Sponsors
 
-> Become our first golden sponsor and get featured right here, enjoying other perks like issue prioritization and a personal consulting session with us.
+> Become our _golden sponsor_ and get featured right here, enjoying other perks like issue prioritization and a personal consulting session with us.
 >
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
 
@@ -220,7 +220,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
     </td>
     <td>
       <a href="https://workleap.com/" target="_blank">
-        <img src="media/sponsors/workleap.svg?v=1" alt="Workleap" height="64" width="174" />
+        <img src="media/sponsors/workleap.svg" alt="Workleap" height="64" width="174" />
       </a>
     </td>
   </tr>
@@ -251,7 +251,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 ### Bronze Sponsors
 
-> Become our first _bronze sponsor_ and get your profile image and link featured in this section.
+> Become our _bronze sponsor_ and get your profile image and link featured in this section.
 >
 > **Learn more on our [GitHub Sponsors profile](https://github.com/sponsors/mswjs)**.
 

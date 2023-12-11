@@ -34,6 +34,7 @@
       "import": "./lib/native/index.mjs",
       "default": "./lib/native/index.js"
     },
+    "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },
   "bin": {

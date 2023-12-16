@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -38,6 +39,7 @@ jobs:
             ${{ runner.os }}-build-
 
   test_unit:
+    name: Unit tests
     needs: build
     runs-on: macos-latest
     steps:
@@ -69,6 +71,7 @@ jobs:
         run: pnpm test:unit
 
   test_node:
+    name: Node tests
     needs: build
     runs-on: macos-latest
     steps:
@@ -100,6 +103,7 @@ jobs:
         run: pnpm test:node
 
   test_browser:
+    name: Browser tests
     needs: build
     runs-on: macos-latest
     steps:
@@ -141,6 +145,7 @@ jobs:
           path: test/browser/test-results
 
   test_native:
+    name: Native tests
     needs: build
     runs-on: macos-latest
     steps:

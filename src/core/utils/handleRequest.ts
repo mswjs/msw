@@ -65,6 +65,7 @@ export async function handleRequest(
       request,
       handlers,
       handleRequestOptions?.resolutionContext,
+      requestId,
     )
   })
 

@@ -20,12 +20,13 @@ export const getResponse = async <Handler extends Array<RequestHandler>>(
   request: Request,
   handlers: Handler,
   resolutionContext?: ResponseResolutionContext,
+  requestId?: string,
 ): Promise<ResponseLookupResult | null> => {
   let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
-    result = await handler.run({ request, resolutionContext })
+    result = await handler.run({ request, resolutionContext, requestId })
 
     // If the handler produces some result for this request,
     // it automatically becomes matching.

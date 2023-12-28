@@ -107,7 +107,7 @@ self.addEventListener('fetch', function (event) {
   }
 
   // Generate unique request ID.
-  const requestId = crypto ？crypto.randomUUID() ：Math.random().toString(16).slice(2)
+  const requestId = crypto ? crypto.randomUUID() : Math.random().toString(16).slice(2)
   event.respondWith(handleRequest(event, requestId))
 })
 
@@ -115,7 +115,7 @@ async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
   const response = await getResponse(event, client, requestId)
 
-  // Send back the response clone for the "response:*" life-cycle events.
+  // Send back the response clone for the "response:*" life-cle events.
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
@@ -227,7 +227,7 @@ async function getResponse(event, client, requestId) {
         integrity: request.integrity,
         redirect: request.redirect,
         referrer: request.referrer,
-        referrerPolicy: request.referrerPolicy,
+        referrerPoli: request.referrerPoli,
         body: requestBuffer,
         keepalive: request.keepalive,
       },

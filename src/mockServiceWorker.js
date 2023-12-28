@@ -115,7 +115,7 @@ async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
   const response = await getResponse(event, client, requestId)
 
-  // Send back the response clone for the "response:*" life-cle events.
+  // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
@@ -227,7 +227,7 @@ async function getResponse(event, client, requestId) {
         integrity: request.integrity,
         redirect: request.redirect,
         referrer: request.referrer,
-        referrerPoli: request.referrerPoli,
+        referrerPolicy: request.referrerPolicy,
         body: requestBuffer,
         keepalive: request.keepalive,
       },

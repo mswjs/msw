@@ -17,7 +17,7 @@ const httpServer = new HttpServer((app) => {
 const server = setupServer()
 
 const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
-const stdErrSpy = vi.spyOn(process.stderr, 'write')
+const processErrorSpy = vi.spyOn(process.stderr, 'write')
 
 const NUMBER_OF_REQUEST_HANDLERS = 100
 
@@ -63,7 +63,7 @@ describe('http handlers', () => {
     // Each clone is a new AbortSignal listener which needs to be registered
     expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processErrorSpy).not.toHaveBeenCalled()
   })
 
   it('does not print a memory leak warning for onUnhandledRequest', async () => {
@@ -77,7 +77,7 @@ describe('http handlers', () => {
     // Each clone is a new AbortSignal listener which needs to be registered
     expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processErrorSpy).not.toHaveBeenCalled()
   })
 })
 
@@ -91,6 +91,7 @@ describe('graphql handlers', () => {
       }),
     )
   })
+
   it('does not print a memory leak warning', async () => {
     const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
@@ -106,8 +107,9 @@ describe('graphql handlers', () => {
     expect(graphqlResponse).toEqual({
       data: { index: NUMBER_OF_REQUEST_HANDLERS - 1 },
     })
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processErrorSpy).not.toHaveBeenCalled()
   })
+
   it('does not print a memory leak warning for onUnhandledRequest', async () => {
     const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
@@ -122,6 +124,6 @@ describe('graphql handlers', () => {
     expect(unhandledResponse.status).toEqual(500)
     expect(requestCloneSpy).toHaveBeenCalledTimes(3)
     // Must not print any memory leak warnings.
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processErrorSpy).not.toHaveBeenCalled()
   })
 })

@@ -88,7 +88,7 @@ export class GraphQLHandler extends RequestHandler<
 > {
   private endpoint: Path
 
-  static #parseGraphQLRequestCache = new WeakMap<
+  static parsedRequestCache = new WeakMap<
     Request,
     ParsedGraphQLRequest<GraphQLVariables>
   >()
@@ -143,18 +143,20 @@ export class GraphQLHandler extends RequestHandler<
    * GraphQL handlers. This is done to avoid multiple parsing of the
    * request body, which each requires a clone of the request.
    */
-  async #getCachedParsedResult(args: { request: Request }) {
-    if (!GraphQLHandler.#parseGraphQLRequestCache.has(args.request)) {
-      GraphQLHandler.#parseGraphQLRequestCache.set(
-        args.request,
-        await parseGraphQLRequest(args.request).catch((error) => {
+  async parseGraphQLRequestOrGetFromCache(
+    request: Request,
+  ): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+    if (!GraphQLHandler.parsedRequestCache.has(request)) {
+      GraphQLHandler.parsedRequestCache.set(
+        request,
+        await parseGraphQLRequest(request).catch((error) => {
           console.error(error)
           return undefined
         }),
       )
     }
 
-    return GraphQLHandler.#parseGraphQLRequestCache.get(args.request)
+    return GraphQLHandler.parsedRequestCache.get(request)
   }
 
   async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
@@ -163,11 +165,13 @@ export class GraphQLHandler extends RequestHandler<
      * need to parse it since there's no case where we would handle this
      */
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
-    if (!match.matches) return { match }
+    if (!match.matches) {
+      return { match }
+    }
 
-    const parsedResult = await this.#getCachedParsedResult({
-      request: args.request,
-    })
+    const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
+      args.request,
+    )
 
     if (typeof parsedResult === 'undefined') {
       return { match }

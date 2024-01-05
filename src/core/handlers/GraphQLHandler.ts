@@ -88,6 +88,11 @@ export class GraphQLHandler extends RequestHandler<
 > {
   private endpoint: Path
 
+  static parsedRequestCache = new WeakMap<
+    Request,
+    ParsedGraphQLRequest<GraphQLVariables>
+  >()
+
   constructor(
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
@@ -133,19 +138,39 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
+  /**
+   * Parses the request body, once per request, cached across all
+   * GraphQL handlers. This is done to avoid multiple parsing of the
+   * request body, which each requires a clone of the request.
+   */
+  async parseGraphQLRequestOrGetFromCache(
+    request: Request,
+  ): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+    if (!GraphQLHandler.parsedRequestCache.has(request)) {
+      GraphQLHandler.parsedRequestCache.set(
+        request,
+        await parseGraphQLRequest(request).catch((error) => {
+          console.error(error)
+          return undefined
+        }),
+      )
+    }
+
+    return GraphQLHandler.parsedRequestCache.get(request)
+  }
+
   async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
     /**
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
-    if (!match.matches) return { match }
+    if (!match.matches) {
+      return { match }
+    }
 
-    const parsedResult = await parseGraphQLRequest(args.request).catch(
-      (error) => {
-        console.error(error)
-        return undefined
-      },
+    const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
+      args.request,
     )
 
     if (typeof parsedResult === 'undefined') {

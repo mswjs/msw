@@ -4,6 +4,8 @@ import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/getResponse'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { Match, Path, matchRequestUrl } from '../utils/matching/matchRequestUrl'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -182,6 +184,36 @@ export abstract class RequestHandler<
       parsedResult,
       resolutionContext: args.resolutionContext,
     })
+  }
+
+  private static cookiesForRequestCache = new WeakMap<
+    Request,
+    Record<string, string>
+  >()
+  protected parseAllRequestCookiesOrGetFromCache(
+    request: Request,
+  ): Record<string, string> {
+    let cookies = RequestHandler.cookiesForRequestCache.get(request)
+    if (!cookies) {
+      cookies = getAllRequestCookies(request)
+      RequestHandler.cookiesForRequestCache.set(request, cookies)
+    }
+    return cookies
+  }
+
+  private static matchRequestUrlCache = new Map<string, Match>()
+  protected matchRequestURLOrGetMatchFromCache(
+    url: URL,
+    path: Path,
+    baseUrl?: string | undefined,
+  ): Match {
+    const cacheKey = `${url.toString()}|${path}|${baseUrl}`
+    let match = RequestHandler.matchRequestUrlCache.get(cacheKey)
+    if (!match) {
+      match = matchRequestUrl(url, path, baseUrl)
+      RequestHandler.matchRequestUrlCache.set(cacheKey, match)
+    }
+    return match
   }
 
   protected extendResolverArgs(_args: {

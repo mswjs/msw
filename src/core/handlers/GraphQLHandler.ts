@@ -10,7 +10,7 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
+import { Match, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
@@ -19,7 +19,7 @@ import {
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { devUtils } from '../utils/internal/devUtils'
-import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { urlFromRequestOrCache } from '../utils/request/urlFromRequestOrCache'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -33,6 +33,7 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
 
 export type GraphQLRequestParsedResult = {
   match: Match
+  cookies: Record<string, string>
 } & (
   | ParsedGraphQLRequest<GraphQLVariables>
   /**
@@ -164,9 +165,14 @@ export class GraphQLHandler extends RequestHandler<
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
-    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const match = this.matchRequestURLOrGetMatchFromCache(
+      urlFromRequestOrCache(args.request),
+      this.endpoint,
+    )
+    const cookies = this.parseAllRequestCookiesOrGetFromCache(args.request)
+
     if (!match.matches) {
-      return { match }
+      return { match, cookies }
     }
 
     const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
@@ -174,7 +180,7 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match }
+      return { match, cookies }
     }
 
     return {
@@ -183,6 +189,7 @@ export class GraphQLHandler extends RequestHandler<
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
       variables: parsedResult.variables,
+      cookies,
     }
   }
 
@@ -224,13 +231,11 @@ Consider naming this operation or using "graphql.operation()" request handler to
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
-    const cookies = getAllRequestCookies(args.request)
-
     return {
       query: args.parsedResult.query || '',
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
-      cookies,
+      cookies: args.parsedResult.cookies,
     }
   }
 

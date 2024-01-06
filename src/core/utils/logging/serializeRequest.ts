@@ -1,3 +1,5 @@
+import { urlFromRequestOrCache } from '../request/urlFromRequestOrCache'
+
 export interface LoggedRequest {
   url: URL
   method: string
@@ -15,7 +17,7 @@ export async function serializeRequest(
   const requestText = await requestClone.text()
 
   return {
-    url: new URL(request.url),
+    url: urlFromRequestOrCache(request),
     method: request.method,
     headers: Object.fromEntries(request.headers.entries()),
     body: requestText,

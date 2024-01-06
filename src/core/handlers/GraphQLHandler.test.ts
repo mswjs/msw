@@ -170,6 +170,7 @@ describe('parse', () => {
         operationName: 'GetUser',
         query: GET_USER,
         variables: undefined,
+        cookies: {},
       })
     })
 
@@ -200,6 +201,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
     })
 
@@ -225,6 +227,7 @@ describe('parse', () => {
         operationName: 'GetUser',
         query: GET_USER,
         variables: undefined,
+        cookies: {},
       })
     })
 
@@ -255,6 +258,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
     })
   })
@@ -282,6 +286,7 @@ describe('parse', () => {
         operationName: 'Login',
         query: LOGIN,
         variables: undefined,
+        cookies: {},
       })
     })
 
@@ -312,6 +317,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
     })
 
@@ -337,6 +343,7 @@ describe('parse', () => {
         operationName: 'Login',
         query: LOGIN,
         variables: undefined,
+        cookies: {},
       })
     })
 
@@ -367,6 +374,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
     })
   })
@@ -403,6 +411,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
 
       await expect(
@@ -428,6 +437,7 @@ describe('parse', () => {
         variables: {
           userId: 'abc-123',
         },
+        cookies: {},
       })
     })
 
@@ -456,6 +466,7 @@ describe('parse', () => {
           matches: false,
           params: {},
         },
+        cookies: {},
       })
 
       await expect(
@@ -475,6 +486,7 @@ describe('parse', () => {
           matches: false,
           params: {},
         },
+        cookies: {},
       })
     })
 
@@ -503,6 +515,7 @@ describe('parse', () => {
           matches: false,
           params: {},
         },
+        cookies: {},
       })
 
       await expect(
@@ -522,6 +535,7 @@ describe('parse', () => {
           matches: false,
           params: {},
         },
+        cookies: {},
       })
     })
   })
@@ -738,6 +752,7 @@ describe('run', () => {
       variables: {
         userId: 'abc-123',
       },
+      cookies: {},
     })
     expect(result!.request.method).toBe('POST')
     expect(result!.request.url).toBe('https://example.com/')

@@ -5,14 +5,9 @@ import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import {
-  matchRequestUrl,
-  Match,
-  Path,
-  PathParams,
-} from '../utils/matching/matchRequestUrl'
+import { Match, Path, PathParams } from '../utils/matching/matchRequestUrl'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
-import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { urlFromRequestOrCache } from '../utils/request/urlFromRequestOrCache'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
   RequestHandler,
@@ -110,13 +105,12 @@ export class HttpHandler extends RequestHandler<
     request: Request
     resolutionContext?: ResponseResolutionContext
   }) {
-    const url = new URL(args.request.url)
-    const match = matchRequestUrl(
-      url,
+    const match = this.matchRequestURLOrGetMatchFromCache(
+      urlFromRequestOrCache(args.request),
       this.info.path,
       args.resolutionContext?.baseUrl,
     )
-    const cookies = getAllRequestCookies(args.request)
+    const cookies = this.parseAllRequestCookiesOrGetFromCache(args.request)
 
     return {
       match,

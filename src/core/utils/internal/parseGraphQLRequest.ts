@@ -9,6 +9,7 @@ import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
 import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
 import { parseMultipartData } from './parseMultipartData'
+import { urlFromRequestOrCache } from '../request/urlFromRequestOrCache'
 
 interface GraphQLInput {
   query: string | null
@@ -92,7 +93,7 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
 async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
   switch (request.method) {
     case 'GET': {
-      const url = new URL(request.url)
+      const url = urlFromRequestOrCache(request)
       const query = url.searchParams.get('query')
       const variables = url.searchParams.get('variables') || ''
 

@@ -1,5 +1,6 @@
 import cookieUtils from '@bundled-es-modules/cookie'
 import { store } from '@mswjs/cookies'
+import { urlFromRequestOrCache } from './urlFromRequestOrCache'
 
 function getAllDocumentCookies() {
   return cookieUtils.parse(document.cookie)
@@ -19,7 +20,7 @@ export function getRequestCookies(request: Request): Record<string, string> {
 
   switch (request.credentials) {
     case 'same-origin': {
-      const url = new URL(request.url)
+      const url = urlFromRequestOrCache(request)
 
       // Return document cookies only when requested a resource
       // from the same origin as the current document.

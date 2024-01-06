@@ -4,6 +4,6 @@ export function readResponseCookies(
   request: Request,
   response: Response,
 ): void {
-  store.add({ ...request, url: request.url.toString() }, response)
+  store.add({ ...request, url: request.url }, response)
   store.persist()
 }

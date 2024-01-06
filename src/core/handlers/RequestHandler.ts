@@ -207,7 +207,7 @@ export abstract class RequestHandler<
     path: Path,
     baseUrl?: string | undefined,
   ): Match {
-    const cacheKey = `${url.toString()}|${path}|${baseUrl}`
+    const cacheKey = `${url}|${path}|${baseUrl}`
     let match = RequestHandler.matchRequestUrlCache.get(cacheKey)
     if (!match) {
       match = matchRequestUrl(url, path, baseUrl)

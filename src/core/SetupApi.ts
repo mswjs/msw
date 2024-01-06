@@ -59,7 +59,10 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.currentHandlers.unshift(...runtimeHandlers)
+    // we don't spread the handlers to avoid maximum stack errors on very large sets of handlers
+    for (let i = runtimeHandlers.length - 1; i >= 0; i--) {
+      this.currentHandlers.unshift(runtimeHandlers[i])
+    }
   }
 
   public restoreHandlers(): void {

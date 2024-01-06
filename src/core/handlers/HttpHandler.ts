@@ -105,12 +105,14 @@ export class HttpHandler extends RequestHandler<
     request: Request
     resolutionContext?: ResponseResolutionContext
   }) {
-    const match = this.matchRequestURLOrGetMatchFromCache(
+    const match = RequestHandler.matchRequestURLOrGetMatchFromCache(
       urlFromRequestOrCache(args.request),
       this.info.path,
       args.resolutionContext?.baseUrl,
     )
-    const cookies = this.parseAllRequestCookiesOrGetFromCache(args.request)
+    const cookies = RequestHandler.parseAllRequestCookiesOrGetFromCache(
+      args.request,
+    )
 
     return {
       match,

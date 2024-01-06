@@ -190,7 +190,7 @@ export abstract class RequestHandler<
     Request,
     Record<string, string>
   >()
-  protected parseAllRequestCookiesOrGetFromCache(
+  protected static parseAllRequestCookiesOrGetFromCache(
     request: Request,
   ): Record<string, string> {
     let cookies = RequestHandler.cookiesForRequestCache.get(request)
@@ -202,7 +202,7 @@ export abstract class RequestHandler<
   }
 
   private static matchRequestUrlCache = new Map<string, Match>()
-  protected matchRequestURLOrGetMatchFromCache(
+  protected static matchRequestURLOrGetMatchFromCache(
     url: URL,
     path: Path,
     baseUrl?: string | undefined,

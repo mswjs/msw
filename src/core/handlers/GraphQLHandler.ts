@@ -144,7 +144,7 @@ export class GraphQLHandler extends RequestHandler<
    * GraphQL handlers. This is done to avoid multiple parsing of the
    * request body, which each requires a clone of the request.
    */
-  async parseGraphQLRequestOrGetFromCache(
+  private static async parseGraphQLRequestOrGetFromCache(
     request: Request,
   ): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
     if (!GraphQLHandler.parsedRequestCache.has(request)) {
@@ -165,17 +165,19 @@ export class GraphQLHandler extends RequestHandler<
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
-    const match = this.matchRequestURLOrGetMatchFromCache(
+    const match = RequestHandler.matchRequestURLOrGetMatchFromCache(
       urlFromRequestOrCache(args.request),
       this.endpoint,
     )
-    const cookies = this.parseAllRequestCookiesOrGetFromCache(args.request)
+    const cookies = RequestHandler.parseAllRequestCookiesOrGetFromCache(
+      args.request,
+    )
 
     if (!match.matches) {
       return { match, cookies }
     }
 
-    const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
+    const parsedResult = await GraphQLHandler.parseGraphQLRequestOrGetFromCache(
       args.request,
     )
 
@@ -185,11 +187,11 @@ export class GraphQLHandler extends RequestHandler<
 
     return {
       match,
+      cookies,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
       variables: parsedResult.variables,
-      cookies,
     }
   }
 

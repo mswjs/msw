@@ -3,8 +3,8 @@ import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpHandler } from './HttpHandler'
 import type { SyncServerEventsMap } from '../../node/setupRemoteServer'
 import {
-  deserializeResponse,
   serializeRequest,
+  deserializeResponse,
 } from '../utils/request/serializeUtils'
 
 export class RemoteRequestHandler extends HttpHandler {
@@ -29,7 +29,10 @@ export class RemoteRequestHandler extends HttpHandler {
         return
       }
 
-      socket.emit('request', await serializeRequest(request), args.requestId)
+      socket.emit('request', {
+        requestId: args.requestId,
+        serializedRequest: await serializeRequest(request),
+      })
 
       const responsePromise = new DeferredPromise<Response | undefined>()
 
@@ -38,11 +41,11 @@ export class RemoteRequestHandler extends HttpHandler {
        * @todo Handle socket errors.
        */
       socket.on('response', (serializedResponse) => {
-        responsePromise.resolve(
-          serializedResponse
-            ? deserializeResponse(serializedResponse)
-            : undefined,
-        )
+        const response = serializedResponse
+          ? deserializeResponse(serializedResponse)
+          : undefined
+
+        responsePromise.resolve(response)
       })
 
       return await responsePromise

@@ -23,6 +23,7 @@ import {
   deserializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 
+const syncServerSymbol = Symbol('mswSyncServer')
 const SYNC_SERVER_DEFAULT_PORT = 50222
 const SYNC_SERVER_ENV_VARIABLE_NAME = 'MSW_INTERNAL_WEBSOCKET_PORT'
 const SYNC_SERVER_PORT =
@@ -39,16 +40,16 @@ export function setupRemoteServer(...handlers: Array<RequestHandler>) {
 }
 
 export interface SetupRemoteServer {
+  events: LifeCycleEventEmitter<LifeCycleEventsMap>
   listen(): Promise<void>
   close(): Promise<void>
-  events: LifeCycleEventEmitter<LifeCycleEventsMap>
 }
 
 export interface SyncServerEventsMap {
-  request(
-    serializedRequest: SerializedRequest,
-    requestId: string,
-  ): Promise<void> | void
+  request(args: {
+    serializedRequest: SerializedRequest
+    requestId: string
+  }): Promise<void> | void
   response(serializedResponse?: SerializedResponse): Promise<void> | void
   lifeCycleEventForward<EventName extends keyof SerializedLifeCycleEventsMap>(
     eventName: EventName,
@@ -56,9 +57,10 @@ export interface SyncServerEventsMap {
   ): void
 }
 
-declare global {
-  var syncServer: WebSocketServer<SyncServerEventsMap> | undefined
+interface GlobalWith extends Global {
+  [syncServerSymbol]: WebSocketServer<SyncServerEventsMap> | undefined
 }
+declare var globalThis: GlobalWith
 
 export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -78,7 +80,7 @@ export class SetupRemoteServerApi
       .on('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
-      socket.on('request', async (serializedRequest, requestId) => {
+      socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
           request,
@@ -122,7 +124,7 @@ ${`${pragma} ${header}`}
   }
 
   public async close(): Promise<void> {
-    const { syncServer } = globalThis
+    const { [syncServerSymbol]: syncServer } = globalThis
 
     invariant(
       syncServer,
@@ -141,7 +143,7 @@ ${`${pragma} ${header}`}
 async function createSyncServer(): Promise<
   WebSocketServer<SyncServerEventsMap>
 > {
-  const existingSyncServer = globalThis.syncServer
+  const existingSyncServer = globalThis[syncServerSymbol]
 
   // Reuse the existing WebSocket server reference if it exists.
   // It persists on the global scope between hot updates.
@@ -161,20 +163,16 @@ async function createSyncServer(): Promise<
     },
   })
 
-  httpServer.listen(
-    Number.parseInt(SYNC_SERVER_URL.port),
-    SYNC_SERVER_URL.hostname,
-    () => {
-      globalThis.syncServer = ws
-      serverReadyPromise.resolve(ws)
-    },
-  )
+  httpServer.listen(+SYNC_SERVER_URL.port, SYNC_SERVER_URL.hostname, () => {
+    globalThis[syncServerSymbol] = ws
+    serverReadyPromise.resolve(ws)
+  })
 
   httpServer.on('error', (error: Error | NodeJS.ErrnoException) => {
     if (
       'code' in error &&
       error.code === 'EADDRINUSE' &&
-      Number.parseInt(SYNC_SERVER_URL.port) === SYNC_SERVER_DEFAULT_PORT
+      +SYNC_SERVER_URL.port === SYNC_SERVER_DEFAULT_PORT
     ) {
       devUtils.warn(
         'The default internal WebSocket server port (%d) is in use. Please consider freeing the port or specifying a different port using the "%s" environment variable.',
@@ -197,7 +195,7 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
       return serverClosePromise.reject(error)
     }
 
-    globalThis.syncServer = undefined
+    Reflect.deleteProperty(globalThis, syncServerSymbol)
     serverClosePromise.resolve()
   })
 
@@ -225,6 +223,7 @@ export async function createSyncClient(): Promise<
     extraHeaders: {
       // Mark all Socket.io requests with an internal header
       // so they are always bypassed in the remote request handler.
+      // This has no effect on the user's traffic.
       'x-msw-request-type': 'internal-request',
     },
   })

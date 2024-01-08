@@ -33,6 +33,7 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
 
 export type GraphQLRequestParsedResult = {
   match: Match
+  cookies: Record<string, string>
 } & (
   | ParsedGraphQLRequest<GraphQLVariables>
   /**
@@ -165,8 +166,10 @@ export class GraphQLHandler extends RequestHandler<
      * need to parse it since there's no case where we would handle this
      */
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const cookies = getAllRequestCookies(args.request)
+
     if (!match.matches) {
-      return { match }
+      return { match, cookies }
     }
 
     const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
@@ -174,11 +177,12 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match }
+      return { match, cookies }
     }
 
     return {
       match,
+      cookies,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
@@ -224,13 +228,11 @@ Consider naming this operation or using "graphql.operation()" request handler to
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
-    const cookies = getAllRequestCookies(args.request)
-
     return {
       query: args.parsedResult.query || '',
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
-      cookies,
+      cookies: args.parsedResult.cookies,
     }
   }
 

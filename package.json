@@ -90,6 +90,7 @@
     "config/scripts/postinstall.js",
     "cli",
     "lib",
+    "src",
     "browser",
     "node",
     "native",

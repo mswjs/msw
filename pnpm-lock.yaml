@@ -12,7 +12,7 @@ specifiers:
   '@commitlint/cli': ^16.1.0
   '@commitlint/config-conventional': ^16.0.0
   '@mswjs/cookies': ^1.1.0
-  '@mswjs/interceptors': ^0.25.13
+  '@mswjs/interceptors': ^0.25.14
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.8.0

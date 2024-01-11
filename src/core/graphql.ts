@@ -22,6 +22,15 @@ export interface TypedDocumentNode<
   __variablesType?: Variables
 }
 
+export type GraphQLResponseResolver<
+  Query extends Record<string, unknown>,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> = ResponseResolver<
+  GraphQLResolverExtras<Variables>,
+  null,
+  GraphQLResponseBody<Query>
+>
+
 function createScopedGraphQLHandler(
   operationType: ExpectedOperationTypeNode,
   url: Path,
@@ -34,11 +43,7 @@ function createScopedGraphQLHandler(
       | GraphQLHandlerNameSelector
       | DocumentNode
       | TypedDocumentNode<Query, Variables>,
-    resolver: ResponseResolver<
-      GraphQLResolverExtras<Variables>,
-      null,
-      GraphQLResponseBody<Query>
-    >,
+    resolver: GraphQLResponseResolver<Query, Variables>,
     options: RequestHandlerOptions = {},
   ) => {
     return new GraphQLHandler(

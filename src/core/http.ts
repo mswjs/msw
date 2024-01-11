@@ -10,6 +10,16 @@ import {
 } from './handlers/HttpHandler'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 
+export type HttpResponseResolver<
+  Params extends PathParams<keyof Params> = PathParams,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
+  ResponseBodyType extends DefaultBodyType = DefaultBodyType,
+> = ResponseResolver<
+  HttpRequestResolverExtras<Params>,
+  RequestBodyType,
+  ResponseBodyType
+>
+
 function createHttpHandler<Method extends HttpMethods | RegExp>(
   method: Method,
 ) {
@@ -19,11 +29,7 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
     ResponseBodyType extends DefaultBodyType = undefined,
   >(
     path: Path,
-    resolver: ResponseResolver<
-      HttpRequestResolverExtras<Params>,
-      RequestBodyType,
-      ResponseBodyType
-    >,
+    resolver: HttpResponseResolver<Params, RequestBodyType, ResponseBodyType>,
     options: RequestHandlerOptions = {},
   ) => {
     return new HttpHandler(method, path, resolver, options)

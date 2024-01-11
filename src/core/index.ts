@@ -37,6 +37,7 @@ export type {
 export type { HttpResponseResolver } from './http'
 
 export type {
+  GraphQLQuery,
   GraphQLVariables,
   GraphQLRequestBody,
   GraphQLJsonRequestBody,

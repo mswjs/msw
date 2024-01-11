@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 

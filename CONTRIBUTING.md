@@ -213,7 +213,6 @@ Let's replicate the same `GET /books` integration test in Node.js.
 
 ```ts
 // test/node/example.test.ts
-import fetch from 'node-fetch'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 

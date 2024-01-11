@@ -1,4 +1,3 @@
-// @ts-ignore
 import jsLevenshtein from '@bundled-es-modules/js-levenshtein'
 import { RequestHandler, HttpHandler, GraphQLHandler } from '../..'
 import {

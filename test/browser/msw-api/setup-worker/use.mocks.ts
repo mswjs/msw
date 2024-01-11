@@ -11,11 +11,10 @@ const worker = setupWorker(
 
 worker.start()
 
-// @ts-ignore
-// Propagate the worker and `http` references to be globally available.
-// This would allow to modify request handlers on runtime.
-window.msw = {
-  worker,
-  http,
-  HttpResponse,
-}
+Object.assign(window, {
+  msw: {
+    worker,
+    http,
+    HttpResponse,
+  },
+})

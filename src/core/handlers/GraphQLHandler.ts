@@ -10,7 +10,7 @@ import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import { matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
+import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
@@ -19,6 +19,7 @@ import {
 } from '../utils/internal/parseGraphQLRequest'
 import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
 import { devUtils } from '../utils/internal/devUtils'
+import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -30,10 +31,28 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationName: GraphQLHandlerNameSelector
 }
 
+export type GraphQLRequestParsedResult = {
+  match: Match
+} & (
+  | ParsedGraphQLRequest<GraphQLVariables>
+  /**
+   * An empty version of the ParsedGraphQLRequest
+   * which simplifies the return type of the resolver
+   * when the request is to a non-matching endpoint
+   */
+  | {
+      operationType?: undefined
+      operationName?: undefined
+      query?: undefined
+      variables?: undefined
+    }
+)
+
 export type GraphQLResolverExtras<Variables extends GraphQLVariables> = {
   query: string
   operationName: string
   variables: Variables
+  cookies: Record<string, string>
 }
 
 export type GraphQLRequestBody<VariablesType extends GraphQLVariables> =
@@ -48,8 +67,8 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
 }
 
 export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
-  data?: BodyType
-  errors?: readonly Partial<GraphQLError>[]
+  data?: BodyType | null
+  errors?: readonly Partial<GraphQLError>[] | null
 }
 
 export function isDocumentNode(
@@ -64,10 +83,15 @@ export function isDocumentNode(
 
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
-  ParsedGraphQLRequest,
+  GraphQLRequestParsedResult,
   GraphQLResolverExtras<any>
 > {
   private endpoint: Path
+
+  static parsedRequestCache = new WeakMap<
+    Request,
+    ParsedGraphQLRequest<GraphQLVariables>
+  >()
 
   constructor(
     operationType: ExpectedOperationTypeNode,
@@ -114,15 +138,59 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
-  async parse(args: { request: Request }) {
-    return parseGraphQLRequest(args.request).catch((error) => {
-      console.error(error)
-      return undefined
-    })
+  /**
+   * Parses the request body, once per request, cached across all
+   * GraphQL handlers. This is done to avoid multiple parsing of the
+   * request body, which each requires a clone of the request.
+   */
+  async parseGraphQLRequestOrGetFromCache(
+    request: Request,
+  ): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+    if (!GraphQLHandler.parsedRequestCache.has(request)) {
+      GraphQLHandler.parsedRequestCache.set(
+        request,
+        await parseGraphQLRequest(request).catch((error) => {
+          console.error(error)
+          return undefined
+        }),
+      )
+    }
+
+    return GraphQLHandler.parsedRequestCache.get(request)
   }
 
-  predicate(args: { request: Request; parsedResult: ParsedGraphQLRequest }) {
-    if (!args.parsedResult) {
+  async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
+    /**
+     * If the request doesn't match a specified endpoint, there's no
+     * need to parse it since there's no case where we would handle this
+     */
+    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    if (!match.matches) {
+      return { match }
+    }
+
+    const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
+      args.request,
+    )
+
+    if (typeof parsedResult === 'undefined') {
+      return { match }
+    }
+
+    return {
+      match,
+      query: parsedResult.query,
+      operationType: parsedResult.operationType,
+      operationName: parsedResult.operationName,
+      variables: parsedResult.variables,
+    }
+  }
+
+  predicate(args: {
+    request: Request
+    parsedResult: GraphQLRequestParsedResult
+  }) {
+    if (args.parsedResult.operationType === undefined) {
       return false
     }
 
@@ -132,14 +200,10 @@ export class GraphQLHandler extends RequestHandler<
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/operation`)
+Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
       return false
     }
 
-    const hasMatchingUrl = matchRequestUrl(
-      new URL(args.request.url),
-      this.endpoint,
-    )
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
@@ -150,7 +214,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
         : args.parsedResult.operationName === this.info.operationName
 
     return (
-      hasMatchingUrl.matches &&
+      args.parsedResult.match.matches &&
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
@@ -158,26 +222,29 @@ Consider naming this operation or using "graphql.operation()" request handler to
 
   protected extendResolverArgs(args: {
     request: Request
-    parsedResult: ParsedGraphQLRequest<GraphQLVariables>
+    parsedResult: GraphQLRequestParsedResult
   }) {
+    const cookies = getAllRequestCookies(args.request)
+
     return {
-      query: args.parsedResult?.query || '',
-      operationName: args.parsedResult?.operationName || '',
-      variables: args.parsedResult?.variables || {},
+      query: args.parsedResult.query || '',
+      operationName: args.parsedResult.operationName || '',
+      variables: args.parsedResult.variables || {},
+      cookies,
     }
   }
 
   async log(args: {
     request: Request
     response: Response
-    parsedResult: ParsedGraphQLRequest
+    parsedResult: GraphQLRequestParsedResult
   }) {
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
-    const requestInfo = args.parsedResult?.operationName
-      ? `${args.parsedResult?.operationType} ${args.parsedResult?.operationName}`
-      : `anonymous ${args.parsedResult?.operationType}`
+    const requestInfo = args.parsedResult.operationName
+      ? `${args.parsedResult.operationType} ${args.parsedResult.operationName}`
+      : `anonymous ${args.parsedResult.operationType}`
 
     console.groupCollapsed(
       devUtils.formatMessage(

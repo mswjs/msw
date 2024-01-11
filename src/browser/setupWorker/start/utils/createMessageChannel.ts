@@ -27,13 +27,6 @@ export class WorkerChannel {
     ...rest: WorkerChannelEventsMap[Event]
   ): void {
     const [data, transfer] = rest
-    this.port.postMessage(
-      { type: event, data },
-      {
-        // @ts-ignore ReadableStream can be transferred
-        // but TypeScript doesn't acknowledge that.
-        transfer,
-      },
-    )
+    this.port.postMessage({ type: event, data }, { transfer })
   }
 }

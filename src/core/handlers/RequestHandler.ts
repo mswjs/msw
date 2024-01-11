@@ -19,6 +19,14 @@ export type DefaultBodyType =
   | null
   | undefined
 
+export type JsonBodyType =
+  | Record<string, any>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+
 export interface RequestHandlerDefaultInfo {
   header: string
 }
@@ -30,7 +38,7 @@ export interface RequestHandlerInternalInfo {
 export type ResponseResolverReturnType<
   BodyType extends DefaultBodyType = undefined,
 > =
-  | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
+  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
   | undefined
   | void
 
@@ -89,6 +97,11 @@ export abstract class RequestHandler<
   ResolverExtras extends Record<string, unknown> = any,
   HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
 > {
+  static cache = new WeakMap<
+    StrictRequest<DefaultBodyType>,
+    StrictRequest<DefaultBodyType>
+  >()
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -150,6 +163,10 @@ export abstract class RequestHandler<
 
   /**
    * Test if this handler matches the given request.
+   *
+   * This method is not used internally but is exposed
+   * as a convenience method for consumers writing custom
+   * handlers.
    */
   public async test(args: {
     request: Request
@@ -174,6 +191,24 @@ export abstract class RequestHandler<
     return {} as ResolverExtras
   }
 
+  // Clone the request instance before it's passed to the handler phases
+  // and the response resolver so we can always read it for logging.
+  // We only clone it once per request to avoid unnecessary overhead.
+  private cloneRequestOrGetFromCache(
+    request: StrictRequest<DefaultBodyType>,
+  ): StrictRequest<DefaultBodyType> {
+    const existingClone = RequestHandler.cache.get(request)
+
+    if (typeof existingClone !== 'undefined') {
+      return existingClone
+    }
+
+    const clonedRequest = request.clone()
+    RequestHandler.cache.set(request, clonedRequest)
+
+    return clonedRequest
+  }
+
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
@@ -186,9 +221,12 @@ export abstract class RequestHandler<
       return null
     }
 
-    // Clone the request instance before it's passed to the handler phases
-    // and the response resolver so we can always read it for logging.
-    const mainRequestRef = args.request.clone()
+    // Clone the request.
+    // If this is the first time MSW handles this request, a fresh clone
+    // will be created and cached. Upon further handling of the same request,
+    // the request clone from the cache will be reused to prevent abundant
+    // "abort" listeners and save up resources on cloning.
+    const requestClone = this.cloneRequestOrGetFromCache(args.request)
 
     const parsedResult = await this.parse({
       request: args.request,
@@ -228,7 +266,7 @@ export abstract class RequestHandler<
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      request: mainRequestRef,
+      request: requestClone,
       response: mockedResponse,
       parsedResult,
     })
@@ -265,7 +303,7 @@ export abstract class RequestHandler<
 
           // Clone the previously stored response from the generator
           // so that it could be read again.
-          return this.resolverGeneratorResult.clone()
+          return this.resolverGeneratorResult.clone() as StrictResponse<any>
         }
 
         if (!this.resolverGenerator) {

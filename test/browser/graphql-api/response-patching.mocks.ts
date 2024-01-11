@@ -26,23 +26,22 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.msw = {
-  registration: worker.start(),
-}
+Object.assign(window, {
+  msw: {
+    registration: worker.start(),
+  },
+  dispatchGraphQLQuery: (uri: string) => {
+    const client = createGraphQLClient({ uri })
 
-// @ts-ignore
-window.dispatchGraphQLQuery = (uri: string) => {
-  const client = createGraphQLClient({ uri })
-
-  return client({
-    query: gql`
-      query GetUser {
-        user {
-          firstName
-          lastName
+    return client({
+      query: gql`
+        query GetUser {
+          user {
+            firstName
+            lastName
+          }
         }
-      }
-    `,
-  })
-}
+      `,
+    })
+  },
+})

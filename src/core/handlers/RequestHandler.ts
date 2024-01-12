@@ -88,7 +88,7 @@ export interface RequestHandlerExecutionResult<
   handler: RequestHandler
   parsedResult?: ParsedResult
   request: Request
-  requestId?: string
+  requestId: string
   response?: Response
 }
 
@@ -216,8 +216,8 @@ export abstract class RequestHandler<
    */
   public async run(args: {
     request: StrictRequest<any>
+    requestId: string
     resolutionContext?: ResponseResolutionContext
-    requestId?: string
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
       return null
@@ -329,9 +329,9 @@ export abstract class RequestHandler<
 
   private createExecutionResult(args: {
     request: Request
+    requestId: string
     parsedResult: ParsedResult
     response?: Response
-    requestId?: string
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,

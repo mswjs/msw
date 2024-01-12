@@ -12,6 +12,17 @@ export function forceEsmExtensionsPlugin(): Plugin {
         }
 
         for (const outputFile of result.outputFiles || []) {
+          // Only target CJS/ESM files.
+          // This ignores additional files emitted, like sourcemaps ("*.js.map").
+          if (
+            !(
+              outputFile.path.endsWith('.js') ||
+              outputFile.path.endsWith('.mjs')
+            )
+          ) {
+            continue
+          }
+
           const fileContents = outputFile.text
           const nextFileContents = modifyRelativeImports(fileContents, isEsm)
 

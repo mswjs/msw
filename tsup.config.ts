@@ -29,6 +29,7 @@ const coreConfig: Options = {
   outDir: './lib/core',
   bundle: false,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
   esbuildPlugins: [forceEsmExtensionsPlugin()],
@@ -42,9 +43,9 @@ const nodeConfig: Options = {
   external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/node',
-  sourcemap: false,
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
@@ -59,6 +60,7 @@ const browserConfig: Options = {
   outDir: './lib/browser',
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
   /**
    * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
@@ -85,6 +87,7 @@ const reactNativeConfig: Options = {
   outDir: './lib/native',
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
@@ -104,6 +107,7 @@ const iifeConfig: Options = {
   legacyOutput: true,
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: false,
   tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {

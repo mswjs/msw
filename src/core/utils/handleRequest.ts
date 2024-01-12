@@ -63,8 +63,8 @@ export async function handleRequest(
   const lookupResult = await until(() => {
     return getResponse({
       request,
-      handlers,
       requestId,
+      handlers,
       resolutionContext: handleRequestOptions?.resolutionContext,
     })
   })

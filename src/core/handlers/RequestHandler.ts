@@ -269,8 +269,8 @@ export abstract class RequestHandler<
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      requestId: args.requestId,
       request: requestClone,
+      requestId: args.requestId,
       response: mockedResponse,
       parsedResult,
     })

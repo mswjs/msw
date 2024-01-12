@@ -36,23 +36,28 @@ export interface RequestHandlerInternalInfo {
 }
 
 export type ResponseResolverReturnType<
-  BodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > =
-  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
+  | ([ResponseBodyType] extends [undefined]
+      ? Response
+      : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  BodyType extends DefaultBodyType,
-> = MaybePromise<ResponseResolverReturnType<BodyType>>
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
-export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | MaybeAsyncResponseResolverReturnType<BodyType>
+export type AsyncResponseResolverReturnType<
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<
+  | ResponseResolverReturnType<ResponseBodyType>
   | Generator<
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
+>
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,

@@ -10,22 +10,35 @@ import {
 } from './handlers/HttpHandler'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 
+export type HttpRequestHandler = <
+  Params extends PathParams<keyof Params> = PathParams,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
+  // Response body type MUST be undefined by default.
+  // This is how we can distinguish between a handler that
+  // returns plain "Response" and the one returning "HttpResponse"
+  // to enforce a stricter response body type.
+  ResponseBodyType extends DefaultBodyType = undefined,
+  RequestPath extends Path = Path,
+>(
+  path: RequestPath,
+  resolver: HttpResponseResolver<Params, RequestBodyType, ResponseBodyType>,
+  options?: RequestHandlerOptions,
+) => HttpHandler
+
+export type HttpResponseResolver<
+  Params extends PathParams<keyof Params> = PathParams,
+  RequestBodyType extends DefaultBodyType = DefaultBodyType,
+  ResponseBodyType extends DefaultBodyType = DefaultBodyType,
+> = ResponseResolver<
+  HttpRequestResolverExtras<Params>,
+  RequestBodyType,
+  ResponseBodyType
+>
+
 function createHttpHandler<Method extends HttpMethods | RegExp>(
   method: Method,
-) {
-  return <
-    Params extends PathParams<keyof Params> = PathParams,
-    RequestBodyType extends DefaultBodyType = DefaultBodyType,
-    ResponseBodyType extends DefaultBodyType = undefined,
-  >(
-    path: Path,
-    resolver: ResponseResolver<
-      HttpRequestResolverExtras<Params>,
-      RequestBodyType,
-      ResponseBodyType
-    >,
-    options: RequestHandlerOptions = {},
-  ) => {
+): HttpRequestHandler {
+  return (path, resolver, options = {}) => {
     return new HttpHandler(method, path, resolver, options)
   }
 }

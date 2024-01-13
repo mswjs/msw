@@ -37,7 +37,6 @@ test('supports throwing an error response in a response resolver', async ({
 
 test('supports throwing a network error in a response resolver', async ({
   loadExample,
-  fetch,
   page,
 }) => {
   await loadExample(require.resolve('./throw-response.mocks.ts'))
@@ -68,4 +67,19 @@ test('supports middleware-style responses', async ({ loadExample, fetch }) => {
   const errorResponse = await fetch('/middleware')
   expect(errorResponse.status()).toBe(400)
   expect(await errorResponse.text()).toBe('must have id')
+})
+
+test('throws a non-Response error as-is', async ({ loadExample, fetch }) => {
+  await loadExample(require.resolve('./throw-response.mocks.ts'))
+
+  // Unhandled exceptions in the response resolver in the browser
+  // are coerces to 500 Internal Server Error responses by MSW.
+  const networkError = await fetch('/throw/non-response-error')
+
+  expect(networkError.status()).toBe(500)
+  expect(await networkError.json()).toEqual({
+    name: 'Error',
+    message: 'Oops!',
+    stack: expect.any(String),
+  })
 })

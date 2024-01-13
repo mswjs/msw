@@ -274,6 +274,9 @@ export abstract class RequestHandler<
       if (errorOrResponse instanceof Response) {
         return errorOrResponse
       }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
     })
 
     const mockedResponse = await mockedResponsePromise

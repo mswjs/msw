@@ -23,6 +23,9 @@ const worker = setupWorker(
 
     return HttpResponse.text('ok')
   }),
+  http.get('/throw/non-response-error', () => {
+    throw new Error('Oops!')
+  }),
 )
 
 worker.start()

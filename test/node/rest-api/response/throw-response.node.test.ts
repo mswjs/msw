@@ -68,9 +68,7 @@ it('supports throwing a network error in a response resolver', async () => {
     }),
   )
 
-  await expect(() => fetch('https://example.com')).rejects.toThrow(
-    'Failed to fetch',
-  )
+  await expect(fetch('https://example.com')).rejects.toThrow('Failed to fetch')
 })
 
 it('supports middleware-style responses', async () => {
@@ -95,4 +93,21 @@ it('supports middleware-style responses', async () => {
   expect(errorResponse.status).toBe(400)
   expect(errorResponse.headers.get('Content-Type')).toBe('text/plain')
   expect(await errorResponse.text()).toBe('must have id')
+})
+
+it('throws non-Response errors as-is', async () => {
+  server.use(
+    http.get('https://example.com/', () => {
+      throw new Error('Oops!')
+    }),
+  )
+
+  const requestError = await fetch('https://example.com/')
+    .then(() => null)
+    .catch((error) => error)
+
+  expect(requestError.name).toBe('TypeError')
+  expect(requestError.message).toBe('Failed to fetch')
+  // Undici forwards the original error in the "cause" property.
+  expect(requestError.cause).toEqual(new Error('Oops!'))
 })

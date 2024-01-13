@@ -1,15 +1,16 @@
-name: Nightly TypeScript RC Check
+name: typescript-nightly
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Schedule to run nightly at midnight
+    # Schedule to run nightly at midnight
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
-  compare-versions-job:
+  compare:
     runs-on: macos-latest
     steps:
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -28,21 +29,23 @@ jobs:
 
           echo "latest_version=$latest_major_minor" >> $GITHUB_OUTPUT
           echo "rc_version=$rc_major_minor" >> $GITHUB_OUTPUT
-  typescript:
+
+  test:
     runs-on: macos-latest
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
-    if: ${{ needs.compare-versions-job.outputs.latest_version != needs.compare-versions-job.outputs.rc_version }}
+    if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 7.12
 
@@ -57,7 +60,7 @@ jobs:
 
       - name: Write tsconfig
         run: |
-          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare-versions-job.outputs.rc_version}.json
+          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare.outputs.rc_version}.json
 
       - name: Typings tests
         run: |

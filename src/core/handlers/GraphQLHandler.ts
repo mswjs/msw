@@ -24,6 +24,7 @@ import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
+export type GraphQLQuery = Record<string, any>
 export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
@@ -33,6 +34,7 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
 
 export type GraphQLRequestParsedResult = {
   match: Match
+  cookies: Record<string, string>
 } & (
   | ParsedGraphQLRequest<GraphQLVariables>
   /**
@@ -88,6 +90,11 @@ export class GraphQLHandler extends RequestHandler<
 > {
   private endpoint: Path
 
+  static parsedRequestCache = new WeakMap<
+    Request,
+    ParsedGraphQLRequest<GraphQLVariables>
+  >()
+
   constructor(
     operationType: ExpectedOperationTypeNode,
     operationName: GraphQLHandlerNameSelector,
@@ -133,27 +140,50 @@ export class GraphQLHandler extends RequestHandler<
     this.endpoint = endpoint
   }
 
+  /**
+   * Parses the request body, once per request, cached across all
+   * GraphQL handlers. This is done to avoid multiple parsing of the
+   * request body, which each requires a clone of the request.
+   */
+  async parseGraphQLRequestOrGetFromCache(
+    request: Request,
+  ): Promise<ParsedGraphQLRequest<GraphQLVariables>> {
+    if (!GraphQLHandler.parsedRequestCache.has(request)) {
+      GraphQLHandler.parsedRequestCache.set(
+        request,
+        await parseGraphQLRequest(request).catch((error) => {
+          console.error(error)
+          return undefined
+        }),
+      )
+    }
+
+    return GraphQLHandler.parsedRequestCache.get(request)
+  }
+
   async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
     /**
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
-    if (!match.matches) return { match }
+    const cookies = getAllRequestCookies(args.request)
 
-    const parsedResult = await parseGraphQLRequest(args.request).catch(
-      (error) => {
-        console.error(error)
-        return undefined
-      },
+    if (!match.matches) {
+      return { match, cookies }
+    }
+
+    const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
+      args.request,
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match }
+      return { match, cookies }
     }
 
     return {
       match,
+      cookies,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
@@ -199,13 +229,11 @@ Consider naming this operation or using "graphql.operation()" request handler to
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
-    const cookies = getAllRequestCookies(args.request)
-
     return {
       query: args.parsedResult.query || '',
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
-      cookies,
+      cookies: args.parsedResult.cookies,
     }
   }
 

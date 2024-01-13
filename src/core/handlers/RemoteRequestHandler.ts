@@ -10,26 +10,29 @@ import {
 export class RemoteRequestHandler extends HttpHandler {
   constructor(args: {
     requestId: string
-    socketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
+    socket: Socket<SyncServerEventsMap>
   }) {
     super(/.+/, /.+/, async ({ request }) => {
+      console.log(
+        '[msw] RemoteRequestHandler',
+        request.method,
+        request.url,
+        new Date(),
+      )
+
       // Bypass the socket.io HTTP handshake so the sync WS server connection
       // doesn't hang forever. Check this as the first thing to unblock the handling.
       // Keep this predicate as a part of the resolver so that internal requests
       // aren't considered unhandled.
       if (request.headers.get('x-msw-request-type') === 'internal-request') {
+        console.log('[msw] INTERNAL SOCKET REQUEST, IGNORE!')
         return
       }
 
-      const socket = await args.socketPromise
+      console.log('[msw] regular request, continue...')
 
-      // If the sync server hasn't been started or failed to connect,
-      // skip this request handler altogether, it has no effect.
-      if (socket == null) {
-        return
-      }
-
-      socket.emit('request', {
+      console.log('[msw] emitting "request" ws event')
+      args.socket.emit('request', {
         requestId: args.requestId,
         serializedRequest: await serializeRequest(request),
       })
@@ -40,7 +43,7 @@ export class RemoteRequestHandler extends HttpHandler {
        * @todo Handle timeouts.
        * @todo Handle socket errors.
        */
-      socket.on('response', (serializedResponse) => {
+      args.socket.on('response', (serializedResponse) => {
         const response = serializedResponse
           ? deserializeResponse(serializedResponse)
           : undefined

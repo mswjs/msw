@@ -12,14 +12,13 @@ import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { SetupServer } from './glossary'
+import { ListenOptions, SetupServer } from './glossary'
 import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
 import {
   onAnyEvent,
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
-import { isNodeExceptionLike } from './utils/isNodeExceptionLike'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
@@ -38,8 +37,8 @@ export class SetupServerApi
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  private resolvedOptions: RequiredDeep<SharedOptions>
-  private syncSocketPromise: Promise<Socket<SyncServerEventsMap> | undefined>
+  private resolvedOptions: RequiredDeep<ListenOptions>
+  private socket: Socket<SyncServerEventsMap> | undefined
 
   constructor(
     interceptors: InterceptorsList,
@@ -51,9 +50,7 @@ export class SetupServerApi
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
-    this.resolvedOptions = {} as RequiredDeep<SharedOptions>
-
-    this.syncSocketPromise = Promise.resolve(undefined)
+    this.resolvedOptions = {} as RequiredDeep<ListenOptions>
 
     this.init()
   }
@@ -63,16 +60,35 @@ export class SetupServerApi
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
+      // If in remote mode, await the WebSocket connection promise
+      // before handling any requests.
+      if (this.resolvedOptions.remotePort) {
+        /**
+         * @fixme This will never resolve.
+         * Playwright runs the app first (this part) and THEN it runs
+         * the tests (setupRemoteServer part). This causes the "/"
+         * request to pend forever on this line since the app has to
+         * load successfully before the tests run.
+         */
+        if (typeof this.socket === 'undefined') {
+          this.socket = await createSyncClient(this.resolvedOptions.remotePort)
+        }
+
+        if (typeof this.socket !== 'undefined') {
+          this.currentHandlers = [
+            new RemoteRequestHandler({
+              requestId,
+              socket: this.socket,
+            }),
+            ...this.currentHandlers,
+          ]
+        }
+      }
+
       const response = await handleRequest(
         request,
         requestId,
-        [
-          new RemoteRequestHandler({
-            requestId,
-            socketPromise: this.syncSocketPromise,
-          }),
-          ...this.currentHandlers,
-        ],
+        this.currentHandlers,
         this.resolvedOptions,
         this.emitter,
       )
@@ -99,20 +115,18 @@ export class SetupServerApi
     )
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
-    ) as RequiredDeep<SharedOptions>
-
-    this.syncSocketPromise = createSyncClient()
+    ) as RequiredDeep<ListenOptions>
 
     // Once the connection to the remote WebSocket server succeeds,
     // pipe any life-cycle events from this process through that socket.
     onAnyEvent(this.emitter, async (eventName, listenerArgs) => {
-      const socket = await this.syncSocketPromise
+      const { socket } = this
 
-      if (!socket) {
+      if (typeof socket === 'undefined') {
         return
       }
 

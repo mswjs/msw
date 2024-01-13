@@ -24,13 +24,6 @@ import {
 } from '~/core/utils/internal/emitterUtils'
 
 const syncServerSymbol = Symbol('mswSyncServer')
-const SYNC_SERVER_DEFAULT_PORT = 50222
-const SYNC_SERVER_ENV_VARIABLE_NAME = 'MSW_INTERNAL_WEBSOCKET_PORT'
-const SYNC_SERVER_PORT =
-  Number.parseInt(process.env[SYNC_SERVER_ENV_VARIABLE_NAME] || '') ||
-  SYNC_SERVER_DEFAULT_PORT
-
-export const SYNC_SERVER_URL = new URL(`http://localhost:${SYNC_SERVER_PORT}`)
 
 /**
  * Enables API mocking in a remote Node.js process.
@@ -39,9 +32,13 @@ export function setupRemoteServer(...handlers: Array<RequestHandler>) {
   return new SetupRemoteServerApi(...handlers)
 }
 
+export interface SetupRemoteServerListenOptions {
+  port: number
+}
+
 export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
-  listen(): Promise<void>
+  listen(options: SetupRemoteServerListenOptions): Promise<void>
   close(): Promise<void>
 }
 
@@ -70,10 +67,15 @@ export class SetupRemoteServerApi
     super(...handlers)
   }
 
-  public async listen(): Promise<void> {
+  public async listen(options: SetupRemoteServerListenOptions): Promise<void> {
     const placeholderEmitter = new Emitter<LifeCycleEventsMap>()
-    const server = await createSyncServer()
+
+    const url = createWebSocketServerUrl(options.port)
+    const server = await createSyncServer(url)
+
     server.removeAllListeners()
+
+    console.log('WS server created!')
 
     process
       .on('SIGTERM', () => closeSyncServer(server))
@@ -140,9 +142,9 @@ ${`${pragma} ${header}`}
 /**
  * Creates an internal WebSocket sync server.
  */
-async function createSyncServer(): Promise<
-  WebSocketServer<SyncServerEventsMap>
-> {
+async function createSyncServer(
+  url: URL,
+): Promise<WebSocketServer<SyncServerEventsMap>> {
   const existingSyncServer = globalThis[syncServerSymbol]
 
   // Reuse the existing WebSocket server reference if it exists.
@@ -163,24 +165,12 @@ async function createSyncServer(): Promise<
     },
   })
 
-  httpServer.listen(+SYNC_SERVER_URL.port, SYNC_SERVER_URL.hostname, () => {
+  httpServer.listen(+url.port, url.hostname, () => {
     globalThis[syncServerSymbol] = ws
     serverReadyPromise.resolve(ws)
   })
 
   httpServer.on('error', (error: Error | NodeJS.ErrnoException) => {
-    if (
-      'code' in error &&
-      error.code === 'EADDRINUSE' &&
-      +SYNC_SERVER_URL.port === SYNC_SERVER_DEFAULT_PORT
-    ) {
-      devUtils.warn(
-        'The default internal WebSocket server port (%d) is in use. Please consider freeing the port or specifying a different port using the "%s" environment variable.',
-        SYNC_SERVER_DEFAULT_PORT,
-        SYNC_SERVER_ENV_VARIABLE_NAME,
-      )
-    }
-
     serverReadyPromise.reject(error)
   })
 
@@ -202,18 +192,22 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
   return serverClosePromise
 }
 
+function createWebSocketServerUrl(port: number): URL {
+  const url = new URL('http://localhost')
+  url.port = port.toString()
+  return url
+}
+
 /**
  * Creates a WebSocket client connected to the internal
  * WebSocket sync server of MSW.
  */
-export async function createSyncClient(): Promise<
-  Socket<SyncServerEventsMap> | undefined
-> {
+export async function createSyncClient(port: number) {
   const connectionPromise = new DeferredPromise<
     Socket<SyncServerEventsMap> | undefined
   >()
-
-  const socket = io(SYNC_SERVER_URL.href, {
+  const url = createWebSocketServerUrl(port)
+  const socket = io(url.href, {
     // Keep a low timeout and no reconnection logic because
     // the user is expected to enable remote interception
     // before the actual application with "setupServer" uses
@@ -229,6 +223,7 @@ export async function createSyncClient(): Promise<
   })
 
   socket.on('connect', () => {
+    console.log('[msw] setupRemoteServer, CONNECTION!')
     connectionPromise.resolve(socket)
   })
 

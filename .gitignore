@@ -4,7 +4,7 @@ node_modules
 /lib
 tmp
 *-error.log
-./package-lock.json
+/package-lock.json
 stats.html
 .vscode
 msw-*.tgz

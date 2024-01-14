@@ -5,6 +5,7 @@ node_modules
 tmp
 *-error.log
 /package-lock.json
+/yarn.lock
 stats.html
 .vscode
 msw-*.tgz

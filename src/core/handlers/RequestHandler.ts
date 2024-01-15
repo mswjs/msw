@@ -64,6 +64,7 @@ export type ResponseResolverInfo<
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
   request: StrictRequest<RequestBodyType>
+  requestId: string
 } & ResolverExtraInfo
 
 export type ResponseResolver<

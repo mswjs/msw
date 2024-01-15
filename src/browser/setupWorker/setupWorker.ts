@@ -172,6 +172,12 @@ export class SetupWorkerApi
   }
 
   public async start(options: StartOptions = {}): StartReturnType {
+    if (options.waitUntilReady === true) {
+      devUtils.warn(
+        'The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.',
+      )
+    }
+
     this.context.startOptions = mergeRight(
       DEFAULT_START_OPTIONS,
       options,

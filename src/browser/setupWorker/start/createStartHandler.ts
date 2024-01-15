@@ -5,7 +5,6 @@ import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
 import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
-import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
 
@@ -130,13 +129,6 @@ If this message still persists after updating, please report an issue: https://g
         return registration
       },
     )
-
-    // Defer any network requests until the Service Worker instance is ready.
-    // This prevents a race condition between the Service Worker registration
-    // and application's runtime requests (i.e. requests on mount).
-    if (options.waitUntilReady) {
-      deferNetworkRequestsUntil(workerRegistration)
-    }
 
     return workerRegistration
   }

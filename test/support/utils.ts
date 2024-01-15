@@ -1,5 +1,4 @@
 import * as path from 'path'
-import { ChildProcess } from 'child_process'
 import { ClientRequest, IncomingMessage } from 'http'
 
 export function sleep(duration: number) {
@@ -10,31 +9,6 @@ export function sleep(duration: number) {
 
 export function fromTemp(...segments: string[]) {
   return path.join(__dirname, '../..', 'tmp', ...segments)
-}
-
-export function promisifyChildProcess(
-  child: ChildProcess,
-  options?: { pipeStdio: boolean },
-) {
-  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-    let stdout = ''
-    let stderr = ''
-
-    if (options?.pipeStdio) {
-      child.stdout?.pipe(process.stdout)
-      child.stderr?.pipe(process.stderr)
-    }
-
-    child.stdout?.on('data', (chunk) => (stdout += chunk))
-    child.stderr?.on('data', (chunk) => (stderr += chunk))
-
-    child.addListener('error', reject)
-    child.addListener('disconnect', reject)
-    child.addListener('close', reject)
-    child.addListener('exit', () => {
-      resolve({ stdout, stderr })
-    })
-  })
 }
 
 export function clearCookies(): void {

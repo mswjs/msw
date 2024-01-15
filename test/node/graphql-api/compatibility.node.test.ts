@@ -1,4 +1,3 @@
-import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -81,7 +80,7 @@ test('propagates the GraphQL execution errors', async () => {
 
   expect(res.data).toBeUndefined()
   expect(res.errors).toHaveLength(1)
-  expect(res.errors[0]).toHaveProperty(
+  expect(res.errors?.[0]).toHaveProperty(
     'message',
     'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
   )

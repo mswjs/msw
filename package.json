@@ -135,8 +135,6 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.7",
-    "@babel/preset-env": "^7.23.8",
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
     "@open-draft/test-server": "^0.4.2",
@@ -152,11 +150,9 @@
     "@typescript-eslint/parser": "^5.11.0",
     "@web/dev-server": "^0.1.38",
     "axios": "^1.6.5",
-    "babel-loader": "^9.1.3",
     "babel-minify": "^0.5.1",
     "commitizen": "^4.2.4",
     "cross-env": "^7.0.3",
-    "cross-fetch": "^4.0.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "^0.19.11",
     "esbuild-loader": "^4.0.2",
@@ -183,7 +179,6 @@
     "vitest": "^0.34.6",
     "vitest-environment-miniflare": "^2.14.1",
     "webpack": "^5.89.0",
-    "webpack-dev-server": "^4.15.1",
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {

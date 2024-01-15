@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
+import { uuidv4 } from '../utils/internal/uuidv4'
 import { HttpHandler, HttpRequestResolverExtras } from './HttpHandler'
 import { HttpResponse } from '..'
 import { ResponseResolver } from './RequestHandler'
@@ -151,7 +152,7 @@ describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
-    const requestId = 'requestId'
+    const requestId = uuidv4()
     const result = await handler.run({ request, requestId })
 
     expect(result!.handler).toEqual(handler)
@@ -175,7 +176,7 @@ describe('run', () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
-      requestId: 'requestId',
+      requestId: uuidv4(),
     })
 
     expect(result).toBeNull()
@@ -185,7 +186,7 @@ describe('run', () => {
     const handler = new HttpHandler('GET', '/users', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
-      requestId: 'requestId',
+      requestId: uuidv4(),
     })
 
     expect(result?.parsedResult?.match?.params).toEqual({})
@@ -206,7 +207,7 @@ describe('run', () => {
     const run = async () => {
       const result = await handler.run({
         request: new Request(new URL('/users', location.href)),
-        requestId: 'requestId',
+        requestId: uuidv4(),
       })
       return result?.response?.text()
     }

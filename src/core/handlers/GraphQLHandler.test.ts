@@ -9,6 +9,7 @@ import {
   GraphQLResolverExtras,
   isDocumentNode,
 } from './GraphQLHandler'
+import { uuidv4 } from '../utils/internal/uuidv4'
 import { HttpResponse } from '../HttpResponse'
 import { ResponseResolver } from './RequestHandler'
 
@@ -736,7 +737,7 @@ describe('run', () => {
         userId: 'abc-123',
       },
     })
-    const requestId = 'requestId'
+    const requestId = uuidv4()
     const result = await handler.run({ request, requestId })
 
     expect(result!.handler).toEqual(handler)
@@ -778,7 +779,7 @@ describe('run', () => {
     const request = createPostGraphQLRequest({
       query: LOGIN,
     })
-    const requestId = 'requestId'
+    const requestId = uuidv4()
     const result = await handler.run({ request, requestId })
 
     expect(result).toBeNull()
@@ -826,7 +827,7 @@ describe('request', () => {
         `,
     })
 
-    const requestId = 'requestId'
+    const requestId = uuidv4()
     await handler.run({ request, requestId })
 
     expect(matchAllResolver).toHaveBeenCalledTimes(1)

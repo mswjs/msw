@@ -61,11 +61,12 @@ export async function handleRequest(
 
   // Resolve a mocked response from the list of request handlers.
   const lookupResult = await until(() => {
-    return getResponse(
+    return getResponse({
       request,
+      requestId,
       handlers,
-      handleRequestOptions?.resolutionContext,
-    )
+      resolutionContext: handleRequestOptions?.resolutionContext,
+    })
   })
 
   if (lookupResult.error) {

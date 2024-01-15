@@ -355,6 +355,26 @@ it('returns undefined without warning on a passthrough request', async () => {
   expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
+it('calls the handler with the requestId', async () => {
+  const { emitter } = setup()
+
+  const requestId = uuidv4()
+  const request = new Request(new URL('http://localhost/user'))
+  const handlerFn = vi.fn()
+  const handlers: Array<RequestHandler> = [http.get('/user', handlerFn)]
+
+  await handleRequest(
+    request,
+    requestId,
+    handlers,
+    options,
+    emitter,
+    handleRequestOptions,
+  )
+
+  expect(handlerFn).toHaveBeenCalledWith(expect.objectContaining({ requestId }))
+})
+
 it('marks the first matching one-time handler as used', async () => {
   const { emitter } = setup()
 

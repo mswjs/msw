@@ -33,6 +33,7 @@ specifiers:
   chokidar: 3.4.1
   commitizen: ^4.2.4
   cross-env: ^7.0.3
+  cross-fetch: ^4.0.0
   cz-conventional-changelog: 3.3.0
   esbuild: ^0.19.11
   esbuild-loader: ^4.0.2
@@ -113,6 +114,7 @@ devDependencies:
   babel-minify: 0.5.2
   commitizen: 4.3.0_z5x4t2owsiiyng6cl4yau77uc4
   cross-env: 7.0.3
+  cross-fetch: 4.0.0
   cz-conventional-changelog: 3.3.0_z5x4t2owsiiyng6cl4yau77uc4
   esbuild: 0.19.11
   esbuild-loader: 4.0.2_webpack@5.89.0
@@ -3328,6 +3330,14 @@ packages:
       cross-spawn: 7.0.3
     dev: true
 
+  /cross-fetch/4.0.0:
+    resolution: {integrity: sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==}
+    dependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
   /cross-spawn/7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
     engines: {node: '>= 8'}
@@ -5734,6 +5744,18 @@ packages:
 
   /node-fetch/2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
+    dev: true
+
+  /node-fetch/2.7.0:
+    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
       encoding: ^0.1.0

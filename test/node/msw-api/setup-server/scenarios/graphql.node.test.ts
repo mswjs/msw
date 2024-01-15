@@ -1,6 +1,7 @@
 /**
  * @vitest-environment node
  */
+import fetch from 'cross-fetch'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../../../support/graphql'
@@ -60,10 +61,6 @@ const server = setupServer(
     })
   }),
 )
-
-server.events.on('request:start', ({ request }) => {
-  console.log(request.method, request.url)
-})
 
 beforeAll(() => {
   server.listen()

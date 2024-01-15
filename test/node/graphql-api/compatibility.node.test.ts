@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment node
+ */
+import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

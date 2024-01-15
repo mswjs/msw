@@ -93,6 +93,7 @@ export interface RequestHandlerExecutionResult<
   handler: RequestHandler
   parsedResult?: ParsedResult
   request: Request
+  requestId: string
   response?: Response
 }
 
@@ -220,6 +221,7 @@ export abstract class RequestHandler<
    */
   public async run(args: {
     request: StrictRequest<any>
+    requestId: string
     resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
@@ -267,6 +269,7 @@ export abstract class RequestHandler<
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
+        requestId: args.requestId,
         request: args.request,
       }) as Promise<Response>
     ).catch((errorOrResponse) => {
@@ -285,6 +288,7 @@ export abstract class RequestHandler<
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
       request: requestClone,
+      requestId: args.requestId,
       response: mockedResponse,
       parsedResult,
     })
@@ -343,12 +347,14 @@ export abstract class RequestHandler<
 
   private createExecutionResult(args: {
     request: Request
+    requestId: string
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
       request: args.request,
+      requestId: args.requestId,
       response: args.response,
       parsedResult: args.parsedResult,
     }

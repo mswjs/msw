@@ -26,9 +26,9 @@ const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
 
 function createGetGraphQLRequest(
   body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
+  graphqlEndpoint = 'https://example.com',
 ) {
-  const requestUrl = new URL(hostname)
+  const requestUrl = new URL(graphqlEndpoint)
   requestUrl.searchParams.set('query', body?.query)
   requestUrl.searchParams.set('variables', JSON.stringify(body?.variables))
   return new Request(requestUrl)
@@ -36,9 +36,9 @@ function createGetGraphQLRequest(
 
 function createPostGraphQLRequest(
   body: GraphQLRequestBody<any>,
-  hostname = 'https://example.com',
+  graphqlEndpoint = 'https://example.com',
 ) {
-  return new Request(new URL(hostname), {
+  return new Request(new URL(graphqlEndpoint), {
     method: 'POST',
     headers: new Headers({ 'Content-Type': 'application/json' }),
     body: encodeBuffer(JSON.stringify(body)),
@@ -160,6 +160,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -182,6 +189,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -203,6 +217,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -225,6 +246,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'query',
         operationName: 'GetUser',
         query: GET_USER,
@@ -248,6 +276,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -270,6 +305,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -291,6 +333,13 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
@@ -313,11 +362,179 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {
+            '0': 'https://example.com/',
+          },
+        },
         operationType: 'mutation',
         operationName: 'Login',
         query: LOGIN,
         variables: {
           userId: 'abc-123',
+        },
+      })
+    })
+  })
+
+  describe('with endpoint configuration', () => {
+    test('parses the request and parses grapqhl properties from it when the graphql.link endpoint matches', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
+      )
+
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {},
+        },
+        operationType: 'query',
+        operationName: 'GetUser',
+        query: GET_USER,
+        variables: {
+          userId: 'abc-123',
+        },
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: true,
+          params: {},
+        },
+        operationType: 'query',
+        operationName: 'GetUser',
+        query: GET_USER,
+        variables: {
+          userId: 'abc-123',
+        },
+      })
+    })
+
+    test('parses a request but does not parse graphql properties from it graphql.link hostname does not match', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
+      )
+
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://example.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: false,
+          params: {},
+        },
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://example.com/graphql',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: false,
+          params: {},
+        },
+      })
+    })
+
+    test('parses a request but does not parse graphql properties from it graphql.link pathname does not match', async () => {
+      const handler = new GraphQLHandler(
+        OperationTypeNode.QUERY,
+        'GetUser',
+        'https://mswjs.com/graphql',
+        resolver,
+      )
+
+      await expect(
+        handler.parse({
+          request: createGetGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/some/other/endpoint',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: false,
+          params: {},
+        },
+      })
+
+      await expect(
+        handler.parse({
+          request: createPostGraphQLRequest(
+            {
+              query: GET_USER,
+              variables: {
+                userId: 'abc-123',
+              },
+            },
+            'https://mswjs.com/some/other/endpoint',
+          ),
+        }),
+      ).resolves.toEqual({
+        cookies: {},
+        match: {
+          matches: false,
+          params: {},
         },
       })
     })
@@ -523,6 +740,13 @@ describe('run', () => {
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
+      cookies: {},
+      match: {
+        matches: true,
+        params: {
+          '0': 'https://example.com/',
+        },
+      },
       operationType: 'query',
       operationName: 'GetUser',
       query: GET_USER,

@@ -7,17 +7,18 @@ const worker = setupWorker(
   }),
 )
 
-// @ts-ignore
-window.msw = {
-  registration: worker
-    .start({
-      // This is the default matching behavior if left unspecified.
-      findWorker(scriptURL, mockServiceWorkerUrl) {
-        return scriptURL === mockServiceWorkerUrl
-      },
-    })
-    .then((registration) => {
-      console.log('Registration Promise resolved', registration)
-      return registration?.constructor.name
-    }),
-}
+Object.assign(window, {
+  msw: {
+    registration: worker
+      .start({
+        // This is the default matching behavior if left unspecified.
+        findWorker(scriptURL, mockServiceWorkerUrl) {
+          return scriptURL === mockServiceWorkerUrl
+        },
+      })
+      .then((registration) => {
+        console.log('Registration Promise resolved', registration)
+        return registration?.constructor.name
+      }),
+  },
+})

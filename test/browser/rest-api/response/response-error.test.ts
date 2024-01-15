@@ -1,13 +1,12 @@
 import { test, expect } from '../../playwright.extend'
 
-test('responds with a mocked error response using "Response.error" shorthand', async ({
+test('responds with a network error using "Response.error" shorthand', async ({
   loadExample,
-  fetch,
   page,
 }) => {
   await loadExample(require.resolve('./response-error.mocks.ts'))
 
-  const responseError = await page.evaluate(() => {
+  const networkError = await page.evaluate(() => {
     return fetch('/resource')
       .then(() => null)
       .catch((error) => ({
@@ -20,8 +19,8 @@ test('responds with a mocked error response using "Response.error" shorthand', a
 
   // Responding with a "Response.error()" produced a "Failed to fetch" error,
   // breaking the request. This is analogous to a network error.
-  expect(responseError?.name).toBe('TypeError')
-  expect(responseError?.message).toBe('Failed to fetch')
+  expect(networkError?.name).toBe('TypeError')
+  expect(networkError?.message).toBe('Failed to fetch')
   // Guard against false positives due to exceptions arising from the library.
-  expect(responseError?.cause).toBeUndefined()
+  expect(networkError?.cause).toBeUndefined()
 })

@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install
+
       - name: Unit tests
         run: pnpm test:unit
 
@@ -39,6 +42,9 @@ jobs:
 
       - name: Browser tests
         run: pnpm test:browser
+
+      - name: Native tests
+        run: pnpm test:native
 
       - name: Upload test artifacts
         if: always()

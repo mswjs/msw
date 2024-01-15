@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install
+
       - name: Build
         run: pnpm build
 
@@ -49,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2']
+        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -66,11 +69,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install TypeScript ${{ matrix.ts }}
-        run: pnpm add typescript@${{ matrix.ts }}
-
       - name: Build
         run: pnpm build
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: pnpm add typescript@${{ matrix.ts }}
 
       - name: Typings tests
         run: |

@@ -19,6 +19,14 @@ export type DefaultBodyType =
   | null
   | undefined
 
+export type JsonBodyType =
+  | Record<string, any>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+
 export interface RequestHandlerDefaultInfo {
   header: string
 }
@@ -28,23 +36,28 @@ export interface RequestHandlerInternalInfo {
 }
 
 export type ResponseResolverReturnType<
-  BodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > =
-  | (BodyType extends undefined ? Response : StrictResponse<BodyType>)
+  | ([ResponseBodyType] extends [undefined]
+      ? Response
+      : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  BodyType extends DefaultBodyType,
-> = MaybePromise<ResponseResolverReturnType<BodyType>>
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
-export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | MaybeAsyncResponseResolverReturnType<BodyType>
+export type AsyncResponseResolverReturnType<
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<
+  | ResponseResolverReturnType<ResponseBodyType>
   | Generator<
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
+>
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
@@ -80,6 +93,7 @@ export interface RequestHandlerExecutionResult<
   handler: RequestHandler
   parsedResult?: ParsedResult
   request: Request
+  requestId: string
   response?: Response
 }
 
@@ -89,6 +103,11 @@ export abstract class RequestHandler<
   ResolverExtras extends Record<string, unknown> = any,
   HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
 > {
+  static cache = new WeakMap<
+    StrictRequest<DefaultBodyType>,
+    StrictRequest<DefaultBodyType>
+  >()
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -150,6 +169,10 @@ export abstract class RequestHandler<
 
   /**
    * Test if this handler matches the given request.
+   *
+   * This method is not used internally but is exposed
+   * as a convenience method for consumers writing custom
+   * handlers.
    */
   public async test(args: {
     request: Request
@@ -174,21 +197,43 @@ export abstract class RequestHandler<
     return {} as ResolverExtras
   }
 
+  // Clone the request instance before it's passed to the handler phases
+  // and the response resolver so we can always read it for logging.
+  // We only clone it once per request to avoid unnecessary overhead.
+  private cloneRequestOrGetFromCache(
+    request: StrictRequest<DefaultBodyType>,
+  ): StrictRequest<DefaultBodyType> {
+    const existingClone = RequestHandler.cache.get(request)
+
+    if (typeof existingClone !== 'undefined') {
+      return existingClone
+    }
+
+    const clonedRequest = request.clone()
+    RequestHandler.cache.set(request, clonedRequest)
+
+    return clonedRequest
+  }
+
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
    */
   public async run(args: {
     request: StrictRequest<any>
+    requestId: string
     resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
       return null
     }
 
-    // Clone the request instance before it's passed to the handler phases
-    // and the response resolver so we can always read it for logging.
-    const mainRequestRef = args.request.clone()
+    // Clone the request.
+    // If this is the first time MSW handles this request, a fresh clone
+    // will be created and cached. Upon further handling of the same request,
+    // the request clone from the cache will be reused to prevent abundant
+    // "abort" listeners and save up resources on cloning.
+    const requestClone = this.cloneRequestOrGetFromCache(args.request)
 
     const parsedResult = await this.parse({
       request: args.request,
@@ -220,15 +265,30 @@ export abstract class RequestHandler<
       request: args.request,
       parsedResult,
     })
-    const mockedResponse = (await executeResolver({
-      ...resolverExtras,
-      request: args.request,
-    })) as Response
+
+    const mockedResponsePromise = (
+      executeResolver({
+        ...resolverExtras,
+        requestId: args.requestId,
+        request: args.request,
+      }) as Promise<Response>
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
+
+    const mockedResponse = await mockedResponsePromise
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      request: mainRequestRef,
+      request: requestClone,
+      requestId: args.requestId,
       response: mockedResponse,
       parsedResult,
     })
@@ -265,7 +325,7 @@ export abstract class RequestHandler<
 
           // Clone the previously stored response from the generator
           // so that it could be read again.
-          return this.resolverGeneratorResult.clone()
+          return this.resolverGeneratorResult.clone() as StrictResponse<any>
         }
 
         if (!this.resolverGenerator) {
@@ -287,12 +347,14 @@ export abstract class RequestHandler<
 
   private createExecutionResult(args: {
     request: Request
+    requestId: string
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
       request: args.request,
+      requestId: args.requestId,
       response: args.response,
       parsedResult: args.parsedResult,
     }

@@ -20,7 +20,7 @@ test('throws an error given an Array of request handlers to "setupWorker"', asyn
     expect(exceptions).toEqual(
       expect.arrayContaining([
         expect.stringContaining(
-          '[MSW] Failed to construct "SetupWorkerApi" given an Array of request handlers. Make sure you spread the request handlers when calling the respective setup function.',
+          '[MSW] Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
         ),
       ]),
     )

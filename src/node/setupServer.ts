@@ -2,8 +2,8 @@ import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import { SetupServer } from './glossary'
 import { SetupServerApi } from './SetupServerApi'
+import { SetupServer } from './glossary'
 
 /**
  * Sets up a requests interception in Node.js with the given request handlers.

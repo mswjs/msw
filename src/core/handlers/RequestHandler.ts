@@ -36,23 +36,28 @@ export interface RequestHandlerInternalInfo {
 }
 
 export type ResponseResolverReturnType<
-  BodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > =
-  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
+  | ([ResponseBodyType] extends [undefined]
+      ? Response
+      : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  BodyType extends DefaultBodyType,
-> = MaybePromise<ResponseResolverReturnType<BodyType>>
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
-export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | MaybeAsyncResponseResolverReturnType<BodyType>
+export type AsyncResponseResolverReturnType<
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<
+  | ResponseResolverReturnType<ResponseBodyType>
   | Generator<
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
+>
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
@@ -258,10 +263,23 @@ export abstract class RequestHandler<
       request: args.request,
       parsedResult,
     })
-    const mockedResponse = (await executeResolver({
-      ...resolverExtras,
-      request: args.request,
-    })) as Response
+
+    const mockedResponsePromise = (
+      executeResolver({
+        ...resolverExtras,
+        request: args.request,
+      }) as Promise<Response>
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
+
+    const mockedResponse = await mockedResponsePromise
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging

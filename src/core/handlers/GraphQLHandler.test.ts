@@ -160,6 +160,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -188,6 +189,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -215,6 +217,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -243,6 +246,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -272,6 +276,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -300,6 +305,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -327,6 +333,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -355,6 +362,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -393,6 +401,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {},
@@ -418,6 +427,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {},
@@ -452,6 +462,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -471,6 +482,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -499,6 +511,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -518,6 +531,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -726,6 +740,7 @@ describe('run', () => {
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
+      cookies: {},
       match: {
         matches: true,
         params: {

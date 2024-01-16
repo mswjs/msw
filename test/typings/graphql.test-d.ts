@@ -2,6 +2,13 @@ import { parse } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 
 /**
+ * Request id.
+ */
+graphql.query('GetUser', ({ requestId }) => {
+  requestId.toUpperCase()
+})
+
+/**
  * Variables type.
  */
 graphql.mutation('CreateUser', ({ variables }) => {

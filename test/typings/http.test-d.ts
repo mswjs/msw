@@ -1,6 +1,13 @@
 import { http, HttpResponse } from 'msw'
 
 /**
+ * Request id.
+ */
+http.get('/resource', ({ requestId }) => {
+  requestId.toUpperCase()
+})
+
+/**
  * Request path parameters.
  */
 http.get<{ id: string }>('/user/:id', ({ params }) => {

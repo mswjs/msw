@@ -34,7 +34,7 @@ export type {
   RequestQuery,
   HttpRequestParsedResult,
 } from './handlers/HttpHandler'
-export type { HttpResponseResolver } from './http'
+export type { HttpRequestHandler, HttpResponseResolver } from './http'
 
 export type {
   GraphQLQuery,
@@ -42,7 +42,7 @@ export type {
   GraphQLRequestBody,
   GraphQLJsonRequestBody,
 } from './handlers/GraphQLHandler'
-export type { GraphQLResponseResolver } from './graphql'
+export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'

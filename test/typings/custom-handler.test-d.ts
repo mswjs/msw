@@ -1,14 +1,23 @@
-import { http, HttpHandler, GraphQLHandler, graphql } from 'msw'
+import { http, HttpRequestHandler, GraphQLRequestHandler, graphql } from 'msw'
 import { setupWorker } from 'msw/browser'
 import { setupServer } from 'msw/node'
 
-function generateHttpHandler(): HttpHandler {
-  return http.get('/user', () => {})
+const generateHttpHandler: HttpRequestHandler = (path, resolver, options) => {
+  return http.get(path, resolver, options)
 }
 
-function generateGraphQLHandler(): GraphQLHandler {
-  return graphql.query('GetUser', () => {})
+const generateGraphQLHandler: GraphQLRequestHandler = (
+  operationName,
+  resolver,
+) => {
+  return graphql.query(operationName, resolver)
 }
 
-setupWorker(generateHttpHandler(), generateGraphQLHandler())
-setupServer(generateHttpHandler(), generateGraphQLHandler())
+setupWorker(
+  generateHttpHandler('/', () => {}),
+  generateGraphQLHandler('GetResource', () => {}),
+)
+setupServer(
+  generateHttpHandler('/', () => {}),
+  generateGraphQLHandler('GetResource', () => {}),
+)

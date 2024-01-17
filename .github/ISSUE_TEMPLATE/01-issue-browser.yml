@@ -22,7 +22,7 @@ body:
       options:
         - label: I'm using the [latest](https://github.com/mswjs/msw/releases/latest) `msw` version
           required: true
-        - label: I'm using Node.js version 14 or higher
+        - label: I'm using Node.js version 18 or higher
           required: true
 
   - type: dropdown

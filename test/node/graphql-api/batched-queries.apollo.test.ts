@@ -4,14 +4,7 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import {
-  http,
-  graphql,
-  HttpResponse,
-  executeHandlers,
-  RequestHandler,
-  HttpHandler,
-} from 'msw'
+import { http, graphql, HttpResponse, getResponse, RequestHandler } from 'msw'
 import { setupServer } from 'msw/node'
 
 /**
@@ -20,7 +13,7 @@ import { setupServer } from 'msw/node'
  * of request handlers.
  */
 function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
-  return http.post(url, async ({ request, requestId }) => {
+  return http.post(url, async ({ request }) => {
     const data = await request.json()
 
     // Ignore GraphQL queries that are not batched queries.
@@ -36,13 +29,10 @@ function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
           body: JSON.stringify(operation),
         })
 
-        const result = await executeHandlers({
+        return getResponse({
           request: scopedRequest,
-          requestId,
           handlers,
         })
-
-        return result?.response
       }),
     )
 

@@ -18,7 +18,7 @@ export interface ResponseResolutionContext {
  * Returns the execution result object containing any matching request
  * handler and any mocked response it returned.
  */
-export const executeHandlers = async <Handler extends Array<RequestHandler>>({
+export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
   request,
   requestId,
   handlers,
@@ -26,7 +26,7 @@ export const executeHandlers = async <Handler extends Array<RequestHandler>>({
 }: {
   request: Request
   requestId: string
-  handlers: Handler
+  handlers: Handlers
   resolutionContext?: ResponseResolutionContext
 }): Promise<HandlersExecutionResult | null> => {
   let matchingHandler: RequestHandler | null = null

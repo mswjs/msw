@@ -4,9 +4,8 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import { http, graphql, HttpResponse, handleRequest } from 'msw'
+import { http, graphql, HttpResponse, getResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
 
 const graphqlHandlers = [
   graphql.query('GetUser', () => {
@@ -44,16 +43,13 @@ export const handlers = [
           body: JSON.stringify(operation),
         })
 
-        const response = await handleRequest(
-          scopedRequest,
+        const result = await getResponse({
+          request: scopedRequest,
           requestId,
-          graphqlHandlers,
-          { onUnhandledRequest: 'warn' },
-          server['emitter'],
-          server['resolvedOptions'],
-        )
+          handlers: graphqlHandlers,
+        })
 
-        return response
+        return result?.response
       }),
     )
 
@@ -85,7 +81,7 @@ it('sends a mocked response to a batched GraphQL query', async () => {
     },
     body: JSON.stringify([
       {
-        query: gql`
+        query: `
           query GetUser {
             user {
               id
@@ -94,7 +90,7 @@ it('sends a mocked response to a batched GraphQL query', async () => {
         `,
       },
       {
-        query: gql`
+        query: `
           query GetProduct {
             product {
               name

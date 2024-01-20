@@ -7,7 +7,6 @@
 import { http, HttpResponse, GraphQLVariables } from 'msw'
 import { buildSchema, graphql as executeGraphQL } from 'graphql'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
 
 const schema = buildSchema(`
 type User {
@@ -67,7 +66,7 @@ it('sends a mocked response to a batched GraphQL query', async () => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      query: gql`
+      query: `
         query {
           user_0: user {
             id

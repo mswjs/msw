@@ -12,7 +12,7 @@ export { GraphQLHandler } from './handlers/GraphQLHandler'
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'
-export { getResponse } from './utils/getResponse'
+export { executeHandlers } from './utils/executeHandlers'
 export { cleanUrl } from './utils/url/cleanUrl'
 
 /**
@@ -46,9 +46,9 @@ export type {
 export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
 
 export type {
-  ResponseLookupResult,
+  HandlersExecutionResult,
   ResponseResolutionContext,
-} from './utils/getResponse'
+} from './utils/executeHandlers'
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 

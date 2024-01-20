@@ -4,7 +4,7 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import { http, graphql, HttpResponse, getResponse } from 'msw'
+import { http, graphql, HttpResponse, executeHandlers } from 'msw'
 import { setupServer } from 'msw/node'
 
 const graphqlHandlers = [
@@ -43,7 +43,7 @@ export const handlers = [
           body: JSON.stringify(operation),
         })
 
-        const result = await getResponse({
+        const result = await executeHandlers({
           request: scopedRequest,
           requestId,
           handlers: graphqlHandlers,

@@ -1,4 +1,4 @@
-import { ResponseResolutionContext } from '../utils/getResponse'
+import { ResponseResolutionContext } from '../utils/executeHandlers'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'

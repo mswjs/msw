@@ -4,30 +4,23 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import { http, graphql, HttpResponse, executeHandlers } from 'msw'
+import {
+  http,
+  graphql,
+  HttpResponse,
+  executeHandlers,
+  RequestHandler,
+  HttpHandler,
+} from 'msw'
 import { setupServer } from 'msw/node'
 
-const graphqlHandlers = [
-  graphql.query('GetUser', () => {
-    return HttpResponse.json({
-      data: {
-        user: { id: 1 },
-      },
-    })
-  }),
-  graphql.query('GetProduct', () => {
-    return HttpResponse.json({
-      data: {
-        product: { name: 'Hoover 2000' },
-      },
-    })
-  }),
-]
-
-export const handlers = [
-  // Let's create a request handler for batched GraphQL requests
-  // made using Apollo.
-  http.post('http://localhost/graphql', async ({ request, requestId }) => {
+/**
+ * A higher-order request handler function that resolves any
+ * batched GraphQL queries to the given URL against the list
+ * of request handlers.
+ */
+function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
+  return http.post(url, async ({ request, requestId }) => {
     const data = await request.json()
 
     // Ignore GraphQL queries that are not batched queries.
@@ -46,7 +39,7 @@ export const handlers = [
         const result = await executeHandlers({
           request: scopedRequest,
           requestId,
-          handlers: graphqlHandlers,
+          handlers,
         })
 
         return result?.response
@@ -60,10 +53,32 @@ export const handlers = [
     )
 
     return HttpResponse.json(queryData)
+  })
+}
+
+const graphqlHandlers = [
+  graphql.query('GetUser', () => {
+    return HttpResponse.json({
+      data: {
+        user: { id: 1 },
+      },
+    })
+  }),
+  graphql.query('GetProduct', () => {
+    return HttpResponse.json({
+      data: {
+        product: { name: 'Hoover 2000' },
+      },
+    })
   }),
 ]
 
-const server = setupServer(...handlers, ...graphqlHandlers)
+const handlers = [
+  batchedGraphQLQuery('http://localhost/graphql', graphqlHandlers),
+  ...graphqlHandlers,
+]
+
+const server = setupServer(...handlers)
 
 beforeAll(() => {
   server.listen()

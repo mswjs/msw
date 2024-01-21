@@ -1,5 +1,7 @@
 import jsLevenshtein from '@bundled-es-modules/js-levenshtein'
-import { RequestHandler, HttpHandler, GraphQLHandler } from '../..'
+import { RequestHandler } from '../../handlers/RequestHandler'
+import { HttpHandler } from '../../handlers/HttpHandler'
+import { GraphQLHandler } from '../../handlers/GraphQLHandler'
 import {
   ParsedGraphQLQuery,
   ParsedGraphQLRequest,

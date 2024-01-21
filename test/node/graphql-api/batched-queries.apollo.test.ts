@@ -46,12 +46,7 @@ function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
         const scopedRequest = new Request(request, {
           body: JSON.stringify(operation),
         })
-
-        const response = await getResponse({
-          request: scopedRequest,
-          handlers,
-        })
-
+        const response = await getResponse(handlers, scopedRequest)
         return response || fetch(bypass(scopedRequest))
       }),
     )

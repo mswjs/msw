@@ -7,6 +7,7 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
+import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
 // would get the latest published version automatically.
@@ -55,13 +56,14 @@ const browserConfig: Options = {
   name: 'browser',
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
-  external: [mswCore, ecosystemDependencies],
+  external: [ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/browser',
   bundle: true,
   splitting: false,
   sourcemap: true,
   dts: true,
+  noExternal: Object.keys(packageJson.dependencies),
   /**
    * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
    * option is set to false.

@@ -4,8 +4,26 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import { http, graphql, HttpResponse, getResponse, RequestHandler } from 'msw'
+import {
+  http,
+  graphql,
+  bypass,
+  HttpResponse,
+  getResponse,
+  RequestHandler,
+} from 'msw'
 import { setupServer } from 'msw/node'
+import { HttpServer } from '@open-draft/test-server/http'
+
+const httpServer = new HttpServer((app) => {
+  app.post('/graphql', (req, res) => {
+    res.json({
+      data: {
+        server: { url: httpServer.http.address.href },
+      },
+    })
+  })
+})
 
 /**
  * A higher-order request handler function that resolves any
@@ -29,10 +47,12 @@ function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
           body: JSON.stringify(operation),
         })
 
-        return getResponse({
+        const response = await getResponse({
           request: scopedRequest,
           handlers,
         })
+
+        return response || fetch(bypass(scopedRequest))
       }),
     )
 
@@ -63,23 +83,30 @@ const graphqlHandlers = [
   }),
 ]
 
-const handlers = [
-  batchedGraphQLQuery('http://localhost/graphql', graphqlHandlers),
-  ...graphqlHandlers,
-]
+const server = setupServer(...graphqlHandlers)
 
-const server = setupServer(...handlers)
-
-beforeAll(() => {
+beforeAll(async () => {
+  await httpServer.listen()
   server.listen()
+
+  /**
+   * @note This handler doesn't have to be a runtime handler.
+   * This is a prerequisite of how MSW spawns a test server
+   * for this particular test. Move it to the top of the rest
+   * of your request handlers.
+   */
+  server.use(
+    batchedGraphQLQuery(httpServer.http.url('/graphql'), graphqlHandlers),
+  )
 })
 
-afterAll(() => {
+afterAll(async () => {
   server.close()
+  await httpServer.close()
 })
 
 it('sends a mocked response to a batched GraphQL query', async () => {
-  const response = await fetch('http://localhost/graphql', {
+  const response = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -112,6 +139,44 @@ it('sends a mocked response to a batched GraphQL query', async () => {
     },
     {
       data: { product: { name: 'Hoover 2000' } },
+    },
+  ])
+})
+
+it('combines mocked and original responses in a single batched query', async () => {
+  const response = await fetch(httpServer.http.url('/graphql'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify([
+      {
+        query: `
+          query GetUser {
+            user {
+              id
+            }
+          }
+        `,
+      },
+      {
+        query: `
+          query UnmockedQuery {
+            server {
+              url
+            }
+          }
+        `,
+      },
+    ]),
+  })
+
+  expect(await response.json()).toEqual([
+    {
+      data: { user: { id: 1 } },
+    },
+    {
+      data: { server: { url: httpServer.http.address.href } },
     },
   ])
 })

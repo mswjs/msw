@@ -2,7 +2,7 @@
  * @vitest-environment node
  * Example of mocking batched GraphQL queries via "batched-execute".
  * @see https://github.com/mswjs/msw/issues/510
- * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
+ * @see https://the-guild.dev/graphql/stitching/handbook/appendices/batching-arrays-and-queries
  */
 import {
   buildSchema,
@@ -80,12 +80,10 @@ beforeAll(async () => {
               .join('\n')
 
             const query = `${info.operation.operation} { ${compiledQuery} }`
-            const bypassedRequest = bypass(
-              new Request(request, {
-                body: JSON.stringify({ query }),
-              }),
-            )
-            const response = await fetch(bypassedRequest)
+            const queryRequest = new Request(request, {
+              body: JSON.stringify({ query }),
+            })
+            const response = await fetch(bypass(queryRequest))
             const { error, data } = await response.json()
 
             if (error) {

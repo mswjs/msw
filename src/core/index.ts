@@ -12,6 +12,7 @@ export { GraphQLHandler } from './handlers/GraphQLHandler'
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'
+export { getResponse } from './getResponse'
 export { cleanUrl } from './utils/url/cleanUrl'
 
 /**

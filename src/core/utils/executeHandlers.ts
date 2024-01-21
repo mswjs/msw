@@ -3,7 +3,7 @@ import {
   RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
 
-export interface ResponseLookupResult {
+export interface HandlersExecutionResult {
   handler: RequestHandler
   parsedResult?: any
   response?: Response
@@ -14,9 +14,11 @@ export interface ResponseResolutionContext {
 }
 
 /**
- * Returns a mocked response for a given request using following request handlers.
+ * Executes the list of request handlers against the given request.
+ * Returns the execution result object containing any matching request
+ * handler and any mocked response it returned.
  */
-export const getResponse = async <Handler extends Array<RequestHandler>>({
+export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
   request,
   requestId,
   handlers,
@@ -24,9 +26,9 @@ export const getResponse = async <Handler extends Array<RequestHandler>>({
 }: {
   request: Request
   requestId: string
-  handlers: Handler
+  handlers: Handlers
   resolutionContext?: ResponseResolutionContext
-}): Promise<ResponseLookupResult | null> => {
+}): Promise<HandlersExecutionResult | null> => {
   let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 

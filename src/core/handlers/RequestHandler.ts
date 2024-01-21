@@ -1,7 +1,7 @@
 import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
-import type { ResponseResolutionContext } from '../utils/getResponse'
+import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
 

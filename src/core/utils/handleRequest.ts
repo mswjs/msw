@@ -82,7 +82,7 @@ export async function handleRequest(
   // If the handler lookup returned nothing, no request handler was found
   // matching this request. Report the request as unhandled.
   if (!lookupResult.data) {
-    await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
+    await onUnhandledRequest(request, options.onUnhandledRequest)
     emitter.emit('request:unhandled', { request, requestId })
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)

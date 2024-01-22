@@ -7,6 +7,7 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
+import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
 // would get the latest published version automatically.
@@ -62,6 +63,17 @@ const browserConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: true,
+  noExternal: Object.keys(packageJson.dependencies).filter((packageName) => {
+    /**
+     * @note Never bundle MSW core so all builds reference the *same*
+     * JavaScript and TypeScript care files. This way types across
+     * export paths remain compatible:
+     * import { http } from 'msw' // <- core
+     * import { setupWorker } from 'msw/browser' // <- /browser
+     * setupWorker(http.get(path, resolver)) // OK
+     */
+    return !mswCore.test(packageName)
+  }),
   /**
    * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
    * option is set to false.

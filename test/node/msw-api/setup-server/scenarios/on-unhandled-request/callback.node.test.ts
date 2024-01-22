@@ -14,8 +14,8 @@ const logs: Array<string> = []
 
 beforeAll(() =>
   server.listen({
-    onUnhandledRequest(req) {
-      logs.push(`${req.method} ${req.url}`)
+    onUnhandledRequest(request) {
+      logs.push(`${request.method} ${request.url}`)
     },
   }),
 )

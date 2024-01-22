@@ -69,24 +69,12 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
       `\
 [MSW] Warning: intercepted a request without a matching request handler:
 
-  • anonymous query (POST ${endpointUrl})
+  • POST ${endpointUrl}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
     ])
   })
-
-  //   // Must print the warning because anonymous operations cannot be intercepted
-  //   // using standard "graphql.query()" and "graphql.mutation()" handlers.
-  //   await waitFor(() => {
-  //     expect(consoleSpy.get('warning')).toEqual(
-  //       expect.arrayContaining([
-  //         `[MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
-
-  // Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`,
-  //       ]),
-  //     )
-  //   })
 })
 
 test('warns on handled anonymous GraphQL operation', async ({

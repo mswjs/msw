@@ -60,6 +60,7 @@ describe('http handlers', () => {
         body: 'request-body-',
       },
     ).then((response) => response.text())
+
     // Each clone is a new AbortSignal listener which needs to be registered
     expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
@@ -75,7 +76,7 @@ describe('http handlers', () => {
       },
     )
     // Each clone is a new AbortSignal listener which needs to be registered
-    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse.status).toBe(500)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -91,6 +92,7 @@ describe('graphql handlers', () => {
       }),
     )
   })
+
   it('does not print a memory leak warning', async () => {
     const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
@@ -109,6 +111,7 @@ describe('graphql handlers', () => {
     })
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
+
   it('does not print a memory leak warning for onUnhandledRequest', async () => {
     const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
@@ -121,7 +124,7 @@ describe('graphql handlers', () => {
     })
 
     expect(unhandledResponse.status).toEqual(500)
-    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     // Must not print any memory leak warnings.
     expect(stdErrSpy).not.toHaveBeenCalled()
   })

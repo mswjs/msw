@@ -56,14 +56,24 @@ const browserConfig: Options = {
   name: 'browser',
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
-  external: [ecosystemDependencies],
+  external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/browser',
   bundle: true,
   splitting: false,
   sourcemap: true,
   dts: true,
-  noExternal: Object.keys(packageJson.dependencies),
+  noExternal: Object.keys(packageJson.dependencies).filter((packageName) => {
+    /**
+     * @note Never bundle MSW core so all builds reference the *same*
+     * JavaScript and TypeScript care files. This way types across
+     * export paths remain compatible:
+     * import { http } from 'msw' // <- core
+     * import { setupWorker } from 'msw/browser' // <- /browser
+     * setupWorker(http.get(path, resolver)) // OK
+     */
+    return !mswCore.test(packageName)
+  }),
   /**
    * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
    * option is set to false.

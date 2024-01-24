@@ -30,6 +30,8 @@ export const createRequestListener = (
     const request = parseWorkerRequest(message.payload)
     const requestCloneForLogs = request.clone()
 
+    context.requests.set(requestId, request.clone())
+
     try {
       await handleRequest(
         request,

@@ -60,6 +60,7 @@ export class SetupWorkerApi
       worker: null,
       registration: null,
       requestHandlers: this.currentHandlers,
+      requests: new Map(),
       emitter: this.emitter,
       workerChannel: {
         on: (eventType, callback) => {

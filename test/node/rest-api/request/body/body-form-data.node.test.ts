@@ -9,6 +9,20 @@ const server = setupServer(
     const formData = await request.formData()
     return HttpResponse.json(Array.from(formData.entries()))
   }),
+  http.post('http://localhost/file', async ({ request }) => {
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+
+    if (!file) {
+      throw HttpResponse.text('Missing file', { status: 400 })
+    }
+
+    return HttpResponse.json({
+      name: file.name,
+      size: file.size,
+      content: await file.text(),
+    })
+  }),
 )
 
 beforeAll(() => {
@@ -19,7 +33,7 @@ afterAll(() => {
   server.close()
 })
 
-test('reads FormData request body', async () => {
+it('supports FormData request body', async () => {
   // Note that creating a `FormData` instance in Node/JSDOM differs
   // from the same instance in a real browser. Follow the instructions
   // of your `fetch` polyfill to learn more.
@@ -38,4 +52,24 @@ test('reads FormData request body', async () => {
     ['username', 'john.maverick'],
     ['password', 'secret123'],
   ])
+})
+
+it('respects Blob size in request body', async () => {
+  const blob = new Blob([JSON.stringify({ data: 1 })], {
+    type: 'application/json',
+  })
+  const formData = new FormData()
+  formData.set('file', blob, 'data.json')
+
+  const response = await fetch('http://localhost/file', {
+    method: 'POST',
+    body: formData,
+  })
+
+  expect(response.status).toBe(200)
+  expect(await response.json()).toEqual({
+    name: 'data.json',
+    size: blob.size,
+    content: await blob.text(),
+  })
 })

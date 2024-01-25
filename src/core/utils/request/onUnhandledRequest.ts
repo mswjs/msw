@@ -1,4 +1,4 @@
-import { getPublicUrlFromRequest } from './getPublicUrlFromRequest'
+import { toPublicUrl } from './toPublicUrl'
 import { devUtils } from '../internal/devUtils'
 
 export interface UnhandledRequestPrint {
@@ -21,7 +21,9 @@ export async function onUnhandledRequest(
   request: Request,
   strategy: UnhandledRequestStrategy = 'warn',
 ): Promise<void> {
-  const publicUrl = getPublicUrlFromRequest(request)
+  const url = new URL(request.url)
+  const publicUrl = toPublicUrl(url)
+
   const unhandledRequestMessage = `intercepted a request without a matching request handler:\n\n  \u2022 ${request.method} ${publicUrl}\n\nIf you still wish to intercept this unhandled request, please create a request handler for it.\nRead more: https://mswjs.io/docs/getting-started/mocks`
 
   function applyStrategy(strategy: UnhandledRequestStrategy) {
@@ -63,8 +65,6 @@ export async function onUnhandledRequest(
     })
     return
   }
-
-  const url = new URL(request.url)
 
   /**
    * @note Ignore "file://" requests.

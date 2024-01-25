@@ -64,5 +64,17 @@ export async function onUnhandledRequest(
     return
   }
 
+  const url = new URL(request.url)
+
+  /**
+   * @note Ignore "file://" requests.
+   * Those often are an implementation detail of modern tooling
+   * that fetches modules via HTTP. Developers don't issue those
+   * requests and so they mustn't be warned about them.
+   */
+  if (url.protocol === 'file:') {
+    return
+  }
+
   applyStrategy(strategy)
 }

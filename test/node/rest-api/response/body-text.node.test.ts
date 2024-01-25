@@ -8,13 +8,6 @@ const server = setupServer(
   http.get('http://localhost/text', () => {
     return HttpResponse.text('hello world')
   }),
-  http.get('http://localhost/text-with-custom-length', () => {
-    return HttpResponse.text('hello-world', {
-      headers: {
-        'Content-Length': '32',
-      },
-    })
-  }),
 )
 
 beforeAll(() => {
@@ -34,12 +27,33 @@ it('responds with a text response body', async () => {
   expect(text).toBe('hello world')
 })
 
-it('implicitly sets "Content-Length" header on text responses', async () => {
+it('implicitly sets "Content-Length" header on a text response', async () => {
   const response = await fetch('http://localhost/text')
   expect(response.headers.get('Content-Length')).toBe('11')
 })
 
+it('implicitly sets "Content-Length" header to 0 on empty text response', async () => {
+  server.use(
+    http.get('http://localhost/text', () => {
+      return HttpResponse.text('')
+    }),
+  )
+
+  const response = await fetch('http://localhost/text')
+  expect(response.headers.get('Content-Length')).toBe('0')
+})
+
 it('respects custom "Content-Length" mocked response header', async () => {
-  const response = await fetch('http://localhost/text-with-custom-length')
+  server.use(
+    http.get('http://localhost/text', () => {
+      return HttpResponse.text('hello-world', {
+        headers: {
+          'Content-Length': '32',
+        },
+      })
+    }),
+  )
+
+  const response = await fetch('http://localhost/text')
   expect(response.headers.get('Content-Length')).toBe('32')
 })

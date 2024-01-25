@@ -17,7 +17,7 @@ import {
   parseGraphQLRequest,
   parseDocumentNode,
 } from '../utils/internal/parseGraphQLRequest'
-import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 
@@ -200,7 +200,7 @@ export class GraphQLHandler extends RequestHandler<
     }
 
     if (!args.parsedResult.operationName && this.info.operationType !== 'all') {
-      const publicUrl = getPublicUrlFromRequest(args.request)
+      const publicUrl = toPublicUrl(args.request.url)
 
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.

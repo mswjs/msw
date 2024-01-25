@@ -57,6 +57,13 @@ export class HttpResponse extends Response {
       responseInit.headers.set('Content-Type', 'text/plain')
     }
 
+    // Automatically set the "Content-Length" response header
+    // for non-empty text responses. This enforces consistency and
+    // brings mocked responses closer to production.
+    if (!responseInit.headers.has('Content-Length') && body != null) {
+      responseInit.headers.set('Content-Length', body.length.toString())
+    }
+
     return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
   }
 

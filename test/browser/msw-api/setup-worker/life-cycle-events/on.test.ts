@@ -54,7 +54,7 @@ test('emits events for a handled request and mocked response', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:match] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:mocked] response-body ${requestId}`,
+    `[response:mocked] response-body GET ${url} ${requestId}`,
   ])
 })
 
@@ -80,7 +80,7 @@ test('emits events for a handled request with no response', async ({
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
     `[request:end] POST ${url} ${requestId}`,
-    `[response:bypass] original-response ${requestId}`,
+    `[response:bypass] original-response POST ${url} ${requestId}`,
   ])
 })
 
@@ -107,7 +107,7 @@ test('emits events for an unhandled request', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:unhandled] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:bypass] majestic-unknown ${requestId}`,
+    `[response:bypass] majestic-unknown GET ${url} ${requestId}`,
   ])
 })
 

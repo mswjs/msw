@@ -102,7 +102,7 @@ export interface SetupWorkerInternalContext {
   startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  requestHandlers: Array<RequestHandler>
+  currentHandlers(): Array<RequestHandler>
   requests: Map<string, Request>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number

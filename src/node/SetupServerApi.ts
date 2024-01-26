@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import {
   BatchInterceptor,
   HttpRequestEventMap,
@@ -5,8 +6,12 @@ import {
   InterceptorReadyState,
 } from '@mswjs/interceptors'
 import { invariant } from 'outvariant'
-import { SetupApi } from '~/core/SetupApi'
-import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { HandlersController, SetupApi } from '~/core/SetupApi'
+import {
+  RequestHandler,
+  RequestHandlerDefaultInfo,
+  RequestHandlerOptions,
+} from '~/core/handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
@@ -16,6 +21,30 @@ import { SetupServer } from './glossary'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
+}
+
+const store = new AsyncLocalStorage<{ handlers: Array<RequestHandler> }>()
+
+class AsyncHandlersController implements HandlersController {
+  constructor(private readonly initialHandlers: Array<RequestHandler>) {
+    store.enterWith({ handlers: initialHandlers })
+  }
+
+  public prepend(runtimeHandlers: Array<RequestHandler>) {
+    store.enterWith({
+      handlers: this.currentHandlers().concat(runtimeHandlers),
+    })
+  }
+
+  public reset(nextHandlers: Array<RequestHandler>) {
+    store.enterWith({
+      handlers: nextHandlers.length > 0 ? nextHandlers : this.initialHandlers,
+    })
+  }
+
+  public currentHandlers(): Array<RequestHandler> {
+    return store.getStore()?.handlers || this.initialHandlers
+  }
 }
 
 export class SetupServerApi
@@ -36,6 +65,8 @@ export class SetupServerApi
   ) {
     super(...handlers)
 
+    this.handlersController = new AsyncHandlersController(handlers)
+
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
@@ -53,7 +84,7 @@ export class SetupServerApi
       const response = await handleRequest(
         request,
         requestId,
-        this.currentHandlers,
+        this.handlersController.currentHandlers(),
         this.resolvedOptions,
         this.emitter,
       )

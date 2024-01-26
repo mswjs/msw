@@ -58,7 +58,7 @@ export class SetupWorkerApi
       isMockingEnabled: false,
       startOptions: null as any,
       worker: null,
-      currentHandlers: () => {
+      getRequestHandlers: () => {
         return this.handlersController.currentHandlers()
       },
       registration: null,

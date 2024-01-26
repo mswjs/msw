@@ -7,11 +7,7 @@ import {
 } from '@mswjs/interceptors'
 import { invariant } from 'outvariant'
 import { HandlersController, SetupApi } from '~/core/SetupApi'
-import {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-  RequestHandlerOptions,
-} from '~/core/handlers/RequestHandler'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
@@ -23,27 +19,43 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
-const store = new AsyncLocalStorage<{ handlers: Array<RequestHandler> }>()
+const store = new AsyncLocalStorage<RequestHandlersContext>()
 
+type RequestHandlersContext = {
+  initialHandlers: Array<RequestHandler>
+  handlers: Array<RequestHandler>
+}
+
+/**
+ * A handlers controller that utilizes `AsyncLocalStorage` in Node.js
+ * to prevent the request handlers list from being a shared state
+ * across mutliple tests.
+ */
 class AsyncHandlersController implements HandlersController {
-  constructor(private readonly initialHandlers: Array<RequestHandler>) {
-    store.enterWith({ handlers: initialHandlers })
+  private rootContext: RequestHandlersContext
+
+  constructor(initialHandlers: Array<RequestHandler>) {
+    this.rootContext = { initialHandlers, handlers: [] }
+  }
+
+  get context(): RequestHandlersContext {
+    return store.getStore() || this.rootContext
   }
 
   public prepend(runtimeHandlers: Array<RequestHandler>) {
-    store.enterWith({
-      handlers: this.currentHandlers().concat(runtimeHandlers),
-    })
+    this.context.handlers.unshift(...runtimeHandlers)
   }
 
   public reset(nextHandlers: Array<RequestHandler>) {
-    store.enterWith({
-      handlers: nextHandlers.length > 0 ? nextHandlers : this.initialHandlers,
-    })
+    const context = this.context
+    context.handlers = []
+    context.initialHandlers =
+      nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
   }
 
   public currentHandlers(): Array<RequestHandler> {
-    return store.getStore()?.handlers || this.initialHandlers
+    const { initialHandlers, handlers } = this.context
+    return handlers.concat(initialHandlers)
   }
 }
 
@@ -138,7 +150,29 @@ export class SetupServerApi
     )
   }
 
+  /**
+   * Wraps the given function in a boundary. Any changes to the
+   * network behavior (e.g. adding runtime request handlers via
+   * `server.use()`) will be scoped to this boundary only.
+   * @param callback A function to run (e.g. a test)
+   */
+  public boundary<Fn extends (...args: Array<unknown>) => unknown>(
+    callback: Fn,
+  ): (...args: Parameters<Fn>) => ReturnType<Fn> {
+    return (...args: Parameters<Fn>): ReturnType<Fn> => {
+      return store.run<any, any>(
+        {
+          initialHandlers: this.handlersController.currentHandlers(),
+          handlers: [],
+        },
+        callback,
+        args,
+      )
+    }
+  }
+
   public close(): void {
     this.dispose()
+    store.disable()
   }
 }

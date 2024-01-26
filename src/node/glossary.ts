@@ -17,6 +17,10 @@ export interface SetupServer {
    */
   listen(options?: PartialDeep<SharedOptions>): void
 
+  boundary<Fn extends (...args: Array<unknown>) => unknown>(
+    callback: Fn,
+  ): (...args: Parameters<Fn>) => ReturnType<Fn>
+
   /**
    * Stops requests interception by restoring all augmented modules.
    *

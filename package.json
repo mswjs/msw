@@ -52,7 +52,7 @@
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
     "test:unit": "vitest",
-    "test:node": "vitest --config=./test/node/vitest.config.ts",
+    "test:node": "vitest run --config=./test/node/vitest.config.ts",
     "test:native": "vitest --config=./test/native/vitest.config.ts",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
     "test:modules:node": "vitest --config=./test/modules/node/vitest.config.ts",

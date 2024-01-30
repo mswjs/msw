@@ -20,6 +20,18 @@
       "import": "./lib/browser/index.mjs",
       "default": "./lib/browser/index.js"
     },
+    "./http": {
+      "types": "./lib/core/http.d.ts",
+      "require": "./lib/core/http.js",
+      "import": "./lib/core/http.mjs",
+      "default": "./lib/core/http.mjs"
+    },
+    "./graphql": {
+      "types": "./lib/core/graphql.d.ts",
+      "require": "./lib/core/graphql.js",
+      "import": "./lib/core/graphql.mjs",
+      "default": "./lib/core/graphql.mjs"
+    },
     "./node": {
       "browser": null,
       "types": "./lib/node/index.d.ts",

@@ -3,7 +3,7 @@ import type {
   OperationDefinitionNode,
   OperationTypeNode,
 } from 'graphql'
-import { parse } from 'graphql'
+import { parse } from 'graphql/language/parser'
 import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { toPublicUrl } from '../request/toPublicUrl'
 import { devUtils } from './devUtils'

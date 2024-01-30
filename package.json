@@ -24,13 +24,13 @@
       "types": "./lib/core/http.d.ts",
       "require": "./lib/core/http.js",
       "import": "./lib/core/http.mjs",
-      "default": "./lib/core/http.mjs"
+      "default": "./lib/core/http.js"
     },
     "./graphql": {
       "types": "./lib/core/graphql.d.ts",
       "require": "./lib/core/graphql.js",
       "import": "./lib/core/graphql.mjs",
-      "default": "./lib/core/graphql.mjs"
+      "default": "./lib/core/graphql.js"
     },
     "./node": {
       "browser": null,

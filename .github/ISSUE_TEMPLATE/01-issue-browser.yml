@@ -38,7 +38,7 @@ body:
   - type: input
     attributes:
       label: Reproduction repository
-      description: A link to the repository where your issue can be reproduced. You can clone one of [our examples](https://github.com/mswjs/examples/tree/master/examples) or [our CodeSandbox template](https://codesandbox.io/s/msw-react-xx1c8) to create a reproduction repository much faster. Issues without a reproduction repository **will be closed**.
+      description: A link to the repository where your issue can be reproduced. You can clone one of [our examples](https://github.com/mswjs/examples) to create a reproduction repository much faster. **Issues without a reproduction repository will be closed**.
       placeholder: i.e. https://github.com/you/msw-issue
     validations:
       required: true

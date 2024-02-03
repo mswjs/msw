@@ -156,7 +156,7 @@ export class SetupServerApi
    * `server.use()`) will be scoped to this boundary only.
    * @param callback A function to run (e.g. a test)
    */
-  public boundary<Fn extends (...args: Array<unknown>) => unknown>(
+  public boundary<Fn extends (...args: Array<any>) => unknown>(
     callback: Fn,
   ): (...args: Parameters<Fn>) => ReturnType<Fn> {
     return (...args: Parameters<Fn>): ReturnType<Fn> => {
@@ -166,7 +166,7 @@ export class SetupServerApi
           handlers: [],
         },
         callback,
-        args,
+        ...args,
       )
     }
   }

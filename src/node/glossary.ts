@@ -17,7 +17,7 @@ export interface SetupServer {
    */
   listen(options?: PartialDeep<SharedOptions>): void
 
-  boundary<Fn extends (...args: Array<unknown>) => unknown>(
+  boundary<Fn extends (...args: Array<any>) => unknown>(
     callback: Fn,
   ): (...args: Parameters<Fn>) => ReturnType<Fn>
 

@@ -73,7 +73,7 @@ dependencies:
   '@bundled-es-modules/cookie': 2.0.0
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.1.0
-  '@mswjs/interceptors': 0.25.15
+  '@mswjs/interceptors': link:../interceptors
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.6.0
   '@types/statuses': 2.0.4
@@ -1071,18 +1071,6 @@ packages:
     engines: {node: '>=18'}
     dev: false
 
-  /@mswjs/interceptors/0.25.15:
-    resolution: {integrity: sha512-s4jdyxmq1eeftfDXJ7MUiK/jlvYaU8Sr75+42hHCVBrYez0k51RHbMitKIKdmsF92Q6gwhp8Sm1MmvdA9llpcg==}
-    engines: {node: '>=18'}
-    dependencies:
-      '@open-draft/deferred-promise': 2.2.0
-      '@open-draft/logger': 0.3.0
-      '@open-draft/until': 2.1.0
-      is-node-process: 1.2.0
-      outvariant: 1.4.2
-      strict-event-emitter: 0.5.1
-    dev: false
-
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -1106,13 +1094,7 @@ packages:
 
   /@open-draft/deferred-promise/2.2.0:
     resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
-
-  /@open-draft/logger/0.3.0:
-    resolution: {integrity: sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ==}
-    dependencies:
-      is-node-process: 1.2.0
-      outvariant: 1.4.2
-    dev: false
+    dev: true
 
   /@open-draft/test-server/0.4.2:
     resolution: {integrity: sha512-J9wbdQkPx5WKcDNtgfnXsx5ew4UJd6BZyGr89YlHeaUkOShkO2iO5QIyCCsG4qpjIvr2ZTkEYJA9ujOXXyO6Pg==}

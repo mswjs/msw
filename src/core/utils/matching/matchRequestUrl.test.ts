@@ -61,6 +61,50 @@ describe('matchRequestUrl', () => {
     expect(match).toHaveProperty('matches', false)
     expect(match).toHaveProperty('params', {})
   })
+
+  test('returns true for matching WebSocket URL', () => {
+    expect(
+      matchRequestUrl(new URL('ws://test.mswjs.io'), 'ws://test.mswjs.io'),
+    ).toEqual({
+      matches: true,
+      params: {},
+    })
+    expect(
+      matchRequestUrl(new URL('wss://test.mswjs.io'), 'wss://test.mswjs.io'),
+    ).toEqual({
+      matches: true,
+      params: {},
+    })
+  })
+
+  test('returns false for non-matching WebSocket URL', () => {
+    expect(
+      matchRequestUrl(new URL('ws://test.mswjs.io'), 'ws://foo.mswjs.io'),
+    ).toEqual({
+      matches: false,
+      params: {},
+    })
+    expect(
+      matchRequestUrl(new URL('wss://test.mswjs.io'), 'wss://completely.diff'),
+    ).toEqual({
+      matches: false,
+      params: {},
+    })
+  })
+
+  test('returns path parameters when matched a WebSocket URL', () => {
+    expect(
+      matchRequestUrl(
+        new URL('wss://test.mswjs.io'),
+        'wss://:service.mswjs.io',
+      ),
+    ).toEqual({
+      matches: true,
+      params: {
+        service: 'test',
+      },
+    })
+  })
 })
 
 describe('coercePath', () => {

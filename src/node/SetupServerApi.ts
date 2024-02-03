@@ -150,12 +150,6 @@ export class SetupServerApi
     )
   }
 
-  /**
-   * Wraps the given function in a boundary. Any changes to the
-   * network behavior (e.g. adding runtime request handlers via
-   * `server.use()`) will be scoped to this boundary only.
-   * @param callback A function to run (e.g. a test)
-   */
   public boundary<Fn extends (...args: Array<any>) => unknown>(
     callback: Fn,
   ): (...args: Parameters<Fn>) => ReturnType<Fn> {

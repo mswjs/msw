@@ -1,5 +1,5 @@
 import { parse } from 'graphql'
-import { graphql, HttpResponse } from 'msw'
+import { graphql, HttpResponse, passthrough } from 'msw'
 
 /**
  * Variables type.
@@ -81,6 +81,18 @@ graphql.query<{ id: string }>(
   // @ts-expect-error incompatible response body type
   () => HttpResponse.text('hello'),
 )
+
+// Passthrough responses.
+graphql.query('GetUser', () => passthrough())
+graphql.mutation('AddPost', () => passthrough())
+graphql.operation(() => passthrough())
+graphql.query('GetUser', ({ request }) => {
+  if (request.headers.has('cookie')) {
+    return passthrough()
+  }
+
+  return HttpResponse.json({ data: {} })
+})
 
 ///
 ///

@@ -10,7 +10,7 @@ specifiers:
   '@commitlint/config-conventional': ^18.4.4
   '@graphql-typed-document-node/core': ^3.2.0
   '@mswjs/cookies': ^1.1.0
-  '@mswjs/interceptors': ^0.25.15
+  '@mswjs/interceptors': ^0.25.16
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.8.0
@@ -74,7 +74,7 @@ dependencies:
   '@bundled-es-modules/cookie': 2.0.0
   '@bundled-es-modules/statuses': 1.0.1
   '@mswjs/cookies': 1.1.0
-  '@mswjs/interceptors': 0.25.15
+  '@mswjs/interceptors': 0.25.16
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.6.0
   '@types/statuses': 2.0.4
@@ -1081,8 +1081,8 @@ packages:
     engines: {node: '>=18'}
     dev: false
 
-  /@mswjs/interceptors/0.25.15:
-    resolution: {integrity: sha512-s4jdyxmq1eeftfDXJ7MUiK/jlvYaU8Sr75+42hHCVBrYez0k51RHbMitKIKdmsF92Q6gwhp8Sm1MmvdA9llpcg==}
+  /@mswjs/interceptors/0.25.16:
+    resolution: {integrity: sha512-8QC8JyKztvoGAdPgyZy49c9vSHHAZjHagwl4RY9E8carULk8ym3iTaiawrT1YoLF/qb449h48f71XDPgkUSOUg==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0

@@ -4,7 +4,7 @@ import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 const GetUserQuery = {} as TypedDocumentNode<
   {
     user: {
-      name: string
+      name: 'John'
     }
   },
   { userId: string }

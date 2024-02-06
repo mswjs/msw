@@ -1,4 +1,5 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { SetupServerApi } from '../node/SetupServerApi'
 
@@ -13,5 +14,8 @@ export function setupServer(
 ): SetupServerApi {
   // Provision request interception via patching the `XMLHttpRequest` class only
   // in React Native. There is no `http`/`https` modules in that environment.
-  return new SetupServerApi([FetchInterceptor], ...handlers)
+  return new SetupServerApi(
+    [FetchInterceptor, XMLHttpRequestInterceptor],
+    ...handlers,
+  )
 }

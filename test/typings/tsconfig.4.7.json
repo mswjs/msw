@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "moduleResolution": "Node16"
+    "moduleResolution": "Node16",
+    "lib": ["DOM", "DOM.Iterable"]
   }
 }

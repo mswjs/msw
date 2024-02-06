@@ -134,6 +134,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.8.0",
     "@playwright/test": "^1.40.1",

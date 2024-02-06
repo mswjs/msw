@@ -8,6 +8,7 @@ specifiers:
   '@bundled-es-modules/statuses': ^1.0.1
   '@commitlint/cli': ^18.4.4
   '@commitlint/config-conventional': ^18.4.4
+  '@graphql-typed-document-node/core': ^3.2.0
   '@mswjs/cookies': ^1.1.0
   '@mswjs/interceptors': ^0.25.15
   '@open-draft/test-server': ^0.4.2
@@ -92,6 +93,7 @@ dependencies:
 devDependencies:
   '@commitlint/cli': 18.4.4_z5x4t2owsiiyng6cl4yau77uc4
   '@commitlint/config-conventional': 18.4.4
+  '@graphql-typed-document-node/core': 3.2.0_graphql@16.8.1
   '@open-draft/test-server': 0.4.2
   '@ossjs/release': 0.8.0
   '@playwright/test': 1.40.1
@@ -809,6 +811,14 @@ packages:
   /@eslint/js/8.56.0:
     resolution: {integrity: sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dev: true
+
+  /@graphql-typed-document-node/core/3.2.0_graphql@16.8.1:
+    resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
+    peerDependencies:
+      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      graphql: 16.8.1
     dev: true
 
   /@humanwhocodes/config-array/0.11.14:
@@ -4325,7 +4335,6 @@ packages:
   /graphql/16.8.1:
     resolution: {integrity: sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
-    dev: false
 
   /hard-rejection/2.1.0:
     resolution: {integrity: sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==}

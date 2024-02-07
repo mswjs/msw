@@ -1,71 +1,120 @@
-import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import { matchRequestUrl, type Path } from './utils/matching/matchRequestUrl'
+import { Emitter } from 'strict-event-emitter'
+import {
+  WebSocketInterceptor,
+  type WebSocketEventMap,
+  type WebSocketClientConnection,
+  type WebSocketServerConnection,
+} from '@mswjs/interceptors/WebSocket'
+import {
+  type Path,
+  matchRequestUrl,
+  PathParams,
+} from './utils/matching/matchRequestUrl'
 
 /**
- * Intercept outgoing WebSocket connections to the given URL.
- * @param url WebSocket server URL
+ * @fixme Will each "ws" import create a NEW intereptor?
+ * Consider moving this away and reusing.
  */
-function createWebSocketHandler(url: Path) {
-  /**
-   * @note I think the handler should initialize the interceptor.
-   * This way, no WebSocket class stubs will be applied unless
-   * you use a single "ws" handler. Interceptors are deduped.
-   */
-  const interceptor = new WebSocketInterceptor()
-  interceptor.apply()
+const interceptor = new WebSocketInterceptor()
+const emitter = new EventTarget()
 
-  /**
-   * @todo Should this maybe live in the "setup" function
-   * and then emit ONE intercepted connection to MANY "ws"
-   * handlers? That way:
-   * - The order of listeners still matters (consistency).
-   * - The `.use()` makes sense.
-   *
-   * The challenge: only apply the interceptor when at least
-   * ONE "ws.link()" has been created.
-   */
-  interceptor.on('connection', (connection) => {
-    const match = matchRequestUrl(connection.client.url, url)
-
-    // For WebSocket connections that don't match the given
-    // URL predicate, open them as-is and forward all messages.
-    if (!match.matches) {
-      connection.server.connect()
-      connection.client.on('message', (event) => {
-        connection.server.send(event.data)
-      })
-      return
-    }
-
-    /** @todo Those that match, route to the public API */
+interceptor.on('connection', (connection) => {
+  const connectionMessage = new MessageEvent('connection', {
+    data: connection,
+    cancelable: true,
   })
 
-  /** @fixme Dispose of the interceptor. */
+  emitter.dispatchEvent(connectionMessage)
+
+  // If none of the "ws" handlers matched,
+  // establish the WebSocket connection as-is.
+  if (!connectionMessage.defaultPrevented) {
+    connection.server.connect()
+    connection.client.on('message', (event) => {
+      connection.server.send(event.data)
+    })
+  }
+})
+
+/**
+ * Disposes of the WebSocket interceptor.
+ * The interceptor is a singleton instantiated in the
+ * "ws" API.
+ */
+export function disposeWebSocketInterceptor() {
+  interceptor.dispose()
+}
+
+type WebSocketLinkHandlerEventMap = {
+  connection: [
+    args: {
+      client: WebSocketClientConnection
+      server: WebSocketServerConnection
+      params: PathParams
+    },
+  ]
+}
+
+/**
+ * Intercepts outgoing WebSocket connections to the given URL.
+ *
+ * @example
+ * const chat = ws.link('wss://chat.example.com')
+ * chat.on('connection', (connection) => {})
+ */
+function createWebSocketLinkHandler(url: Path) {
+  const publicEmitter = new Emitter<WebSocketLinkHandlerEventMap>()
+
+  // Apply the WebSocket interceptor.
+  // This defers the WebSocket class patching to the first
+  // "ws" event handler call. Repetitive calls to the "apply"
+  // method have no effect.
+  interceptor.apply()
+
+  emitter.addEventListener(
+    'connection',
+    (event: MessageEvent<WebSocketEventMap['connection'][0]>) => {
+      const { client, server } = event.data
+      const match = matchRequestUrl(client.url, url)
+
+      if (match.matches) {
+        // Preventing the default on the connection event
+        // will prevent the WebSocket connection from being
+        // established.
+        event.preventDefault()
+        publicEmitter.emit('connection', {
+          client,
+          server,
+          params: match.params || {},
+        })
+      }
+    },
+  )
+
+  const { on, off, removeAllListeners } = publicEmitter
 
   return {
-    /**
-     * @fixme Don't expose these directly. The exposed interface
-     * must be decoupled from the interceptor to support
-     * "removeAllEvents" and such.
-     */
-    on: interceptor.on.bind(interceptor),
-    off: interceptor.off.bind(interceptor),
-    removeAllListeners: interceptor.removeAllListeners.bind(interceptor),
+    on,
+    off,
+    removeAllListeners,
   }
 }
 
 export const ws = {
-  link: createWebSocketHandler,
+  link: createWebSocketLinkHandler,
 }
 
 //
+// Public usage.
 //
 
-const chat = ws.link('wss://*.service.com')
+const chat = ws.link('wss://:roomId.service.com')
 
-chat.on('connection', ({ client }) => {
-  client.on('message', (event) => {
-    console.log(event.data)
-    client.send('Hello from server!')
-  })
-})
+export const handlers = [
+  chat.on('connection', ({ client }) => {
+    client.on('message', (event) => {
+      console.log(event.data)
+      client.send('Hello from server!')
+    })
+  }),
+]

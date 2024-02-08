@@ -1,27 +1,25 @@
 import { invariant } from 'outvariant'
 import { EventMap, Emitter } from 'strict-event-emitter'
-import {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-} from './handlers/RequestHandler'
+import { RequestHandler } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
 import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { Disposable } from './utils/internal/Disposable'
+import type { WebSocketHandler } from './handlers/WebSocketHandler'
 
 /**
  * Generic class for the mock API setup.
  */
 export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
-  protected initialHandlers: ReadonlyArray<RequestHandler>
-  protected currentHandlers: Array<RequestHandler>
+  protected initialHandlers: ReadonlyArray<RequestHandler | WebSocketHandler>
+  protected currentHandlers: Array<RequestHandler | WebSocketHandler>
   protected readonly emitter: Emitter<EventsMap>
   protected readonly publicEmitter: Emitter<EventsMap>
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(...initialHandlers: Array<RequestHandler>) {
+  constructor(...initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     super()
 
     invariant(
@@ -46,12 +44,14 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     })
   }
 
-  private validateHandlers(handlers: ReadonlyArray<RequestHandler>): boolean {
+  private validateHandlers(handlers: ReadonlyArray<unknown>): boolean {
     // Guard against incorrect call signature of the setup API.
     return handlers.every((handler) => !Array.isArray(handler))
   }
 
-  public use(...runtimeHandlers: Array<RequestHandler>): void {
+  public use(
+    ...runtimeHandlers: Array<RequestHandler | WebSocketHandler>
+  ): void {
     invariant(
       this.validateHandlers(runtimeHandlers),
       devUtils.formatMessage(
@@ -64,18 +64,20 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
 
   public restoreHandlers(): void {
     this.currentHandlers.forEach((handler) => {
-      handler.isUsed = false
+      if ('isUsed' in handler) {
+        handler.isUsed = false
+      }
     })
   }
 
-  public resetHandlers(...nextHandlers: Array<RequestHandler>): void {
+  public resetHandlers(
+    ...nextHandlers: Array<RequestHandler | WebSocketHandler>
+  ): void {
     this.currentHandlers =
       nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
   }
 
-  public listHandlers(): ReadonlyArray<
-    RequestHandler<RequestHandlerDefaultInfo, any, any>
-  > {
+  public listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler> {
     return toReadonlyArray(this.currentHandlers)
   }
 

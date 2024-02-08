@@ -1,6 +1,5 @@
 import { until } from '@open-draft/until'
 import { Emitter } from 'strict-event-emitter'
-import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
@@ -45,7 +44,7 @@ export interface HandleRequestOptions {
 export async function handleRequest(
   request: Request,
   requestId: string,
-  handlers: Array<RequestHandler>,
+  handlers: Array<unknown>,
   options: RequiredDeep<SharedOptions>,
   emitter: Emitter<LifeCycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions,

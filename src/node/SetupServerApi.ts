@@ -13,6 +13,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { SetupServer } from './glossary'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -32,7 +33,7 @@ export class SetupServerApi
     interceptors: Array<{
       new (): Interceptor<HttpRequestEventMap>
     }>,
-    ...handlers: Array<RequestHandler>
+    ...handlers: Array<RequestHandler | WebSocketHandler>
   ) {
     super(...handlers)
 

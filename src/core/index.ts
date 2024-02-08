@@ -9,6 +9,9 @@ export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 export { graphql } from './graphql'
 export { GraphQLHandler } from './handlers/GraphQLHandler'
 
+/* WebSocket */
+export { ws } from './ws/ws'
+
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'

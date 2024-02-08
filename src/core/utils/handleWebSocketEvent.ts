@@ -1,7 +1,10 @@
-import { type Handler, WebSocketHandler } from '../handlers/WebSocketHandler'
+import { RequestHandler } from '../handlers/RequestHandler'
+import { WebSocketHandler, kRun } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from '../ws/webSocketInterceptor'
 
-export function handleWebSocketEvent(handlers: Array<Handler>) {
+export function handleWebSocketEvent(
+  handlers: Array<WebSocketHandler | RequestHandler>,
+) {
   webSocketInterceptor.on('connection', (connection) => {
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
@@ -15,7 +18,7 @@ export function handleWebSocketEvent(handlers: Array<Handler>) {
       if (handler instanceof WebSocketHandler) {
         // Never await the run function because event handlers
         // are side-effectful and don't block the event loop.
-        handler.run(connectionEvent)
+        handler[kRun]({ event: connectionEvent })
       }
     }
 
@@ -23,7 +26,7 @@ export function handleWebSocketEvent(handlers: Array<Handler>) {
     // establish the WebSocket connection as-is.
     if (!connectionEvent.defaultPrevented) {
       connection.server.connect()
-      connection.client.on('message', (event) => {
+      connection.client.addEventListener('message', (event) => {
         connection.server.send(event.data)
       })
     }

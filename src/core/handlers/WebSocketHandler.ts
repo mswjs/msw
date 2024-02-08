@@ -9,7 +9,6 @@ import {
   type PathParams,
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
-import { Handler } from './Handler'
 
 type WebSocketHandlerParsedResult = {
   match: Match
@@ -25,7 +24,14 @@ type WebSocketHandlerEventMap = {
   ]
 }
 
-export class WebSocketHandler extends Handler<MessageEvent<any>> {
+type WebSocketHandlerIncomingEvent = MessageEvent<{
+  client: WebSocketClientConnection
+  server: WebSocketServerConnection
+}>
+
+export const kRun = Symbol('run')
+
+export class WebSocketHandler {
   public on: <K extends keyof WebSocketHandlerEventMap>(
     event: K,
     listener: (...args: WebSocketHandlerEventMap[K]) => void,
@@ -43,7 +49,6 @@ export class WebSocketHandler extends Handler<MessageEvent<any>> {
   protected emitter: Emitter<WebSocketHandlerEventMap>
 
   constructor(private readonly url: Path) {
-    super()
     this.emitter = new Emitter()
 
     // Forward some of the emitter API to the public API
@@ -54,9 +59,9 @@ export class WebSocketHandler extends Handler<MessageEvent<any>> {
   }
 
   public parse(args: {
-    input: MessageEvent<any>
+    event: WebSocketHandlerIncomingEvent
   }): WebSocketHandlerParsedResult {
-    const connection = args.input.data
+    const connection = args.event.data
     const match = matchRequestUrl(connection.client.url, this.url)
 
     return {
@@ -65,18 +70,22 @@ export class WebSocketHandler extends Handler<MessageEvent<any>> {
   }
 
   public predicate(args: {
-    input: MessageEvent<any>
+    event: WebSocketHandlerIncomingEvent
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
     const { match } = args.parsedResult
     return match.matches
   }
 
-  protected async handle(args: {
-    input: MessageEvent<any>
-    parsedResult: WebSocketHandlerParsedResult
-  }): Promise<void> {
-    const connectionEvent = args.input
+  async [kRun](args: { event: MessageEvent<any> }): Promise<void> {
+    const parsedResult = this.parse({ event: args.event })
+    const shouldIntercept = this.predicate({ event: args.event, parsedResult })
+
+    if (!shouldIntercept) {
+      return
+    }
+
+    const connectionEvent = args.event
 
     // At this point, the WebSocket connection URL has matched the handler.
     // Prevent the default behavior of establishing the connection as-is.
@@ -89,7 +98,7 @@ export class WebSocketHandler extends Handler<MessageEvent<any>> {
     this.emitter.emit('connection', {
       client: connection.client,
       server: connection.server,
-      params: args.parsedResult.match.params || {},
+      params: parsedResult.match.params || {},
     })
   }
 }

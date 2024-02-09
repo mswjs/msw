@@ -10,7 +10,9 @@ const remote = setupRemoteServer()
 const testApp = new TestNodeApp(require.resolve('./use.app.js'))
 
 beforeAll(async () => {
-  await remote.listen()
+  await remote.listen({
+    port: 12345,
+  })
   await testApp.start()
 })
 

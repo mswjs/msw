@@ -63,7 +63,9 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
 }
 
 beforeAll(async () => {
-  await remote.listen()
+  await remote.listen({
+    port: 12345,
+  })
   await httpServer.listen()
   await testApp.start()
 })

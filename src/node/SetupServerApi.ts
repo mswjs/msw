@@ -13,13 +13,18 @@ import { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { ListenOptions, SetupServer } from './glossary'
-import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
+import {
+  SyncServerEventsMap,
+  createSyncClient,
+  createWebSocketServerUrl,
+} from './setupRemoteServer'
 import {
   onAnyEvent,
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
+import { Emitter } from 'strict-event-emitter'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -28,6 +33,10 @@ const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
 export type InterceptorsList = Array<{
   new (): Interceptor<HttpRequestEventMap>
 }>
+
+interface InteractiveRequest extends Request {
+  respondWith(response: Response): void
+}
 
 export class SetupServerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -63,13 +72,24 @@ export class SetupServerApi
       // If in remote mode, await the WebSocket connection promise
       // before handling any requests.
       if (this.resolvedOptions.remotePort) {
-        /**
-         * @fixme This will never resolve.
-         * Playwright runs the app first (this part) and THEN it runs
-         * the tests (setupRemoteServer part). This causes the "/"
-         * request to pend forever on this line since the app has to
-         * load successfully before the tests run.
-         */
+        const remoteResolutionUrl = createWebSocketServerUrl(
+          this.resolvedOptions.remotePort,
+        )
+        // Build a pattern to match the socket.io connection
+        remoteResolutionUrl.pathname = '/socket.io'
+        const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
+        const isRequestForSocket = matcher.test(request.url)
+        // Bypass handling if the request is for the socket.io connection
+        if (isRequestForSocket) {
+          return this.applyRequestHandling(
+            request,
+            requestId,
+            this.currentHandlers,
+            this.resolvedOptions,
+            this.emitter,
+          )
+        }
+
         if (typeof this.socket === 'undefined') {
           this.socket = await createSyncClient(this.resolvedOptions.remotePort)
         }
@@ -85,19 +105,13 @@ export class SetupServerApi
         }
       }
 
-      const response = await handleRequest(
+      return this.applyRequestHandling(
         request,
         requestId,
         this.currentHandlers,
         this.resolvedOptions,
         this.emitter,
       )
-
-      if (response) {
-        request.respondWith(response)
-      }
-
-      return
     })
 
     this.interceptor.on(
@@ -113,6 +127,27 @@ export class SetupServerApi
         )
       },
     )
+  }
+
+  private async applyRequestHandling(
+    request: InteractiveRequest,
+    requestId: string,
+    handlers: Array<RequestHandler>,
+    options: RequiredDeep<SharedOptions>,
+    emitter: Emitter<LifeCycleEventsMap>,
+  ) {
+    const response = await handleRequest(
+      request,
+      requestId,
+      handlers,
+      options,
+      emitter,
+    )
+
+    if (response) {
+      request.respondWith(response)
+    }
+    return
   }
 
   public listen(options: Partial<ListenOptions> = {}): void {

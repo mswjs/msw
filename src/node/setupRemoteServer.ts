@@ -192,7 +192,7 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
   return serverClosePromise
 }
 
-function createWebSocketServerUrl(port: number): URL {
+export function createWebSocketServerUrl(port: number): URL {
   const url = new URL('http://localhost')
   url.port = port.toString()
   return url

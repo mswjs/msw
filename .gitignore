@@ -16,3 +16,5 @@ msw-*.tgz
 # Smoke test temporary files.
 /package.json.copy
 /examples
+
+tsconfig.vitest-temp.json

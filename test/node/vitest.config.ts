@@ -11,6 +11,8 @@ export default defineConfig({
     dir: './test/node',
     globals: true,
     alias: {
+      'vitest-environment-node-websocket':
+        './test/support/environments/vitest-environment-node-websocket',
       'msw/node': path.resolve(LIB_DIR, 'node/index.mjs'),
       'msw/native': path.resolve(LIB_DIR, 'native/index.mjs'),
       'msw/browser': path.resolve(LIB_DIR, 'browser/index.mjs'),

@@ -7,13 +7,14 @@ import {
 import { invariant } from 'outvariant'
 import { SetupApi } from '~/core/SetupApi'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
-import { RequiredDeep } from '~/core/typeUtils'
+import type { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
+import type { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
-import { SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
+import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
+import type { SetupServer } from './glossary'
 
 const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -79,6 +80,9 @@ export class SetupServerApi
         )
       },
     )
+
+    // Handle outgoing WebSocket connections.
+    handleWebSocketEvent(this.currentHandlers)
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {

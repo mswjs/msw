@@ -14,7 +14,7 @@ type WebSocketHandlerParsedResult = {
   match: Match
 }
 
-type WebSocketHandlerEventMap = {
+export type WebSocketHandlerEventMap = {
   connection: [
     args: {
       client: WebSocketClientConnection
@@ -29,33 +29,14 @@ type WebSocketHandlerIncomingEvent = MessageEvent<{
   server: WebSocketServerConnection
 }>
 
-export const kRun = Symbol('run')
+export const kEmitter = Symbol('kEmitter')
+export const kRun = Symbol('kRun')
 
 export class WebSocketHandler {
-  public on: <K extends keyof WebSocketHandlerEventMap>(
-    event: K,
-    listener: (...args: WebSocketHandlerEventMap[K]) => void,
-  ) => void
-
-  public off: <K extends keyof WebSocketHandlerEventMap>(
-    event: K,
-    listener: (...args: WebSocketHandlerEventMap[K]) => void,
-  ) => void
-
-  public removeAllListeners: <K extends keyof WebSocketHandlerEventMap>(
-    event?: K,
-  ) => void
-
-  protected emitter: Emitter<WebSocketHandlerEventMap>
+  protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(private readonly url: Path) {
-    this.emitter = new Emitter()
-
-    // Forward some of the emitter API to the public API
-    // of the event handler.
-    this.on = this.emitter.on.bind(this.emitter)
-    this.off = this.emitter.off.bind(this.emitter)
-    this.removeAllListeners = this.emitter.removeAllListeners.bind(this.emitter)
+    this[kEmitter] = new Emitter()
   }
 
   public parse(args: {
@@ -95,7 +76,7 @@ export class WebSocketHandler {
 
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
-    this.emitter.emit('connection', {
+    this[kEmitter].emit('connection', {
       client: connection.client,
       server: connection.server,
       params: parsedResult.match.params || {},

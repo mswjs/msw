@@ -48,6 +48,19 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
             responseJson,
           )
 
+    /**
+     * Set response URL if it's not set already.
+     * @see https://github.com/mswjs/msw/issues/2030
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+     */
+    if (!response.url) {
+      Object.defineProperty(response, 'url', {
+        value: request.url,
+        enumerable: true,
+        writable: false,
+      })
+    }
+
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
       {

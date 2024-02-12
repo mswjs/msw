@@ -43,7 +43,7 @@ export const createRequestListener = (
       await handleRequest(
         request,
         requestId,
-        context.requestHandlers,
+        context.getRequestHandlers(),
         options,
         context.emitter,
         {

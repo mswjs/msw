@@ -57,6 +57,16 @@ export class HttpResponse extends Response {
       responseInit.headers.set('Content-Type', 'text/plain')
     }
 
+    // Automatically set the "Content-Length" response header
+    // for non-empty text responses. This enforces consistency and
+    // brings mocked responses closer to production.
+    if (!responseInit.headers.has('Content-Length')) {
+      responseInit.headers.set(
+        'Content-Length',
+        body ? body.length.toString() : '0',
+      )
+    }
+
     return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
   }
 
@@ -76,8 +86,21 @@ export class HttpResponse extends Response {
       responseInit.headers.set('Content-Type', 'application/json')
     }
 
+    /**
+     * @note TypeScript is incorrect here.
+     * Stringifying undefined will return undefined.
+     */
+    const responseText = JSON.stringify(body) as string | undefined
+
+    if (!responseInit.headers.has('Content-Length')) {
+      responseInit.headers.set(
+        'Content-Length',
+        responseText ? responseText.length.toString() : '0',
+      )
+    }
+
     return new HttpResponse(
-      JSON.stringify(body),
+      responseText,
       responseInit,
     ) as StrictResponse<BodyType>
   }

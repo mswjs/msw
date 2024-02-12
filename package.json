@@ -50,7 +50,7 @@
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
-    "test": "pnpm test:unit --run && pnpm test:node --run && pnpm test:browser && pnpm test:native --run",
+    "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
     "test:unit": "vitest",
     "test:node": "vitest --config=./test/node/vitest.config.ts",
     "test:native": "vitest --config=./test/native/vitest.config.ts",

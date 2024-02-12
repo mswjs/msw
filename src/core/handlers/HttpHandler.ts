@@ -11,7 +11,7 @@ import {
   Path,
   PathParams,
 } from '../utils/matching/matchRequestUrl'
-import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
@@ -147,7 +147,7 @@ export class HttpHandler extends RequestHandler<
   }
 
   async log(args: { request: Request; response: Response }) {
-    const publicUrl = getPublicUrlFromRequest(args.request)
+    const publicUrl = toPublicUrl(args.request.url)
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)

@@ -58,8 +58,11 @@ export class SetupWorkerApi
       isMockingEnabled: false,
       startOptions: null as any,
       worker: null,
+      getRequestHandlers: () => {
+        return this.handlersController.currentHandlers()
+      },
       registration: null,
-      requestHandlers: this.currentHandlers,
+      requests: new Map(),
       emitter: this.emitter,
       workerChannel: {
         on: (eventType, callback) => {
@@ -149,16 +152,6 @@ export class SetupWorkerApi
         readableStreamTransfer: supportsReadableStreamTransfer(),
       },
     }
-
-    /**
-     * @todo Not sure I like this but "this.currentHandlers"
-     * updates never bubble to "this.context.requestHandlers".
-     */
-    Object.defineProperties(context, {
-      requestHandlers: {
-        get: () => this.currentHandlers,
-      },
-    })
 
     this.startHandler = context.supports.serviceWorkerApi
       ? createFallbackStart(context)

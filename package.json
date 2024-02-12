@@ -34,6 +34,18 @@
       "import": "./lib/native/index.mjs",
       "default": "./lib/native/index.js"
     },
+    "./core/http": {
+      "types": "./lib/core/http.d.ts",
+      "require": "./lib/core/http.js",
+      "import": "./lib/core/http.mjs",
+      "default": "./lib/core/http.js"
+    },
+    "./core/graphql": {
+      "types": "./lib/core/graphql.d.ts",
+      "require": "./lib/core/graphql.js",
+      "import": "./lib/core/graphql.mjs",
+      "default": "./lib/core/graphql.js"
+    },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },

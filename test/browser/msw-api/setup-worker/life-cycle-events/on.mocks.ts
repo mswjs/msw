@@ -40,7 +40,7 @@ worker.events.on(
   async ({ response, request, requestId }) => {
     const body = await response.clone().text()
     console.warn(
-      `[response:mocked] ${body} ${request.method} ${request.url} ${requestId}`,
+      `[response:mocked] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
     )
   },
 )
@@ -50,7 +50,7 @@ worker.events.on(
   async ({ response, request, requestId }) => {
     const body = await response.clone().text()
     console.warn(
-      `[response:bypass] ${body} ${request.method} ${request.url} ${requestId}`,
+      `[response:bypass] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
     )
   },
 )

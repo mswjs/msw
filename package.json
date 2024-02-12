@@ -133,7 +133,6 @@
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
     "chalk": "^4.1.2",
-    "chokidar": "^3.4.2",
     "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
@@ -198,9 +197,6 @@
     "typescript": {
       "optional": true
     }
-  },
-  "resolutions": {
-    "chokidar": "3.4.1"
   },
   "config": {
     "commitizen": {

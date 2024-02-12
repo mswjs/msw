@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough } from 'msw'
 
 /**
  * Request path parameters.
@@ -119,3 +119,14 @@ http.get<never, never, string | string[]>('/user', () =>
 http.get<never, never, { label: boolean }>('/user', () =>
   HttpResponse.json({ label: true }),
 )
+
+// Passthrough responses.
+http.all('/', () => passthrough())
+http.get('/', () => passthrough())
+http.get<never, never, { id: number }>('/', ({ request }) => {
+  if (request.headers.has('cookie')) {
+    return passthrough()
+  }
+
+  return HttpResponse.json({ id: 1 })
+})

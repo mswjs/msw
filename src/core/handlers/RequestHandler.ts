@@ -284,6 +284,12 @@ export abstract class RequestHandler<
     })
 
     const mockedResponse = await mockedResponsePromise
+    if (
+      mockedResponse &&
+      mockedResponse.headers.get('x-msw-unhandled-remote-handler')
+    ) {
+      return null
+    }
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging

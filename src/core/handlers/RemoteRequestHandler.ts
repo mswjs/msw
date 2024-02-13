@@ -51,7 +51,19 @@ export class RemoteRequestHandler extends HttpHandler {
         responsePromise.resolve(response)
       })
 
-      return await responsePromise
+      const response = await responsePromise
+      if (typeof response === 'undefined') {
+        const dummyResponse = new Response(
+          JSON.stringify({
+            message: 'Unhandled request',
+            sender: 'MSW_RemoteRequestHandler',
+          }),
+        )
+        dummyResponse.headers.set('x-msw-unhandled-remote-handler', 'true')
+        return dummyResponse
+      }
+
+      return response
     })
   }
 }

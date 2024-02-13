@@ -52,6 +52,12 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
+  if (request.headers.get('x-msw-request-type') === 'internal-request') {
+    console.log('socket bypass?')
+    emitter.emit('request:end', { request, requestId })
+    return
+  }
+
   // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
   if (request.headers.get('x-msw-intention') === 'bypass') {
     emitter.emit('request:end', { request, requestId })

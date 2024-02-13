@@ -17,13 +17,12 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import type { ListenOptions, SetupServerCommon } from './glossary'
-import { Socket } from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
 import {
   SyncServerEventsMap,
   createSyncClient,
   createWebSocketServerUrl,
 } from './setupRemoteServer'
-import { Emitter } from 'strict-event-emitter'
 import {
   onAnyEvent,
   serializeEventPayload,
@@ -82,13 +81,7 @@ export class SetupServerCommonApi
         const isRequestForSocket = matcher.test(request.url)
         // Bypass handling if the request is for the socket.io connection
         if (isRequestForSocket) {
-          return this.applyRequestHandling(
-            request,
-            requestId,
-            this.handlersController.currentHandlers(),
-            this.resolvedOptions,
-            this.emitter,
-          )
+          return
         }
 
         if (typeof this.socket === 'undefined') {
@@ -105,13 +98,18 @@ export class SetupServerCommonApi
         }
       }
 
-      return this.applyRequestHandling(
+      const response = await handleRequest(
         request,
         requestId,
         this.handlersController.currentHandlers(),
         this.resolvedOptions,
         this.emitter,
       )
+
+      if (response) {
+        request.respondWith(response)
+      }
+      return
     })
 
     this.interceptor.on(
@@ -127,27 +125,6 @@ export class SetupServerCommonApi
         )
       },
     )
-  }
-
-  private async applyRequestHandling(
-    request: InteractiveRequest,
-    requestId: string,
-    handlers: Array<RequestHandler>,
-    options: RequiredDeep<SharedOptions>,
-    emitter: Emitter<LifeCycleEventsMap>,
-  ) {
-    const response = await handleRequest(
-      request,
-      requestId,
-      handlers,
-      options,
-      emitter,
-    )
-
-    if (response) {
-      request.respondWith(response)
-    }
-    return
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {

@@ -127,7 +127,7 @@ export class SetupServerCommonApi
     )
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,

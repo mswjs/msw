@@ -59,13 +59,27 @@ beforeAll(async () => {
     listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
   })
 
-  server.events.on('response:mocked', async ({ response, requestId }) => {
-    listener(`[response:mocked] ${await response.text()} ${requestId}`)
-  })
+  server.events.on(
+    'response:mocked',
+    async ({ response, request, requestId }) => {
+      listener(
+        `[response:mocked] ${await response.text()} ${request.method} ${
+          request.url
+        } ${requestId}`,
+      )
+    },
+  )
 
-  server.events.on('response:bypass', async ({ response, requestId }) => {
-    listener(`[response:bypass] ${await response.text()} ${requestId}`)
-  })
+  server.events.on(
+    'response:bypass',
+    async ({ response, request, requestId }) => {
+      listener(
+        `[response:bypass] ${await response.text()} ${request.method} ${
+          request.url
+        } ${requestId}`,
+      )
+    },
+  )
 
   server.events.on('unhandledException', ({ error, request, requestId }) => {
     listener(
@@ -114,7 +128,7 @@ test('emits events for a handler request and mocked response', async () => {
   )
   expect(listener).toHaveBeenNthCalledWith(
     4,
-    `[response:mocked] response-body ${requestId}`,
+    `[response:mocked] response-body GET ${url} ${requestId}`,
   )
   expect(listener).toHaveBeenCalledTimes(4)
 })
@@ -140,7 +154,7 @@ test('emits events for a handled request with no response', async () => {
   )
   expect(listener).toHaveBeenNthCalledWith(
     3,
-    `[response:bypass] original-response ${requestId}`,
+    `[response:bypass] original-response POST ${url} ${requestId}`,
   )
   expect(listener).toHaveBeenCalledTimes(3)
 })
@@ -170,7 +184,7 @@ test('emits events for an unhandled request', async () => {
   )
   expect(listener).toHaveBeenNthCalledWith(
     4,
-    `[response:bypass] majestic-unknown ${requestId}`,
+    `[response:bypass] majestic-unknown GET ${url} ${requestId}`,
   )
 })
 

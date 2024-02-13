@@ -223,6 +223,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/workleap.svg" alt="Workleap" height="64" width="174" />
       </a>
     </td>
+    <td>
+      <a href="https://www.chromatic.com/?ref=mswjs" target="_blank">
+        <img src="media/sponsors/chromatic.svg" alt="Chromatic" height="64" />
+      </a>
+    </td>
   </tr>
 </table>
 
@@ -239,11 +244,6 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
     <td>
       <a href="https://www.replay.io/" target="_blank">
         <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
-      </a>
-    </td>
-    <td>
-      <a href="https://www.chromatic.com/" target="_blank">
-        <img src="media/sponsors/chromatic.svg" alt="Chromatic" height="64" />
       </a>
     </td>
   </tr>

@@ -1,3 +1,5 @@
+import type { StrictResponse } from './HttpResponse'
+
 /**
  * Performs the intercepted request as-is.
  *
@@ -12,12 +14,12 @@
  *
  * @see {@link https://mswjs.io/docs/api/passthrough `passthrough()` API reference}
  */
-export function passthrough(): Response {
+export function passthrough(): StrictResponse<any> {
   return new Response(null, {
     status: 302,
     statusText: 'Passthrough',
     headers: {
       'x-msw-intention': 'passthrough',
     },
-  })
+  }) as StrictResponse<any>
 }

@@ -10,12 +10,38 @@ import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { Disposable } from './utils/internal/Disposable'
 
+export abstract class HandlersController {
+  abstract prepend(runtimeHandlers: Array<RequestHandler>): void
+  abstract reset(nextHandles: Array<RequestHandler>): void
+  abstract currentHandlers(): Array<RequestHandler>
+}
+
+export class InMemoryHandlersController implements HandlersController {
+  private handlers: Array<RequestHandler>
+
+  constructor(private initialHandlers: Array<RequestHandler>) {
+    this.handlers = [...initialHandlers]
+  }
+
+  public prepend(runtimeHandles: Array<RequestHandler>): void {
+    this.handlers.unshift(...runtimeHandles)
+  }
+
+  public reset(nextHandlers: Array<RequestHandler>): void {
+    this.handlers =
+      nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
+  }
+
+  public currentHandlers(): Array<RequestHandler> {
+    return this.handlers
+  }
+}
+
 /**
  * Generic class for the mock API setup.
  */
 export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
-  protected initialHandlers: ReadonlyArray<RequestHandler>
-  protected currentHandlers: Array<RequestHandler>
+  protected handlersController: HandlersController
   protected readonly emitter: Emitter<EventsMap>
   protected readonly publicEmitter: Emitter<EventsMap>
 
@@ -31,8 +57,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.initialHandlers = toReadonlyArray(initialHandlers)
-    this.currentHandlers = [...initialHandlers]
+    this.handlersController = new InMemoryHandlersController(initialHandlers)
 
     this.emitter = new Emitter<EventsMap>()
     this.publicEmitter = new Emitter<EventsMap>()
@@ -59,24 +84,23 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.currentHandlers.unshift(...runtimeHandlers)
+    this.handlersController.prepend(runtimeHandlers)
   }
 
   public restoreHandlers(): void {
-    this.currentHandlers.forEach((handler) => {
+    this.handlersController.currentHandlers().forEach((handler) => {
       handler.isUsed = false
     })
   }
 
   public resetHandlers(...nextHandlers: Array<RequestHandler>): void {
-    this.currentHandlers =
-      nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
+    this.handlersController.reset(nextHandlers)
   }
 
   public listHandlers(): ReadonlyArray<
     RequestHandler<RequestHandlerDefaultInfo, any, any>
   > {
-    return toReadonlyArray(this.currentHandlers)
+    return toReadonlyArray(this.handlersController.currentHandlers())
   }
 
   private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {

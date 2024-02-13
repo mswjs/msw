@@ -87,7 +87,7 @@ export class SetupRemoteServerApi
         const response = await handleRequest(
           request,
           requestId,
-          this.currentHandlers,
+          this.handlersController.currentHandlers(),
           /**
            * @todo Support resolve options from the `.listen()` call.
            */

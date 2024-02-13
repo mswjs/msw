@@ -5,7 +5,7 @@ import type {
 } from 'graphql'
 import { parse } from 'graphql'
 import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
-import { getPublicUrlFromRequest } from '../request/getPublicUrlFromRequest'
+import { toPublicUrl } from '../request/toPublicUrl'
 import { devUtils } from './devUtils'
 import { jsonParse } from './jsonParse'
 import { parseMultipartData } from './parseMultipartData'
@@ -184,7 +184,7 @@ export async function parseGraphQLRequest(
   const parsedResult = parseQuery(query)
 
   if (parsedResult instanceof Error) {
-    const requestPublicUrl = getPublicUrlFromRequest(request)
+    const requestPublicUrl = toPublicUrl(request.url)
 
     throw new Error(
       devUtils.formatMessage(

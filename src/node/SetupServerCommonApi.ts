@@ -209,17 +209,22 @@ export class SetupServerCommonApi
       options,
     ) as RequiredDeep<ListenOptions>
 
-    this.handlersController.prepend([
-      http.all('http://localhost:3030/socket.io', ({ request, requestId }) => {
-        console.log({
-          msg: 'Passing through socket.io request',
-          url: request.url,
-          method: request.method,
-          requestId,
-        })
-        return passthrough()
-      }),
-    ])
+    if (this.resolvedOptions.remotePort) {
+      this.handlersController.prepend([
+        http.all(
+          'http://localhost:3030/socket.io',
+          ({ request, requestId }) => {
+            console.log({
+              msg: 'Passing through socket.io request',
+              url: request.url,
+              method: request.method,
+              requestId,
+            })
+            return passthrough()
+          },
+        ),
+      ])
+    }
 
     // Once the connection to the remote WebSocket server succeeds,
     // pipe any life-cycle events from this process through that socket.

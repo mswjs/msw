@@ -28,6 +28,7 @@ import {
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
+import { http, passthrough } from '~/core'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -64,6 +65,14 @@ export class SetupServerCommonApi
     this.init()
   }
 
+  private isRequestForSocket(requestUrl: string, remotePort: number): boolean {
+    const remoteResolutionUrl = createWebSocketServerUrl(remotePort)
+    // Build a pattern to match the socket.io connection
+    remoteResolutionUrl.pathname = '/socket.io'
+    const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
+    return matcher.test(requestUrl)
+  }
+
   /**
    * Subscribe to all requests that are using the interceptor object
    */
@@ -72,32 +81,93 @@ export class SetupServerCommonApi
       // If in remote mode, await the WebSocket connection promise
       // before handling any requests.
       if (this.resolvedOptions.remotePort) {
-        const remoteResolutionUrl = createWebSocketServerUrl(
+        // Bypass handling if the request is for the socket.io connection
+        const isSocketRequest = this.isRequestForSocket(
+          request.url,
           this.resolvedOptions.remotePort,
         )
-        // Build a pattern to match the socket.io connection
-        remoteResolutionUrl.pathname = '/socket.io'
-        const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
-        const isRequestForSocket = matcher.test(request.url)
-        // Bypass handling if the request is for the socket.io connection
-        if (isRequestForSocket) {
+        if (isSocketRequest) {
+          // if (typeof this.socket === 'undefined') {
+          console.log(
+            'Skipping request for socket.io connection',
+            request.method,
+            request.url,
+            requestId,
+          )
           return
+          // }
+        } else {
+          console.log({
+            message: 'Request intercepted in CommonApi',
+            handlers: this.handlersController.currentHandlers(),
+            url: request.url,
+            method: request.method,
+            requestId,
+          })
         }
+        //   } else {
+        //     console.log(
+        //       'Socket exists, handling request for socket.io connection',
+        //     )
+        //     // const r = await handleRequest(
+        //     //   request,
+        //     //   requestId,
+        //     //   this.handlersController.currentHandlers(),
+        //     //   this.resolvedOptions,
+        //     //   this.emitter,
+        //     // )
+        //     // console.log({
+        //     //   r,
+        //     //   m: 'Got response socket.io handling in CommonApi',
+        //     // })
+
+        //     // return
+        //   }
+        // }
 
         if (typeof this.socket === 'undefined') {
+          console.log('Creating client socket')
           this.socket = await createSyncClient(this.resolvedOptions.remotePort)
+          console.log({ socket: this.socket, m: 'Created client socket' })
         }
 
+        // if (typeof this.socket !== 'undefined' && !isSocketRequest) {
         if (typeof this.socket !== 'undefined') {
+          console.log('Adding handlers, first load? ReqId: ', requestId)
+          const initialHandlers = this.handlersController.currentHandlers()
           this.handlersController.prepend([
+            http.all(
+              'http://localhost:3030/socket.io',
+              ({ request, requestId }) => {
+                console.log({
+                  msg: 'Passing through socket.io request',
+                  url: request.url,
+                  method: request.method,
+                  requestId,
+                })
+                return passthrough()
+              },
+            ),
             new RemoteRequestHandler({
               requestId,
               socket: this.socket,
             }),
           ])
+          this.socket.on('disconnect', () => {
+            console.log('Remote handler disconnected')
+            this.handlersController.reset(initialHandlers)
+            this.socket = undefined
+            console.log({ handlers: this.handlersController.currentHandlers() })
+          })
         }
       }
 
+      console.log({
+        msg: `Handling request for ${request.url}`,
+        requestId,
+        requestHeaders: Array.from(request.headers.entries()),
+        handlers: this.handlersController.currentHandlers(),
+      })
       const response = await handleRequest(
         request,
         requestId,
@@ -105,6 +175,12 @@ export class SetupServerCommonApi
         this.resolvedOptions,
         this.emitter,
       )
+      console.log({
+        response,
+        m: 'Got response in CommonApi',
+        requestId,
+        url: request.url,
+      })
 
       if (response) {
         request.respondWith(response)
@@ -132,6 +208,18 @@ export class SetupServerCommonApi
       DEFAULT_LISTEN_OPTIONS,
       options,
     ) as RequiredDeep<ListenOptions>
+
+    this.handlersController.prepend([
+      http.all('http://localhost:3030/socket.io', ({ request, requestId }) => {
+        console.log({
+          msg: 'Passing through socket.io request',
+          url: request.url,
+          method: request.method,
+          requestId,
+        })
+        return passthrough()
+      }),
+    ])
 
     // Once the connection to the remote WebSocket server succeeds,
     // pipe any life-cycle events from this process through that socket.

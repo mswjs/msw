@@ -31,7 +31,15 @@ export class RemoteRequestHandler extends HttpHandler {
 
       console.log('[msw] regular request, continue...')
 
-      console.log('[msw] emitting "request" ws event')
+      // console.log('[msw] emitting "request" ws event')
+
+      console.log({
+        m: 'Emitting request in RemoteRequestHandler',
+        socket: args.socket,
+        url: request.url,
+        method: request.method,
+      })
+
       args.socket.emit('request', {
         requestId: args.requestId,
         serializedRequest: await serializeRequest(request),

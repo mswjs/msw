@@ -74,6 +74,7 @@ export class SetupRemoteServerApi
     const server = await createSyncServer(url)
 
     server.removeAllListeners()
+    // server.listen(options.port)
 
     console.log('WS server created!')
 
@@ -82,7 +83,15 @@ export class SetupRemoteServerApi
       .on('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
+      console.log('WS server connection!')
+
       socket.on('request', async ({ requestId, serializedRequest }) => {
+        console.log({
+          msg: 'Received a request in remote server',
+          requestId,
+          serializedRequest,
+        })
+
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
           request,
@@ -105,6 +114,8 @@ export class SetupRemoteServerApi
         const deserializedArgs = await deserializeEventPayload(args)
         this.emitter.emit(eventName, deserializedArgs as any)
       })
+
+      console.log('WS server socket listeners attached!')
     })
   }
 
@@ -164,6 +175,7 @@ async function createSyncServer(
       methods: ['HEAD', 'GET', 'POST'],
     },
   })
+  ws.listen(httpServer)
 
   httpServer.listen(+url.port, url.hostname, () => {
     globalThis[syncServerSymbol] = ws
@@ -223,7 +235,9 @@ export async function createSyncClient(port: number) {
   })
 
   socket.on('connect', () => {
-    console.log('[msw] setupRemoteServer, CONNECTION!')
+    console.log(
+      '[msw] setupRemoteServer, CONNECTION! (client connected to server, written by client)',
+    )
     connectionPromise.resolve(socket)
   })
 

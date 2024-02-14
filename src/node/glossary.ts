@@ -1,5 +1,5 @@
 import type { PartialDeep } from 'type-fest'
-import { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type {
   LifeCycleEventEmitter,
@@ -7,7 +7,7 @@ import type {
   SharedOptions,
 } from '~/core/sharedOptions'
 
-export interface SetupServer {
+export interface SetupServerCommon {
   /**
    * Starts requests interception based on the previously provided request handlers.
    *
@@ -57,4 +57,18 @@ export interface SetupServer {
    * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
    */
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
+}
+
+export interface SetupServer extends SetupServerCommon {
+  /**
+   * Wraps the given function in a boundary. Any changes to the
+   * network behavior (e.g. adding runtime request handlers via
+   * `server.use()`) will be scoped to this boundary only.
+   * @param callback A function to run (e.g. a test)
+   *
+   * @see {@link https://mswjs.io/docs/api/setup-server/boundary `server.boundary()` API reference}
+   */
+  boundary<Fn extends (...args: Array<any>) => unknown>(
+    callback: Fn,
+  ): (...args: Parameters<Fn>) => ReturnType<Fn>
 }

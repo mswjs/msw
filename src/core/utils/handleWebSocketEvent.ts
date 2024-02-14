@@ -1,5 +1,9 @@
 import { RequestHandler } from '../handlers/RequestHandler'
-import { WebSocketHandler, kRun } from '../handlers/WebSocketHandler'
+import {
+  WebSocketHandler,
+  kDefaultPrevented,
+  kDispatchEvent,
+} from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from '../ws/webSocketInterceptor'
 
 export function handleWebSocketEvent(
@@ -8,7 +12,12 @@ export function handleWebSocketEvent(
   webSocketInterceptor.on('connection', (connection) => {
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
-      cancelable: true,
+    })
+
+    Object.defineProperty(connectionEvent, kDefaultPrevented, {
+      enumerable: false,
+      writable: true,
+      value: false,
     })
 
     // Iterate over the handlers and forward the connection
@@ -16,15 +25,13 @@ export function handleWebSocketEvent(
     // to dispatching that event onto multiple listeners.
     for (const handler of handlers) {
       if (handler instanceof WebSocketHandler) {
-        // Never await the run function because event handlers
-        // are side-effectful and don't block the event loop.
-        handler[kRun]({ event: connectionEvent })
+        handler[kDispatchEvent](connectionEvent)
       }
     }
 
     // If none of the "ws" handlers matched,
     // establish the WebSocket connection as-is.
-    if (!connectionEvent.defaultPrevented) {
+    if (!Reflect.get(connectionEvent, kDefaultPrevented)) {
       connection.server.connect()
       connection.client.addEventListener('message', (event) => {
         connection.server.send(event.data)

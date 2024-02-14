@@ -30,7 +30,8 @@ type WebSocketHandlerIncomingEvent = MessageEvent<{
 }>
 
 export const kEmitter = Symbol('kEmitter')
-export const kRun = Symbol('kRun')
+export const kDispatchEvent = Symbol('kDispatchEvent')
+export const kDefaultPrevented = Symbol('kDefaultPrevented')
 
 export class WebSocketHandler {
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
@@ -54,25 +55,28 @@ export class WebSocketHandler {
     event: WebSocketHandlerIncomingEvent
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
-    const { match } = args.parsedResult
-    return match.matches
+    return args.parsedResult.match.matches
   }
 
-  async [kRun](args: { event: MessageEvent<any> }): Promise<void> {
-    const parsedResult = this.parse({ event: args.event })
-    const shouldIntercept = this.predicate({ event: args.event, parsedResult })
+  async [kDispatchEvent](event: MessageEvent<any>): Promise<void> {
+    const parsedResult = this.parse({ event })
+    const shouldIntercept = this.predicate({ event, parsedResult })
 
     if (!shouldIntercept) {
       return
     }
 
-    const connectionEvent = args.event
+    // Account for other matching event handlers that've already prevented this event.
+    if (!Reflect.get(event, kDefaultPrevented)) {
+      // At this point, the WebSocket connection URL has matched the handler.
+      // Prevent the default behavior of establishing the connection as-is.
+      // Use internal symbol because we aren't actually dispatching this
+      // event. Events can only marked as cancelable and can be prevented
+      // when dispatched on an EventTarget.
+      Reflect.set(event, kDefaultPrevented, true)
+    }
 
-    // At this point, the WebSocket connection URL has matched the handler.
-    // Prevent the default behavior of establishing the connection as-is.
-    connectionEvent.preventDefault()
-
-    const connection = connectionEvent.data
+    const connection = event.data
 
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.

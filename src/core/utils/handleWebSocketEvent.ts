@@ -7,9 +7,10 @@ import {
 import { webSocketInterceptor } from '../ws/webSocketInterceptor'
 
 export function handleWebSocketEvent(
-  handlers: Array<WebSocketHandler | RequestHandler>,
+  getCurrentHandlers: () => Array<RequestHandler | WebSocketHandler>,
 ) {
   webSocketInterceptor.on('connection', (connection) => {
+    const handlers = getCurrentHandlers()
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
     })

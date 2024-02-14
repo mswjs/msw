@@ -18,6 +18,7 @@ import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
+import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -82,6 +83,10 @@ export class SetupServerCommonApi
         )
       },
     )
+
+    handleWebSocketEvent(() => {
+      return this.handlersController.currentHandlers()
+    })
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {

@@ -17,6 +17,7 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
+  server.resetHandlers()
   wsServer.closeAllClients()
   wsServer.removeAllListeners()
 })

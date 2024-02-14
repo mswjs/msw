@@ -21,9 +21,11 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
     this.app = fastify()
     this.app.register(fastifyWebSocket)
     this.app.register(async (fastify) => {
-      fastify.get('/', { websocket: true }, (connection) => {
-        this.clients.add(connection.socket)
-        this.emit('connection', connection.socket)
+      fastify.get('/', { websocket: true }, ({ socket }) => {
+        this.clients.add(socket)
+        socket.once('close', () => this.clients.delete(socket))
+
+        this.emit('connection', socket)
       })
     })
   }

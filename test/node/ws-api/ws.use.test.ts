@@ -12,6 +12,10 @@ const server = setupServer(
       if (event.data === 'hello') {
         client.send('hello, client!')
       }
+
+      if (event.data === 'fallthrough') {
+        client.send('ok')
+      }
     })
   }),
 )
@@ -129,4 +133,44 @@ it.concurrent(
       expect(messageListener).toHaveBeenCalledTimes(2)
     })
   },
+)
+
+it.concurrent(
+  'does not affect unrelated events',
+  server.boundary(async () => {
+    server.use(
+      service.on('connection', ({ client }) => {
+        client.addEventListener('message', (event) => {
+          if (event.data === 'hello') {
+            // Stopping immediate event propagation will prevent
+            // the same message listener in the initial handler
+            // from being called.
+            event.stopImmediatePropagation()
+            client.send('howdy, client!')
+          }
+        })
+      }),
+    )
+
+    const messageListener = vi.fn()
+    const ws = new WebSocket('wss://example.com')
+    ws.onmessage = (event) => {
+      messageListener(event.data)
+
+      if (event.data === 'howdy, client!') {
+        ws.send('fallthrough')
+      }
+    }
+    ws.onopen = () => ws.send('hello')
+
+    await vi.waitFor(() => {
+      expect(messageListener).toHaveBeenNthCalledWith(1, 'howdy, client!')
+    })
+
+    await vi.waitFor(() => {
+      // The initial handler still sends data to unrelated events.
+      expect(messageListener).toHaveBeenNthCalledWith(2, 'ok')
+      expect(messageListener).toHaveBeenCalledTimes(2)
+    })
+  }),
 )

@@ -45,6 +45,11 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
     this._url = url.href
   }
 
+  public resetState(): void {
+    this.closeAllClients()
+    this.removeAllListeners()
+  }
+
   public closeAllClients(): void {
     this.clients.forEach((client) => {
       client.close()

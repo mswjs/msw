@@ -17,8 +17,7 @@ beforeAll(async () => {
 
 afterEach(() => {
   server.resetHandlers()
-  originalServer.closeAllClients()
-  originalServer.removeAllListeners()
+  originalServer.resetState()
 })
 
 afterAll(async () => {

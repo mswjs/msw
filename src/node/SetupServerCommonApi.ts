@@ -43,7 +43,7 @@ export class SetupServerCommonApi
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
-    this.resolvedOptions = {} as RequiredDeep<SharedOptions>
+    this.resolvedOptions = {} as RequiredDeep<ListenOptions>
 
     this.init()
   }
@@ -64,7 +64,6 @@ export class SetupServerCommonApi
       if (response) {
         request.respondWith(response)
       }
-
       return
     })
 
@@ -83,11 +82,65 @@ export class SetupServerCommonApi
     )
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
-    ) as RequiredDeep<SharedOptions>
+    ) as RequiredDeep<ListenOptions>
+
+    // Once the connection to the remote WebSocket server succeeds,
+    // pipe any life-cycle events from this process through that socket.
+    onAnyEvent(this.emitter, async (eventName, listenerArgs) => {
+      const { socket } = this
+
+      if (typeof socket === 'undefined') {
+        return
+      }
+
+      const forwardLifeCycleEvent = async () => {
+        const args = await serializeEventPayload(listenerArgs)
+        socket.emit(
+          'lifeCycleEventForward',
+          /**
+           * @todo Annotating serialized/desirialized mirror channels is tough.
+           */
+          eventName,
+          args as any,
+        )
+      }
+
+      switch (eventName) {
+        case 'request:start':
+        case 'request:match':
+        case 'request:unhandled':
+        case 'request:end': {
+          const { request } = listenerArgs
+
+          if (
+            request.headers.get('x-msw-request-type') === 'internal-request'
+          ) {
+            return
+          }
+
+          forwardLifeCycleEvent()
+          break
+        }
+
+        case 'response:bypass':
+        case 'response:mocked': {
+          const { request } = listenerArgs
+
+          if (
+            request.headers.get('x-msw-request-type') === 'internal-request'
+          ) {
+            return
+          }
+
+          forwardLifeCycleEvent()
+          break
+        }
+      }
+    })
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()

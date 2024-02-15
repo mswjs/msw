@@ -17,8 +17,8 @@ export type SerializedLifeCycleEventListenerArgs<
   [Key in keyof Args]: Args[Key] extends Request
     ? SerializedRequest
     : Args[Key] extends Response
-    ? SerializedResponse
-    : Args[Key]
+      ? SerializedResponse
+      : Args[Key]
 }
 
 export type SerializedLifeCycleEventsMap = {

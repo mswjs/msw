@@ -48,6 +48,7 @@ export class SetupServerCommonApi
   >
   private resolvedOptions: RequiredDeep<ListenOptions>
   private socket: Socket<SyncServerEventsMap> | undefined
+  private addedRemoteHandler: boolean = false
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -89,7 +90,7 @@ export class SetupServerCommonApi
           this.socket = await createSyncClient(this.resolvedOptions.remotePort)
         }
 
-        if (typeof this.socket !== 'undefined') {
+        if (typeof this.socket !== 'undefined' && !this.addedRemoteHandler) {
           const initialHandlers = this.handlersController.currentHandlers()
           this.handlersController.prepend([
             http.all(remoteResolutionUrl.href, passthrough),
@@ -102,7 +103,9 @@ export class SetupServerCommonApi
             console.log('Remote handler disconnected')
             this.handlersController.reset(initialHandlers)
             this.socket = undefined
+            this.addedRemoteHandler = false
           })
+          this.addedRemoteHandler = true
         }
       }
 

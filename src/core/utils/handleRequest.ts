@@ -75,8 +75,6 @@ export async function handleRequest(
     })
   })
 
-  console.log({ lookupResult, requestId })
-
   if (lookupResult.error) {
     // Allow developers to react to unhandled exceptions in request handlers.
     emitter.emit('unhandledException', {

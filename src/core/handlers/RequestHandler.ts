@@ -229,13 +229,6 @@ export abstract class RequestHandler<
       return null
     }
 
-    console.log({
-      msg: `Handling request with handler ${this.info.header}`,
-      reqId: args.requestId,
-      url: args.request.url,
-      method: args.request.method,
-    })
-
     // Clone the request.
     // If this is the first time MSW handles this request, a fresh clone
     // will be created and cached. Upon further handling of the same request,
@@ -254,7 +247,6 @@ export abstract class RequestHandler<
     })
 
     if (!shouldInterceptRequest) {
-      console.log('Skipping handling', args.requestId)
       return null
     }
 
@@ -275,7 +267,6 @@ export abstract class RequestHandler<
       parsedResult,
     })
 
-    console.log('Executing resolver')
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
@@ -297,11 +288,11 @@ export abstract class RequestHandler<
       mockedResponse &&
       mockedResponse.headers.get('x-msw-unhandled-remote-handler')
     ) {
-      console.log('unhandled remote handler - returning null')
+      // If the response is marked as unhandled by a remote handler,
+      // return null to indicate it was not handled
+      // (despite passing through the RemoteRequestHandler, which matched).
       return null
     }
-
-    console.log({ m: 'Resolver executed', mockedResponse })
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
@@ -311,8 +302,6 @@ export abstract class RequestHandler<
       response: mockedResponse,
       parsedResult,
     })
-
-    console.log(executionResult)
 
     return executionResult
   }

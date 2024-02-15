@@ -164,6 +164,7 @@ async function createSyncServer(
       methods: ['HEAD', 'GET', 'POST'],
     },
   })
+  ws.listen(httpServer)
 
   httpServer.listen(+url.port, url.hostname, () => {
     globalThis[syncServerSymbol] = ws

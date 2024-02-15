@@ -48,6 +48,7 @@ export class SetupServerCommonApi
   >
   private resolvedOptions: RequiredDeep<ListenOptions>
   private socket: Socket<SyncServerEventsMap> | undefined
+  private addedRemoteHandler: boolean = false
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -65,14 +66,6 @@ export class SetupServerCommonApi
     this.init()
   }
 
-  private isRequestForSocket(requestUrl: string, remotePort: number): boolean {
-    const remoteResolutionUrl = createWebSocketServerUrl(remotePort)
-    // Build a pattern to match the socket.io connection
-    remoteResolutionUrl.pathname = '/socket.io'
-    const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
-    return matcher.test(requestUrl)
-  }
-
   /**
    * Subscribe to all requests that are using the interceptor object
    */
@@ -82,10 +75,13 @@ export class SetupServerCommonApi
       // before handling any requests.
       if (this.resolvedOptions.remotePort) {
         // Bypass handling if the request is for the socket.io connection
-        const isSocketRequest = this.isRequestForSocket(
-          request.url,
+        const remoteResolutionUrl = createWebSocketServerUrl(
           this.resolvedOptions.remotePort,
         )
+        // Build a pattern to match the socket.io connection
+        remoteResolutionUrl.pathname = '/socket.io'
+        const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
+        const isSocketRequest = matcher.test(request.url)
         if (isSocketRequest) {
           return
         }
@@ -94,9 +90,7 @@ export class SetupServerCommonApi
           this.socket = await createSyncClient(this.resolvedOptions.remotePort)
         }
 
-        // if (typeof this.socket !== 'undefined' && !isSocketRequest) {
-        if (typeof this.socket !== 'undefined') {
-          console.log('Adding handlers, first load? ReqId: ', requestId)
+        if (typeof this.socket !== 'undefined' && !this.addedRemoteHandler) {
           const initialHandlers = this.handlersController.currentHandlers()
           this.handlersController.prepend([
             http.all(remoteResolutionUrl.href, passthrough),
@@ -109,8 +103,9 @@ export class SetupServerCommonApi
             console.log('Remote handler disconnected')
             this.handlersController.reset(initialHandlers)
             this.socket = undefined
-            console.log({ handlers: this.handlersController.currentHandlers() })
+            this.addedRemoteHandler = false
           })
+          this.addedRemoteHandler = true
         }
       }
 

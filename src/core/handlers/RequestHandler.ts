@@ -266,10 +266,33 @@ export abstract class RequestHandler<
       request: args.request,
       parsedResult,
     })
-    const mockedResponse = (await executeResolver({
-      ...resolverExtras,
-      request: args.request,
-    })) as Response
+
+    const mockedResponsePromise = (
+      executeResolver({
+        ...resolverExtras,
+        requestId: args.requestId,
+        request: args.request,
+      }) as Promise<Response>
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
+
+    const mockedResponse = await mockedResponsePromise
+    if (
+      mockedResponse &&
+      mockedResponse.headers.get('x-msw-unhandled-remote-handler')
+    ) {
+      // If the response is marked as unhandled by a remote handler,
+      // return null to indicate it was not handled
+      // (despite passing through the RemoteRequestHandler, which matched).
+      return null
+    }
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging

@@ -82,17 +82,25 @@ export class SetupRemoteServerApi
       .on('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
+      console.log('WS server connection!')
+
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
           request,
           requestId,
-          this.currentHandlers,
+          this.handlersController.currentHandlers(),
           /**
            * @todo Support resolve options from the `.listen()` call.
            */
           { onUnhandledRequest() {} },
           placeholderEmitter,
+        )
+
+        console.log(
+          `[msw] RemoteServerHandling: ${response ? 'Handled' : 'Ignored'} `,
+          request.method,
+          request.url,
         )
 
         socket.emit(
@@ -193,7 +201,7 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
   return serverClosePromise
 }
 
-function createWebSocketServerUrl(port: number): URL {
+export function createWebSocketServerUrl(port: number): URL {
   const url = new URL('http://localhost')
   url.port = port.toString()
   return url

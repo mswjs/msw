@@ -16,10 +16,26 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import type { SetupServerCommon } from './glossary'
+import type { ListenOptions, SetupServerCommon } from './glossary'
+import type { Socket } from 'socket.io-client'
+import {
+  SyncServerEventsMap,
+  createSyncClient,
+  createWebSocketServerUrl,
+} from './setupRemoteServer'
+import {
+  onAnyEvent,
+  serializeEventPayload,
+} from '~/core/utils/internal/emitterUtils'
+import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
+import { http, passthrough } from '~/core'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
+}
+
+interface InteractiveRequest extends Request {
+  respondWith(response: Response): void
 }
 
 export class SetupServerCommonApi
@@ -30,7 +46,8 @@ export class SetupServerCommonApi
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  private resolvedOptions: RequiredDeep<SharedOptions>
+  private resolvedOptions: RequiredDeep<ListenOptions>
+  private socket: Socket<SyncServerEventsMap> | undefined
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -53,6 +70,42 @@ export class SetupServerCommonApi
    */
   private init(): void {
     this.interceptor.on('request', async ({ request, requestId }) => {
+      // If in remote mode, await the WebSocket connection promise
+      // before handling any requests.
+      if (this.resolvedOptions.remotePort) {
+        // Bypass handling if the request is for the socket.io connection
+        const remoteResolutionUrl = createWebSocketServerUrl(
+          this.resolvedOptions.remotePort,
+        )
+        // Build a pattern to match the socket.io connection
+        remoteResolutionUrl.pathname = '/socket.io'
+        const matcher = new RegExp(`${remoteResolutionUrl.href}/.*`)
+        const isSocketRequest = matcher.test(request.url)
+        if (isSocketRequest) {
+          return
+        }
+
+        if (typeof this.socket === 'undefined') {
+          this.socket = await createSyncClient(this.resolvedOptions.remotePort)
+        }
+
+        if (typeof this.socket !== 'undefined') {
+          const initialHandlers = this.handlersController.currentHandlers()
+          this.handlersController.prepend([
+            http.all(remoteResolutionUrl.href, passthrough),
+            new RemoteRequestHandler({
+              requestId,
+              socket: this.socket,
+            }),
+          ])
+          this.socket.on('disconnect', () => {
+            console.log('Remote handler disconnected')
+            this.handlersController.reset(initialHandlers)
+            this.socket = undefined
+          })
+        }
+      }
+
       const response = await handleRequest(
         request,
         requestId,

@@ -22,6 +22,7 @@ import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
+import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
 
 interface Listener {
   target: EventTarget
@@ -176,6 +177,10 @@ export class SetupWorkerApi
       DEFAULT_START_OPTIONS,
       options,
     ) as SetupWorkerInternalContext['startOptions']
+
+    handleWebSocketEvent(() => {
+      return this.handlersController.currentHandlers()
+    })
 
     return await this.startHandler(this.context.startOptions, options)
   }

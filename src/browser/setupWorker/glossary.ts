@@ -75,24 +75,6 @@ export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-/**
- * Map of the events that can be sent to the Service Worker
- * only as a part of a single `fetch` event handler.
- */
-export interface ServiceWorkerFetchEventMap {
-  MOCK_RESPONSE(payload: StringifiedResponse): void
-  MOCK_RESPONSE_START(payload: StringifiedResponse): void
-
-  MOCK_NOT_FOUND(): void
-  NETWORK_ERROR(payload: { name: string; message: string }): void
-  INTERNAL_ERROR(payload: { status: number; body: string }): void
-}
-
-export interface ServiceWorkerBroadcastChannelMessageMap {
-  MOCK_RESPONSE_CHUNK(payload: Uint8Array): void
-  MOCK_RESPONSE_END(): void
-}
-
 export interface StrictEventListener<EventType extends Event> {
   (event: EventType): void
 }

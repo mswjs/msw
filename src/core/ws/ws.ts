@@ -1,4 +1,7 @@
-import type { WebSocketClientConnection } from '@mswjs/interceptors/WebSocket'
+import type {
+  WebSocketClientConnectionProtocol,
+  WebSocketData,
+} from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
   kEmitter,
@@ -6,8 +9,9 @@ import {
 } from '../handlers/WebSocketHandler'
 import type { Path } from '../utils/matching/matchRequestUrl'
 import { webSocketInterceptor } from './webSocketInterceptor'
+import { WebSocketClientManager } from './SerializedWebSocketClientConnection'
 
-const wsBroadcastChannel = new BroadcastChannel('msw:ws')
+const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
 
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
@@ -20,45 +24,22 @@ const wsBroadcastChannel = new BroadcastChannel('msw:ws')
  */
 function createWebSocketLinkHandler(url: Path) {
   webSocketInterceptor.apply()
-
-  /**
-   * @note The set of all WebSocket clients in THIS runtime.
-   * This will be the accumulated list of all clients for Node.js.
-   * But in the browser, each tab will create its own runtime,
-   * so this set will only contain the matching clients from
-   * that isolated runtime (no shared runtime).
-   */
-  const runtimeClients = new Set<WebSocketClientConnection>()
+  const clientManager = new WebSocketClientManager(wsBroadcastChannel)
 
   return {
+    clients: clientManager.clients,
     on<K extends keyof WebSocketHandlerEventMap>(
       event: K,
       listener: (...args: WebSocketHandlerEventMap[K]) => void,
     ): WebSocketHandler {
       const handler = new WebSocketHandler(url)
 
-      wsBroadcastChannel.addEventListener('message', (event) => {
-        const { type, payload } = event.data
-
-        switch (type) {
-          case 'message': {
-            const { data, ignoreClients } = payload
-
-            runtimeClients.forEach((client) => {
-              if (!ignoreClients || !ignoreClients.includes(client.id)) {
-                client.send(data)
-              }
-            })
-            break
-          }
-        }
-      })
-
+      // Add the connection event listener for when the
+      // handler matches and emits a connection event.
+      // When that happens, store that connection in the
+      // set of all connections for reference.
       handler[kEmitter].on('connection', ({ client }) => {
-        runtimeClients.add(client)
-        client.addEventListener('close', () => {
-          runtimeClients.delete(client)
-        })
+        clientManager.addConnection(client)
       })
 
       // The "handleWebSocketEvent" function will invoke
@@ -79,15 +60,11 @@ function createWebSocketLinkHandler(url: Path) {
      *   service.broadcast('hello, everyone!')
      * })
      */
-    broadcast(data: any): void {
-      // Broadcast to all the clients of this runtime.
-      runtimeClients.forEach((client) => client.send(data))
-
-      // Broadcast to all the clients from other runtimes.
-      wsBroadcastChannel.postMessage({
-        type: 'message',
-        payload: { data },
-      })
+    broadcast(data: WebSocketData): void {
+      // This will invoke "send()" on the immediate clients
+      // in this runtime and post a message to the broadcast channel
+      // to trigger send for the clients in other runtimes.
+      this.broadcastExcept([], data)
     },
 
     /**
@@ -101,31 +78,19 @@ function createWebSocketLinkHandler(url: Path) {
      * })
      */
     broadcastExcept(
-      clients: WebSocketClientConnection | Array<WebSocketClientConnection>,
-      data: any,
+      clients:
+        | WebSocketClientConnectionProtocol
+        | Array<WebSocketClientConnectionProtocol>,
+      data: WebSocketData,
     ): void {
       const ignoreClients = Array.prototype
         .concat(clients)
         .map((client) => client.id)
 
-      // Broadcast this event to all the clients of this runtime
-      // except for the given ignored clients. This is needed
-      // so a "broadcastExcept()" call in another runtime affects
-      // this runtime but respects the ignored clients.
-      runtimeClients.forEach((otherClient) => {
+      clientManager.clients.forEach((otherClient) => {
         if (!ignoreClients.includes(otherClient.id)) {
           otherClient.send(data)
         }
-      })
-
-      // Broadcast to all the clients from other runtimes,
-      // respecting the list of ignored client IDs.
-      wsBroadcastChannel.postMessage({
-        type: 'message',
-        payload: {
-          data,
-          ignoreClients,
-        },
       })
     },
   }

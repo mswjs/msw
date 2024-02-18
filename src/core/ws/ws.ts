@@ -1,4 +1,4 @@
-import { WebSocketClientConnection } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import type { WebSocketClientConnection } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
   kEmitter,

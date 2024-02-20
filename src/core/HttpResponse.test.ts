@@ -255,4 +255,3 @@ it('creates a form data response', async () => {
     ),
   })
 })
-

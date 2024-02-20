@@ -4,19 +4,16 @@ import { Server as WebSocketServer } from 'socket.io'
 import { Socket, io } from 'socket.io-client'
 import { Emitter } from 'strict-event-emitter'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import {
-  LifeCycleEventsMap,
-  RequestHandler,
-  SetupApi,
-  handleRequest,
-} from '~/core'
+import { SetupApi } from '~/core/SetupApi'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { handleRequest } from '~/core/utils/handleRequest'
 import {
   SerializedRequest,
   SerializedResponse,
   deserializeRequest,
   serializeResponse,
 } from '~/core/utils/request/serializeUtils'
-import { LifeCycleEventEmitter } from '~/core/sharedOptions'
+import { LifeCycleEventEmitter, LifeCycleEventsMap } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import {
   SerializedLifeCycleEventsMap,
@@ -28,7 +25,9 @@ const kSyncServer = Symbol('kSyncServer')
 /**
  * Enables API mocking in a remote Node.js process.
  */
-export function setupRemoteServer(...handlers: Array<RequestHandler>) {
+export function setupRemoteServer(
+  ...handlers: Array<RequestHandler>
+): SetupRemoteServerApi {
   return new SetupRemoteServerApi(...handlers)
 }
 
@@ -82,6 +81,8 @@ export class SetupRemoteServerApi
       .on('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
+      console.log('[remote] connection!')
+
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
@@ -105,23 +106,6 @@ export class SetupRemoteServerApi
         const deserializedArgs = await deserializeEventPayload(args)
         this.emitter.emit(eventName, deserializedArgs as any)
       })
-    })
-  }
-
-  public printHandlers() {
-    const handlers = this.listHandlers()
-
-    handlers.forEach((handler) => {
-      const { header, callFrame } = handler.info
-
-      const pragma = handler.info.hasOwnProperty('operationType')
-        ? '[graphql]'
-        : '[rest]'
-
-      console.log(`\
-${`${pragma} ${header}`}
-  Declaration: ${callFrame}
-`)
     })
   }
 
@@ -164,6 +148,8 @@ async function createSyncServer(
       methods: ['HEAD', 'GET', 'POST'],
     },
   })
+
+  console.log('Creating a WS server...')
 
   httpServer.listen(+url.port, url.hostname, () => {
     globalThis[kSyncServer] = ws

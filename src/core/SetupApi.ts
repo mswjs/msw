@@ -1,9 +1,6 @@
 import { invariant } from 'outvariant'
 import { EventMap, Emitter } from 'strict-event-emitter'
-import {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-} from './handlers/RequestHandler'
+import { RequestHandler } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
 import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
@@ -97,9 +94,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     this.handlersController.reset(nextHandlers)
   }
 
-  public listHandlers(): ReadonlyArray<
-    RequestHandler<RequestHandlerDefaultInfo, any, any>
-  > {
+  public listHandlers(): ReadonlyArray<RequestHandler> {
     return toReadonlyArray(this.handlersController.currentHandlers())
   }
 

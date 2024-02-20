@@ -6,6 +6,7 @@ import {
   serializeRequest,
   deserializeResponse,
 } from '../utils/request/serializeUtils'
+import { passthrough } from '../passthrough'
 
 export class RemoteRequestHandler extends HttpHandler {
   constructor(args: { socket: Socket<SyncServerEventsMap> }) {
@@ -25,12 +26,13 @@ export class RemoteRequestHandler extends HttpHandler {
       // aren't considered unhandled.
       if (request.headers.get('x-msw-request-type') === 'internal-request') {
         console.log('[msw] INTERNAL SOCKET REQUEST, IGNORE!')
-        return
+        return passthrough()
       }
 
       console.log('[msw] regular request, continue...')
 
       console.log('[msw] emitting "request" ws event')
+
       socket.emit('request', {
         requestId,
         serializedRequest: await serializeRequest(request),

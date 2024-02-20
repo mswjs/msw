@@ -48,6 +48,12 @@ export class SetupServerCommonApi
     this.init()
   }
 
+  protected async mapRequestHandlers(
+    handlers: Array<RequestHandler>,
+  ): Promise<Array<RequestHandler>> {
+    return handlers
+  }
+
   /**
    * Subscribe to all requests that are using the interceptor object
    */
@@ -56,7 +62,9 @@ export class SetupServerCommonApi
       const response = await handleRequest(
         request,
         requestId,
-        this.handlersController.currentHandlers(),
+        await this.mapRequestHandlers(
+          this.handlersController.currentHandlers(),
+        ),
         this.resolvedOptions,
         this.emitter,
       )

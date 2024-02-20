@@ -4,7 +4,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
-import type { SetupServer } from './glossary'
+import type { ListenOptions, SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
 import { Socket } from 'socket.io-client'
 import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
@@ -67,7 +67,6 @@ export class SetupServerApi
     )
 
     this.handlersController = new AsyncHandlersController(handlers)
-    this.initRemoteServer()
   }
 
   public boundary<Fn extends (...args: Array<any>) => unknown>(
@@ -90,59 +89,48 @@ export class SetupServerApi
     store.disable()
   }
 
-  private async initRemoteServer() {
-    const { remotePort } = this.resolvedOptions
+  public listen(options?: Partial<ListenOptions>): void {
+    super.listen(options)
 
-    if (remotePort == null) {
-      return
+    if (this.resolvedOptions.remotePort != null) {
+      this.mapRequestHandlers = async (handlers) => {
+        const { socket } = this
+
+        if (typeof socket === 'undefined') {
+          this.socket = await createSyncClient(this.resolvedOptions.remotePort)
+        }
+
+        if (typeof socket !== 'undefined') {
+          return Array.prototype.concat(
+            new RemoteRequestHandler({ socket }),
+            handlers,
+          )
+        }
+
+        return handlers
+      }
     }
+    this.forwardLifeCycleEvents()
+  }
 
-    const { socket } = this
-
-    if (typeof socket === 'undefined') {
-      this.socket = await createSyncClient(remotePort)
-    } else {
-      this.handlersController.currentHandlers = new Proxy(
-        this.handlersController.currentHandlers,
-        {
-          get: (target, property, value) => {
-            const handlers = Reflect.get(
-              target,
-              property,
-              value,
-            ) as Array<RequestHandler>
-
-            return Array.prototype.concat(
-              new RemoteRequestHandler({
-                socket,
-              }),
-              handlers,
-            )
-          },
-        },
-      )
-    }
-
+  private async forwardLifeCycleEvents() {
     onAnyEvent(this.emitter, async (eventName, listenerArgs) => {
       const { socket } = this
       const { request } = listenerArgs
 
-      if (socket) {
-        const forwardLifeCycleEvent = async () => {
-          const args = await serializeEventPayload(listenerArgs)
-          socket.emit(
-            'lifeCycleEventForward',
-            /**
-             * @todo Annotating serialized/desirialized mirror channels is tough.
-             */
-            eventName,
-            args as any,
-          )
-        }
-
-        if (request.headers.get('x-msw-request-type') !== 'internal-request') {
-          forwardLifeCycleEvent()
-        }
+      if (
+        socket &&
+        request.headers.get('x-msw-request-type') !== 'internal-request'
+      ) {
+        const args = await serializeEventPayload(listenerArgs)
+        socket.emit(
+          'lifeCycleEventForward',
+          /**
+           * @todo Annotating serialized/desirialized mirror channels is tough.
+           */
+          eventName,
+          args as any,
+        )
       }
     })
   }

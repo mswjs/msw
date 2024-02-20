@@ -9,7 +9,9 @@ const server = setupServer(
   }),
 )
 
-server.listen()
+server.listen({
+  remotePort: 56789,
+})
 
 // Spawn a Node.js application.
 const app = express()

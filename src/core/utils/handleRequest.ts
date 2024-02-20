@@ -3,7 +3,7 @@ import { Emitter } from 'strict-event-emitter'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
-import { ResponseLookupResult, getResponse } from './getResponse'
+import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { readResponseCookies } from './request/readResponseCookies'
 
@@ -38,7 +38,7 @@ export interface HandleRequestOptions {
    */
   onMockedResponse?(
     response: Response,
-    handler: RequiredDeep<ResponseLookupResult>,
+    handler: RequiredDeep<HandlersExecutionResult>,
   ): void
 }
 
@@ -61,11 +61,12 @@ export async function handleRequest(
 
   // Resolve a mocked response from the list of request handlers.
   const lookupResult = await until(() => {
-    return getResponse(
+    return executeHandlers({
       request,
+      requestId,
       handlers,
-      handleRequestOptions?.resolutionContext,
-    )
+      resolutionContext: handleRequestOptions?.resolutionContext,
+    })
   })
 
   if (lookupResult.error) {
@@ -81,7 +82,7 @@ export async function handleRequest(
   // If the handler lookup returned nothing, no request handler was found
   // matching this request. Report the request as unhandled.
   if (!lookupResult.data) {
-    await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
+    await onUnhandledRequest(request, options.onUnhandledRequest)
     emitter.emit('request:unhandled', { request, requestId })
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
@@ -115,7 +116,7 @@ export async function handleRequest(
   emitter.emit('request:match', { request, requestId })
 
   const requiredLookupResult =
-    lookupResult.data as RequiredDeep<ResponseLookupResult>
+    lookupResult.data as RequiredDeep<HandlersExecutionResult>
 
   const transformedResponse =
     handleRequestOptions?.transformResponse?.(response) ||

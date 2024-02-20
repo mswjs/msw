@@ -24,7 +24,7 @@ export function createFallbackRequestListener(
     const response = await handleRequest(
       request,
       requestId,
-      context.requestHandlers,
+      context.getRequestHandlers(),
       options,
       context.emitter,
       {

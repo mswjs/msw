@@ -1,7 +1,7 @@
 import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
-import type { ResponseResolutionContext } from '../utils/getResponse'
+import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
 
@@ -36,29 +36,35 @@ export interface RequestHandlerInternalInfo {
 }
 
 export type ResponseResolverReturnType<
-  BodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > =
-  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
+  | ([ResponseBodyType] extends [undefined]
+      ? Response
+      : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  BodyType extends DefaultBodyType,
-> = MaybePromise<ResponseResolverReturnType<BodyType>>
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
-export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | MaybeAsyncResponseResolverReturnType<BodyType>
+export type AsyncResponseResolverReturnType<
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<
+  | ResponseResolverReturnType<ResponseBodyType>
   | Generator<
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
+>
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
   request: StrictRequest<RequestBodyType>
+  requestId: string
 } & ResolverExtraInfo
 
 export type ResponseResolver<
@@ -88,6 +94,7 @@ export interface RequestHandlerExecutionResult<
   handler: RequestHandler
   parsedResult?: ParsedResult
   request: Request
+  requestId: string
   response?: Response
 }
 
@@ -215,6 +222,7 @@ export abstract class RequestHandler<
    */
   public async run(args: {
     request: StrictRequest<any>
+    requestId: string
     resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
@@ -258,15 +266,30 @@ export abstract class RequestHandler<
       request: args.request,
       parsedResult,
     })
-    const mockedResponse = (await executeResolver({
-      ...resolverExtras,
-      request: args.request,
-    })) as Response
+
+    const mockedResponsePromise = (
+      executeResolver({
+        ...resolverExtras,
+        requestId: args.requestId,
+        request: args.request,
+      }) as Promise<Response>
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
+
+    const mockedResponse = await mockedResponsePromise
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
       request: requestClone,
+      requestId: args.requestId,
       response: mockedResponse,
       parsedResult,
     })
@@ -325,12 +348,14 @@ export abstract class RequestHandler<
 
   private createExecutionResult(args: {
     request: Request
+    requestId: string
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
       request: args.request,
+      requestId: args.requestId,
       response: args.response,
       parsedResult: args.parsedResult,
     }

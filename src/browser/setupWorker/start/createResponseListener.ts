@@ -1,8 +1,8 @@
-import {
+import type {
   ServiceWorkerIncomingEventsMap,
   SetupWorkerInternalContext,
 } from '../glossary'
-import { ServiceWorkerMessage } from './utils/createMessageChannel'
+import type { ServiceWorkerMessage } from './utils/createMessageChannel'
 import { isResponseWithoutBody } from '@mswjs/interceptors'
 
 export function createResponseListener(context: SetupWorkerInternalContext) {
@@ -14,6 +14,12 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     >,
   ) => {
     const { payload: responseJson } = message
+
+    // Get the Request instance reference stored in the
+    // request listener.
+    const { requestId } = responseJson
+    const request = context.requests.get(requestId)!
+    context.requests.delete(requestId)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -42,15 +48,24 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
             responseJson,
           )
 
+    /**
+     * Set response URL if it's not set already.
+     * @see https://github.com/mswjs/msw/issues/2030
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+     */
+    if (!response.url) {
+      Object.defineProperty(response, 'url', {
+        value: request.url,
+        enumerable: true,
+        writable: false,
+      })
+    }
+
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
       {
         response,
-        /**
-         * @todo @fixme In this context, we don't know anything about
-         * the request.
-         */
-        request: null as any,
+        request,
         requestId: responseJson.requestId,
       },
     )

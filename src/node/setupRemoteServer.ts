@@ -23,7 +23,7 @@ import {
   deserializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 
-const syncServerSymbol = Symbol('mswSyncServer')
+const kSyncServer = Symbol('kSyncServer')
 
 /**
  * Enables API mocking in a remote Node.js process.
@@ -55,7 +55,7 @@ export interface SyncServerEventsMap {
 }
 
 interface GlobalWith extends Global {
-  [syncServerSymbol]: WebSocketServer<SyncServerEventsMap> | undefined
+  [kSyncServer]: WebSocketServer<SyncServerEventsMap> | undefined
 }
 declare var globalThis: GlobalWith
 
@@ -68,7 +68,7 @@ export class SetupRemoteServerApi
   }
 
   public async listen(options: SetupRemoteServerListenOptions): Promise<void> {
-    const placeholderEmitter = new Emitter<LifeCycleEventsMap>()
+    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
 
     const url = createWebSocketServerUrl(options.port)
     const server = await createSyncServer(url)
@@ -87,12 +87,12 @@ export class SetupRemoteServerApi
         const response = await handleRequest(
           request,
           requestId,
-          this.currentHandlers,
+          this.handlersController.currentHandlers(),
           /**
            * @todo Support resolve options from the `.listen()` call.
            */
           { onUnhandledRequest() {} },
-          placeholderEmitter,
+          dummyEmitter,
         )
 
         socket.emit(
@@ -126,7 +126,7 @@ ${`${pragma} ${header}`}
   }
 
   public async close(): Promise<void> {
-    const { [syncServerSymbol]: syncServer } = globalThis
+    const { [kSyncServer]: syncServer } = globalThis
 
     invariant(
       syncServer,
@@ -145,7 +145,7 @@ ${`${pragma} ${header}`}
 async function createSyncServer(
   url: URL,
 ): Promise<WebSocketServer<SyncServerEventsMap>> {
-  const existingSyncServer = globalThis[syncServerSymbol]
+  const existingSyncServer = globalThis[kSyncServer]
 
   // Reuse the existing WebSocket server reference if it exists.
   // It persists on the global scope between hot updates.
@@ -166,7 +166,7 @@ async function createSyncServer(
   })
 
   httpServer.listen(+url.port, url.hostname, () => {
-    globalThis[syncServerSymbol] = ws
+    globalThis[kSyncServer] = ws
     serverReadyPromise.resolve(ws)
   })
 
@@ -185,7 +185,7 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
       return serverClosePromise.reject(error)
     }
 
-    Reflect.deleteProperty(globalThis, syncServerSymbol)
+    Reflect.deleteProperty(globalThis, kSyncServer)
     serverClosePromise.resolve()
   })
 

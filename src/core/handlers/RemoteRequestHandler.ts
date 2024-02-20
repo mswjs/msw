@@ -8,11 +8,10 @@ import {
 } from '../utils/request/serializeUtils'
 
 export class RemoteRequestHandler extends HttpHandler {
-  constructor(args: {
-    requestId: string
-    socket: Socket<SyncServerEventsMap>
-  }) {
-    super(/.+/, /.+/, async ({ request }) => {
+  constructor(args: { socket: Socket<SyncServerEventsMap> }) {
+    const { socket } = args
+
+    super(/.+/, /.+/, async ({ request, requestId }) => {
       console.log(
         '[msw] RemoteRequestHandler',
         request.method,
@@ -32,8 +31,8 @@ export class RemoteRequestHandler extends HttpHandler {
       console.log('[msw] regular request, continue...')
 
       console.log('[msw] emitting "request" ws event')
-      args.socket.emit('request', {
-        requestId: args.requestId,
+      socket.emit('request', {
+        requestId,
         serializedRequest: await serializeRequest(request),
       })
 
@@ -43,7 +42,7 @@ export class RemoteRequestHandler extends HttpHandler {
        * @todo Handle timeouts.
        * @todo Handle socket errors.
        */
-      args.socket.on('response', (serializedResponse) => {
+      socket.on('response', (serializedResponse) => {
         const response = serializedResponse
           ? deserializeResponse(serializedResponse)
           : undefined

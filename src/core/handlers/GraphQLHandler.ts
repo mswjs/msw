@@ -17,13 +17,14 @@ import {
   parseGraphQLRequest,
   parseDocumentNode,
 } from '../utils/internal/parseGraphQLRequest'
-import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
+export type GraphQLQuery = Record<string, any>
 export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
@@ -33,6 +34,7 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
 
 export type GraphQLRequestParsedResult = {
   match: Match
+  cookies: Record<string, string>
 } & (
   | ParsedGraphQLRequest<GraphQLVariables>
   /**
@@ -165,8 +167,10 @@ export class GraphQLHandler extends RequestHandler<
      * need to parse it since there's no case where we would handle this
      */
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const cookies = getAllRequestCookies(args.request)
+
     if (!match.matches) {
-      return { match }
+      return { match, cookies }
     }
 
     const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
@@ -174,11 +178,12 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match }
+      return { match, cookies }
     }
 
     return {
       match,
+      cookies,
       query: parsedResult.query,
       operationType: parsedResult.operationType,
       operationName: parsedResult.operationName,
@@ -195,7 +200,7 @@ export class GraphQLHandler extends RequestHandler<
     }
 
     if (!args.parsedResult.operationName && this.info.operationType !== 'all') {
-      const publicUrl = getPublicUrlFromRequest(args.request)
+      const publicUrl = toPublicUrl(args.request.url)
 
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
@@ -224,13 +229,11 @@ Consider naming this operation or using "graphql.operation()" request handler to
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
-    const cookies = getAllRequestCookies(args.request)
-
     return {
       query: args.parsedResult.query || '',
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
-      cookies,
+      cookies: args.parsedResult.cookies,
     }
   }
 

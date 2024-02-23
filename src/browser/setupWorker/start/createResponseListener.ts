@@ -15,9 +15,11 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
   ) => {
     const { payload: responseJson } = message
 
-    // Get the Request instance reference stored in the
-    // request listener for intercepted requests
-    // (bypass and passthrough requests will not be present here).
+    /**
+     * Get the Request instance reference stored in the
+     * request listener for intercepted requests
+     * (bypass and passthrough requests will not be present here).
+     */
     const { requestId } = responseJson
     const request = context.requests.get(requestId)
     context.requests.delete(requestId)

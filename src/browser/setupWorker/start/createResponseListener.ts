@@ -16,9 +16,10 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     const { payload: responseJson } = message
 
     // Get the Request instance reference stored in the
-    // request listener.
+    // request listener for intercepted requests
+    // (bypass and passthrough requests will not be present here).
     const { requestId } = responseJson
-    const request = context.requests.get(requestId)!
+    const request = context.requests.get(requestId)
     context.requests.delete(requestId)
 
     /**
@@ -53,7 +54,7 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
      * @see https://github.com/mswjs/msw/issues/2030
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
      */
-    if (!response.url) {
+    if (!response.url && request) {
       Object.defineProperty(response, 'url', {
         value: request.url,
         enumerable: true,

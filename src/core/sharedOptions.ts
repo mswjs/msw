@@ -48,7 +48,7 @@ export type LifeCycleEventsMap = {
   'response:bypass': [
     args: {
       response: Response
-      request: Request
+      request: Request | undefined
       requestId: string
     },
   ]

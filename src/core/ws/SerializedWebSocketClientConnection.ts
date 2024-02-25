@@ -4,6 +4,30 @@ import type {
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 
+type WebSocketBroadcastChannelMessage =
+  | {
+      type: 'connection:open'
+      payload: {
+        id: string
+        url: URL
+      }
+    }
+  | {
+      type: 'send'
+      payload: {
+        clientId: string
+        data: WebSocketData
+      }
+    }
+  | {
+      type: 'close'
+      payload: {
+        clientId: string
+        code?: number
+        reason?: string
+      }
+    }
+
 export const kAddByClientId = Symbol('kAddByClientId')
 
 /**
@@ -20,7 +44,7 @@ export class WebSocketClientManager {
     this.clients = new Set()
 
     this.channel.addEventListener('message', (message) => {
-      const { type, payload } = message.data
+      const { type, payload } = message.data as WebSocketBroadcastChannelMessage
 
       switch (type) {
         case 'connection:open': {
@@ -50,15 +74,19 @@ export class WebSocketClientManager {
         id: client.id,
         url: client.url,
       },
-    })
+    } as WebSocketBroadcastChannelMessage)
 
     // Instruct the current client how to handle events
     // coming from other runtimes (e.g. when broadcasting).
     this.channel.addEventListener('message', (message) => {
-      const { type, payload } = message.data
+      const { type, payload } = message.data as WebSocketBroadcastChannelMessage
 
       // Ignore broadcasted messages for other clients.
-      if (payload.clientId !== client.id) {
+      if (
+        typeof payload === 'object' &&
+        'clientId' in payload &&
+        payload.clientId !== client.id
+      ) {
         return
       }
 
@@ -113,7 +141,7 @@ class WebSocketRemoteClientConnection
         clientId: this.id,
         data,
       },
-    })
+    } as WebSocketBroadcastChannelMessage)
   }
 
   close(code?: number | undefined, reason?: string | undefined): void {
@@ -124,6 +152,6 @@ class WebSocketRemoteClientConnection
         code,
         reason,
       },
-    })
+    } as WebSocketBroadcastChannelMessage)
   }
 }

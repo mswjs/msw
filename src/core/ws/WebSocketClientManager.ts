@@ -4,23 +4,23 @@ import type {
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 
-type WebSocketBroadcastChannelMessage =
+export type WebSocketBroadcastChannelMessage =
   | {
       type: 'connection:open'
       payload: {
-        id: string
+        clientId: string
         url: URL
       }
     }
   | {
-      type: 'send'
+      type: 'extraneous:send'
       payload: {
         clientId: string
         data: WebSocketData
       }
     }
   | {
-      type: 'close'
+      type: 'extraneous:close'
       payload: {
         clientId: string
         code?: number
@@ -50,7 +50,7 @@ export class WebSocketClientManager {
         case 'connection:open': {
           // When another runtime notifies about a new connection,
           // create a connection wrapper class and add it to the set.
-          this.onRemoteConnection(payload.id, payload.url)
+          this.onRemoteConnection(payload.clientId, payload.url)
           break
         }
       }
@@ -58,28 +58,29 @@ export class WebSocketClientManager {
   }
 
   /**
-   * Adds the given WebSocket client connection to the set
+   * Adds the given `WebSocket` client connection to the set
    * of all connections. The given connection is always the complete
    * connection object because `addConnection()` is called only
    * for the opened connections in the same runtime.
    */
   public addConnection(client: WebSocketClientConnection): void {
-    // Add this connection to the immediate set of connections.
     this.clients.add(client)
 
     // Signal to other runtimes about this connection.
     this.channel.postMessage({
       type: 'connection:open',
       payload: {
-        id: client.id,
+        clientId: client.id,
         url: client.url,
       },
     } as WebSocketBroadcastChannelMessage)
 
     // Instruct the current client how to handle events
-    // coming from other runtimes (e.g. when broadcasting).
-    this.channel.addEventListener('message', (message) => {
-      const { type, payload } = message.data as WebSocketBroadcastChannelMessage
+    // coming from other runtimes (e.g. when calling `.broadcast()`).
+    const handleExtraneousMessage = (
+      message: MessageEvent<WebSocketBroadcastChannelMessage>,
+    ) => {
+      const { type, payload } = message.data
 
       // Ignore broadcasted messages for other clients.
       if (
@@ -91,16 +92,28 @@ export class WebSocketClientManager {
       }
 
       switch (type) {
-        case 'send': {
+        case 'extraneous:send': {
           client.send(payload.data)
           break
         }
 
-        case 'close': {
+        case 'extraneous:close': {
           client.close(payload.code, payload.reason)
           break
         }
       }
+    }
+
+    const abortController = new AbortController()
+
+    this.channel.addEventListener('message', handleExtraneousMessage, {
+      signal: abortController.signal,
+    })
+
+    // Once closed, this connection cannot be operated on.
+    // This must include the extraneous runtimes as well.
+    client.addEventListener('close', () => abortController.abort(), {
+      once: true,
     })
   }
 
@@ -125,7 +138,7 @@ export class WebSocketClientManager {
  * on the given `BroadcastChannel` to communicate instructions
  * with the client connections from other runtimes.
  */
-class WebSocketRemoteClientConnection
+export class WebSocketRemoteClientConnection
   implements WebSocketClientConnectionProtocol
 {
   constructor(
@@ -136,7 +149,7 @@ class WebSocketRemoteClientConnection
 
   send(data: WebSocketData): void {
     this.channel.postMessage({
-      type: 'send',
+      type: 'extraneous:send',
       payload: {
         clientId: this.id,
         data,
@@ -146,7 +159,7 @@ class WebSocketRemoteClientConnection
 
   close(code?: number | undefined, reason?: string | undefined): void {
     this.channel.postMessage({
-      type: 'close',
+      type: 'extraneous:close',
       payload: {
         clientId: this.id,
         code,

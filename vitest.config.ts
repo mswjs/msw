@@ -8,6 +8,8 @@ export default defineConfig({
     // they are located next to the source code they are testing.
     dir: './src',
     alias: {
+      'vitest-environment-node-websocket':
+        './test/support/environments/vitest-environment-node-websocket',
       '~/core': path.resolve(__dirname, 'src/core'),
     },
     typecheck: {

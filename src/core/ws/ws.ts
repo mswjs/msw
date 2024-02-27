@@ -9,7 +9,7 @@ import {
 } from '../handlers/WebSocketHandler'
 import type { Path } from '../utils/matching/matchRequestUrl'
 import { webSocketInterceptor } from './webSocketInterceptor'
-import { WebSocketClientManager } from './SerializedWebSocketClientConnection'
+import { WebSocketClientManager } from './WebSocketClientManager'
 
 const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
 

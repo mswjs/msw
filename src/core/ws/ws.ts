@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import type {
   WebSocketClientConnectionProtocol,
   WebSocketData,
@@ -7,7 +8,7 @@ import {
   kEmitter,
   type WebSocketHandlerEventMap,
 } from '../handlers/WebSocketHandler'
-import type { Path } from '../utils/matching/matchRequestUrl'
+import { Path, isPath } from '../utils/matching/matchRequestUrl'
 import { webSocketInterceptor } from './webSocketInterceptor'
 import { WebSocketClientManager } from './WebSocketClientManager'
 
@@ -23,6 +24,14 @@ const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
  * })
  */
 function createWebSocketLinkHandler(url: Path) {
+  invariant(url, 'Expected a WebSocket server URL but got undefined')
+
+  invariant(
+    isPath(url),
+    'Expected a WebSocket server URL but got %s',
+    typeof url,
+  )
+
   webSocketInterceptor.apply()
   const clientManager = new WebSocketClientManager(wsBroadcastChannel)
 

@@ -27,6 +27,19 @@ describe('HttpResponse.text()', () => {
     })
   })
 
+  it('creates a text response with special characters', async () => {
+    const response = HttpResponse.text('안녕 세상', { status: 201 })
+
+    expect(response.status).toBe(201)
+    expect(response.statusText).toBe('Created')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('안녕 세상')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '13',
+      'content-type': 'text/plain',
+    })
+  })
+
   it('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.text('hello world', {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -64,6 +77,19 @@ describe('HttpResponse.json()', () => {
     expect(await response.json()).toEqual({ firstName: 'John' })
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-length': '20',
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given an object with special characters', async () => {
+    const response = HttpResponse.json({ firstName: '제로' })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ firstName: '제로' })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '22',
       'content-type': 'application/json',
     })
   })

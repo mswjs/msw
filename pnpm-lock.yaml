@@ -125,7 +125,7 @@ devDependencies:
   ts-node: 10.9.2_fjuetttsshthodh2hihezf5amm
   tsup: 8.0.1_ufl2cnah4u3qi47x6pbprw2yym
   typescript: 5.0.2
-  undici: 5.23.0
+  undici: 5.28.3
   url-loader: 4.1.1_webpack@5.89.0
   vitest: 0.34.6_jsdom@23.2.0
   vitest-environment-miniflare: 2.14.1_vitest@0.34.6
@@ -804,6 +804,11 @@ packages:
   /@eslint/js/8.56.0:
     resolution: {integrity: sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dev: true
+
+  /@fastify/busboy/2.1.0:
+    resolution: {integrity: sha512-+KpH+QxZU7O4675t3mnkQKcZZg56u+K/Ct2K+N2AZYNVK8kyeo/bI18tI8aPm3tvNNRyTWfj6s5tnGNlcbQRsA==}
+    engines: {node: '>=14'}
     dev: true
 
   /@humanwhocodes/config-array/0.11.14:
@@ -7344,11 +7349,11 @@ packages:
       busboy: 1.6.0
     dev: true
 
-  /undici/5.23.0:
-    resolution: {integrity: sha512-1D7w+fvRsqlQ9GscLBwcAJinqcZGHUKjbOmXdlE/v8BvEGXjeWAax+341q44EuTcHXXnfyKNbKRq4Lg7OzhMmg==}
+  /undici/5.28.3:
+    resolution: {integrity: sha512-3ItfzbrhDlINjaP0duwnNsKpDQk3acHI3gVJ1z4fmwMK31k5G9OVIAMLSIaP6w4FaGkaAkN6zaQO9LUvZ1t7VA==}
     engines: {node: '>=14.0'}
     dependencies:
-      busboy: 1.6.0
+      '@fastify/busboy': 2.1.0
     dev: true
 
   /universalify/0.2.0:

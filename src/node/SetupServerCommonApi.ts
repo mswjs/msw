@@ -16,7 +16,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import type { SetupServerCommon } from './glossary'
+import type { ListenOptions, SetupServerCommon } from './glossary'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -30,7 +30,7 @@ export class SetupServerCommonApi
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  private resolvedOptions: RequiredDeep<SharedOptions>
+  protected resolvedOptions: RequiredDeep<ListenOptions>
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -43,9 +43,15 @@ export class SetupServerCommonApi
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
-    this.resolvedOptions = {} as RequiredDeep<SharedOptions>
+    this.resolvedOptions = {} as RequiredDeep<ListenOptions>
 
     this.init()
+  }
+
+  protected async mapRequestHandlers(
+    handlers: Array<RequestHandler>,
+  ): Promise<Array<RequestHandler>> {
+    return handlers
   }
 
   /**
@@ -56,7 +62,9 @@ export class SetupServerCommonApi
       const response = await handleRequest(
         request,
         requestId,
-        this.handlersController.currentHandlers(),
+        await this.mapRequestHandlers(
+          this.handlersController.currentHandlers(),
+        ),
         this.resolvedOptions,
         this.emitter,
       )
@@ -83,11 +91,11 @@ export class SetupServerCommonApi
     )
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
-    ) as RequiredDeep<SharedOptions>
+    ) as RequiredDeep<ListenOptions>
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()

@@ -1,5 +1,9 @@
-import * as path from 'node:path'
 import { defineConfig } from 'vitest/config'
+import {
+  mswExports,
+  customViteEnvironments,
+  fromRoot,
+} from './test/support/alias'
 
 export default defineConfig({
   test: {
@@ -8,9 +12,9 @@ export default defineConfig({
     // they are located next to the source code they are testing.
     dir: './src',
     alias: {
-      'vitest-environment-node-websocket':
-        './test/support/environments/vitest-environment-node-websocket',
-      '~/core': path.resolve(__dirname, 'src/core'),
+      ...mswExports,
+      ...customViteEnvironments,
+      '~/core': fromRoot('src/core'),
     },
     typecheck: {
       // Load the TypeScript configuration to the unit tests.
@@ -26,4 +30,5 @@ export default defineConfig({
       },
     },
   },
+  plugins: [tsconfigPaths()],
 })

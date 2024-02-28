@@ -4,7 +4,6 @@
 import { ws } from 'msw'
 import { setupServer } from 'msw/node'
 import { WebSocketServer } from '../../support/WebSocketServer'
-import { waitFor } from '../../support/waitFor'
 
 const server = setupServer()
 const wsServer = new WebSocketServer()
@@ -18,8 +17,7 @@ beforeAll(async () => {
 
 afterEach(() => {
   server.resetHandlers()
-  wsServer.closeAllClients()
-  wsServer.removeAllListeners()
+  wsServer.resetState()
 })
 
 afterAll(async () => {
@@ -41,7 +39,7 @@ it('intercepts outgoing client text message', async () => {
   const ws = new WebSocket(wsServer.url)
   ws.onopen = () => ws.send('hello')
 
-  await waitFor(() => {
+  await vi.waitFor(() => {
     // Must intercept the outgoing client message event.
     expect(mockMessageListener).toHaveBeenCalledTimes(1)
 
@@ -69,7 +67,7 @@ it('intercepts outgoing client Blob message', async () => {
   const ws = new WebSocket(wsServer.url)
   ws.onopen = () => ws.send(new Blob(['hello']))
 
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(mockMessageListener).toHaveBeenCalledTimes(1)
 
     const messageEvent = mockMessageListener.mock.calls[0][0] as MessageEvent
@@ -96,7 +94,7 @@ it('intercepts outgoing client ArrayBuffer message', async () => {
   const ws = new WebSocket(wsServer.url)
   ws.onopen = () => ws.send(new TextEncoder().encode('hello'))
 
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(mockMessageListener).toHaveBeenCalledTimes(1)
 
     const messageEvent = mockMessageListener.mock.calls[0][0] as MessageEvent

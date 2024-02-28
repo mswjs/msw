@@ -13,6 +13,12 @@ export function handleWebSocketEvent(
     const handlers = getCurrentHandlers()
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
+      /**
+       * @note This message event should be marked as "cancelable"
+       * to have its default prevented using "event.preventDefault()".
+       * There's a bug in Node.js that breaks the "cancelable" flag.
+       * @see https://github.com/nodejs/node/issues/51767
+       */
     })
 
     Object.defineProperty(connectionEvent, kDefaultPrevented, {

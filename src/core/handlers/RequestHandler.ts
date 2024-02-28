@@ -284,6 +284,15 @@ export abstract class RequestHandler<
     })
 
     const mockedResponse = await mockedResponsePromise
+    if (
+      mockedResponse &&
+      mockedResponse.headers.get('x-msw-unhandled-remote-handler')
+    ) {
+      // If the response is marked as unhandled by a remote handler,
+      // return null to indicate it was not handled
+      // (despite passing through the RemoteRequestHandler, which matched).
+      return null
+    }
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging

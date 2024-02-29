@@ -63,7 +63,7 @@ export class HttpResponse extends Response {
     if (!responseInit.headers.has('Content-Length')) {
       responseInit.headers.set(
         'Content-Length',
-        body ? body.length.toString() : '0',
+        body ? new Blob([body]).size.toString() : '0',
       )
     }
 
@@ -95,7 +95,7 @@ export class HttpResponse extends Response {
     if (!responseInit.headers.has('Content-Length')) {
       responseInit.headers.set(
         'Content-Length',
-        responseText ? responseText.length.toString() : '0',
+        responseText ? new Blob([responseText]).size.toString() : '0',
       )
     }
 

@@ -67,7 +67,7 @@
     "test:node": "vitest run --config=./test/node/vitest.config.ts",
     "test:native": "vitest --config=./test/native/vitest.config.ts",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
-    "test:modules:node": "vitest --config=./test/modules/node/vitest.config.ts",
+    "test:modules:node": "vitest run --config=./test/modules/node/vitest.config.ts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
     "test:ts": "ts-node test/typings/run.ts",
     "prepare": "pnpm simple-git-hooks init",

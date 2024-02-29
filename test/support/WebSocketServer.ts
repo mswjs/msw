@@ -38,8 +38,8 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
     return this._url
   }
 
-  public async listen(): Promise<void> {
-    const address = await this.app.listen({ port: 0 })
+  public async listen(port = 0): Promise<void> {
+    const address = await this.app.listen({ port })
     const url = new URL(address)
     url.protocol = url.protocol.replace(/^http/, 'ws')
     this._url = url.href

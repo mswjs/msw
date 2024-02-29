@@ -19,6 +19,7 @@ import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
+import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -97,9 +98,11 @@ export class SetupServerCommonApi
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
+    webSocketInterceptor.apply()
 
     this.subscriptions.push(() => {
       this.interceptor.dispose()
+      webSocketInterceptor.dispose()
     })
 
     // Assert that the interceptor has been applied successfully.

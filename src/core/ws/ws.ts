@@ -9,7 +9,6 @@ import {
   type WebSocketHandlerEventMap,
 } from '../handlers/WebSocketHandler'
 import { Path, isPath } from '../utils/matching/matchRequestUrl'
-import { webSocketInterceptor } from './webSocketInterceptor'
 import { WebSocketClientManager } from './WebSocketClientManager'
 
 const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
@@ -32,7 +31,6 @@ function createWebSocketLinkHandler(url: Path) {
     typeof url,
   )
 
-  webSocketInterceptor.apply()
   const clientManager = new WebSocketClientManager(wsBroadcastChannel)
 
   return {

@@ -22,6 +22,7 @@ import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
+import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
 
 interface Listener {
@@ -180,6 +181,11 @@ export class SetupWorkerApi
 
     handleWebSocketEvent(() => {
       return this.handlersController.currentHandlers()
+    })
+    webSocketInterceptor.apply()
+
+    this.subscriptions.push(() => {
+      webSocketInterceptor.dispose()
     })
 
     return await this.startHandler(this.context.startOptions, options)

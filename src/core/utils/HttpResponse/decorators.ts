@@ -40,10 +40,19 @@ export function decorateResponse(
   // Cookie forwarding is only relevant in the browser.
   if (typeof document !== 'undefined') {
     // Write the mocked response cookies to the document.
-    // Note that Fetch API Headers will concatenate multiple "Set-Cookie"
-    // headers into a single comma-separated string, just as it does
-    // with any other multi-value headers.
-    const responseCookies = init.headers.get('Set-Cookie')?.split(',') || []
+    // Extract the Set-Cookie from the response header entry
+    // so that it can be parsed correctly even if the Set-Cookie value contains commas.
+    // This is a temporary solution until the getSetCookie method of Headers
+    // is available in TypeScript 5.2 or later.
+    const responseCookies = Array.from(init.headers.entries()).reduce<string[]>(
+      (cookies, [name, value]) => {
+        if (name.match(/set-cookie/i)) {
+          cookies.push(value)
+        }
+        return cookies
+      },
+      [],
+    )
 
     for (const cookieString of responseCookies) {
       // No need to parse the cookie headers because it's defined

@@ -2,16 +2,11 @@
 
 ## Strict TypeScript peer dependency version
 
-The `typescript` peer dependency version _must always have a strict upper range_ defined:
-
-```
-(lower)     (upper)
->= 4.4.x <= 5.1.x
-```
-
-Fixing the upper range of TypeScript acts as an explicit upper boundary of the list of the supported TypeScript versions.
+In the past, MSW set the explicit upper version range for the `typescript` peer dependency (`>= 4.4.x <= 5.1.x`). While that provides better stability and predictability, we acknowledge that it negatively impacts our users, forcing them to wait for MSW to update the TypeScript version range in order to migrate to newest versions of TypeScript in their projects.
 
 > Context: TypeScript is [not distributed according to semver](https://github.com/microsoft/TypeScript/issues/14116). Instead, it's `{marketing}.{major}.{minor}` versioning pattern. This means that it may and does contain breaking changes across what consumers perceive as _minor_ versions. I've had numerous fights with this as it's not uncommon for TypeScript to exhibit different behavior across minor versions (the same types compile on 4.6, break on 4.7, then compile without issue on 4.8).
+
+With this in mind, _we are removing the upper range_ of the `typescript` peer dependency. We have an [automated job](../.github/workflows/typescript-nightly.yml) in place that validates the latest build of MSW against the nightly releases of TypeScript, which should ensure early issue detection and help us resolve those issues before they happen.
 
 ## TypeScript version compliance
 

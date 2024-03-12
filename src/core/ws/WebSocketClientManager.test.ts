@@ -42,7 +42,7 @@ it('adds a client from this runtime to the list of clients', () => {
     type: 'connection:open',
     payload: {
       clientId: connection.id,
-      url: new URL(socket.url),
+      url: socket.url,
     },
   } satisfies WebSocketBroadcastChannelMessage)
 })
@@ -58,7 +58,7 @@ it('adds a client from another runtime to the list of clients', async () => {
         type: 'connection:open',
         payload: {
           clientId,
-          url,
+          url: url.href,
         },
       },
     }),

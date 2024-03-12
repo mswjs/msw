@@ -39,7 +39,10 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
   }
 
   public async listen(port = 0): Promise<void> {
-    const address = await this.app.listen({ port })
+    const address = await this.app.listen({
+      host: '127.0.0.1',
+      port,
+    })
     const url = new URL(address)
     url.protocol = url.protocol.replace(/^http/, 'ws')
     this._url = url.href

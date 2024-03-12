@@ -39,8 +39,8 @@ it('intercepts incoming server text message', async () => {
     }),
   )
 
-  const ws = new WebSocket(originalServer.url)
-  ws.addEventListener('message', clientMessageListener)
+  const socket = new WebSocket(originalServer.url)
+  socket.addEventListener('message', clientMessageListener)
 
   await vi.waitFor(() => {
     expect(serverMessageListener).toHaveBeenCalledTimes(1)
@@ -76,8 +76,8 @@ it('intercepts incoming server Blob message', async () => {
     }),
   )
 
-  const ws = new WebSocket(originalServer.url)
-  ws.addEventListener('message', clientMessageListener)
+  const socket = new WebSocket(originalServer.url)
+  socket.addEventListener('message', clientMessageListener)
 
   await vi.waitFor(() => {
     expect(serverMessageListener).toHaveBeenCalledTimes(1)
@@ -109,8 +109,9 @@ it('intercepts incoming ArrayBuffer message', async () => {
     }),
   )
 
-  const ws = new WebSocket(originalServer.url)
-  ws.addEventListener('message', clientMessageListener)
+  const socket = new WebSocket(originalServer.url)
+  socket.binaryType = 'arraybuffer'
+  socket.addEventListener('message', clientMessageListener)
 
   await vi.waitFor(() => {
     expect(serverMessageListener).toHaveBeenCalledTimes(1)

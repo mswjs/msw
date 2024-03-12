@@ -36,8 +36,8 @@ it('intercepts outgoing client text message', async () => {
   )
   wsServer.on('connection', realConnectionListener)
 
-  const ws = new WebSocket(wsServer.url)
-  ws.onopen = () => ws.send('hello')
+  const socket = new WebSocket(wsServer.url)
+  socket.onopen = () => socket.send('hello')
 
   await vi.waitFor(() => {
     // Must intercept the outgoing client message event.
@@ -46,7 +46,7 @@ it('intercepts outgoing client text message', async () => {
     const messageEvent = mockMessageListener.mock.calls[0][0] as MessageEvent
     expect(messageEvent.type).toBe('message')
     expect(messageEvent.data).toBe('hello')
-    expect(messageEvent.target).toBe(ws)
+    expect(messageEvent.target).toBe(socket)
 
     // Must not connect to the actual server by default.
     expect(realConnectionListener).not.toHaveBeenCalled()
@@ -64,8 +64,8 @@ it('intercepts outgoing client Blob message', async () => {
   )
   wsServer.on('connection', realConnectionListener)
 
-  const ws = new WebSocket(wsServer.url)
-  ws.onopen = () => ws.send(new Blob(['hello']))
+  const socket = new WebSocket(wsServer.url)
+  socket.onopen = () => socket.send(new Blob(['hello']))
 
   await vi.waitFor(() => {
     expect(mockMessageListener).toHaveBeenCalledTimes(1)
@@ -73,7 +73,7 @@ it('intercepts outgoing client Blob message', async () => {
     const messageEvent = mockMessageListener.mock.calls[0][0] as MessageEvent
     expect(messageEvent.type).toBe('message')
     expect(messageEvent.data.size).toBe(5)
-    expect(messageEvent.target).toEqual(ws)
+    expect(messageEvent.target).toEqual(socket)
 
     // Must not connect to the actual server by default.
     expect(realConnectionListener).not.toHaveBeenCalled()
@@ -91,8 +91,9 @@ it('intercepts outgoing client ArrayBuffer message', async () => {
   )
   wsServer.on('connection', realConnectionListener)
 
-  const ws = new WebSocket(wsServer.url)
-  ws.onopen = () => ws.send(new TextEncoder().encode('hello'))
+  const socket = new WebSocket(wsServer.url)
+  socket.binaryType = 'arraybuffer'
+  socket.onopen = () => socket.send(new TextEncoder().encode('hello'))
 
   await vi.waitFor(() => {
     expect(mockMessageListener).toHaveBeenCalledTimes(1)
@@ -100,7 +101,7 @@ it('intercepts outgoing client ArrayBuffer message', async () => {
     const messageEvent = mockMessageListener.mock.calls[0][0] as MessageEvent
     expect(messageEvent.type).toBe('message')
     expect(messageEvent.data).toEqual(new TextEncoder().encode('hello'))
-    expect(messageEvent.target).toEqual(ws)
+    expect(messageEvent.target).toEqual(socket)
 
     // Must not connect to the actual server by default.
     expect(realConnectionListener).not.toHaveBeenCalled()

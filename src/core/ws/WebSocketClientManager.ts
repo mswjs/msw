@@ -9,7 +9,7 @@ export type WebSocketBroadcastChannelMessage =
       type: 'connection:open'
       payload: {
         clientId: string
-        url: URL
+        url: string
       }
     }
   | {
@@ -50,7 +50,7 @@ export class WebSocketClientManager {
         case 'connection:open': {
           // When another runtime notifies about a new connection,
           // create a connection wrapper class and add it to the set.
-          this.onRemoteConnection(payload.clientId, payload.url)
+          this.onRemoteConnection(payload.clientId, new URL(payload.url))
           break
         }
       }
@@ -71,7 +71,7 @@ export class WebSocketClientManager {
       type: 'connection:open',
       payload: {
         clientId: client.id,
-        url: client.url,
+        url: client.url.toString(),
       },
     } as WebSocketBroadcastChannelMessage)
 

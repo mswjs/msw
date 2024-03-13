@@ -1,5 +1,6 @@
 import statuses from '@bundled-es-modules/statuses'
 import type { HttpResponseInit } from '../../HttpResponse'
+import { Headers as HeadersPolyfill } from 'headers-polyfill'
 
 const { message } = statuses
 
@@ -40,18 +41,10 @@ export function decorateResponse(
   // Cookie forwarding is only relevant in the browser.
   if (typeof document !== 'undefined') {
     // Write the mocked response cookies to the document.
-    // Extract the Set-Cookie from the response header entry
-    // so that it can be parsed correctly even if the Set-Cookie value contains commas.
-    // This is a temporary solution until the getSetCookie method of Headers
-    // is available in TypeScript 5.2 or later.
-    const responseCookies = Array.from(init.headers.entries()).reduce<string[]>(
-      (cookies, [name, value]) => {
-        if (name.match(/set-cookie/i)) {
-          cookies.push(value)
-        }
-        return cookies
-      },
-      [],
+    // Temporary measure until jsdom environment is improved
+    // and getSetCookie of Header can be used directly.
+    const responseCookies = HeadersPolyfill.prototype.getSetCookie.call(
+      init.headers,
     )
 
     for (const cookieString of responseCookies) {

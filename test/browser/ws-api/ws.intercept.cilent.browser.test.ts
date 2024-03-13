@@ -1,12 +1,12 @@
+import type { ws } from 'msw'
+import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import { ws } from '../../../src/core/ws/ws'
-import { SetupWorker } from '../../../src/browser'
 
 declare global {
   interface Window {
     msw: {
       ws: typeof ws
-      worker: SetupWorker
+      setupWorker: typeof setupWorker
     }
   }
 }
@@ -15,17 +15,20 @@ test('does not throw on connecting to a non-existing host', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
-  await page.evaluate(() => {
-    const { worker, ws } = window.msw
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
     const service = ws.link('*')
 
-    worker.use(
+    const worker = setupWorker(
       service.on('connection', ({ client }) => {
         queueMicrotask(() => client.close())
       }),
     )
+    await worker.start()
   })
 
   const clientClosePromise = page.evaluate(() => {
@@ -44,21 +47,23 @@ test('intercepts outgoing client text message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   const clientMessagePromise = page.evaluate(() => {
-    const { worker, ws } = window.msw
-
+    const { setupWorker, ws } = window.msw
     const service = ws.link('wss://example.com')
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(event.data)
           })
         }),
       )
+      await worker.start()
     })
   })
 
@@ -74,21 +79,23 @@ test('intercepts outgoing client Blob message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   const clientMessagePromise = page.evaluate(() => {
-    const { worker, ws } = window.msw
-
+    const { setupWorker, ws } = window.msw
     const service = ws.link('wss://example.com')
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(event.data.text())
           })
         }),
       )
+      await worker.start()
     })
   })
 
@@ -104,21 +111,23 @@ test('intercepts outgoing client ArrayBuffer message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   const clientMessagePromise = page.evaluate(() => {
-    const { worker, ws } = window.msw
-
+    const { setupWorker, ws } = window.msw
     const service = ws.link('wss://example.com')
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(new TextDecoder().decode(event.data))
           })
         }),
       )
+      await worker.start()
     })
   })
 

@@ -1,13 +1,13 @@
+import type { ws } from 'msw'
+import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import type { ws } from '../../../src/core/ws/ws'
-import type { SetupWorker } from '../../../src/browser'
 import { WebSocketServer } from '../../support/WebSocketServer'
 
 declare global {
   interface Window {
     msw: {
       ws: typeof ws
-      worker: SetupWorker
+      setupWorker: typeof setupWorker
     }
   }
 }
@@ -26,18 +26,20 @@ test('intercepts incoming server text message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   server.on('connection', (client) => {
     client.send('hello')
   })
 
   const serverMessagePromise = page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
@@ -45,6 +47,7 @@ test('intercepts incoming server text message', async ({
           })
         }),
       )
+      await worker.start()
     })
   }, server.url)
 
@@ -67,21 +70,24 @@ test('intercepts incoming server Blob message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   server.on('connection', async (client) => {
     /**
-     * @note `ws` doesn't accept sending Blobs.
+     * `ws` doesn't support sending Blobs.
+     * @see https://github.com/websockets/ws/issues/2206
      */
     client.send(await new Blob(['hello']).arrayBuffer())
   })
 
   const serverMessagePromise = page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
@@ -89,6 +95,7 @@ test('intercepts incoming server Blob message', async ({
           })
         }),
       )
+      await worker.start()
     })
   }, server.url)
 
@@ -111,7 +118,9 @@ test('intercepts outgoing server ArrayBuffer message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   const encoder = new TextEncoder()
   server.on('connection', async (client) => {
@@ -120,11 +129,11 @@ test('intercepts outgoing server ArrayBuffer message', async ({
   })
 
   const serverMessagePromise = page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    return new Promise<string>((resolve) => {
-      worker.use(
+    return new Promise<string>(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
@@ -132,6 +141,7 @@ test('intercepts outgoing server ArrayBuffer message', async ({
           })
         }),
       )
+      await worker.start()
     })
   }, server.url)
 

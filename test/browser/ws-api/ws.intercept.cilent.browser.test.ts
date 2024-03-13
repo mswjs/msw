@@ -11,6 +11,35 @@ declare global {
   }
 }
 
+test('does not throw on connecting to a non-existing host', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./ws.runtime.js'))
+
+  await page.evaluate(() => {
+    const { worker, ws } = window.msw
+    const service = ws.link('*')
+
+    worker.use(
+      service.on('connection', ({ client }) => {
+        queueMicrotask(() => client.close())
+      }),
+    )
+  })
+
+  const clientClosePromise = page.evaluate(() => {
+    const socket = new WebSocket('ws://non-existing-host.com')
+
+    return new Promise<void>((resolve, reject) => {
+      socket.onclose = () => resolve()
+      socket.onerror = reject
+    })
+  })
+
+  await expect(clientClosePromise).resolves.toBeUndefined()
+})
+
 test('intercepts outgoing client text message', async ({
   loadExample,
   page,

@@ -61,7 +61,7 @@ it('connects to the actual server after calling "server.connect()"', async () =>
   })
 })
 
-it('forward incoming server events to the client by default', async () => {
+it('forwards incoming server events to the client once connected', async () => {
   originalServer.once('connection', (client) => client.send('hello'))
 
   server.use(

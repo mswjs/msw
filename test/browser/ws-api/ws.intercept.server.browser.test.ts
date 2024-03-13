@@ -3,8 +3,6 @@ import type { ws } from '../../../src/core/ws/ws'
 import type { SetupWorker } from '../../../src/browser'
 import { WebSocketServer } from '../../support/WebSocketServer'
 
-const server = new WebSocketServer()
-
 declare global {
   interface Window {
     msw: {
@@ -13,6 +11,8 @@ declare global {
     }
   }
 }
+
+const server = new WebSocketServer()
 
 test.beforeAll(async () => {
   await server.listen()

@@ -100,6 +100,7 @@ it('intercepts incoming ArrayBuffer message', async () => {
   const clientMessageListener = vi.fn()
 
   originalServer.on('connection', async (client) => {
+    client.binaryType = 'arraybuffer'
     client.send(encoder.encode('hello world'))
   })
   server.use(
@@ -118,15 +119,12 @@ it('intercepts incoming ArrayBuffer message', async () => {
 
     const serverMessage = serverMessageListener.mock.calls[0][0] as MessageEvent
     expect(serverMessage.type).toBe('message')
-    /**
-     * @note For some reason, "ws" still sends back a Blob.
-     */
-    expect(serverMessage.data).toEqual(new Blob(['hello world']))
+    expect(new TextDecoder().decode(serverMessage.data)).toBe('hello world')
 
     expect(clientMessageListener).toHaveBeenCalledTimes(1)
 
     const clientMessage = clientMessageListener.mock.calls[0][0] as MessageEvent
     expect(clientMessage.type).toBe('message')
-    expect(clientMessage.data).toEqual(new Blob(['hello world']))
+    expect(new TextDecoder().decode(clientMessage.data)).toBe('hello world')
   })
 })

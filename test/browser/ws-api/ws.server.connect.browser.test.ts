@@ -1,13 +1,13 @@
+import type { ws } from 'msw'
+import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import type { ws } from '../../../src/core/ws/ws'
-import type { SetupWorker } from '../../../src/browser'
 import { WebSocketServer } from '../../support/WebSocketServer'
 
 declare global {
   interface Window {
     msw: {
       ws: typeof ws
-      worker: SetupWorker
+      setupWorker: typeof setupWorker
     }
   }
 }
@@ -26,21 +26,24 @@ test('does not connect to the actual server by default', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   server.once('connection', (client) => {
     client.send('must not receive this')
   })
 
-  await page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+  await page.evaluate(async (serverUrl) => {
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    worker.use(
+    const worker = setupWorker(
       service.on('connection', ({ client }) => {
         queueMicrotask(() => client.send('mock'))
       }),
     )
+    await worker.start()
   }, server.url)
 
   const clientMessage = await page.evaluate((serverUrl) => {
@@ -62,23 +65,26 @@ test('forwards incoming server events to the client once connected', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   server.once('connection', (client) => {
     client.send('hello from server')
   })
 
-  await page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+  await page.evaluate(async (serverUrl) => {
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    worker.use(
+    const worker = setupWorker(
       service.on('connection', ({ server }) => {
         // Calling "connect()" establishes the connection
         // to the actual WebSocket server.
         server.connect()
       }),
     )
+    await worker.start()
   }, server.url)
 
   const clientMessage = await page.evaluate((serverUrl) => {
@@ -100,18 +106,21 @@ test('throws an error when connecting to a non-existing server', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'))
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
 
   const error = await page.evaluate((serverUrl) => {
-    const { worker, ws } = window.msw
+    const { setupWorker, ws } = window.msw
     const service = ws.link(serverUrl)
 
-    return new Promise((resolve) => {
-      worker.use(
+    return new Promise(async (resolve) => {
+      const worker = setupWorker(
         service.on('connection', ({ server }) => {
           server.connect()
         }),
       )
+      await worker.start()
 
       const socket = new WebSocket(serverUrl)
       socket.onerror = () => resolve('Connection failed')

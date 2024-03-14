@@ -2,15 +2,19 @@ import { checkGlobals } from './utils/internal/checkGlobals'
 
 export { SetupApi } from './SetupApi'
 
-/* Request handlers */
+/* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
 export { http } from './http'
 export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 export { graphql } from './graphql'
 export { GraphQLHandler } from './handlers/GraphQLHandler'
 
-/* WebSocket */
+/* WebSocket handler */
 export { ws } from './ws/ws'
+export {
+  WebSocketHandler,
+  WebSocketHandlerEventMap,
+} from './handlers/WebSocketHandler'
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'

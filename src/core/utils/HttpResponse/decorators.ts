@@ -42,7 +42,7 @@ export function decorateResponse(
   if (typeof document !== 'undefined') {
     // Write the mocked response cookies to the document.
     // Temporary measure until jsdom environment is improved
-    // and getSetCookie of Header can be used directly.
+    // and getSetCookie of Headers can be used directly.
     const responseCookies = HeadersPolyfill.prototype.getSetCookie.call(
       init.headers,
     )

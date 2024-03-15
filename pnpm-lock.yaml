@@ -12,7 +12,7 @@ specifiers:
   '@mswjs/interceptors': ^0.17.10
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^1.0.3
-  '@ossjs/release': ^0.8.0
+  '@ossjs/release': ^0.8.1
   '@playwright/test': ^1.30.0
   '@swc/core': ^1.3.35
   '@swc/jest': ^0.2.24
@@ -99,7 +99,7 @@ devDependencies:
   '@commitlint/cli': 16.3.0_@swc+core@1.3.35
   '@commitlint/config-conventional': 16.2.4
   '@open-draft/test-server': 0.4.2
-  '@ossjs/release': 0.8.0
+  '@ossjs/release': 0.8.1
   '@playwright/test': 1.30.0
   '@swc/core': 1.3.35
   '@swc/jest': 0.2.24_@swc+core@1.3.35
@@ -2183,8 +2183,8 @@ packages:
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
     dev: true
 
-  /@ossjs/release/0.8.0:
-    resolution: {integrity: sha512-vzxhYvad/Ub3j8bWWCRfdwTvFzK3HtKjm8IM5J+7njnQcZZie5iouUXX+G65OI3F1YgQSWvsozrWqHyN1x7fjQ==}
+  /@ossjs/release/0.8.1:
+    resolution: {integrity: sha512-gApVH7M47Mkh9GNMpd/LJi72KlCUcl/t0lbTP082APlHIQUzyQObcMyfLOjEwRdxyyYJtKlbTMzoDf/+NNIIiQ==}
     hasBin: true
     dependencies:
       '@open-draft/deferred-promise': 2.1.0
@@ -7863,7 +7863,7 @@ packages:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.11.0
-      semver: 7.3.8
+      semver: 7.5.4
       validate-npm-package-license: 3.0.4
     dev: true
 

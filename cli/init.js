@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 const { until } = require('@open-draft/until')
-const confirm = require('@inquirer/confirm')
+const confirm = require('@inquirer/confirm').default
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 

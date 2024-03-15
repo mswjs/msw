@@ -38,7 +38,7 @@
     "test:ts": "ts-node test/typings/run.ts",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
-    "release": "release publish",
+    "release": "release publish -p backport",
     "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
   },
   "lint-staged": {

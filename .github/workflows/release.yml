@@ -1,8 +1,8 @@
 name: release
 
 on:
-  schedule:
-    - cron: '0 0 */3 * *'
+  push:
+    branches: [backport/v1]
   workflow_dispatch:
 
 jobs:

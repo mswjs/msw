@@ -1,8 +1,8 @@
 {
   "profiles": [
     {
-      "name": "latest",
-      "use": "pnpm publish --no-git-checks"
+      "name": "backport",
+      "use": "pnpm publish --no-git-checks --tag backport"
     }
   ]
 }

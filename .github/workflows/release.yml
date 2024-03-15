@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          ref: backport/v1
           token: ${{ secrets.GH_ADMIN_TOKEN }}
 
       - name: Setup Node.js

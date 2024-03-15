@@ -23,6 +23,7 @@ const worker = setupWorker(
         headers: [
           ['Set-Cookie', 'firstCookie=yes'],
           ['Set-Cookie', 'secondCookie=no; Max-Age=1000'],
+          ['Set-Cookie', 'thirdCookie=1,2,3'],
         ],
       },
     )

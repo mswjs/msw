@@ -41,8 +41,10 @@ export function decorateResponse(
   // Cookie forwarding is only relevant in the browser.
   if (typeof document !== 'undefined') {
     // Write the mocked response cookies to the document.
-    // Temporary measure until jsdom environment is improved
-    // and getSetCookie of Headers can be used directly.
+    // Use `headers-polyfill` to get the Set-Cookie header value correctly.
+    // This is an alternative until TypeScript 5.2
+    // and Node.js v20 become the minimum supported version
+    // and getSetCookie in Headers can be used directly.
     const responseCookies = HeadersPolyfill.prototype.getSetCookie.call(
       init.headers,
     )

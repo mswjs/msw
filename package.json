@@ -93,10 +93,7 @@
     "url": "https://github.com/kettanaito"
   },
   "license": "MIT",
-  "funding": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/mswjs"
-  },
+  "funding": "https://github.com/sponsors/mswjs",
   "files": [
     "config/constants.js",
     "config/scripts/postinstall.js",

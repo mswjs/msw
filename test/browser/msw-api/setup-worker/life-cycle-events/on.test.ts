@@ -21,6 +21,9 @@ const server = new HttpServer((app) => {
   app.get('/passthrough', (_req, res) => {
     res.send('passthrough-response')
   })
+  app.post('/bypass', (_req, res) => {
+    res.send('bypassed-response')
+  })
 })
 
 export function getRequestId(messages: ConsoleMessages) {
@@ -140,6 +143,35 @@ test('emits events for a passthrough request', async ({
       `[request:end] GET ${url} ${requestId}`,
       `[response:bypass] ${url} passthrough-response GET ${url} ${requestId}`,
     ])
+  })
+})
+
+test.only('emits events for a bypassed request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const pageErrors: Array<Error> = []
+  page.on('pageerror', (error) => pageErrors.push(error))
+
+  const url = server.http.url('/bypass')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
+
+  await page.pause()
+
+  await waitFor(() => {
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] GET ${url} ${requestId}`,
+      `[request:end] GET ${url} ${requestId}`,
+      `[response:bypass] ${url} bypassed-response GET ${url} ${requestId}`,
+    ])
+    expect(pageErrors).toEqual([])
   })
 })
 

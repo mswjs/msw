@@ -45,3 +45,25 @@ it('returns bypassed request given request instance', async () => {
     'x-msw-intention': 'bypass',
   })
 })
+
+it('allows modifying the bypassed request instance', async () => {
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    body: 'hello world',
+  })
+  const request = bypass(original, {
+    method: 'PUT',
+    headers: { 'x-modified-header': 'yes' },
+  })
+
+  expect(request.method).toBe('PUT')
+  expect(Object.fromEntries(request.headers.entries())).toEqual({
+    'x-msw-intention': 'bypass',
+    'x-modified-header': 'yes',
+  })
+  expect(original.bodyUsed).toBe(false)
+  expect(request.bodyUsed).toBe(false)
+
+  expect(await request.text()).toBe('hello world')
+  expect(original.bodyUsed).toBe(false)
+})

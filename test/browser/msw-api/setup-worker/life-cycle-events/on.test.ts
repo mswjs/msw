@@ -1,4 +1,4 @@
-import type { SetupWorker } from 'msw/lib/browser'
+import type { SetupWorker } from 'msw/browser'
 import { HttpServer } from '@open-draft/test-server/http'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
@@ -11,7 +11,17 @@ declare namespace window {
 
 const ON_EXAMPLE = require.resolve('./on.mocks.ts')
 
-let server: HttpServer
+const server = new HttpServer((app) => {
+  app.post('/no-response', (_req, res) => {
+    res.send('original-response')
+  })
+  app.get('/unknown-route', (_req, res) => {
+    res.send('majestic-unknown')
+  })
+  app.get('/passthrough', (_req, res) => {
+    res.send('passthrough-response')
+  })
+})
 
 export function getRequestId(messages: ConsoleMessages) {
   const requestStartMessage = messages.get('warning')?.find((message) => {
@@ -20,15 +30,12 @@ export function getRequestId(messages: ConsoleMessages) {
   return requestStartMessage?.split(' ')?.[3]
 }
 
-test.beforeEach(async ({ createServer }) => {
-  server = await createServer((app) => {
-    app.post('/no-response', (req, res) => {
-      res.send('original-response')
-    })
-    app.get('/unknown-route', (req, res) => {
-      res.send('majestic-unknown')
-    })
-  })
+test.beforeAll(async () => {
+  await server.listen()
+})
+
+test.afterAll(async () => {
+  await server.close()
 })
 
 test('emits events for a handled request and mocked response', async ({
@@ -109,6 +116,31 @@ test('emits events for an unhandled request', async ({
     `[request:end] GET ${url} ${requestId}`,
     `[response:bypass] ${url} majestic-unknown GET ${url} ${requestId}`,
   ])
+})
+
+test('emits events for a passthrough request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  // Explicit "passthrough()" request must go through the
+  // same request processing pipeline to contain both
+  // "request" and "response" in the life-cycle event listener.
+  const url = server.http.url('/passthrough')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
+
+  await waitFor(() => {
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] GET ${url} ${requestId}`,
+      `[request:end] GET ${url} ${requestId}`,
+      `[response:bypass] ${url} passthrough-response GET ${url} ${requestId}`,
+    ])
+  })
 })
 
 test('emits unhandled exceptions in the request handler', async ({

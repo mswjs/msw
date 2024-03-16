@@ -80,7 +80,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       )
 
       if (integrityCheckResult.error) {
-        devUtils.error(`\
+        devUtils.warn(`\
 Detected outdated Service Worker: ${integrityCheckResult.error.message}
 
 The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:

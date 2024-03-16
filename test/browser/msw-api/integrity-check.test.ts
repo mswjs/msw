@@ -65,7 +65,7 @@ test('errors when activating the worker with an outdated integrity', async ({
 
   await waitFor(() => {
     // Produces a meaningful error in the browser's console.
-    expect(consoleSpy.get('error')).toEqual(
+    expect(consoleSpy.get('warning')).toEqual(
       expect.arrayContaining([
         expect.stringContaining('[MSW] Detected outdated Service Worker'),
       ]),

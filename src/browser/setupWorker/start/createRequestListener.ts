@@ -48,7 +48,7 @@ export const createRequestListener = (
         context.emitter,
         {
           onPassthroughResponse() {
-            messageChannel.postMessage('NOT_FOUND')
+            messageChannel.postMessage('PASSTHROUGH')
           },
           async onMockedResponse(response, { handler, parsedResult }) {
             // Clone the mocked response so its body could be read

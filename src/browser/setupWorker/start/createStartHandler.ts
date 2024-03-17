@@ -1,10 +1,9 @@
-import { until } from '@open-draft/until'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
-import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
+import { checkWorkerIntegrity } from '../../utils/checkWorkerIntegrity'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
 
@@ -74,23 +73,14 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         window.clearInterval(context.keepAliveInterval)
       })
 
-      // Check if the active Service Worker is the latest published one
-      const integrityCheckResult = await until(() =>
-        requestIntegrityCheck(context, worker),
-      )
-
-      if (integrityCheckResult.error) {
-        devUtils.error(`\
-Detected outdated Service Worker: ${integrityCheckResult.error.message}
-
-The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:
-
-$ npx msw init <PUBLIC_DIR>
-
-This is necessary to ensure that the Service Worker is in sync with the library to guarantee its stability.
-If this message still persists after updating, please report an issue: https://github.com/open-draft/msw/issues\
-      `)
-      }
+      // Check if the active Service Worker has been generated
+      // by the currently installed version of MSW.
+      await checkWorkerIntegrity(context).catch((error) => {
+        devUtils.error(
+          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below.',
+        )
+        console.error(error)
+      })
 
       context.keepAliveInterval = window.setInterval(
         () => context.workerChannel.send('KEEPALIVE_REQUEST'),

@@ -13,7 +13,7 @@ export { GraphQLHandler } from './handlers/GraphQLHandler'
 export { ws } from './ws/ws'
 export {
   WebSocketHandler,
-  WebSocketHandlerEventMap,
+  type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
 
 /* Utils */

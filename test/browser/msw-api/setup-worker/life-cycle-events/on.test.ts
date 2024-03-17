@@ -146,7 +146,7 @@ test('emits events for a passthrough request', async ({
   })
 })
 
-test.only('emits events for a bypassed request', async ({
+test('emits events for a bypassed request', async ({
   loadExample,
   spyOnConsole,
   fetch,
@@ -161,16 +161,30 @@ test.only('emits events for a bypassed request', async ({
 
   const url = server.http.url('/bypass')
   await fetch(url)
-  const requestId = getRequestId(consoleSpy)
-
-  await page.pause()
 
   await waitFor(() => {
-    expect(consoleSpy.get('warning')).toEqual([
-      `[request:start] GET ${url} ${requestId}`,
-      `[request:end] GET ${url} ${requestId}`,
-      `[response:bypass] ${url} bypassed-response GET ${url} ${requestId}`,
-    ])
+    // First, must print the events for the original (mocked) request.
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`[request:start] GET ${url}`),
+        expect.stringContaining(`[request:end] GET ${url}`),
+        expect.stringContaining(
+          `[response:mocked] ${url} bypassed-response GET ${url}`,
+        ),
+      ]),
+    )
+
+    // Then, must also print events for the bypassed request.
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`[request:start] POST ${url}`),
+        expect.stringContaining(`[request:end] POST ${url}`),
+        expect.stringContaining(
+          `[response:bypass] ${url} bypassed-response POST ${url}`,
+        ),
+      ]),
+    )
+
     expect(pageErrors).toEqual([])
   })
 })

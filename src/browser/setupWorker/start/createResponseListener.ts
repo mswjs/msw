@@ -21,6 +21,8 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     const request = context.requests.get(requestId)!
     context.requests.delete(requestId)
 
+    console.log('RESPONSE LISTENER', responseJson, context.requests)
+
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
      * That kind of responses cannot be manipulated in JavaScript due

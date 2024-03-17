@@ -237,7 +237,7 @@ async function getResponse(event, client, requestId) {
       return respondWithMock(clientMessage.data)
     }
 
-    case 'MOCK_NOT_FOUND': {
+    case 'PASSTHROUGH': {
       return passthrough()
     }
   }

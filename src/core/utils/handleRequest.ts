@@ -52,7 +52,7 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
-  // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
+  // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
   if (request.headers.get('x-msw-intention') === 'bypass') {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)

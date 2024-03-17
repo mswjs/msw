@@ -206,13 +206,6 @@ async function getResponse(event, client, requestId) {
     return passthrough()
   }
 
-  // Bypass requests with the explicit bypass header.
-  // Such requests can be issued by "ctx.fetch()".
-  const mswIntention = request.headers.get('x-msw-intention')
-  if (['bypass', 'passthrough'].includes(mswIntention)) {
-    return passthrough()
-  }
-
   // Notify the client that a request has been intercepted.
   const requestBuffer = await request.arrayBuffer()
   const clientMessage = await sendToClient(
@@ -244,7 +237,7 @@ async function getResponse(event, client, requestId) {
       return respondWithMock(clientMessage.data)
     }
 
-    case 'MOCK_NOT_FOUND': {
+    case 'PASSTHROUGH': {
       return passthrough()
     }
   }

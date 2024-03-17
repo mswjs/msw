@@ -1,20 +1,21 @@
 const fs = require('fs')
 const path = require('path')
-const { replaceCoreImports } = require('../replaceCoreImports')
+const glob = require('glob')
+const { hasCoreImports, replaceCoreImports } = require('../replaceCoreImports')
 
 async function patchTypeDefs() {
-  const typeDefsPaths = [
-    path.resolve(__dirname, '../..', 'lib/browser/index.d.ts'),
-    path.resolve(__dirname, '../..', 'lib/node/index.d.ts'),
-    path.resolve(__dirname, '../..', 'lib/native/index.d.ts'),
-  ]
+  const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {
+    cwd: path.resolve(__dirname, '../../lib'),
+    absolute: true,
+  })
 
   for (const typeDefsPath of typeDefsPaths) {
-    if (!fs.existsSync(typeDefsPath)) {
+    const fileContents = fs.readFileSync(typeDefsPath, 'utf8')
+
+    // Ignore type definition modules that don't have "~/core" imports.
+    if (!hasCoreImports(fileContents, true)) {
       continue
     }
-
-    const fileContents = fs.readFileSync(typeDefsPath, 'utf8')
 
     // Treat ".d.ts" files as ESM to replace "import" statements.
     // Force no extension on the ".d.ts" imports.

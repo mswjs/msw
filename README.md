@@ -100,7 +100,7 @@ const worker = setupWorker(
 )
 
 // 3. Start request interception by starting the Service Worker.
-worker.start()
+await worker.start()
 ```
 
 Performing a `GET https://github.com/octocat` request in your application will result into a mocked response that you can inspect in your browser's "Network" tab:

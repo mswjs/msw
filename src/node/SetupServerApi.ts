@@ -60,10 +60,10 @@ export class SetupServerApi
     this.handlersController = new AsyncHandlersController(handlers)
   }
 
-  public boundary<Fn extends (...args: Array<any>) => unknown>(
-    callback: Fn,
-  ): (...args: Parameters<Fn>) => ReturnType<Fn> {
-    return (...args: Parameters<Fn>): ReturnType<Fn> => {
+  public boundary<Args extends Array<any>, R>(
+    callback: (...args: Args) => R,
+  ): (...args: Args) => R {
+    return (...args: Args): R => {
       return store.run<any, any>(
         {
           initialHandlers: this.handlersController.currentHandlers(),

@@ -264,9 +264,14 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/materialize.svg" alt="Materialize" height="64" />
       </a>
     </td>
-     <td>
+    <td>
       <a href="https://trigger.dev/" target="_blank">
-          <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+        <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://vital.io/" target="_blank">
+        <img src="media/sponsors/vital.svg" alt="Vital" width="64" />
       </a>
     </td>
   </tr>

@@ -7,23 +7,62 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Builds the library and persists it as an artifact.
-  # Later jobs can then reuse that build artifact, skipping
-  # the build step.
   build:
+    name: Build
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Cache build output
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+  test_unit:
+    name: Unit tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2
         with:
           version: 7.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -34,17 +73,72 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit
 
-      - name: Build
-        run: pnpm build
+  test_node:
+    name: Node tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Node.js tests
         run: pnpm test:node
 
+  test_browser:
+    name: Browser tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Playwright install
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Browser tests
         run: pnpm test:browser
-
-      - name: Native tests
-        run: pnpm test:native
 
       - name: Upload test artifacts
         if: always()
@@ -52,3 +146,35 @@ jobs:
         with:
           name: playwright-report
           path: test/browser/test-results
+
+  test_native:
+    name: Native tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v3
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Native tests
+        run: pnpm test:native

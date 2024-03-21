@@ -1,10 +1,10 @@
 /**
  * @see https://github.com/mswjs/msw/issues/1823
  */
-import { http, Path, HttpResponse, DefaultBodyType } from 'msw'
 import { it } from 'vitest'
+import { http, Path, HttpResponse, DefaultBodyType } from 'msw'
 
-it('response body type regression accepts custom response body type without type error', () => {
+it('accepts custom response body generic argument', () => {
   function myHandler<CustomResponseBodyType extends DefaultBodyType>(
     path: Path,
   ) {

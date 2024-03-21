@@ -1,6 +1,6 @@
+import { it, expectTypeOf } from 'vitest'
 import { parse } from 'graphql'
 import { graphql, HttpResponse, passthrough } from 'msw'
-import { expectTypeOf, it } from 'vitest'
 
 it('graphql mutation can be used without variables generic type', () => {
   graphql.mutation('GetUser', () => {

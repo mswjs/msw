@@ -1,7 +1,7 @@
-import { http, HttpResponse, passthrough } from 'msw'
 import { it, expectTypeOf } from 'vitest'
+import { http, HttpResponse, passthrough } from 'msw'
 
-it('http get supports path parameters', () => {
+it('supports a single path parameter', () => {
   http.get<{ id: string }>('/user/:id', ({ params }) => {
     params.id.toUpperCase()
 
@@ -9,7 +9,7 @@ it('http get supports path parameters', () => {
   })
 })
 
-it('http get supports multiple path parameters', () => {
+it('supports multiple path parameters', () => {
   http.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
     params.a.toUpperCase()
     params.b.map((x) => x)
@@ -18,7 +18,7 @@ it('http get supports multiple path parameters', () => {
   })
 })
 
-it('http get supports path parameters declaration via type', () => {
+it('supports path parameters declared via type', () => {
   type UserPathParams = { id: string }
   http.get<UserPathParams>('/user/:id', ({ params }) => {
     params.id.toUpperCase()
@@ -27,7 +27,7 @@ it('http get supports path parameters declaration via type', () => {
   })
 })
 
-it('http get supports path parameters declaration via interface', () => {
+it('supports path parameters declared via interface', () => {
   interface PostPathParameters {
     id: string
   }
@@ -38,7 +38,7 @@ it('http get supports path parameters declaration via interface', () => {
   })
 })
 
-it('http post supports request body generic', () => {
+it('supports request body generic', () => {
   http.post<never, { id: string }>('/user', async ({ request }) => {
     const data = await request.json()
 
@@ -46,31 +46,30 @@ it('http post supports request body generic', () => {
 
     const text = await request.text()
     expectTypeOf(text).toEqualTypeOf<string>()
-    text.toUpperCase()
     expectTypeOf(text).toEqualTypeOf<string>()
   })
 })
 
-it('http get supports response body null generic', () => {
+it('supports null as the response body generic', () => {
   http.get<never, null>('/user', async ({ request }) => {
     const data = await request.json()
     expectTypeOf(data).toEqualTypeOf<null>()
   })
 })
 
-it('http get supports plain Response with no generic', () => {
+it('returns plain Response withouth explicit response body generic', () => {
   http.get('/user', () => {
     return new Response('hello')
   })
 })
 
-it('http get supports explicit response data', () => {
+it('supports response body generic', () => {
   http.get<never, never, { id: number }>('/user', () => {
     return HttpResponse.json({ id: 1 })
   })
 })
 
-it('http get supports explicit response data declared via type', () => {
+it('supports response body generic declared via type', () => {
   type ResponseBodyType = { id: number }
   http.get<never, never, ResponseBodyType>('/user', () => {
     const data: ResponseBodyType = { id: 1 }
@@ -78,7 +77,7 @@ it('http get supports explicit response data declared via type', () => {
   })
 })
 
-it('http get supports explicit response data declared via interface', () => {
+it('supports response body generic declared via interface', () => {
   interface ResponseBodyInterface {
     id: number
   }
@@ -88,7 +87,7 @@ it('http get supports explicit response data declared via interface', () => {
   })
 })
 
-it('http get accepts correct type for HttpResponse', () => {
+it('throws when returning a json response not matching the response body generic', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error String not assignable to number
@@ -96,7 +95,7 @@ it('http get accepts correct type for HttpResponse', () => {
   )
 })
 
-it("http get does not accept missing property in HttpResponse's body", () => {
+it('throws when returning an empty json response not matching the response body generic', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error Missing property "id"
@@ -104,19 +103,19 @@ it("http get does not accept missing property in HttpResponse's body", () => {
   )
 })
 
-it("http get accepts narrower type in HttpResponse's body", () => {
+it('accepts narrower type for response body', () => {
   http.get<never, never, string | string[]>('/user', () =>
     HttpResponse.json(['value']),
   )
 })
 
-it("http get accepts more specific type in HttpResponse's body", () => {
+it('accepts more specific type for response body', () => {
   http.get<never, never, { label: boolean }>('/user', () =>
     HttpResponse.json({ label: true }),
   )
 })
 
-it("http get accepts passthrough in HttpResponse's body", () => {
+it("accepts passthrough in HttpResponse's body", () => {
   // Passthrough responses.
   http.all('/', () => passthrough())
   http.get('/', () => passthrough())

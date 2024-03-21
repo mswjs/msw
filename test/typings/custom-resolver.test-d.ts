@@ -1,3 +1,4 @@
+import { it, expectTypeOf } from 'vitest'
 import {
   http,
   HttpResponseResolver,
@@ -10,7 +11,6 @@ import {
   GraphQLVariables,
   GraphQLResponseResolver,
 } from 'msw'
-import { expectTypeOf, it } from 'vitest'
 
 it('custom http resolver has correct parameters type', () => {
   /**

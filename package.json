@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.2.1",
+  "version": "2.2.9",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -93,10 +93,7 @@
     "url": "https://github.com/kettanaito"
   },
   "license": "MIT",
-  "funding": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/mswjs"
-  },
+  "funding": "https://github.com/sponsors/mswjs",
   "files": [
     "config/constants.js",
     "config/scripts/postinstall.js",
@@ -146,7 +143,7 @@
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
     "@open-draft/test-server": "^0.4.2",
-    "@ossjs/release": "^0.8.0",
+    "@ossjs/release": "^0.8.1",
     "@playwright/test": "^1.40.1",
     "@swc/core": "^1.3.102",
     "@types/express": "^4.17.21",
@@ -154,8 +151,8 @@
     "@types/glob": "^8.1.0",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "18.x",
-    "@typescript-eslint/eslint-plugin": "^5.11.0",
-    "@typescript-eslint/parser": "^5.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "@web/dev-server": "^0.1.38",
     "axios": "^1.6.5",
     "babel-minify": "^0.5.1",
@@ -165,7 +162,7 @@
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "^0.19.11",
     "esbuild-loader": "^4.0.2",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
     "express": "^4.18.2",
@@ -182,7 +179,7 @@
     "simple-git-hooks": "^2.9.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
-    "typescript": "^5.0.2",
+    "typescript": "^5.4.2",
     "undici": "^5.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^1.2.2",
@@ -191,7 +188,7 @@
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "typescript": ">= 4.7.x <= 5.3.x"
+    "typescript": ">= 4.7.x"
   },
   "peerDependenciesMeta": {
     "typescript": {

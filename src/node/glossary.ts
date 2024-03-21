@@ -70,7 +70,7 @@ export interface SetupServer extends SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/boundary `server.boundary()` API reference}
    */
-  boundary<Fn extends (...args: Array<any>) => unknown>(
-    callback: Fn,
-  ): (...args: Parameters<Fn>) => ReturnType<Fn>
+  boundary<Args extends Array<any>, R>(
+    callback: (...args: Args) => R,
+  ): (...args: Args) => R
 }

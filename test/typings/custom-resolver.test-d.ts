@@ -35,10 +35,12 @@ it('custom http resolver has correct parameters type', () => {
 
   http.get<{ id: string }, never, 'hello'>(
     '/user/:id',
-    // @ts-expect-error Response body doesn't match the response type.
     withDelay(250, ({ params }) => {
       expectTypeOf(params).toEqualTypeOf<{ id: string }>()
-      return HttpResponse.text('non-matching')
+      return HttpResponse.text(
+        // @ts-expect-error Response body doesn't match the response type.
+        'non-matching',
+      )
     }),
   )
 })
@@ -72,12 +74,12 @@ it('custom graphql resolver has correct variables and response type', () => {
 it('custom graphql resolver does not accept unknown variables', () => {
   graphql.query<{ number: number }, { id: string }>(
     'GetUser',
-    // @ts-expect-error Incompatible response query type.
     identityGraphQLResolver(({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()
 
       return HttpResponse.json({
         data: {
+          // @ts-expect-error Incompatible response query type.
           user: {
             id: variables.id,
           },

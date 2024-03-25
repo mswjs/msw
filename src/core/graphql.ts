@@ -31,7 +31,10 @@ export type GraphQLRequestHandler = <
     | GraphQLHandlerNameSelector
     | DocumentNode
     | TypedDocumentNode<Query, Variables>,
-  resolver: GraphQLResponseResolver<Query, Variables>,
+  resolver: GraphQLResponseResolver<
+    [Query] extends [never] ? GraphQLQuery : Query,
+    Variables
+  >,
   options?: RequestHandlerOptions,
 ) => GraphQLHandler
 
@@ -41,7 +44,7 @@ export type GraphQLResponseResolver<
 > = ResponseResolver<
   GraphQLResolverExtras<Variables>,
   null,
-  GraphQLResponseBody<Query>
+  GraphQLResponseBody<[Query] extends [never] ? GraphQLQuery : Query>
 >
 
 function createScopedGraphQLHandler(
@@ -61,7 +64,7 @@ function createScopedGraphQLHandler(
 
 function createGraphQLOperationHandler(url: Path) {
   return <
-    Query extends Record<string, any>,
+    Query extends GraphQLQuery = GraphQLQuery,
     Variables extends GraphQLVariables = GraphQLVariables,
   >(
     resolver: ResponseResolver<

@@ -57,9 +57,9 @@ export type AsyncResponseResolverReturnType<
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
   | AsyncGenerator<
-      ResponseResolverReturnType<ResponseBodyType>,
-      ResponseResolverReturnType<ResponseBodyType>,
-      ResponseResolverReturnType<ResponseBodyType>
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
 >
 

@@ -266,6 +266,11 @@ export abstract class RequestHandler<
       return null
     }
 
+    // Preemptively mark the handler as used.
+    // Generators will undo this because only when the resolver reaches the
+    // "done" state of the generator that it considers the handler used.
+    this.isUsed = true
+
     // Create a response extraction wrapper around the resolver
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
@@ -312,6 +317,9 @@ export abstract class RequestHandler<
       const result = this.resolverGenerator || (await resolver(info))
 
       if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
+        // Opt-out from marking this handler as used.
+        this.isUsed = false
+
         if (!this.resolverGenerator) {
           this.resolverGenerator = result
         }
@@ -336,8 +344,6 @@ export abstract class RequestHandler<
         return nextResponse
       }
 
-      // Regular one-time resolver is marked as used immediately.
-      this.isUsed = true
       return result
     }
   }

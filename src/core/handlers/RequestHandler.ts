@@ -1,4 +1,3 @@
-import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
@@ -117,11 +116,17 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?: Generator<
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>
-  >
+  private resolverGenerator?:
+    | Generator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+    | AsyncGenerator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
   private resolverGeneratorResult?: Response | StrictResponse<any>
   private options?: HandlerOptions
 
@@ -256,8 +261,6 @@ export abstract class RequestHandler<
       return null
     }
 
-    this.isUsed = true
-
     // Create a response extraction wrapper around the resolver
     // since it can be both an async function and a generator.
     const executeResolver = this.wrapResolver(this.resolver)
@@ -304,44 +307,32 @@ export abstract class RequestHandler<
       const result = this.resolverGenerator || (await resolver(info))
 
       if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
-        // Immediately mark this handler as unused.
-        // Only when the generator is done, the handler will be
-        // considered used.
-        this.isUsed = false
-
-        const { value, done } = result[Symbol.iterator]().next()
-        const nextResponse = await value
-
-        if (done) {
-          this.isUsed = true
-        }
-
-        // If the generator is done and there is no next value,
-        // return the previous generator's value.
-        if (!nextResponse && done) {
-          invariant(
-            this.resolverGeneratorResult,
-            'Failed to returned a previously stored generator response: the value is not a valid Response.',
-          )
-
-          // Clone the previously stored response from the generator
-          // so that it could be read again.
-          return this.resolverGeneratorResult.clone() as StrictResponse<any>
-        }
-
         if (!this.resolverGenerator) {
           this.resolverGenerator = result
         }
 
+        const { done, value } = await this.resolverGenerator.next()
+        const nextResponse = await value
+
         if (nextResponse) {
-          // Also clone the response before storing it
-          // so it could be read again.
-          this.resolverGeneratorResult = nextResponse?.clone()
+          this.resolverGeneratorResult = nextResponse.clone()
+        }
+
+        if (done) {
+          // A one-time generator resolver stops affecting the network
+          // only after it's been completely exhausted.
+          this.isUsed = true
+
+          // Clone the previously stored response so it can be read
+          // when receiving it repeatedly from the "done" generator.
+          return this.resolverGeneratorResult?.clone()
         }
 
         return nextResponse
       }
 
+      // Regular one-time resolver is marked as used immediately.
+      this.isUsed = true
       return result
     }
   }

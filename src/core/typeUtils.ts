@@ -18,3 +18,9 @@ export type RequiredDeep<
           : RequiredDeep<NonNullable<Type[Key]>, U>
       }
     : Type
+
+/**
+ * @fixme Remove this once TS 5.4 is the lowest supported version.
+ * Because "NoInfer" is a built-in type utility there.
+ */
+export type NoInfer<T> = [T][T extends any ? 0 : never]

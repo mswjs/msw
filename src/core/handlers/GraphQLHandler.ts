@@ -68,10 +68,13 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   variables?: Variables
 }
 
-export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
-  data?: BodyType | null
-  errors?: readonly Partial<GraphQLError>[] | null
-}
+export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
+  | {
+      data?: BodyType | null
+      errors?: readonly Partial<GraphQLError>[] | null
+    }
+  | null
+  | undefined
 
 export function isDocumentNode(
   value: DocumentNode | any,

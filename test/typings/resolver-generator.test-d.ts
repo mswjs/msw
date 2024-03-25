@@ -34,3 +34,17 @@ it('supports async generator function as response resolver', () => {
     return HttpResponse.json({ value: 'three' })
   })
 })
+
+it('supports returning nothing from generator resolvers', () => {
+  http.get<never, never, { value: string }>('/', function* () {})
+  http.get<never, never, { value: string }>('/', async function* () {})
+})
+
+it('supports returning undefined from generator resolvers', () => {
+  http.get<never, never, { value: string }>('/', function* () {
+    return undefined
+  })
+  http.get<never, never, { value: string }>('/', async function* () {
+    return undefined
+  })
+})

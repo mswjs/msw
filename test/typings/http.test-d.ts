@@ -3,27 +3,21 @@ import { http, HttpResponse, passthrough } from 'msw'
 
 it('supports a single path parameter', () => {
   http.get<{ id: string }>('/user/:id', ({ params }) => {
-    params.id.toUpperCase()
-
     expectTypeOf(params).toEqualTypeOf<{ id: string }>()
   })
 })
 
 it('supports multiple path parameters', () => {
-  http.get<{ a: string; b: string[] }>('/user/:a/:b/:b', ({ params }) => {
-    params.a.toUpperCase()
-    params.b.map((x) => x)
-
-    expectTypeOf(params).toEqualTypeOf<{ a: string; b: string[] }>()
+  type Params = { a: string; b: string[] }
+  http.get<Params>('/user/:a/:b/:b', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<Params>()
   })
 })
 
 it('supports path parameters declared via type', () => {
-  type UserPathParams = { id: string }
-  http.get<UserPathParams>('/user/:id', ({ params }) => {
-    params.id.toUpperCase()
-
-    expectTypeOf(params).toEqualTypeOf<UserPathParams>()
+  type Params = { id: string }
+  http.get<Params>('/user/:id', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<Params>()
   })
 })
 
@@ -32,13 +26,11 @@ it('supports path parameters declared via interface', () => {
     id: string
   }
   http.get<PostPathParameters>('/user/:id', ({ params }) => {
-    params.id.toUpperCase()
-
     expectTypeOf(params).toEqualTypeOf<PostPathParameters>()
   })
 })
 
-it('supports request body generic', () => {
+it('supports json as a request body generic argument', () => {
   http.post<never, { id: string }>('/user', async ({ request }) => {
     const data = await request.json()
 
@@ -50,7 +42,7 @@ it('supports request body generic', () => {
   })
 })
 
-it('supports null as the response body generic', () => {
+it('supports null as the request body generic', () => {
   http.get<never, null>('/user', async ({ request }) => {
     const data = await request.json()
     expectTypeOf(data).toEqualTypeOf<null>()
@@ -63,9 +55,43 @@ it('returns plain Response withouth explicit response body generic', () => {
   })
 })
 
-it('supports response body generic', () => {
+it('supports string as a response body generic argument', () => {
+  http.get<never, never, string>('/', ({ request }) => {
+    if (request.headers.has('x-foo')) {
+      return HttpResponse.text('conditional')
+    }
+
+    return HttpResponse.text('hello')
+  })
+})
+
+it('supports exact string as a response body generic argument', () => {
+  http.get<never, never, 'hello'>('/', () => {
+    return HttpResponse.text('hello')
+  })
+
+  http.get<never, never, 'hello'>('/', () => {
+    // @ts-expect-error Non-matching response body type.
+    return HttpResponse.text('unexpected')
+  })
+})
+
+it('supports object as a response body generic argument', () => {
   http.get<never, never, { id: number }>('/user', () => {
     return HttpResponse.json({ id: 1 })
+  })
+})
+
+it('supports narrow object as a response body generic argument', () => {
+  http.get<never, never, { id: 123 }>('/user', () => {
+    return HttpResponse.json({ id: 123 })
+  })
+
+  http.get<never, never, { id: 123 }>('/user', () => {
+    return HttpResponse.json({
+      // @ts-expect-error Non-matching response body type.
+      id: 456,
+    })
   })
 })
 
@@ -125,5 +151,16 @@ it("accepts passthrough in HttpResponse's body", () => {
     }
 
     return HttpResponse.json({ id: 1 })
+  })
+})
+
+it('infers a narrower json response type', () => {
+  type ResponseBody = {
+    a: number
+  }
+
+  http.get<never, never, ResponseBody>('/', () => {
+    // @ts-expect-error Unknown property "b".
+    return HttpResponse.json({ a: 1, b: 2 })
   })
 })

@@ -37,13 +37,12 @@ it('graphql mutation allows explicit null as the response body type for the muta
   })
 })
 it('graphql mutation does not allow mismatched mutation response', () => {
-  graphql.mutation<{ key: string }>(
-    'MutateData',
-    // @ts-expect-error Response data doesn't match the query type.
-    () => {
-      return HttpResponse.json({ data: {} })
-    },
-  )
+  graphql.mutation<{ key: string }>('MutateData', () => {
+    return HttpResponse.json({
+      // @ts-expect-error Response data doesn't match the query type.
+      data: {},
+    })
+  })
 })
 
 it("graphql query does not accept null as variables' generic query type ", () => {
@@ -53,6 +52,7 @@ it("graphql query does not accept null as variables' generic query type ", () =>
     null
   >('', () => {})
 })
+
 it("graphql query accepts the correct type for the variables' generic query type", () => {
   /**
    * Response body type (GraphQL query type).
@@ -76,15 +76,14 @@ it('graphql query allows explicit null as the response body type for the query',
 })
 
 it('graphql query does not accept invalid data type for the response body type for the query', () => {
-  graphql.query<{ id: string }>(
-    'GetUser',
-    // @ts-expect-error "id" type is incorrect
-    () => {
-      return HttpResponse.json({
-        data: { id: 123 },
-      })
-    },
-  )
+  graphql.query<{ id: string }>('GetUser', () => {
+    return HttpResponse.json({
+      data: {
+        // @ts-expect-error "id" type is incorrect
+        id: 123,
+      },
+    })
+  })
 })
 
 it('graphql query does not allow empty response when the query type is defined', () => {
@@ -114,12 +113,12 @@ it("graphql operation does not accept null as variables' generic operation type"
 })
 
 it('graphql operation does not allow mismatched operation response', () => {
-  graphql.operation<{ key: string }>(
-    // @ts-expect-error Response data doesn't match the query type.
-    () => {
-      return HttpResponse.json({ data: {} })
-    },
-  )
+  graphql.operation<{ key: string }>(() => {
+    return HttpResponse.json({
+      // @ts-expect-error Response data doesn't match the query type.
+      data: {},
+    })
+  })
 })
 
 it('graphql operation allows explicit null as the response body type for the operation', () => {
@@ -140,64 +139,62 @@ it('graphql handlers allow passthrough responses', () => {
 
     return HttpResponse.json({ data: {} })
   })
+})
 
-  it("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {
-    /**
-     * Supports `DocumentNode` as the GraphQL operation name.
-     */
-    const getUser = parse(`
+it("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {
+  /**
+   * Supports `DocumentNode` as the GraphQL operation name.
+   */
+  const getUser = parse(`
         query GetUser {
           user {
             firstName
           }
         }
       `)
-    graphql.query(getUser, () => {
-      return HttpResponse.json({
-        // Cannot extract query type from the runtime `DocumentNode`.
-        data: { arbitrary: true },
-      })
+  graphql.query(getUser, () => {
+    return HttpResponse.json({
+      // Cannot extract query type from the runtime `DocumentNode`.
+      data: { arbitrary: true },
     })
   })
+})
 
-  it('graphql query cannot extract variable and reponse types', () => {
-    const getUserById = parse(`
+it('graphql query cannot extract variable and reponse types', () => {
+  const getUserById = parse(`
       query GetUserById($userId: String!) {
         user(id: $userId) {
           firstName
         }
       }
       `)
-    graphql.query(getUserById, ({ variables }) => {
-      variables.userId.toUpperCase()
+  graphql.query(getUserById, ({ variables }) => {
+    // Cannot extract variables type from a DocumentNode.
+    expectTypeOf(variables).toEqualTypeOf<Record<string, any>>()
 
-      // Extracting variables from the native "DocumentNode" is impossible.
-      variables.foo
-
-      return HttpResponse.json({
-        data: {
-          user: {
-            firstName: 'John',
-            // Extracting a query body type from the "DocumentNode" is impossible.
-            lastName: 'Maverick',
-          },
+    return HttpResponse.json({
+      data: {
+        user: {
+          firstName: 'John',
+          // Extracting a query body type from the "DocumentNode" is impossible.
+          lastName: 'Maverick',
         },
-      })
+      },
     })
   })
+})
 
-  it('graphql mutation cannot extract variable and reponse types', () => {
-    const createUser = parse(`
+it('graphql mutation cannot extract variable and reponse types', () => {
+  const createUser = parse(`
         mutation CreateUser {
           user {
             id
           }
         }
       `)
-    graphql.mutation(createUser, () => {
-      return HttpResponse.json({
-        data: { arbitrary: true },
-      })
+  graphql.mutation(createUser, () => {
+    return HttpResponse.json({
+      data: { arbitrary: true },
     })
   })
 })

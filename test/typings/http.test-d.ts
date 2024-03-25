@@ -95,6 +95,37 @@ it('supports narrow object as a response body generic argument', () => {
   })
 })
 
+it('supports object with extra keys as a response body generic argument', () => {
+  type ResponseBody = {
+    [key: string]: number | string
+    id: 123
+  }
+
+  http.get<never, never, ResponseBody>('/user', () => {
+    return HttpResponse.json({
+      id: 123,
+      // Extra keys are allowed if they satisfy the index signature.
+      name: 'John',
+    })
+  })
+
+  http.get<never, never, ResponseBody>('/user', () => {
+    return HttpResponse.json({
+      // @ts-expect-error Must be 123.
+      id: 456,
+      name: 'John',
+    })
+  })
+
+  http.get<never, never, ResponseBody>('/user', () => {
+    return HttpResponse.json({
+      id: 123,
+      // @ts-expect-error Must satisfy the index signature.
+      name: { a: 1 },
+    })
+  })
+})
+
 it('supports response body generic declared via type', () => {
   type ResponseBodyType = { id: number }
   http.get<never, never, ResponseBodyType>('/user', () => {

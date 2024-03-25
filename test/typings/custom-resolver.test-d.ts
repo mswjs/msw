@@ -35,10 +35,12 @@ it('custom http resolver has correct parameters type', () => {
 
   http.get<{ id: string }, never, 'hello'>(
     '/user/:id',
-    // @ts-expect-error Response body doesn't match the response type.
     withDelay(250, ({ params }) => {
       expectTypeOf(params).toEqualTypeOf<{ id: string }>()
-      return HttpResponse.text('non-matching')
+      return HttpResponse.text(
+        // @ts-expect-error Response body doesn't match the response type.
+        'non-matching',
+      )
     }),
   )
 })

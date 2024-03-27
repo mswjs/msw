@@ -8,20 +8,23 @@ export function mergeRight(
   left: Record<string, any>,
   right: Record<string, any>,
 ) {
-  return Object.entries(right).reduce((result, [key, rightValue]) => {
-    const leftValue = result[key]
+  return Object.entries(right).reduce(
+    (result, [key, rightValue]) => {
+      const leftValue = result[key]
 
-    if (Array.isArray(leftValue) && Array.isArray(rightValue)) {
-      result[key] = leftValue.concat(rightValue)
+      if (Array.isArray(leftValue) && Array.isArray(rightValue)) {
+        result[key] = leftValue.concat(rightValue)
+        return result
+      }
+
+      if (isObject(leftValue) && isObject(rightValue)) {
+        result[key] = mergeRight(leftValue, rightValue)
+        return result
+      }
+
+      result[key] = rightValue
       return result
-    }
-
-    if (isObject(leftValue) && isObject(rightValue)) {
-      result[key] = mergeRight(leftValue, rightValue)
-      return result
-    }
-
-    result[key] = rightValue
-    return result
-  }, Object.assign({}, left))
+    },
+    Object.assign({}, left),
+  )
 }

@@ -1,4 +1,5 @@
 import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
+import type { NoInfer } from './typeUtils'
 import {
   decorateResponse,
   normalizeResponseInit,
@@ -48,7 +49,7 @@ export class HttpResponse extends Response {
    * HttpResponse.text('Error', { status: 500 })
    */
   static text<BodyType extends string>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
@@ -77,7 +78,7 @@ export class HttpResponse extends Response {
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
   static json<BodyType extends JsonBodyType>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)

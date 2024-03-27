@@ -1,6 +1,6 @@
+import { createRequestId } from '@mswjs/interceptors'
 import type { RequestHandler } from './handlers/RequestHandler'
 import { executeHandlers } from './utils/executeHandlers'
-import { randomId } from './utils/internal/randomId'
 
 /**
  * Finds a response for the given request instance
@@ -15,7 +15,7 @@ export const getResponse = async (
 ): Promise<Response | undefined> => {
   const result = await executeHandlers({
     request,
-    requestId: randomId(),
+    requestId: createRequestId(),
     handlers,
   })
 

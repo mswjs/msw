@@ -7,16 +7,10 @@ interface GetTimestampOptions {
  */
 export function getTimestamp(options?: GetTimestampOptions): string {
   const now = new Date()
-
-  let timestamp = [now.getHours(), now.getMinutes(), now.getSeconds()]
-    .filter(Boolean)
-    .map(String)
-    .map((chunk) => chunk.slice(0, 2))
-    .map((chunk) => chunk.padStart(2, '0'))
-    .join(':')
+  const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
 
   if (options?.milliseconds) {
-    timestamp += `.${now.getMilliseconds().toString().padStart(3, '0')}`
+    return `${timestamp}.${now.getMilliseconds().toString().padStart(3, '0')}`
   }
 
   return timestamp

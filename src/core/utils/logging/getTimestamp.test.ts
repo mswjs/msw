@@ -1,18 +1,26 @@
 import { getTimestamp } from './getTimestamp'
 
 beforeAll(() => {
-  // Stub native `Date` prototype methods used in the tested module,
-  // to always produce a predictable value for testing purposes.
-  vi.spyOn(global.Date.prototype, 'getHours').mockImplementation(() => 12)
-  vi.spyOn(global.Date.prototype, 'getMinutes').mockImplementation(() => 4)
-  vi.spyOn(global.Date.prototype, 'getSeconds').mockImplementation(() => 8)
+  vi.useFakeTimers()
 })
 
 afterAll(() => {
-  vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
 test('returns a timestamp string of the invocation time', () => {
+  vi.setSystemTime(new Date('2024-01-01 12:4:8'))
   const timestamp = getTimestamp()
   expect(timestamp).toBe('12:04:08')
+})
+
+test('returns a timestamp with milliseconds', () => {
+  vi.setSystemTime(new Date('2024-01-01 12:4:8'))
+  expect(getTimestamp({ milliseconds: true })).toBe('12:04:08.000')
+
+  vi.setSystemTime(new Date('2024-01-01 12:4:8.4'))
+  expect(getTimestamp({ milliseconds: true })).toBe('12:04:08.400')
+
+  vi.setSystemTime(new Date('2024-01-01 12:4:8.123'))
+  expect(getTimestamp({ milliseconds: true })).toBe('12:04:08.123')
 })

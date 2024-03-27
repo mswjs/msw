@@ -18,9 +18,12 @@ import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
-import { LifeCycleEventsMap } from '~/core/sharedOptions'
+import type { LifeCycleEventsMap } from '~/core/sharedOptions'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
+import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
+import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
 
 interface Listener {
   target: EventTarget
@@ -37,7 +40,7 @@ export class SetupWorkerApi
   private stopHandler: StopHandler = null as any
   private listeners: Array<Listener>
 
-  constructor(...handlers: Array<RequestHandler>) {
+  constructor(...handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
 
     invariant(
@@ -176,6 +179,15 @@ export class SetupWorkerApi
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
+    handleWebSocketEvent(() => {
+      return this.handlersController.currentHandlers()
+    })
+    webSocketInterceptor.apply()
+
+    this.subscriptions.push(() => {
+      webSocketInterceptor.dispose()
+    })
+
     return await this.startHandler(this.context.startOptions, options)
   }
 
@@ -193,6 +205,8 @@ export class SetupWorkerApi
  *
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
-export function setupWorker(...handlers: Array<RequestHandler>): SetupWorker {
+export function setupWorker(
+  ...handlers: Array<RequestHandler | WebSocketHandler>
+): SetupWorker {
   return new SetupWorkerApi(...handlers)
 }

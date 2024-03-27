@@ -1,4 +1,5 @@
-lib
-node
-native
-test/typings
+/lib
+/node
+/native
+/config
+/test

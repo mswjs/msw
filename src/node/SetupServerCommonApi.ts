@@ -85,8 +85,12 @@ export class SetupServerCommonApi
       },
     )
 
-    handleWebSocketEvent(() => {
-      return this.handlersController.currentHandlers()
+    handleWebSocketEvent({
+      getHandlers: () => {
+        return this.handlersController.currentHandlers()
+      },
+      onMockedConnection: () => {},
+      onPassthroughConnection: () => {},
     })
   }
 

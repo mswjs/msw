@@ -1,3 +1,4 @@
+import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
 import { RequestHandler } from '../handlers/RequestHandler'
 import {
   WebSocketHandler,
@@ -6,11 +7,15 @@ import {
 } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from '../ws/webSocketInterceptor'
 
-export function handleWebSocketEvent(
-  getCurrentHandlers: () => Array<RequestHandler | WebSocketHandler>,
-) {
+interface HandleWebSocketEventOptions {
+  getHandlers: () => Array<RequestHandler | WebSocketHandler>
+  onMockedConnection: (connection: WebSocketConnectionData) => void
+  onPassthroughConnection: (onnection: WebSocketConnectionData) => void
+}
+
+export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
   webSocketInterceptor.on('connection', (connection) => {
-    const handlers = getCurrentHandlers()
+    const handlers = options.getHandlers()
 
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
@@ -37,13 +42,17 @@ export function handleWebSocketEvent(
       }
     }
 
-    // If none of the "ws" handlers matched,
-    // establish the WebSocket connection as-is.
-    if (!Reflect.get(connectionEvent, kDefaultPrevented)) {
+    if (Reflect.get(connectionEvent, kDefaultPrevented)) {
+      options?.onMockedConnection(connection)
+    } else {
+      // If none of the "ws" handlers matched,
+      // establish the WebSocket connection as-is.
       connection.server.connect()
       connection.client.addEventListener('message', (event) => {
         connection.server.send(event.data)
       })
+
+      options?.onPassthroughConnection(connection)
     }
   })
 }

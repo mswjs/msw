@@ -36,6 +36,28 @@ export function attachLogger(connection: WebSocketConnectionData): void {
     logIncomingClientMessage(event)
   })
 
+  client.send = new Proxy(client.send, {
+    apply(target, thisArg, args) {
+      const [data] = args
+      const messageEvent = new MessageEvent('message', { data })
+      Object.defineProperties(messageEvent, {
+        currentTarget: {
+          enumerable: true,
+          writable: false,
+          value: client.socket,
+        },
+        target: {
+          enumerable: true,
+          writable: false,
+          value: client.socket,
+        },
+      })
+      logIncomingMockedClientMessage(messageEvent)
+
+      return Reflect.apply(target, thisArg, args)
+    },
+  })
+
   server.addEventListener(
     'open',
     () => {
@@ -51,18 +73,17 @@ export function attachLogger(connection: WebSocketConnectionData): void {
   server.send = new Proxy(server.send, {
     apply(target, thisArg, args) {
       const [data] = args
-      const eventTarget = server['realWebSocket']
       const messageEvent = new MessageEvent('message', { data })
       Object.defineProperties(messageEvent, {
         currentTarget: {
           enumerable: true,
           writable: false,
-          value: eventTarget,
+          value: server['realWebSocket'],
         },
         target: {
           enumerable: true,
           writable: false,
-          value: eventTarget,
+          value: server['realWebSocket'],
         },
       })
 
@@ -115,7 +136,7 @@ export async function logOutgoingClientMessage(
 
 /**
  * Prints the outgoing client message initiated
- * by `client.send()` in the event handler.
+ * by `server.send()` in the event handler.
  */
 export async function logOutgoingMockedClientMessage(
   event: MessageEvent<WebSocketData>,
@@ -127,7 +148,7 @@ export async function logOutgoingMockedClientMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇡%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:mediumspringgreen',
+    'color:orangered',
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -136,6 +157,12 @@ export async function logOutgoingMockedClientMessage(
   console.groupEnd()
 }
 
+/**
+ * Prings the message received by the WebSocket client.
+ * This is fired when the "message" event is dispatched
+ * on the actual WebSocket client instance, and translates to
+ * the client receiving a message from the server.
+ */
 export async function logIncomingClientMessage(
   event: MessageEvent<WebSocketData>,
 ) {
@@ -147,6 +174,29 @@ export async function logIncomingClientMessage(
       `${getTimestamp({ milliseconds: true })} %c↓%c ${publicData} %c${byteLength}%c`,
     ),
     'color:red',
+    'color:inherit',
+    'color:gray;font-weight:normal',
+    'color:inherit;font-weight:inherit',
+  )
+  console.log(event)
+  console.groupEnd()
+}
+
+/**
+ * Prints the outgoing client message initiated
+ * by `client.send()` in the event handler.
+ */
+export async function logIncomingMockedClientMessage(
+  event: MessageEvent<WebSocketData>,
+) {
+  const byteLength = getMessageLength(event.data)
+  const publicData = await getPublicData(event.data)
+
+  console.groupCollapsed(
+    devUtils.formatMessage(
+      `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
+    ),
+    'color:orangered',
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',

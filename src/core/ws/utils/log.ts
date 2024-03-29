@@ -93,7 +93,9 @@ function logConnectionClose(event: CloseEvent) {
   const publicUrl = toPublicUrl(target.url)
 
   console.groupCollapsed(
-    devUtils.formatMessage(`${getTimestamp()} %c■%c ${publicUrl}`),
+    devUtils.formatMessage(
+      `${getTimestamp({ milliseconds: true })} %c■%c ${publicUrl}`,
+    ),
     'color:blue',
     'color:inherit',
   )

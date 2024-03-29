@@ -328,3 +328,72 @@ test('logs incoming client events', async ({
     )
   })
 })
+
+test('logs the close event initiated by the client', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com/*')
+    const worker = setupWorker(api.on('connection', () => {}))
+    await worker.start()
+  })
+
+  await page.evaluate(() => {
+    const ws = new WebSocket('wss://example.com/path')
+    ws.onopen = () => ws.close()
+  })
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:blue color:inherit$/,
+        ),
+      ]),
+    )
+  })
+})
+
+test('logs the close event initiated by the event handler', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com/*')
+    const worker = setupWorker(
+      api.on('connection', ({ client }) => {
+        client.close()
+      }),
+    )
+    await worker.start()
+  })
+
+  await page.evaluate(() => {
+    new WebSocket('wss://example.com/path')
+  })
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:blue color:inherit$/,
+        ),
+      ]),
+    )
+  })
+})

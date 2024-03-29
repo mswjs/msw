@@ -329,6 +329,60 @@ test('logs incoming client events', async ({
   })
 })
 
+test('logs raw incoming server events', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  server.addListener('connection', (ws) => {
+    ws.send('hello from server')
+  })
+
+  await page.evaluate(async (url) => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link(url)
+    const worker = setupWorker(
+      api.on('connection', ({ client, server }) => {
+        server.connect()
+        client.addEventListener('message', (event) => {
+          server.send(event.data)
+        })
+        server.addEventListener('message', (event) => {
+          event.preventDefault()
+          // This is the only data the client will receive
+          // but we should still print the raw server message.
+          client.send('intercepted server event')
+        })
+      }),
+    )
+    await worker.start()
+  }, server.url)
+
+  await page.evaluate((url) => {
+    new WebSocket(url)
+  }, server.url)
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        // Raw server message.
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from server %c17%c color:orangered color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+        ),
+        // The actual message the client received (mocked).
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c intercepted server event %c24%c color:red color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+        ),
+      ]),
+    )
+  })
+})
+
 test('logs the close event initiated by the client', async ({
   loadExample,
   page,

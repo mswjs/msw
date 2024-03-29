@@ -10,7 +10,7 @@ import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
 
 export function attachLogger(connection: WebSocketConnectionData): void {
-  const { client } = connection
+  const { client, server } = connection
 
   logConnectionOpen(client)
 
@@ -18,7 +18,7 @@ export function attachLogger(connection: WebSocketConnectionData): void {
   // WebSocket client connection object is written from the
   // server's perspective so these message events are outgoing.
   client.addEventListener('message', (event) => {
-    logOutgoingMessage(event)
+    logOutgoingClientMessage(event)
   })
 
   client.addEventListener('close', (event) => {
@@ -29,8 +29,18 @@ export function attachLogger(connection: WebSocketConnectionData): void {
   // "client.socket" references the actual WebSocket instance
   // so these message events are incoming messages.
   client.socket.addEventListener('message', (event) => {
-    logIncomingMessage(event)
+    logIncomingClientMessage(event)
   })
+
+  server.addEventListener(
+    'open',
+    () => {
+      server.addEventListener('message', (event) => {
+        logIncomingServerMessage(event)
+      })
+    },
+    { once: true },
+  )
 }
 
 /**
@@ -54,7 +64,9 @@ export function logConnectionOpen(client: WebSocketClientConnection) {
 /**
  * Prints the outgoing client message.
  */
-export async function logOutgoingMessage(event: MessageEvent<WebSocketData>) {
+export async function logOutgoingClientMessage(
+  event: MessageEvent<WebSocketData>,
+) {
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
@@ -71,7 +83,9 @@ export async function logOutgoingMessage(event: MessageEvent<WebSocketData>) {
   console.groupEnd()
 }
 
-export async function logIncomingMessage(event: MessageEvent<WebSocketData>) {
+export async function logIncomingClientMessage(
+  event: MessageEvent<WebSocketData>,
+) {
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
@@ -98,6 +112,25 @@ function logConnectionClose(event: CloseEvent) {
     ),
     'color:blue',
     'color:inherit',
+  )
+  console.log(event)
+  console.groupEnd()
+}
+
+export async function logIncomingServerMessage(
+  event: MessageEvent<WebSocketData>,
+) {
+  const byteLength = getMessageLength(event.data)
+  const publicData = await getPublicData(event.data)
+
+  console.groupCollapsed(
+    devUtils.formatMessage(
+      `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
+    ),
+    'color:orangered',
+    'color:inherit',
+    'color:gray;font-weight:normal',
+    'color:inherit;font-weight:inherit',
   )
   console.log(event)
   console.groupEnd()

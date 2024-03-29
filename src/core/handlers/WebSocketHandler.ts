@@ -22,7 +22,6 @@ interface WebSocketHandlerConnection extends WebSocketConnectionData {
 
 export const kEmitter = Symbol('kEmitter')
 export const kDispatchEvent = Symbol('kDispatchEvent')
-export const kDefaultPrevented = Symbol('kDefaultPrevented')
 export const kSender = Symbol('kSender')
 
 export class WebSocketHandler {
@@ -57,22 +56,6 @@ export class WebSocketHandler {
     event: MessageEvent<WebSocketConnectionData>,
   ): Promise<void> {
     const parsedResult = this.parse({ event })
-    const shouldIntercept = this.predicate({ event, parsedResult })
-
-    if (!shouldIntercept) {
-      return
-    }
-
-    // Account for other matching event handlers that've already prevented this event.
-    if (!Reflect.get(event, kDefaultPrevented)) {
-      // At this point, the WebSocket connection URL has matched the handler.
-      // Prevent the default behavior of establishing the connection as-is.
-      // Use internal symbol because we aren't actually dispatching this
-      // event. Events can only marked as cancelable and can be prevented
-      // when dispatched on an EventTarget.
-      Reflect.set(event, kDefaultPrevented, true)
-    }
-
     const connection = event.data
 
     const resolvedConnection: WebSocketHandlerConnection = {

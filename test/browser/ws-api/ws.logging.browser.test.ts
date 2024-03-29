@@ -485,3 +485,40 @@ test('logs the close event initiated by the event handler', async ({
     )
   })
 })
+
+test('logs outgoing client events sent vi "server.send()"', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async (url) => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link(url)
+    const worker = setupWorker(
+      api.on('connection', ({ server }) => {
+        server.connect()
+        server.send('hello from handler')
+      }),
+    )
+    await worker.start()
+  }, server.url)
+
+  await page.evaluate((url) => {
+    new WebSocket(url)
+  }, server.url)
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇡%c hello from handler %c18%c color:mediumspringgreen color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+        ),
+      ]),
+    )
+  })
+})

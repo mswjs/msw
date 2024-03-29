@@ -1,10 +1,6 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
 import { RequestHandler } from '../handlers/RequestHandler'
-import {
-  WebSocketHandler,
-  kDefaultPrevented,
-  kDispatchEvent,
-} from '../handlers/WebSocketHandler'
+import { WebSocketHandler, kDispatchEvent } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from '../ws/webSocketInterceptor'
 
 interface HandleWebSocketEventOptions {
@@ -19,40 +15,45 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
 
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
-      /**
-       * @note This message event should be marked as "cancelable"
-       * to have its default prevented using "event.preventDefault()".
-       * There's a bug in Node.js that breaks the "cancelable" flag.
-       * @see https://github.com/nodejs/node/issues/51767
-       */
     })
 
-    Object.defineProperty(connectionEvent, kDefaultPrevented, {
-      enumerable: false,
-      writable: true,
-      value: false,
-    })
+    // First, filter only those WebSocket handlers that
+    // match the "ws.link()" endpoint predicate. Don't dispatch
+    // anything yet so the logger can be attached to the connection
+    // before it potentially sends events.
+    const matchingHandlers = handlers.filter<WebSocketHandler>(
+      (handler): handler is WebSocketHandler => {
+        if (handler instanceof WebSocketHandler) {
+          return handler.predicate({
+            event: connectionEvent,
+            parsedResult: handler.parse({
+              event: connectionEvent,
+            }),
+          })
+        }
 
-    // Iterate over the handlers and forward the connection
-    // event to WebSocket event handlers. This is equivalent
-    // to dispatching that event onto multiple listeners.
-    for (const handler of handlers) {
-      if (handler instanceof WebSocketHandler) {
+        return false
+      },
+    )
+
+    if (matchingHandlers.length > 0) {
+      options?.onMockedConnection(connection)
+
+      // Iterate over the handlers and forward the connection
+      // event to WebSocket event handlers. This is equivalent
+      // to dispatching that event onto multiple listeners.
+      for (const handler of matchingHandlers) {
         handler[kDispatchEvent](connectionEvent)
       }
-    }
-
-    if (Reflect.get(connectionEvent, kDefaultPrevented)) {
-      options?.onMockedConnection(connection)
     } else {
+      options?.onPassthroughConnection(connection)
+
       // If none of the "ws" handlers matched,
       // establish the WebSocket connection as-is.
       connection.server.connect()
       connection.client.addEventListener('message', (event) => {
         connection.server.send(event.data)
       })
-
-      options?.onPassthroughConnection(connection)
     }
   })
 }

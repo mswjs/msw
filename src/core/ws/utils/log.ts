@@ -17,6 +17,10 @@ export function attachLogger(connection: WebSocketConnectionData): void {
   // Log the events sent from the WebSocket client.
   // WebSocket client connection object is written from the
   // server's perspective so these message events are outgoing.
+  /**
+   * @todo Provide the reference to the exact event handler
+   * that called this `client.send()`.
+   */
   client.addEventListener('message', (event) => {
     logOutgoingClientMessage(event)
   })
@@ -41,6 +45,32 @@ export function attachLogger(connection: WebSocketConnectionData): void {
     },
     { once: true },
   )
+
+  // Log outgoing client events initiated by the event handler.
+  // The actual client never sent these but the handler did.
+  server.send = new Proxy(server.send, {
+    apply(target, thisArg, args) {
+      const [data] = args
+      const eventTarget = server['realWebSocket']
+      const messageEvent = new MessageEvent('message', { data })
+      Object.defineProperties(messageEvent, {
+        currentTarget: {
+          enumerable: true,
+          writable: false,
+          value: eventTarget,
+        },
+        target: {
+          enumerable: true,
+          writable: false,
+          value: eventTarget,
+        },
+      })
+
+      logOutgoingMockedClientMessage(messageEvent)
+
+      return Reflect.apply(target, thisArg, args)
+    },
+  })
 }
 
 /**
@@ -75,6 +105,29 @@ export async function logOutgoingClientMessage(
       `${getTimestamp({ milliseconds: true })} %c↑%c ${publicData} %c${byteLength}%c`,
     ),
     'color:green',
+    'color:inherit',
+    'color:gray;font-weight:normal',
+    'color:inherit;font-weight:inherit',
+  )
+  console.log(event)
+  console.groupEnd()
+}
+
+/**
+ * Prints the outgoing client message initiated
+ * by `client.send()` in the event handler.
+ */
+export async function logOutgoingMockedClientMessage(
+  event: MessageEvent<WebSocketData>,
+) {
+  const byteLength = getMessageLength(event.data)
+  const publicData = await getPublicData(event.data)
+
+  console.groupCollapsed(
+    devUtils.formatMessage(
+      `${getTimestamp({ milliseconds: true })} %c⇡%c ${publicData} %c${byteLength}%c`,
+    ),
+    'color:mediumspringgreen',
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',

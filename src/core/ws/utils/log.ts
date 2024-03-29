@@ -36,6 +36,11 @@ export function attachLogger(connection: WebSocketConnectionData): void {
     logIncomingClientMessage(event)
   })
 
+  // Log client errors (connection closures due to errors).
+  client.socket.addEventListener('error', (event) => {
+    logClientError(event)
+  })
+
   client.send = new Proxy(client.send, {
     apply(target, thisArg, args) {
       const [data] = args
@@ -234,6 +239,21 @@ export async function logIncomingServerMessage(
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
+  )
+  console.log(event)
+  console.groupEnd()
+}
+
+function logClientError(event: Event) {
+  const socket = event.target as WebSocket
+  const publicUrl = toPublicUrl(socket.url)
+
+  console.groupCollapsed(
+    devUtils.formatMessage(
+      `${getTimestamp({ milliseconds: true })} %c\u00D7%c ${publicUrl}`,
+    ),
+    'color:red',
+    'color:inherit',
   )
   console.log(event)
   console.groupEnd()

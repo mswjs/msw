@@ -558,3 +558,79 @@ test('logs incoming client events sent vi "client.send()"', async ({
     )
   })
 })
+
+test('logs client errors received via "client.close()"', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com/*')
+    const worker = setupWorker(
+      api.on('connection', ({ client }) => {
+        queueMicrotask(() => client.close(1003, 'Custom error'))
+      }),
+    )
+    await worker.start()
+  })
+
+  await page.evaluate(() => {
+    new WebSocket('wss://example.com/path')
+  })
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c wss:\/\/example\.com\/path color:red color:inherit$/,
+        ),
+      ]),
+    )
+  })
+})
+
+test('logs client errors received via server-sent close', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  server.on('connection', (ws) => {
+    queueMicrotask(() => ws.close(1003))
+  })
+
+  await page.evaluate(async (url) => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link(url)
+    const worker = setupWorker(
+      api.on('connection', ({ server }) => {
+        server.connect()
+      }),
+    )
+    await worker.start()
+  }, server.url)
+
+  await page.evaluate((url) => {
+    new WebSocket(url)
+  }, server.url)
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c ws:\/\/(.+):\d{4,}\/ color:red color:inherit$/,
+        ),
+      ]),
+    )
+  })
+})

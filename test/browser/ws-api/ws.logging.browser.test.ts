@@ -27,6 +27,40 @@ test.afterAll(async () => {
   await server.close()
 })
 
+test('does not log anything if "quiet" was set to "true"', async ({
+  loadExample,
+  page,
+  spyOnConsole,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com/*')
+    const worker = setupWorker(api.on('connection', () => {}))
+    await worker.start({ quiet: true })
+  })
+
+  await page.evaluate(() => {
+    const ws = new WebSocket('wss://example.com/path')
+    ws.onopen = () => {
+      ws.send('hello')
+      ws.send('world')
+      queueMicrotask(() => ws.close())
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      ws.onclose = () => resolve()
+      ws.onerror = () => reject(new Error('Client connection closed'))
+    })
+  })
+
+  expect(consoleSpy.get('startGroupCollapsed')).toBeUndefined()
+})
+
 test('logs the client connection', async ({
   loadExample,
   page,

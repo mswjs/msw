@@ -185,10 +185,12 @@ export class SetupWorkerApi
       getHandlers: () => {
         return this.handlersController.currentHandlers()
       },
-      onMockedConnection(connection) {
-        // Attach the logger for mocked connections since
-        // those won't be visible in the browser's devtools.
-        attachLogger(connection)
+      onMockedConnection: (connection) => {
+        if (!this.context.startOptions.quiet) {
+          // Attach the logger for mocked connections since
+          // those won't be visible in the browser's devtools.
+          attachLogger(connection)
+        }
       },
       onPassthroughConnection() {
         /**

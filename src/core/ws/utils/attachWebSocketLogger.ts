@@ -9,7 +9,9 @@ import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
 
-export function attachLogger(connection: WebSocketConnectionData): void {
+export function attachWebSocketLogger(
+  connection: WebSocketConnectionData,
+): void {
   const { client, server } = connection
 
   logConnectionOpen(client)

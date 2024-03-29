@@ -24,7 +24,7 @@ import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
-import { attachLogger } from '~/core/ws/utils/log'
+import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 
 interface Listener {
   target: EventTarget
@@ -189,7 +189,7 @@ export class SetupWorkerApi
         if (!this.context.startOptions.quiet) {
           // Attach the logger for mocked connections since
           // those won't be visible in the browser's devtools.
-          attachLogger(connection)
+          attachWebSocketLogger(connection)
         }
       },
       onPassthroughConnection() {

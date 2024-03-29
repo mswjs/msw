@@ -10,11 +10,11 @@ afterEach(() => {
   server.close()
 })
 
-it('does not patch WebSocket class if no event handlers were defined', () => {
+it('patches WebSocket class even if no event handlers were defined', () => {
   server.listen()
 
   const raw = new WebSocket('wss://example.com')
-  expect(raw.constructor.name).toBe('WebSocket')
+  expect(raw.constructor.name).toBe('WebSocketOverride')
   expect(raw).toBeInstanceOf(EventTarget)
 })
 

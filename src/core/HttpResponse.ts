@@ -9,7 +9,7 @@ export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
-declare const bodyType: unique symbol
+const bodyType: unique symbol = Symbol('bodyType')
 
 export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
   json(): Promise<BodyType>

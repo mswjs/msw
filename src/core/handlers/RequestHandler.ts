@@ -3,7 +3,7 @@ import { getCallFrame } from '../utils/internal/getCallFrame'
 import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import type { StrictRequest, HttpResponse } from '..//HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -13,6 +13,11 @@ export type DefaultRequestMultipartBody = Record<
 export type DefaultBodyType =
   | Record<string, any>
   | DefaultRequestMultipartBody
+  | URLSearchParams
+  | ReadableStream
+  | FormData
+  | BufferSource
+  | Blob
   | string
   | number
   | boolean
@@ -40,7 +45,7 @@ export type ResponseResolverReturnType<
 > =
   | ([ResponseBodyType] extends [undefined]
       ? Response
-      : StrictResponse<ResponseBodyType>)
+      : HttpResponse<ResponseBodyType>)
   | undefined
   | void
 
@@ -122,7 +127,7 @@ export abstract class RequestHandler<
     MaybeAsyncResponseResolverReturnType<any>,
     MaybeAsyncResponseResolverReturnType<any>
   >
-  private resolverGeneratorResult?: Response | StrictResponse<any>
+  private resolverGeneratorResult?: Response | HttpResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -326,7 +331,7 @@ export abstract class RequestHandler<
 
           // Clone the previously stored response from the generator
           // so that it could be read again.
-          return this.resolverGeneratorResult.clone() as StrictResponse<any>
+          return this.resolverGeneratorResult.clone() as HttpResponse<any>
         }
 
         if (!this.resolverGenerator) {

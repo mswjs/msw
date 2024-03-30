@@ -8,7 +8,7 @@ specifiers:
   '@fastify/websocket': ^8.3.1
   '@inquirer/confirm': ^3.0.0
   '@mswjs/cookies': ^1.1.0
-  '@mswjs/interceptors': ^0.26.14
+  '@mswjs/interceptors': ^0.26.15
   '@open-draft/test-server': ^0.4.2
   '@open-draft/until': ^2.1.0
   '@ossjs/release': ^0.8.1
@@ -73,7 +73,7 @@ dependencies:
   '@bundled-es-modules/statuses': 1.0.1
   '@inquirer/confirm': 3.0.0
   '@mswjs/cookies': 1.1.0
-  '@mswjs/interceptors': 0.26.14
+  '@mswjs/interceptors': 0.26.15
   '@open-draft/until': 2.1.0
   '@types/cookie': 0.6.0
   '@types/statuses': 2.0.4
@@ -1139,8 +1139,8 @@ packages:
     engines: {node: '>=18'}
     dev: false
 
-  /@mswjs/interceptors/0.26.14:
-    resolution: {integrity: sha512-q4S8RGjOUzv3A3gCawuKkUEcNJXjdPaSqoRHFvuZPWQnc7yOw702iGBRDMJoBK+l0KSv9XN8YP5ek6duRzrpqw==}
+  /@mswjs/interceptors/0.26.15:
+    resolution: {integrity: sha512-HM47Lu1YFmnYHKMBynFfjCp0U/yRskHj/8QEJW0CBEPOlw8Gkmjfll+S9b8M7V5CNDw2/ciRxjjnWeaCiblSIQ==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0

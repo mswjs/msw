@@ -24,6 +24,7 @@ import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
+import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 
 interface Listener {
   target: EventTarget
@@ -179,9 +180,25 @@ export class SetupWorkerApi
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
-    handleWebSocketEvent(() => {
-      return this.handlersController.currentHandlers()
+    // Enable WebSocket interception.
+    handleWebSocketEvent({
+      getHandlers: () => {
+        return this.handlersController.currentHandlers()
+      },
+      onMockedConnection: (connection) => {
+        if (!this.context.startOptions.quiet) {
+          // Attach the logger for mocked connections since
+          // those won't be visible in the browser's devtools.
+          attachWebSocketLogger(connection)
+        }
+      },
+      onPassthroughConnection() {
+        /**
+         * @fixme Call some "onUnhandledConnection".
+         */
+      },
     })
+
     webSocketInterceptor.apply()
 
     this.subscriptions.push(() => {

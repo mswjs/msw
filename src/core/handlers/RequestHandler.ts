@@ -13,11 +13,6 @@ export type DefaultRequestMultipartBody = Record<
 export type DefaultBodyType =
   | Record<string, any>
   | DefaultRequestMultipartBody
-  | URLSearchParams
-  | ReadableStream
-  | FormData
-  | BufferSource
-  | Blob
   | string
   | number
   | boolean

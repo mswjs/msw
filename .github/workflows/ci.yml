@@ -23,7 +23,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.12
+          version: 8.15
 
       - name: Install dependencies
         run: pnpm install

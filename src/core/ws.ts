@@ -7,9 +7,9 @@ import {
   WebSocketHandler,
   kEmitter,
   type WebSocketHandlerEventMap,
-} from '../handlers/WebSocketHandler'
-import { Path, isPath } from '../utils/matching/matchRequestUrl'
-import { WebSocketClientManager } from './WebSocketClientManager'
+} from './handlers/WebSocketHandler'
+import { Path, isPath } from './utils/matching/matchRequestUrl'
+import { WebSocketClientManager } from './ws/WebSocketClientManager'
 
 const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
 

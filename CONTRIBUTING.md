@@ -36,7 +36,7 @@ $ pnpm install
 $ pnpm start
 ```
 
-> Please use [PNPM][pnpm-url] version 7.12 while working on this project.
+> Please use [PNPM][pnpm-url] version 8.15 while working on this project.
 > Guide on how to install a specific PNPM version can be [found here][pnpm-install-guide-url].
 
 ## Git workflow

@@ -2,12 +2,12 @@
  * @vitest-environment jsdom
  */
 import { Emitter } from 'strict-event-emitter'
+import { createRequestId } from '@mswjs/interceptors'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { http } from '../http'
 import { handleRequest, HandleRequestOptions } from './handleRequest'
 import { RequiredDeep } from '../typeUtils'
-import { randomId } from './internal/randomId'
 import { HttpResponse } from '../HttpResponse'
 import { passthrough } from '../passthrough'
 
@@ -51,7 +51,7 @@ afterEach(() => {
 test('returns undefined for a request with the "x-msw-intention" header equal to "bypass"', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
       'x-msw-intention': 'bypass',
@@ -97,7 +97,7 @@ test('does not bypass a request with "x-msw-intention" header set to arbitrary v
 
   const result = await handleRequest(
     request,
-    randomId(),
+    createRequestId(),
     handlers,
     options,
     emitter,
@@ -112,7 +112,7 @@ test('does not bypass a request with "x-msw-intention" header set to arbitrary v
 test('reports request as unhandled when it has no matching request handlers', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const handlers: Array<RequestHandler> = []
 
@@ -145,7 +145,7 @@ test('reports request as unhandled when it has no matching request handlers', as
 test('returns undefined on a request handler that returns no response', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const handlers: Array<RequestHandler> = [
     http.get('/user', () => {
@@ -184,7 +184,7 @@ test('returns undefined on a request handler that returns no response', async ()
 test('returns the mocked response for a request with a matching request handler', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const mockedResponse = HttpResponse.json({ firstName: 'John' })
   const handlers: Array<RequestHandler> = [
@@ -242,7 +242,7 @@ test('returns the mocked response for a request with a matching request handler'
 test('returns a transformed response if the "transformResponse" option is provided', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const mockedResponse = HttpResponse.json({ firstName: 'John' })
   const handlers: Array<RequestHandler> = [
@@ -325,7 +325,7 @@ test('returns a transformed response if the "transformResponse" option is provid
 it('returns undefined without warning on a passthrough request', async () => {
   const { emitter, events } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const handlers: Array<RequestHandler> = [
     http.get('/user', () => {
@@ -358,7 +358,7 @@ it('returns undefined without warning on a passthrough request', async () => {
 it('calls the handler with the requestId', async () => {
   const { emitter } = setup()
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'))
   const handlerFn = vi.fn()
   const handlers: Array<RequestHandler> = [http.get('/user', handlerFn)]
@@ -390,7 +390,7 @@ it('marks the first matching one-time handler as used', async () => {
   })
   const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request('http://localhost/resource')
   const firstResult = await handleRequest(
     request,
@@ -438,7 +438,7 @@ it('does not mark non-matching one-time handlers as used', async () => {
   )
   const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const firstResult = await handleRequest(
     new Request('http://localhost/another'),
     requestId,
@@ -481,7 +481,7 @@ it('handles parallel requests with one-time handlers', async () => {
   })
   const handlers: Array<RequestHandler> = [oneTimeHandler, anotherHandler]
 
-  const requestId = randomId()
+  const requestId = createRequestId()
   const request = new Request('http://localhost/resource')
   const firstResultPromise = handleRequest(
     request,
@@ -526,7 +526,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
 
       const handlers: Array<RequestHandler> = [handler]
 
-      const requestId = randomId()
+      const requestId = createRequestId()
       const request = new Request(new URL('/resource', baseUrl))
       const response = await handleRequest(
         request,
@@ -555,7 +555,7 @@ describe('[Private] - resolutionContext - used for extensions', () => {
 
       const handlers: Array<RequestHandler> = [handler]
 
-      const requestId = randomId()
+      const requestId = createRequestId()
       const request = new Request(
         new URL('/resource', `http://not-the-base-url.com`),
       )

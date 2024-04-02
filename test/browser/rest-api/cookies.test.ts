@@ -48,5 +48,6 @@ test('allows setting multiple response cookies', async ({
   expect(allCookies).toEqual({
     firstCookie: 'yes',
     secondCookie: 'no',
+    thirdCookie: '1,2,3',
   })
 })

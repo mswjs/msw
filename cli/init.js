@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 const { until } = require('@open-draft/until')
-const inquirer = require('inquirer')
+const confirm = require('@inquirer/confirm').default
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 
@@ -180,18 +180,14 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
 }
 
 function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
-  return inquirer
-    .prompt({
-      type: 'confirm',
-      name: 'saveWorkerDirectory',
+  return confirm({
+    theme: {
       prefix: chalk.yellowBright('?'),
-      message,
-    })
-    .then((answers) => {
-      if (!answers.saveWorkerDirectory) {
-        return
-      }
-
+    },
+    message,
+  }).then((answer) => {
+    if (answer) {
       saveWorkerDirectory(packageJsonPath, publicDir)
-    })
+    }
+  })
 }

@@ -1,4 +1,4 @@
-import type { SetupWorker } from 'msw/lib/browser'
+import type { SetupWorker } from 'msw/browser'
 import { HttpServer } from '@open-draft/test-server/http'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
@@ -11,7 +11,20 @@ declare namespace window {
 
 const ON_EXAMPLE = require.resolve('./on.mocks.ts')
 
-let server: HttpServer
+const server = new HttpServer((app) => {
+  app.post('/no-response', (_req, res) => {
+    res.send('original-response')
+  })
+  app.get('/unknown-route', (_req, res) => {
+    res.send('majestic-unknown')
+  })
+  app.get('/passthrough', (_req, res) => {
+    res.send('passthrough-response')
+  })
+  app.post('/bypass', (_req, res) => {
+    res.send('bypassed-response')
+  })
+})
 
 export function getRequestId(messages: ConsoleMessages) {
   const requestStartMessage = messages.get('warning')?.find((message) => {
@@ -20,15 +33,12 @@ export function getRequestId(messages: ConsoleMessages) {
   return requestStartMessage?.split(' ')?.[3]
 }
 
-test.beforeEach(async ({ createServer }) => {
-  server = await createServer((app) => {
-    app.post('/no-response', (req, res) => {
-      res.send('original-response')
-    })
-    app.get('/unknown-route', (req, res) => {
-      res.send('majestic-unknown')
-    })
-  })
+test.beforeAll(async () => {
+  await server.listen()
+})
+
+test.afterAll(async () => {
+  await server.close()
 })
 
 test('emits events for a handled request and mocked response', async ({
@@ -54,7 +64,7 @@ test('emits events for a handled request and mocked response', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:match] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:mocked] response-body GET ${url} ${requestId}`,
+    `[response:mocked] ${url} response-body GET ${url} ${requestId}`,
   ])
 })
 
@@ -80,7 +90,7 @@ test('emits events for a handled request with no response', async ({
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
     `[request:end] POST ${url} ${requestId}`,
-    `[response:bypass] original-response POST ${url} ${requestId}`,
+    `[response:bypass] ${url} original-response POST ${url} ${requestId}`,
   ])
 })
 
@@ -107,8 +117,76 @@ test('emits events for an unhandled request', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:unhandled] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:bypass] majestic-unknown GET ${url} ${requestId}`,
+    `[response:bypass] ${url} majestic-unknown GET ${url} ${requestId}`,
   ])
+})
+
+test('emits events for a passthrough request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  // Explicit "passthrough()" request must go through the
+  // same request processing pipeline to contain both
+  // "request" and "response" in the life-cycle event listener.
+  const url = server.http.url('/passthrough')
+  await fetch(url)
+  const requestId = getRequestId(consoleSpy)
+
+  await waitFor(() => {
+    expect(consoleSpy.get('warning')).toEqual([
+      `[request:start] GET ${url} ${requestId}`,
+      `[request:end] GET ${url} ${requestId}`,
+      `[response:bypass] ${url} passthrough-response GET ${url} ${requestId}`,
+    ])
+  })
+})
+
+test('emits events for a bypassed request', async ({
+  loadExample,
+  spyOnConsole,
+  fetch,
+  waitFor,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(ON_EXAMPLE)
+
+  const pageErrors: Array<Error> = []
+  page.on('pageerror', (error) => pageErrors.push(error))
+
+  const url = server.http.url('/bypass')
+  await fetch(url)
+
+  await waitFor(() => {
+    // First, must print the events for the original (mocked) request.
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`[request:start] GET ${url}`),
+        expect.stringContaining(`[request:end] GET ${url}`),
+        expect.stringContaining(
+          `[response:mocked] ${url} bypassed-response GET ${url}`,
+        ),
+      ]),
+    )
+
+    // Then, must also print events for the bypassed request.
+    expect(consoleSpy.get('warning')).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`[request:start] POST ${url}`),
+        expect.stringContaining(`[request:end] POST ${url}`),
+        expect.stringContaining(
+          `[response:bypass] ${url} bypassed-response POST ${url}`,
+        ),
+      ]),
+    )
+
+    expect(pageErrors).toEqual([])
+  })
 })
 
 test('emits unhandled exceptions in the request handler', async ({

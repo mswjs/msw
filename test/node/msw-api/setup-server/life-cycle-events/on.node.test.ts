@@ -63,7 +63,9 @@ beforeAll(async () => {
     'response:mocked',
     async ({ response, request, requestId }) => {
       listener(
-        `[response:mocked] ${await response.text()} ${request.method} ${request.url} ${requestId}`,
+        `[response:mocked] ${await response.text()} ${request.method} ${
+          request.url
+        } ${requestId}`,
       )
     },
   )
@@ -72,7 +74,9 @@ beforeAll(async () => {
     'response:bypass',
     async ({ response, request, requestId }) => {
       listener(
-        `[response:bypass] ${await response.text()} ${request.method} ${request.url} ${requestId}`,
+        `[response:bypass] ${await response.text()} ${request.method} ${
+          request.url
+        } ${requestId}`,
       )
     },
   )

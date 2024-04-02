@@ -1,4 +1,5 @@
 import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
+import type { NoInfer } from './typeUtils'
 import {
   decorateResponse,
   normalizeResponseInit,
@@ -48,13 +49,23 @@ export class HttpResponse extends Response {
    * HttpResponse.text('Error', { status: 500 })
    */
   static text<BodyType extends string>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
       responseInit.headers.set('Content-Type', 'text/plain')
+    }
+
+    // Automatically set the "Content-Length" response header
+    // for non-empty text responses. This enforces consistency and
+    // brings mocked responses closer to production.
+    if (!responseInit.headers.has('Content-Length')) {
+      responseInit.headers.set(
+        'Content-Length',
+        body ? new Blob([body]).size.toString() : '0',
+      )
     }
 
     return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
@@ -67,7 +78,7 @@ export class HttpResponse extends Response {
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
   static json<BodyType extends JsonBodyType>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
@@ -76,8 +87,21 @@ export class HttpResponse extends Response {
       responseInit.headers.set('Content-Type', 'application/json')
     }
 
+    /**
+     * @note TypeScript is incorrect here.
+     * Stringifying undefined will return undefined.
+     */
+    const responseText = JSON.stringify(body) as string | undefined
+
+    if (!responseInit.headers.has('Content-Length')) {
+      responseInit.headers.set(
+        'Content-Length',
+        responseText ? new Blob([responseText]).size.toString() : '0',
+      )
+    }
+
     return new HttpResponse(
-      JSON.stringify(body),
+      responseText,
       responseInit,
     ) as StrictResponse<BodyType>
   }

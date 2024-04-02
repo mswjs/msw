@@ -9,6 +9,13 @@ module.exports = {
     'plugin:prettier/recommended',
   ],
   rules: {
+    // Forbid "console.debug()" statements.
+    'no-console': [
+      'error',
+      {
+        allow: ['log', 'warn', 'error', 'group', 'groupCollapsed', 'groupEnd'],
+      },
+    ],
     '@typescript-eslint/prefer-ts-expect-error': 2,
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/explicit-module-boundary-types': 0,

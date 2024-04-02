@@ -100,7 +100,7 @@ const worker = setupWorker(
 )
 
 // 3. Start request interception by starting the Service Worker.
-worker.start()
+await worker.start()
 ```
 
 Performing a `GET https://github.com/octocat` request in your application will result into a mocked response that you can inspect in your browser's "Network" tab:
@@ -264,9 +264,14 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/materialize.svg" alt="Materialize" height="64" />
       </a>
     </td>
-     <td>
+    <td>
       <a href="https://trigger.dev/" target="_blank">
-          <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+        <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://vital.io/" target="_blank">
+        <img src="media/sponsors/vital.svg" alt="Vital" width="64" />
       </a>
     </td>
   </tr>

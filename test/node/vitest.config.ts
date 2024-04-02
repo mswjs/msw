@@ -28,6 +28,6 @@ export default defineConfig({
      * If any tests attempt to run during that window,
      * they will fail, unable to resolve the "msw" import alias.
      */
-    singleThread: true,
+    poolOptions: { threads: { singleThread: true } },
   },
 })

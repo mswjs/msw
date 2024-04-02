@@ -1,10 +1,15 @@
 /**
  * @see https://github.com/mswjs/msw/issues/1823
  */
+import { it } from 'vitest'
 import { http, Path, HttpResponse, DefaultBodyType } from 'msw'
 
-function myHandler<CustomResponseBodyType extends DefaultBodyType>(path: Path) {
-  return (response: CustomResponseBodyType) => {
-    http.get(path, () => HttpResponse.json(response))
+it('accepts custom response body generic argument', () => {
+  function myHandler<CustomResponseBodyType extends DefaultBodyType>(
+    path: Path,
+  ) {
+    return (response: CustomResponseBodyType) => {
+      http.get(path, () => HttpResponse.json(response))
+    }
   }
-}
+})

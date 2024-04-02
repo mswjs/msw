@@ -86,7 +86,7 @@ test('logs the client connection', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2} %c▸%c wss:\/\/example\.com\/path color:blue color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2} %c▶%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -119,7 +119,7 @@ test('logs outgoing client event sending text data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c hello world %c11%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c hello world %c11%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -152,7 +152,7 @@ test('logs outgoing client event sending a long text data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c this is an extremely lon… %c45%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c this is an extremely lon… %c45%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -185,7 +185,7 @@ test('logs outgoing client event sending Blob data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c Blob\(hello world\) %c11%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c Blob\(hello world\) %c11%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -219,7 +219,7 @@ test('logs outgoing client event sending a long Blob data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c Blob\(this is an extremely lon…\) %c45%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c Blob\(this is an extremely lon…\) %c45%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -252,7 +252,7 @@ test('logs outgoing client event sending ArrayBuffer data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c ArrayBuffer\(hello world\) %c11%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c ArrayBuffer\(hello world\) %c11%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -290,7 +290,7 @@ test('logs outgoing client event sending a long ArrayBuffer data', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c ArrayBuffer\(this is an extremely lon…\) %c45%c color:green color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↑%c ArrayBuffer\(this is an extremely lon…\) %c45%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -345,7 +345,7 @@ test('logs incoming client events', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c hello from server %c17%c color:red color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c hello from server %c17%c color:#ef4444 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -356,7 +356,7 @@ test('logs incoming client events', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c thanks, not bad %c15%c color:red color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c thanks, not bad %c15%c color:#ef4444 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -404,13 +404,19 @@ test('logs raw incoming server events', async ({
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
-        // Raw server message.
+        // The actual (raw) message recieved from the server.
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from server %c17%c color:orangered color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from server %c17%c color:#22c55e color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
-        // The actual message the client received (mocked).
+
+        // The mocked message sent from the event handler (client.send()).
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c intercepted server event %c24%c color:red color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c intercepted server event %c24%c color:#ff6a33 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+        ),
+
+        // The actual message the client received (i.e. mocked).
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c↓%c intercepted server event %c24%c color:#ef4444 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -443,7 +449,7 @@ test('logs the close event initiated by the client', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:blue color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -479,7 +485,7 @@ test('logs the close event initiated by the event handler', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:blue color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -516,7 +522,7 @@ test('logs outgoing client events sent vi "server.send()"', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇡%c hello from handler %c18%c color:orangered color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇡%c hello from handler %c18%c color:#ff6a33 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -552,7 +558,7 @@ test('logs incoming client events sent vi "client.send()"', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from handler %c18%c color:orangered color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from handler %c18%c color:#ff6a33 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
         ),
       ]),
     )
@@ -588,7 +594,7 @@ test('logs client errors received via "client.close()"', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c wss:\/\/example\.com\/path color:red color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -628,7 +634,7 @@ test('logs client errors received via server-sent close', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c ws:\/\/(.+):\d{4,}\/ color:red color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c ws:\/\/(.+):\d{4,}\/ color:#3b82f6 color:inherit$/,
         ),
       ]),
     )

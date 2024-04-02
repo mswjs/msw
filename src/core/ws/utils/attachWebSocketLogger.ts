@@ -9,6 +9,13 @@ import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
 
+const colors = {
+  blue: '#3b82f6',
+  green: '#22c55e',
+  red: '#ef4444',
+  orange: '#ff6a33',
+}
+
 export function attachWebSocketLogger(
   connection: WebSocketConnectionData,
 ): void {
@@ -111,8 +118,8 @@ export function logConnectionOpen(client: WebSocketClientConnection) {
   const publicUrl = toPublicUrl(client.url)
 
   console.groupCollapsed(
-    devUtils.formatMessage(`${getTimestamp()} %c▸%c ${publicUrl}`),
-    'color:blue',
+    devUtils.formatMessage(`${getTimestamp()} %c▶%c ${publicUrl}`),
+    `color:${colors.blue}`,
     'color:inherit',
   )
   console.log('Client:', client.socket)
@@ -132,7 +139,7 @@ export async function logOutgoingClientMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c↑%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:green',
+    `color:${colors.green}`,
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -155,7 +162,7 @@ export async function logOutgoingMockedClientMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇡%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:orangered',
+    `color:${colors.orange}`,
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -180,7 +187,7 @@ export async function logIncomingClientMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c↓%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:red',
+    `color:${colors.red}`,
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -203,7 +210,7 @@ export async function logIncomingMockedClientMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:orangered',
+    `color:${colors.orange}`,
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -220,7 +227,7 @@ function logConnectionClose(event: CloseEvent) {
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c■%c ${publicUrl}`,
     ),
-    'color:blue',
+    `color:${colors.blue}`,
     'color:inherit',
   )
   console.log(event)
@@ -237,7 +244,7 @@ export async function logIncomingServerMessage(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
     ),
-    'color:orangered',
+    `color:${colors.green}`,
     'color:inherit',
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
@@ -254,7 +261,7 @@ function logClientError(event: Event) {
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c\u00D7%c ${publicUrl}`,
     ),
-    'color:red',
+    `color:${colors.blue}`,
     'color:inherit',
   )
   console.log(event)

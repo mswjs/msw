@@ -23,7 +23,7 @@ import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
-import { handleWebSocketEvent } from '~/core/utils/handleWebSocketEvent'
+import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 
 interface Listener {

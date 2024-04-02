@@ -35,9 +35,9 @@ function createWebSocketLinkHandler(url: Path) {
 
   return {
     clients: clientManager.clients,
-    on<K extends keyof WebSocketHandlerEventMap>(
-      event: K,
-      listener: (...args: WebSocketHandlerEventMap[K]) => void,
+    on<EventType extends keyof WebSocketHandlerEventMap>(
+      event: EventType,
+      listener: (...args: WebSocketHandlerEventMap[EventType]) => void,
     ): WebSocketHandler {
       const handler = new WebSocketHandler(url)
 

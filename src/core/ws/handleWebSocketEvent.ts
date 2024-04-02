@@ -1,7 +1,7 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { WebSocketHandler, kDispatchEvent } from '../handlers/WebSocketHandler'
-import { webSocketInterceptor } from '../ws/webSocketInterceptor'
+import { webSocketInterceptor } from './webSocketInterceptor'
 
 interface HandleWebSocketEventOptions {
   getHandlers: () => Array<RequestHandler | WebSocketHandler>

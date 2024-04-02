@@ -13,6 +13,47 @@ import { WebSocketClientManager } from './WebSocketClientManager'
 
 const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
 
+export type WebSocketLink = {
+  /**
+   * A set of all WebSocket clients connected
+   * to this link.
+   */
+  clients: Set<WebSocketClientConnectionProtocol>
+
+  on<EventType extends keyof WebSocketHandlerEventMap>(
+    event: EventType,
+    listener: (...args: WebSocketHandlerEventMap[EventType]) => void,
+  ): WebSocketHandler
+
+  /**
+   * Broadcasts the given data to all WebSocket clients.
+   *
+   * @example
+   * const service = ws.link('wss://example.com')
+   * service.on('connection', () => {
+   *   service.broadcast('hello, everyone!')
+   * })
+   */
+  broadcast(data: WebSocketData): void
+
+  /**
+   * Broadcasts the given data to all WebSocket clients
+   * except the ones provided in the `clients` argument.
+   *
+   * @example
+   * const service = ws.link('wss://example.com')
+   * service.on('connection', ({ client }) => {
+   *   service.broadcastExcept(client, 'hi, the rest of you!')
+   * })
+   */
+  broadcastExcept(
+    clients:
+      | WebSocketClientConnectionProtocol
+      | Array<WebSocketClientConnectionProtocol>,
+    data: WebSocketData,
+  ): void
+}
+
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
@@ -22,12 +63,12 @@ const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path) {
+function createWebSocketLinkHandler(url: Path): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
     isPath(url),
-    'Expected a WebSocket server URL but got %s',
+    'Expected a WebSocket server URL to be a valid path but got %s',
     typeof url,
   )
 
@@ -35,10 +76,7 @@ function createWebSocketLinkHandler(url: Path) {
 
   return {
     clients: clientManager.clients,
-    on<EventType extends keyof WebSocketHandlerEventMap>(
-      event: EventType,
-      listener: (...args: WebSocketHandlerEventMap[EventType]) => void,
-    ): WebSocketHandler {
+    on(event, listener) {
       const handler = new WebSocketHandler(url)
 
       // Add the connection event listener for when the
@@ -58,38 +96,14 @@ function createWebSocketLinkHandler(url: Path) {
       return handler
     },
 
-    /**
-     * Broadcasts the given data to all WebSocket clients.
-     *
-     * @example
-     * const service = ws.link('wss://example.com')
-     * service.on('connection', () => {
-     *   service.broadcast('hello, everyone!')
-     * })
-     */
-    broadcast(data: WebSocketData): void {
+    broadcast(data) {
       // This will invoke "send()" on the immediate clients
       // in this runtime and post a message to the broadcast channel
       // to trigger send for the clients in other runtimes.
       this.broadcastExcept([], data)
     },
 
-    /**
-     * Broadcasts the given data to all WebSocket clients
-     * except the ones provided in the `clients` argument.
-     *
-     * @example
-     * const service = ws.link('wss://example.com')
-     * service.on('connection', ({ client }) => {
-     *   service.broadcastExcept(client, 'hi, the rest of you!')
-     * })
-     */
-    broadcastExcept(
-      clients:
-        | WebSocketClientConnectionProtocol
-        | Array<WebSocketClientConnectionProtocol>,
-      data: WebSocketData,
-    ): void {
+    broadcastExcept(clients, data) {
       const ignoreClients = Array.prototype
         .concat(clients)
         .map((client) => client.id)

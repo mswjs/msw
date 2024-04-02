@@ -10,7 +10,7 @@ export { graphql } from './graphql'
 export { GraphQLHandler } from './handlers/GraphQLHandler'
 
 /* WebSocket handler */
-export { ws } from './ws/ws'
+export { ws, type WebSocketLink } from './ws/ws'
 export {
   WebSocketHandler,
   type WebSocketHandlerEventMap,

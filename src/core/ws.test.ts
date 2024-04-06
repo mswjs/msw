@@ -19,5 +19,5 @@ it('throws an error when given a non-path argument to "ws.link()"', () => {
   expect(() =>
     // @ts-expect-error Intentionally invalid argument.
     ws.link(2),
-  ).toThrow('Expected a WebSocket server URL but got number')
+  ).toThrow('Expected a WebSocket server URL to be a valid path but got number')
 })

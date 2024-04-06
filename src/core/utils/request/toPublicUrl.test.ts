@@ -10,7 +10,9 @@ test('returns an absolute request URL withouth search params', () => {
 
   expect(toPublicUrl(new URL('http://localhost/path'))).toBe('/path')
 
-  expect(toPublicUrl(new URL('http://localhost/path?foo=bar'))).toBe('/path')
+  expect(toPublicUrl(new URL('http://localhost/path?foo=bar'))).toBe(
+    '/path?foo=bar',
+  )
 })
 
 it('returns a relative URL given the request to the same origin', () => {

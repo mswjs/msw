@@ -38,6 +38,30 @@ it('adds a client from this runtime to the list of clients', () => {
   expect(Array.from(manager.clients.values())).toEqual([connection])
 })
 
+it('adds multiple clients from this runtime to the list of clients', () => {
+  const manager = new WebSocketClientManager(channel, '*')
+  const connectionOne = new WebSocketClientConnection(
+    socket,
+    new TestWebSocketTransport(),
+  )
+  manager.addConnection(connectionOne)
+
+  // Must add the client to the list of clients.
+  expect(Array.from(manager.clients.values())).toEqual([connectionOne])
+
+  const connectionTwo = new WebSocketClientConnection(
+    socket,
+    new TestWebSocketTransport(),
+  )
+  manager.addConnection(connectionTwo)
+
+  // Must add the new cilent to the list as well.
+  expect(Array.from(manager.clients.values())).toEqual([
+    connectionOne,
+    connectionTwo,
+  ])
+})
+
 it('replays a "send" event coming from another runtime', async () => {
   const manager = new WebSocketClientManager(channel, '*')
   const connection = new WebSocketClientConnection(

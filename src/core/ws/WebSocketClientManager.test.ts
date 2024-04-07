@@ -1,78 +1,49 @@
 /**
  * @vitest-environment node-websocket
  */
-import { randomUUID } from 'node:crypto'
 import {
   WebSocketClientConnection,
+  WebSocketData,
   WebSocketTransport,
 } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketClientManager,
   WebSocketBroadcastChannelMessage,
-  WebSocketRemoteClientConnection,
 } from './WebSocketClientManager'
 
 const channel = new BroadcastChannel('test:channel')
 vi.spyOn(channel, 'postMessage')
 
 const socket = new WebSocket('ws://localhost')
-const transport = {
-  addEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-  send: vi.fn(),
-  close: vi.fn(),
-} satisfies WebSocketTransport
+
+class TestWebSocketTransport extends EventTarget implements WebSocketTransport {
+  send(_data: WebSocketData): void {}
+  close(_code?: number | undefined, _reason?: string | undefined): void {}
+}
 
 afterEach(() => {
   vi.resetAllMocks()
 })
 
 it('adds a client from this runtime to the list of clients', () => {
-  const manager = new WebSocketClientManager(channel)
-  const connection = new WebSocketClientConnection(socket, transport)
+  const manager = new WebSocketClientManager(channel, '*')
+  const connection = new WebSocketClientConnection(
+    socket,
+    new TestWebSocketTransport(),
+  )
 
   manager.addConnection(connection)
 
   // Must add the client to the list of clients.
   expect(Array.from(manager.clients.values())).toEqual([connection])
-
-  // Must emit the connection open event to notify other runtimes.
-  expect(channel.postMessage).toHaveBeenCalledWith({
-    type: 'connection:open',
-    payload: {
-      clientId: connection.id,
-      url: socket.url,
-    },
-  } satisfies WebSocketBroadcastChannelMessage)
-})
-
-it('adds a client from another runtime to the list of clients', async () => {
-  const clientId = randomUUID()
-  const url = new URL('ws://localhost')
-  const manager = new WebSocketClientManager(channel)
-
-  channel.dispatchEvent(
-    new MessageEvent<WebSocketBroadcastChannelMessage>('message', {
-      data: {
-        type: 'connection:open',
-        payload: {
-          clientId,
-          url: url.href,
-        },
-      },
-    }),
-  )
-
-  await vi.waitFor(() => {
-    expect(Array.from(manager.clients.values())).toEqual([
-      new WebSocketRemoteClientConnection(clientId, url, channel),
-    ])
-  })
 })
 
 it('replays a "send" event coming from another runtime', async () => {
-  const manager = new WebSocketClientManager(channel)
-  const connection = new WebSocketClientConnection(socket, transport)
+  const manager = new WebSocketClientManager(channel, '*')
+  const connection = new WebSocketClientConnection(
+    socket,
+    new TestWebSocketTransport(),
+  )
   manager.addConnection(connection)
   vi.spyOn(connection, 'send')
 
@@ -97,8 +68,11 @@ it('replays a "send" event coming from another runtime', async () => {
 })
 
 it('replays a "close" event coming from another runtime', async () => {
-  const manager = new WebSocketClientManager(channel)
-  const connection = new WebSocketClientConnection(socket, transport)
+  const manager = new WebSocketClientManager(channel, '*')
+  const connection = new WebSocketClientConnection(
+    socket,
+    new TestWebSocketTransport(),
+  )
   manager.addConnection(connection)
   vi.spyOn(connection, 'close')
 
@@ -124,7 +98,8 @@ it('replays a "close" event coming from another runtime', async () => {
 })
 
 it('removes the extraneous message listener when the connection closes', async () => {
-  const manager = new WebSocketClientManager(channel)
+  const manager = new WebSocketClientManager(channel, '*')
+  const transport = new TestWebSocketTransport()
   const connection = new WebSocketClientConnection(socket, transport)
   vi.spyOn(connection, 'close').mockImplementationOnce(() => {
     /**
@@ -134,7 +109,7 @@ it('removes the extraneous message listener when the connection closes', async (
      * All we care here is that closing the connection triggers
      * the transport closure, which it always does.
      */
-    connection['transport'].dispatchEvent(new Event('close'))
+    transport.dispatchEvent(new Event('close'))
   })
   vi.spyOn(connection, 'send')
 

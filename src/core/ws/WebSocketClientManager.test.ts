@@ -17,9 +17,8 @@ vi.spyOn(channel, 'postMessage')
 
 const socket = new WebSocket('ws://localhost')
 const transport = {
-  onOutgoing: vi.fn(),
-  onIncoming: vi.fn(),
-  onClose: vi.fn(),
+  addEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
   send: vi.fn(),
   close: vi.fn(),
 } satisfies WebSocketTransport
@@ -135,7 +134,7 @@ it('removes the extraneous message listener when the connection closes', async (
      * All we care here is that closing the connection triggers
      * the transport closure, which it always does.
      */
-    connection['transport'].onClose()
+    connection['transport'].dispatchEvent(new Event('close'))
   })
   vi.spyOn(connection, 'send')
 

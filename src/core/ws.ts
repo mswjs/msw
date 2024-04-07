@@ -72,10 +72,12 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     typeof url,
   )
 
-  const clientManager = new WebSocketClientManager(wsBroadcastChannel)
+  const clientManager = new WebSocketClientManager(wsBroadcastChannel, url)
 
   return {
-    clients: clientManager.clients,
+    get clients() {
+      return clientManager.clients
+    },
     on(event, listener) {
       const handler = new WebSocketHandler(url)
 

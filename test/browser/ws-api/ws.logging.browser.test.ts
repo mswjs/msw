@@ -323,9 +323,6 @@ test('logs incoming client events', async ({
     const worker = setupWorker(
       api.on('connection', ({ client, server }) => {
         server.connect()
-        client.addEventListener('message', (event) => {
-          server.send(event.data)
-        })
       }),
     )
     await worker.start()
@@ -383,9 +380,7 @@ test('logs raw incoming server events', async ({
     const worker = setupWorker(
       api.on('connection', ({ client, server }) => {
         server.connect()
-        client.addEventListener('message', (event) => {
-          server.send(event.data)
-        })
+
         server.addEventListener('message', (event) => {
           event.preventDefault()
           // This is the only data the client will receive

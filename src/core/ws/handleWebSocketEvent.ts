@@ -51,9 +51,6 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
       // If none of the "ws" handlers matched,
       // establish the WebSocket connection as-is.
       connection.server.connect()
-      connection.client.addEventListener('message', (event) => {
-        connection.server.send(event.data)
-      })
     }
   })
 }

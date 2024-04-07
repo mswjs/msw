@@ -125,7 +125,7 @@
     "@bundled-es-modules/statuses": "^1.0.1",
     "@inquirer/confirm": "^3.0.0",
     "@mswjs/cookies": "^1.1.0",
-    "@mswjs/interceptors": "^0.26.15",
+    "@mswjs/interceptors": "^0.27.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",

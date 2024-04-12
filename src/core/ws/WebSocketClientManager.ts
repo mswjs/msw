@@ -1,17 +1,14 @@
+import { invariant } from 'outvariant'
 import type {
   WebSocketData,
   WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
+import { matchRequestUrl, type Path } from '../utils/matching/matchRequestUrl'
+
+export const MSW_WEBSOCKET_CLIENTS_KEY = 'msw:ws:clients'
 
 export type WebSocketBroadcastChannelMessage =
-  | {
-      type: 'connection:open'
-      payload: {
-        clientId: string
-        url: string
-      }
-    }
   | {
       type: 'extraneous:send'
       payload: {
@@ -28,33 +25,122 @@ export type WebSocketBroadcastChannelMessage =
       }
     }
 
-export const kAddByClientId = Symbol('kAddByClientId')
+type SerializedClient = {
+  clientId: string
+  url: string
+}
 
 /**
  * A manager responsible for accumulating WebSocket client
  * connections across different browser runtimes.
  */
 export class WebSocketClientManager {
+  private inMemoryClients: Set<WebSocketClientConnectionProtocol>
+
+  constructor(
+    private channel: BroadcastChannel,
+    private url: Path,
+  ) {
+    this.inMemoryClients = new Set()
+
+    if (typeof localStorage !== 'undefined') {
+      // When the worker clears the local storage key in "worker.stop()",
+      // also clear the in-memory clients map.
+      localStorage.removeItem = new Proxy(localStorage.removeItem, {
+        apply: (target, thisArg, args) => {
+          const [key] = args
+
+          if (key === MSW_WEBSOCKET_CLIENTS_KEY) {
+            this.inMemoryClients.clear()
+          }
+
+          return Reflect.apply(target, thisArg, args)
+        },
+      })
+    }
+  }
+
   /**
    * All active WebSocket client connections.
    */
-  public clients: Set<WebSocketClientConnectionProtocol>
+  get clients(): Set<WebSocketClientConnectionProtocol> {
+    // In the browser, different runtimes use "localStorage"
+    // as the shared source of all the clients.
+    if (typeof localStorage !== 'undefined') {
+      const inMemoryClients = Array.from(this.inMemoryClients)
 
-  constructor(private channel: BroadcastChannel) {
-    this.clients = new Set()
+      console.log('get clients()', inMemoryClients, this.getSerializedClients())
 
-    this.channel.addEventListener('message', (message) => {
-      const { type, payload } = message.data as WebSocketBroadcastChannelMessage
+      return new Set(
+        inMemoryClients.concat(
+          this.getSerializedClients()
+            // Filter out the serialized clients that are already present
+            // in this runtime in-memory. This is crucial because a remote client
+            // wrapper CANNOT send a message to the client in THIS runtime
+            // (the "message" event on broadcast channel won't trigger).
+            .filter((serializedClient) => {
+              if (
+                inMemoryClients.every(
+                  (client) => client.id !== serializedClient.clientId,
+                )
+              ) {
+                return serializedClient
+              }
+            })
+            .map((serializedClient) => {
+              return new WebSocketRemoteClientConnection(
+                serializedClient.clientId,
+                new URL(serializedClient.url),
+                this.channel,
+              )
+            }),
+        ),
+      )
+    }
 
-      switch (type) {
-        case 'connection:open': {
-          // When another runtime notifies about a new connection,
-          // create a connection wrapper class and add it to the set.
-          this.onRemoteConnection(payload.clientId, new URL(payload.url))
-          break
-        }
-      }
+    // In Node.js, the manager acts as a singleton, and all clients
+    // are kept in-memory.
+    return this.inMemoryClients
+  }
+
+  private getSerializedClients(): Array<SerializedClient> {
+    invariant(
+      typeof localStorage !== 'undefined',
+      'Failed to call WebSocketClientManager#getSerializedClients() in a non-browser environment. This is likely a bug in MSW. Please, report it on GitHub: https://github.com/mswjs/msw',
+    )
+
+    const clientsJson = localStorage.getItem(MSW_WEBSOCKET_CLIENTS_KEY)
+
+    if (!clientsJson) {
+      return []
+    }
+
+    const allClients = JSON.parse(clientsJson) as Array<SerializedClient>
+    const matchingClients = allClients.filter((client) => {
+      return matchRequestUrl(new URL(client.url), this.url).matches
     })
+
+    return matchingClients
+  }
+
+  private addClient(client: WebSocketClientConnection): void {
+    this.inMemoryClients.add(client)
+
+    if (typeof localStorage !== 'undefined') {
+      const serializedClients = this.getSerializedClients()
+
+      // Serialize the current client for other runtimes to create
+      // a remote wrapper over it. This has no effect on the current runtime.
+      const nextSerializedClients = serializedClients.concat({
+        clientId: client.id,
+        url: client.url.href,
+      } as SerializedClient)
+
+      localStorage.setItem(
+        MSW_WEBSOCKET_CLIENTS_KEY,
+        JSON.stringify(nextSerializedClients),
+      )
+    }
   }
 
   /**
@@ -64,16 +150,7 @@ export class WebSocketClientManager {
    * for the opened connections in the same runtime.
    */
   public addConnection(client: WebSocketClientConnection): void {
-    this.clients.add(client)
-
-    // Signal to other runtimes about this connection.
-    this.channel.postMessage({
-      type: 'connection:open',
-      payload: {
-        clientId: client.id,
-        url: client.url.toString(),
-      },
-    } as WebSocketBroadcastChannelMessage)
+    this.addClient(client)
 
     // Instruct the current client how to handle events
     // coming from other runtimes (e.g. when calling `.broadcast()`).
@@ -115,19 +192,6 @@ export class WebSocketClientManager {
     client.addEventListener('close', () => abortController.abort(), {
       once: true,
     })
-  }
-
-  /**
-   * Adds a client connection wrapper to operate with
-   * WebSocket client connections in other runtimes.
-   */
-  private onRemoteConnection(id: string, url: URL): void {
-    this.clients.add(
-      // Create a connection-compatible instance that can
-      // operate with this client from a different runtime
-      // using the BroadcastChannel messages.
-      new WebSocketRemoteClientConnection(id, url, this.channel),
-    )
   }
 }
 

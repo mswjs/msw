@@ -1,5 +1,5 @@
 import type { WebSocketLink, ws } from 'msw'
-import type { setupWorker } from 'msw/browser'
+import type { SetupWorker, setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
 
 declare global {
@@ -8,6 +8,7 @@ declare global {
       ws: typeof ws
       setupWorker: typeof setupWorker
     }
+    worker: SetupWorker
     link: WebSocketLink
     ws: WebSocket
     messages: string[]
@@ -163,4 +164,42 @@ test('broadcasts messages across runtimes', async ({
     'hi from one',
     'hi from two',
   ])
+})
+
+test('clears the list of clients when the worker is stopped', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com')
+    const worker = setupWorker(api.on('connection', () => {}))
+    window.link = api
+    window.worker = worker
+    await worker.start()
+  })
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return 1 after a single client joined.
+  expect(
+    await page.evaluate(() => {
+      return window.link.clients.size
+    }),
+  ).toBe(1)
+
+  await page.evaluate(() => {
+    window.worker.stop()
+  })
+
+  // Must return 0.
+  // The localStorage has been purged, and the in-memory manager clients too.
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
 })

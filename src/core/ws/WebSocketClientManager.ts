@@ -6,7 +6,7 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import { matchRequestUrl, type Path } from '../utils/matching/matchRequestUrl'
 
-const MSW_WEBSOCKET_CLIENTS_KEY = 'msw:ws:clients'
+export const MSW_WEBSOCKET_CLIENTS_KEY = 'msw:ws:clients'
 
 export type WebSocketBroadcastChannelMessage =
   | {
@@ -42,6 +42,22 @@ export class WebSocketClientManager {
     private url: Path,
   ) {
     this.inMemoryClients = new Set()
+
+    if (typeof localStorage !== 'undefined') {
+      // When the worker clears the local storage key in "worker.stop()",
+      // also clear the in-memory clients map.
+      localStorage.removeItem = new Proxy(localStorage.removeItem, {
+        apply: (target, thisArg, args) => {
+          const [key] = args
+
+          if (key === MSW_WEBSOCKET_CLIENTS_KEY) {
+            this.inMemoryClients.clear()
+          }
+
+          return Reflect.apply(target, thisArg, args)
+        },
+      })
+    }
   }
 
   /**
@@ -52,6 +68,8 @@ export class WebSocketClientManager {
     // as the shared source of all the clients.
     if (typeof localStorage !== 'undefined') {
       const inMemoryClients = Array.from(this.inMemoryClients)
+
+      console.log('get clients()', inMemoryClients, this.getSerializedClients())
 
       return new Set(
         inMemoryClients.concat(

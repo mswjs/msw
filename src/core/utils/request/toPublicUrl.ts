@@ -9,9 +9,7 @@ export function toPublicUrl(url: string | URL): string {
 
   const urlInstance = url instanceof URL ? url : new URL(url)
 
-  const [, relativeUrl] = urlInstance.href.split(urlInstance.origin)
-
   return urlInstance.origin === location.origin
-    ? relativeUrl
+    ? urlInstance.pathname
     : urlInstance.origin + urlInstance.pathname
 }

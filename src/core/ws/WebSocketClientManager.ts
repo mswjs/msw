@@ -43,9 +43,8 @@ export class WebSocketClientManager {
   ) {
     this.inMemoryClients = new Set()
 
+    // Purge in-memory clients when the worker stops.
     if (typeof localStorage !== 'undefined') {
-      // When the worker clears the local storage key in "worker.stop()",
-      // also clear the in-memory clients map.
       localStorage.removeItem = new Proxy(localStorage.removeItem, {
         apply: (target, thisArg, args) => {
           const [key] = args

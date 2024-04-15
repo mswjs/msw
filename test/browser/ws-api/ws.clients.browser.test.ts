@@ -183,23 +183,62 @@ test('clears the list of clients when the worker is stopped', async ({
     await worker.start()
   })
 
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+
   await page.evaluate(async () => {
     const ws = new WebSocket('wss://example.com')
     await new Promise((done) => (ws.onopen = done))
   })
 
-  // Must return 1 after a single client joined.
-  expect(
-    await page.evaluate(() => {
-      return window.link.clients.size
-    }),
-  ).toBe(1)
+  // Must return the number of joined clients.
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(1)
 
   await page.evaluate(() => {
     window.worker.stop()
   })
 
-  // Must return 0.
-  // The localStorage has been purged, and the in-memory manager clients too.
+  // Must purge the local storage on reload.
+  // The worker has been started as a part of the test, not runtime,
+  // so it will start with empty clients.
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+})
+
+test('clears the list of clients when the page is reloaded', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  const enableMocking = async () => {
+    await page.evaluate(async () => {
+      const { setupWorker, ws } = window.msw
+      const api = ws.link('wss://example.com')
+      const worker = setupWorker(api.on('connection', () => {}))
+      window.link = api
+      window.worker = worker
+      await worker.start()
+    })
+  }
+
+  await enableMocking(page)
+
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return the number of joined clients.
+  expect(await page.evaluate(() => window.link.clients.size)).toBe(1)
+
+  await page.reload()
+  await enableMocking()
+
+  // Must purge the local storage on reload.
+  // The worker has been started as a part of the test, not runtime,
+  // so it will start with empty clients.
   expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
 })

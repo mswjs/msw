@@ -1,4 +1,5 @@
 import { devUtils } from '~/core/utils/internal/devUtils'
+import { MSW_WEBSOCKET_CLIENTS_KEY } from '~/core/ws/WebSocketClientManager'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
@@ -71,6 +72,11 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
         window.clearInterval(context.keepAliveInterval)
+
+        // Purge persisted clients on page reload.
+        // WebSocket clients will get new IDs on reload so persisting them
+        // makes little sense.
+        localStorage.removeItem(MSW_WEBSOCKET_CLIENTS_KEY)
       })
 
       // Check if the active Service Worker has been generated

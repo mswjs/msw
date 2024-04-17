@@ -21,8 +21,12 @@
       "default": "./lib/browser/index.js"
     },
     "./node": {
-      "browser": null,
       "types": "./lib/node/index.d.ts",
+      "node": {
+        "require": "./lib/node/index.js",
+        "import": "./lib/node/index.mjs"
+      },
+      "browser": null,
       "require": "./lib/node/index.js",
       "import": "./lib/node/index.mjs",
       "default": "./lib/node/index.mjs"

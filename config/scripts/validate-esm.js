@@ -90,7 +90,7 @@ function validatePackageExports() {
   console.log('✅ Validated package.json exports')
 }
 
-function validateExportConditions(pointer, conditions) {
+function validateExportConditions(pointer, conditions, level = 0) {
   if (typeof conditions === 'string') {
     invariant(
       fs.existsSync(conditions),
@@ -103,7 +103,7 @@ function validateExportConditions(pointer, conditions) {
 
   const keys = Object.keys(conditions)
 
-  if (conditions[keys[0]] !== null) {
+  if (level == 0 && conditions[keys[0]] !== null) {
     invariant(keys[0] === 'types', 'FS')
   }
 
@@ -112,6 +112,15 @@ function validateExportConditions(pointer, conditions) {
     const relativeExportPath = conditions[key]
 
     if (relativeExportPath === null) {
+      return
+    }
+
+    if (typeof relativeExportPath === 'object') {
+      validateExportConditions(
+        `${pointer}.${key}`,
+        relativeExportPath,
+        level + 1,
+      )
       return
     }
 

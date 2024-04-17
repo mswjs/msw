@@ -14,8 +14,12 @@
       "default": "./lib/core/index.js"
     },
     "./browser": {
-      "node": null,
       "types": "./lib/browser/index.d.ts",
+      "browser": {
+        "require": "./lib/browser/index.js",
+        "import": "./lib/browser/index.mjs"
+      },
+      "node": null,
       "require": "./lib/browser/index.js",
       "import": "./lib/browser/index.mjs",
       "default": "./lib/browser/index.js"
@@ -32,8 +36,12 @@
       "default": "./lib/node/index.mjs"
     },
     "./native": {
-      "browser": null,
       "types": "./lib/native/index.d.ts",
+      "react-native": {
+        "require": "./lib/native/index.js",
+        "import": "./lib/native/index.mjs"
+      },
+      "browser": null,
       "require": "./lib/native/index.js",
       "import": "./lib/native/index.mjs",
       "default": "./lib/native/index.js"

@@ -22,7 +22,7 @@ export async function onUnhandledRequest(
   strategy: UnhandledRequestStrategy = 'warn',
 ): Promise<void> {
   const url = new URL(request.url)
-  const publicUrl = toPublicUrl(url)
+  const publicUrl = toPublicUrl(url) + url.search
 
   const unhandledRequestMessage = `intercepted a request without a matching request handler:\n\n  \u2022 ${request.method} ${publicUrl}\n\nIf you still wish to intercept this unhandled request, please create a request handler for it.\nRead more: https://mswjs.io/docs/getting-started/mocks`
 

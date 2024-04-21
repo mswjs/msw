@@ -31,8 +31,9 @@ beforeAll(async () => {
       return
     }),
     http.post(httpServer.http.url('/implicit-return'), () => {
-      // The handler that has no return also performs the request as-is,
-      // still treating this request as handled.
+      // The handler that has no return value so it falls through any
+      // other matching handlers (whicbh are none). In the end,
+      // the request is performed as-is and is still considered handled.
     }),
   )
   server.listen({ onUnhandledRequest: 'error' })

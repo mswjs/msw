@@ -29,3 +29,7 @@ export const devUtils = {
   warn,
   error,
 }
+
+export class InternalError extends Error {
+  //
+}

@@ -68,12 +68,7 @@ test('errors on unhandled request when using the "error" value', async () => {
 
   const requestError = await makeRequest()
 
-  expect(requestError.message).toBe('Failed to fetch')
-  /**
-   * @note Undici wraps fetch rejections in a generic "Failed to fetch" error,
-   * forwarding the actual rejection in the "error.cause" property.
-   */
-  expect(requestError.cause).toEqual(
+  expect(requestError).toEqual(
     new Error(
       '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
     ),

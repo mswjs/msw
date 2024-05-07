@@ -53,7 +53,7 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
      * @see https://github.com/mswjs/msw/issues/2030
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
      */
-    if (!response.url) {
+    if (!response.url && request && request.url) {
       Object.defineProperty(response, 'url', {
         value: request.url,
         enumerable: true,

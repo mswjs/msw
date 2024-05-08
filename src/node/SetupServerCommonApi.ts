@@ -16,7 +16,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
-import { devUtils } from '~/core/utils/internal/devUtils'
+import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
@@ -69,6 +69,12 @@ export class SetupServerCommonApi
       }
 
       return
+    })
+
+    this.interceptor.on('unhandledException', ({ error }) => {
+      if (error instanceof InternalError) {
+        throw error
+      }
     })
 
     this.interceptor.on(

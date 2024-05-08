@@ -2,9 +2,8 @@
  * @vitest-environment node
  */
 import { HttpResponse, http } from 'msw'
-import { setupServer } from 'msw/node'
+import { SetupServerApi, setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
-import { waitFor } from '../../../../support/waitFor'
 
 const httpServer = new HttpServer((app) => {
   app.get('/user', (req, res) => res.status(500).end())
@@ -14,18 +13,34 @@ const httpServer = new HttpServer((app) => {
 
 const server = setupServer()
 
-const listener = vi.fn()
+function spyOnEvents(server: SetupServerApi) {
+  const listener = vi.fn()
+  const wrapListener = (eventName: string, listener: any) => {
+    return (...args) => listener(eventName, ...args)
+  }
 
-function getRequestId(requestStartListener: vi.Mock) {
-  const { calls } = requestStartListener.mock
-  const requestStartCall = calls.find((call) => {
-    return call[0].startsWith('[request:start]')
-  })
+  server.events.on('request:start', wrapListener('request:start', listener))
+  server.events.on('request:match', wrapListener('request:match', listener))
+  server.events.on(
+    'request:unhandled',
+    wrapListener('request:unhandled', listener),
+  )
+  server.events.on('request:end', wrapListener('request:end', listener))
+  server.events.on('response:mocked', wrapListener('response:mocked', listener))
+  server.events.on('response:bypass', wrapListener('response:bypass', listener))
+  server.events.on(
+    'unhandledException',
+    wrapListener('unhandledException', listener),
+  )
 
-  return requestStartCall[0].split(' ')[3]
+  return listener
 }
 
 beforeAll(async () => {
+  // Supress "Expected a mocking resolver function to return a mocked response"
+  // warnings when hitting intentionally empty resolver.
+  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
+
   await httpServer.listen()
 
   server.use(
@@ -40,62 +55,6 @@ beforeAll(async () => {
     }),
   )
   server.listen()
-
-  server.events.on('request:start', ({ request, requestId }) => {
-    listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
-  })
-
-  server.events.on('request:match', ({ request, requestId }) => {
-    listener(`[request:match] ${request.method} ${request.url} ${requestId}`)
-  })
-
-  server.events.on('request:unhandled', ({ request, requestId }) => {
-    listener(
-      `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
-    )
-  })
-
-  server.events.on('request:end', ({ request, requestId }) => {
-    listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
-  })
-
-  server.events.on(
-    'response:mocked',
-    async ({ response, request, requestId }) => {
-      listener(
-        `[response:mocked] ${await response.text()} ${request.method} ${
-          request.url
-        } ${requestId}`,
-      )
-    },
-  )
-
-  server.events.on(
-    'response:bypass',
-    async ({ response, request, requestId }) => {
-      listener(
-        `[response:bypass] ${await response.text()} ${request.method} ${
-          request.url
-        } ${requestId}`,
-      )
-    },
-  )
-
-  server.events.on('unhandledException', ({ error, request, requestId }) => {
-    listener(
-      `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,
-    )
-  })
-})
-
-beforeEach(() => {
-  // Supress "Expected a mocking resolver function to return a mocked response"
-  // warnings. Using intentional explicit empty resolver.
-  vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
 })
 
 afterAll(async () => {
@@ -103,103 +62,209 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('emits events for a handler request and mocked response', async () => {
+test('emits events for a handled request and mocked response', async () => {
+  const listener = spyOnEvents(server)
   const url = httpServer.http.url('/user')
   await fetch(url)
-  const requestId = getRequestId(listener)
-
-  await waitFor(() => {
-    expect(listener).toHaveBeenCalledWith(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
 
   expect(listener).toHaveBeenNthCalledWith(
     1,
-    `[request:start] GET ${url} ${requestId}`,
+    'request:start',
+    expect.objectContaining({
+      request: expect.any(Request),
+      requestId: expect.any(String),
+    }),
   )
+
+  const { request, requestId } = listener.mock.calls[0][1]
+  expect(request.method).toBe('GET')
+  expect(request.url).toBe(url)
+
   expect(listener).toHaveBeenNthCalledWith(
     2,
-    `[request:match] GET ${url} ${requestId}`,
+    'request:match',
+    expect.objectContaining({
+      request,
+      requestId,
+    }),
   )
   expect(listener).toHaveBeenNthCalledWith(
     3,
-    `[request:end] GET ${url} ${requestId}`,
+    'request:end',
+    expect.objectContaining({
+      request,
+      requestId,
+    }),
   )
   expect(listener).toHaveBeenNthCalledWith(
     4,
-    `[response:mocked] response-body GET ${url} ${requestId}`,
+    'response:mocked',
+    expect.objectContaining({
+      request,
+      requestId,
+      response: expect.any(Response),
+    }),
   )
+
+  const { response } = listener.mock.calls[3][1]
+  expect(response.status).toBe(200)
+  expect(response.statusText).toBe('OK')
+  expect(await response.text()).toBe('response-body')
+
   expect(listener).toHaveBeenCalledTimes(4)
 })
 
 test('emits events for a handled request with no response', async () => {
+  const listener = spyOnEvents(server)
   const url = httpServer.http.url('/no-response')
   await fetch(url, { method: 'POST' })
-  const requestId = getRequestId(listener)
-
-  await waitFor(() => {
-    expect(listener).toHaveBeenCalledWith(
-      expect.stringContaining('[response:bypass]'),
-    )
-  })
 
   expect(listener).toHaveBeenNthCalledWith(
     1,
-    `[request:start] POST ${url} ${requestId}`,
+    'request:start',
+    expect.objectContaining({
+      request: expect.any(Request),
+      requestId: expect.any(String),
+    }),
   )
+
+  const { request, requestId } = listener.mock.calls[0][1]
+  expect(request.method).toBe('POST')
+  expect(request.url).toBe(url)
+
   expect(listener).toHaveBeenNthCalledWith(
     2,
-    `[request:end] POST ${url} ${requestId}`,
+    'request:end',
+    expect.objectContaining({
+      request,
+      requestId,
+    }),
   )
   expect(listener).toHaveBeenNthCalledWith(
     3,
-    `[response:bypass] original-response POST ${url} ${requestId}`,
+    'response:bypass',
+    expect.objectContaining({
+      request,
+      requestId,
+      response: expect.any(Response),
+    }),
   )
+
+  const { response } = listener.mock.calls[2][1]
+  expect(response.status).toBe(200)
+  expect(response.statusText).toBe('OK')
+  expect(await response.text()).toBe('original-response')
+
   expect(listener).toHaveBeenCalledTimes(3)
 })
 
 test('emits events for an unhandled request', async () => {
+  const listener = spyOnEvents(server)
   const url = httpServer.http.url('/unknown-route')
   await fetch(url)
-  const requestId = getRequestId(listener)
-
-  await waitFor(() => {
-    expect(listener).toHaveBeenCalledWith(
-      expect.stringContaining('[response:bypass]'),
-    )
-  })
 
   expect(listener).toHaveBeenNthCalledWith(
     1,
-    `[request:start] GET ${url} ${requestId}`,
+    'request:start',
+    expect.objectContaining({
+      request: expect.any(Request),
+      requestId: expect.any(String),
+    }),
   )
+
+  const { request, requestId } = listener.mock.calls[0][1]
+  expect(request.method).toBe('GET')
+  expect(request.url).toBe(url)
+
   expect(listener).toHaveBeenNthCalledWith(
     2,
-    `[request:unhandled] GET ${url} ${requestId}`,
+    'request:unhandled',
+    expect.objectContaining({
+      request,
+      requestId,
+    }),
   )
   expect(listener).toHaveBeenNthCalledWith(
     3,
-    `[request:end] GET ${url} ${requestId}`,
+    'request:end',
+    expect.objectContaining({
+      request,
+      requestId,
+    }),
   )
+
   expect(listener).toHaveBeenNthCalledWith(
     4,
-    `[response:bypass] majestic-unknown GET ${url} ${requestId}`,
+    'response:bypass',
+    expect.objectContaining({
+      request,
+      requestId,
+      response: expect.any(Response),
+    }),
   )
+
+  const { response } = listener.mock.calls[3][1]
+  expect(response.status).toBe(200)
+  expect(response.statusText).toBe('OK')
+  expect(await response.text()).toBe('majestic-unknown')
+
+  expect(listener).toHaveBeenCalledTimes(4)
 })
 
 test('emits unhandled exceptions in the request handler', async () => {
+  const listener = spyOnEvents(server)
   const url = httpServer.http.url('/unhandled-exception')
   await fetch(url).catch(() => undefined)
-  const requestId = getRequestId(listener)
 
-  expect(listener).toHaveBeenCalledWith(
-    `[unhandledException] GET ${url} ${requestId} Unhandled resolver error`,
+  expect(listener).toHaveBeenNthCalledWith(
+    1,
+    'request:start',
+    expect.objectContaining({
+      request: expect.any(Request),
+      requestId: expect.any(String),
+    }),
   )
+
+  const { request, requestId } = listener.mock.calls[0][1]
+  expect(request.method).toBe('GET')
+  expect(request.url).toBe(url)
+
+  expect(listener).toHaveBeenNthCalledWith(
+    2,
+    'unhandledException',
+    expect.objectContaining({
+      request,
+      requestId,
+      error: new Error('Unhandled resolver error'),
+    }),
+  )
+
+  /**
+   * @note The fallback 500 response still counts as a mocked response.
+   * I'm torn on this but I believe we should indicate that the request
+   * (a) received a response; (b) that response was mocked.
+   */
+  expect(listener).toHaveBeenNthCalledWith(
+    3,
+    'response:mocked',
+    expect.objectContaining({
+      request,
+      requestId,
+      response: expect.any(Response),
+    }),
+  )
+
+  const { response } = listener.mock.calls[2][1]
+  expect(response.status).toBe(500)
+  expect(response.statusText).toBe('Unhandled Exception')
+
+  expect(listener).toHaveBeenCalledTimes(3)
 })
 
 test('stops emitting events once the server is stopped', async () => {
+  const listener = spyOnEvents(server)
   server.close()
+
   await fetch(httpServer.http.url('/user'))
 
   expect(listener).not.toHaveBeenCalled()

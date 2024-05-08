@@ -95,19 +95,20 @@ it('supports middleware-style responses', async () => {
   expect(await errorResponse.text()).toBe('must have id')
 })
 
-it('throws non-Response errors as-is', async () => {
+it('handles non-response errors as 500 error responses', async () => {
   server.use(
     http.get('https://example.com/', () => {
-      throw new Error('Oops!')
+      throw new Error('Custom error')
     }),
   )
 
-  const requestError = await fetch('https://example.com/')
-    .then(() => null)
-    .catch((error) => error)
+  const response = await fetch('https://example.com')
 
-  expect(requestError.name).toBe('TypeError')
-  expect(requestError.message).toBe('Failed to fetch')
-  // Undici forwards the original error in the "cause" property.
-  expect(requestError.cause).toEqual(new Error('Oops!'))
+  expect(response.status).toBe(500)
+  expect(response.statusText).toBe('Unhandled Exception')
+  expect(await response.json()).toEqual({
+    name: 'Error',
+    message: 'Custom error',
+    stack: expect.any(String),
+  })
 })

@@ -31,8 +31,9 @@ beforeAll(async () => {
       return
     }),
     http.post(httpServer.http.url('/implicit-return'), () => {
-      // The handler that has no return also performs the request as-is,
-      // still treating this request as handled.
+      // The handler that has no return value so it falls through any
+      // other matching handlers (whicbh are none). In the end,
+      // the request is performed as-is and is still considered handled.
     }),
   )
   server.listen({ onUnhandledRequest: 'error' })
@@ -67,12 +68,7 @@ test('errors on unhandled request when using the "error" value', async () => {
 
   const requestError = await makeRequest()
 
-  expect(requestError.message).toBe('Failed to fetch')
-  /**
-   * @note Undici wraps fetch rejections in a generic "Failed to fetch" error,
-   * forwarding the actual rejection in the "error.cause" property.
-   */
-  expect(requestError.cause).toEqual(
+  expect(requestError).toEqual(
     new Error(
       '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
     ),

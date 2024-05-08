@@ -1,5 +1,5 @@
 import { toPublicUrl } from './toPublicUrl'
-import { devUtils } from '../internal/devUtils'
+import { InternalError, devUtils } from '../internal/devUtils'
 
 export interface UnhandledRequestPrint {
   warning(): void
@@ -22,7 +22,7 @@ export async function onUnhandledRequest(
   strategy: UnhandledRequestStrategy = 'warn',
 ): Promise<void> {
   const url = new URL(request.url)
-  const publicUrl = toPublicUrl(url)
+  const publicUrl = toPublicUrl(url) + url.search
 
   const unhandledRequestMessage = `intercepted a request without a matching request handler:\n\n  \u2022 ${request.method} ${publicUrl}\n\nIf you still wish to intercept this unhandled request, please create a request handler for it.\nRead more: https://mswjs.io/docs/getting-started/mocks`
 
@@ -33,7 +33,7 @@ export async function onUnhandledRequest(
         devUtils.error('Error: %s', unhandledRequestMessage)
 
         // Throw an exception to halt request processing and not perform the original request.
-        throw new Error(
+        throw new InternalError(
           devUtils.formatMessage(
             'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
           ),
@@ -49,7 +49,7 @@ export async function onUnhandledRequest(
         break
 
       default:
-        throw new Error(
+        throw new InternalError(
           devUtils.formatMessage(
             'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
             strategy,

@@ -89,7 +89,7 @@ There are two levels of tests on the project:
 
 #### Writing a unit test
 
-Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiple.test.ts` file next to where the function is located:
+Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiply.test.ts` file next to where the function is located:
 
 ```bash
 $ touch src/utils/multiply.test.ts

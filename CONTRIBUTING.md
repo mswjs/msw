@@ -267,4 +267,4 @@ $ pnpm build
 
 [pnpm-url]: https://pnpm.io/
 [page-with-url]: https://github.com/kettanaito/page-with
-[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version
+[pnpm-install-guide-url]: https://pnpm.io/8.x/installation#installing-a-specific-version

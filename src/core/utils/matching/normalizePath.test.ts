@@ -1,7 +1,10 @@
 /**
  * @vitest-environment jsdom
  */
-import { normalizePath } from './normalizePath'
+import {
+  normalizePath,
+  pathEndsWithOptionalPathParameter,
+} from './normalizePath'
 
 test('returns RegExp as-is', () => {
   const path = /\/user\/(.+?)\//
@@ -43,8 +46,37 @@ test('returns a path pattern string as-is', () => {
   expect(normalizePath('*/resource/*')).toEqual('*/resource/*')
 })
 
-test('removeß query parameters and hashes from a path pattern string', () => {
+test('removes query parameters and hashes from a path pattern string', () => {
   expect(normalizePath(':api/user?query=123#some')).toEqual(
     'http://localhost/:api/user',
   )
+})
+
+test('preserves optional path parameters', () => {
+  expect(normalizePath('/user/:userId?')).toEqual(
+    'http://localhost/user/:userId?',
+  )
+})
+
+test('pathEndsWithOptionalPathParameter returns true for optional path parameters', () => {
+  expect(pathEndsWithOptionalPathParameter('/user/:userId?')).toBe(true)
+  expect(
+    pathEndsWithOptionalPathParameter('/:api/:something-else/user/:userId?'),
+  ).toBe(true)
+})
+
+test('pathEndsWithOptionalPathParameter returns false for non-optional path parameters', () => {
+  expect(pathEndsWithOptionalPathParameter('/user/123')).toBe(false)
+  expect(pathEndsWithOptionalPathParameter('/user/123/profile')).toBe(false)
+  expect(pathEndsWithOptionalPathParameter('/user/:userId')).toBe(false)
+  expect(pathEndsWithOptionalPathParameter('/user/:userId/profile')).toBe(false)
+})
+
+test('pathEndsWithOptionalPathParameter returns false for non-path parameters', () => {
+  expect(pathEndsWithOptionalPathParameter(':api/user')).toBe(false)
+  expect(pathEndsWithOptionalPathParameter('*/resource/*')).toBe(false)
+  expect(pathEndsWithOptionalPathParameter(':api/user?query=123#some')).toBe(
+    false,
+  )
+  expect(pathEndsWithOptionalPathParameter('http://localhost:3000')).toBe(false)
 })

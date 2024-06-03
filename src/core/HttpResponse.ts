@@ -9,7 +9,7 @@ export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
-declare const bodyType: unique symbol
+export declare const bodyType: unique symbol
 
 export interface StrictRequest<BodyType extends DefaultBodyType>
   extends Request {

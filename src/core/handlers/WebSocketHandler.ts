@@ -59,8 +59,7 @@ export class WebSocketHandler {
     const connection = event.data
 
     const resolvedConnection: WebSocketHandlerConnection = {
-      client: connection.client,
-      server: connection.server,
+      ...connection,
       params: parsedResult.match.params || {},
     }
 

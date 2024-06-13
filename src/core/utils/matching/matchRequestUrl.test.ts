@@ -62,6 +62,17 @@ describe('matchRequestUrl', () => {
     expect(match).toHaveProperty('params', {})
   })
 
+  test('returns true when matching optional path parameters', () => {
+    const match = matchRequestUrl(
+      new URL('https://test.mswjs.io/user'),
+      'https://test.mswjs.io/user/:userId?',
+    )
+    expect(match).toHaveProperty('matches', true)
+    expect(match).toHaveProperty('params', {
+      userId: undefined,
+    })
+  })
+
   test('returns true for matching WebSocket URL', () => {
     expect(
       matchRequestUrl(new URL('ws://test.mswjs.io'), 'ws://test.mswjs.io'),

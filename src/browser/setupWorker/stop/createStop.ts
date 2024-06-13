@@ -1,4 +1,5 @@
 import { devUtils } from '~/core/utils/internal/devUtils'
+import { MSW_WEBSOCKET_CLIENTS_KEY } from '~/core/ws/WebSocketClientManager'
 import { SetupWorkerInternalContext, StopHandler } from '../glossary'
 import { printStopMessage } from './utils/printStopMessage'
 
@@ -23,6 +24,9 @@ export const createStop = (
     context.workerChannel.send('MOCK_DEACTIVATE')
     context.isMockingEnabled = false
     window.clearInterval(context.keepAliveInterval)
+
+    // Clear the WebSocket clients from the shared storage.
+    localStorage.removeItem(MSW_WEBSOCKET_CLIENTS_KEY)
 
     printStopMessage({ quiet: context.startOptions?.quiet })
   }

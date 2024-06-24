@@ -1,5 +1,6 @@
 import * as path from 'node:path'
 import { defineConfig } from 'vitest/config'
+import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 import { invariant } from 'outvariant'
 import * as fs from 'fs'
 
@@ -13,7 +14,6 @@ export default defineConfig({
     typecheck: {
       checker: 'tsc',
       tsconfig: (() => {
-        const tsPackageJson = JSON.parse(fs.readFileSync("node_modules/typescript/package.json", 'utf-8'))
         const tsInstalledVersion = tsPackageJson.version
         invariant(
           tsInstalledVersion,

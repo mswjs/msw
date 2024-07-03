@@ -11,7 +11,19 @@ import {
 import { Path, isPath } from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
 
+function isBroadcastChannelWithUnref(
+  channel: BroadcastChannel,
+): channel is BroadcastChannel & NodeJS.RefCounted {
+  return typeof Reflect.get(channel, 'unref') !== 'undefined'
+}
+
 const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
+
+if (isBroadcastChannelWithUnref(wsBroadcastChannel)) {
+  // Allows the Node.js thread to exit if it is the only active handle in the event system.
+  // https://nodejs.org/api/worker_threads.html#broadcastchannelunref
+  wsBroadcastChannel.unref()
+}
 
 export type WebSocketLink = {
   /**

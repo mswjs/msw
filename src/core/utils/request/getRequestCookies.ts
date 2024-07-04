@@ -37,6 +37,10 @@ export function getRequestCookies(request: Request): Record<string, string> {
   }
 }
 
+/**
+ * Return all the cookies accessible by this request.
+ * This is set as the `cookies` property of the response resolver.
+ */
 export function getAllRequestCookies(request: Request): Record<string, string> {
   const requestCookiesString = request.headers.get('cookie')
   const cookiesFromHeaders = requestCookiesString

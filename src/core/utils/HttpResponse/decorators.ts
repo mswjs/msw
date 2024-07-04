@@ -49,6 +49,8 @@ export function decorateResponse(
       init.headers,
     )
 
+    console.log({ responseCookies }, Object.fromEntries(init.headers))
+
     for (const cookieString of responseCookies) {
       // No need to parse the cookie headers because it's defined
       // as the valid cookie string to begin with.

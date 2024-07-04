@@ -129,14 +129,16 @@ export class MockedRequest<
    * Bypass the intercepted request.
    * This will make a call to the actual endpoint requested.
    */
-  public passthrough(): MockedResponse<null> {
+  public passthrough<
+    BodyType extends DefaultBodyType = null,
+  >(): MockedResponse<BodyType> {
     return {
       // Constructing a dummy "101 Continue" mocked response
       // to keep the return type of the resolver consistent.
       status: 101,
       statusText: 'Continue',
       headers: new Headers(),
-      body: null,
+      body: null as BodyType,
       // Setting "passthrough" to true will signal the response pipeline
       // to perform this intercepted request as-is.
       passthrough: true,

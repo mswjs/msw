@@ -52,7 +52,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
+        # As a general rule, when adding a new version, remove the oldest version
+        # Check if the oldest version is EOL or not first.
+        ts: ['4.8', '4.9', '5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
     steps:
       - name: Checkout
         uses: actions/checkout@v3

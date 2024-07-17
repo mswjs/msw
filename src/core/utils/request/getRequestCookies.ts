@@ -33,6 +33,16 @@ function getDocumentCookies(request: Request): Record<string, string> {
 }
 
 export function getAllRequestCookies(request: Request): Record<string, string> {
+  /**
+   * @note While the "cookie" header is a forbidden header field
+   * in the browser, you can read it in Node.js. We need to respect
+   * it for mocking in Node.js.
+   */
+  const requestCookieHeader = request.headers.get('cookie')
+  const cookiesFromHeaders = requestCookieHeader
+    ? cookieUtils.parse(requestCookieHeader)
+    : {}
+
   const cookiesFromDocument = getDocumentCookies(request)
 
   // Forward the document cookies to the request headers.
@@ -57,5 +67,6 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
   return {
     ...cookiesFromDocument,
     ...storedCookiesObject,
+    ...cookiesFromHeaders,
   }
 }

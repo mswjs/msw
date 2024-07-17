@@ -1,19 +1,61 @@
 import cookieUtils from '@bundled-es-modules/cookie'
 import { cookieStore } from '../cookieStore'
 
+function getAllDocumentCookies() {
+  return cookieUtils.parse(document.cookie)
+}
+
+function getDocumentCookies(request: Request): Record<string, string> {
+  if (typeof document === 'undefined' || typeof location === 'undefined') {
+    return {}
+  }
+
+  switch (request.credentials) {
+    case 'same-origin': {
+      const requestUrl = new URL(request.url)
+
+      // Return document cookies only when requested a resource
+      // from the same origin as the current document.
+      return location.origin === requestUrl.origin
+        ? getAllDocumentCookies()
+        : {}
+    }
+
+    case 'include': {
+      // Return all document cookies.
+      return getAllDocumentCookies()
+    }
+
+    default: {
+      return {}
+    }
+  }
+}
+
 export function getAllRequestCookies(request: Request): Record<string, string> {
-  const requestCookies = request.headers.get('cookie')
-  const cookiesFromHeaders = requestCookies
-    ? cookieUtils.parse(requestCookies)
-    : {}
-  const cookiesFromStore = Object.fromEntries(
-    cookieStore
-      .getCookiesSync(request.url)
-      .map((cookie) => [cookie.key, cookie.value]),
+  const cookiesFromDocument = getDocumentCookies(request)
+
+  // Forward the document cookies to the request headers.
+  for (const name in cookiesFromDocument) {
+    request.headers.append(
+      'cookie',
+      cookieUtils.serialize(name, cookiesFromDocument[name]),
+    )
+  }
+
+  const cookiesFromStore = cookieStore.getCookiesSync(request.url)
+  const storedCookiesObject = Object.fromEntries(
+    cookiesFromStore.map((cookie) => [cookie.key, cookie.value]),
   )
 
+  // Forward the raw stored cookies to request headers
+  // so they contain metadata like "expires", "secure", etc.
+  for (const cookie of cookiesFromStore) {
+    request.headers.append('cookie', cookie.toString())
+  }
+
   return {
-    ...cookiesFromStore,
-    ...cookiesFromHeaders,
+    ...cookiesFromDocument,
+    ...storedCookiesObject,
   }
 }

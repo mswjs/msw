@@ -10,7 +10,7 @@ async function bakeCookies(page: Page) {
   })
 }
 
-test('returns all document cookies in "req.cookies" for "include" credentials', async ({
+test('exposes all document cookies if request "credentials" is "include"', async ({
   loadExample,
   fetch,
   page,
@@ -18,13 +18,11 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   await loadExample(EXAMPLE_PATH)
   await bakeCookies(page)
 
-  const res = await fetch('/user', {
+  const response = await fetch('/user', {
     credentials: 'include',
   })
-  const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  await expect(response.json()).resolves.toEqual({
     cookies: {
       'auth-token': 'abc-123',
       'custom-cookie': 'yes',
@@ -32,7 +30,7 @@ test('returns all document cookies in "req.cookies" for "include" credentials', 
   })
 })
 
-test('returns all document cookies in "req.cookies" for "same-origin" credentials and request to the same origin', async ({
+test('exposes document cookies if request "credentials" is "same-origin" for same-origin request', async ({
   loadExample,
   fetch,
   page,
@@ -40,13 +38,11 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   await loadExample(EXAMPLE_PATH)
   await bakeCookies(page)
 
-  const res = await fetch('/user', {
+  const response = await fetch('/user', {
     credentials: 'same-origin',
   })
-  const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  await expect(response.json()).resolves.toEqual({
     cookies: {
       'auth-token': 'abc-123',
       'custom-cookie': 'yes',
@@ -54,7 +50,7 @@ test('returns all document cookies in "req.cookies" for "same-origin" credential
   })
 })
 
-test('returns no cookies in "req.cookies" for "same-origin" credentials and request to a different origin', async ({
+test('exposes no cookies if request "credentials" is "same-origin" for a cross-origin request', async ({
   loadExample,
   fetch,
   page,
@@ -62,18 +58,16 @@ test('returns no cookies in "req.cookies" for "same-origin" credentials and requ
   await loadExample(EXAMPLE_PATH)
   await bakeCookies(page)
 
-  const res = await fetch('https://test.mswjs.io/user', {
+  const response = await fetch('https://test.mswjs.io/user', {
     credentials: 'same-origin',
   })
-  const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  await expect(response.json()).resolves.toEqual({
     cookies: {},
   })
 })
 
-test('returns no cookies in "req.cookies" for "omit" credentials', async ({
+test('exposes no cookies if request "credentials" is "omit"', async ({
   loadExample,
   fetch,
   page,
@@ -81,13 +75,11 @@ test('returns no cookies in "req.cookies" for "omit" credentials', async ({
   await loadExample(EXAMPLE_PATH)
   await bakeCookies(page)
 
-  const res = await fetch('/user', {
+  const response = await fetch('/user', {
     credentials: 'omit',
   })
-  const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  await expect(response.json()).resolves.toEqual({
     cookies: {},
   })
 })

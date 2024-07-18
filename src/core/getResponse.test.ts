@@ -13,7 +13,7 @@ it('returns undefined given empty headers array', async () => {
 it('returns undefined given no matching handlers', async () => {
   expect(
     await getResponse(
-      [http.get('/product', () => void 0)],
+      [http.get('*/product', () => void 0)],
       new Request('http://localhost/user'),
     ),
   ).toBeUndefined()

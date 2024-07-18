@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: 8.15
+          version: 8.15.6
 
       - name: Install dependencies
         run: pnpm install

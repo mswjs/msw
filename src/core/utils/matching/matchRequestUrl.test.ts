@@ -61,6 +61,17 @@ describe('matchRequestUrl', () => {
     expect(match).toHaveProperty('matches', false)
     expect(match).toHaveProperty('params', {})
   })
+
+  test('returns true when matching optional path parameters', () => {
+    const match = matchRequestUrl(
+      new URL('https://test.mswjs.io/user'),
+      'https://test.mswjs.io/user/:userId?',
+    )
+    expect(match).toHaveProperty('matches', true)
+    expect(match).toHaveProperty('params', {
+      userId: undefined,
+    })
+  })
 })
 
 describe('coercePath', () => {

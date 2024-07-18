@@ -89,7 +89,7 @@ There are two levels of tests on the project:
 
 #### Writing a unit test
 
-Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiple.test.ts` file next to where the function is located:
+Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiply.test.ts` file next to where the function is located:
 
 ```bash
 $ touch src/utils/multiply.test.ts
@@ -267,4 +267,4 @@ $ pnpm build
 
 [pnpm-url]: https://pnpm.io/
 [page-with-url]: https://github.com/kettanaito/page-with
-[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version
+[pnpm-install-guide-url]: https://pnpm.io/8.x/installation#installing-a-specific-version

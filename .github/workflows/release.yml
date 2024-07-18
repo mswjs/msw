@@ -22,9 +22,9 @@ jobs:
           always-auth: true
           registry-url: https://registry.npmjs.org
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: 8.15
+          version: 8.15.6
 
       - name: Setup Git
         run: |

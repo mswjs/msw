@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.2.13",
+  "version": "2.3.1",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -14,22 +14,34 @@
       "default": "./lib/core/index.js"
     },
     "./browser": {
-      "node": null,
       "types": "./lib/browser/index.d.ts",
+      "browser": {
+        "require": "./lib/browser/index.js",
+        "import": "./lib/browser/index.mjs"
+      },
+      "node": null,
       "require": "./lib/browser/index.js",
       "import": "./lib/browser/index.mjs",
       "default": "./lib/browser/index.js"
     },
     "./node": {
-      "browser": null,
       "types": "./lib/node/index.d.ts",
+      "node": {
+        "require": "./lib/node/index.js",
+        "import": "./lib/node/index.mjs"
+      },
+      "browser": null,
       "require": "./lib/node/index.js",
       "import": "./lib/node/index.mjs",
       "default": "./lib/node/index.mjs"
     },
     "./native": {
-      "browser": null,
       "types": "./lib/native/index.d.ts",
+      "react-native": {
+        "require": "./lib/native/index.js",
+        "import": "./lib/native/index.mjs"
+      },
+      "browser": null,
       "require": "./lib/native/index.js",
       "import": "./lib/native/index.mjs",
       "default": "./lib/native/index.js"
@@ -64,12 +76,12 @@
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
     "test:unit": "vitest",
-    "test:node": "vitest run --config=./test/node/vitest.config.ts",
-    "test:native": "vitest --config=./test/native/vitest.config.ts",
+    "test:node": "vitest run --config=./test/node/vitest.config.mts",
+    "test:native": "vitest --config=./test/native/vitest.config.mts",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
-    "test:modules:node": "vitest --config=./test/modules/node/vitest.config.ts",
+    "test:modules:node": "vitest --config=./test/modules/node/vitest.config.mts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
-    "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.ts",
+    "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.mts",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
@@ -125,7 +137,7 @@
     "@bundled-es-modules/statuses": "^1.0.1",
     "@inquirer/confirm": "^3.0.0",
     "@mswjs/cookies": "^1.1.0",
-    "@mswjs/interceptors": "^0.26.14",
+    "@mswjs/interceptors": "^0.29.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
@@ -179,7 +191,7 @@
     "simple-git-hooks": "^2.9.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
-    "typescript": "^5.4.2",
+    "typescript": "^5.5.2",
     "undici": "^5.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^1.2.2",

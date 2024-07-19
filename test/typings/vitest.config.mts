@@ -32,6 +32,9 @@ export default defineConfig({
         const tsConfigPath = tsConfigPaths.find((path) =>
           fs.existsSync(path),
         ) as string
+
+        console.log('Using tsconfig at: %s', tsConfigPath)
+
         return tsConfigPath
       })(),
     },

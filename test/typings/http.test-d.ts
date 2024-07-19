@@ -55,6 +55,54 @@ it('returns plain Response withouth explicit response body generic', () => {
   })
 })
 
+it('returns HttpResponse with URLSearchParams as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new URLSearchParams())
+  })
+})
+
+it('returns HttpResponse with FormData as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new FormData())
+  })
+})
+
+it('returns HttpResponse with ReadableStream as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ReadableStream())
+  })
+})
+
+it('returns HttpResponse with Blob as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new Blob(['hello']))
+  })
+})
+
+it('returns HttpResponse with ArrayBuffer as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ArrayBuffer(5))
+  })
+})
+
+it('supports null as a response body generic argument', () => {
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse()
+  })
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse(
+      // @ts-expect-error Expected null, got a string.
+      'hello',
+    )
+  })
+  http.get<never, never, null>('/', () => {
+    return HttpResponse.json(
+      // @ts-expect-error Expected null, got an object.
+      { id: 1 },
+    )
+  })
+})
+
 it('supports string as a response body generic argument', () => {
   http.get<never, never, string>('/', ({ request }) => {
     if (request.headers.has('x-foo')) {

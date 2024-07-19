@@ -179,21 +179,27 @@ test('respects cookie "Path" when exposing cookies', async ({
   fetch,
   page,
 }) => {
-  const { compilation } = await loadExample(
-    require.resolve('./request-cookies.mocks.ts'),
-  )
-  await bakeCookies(page, [
-    `documentCookie=value; Path=${compilation.previewRoute}`,
-  ])
+  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+
+  /**
+   * @note I tried including the `document.cookie` with
+   * a specific `Path` but it behaves differently. It doesn't
+   * even expose the cookie unless the PAGE path matches the
+   * cookie path (reproducible in the browser).
+   */
+
+  await fetch('/set-cookies', {
+    method: 'POST',
+    body: `mockedCookie=mockedValue; Path=/dashboard`,
+  })
 
   const nonMatchingResponse = await fetch('/cookies')
   // Must not return cookies for the request under a different path.
   await expect(nonMatchingResponse.json()).resolves.toEqual({})
 
-  const matchingResponse = await fetch(
-    new URL('./cookies', compilation.previewUrl).href,
-  )
+  // Must return the mocked cookie for a request with a matching path.
+  const matchingResponse = await fetch('/dashboard/cookies')
   await expect(matchingResponse.json()).resolves.toEqual({
-    documentCookie: 'value',
+    mockedCookie: 'mockedValue',
   })
 })

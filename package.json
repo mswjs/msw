@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -192,7 +192,7 @@
     "simple-git-hooks": "^2.9.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
-    "typescript": "^5.4.2",
+    "typescript": "^5.5.2",
     "undici": "^5.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^1.2.2",

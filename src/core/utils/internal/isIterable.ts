@@ -1,11 +1,20 @@
+// Redefine these types; the three-parameter forms are only available in TypeScript 5.6 or later.
+export interface Iterable<T, TReturn, TNext> {
+  [Symbol.iterator](): Iterator<T, TReturn, TNext>
+}
+
+export interface AsyncIterable<T, TReturn, TNext> {
+  [Symbol.asyncIterator](): AsyncIterator<T, TReturn, TNext>
+}
+
 /**
  * Determines if the given function is an iterator.
  */
 export function isIterable<IteratorType>(
   fn: any,
 ): fn is
-  | Generator<IteratorType, IteratorType, IteratorType>
-  | AsyncGenerator<IteratorType, IteratorType, IteratorType> {
+  | Iterable<IteratorType, IteratorType, IteratorType>
+  | AsyncIterable<IteratorType, IteratorType, IteratorType> {
   if (!fn) {
     return false
   }

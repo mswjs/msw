@@ -66,7 +66,7 @@ interface GraphQLMultipartDataOptions {
 }
 
 export const test = base.extend<TestFixtures>({
-  async createServer({}, use) {
+  async createServer(_, use) {
     let server: HttpServer | undefined
 
     await use(async (...middleware) => {
@@ -77,7 +77,7 @@ export const test = base.extend<TestFixtures>({
 
     await server?.close()
   },
-  async webpackServer({}, use) {
+  async webpackServer(_, use) {
     use(await getWebpackServer())
   },
   async loadExample({ page, webpackServer, waitForMswActivation }, use) {
@@ -126,7 +126,7 @@ export const test = base.extend<TestFixtures>({
     workerConsole.removeAllListeners()
     await compilation?.dispose()
   },
-  async waitFor({}, use) {
+  async waitFor(_, use) {
     await use(waitFor)
   },
   async waitForMswActivation({ spyOnConsole }, use) {

@@ -125,7 +125,7 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?:
+  private resolverIterator?:
     | Iterator<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>,
@@ -136,7 +136,7 @@ export abstract class RequestHandler<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>
       >
-  private resolverGeneratorResult?: Response | StrictResponse<any>
+  private resolverIteratorResult?: Response | StrictResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -318,12 +318,12 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      if (!this.resolverGenerator) {
+      if (!this.resolverIterator) {
         const result = await resolver(info)
         if (!isIterable(result)) {
           return result
         }
-        this.resolverGenerator =
+        this.resolverIterator =
           Symbol.iterator in result
             ? result[Symbol.iterator]()
             : result[Symbol.asyncIterator]()
@@ -332,11 +332,11 @@ export abstract class RequestHandler<
       // Opt-out from marking this handler as used.
       this.isUsed = false
 
-      const { done, value } = await this.resolverGenerator.next()
+      const { done, value } = await this.resolverIterator.next()
       const nextResponse = await value
 
       if (nextResponse) {
-        this.resolverGeneratorResult = nextResponse.clone()
+        this.resolverIteratorResult = nextResponse.clone()
       }
 
       if (done) {
@@ -346,7 +346,7 @@ export abstract class RequestHandler<
 
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
-        return this.resolverGeneratorResult?.clone()
+        return this.resolverIteratorResult?.clone()
       }
 
       return nextResponse

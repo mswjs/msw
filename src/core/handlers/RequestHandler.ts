@@ -1,5 +1,9 @@
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { isIterable } from '../utils/internal/isIterable'
+import {
+  AsyncIterable,
+  Iterable,
+  isIterable,
+} from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
@@ -51,12 +55,12 @@ export type AsyncResponseResolverReturnType<
   ResponseBodyType extends DefaultBodyType,
 > = MaybePromise<
   | ResponseResolverReturnType<ResponseBodyType>
-  | Generator<
+  | Iterable<
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
-  | AsyncGenerator<
+  | AsyncIterable<
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>
@@ -121,18 +125,18 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?:
-    | Generator<
+  private resolverIterator?:
+    | Iterator<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>
       >
-    | AsyncGenerator<
+    | AsyncIterator<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>
       >
-  private resolverGeneratorResult?: Response | StrictResponse<any>
+  private resolverIteratorResult?: Response | StrictResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -314,37 +318,38 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      const result = this.resolverGenerator || (await resolver(info))
-
-      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
-        // Opt-out from marking this handler as used.
-        this.isUsed = false
-
-        if (!this.resolverGenerator) {
-          this.resolverGenerator = result
+      if (!this.resolverIterator) {
+        const result = await resolver(info)
+        if (!isIterable(result)) {
+          return result
         }
-
-        const { done, value } = await this.resolverGenerator.next()
-        const nextResponse = await value
-
-        if (nextResponse) {
-          this.resolverGeneratorResult = nextResponse.clone()
-        }
-
-        if (done) {
-          // A one-time generator resolver stops affecting the network
-          // only after it's been completely exhausted.
-          this.isUsed = true
-
-          // Clone the previously stored response so it can be read
-          // when receiving it repeatedly from the "done" generator.
-          return this.resolverGeneratorResult?.clone()
-        }
-
-        return nextResponse
+        this.resolverIterator =
+          Symbol.iterator in result
+            ? result[Symbol.iterator]()
+            : result[Symbol.asyncIterator]()
       }
 
-      return result
+      // Opt-out from marking this handler as used.
+      this.isUsed = false
+
+      const { done, value } = await this.resolverIterator.next()
+      const nextResponse = await value
+
+      if (nextResponse) {
+        this.resolverIteratorResult = nextResponse.clone()
+      }
+
+      if (done) {
+        // A one-time generator resolver stops affecting the network
+        // only after it's been completely exhausted.
+        this.isUsed = true
+
+        // Clone the previously stored response so it can be read
+        // when receiving it repeatedly from the "done" generator.
+        return this.resolverIteratorResult?.clone()
+      }
+
+      return nextResponse
     }
   }
 

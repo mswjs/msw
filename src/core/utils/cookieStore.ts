@@ -1,13 +1,11 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
-import {
-  Cookie,
-  CookieJar,
-  Store,
-  MemoryCookieStore,
-  domainMatch,
-  pathMatch,
-} from 'tough-cookie'
+import toughCookie, {
+  type Cookie as CookieInstance,
+} from '@bundled-es-modules/tough-cookie'
+
+const { Cookie, CookieJar, Store, MemoryCookieStore, domainMatch, pathMatch } =
+  toughCookie
 
 /**
  * Custom cookie store that uses the Web Storage API.
@@ -34,7 +32,7 @@ class WebStorageCookieStore extends Store {
     domain: string,
     path: string,
     key: string,
-    callback: (error: Error | null, cookie: Cookie | null) => void,
+    callback: (error: Error | null, cookie: CookieInstance | null) => void,
   ): void {
     try {
       const store = this.getStore()
@@ -51,7 +49,7 @@ class WebStorageCookieStore extends Store {
     domain: string,
     path: string,
     allowSpecialUseDomain: boolean,
-    callback: (error: Error | null, cookie: Array<Cookie>) => void,
+    callback: (error: Error | null, cookie: Array<CookieInstance>) => void,
   ): void {
     if (!domain) {
       callback(null, [])
@@ -72,7 +70,10 @@ class WebStorageCookieStore extends Store {
     }
   }
 
-  putCookie(cookie: Cookie, callback: (error: Error | null) => void): void {
+  putCookie(
+    cookie: CookieInstance,
+    callback: (error: Error | null) => void,
+  ): void {
     try {
       const store = this.getStore()
       store.push(cookie)
@@ -85,8 +86,8 @@ class WebStorageCookieStore extends Store {
   }
 
   updateCookie(
-    oldCookie: Cookie,
-    newCookie: Cookie,
+    oldCookie: CookieInstance,
+    newCookie: CookieInstance,
     callback: (error: Error | null) => void,
   ): void {
     this.putCookie(newCookie, callback)
@@ -128,7 +129,7 @@ class WebStorageCookieStore extends Store {
   }
 
   getAllCookies(
-    callback: (error: Error | null, cookie: Array<Cookie>) => void,
+    callback: (error: Error | null, cookie: Array<CookieInstance>) => void,
   ): void {
     try {
       callback(null, this.getStore())
@@ -139,7 +140,7 @@ class WebStorageCookieStore extends Store {
     }
   }
 
-  private getStore(): Array<Cookie> {
+  private getStore(): Array<CookieInstance> {
     try {
       const json = this.storage.getItem(this.storageKey)
 
@@ -148,7 +149,7 @@ class WebStorageCookieStore extends Store {
       }
 
       const rawCookies = JSON.parse(json) as Array<Record<string, any>>
-      const cookies: Array<Cookie> = []
+      const cookies: Array<CookieInstance> = []
       for (const rawCookie of rawCookies) {
         const cookie = Cookie.fromJSON(rawCookie)
         if (cookie != null) {
@@ -161,7 +162,7 @@ class WebStorageCookieStore extends Store {
     }
   }
 
-  private updateStore(nextStore: Array<Cookie>) {
+  private updateStore(nextStore: Array<CookieInstance>) {
     this.storage.setItem(
       this.storageKey,
       JSON.stringify(nextStore.map((cookie) => cookie.toJSON())),
@@ -169,10 +170,10 @@ class WebStorageCookieStore extends Store {
   }
 
   private filterCookiesFromList(
-    cookies: Array<Cookie>,
+    cookies: Array<CookieInstance>,
     matches: { domain?: string; path?: string; key?: string },
-  ): Array<Cookie> {
-    const result: Array<Cookie> = []
+  ): Array<CookieInstance> {
+    const result: Array<CookieInstance> = []
 
     for (const cookie of cookies) {
       if (matches.domain && !domainMatch(matches.domain, cookie.domain || '')) {
@@ -196,7 +197,7 @@ class WebStorageCookieStore extends Store {
   }
 
   private deleteCookiesFromList(
-    cookies: Array<Cookie>,
+    cookies: Array<CookieInstance>,
     matches: { domain?: string; path?: string; key?: string },
   ) {
     const matchingCookies = this.filterCookiesFromList(cookies, matches)

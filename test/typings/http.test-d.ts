@@ -1,5 +1,5 @@
 import { it, expectTypeOf } from 'vitest'
-import { http, HttpResponse, passthrough } from 'msw'
+import { http, HttpResponse, passthrough } from '../../src/core'
 
 it('supports a single path parameter', () => {
   http.get<{ id: string }>('/user/:id', ({ params }) => {
@@ -194,4 +194,22 @@ it('infers a narrower json response type', () => {
     // @ts-expect-error Unknown property "b".
     return HttpResponse.json({ a: 1, b: 2 })
   })
+})
+
+it('errors when returning non-Response data from resolver', () => {
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 123,
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 'foo',
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => ({}),
+  )
 })

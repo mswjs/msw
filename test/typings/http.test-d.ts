@@ -1,5 +1,5 @@
 import { it, expectTypeOf } from 'vitest'
-import { http, HttpResponse, passthrough } from '../../src/core'
+import { http, HttpResponse, passthrough } from 'msw'
 
 it('supports a single path parameter', () => {
   http.get<{ id: string }>('/user/:id', ({ params }) => {

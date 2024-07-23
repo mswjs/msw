@@ -12,6 +12,7 @@ msw-*.tgz
 .husky/_
 .env
 **/test-results
+/test/modules/node/node-esm-tests
 
 # Smoke test temporary files.
 /package.json.copy

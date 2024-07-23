@@ -5,7 +5,10 @@ import { http, HttpResponse, delay } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer()
-const toJson = (response: Response) => response.json()
+
+async function fetchJson(input: string | URL | Request, init?: RequestInit) {
+  return fetch(input, init).then((response) => response.json())
+}
 
 beforeAll(() => {
   server.listen()
@@ -35,13 +38,13 @@ it('supports generator function as response resolver', async () => {
   )
 
   // Must respond with yielded responses.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(11)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(12)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(13)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(11)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(12)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(13)
   // Must respond with the final "done" response.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(14)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(14)
   // Must keep responding with the final "done" response.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(14)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(14)
 })
 
 it('supports async generator function as response resolver', async () => {
@@ -61,11 +64,11 @@ it('supports async generator function as response resolver', async () => {
     }),
   )
 
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(11)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(12)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(13)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(14)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(14)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(11)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(12)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(13)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(14)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(14)
 })
 
 it('supports generator function as one-time response resolver', async () => {
@@ -91,16 +94,16 @@ it('supports generator function as one-time response resolver', async () => {
   )
 
   // Must respond with the yielded incrementing responses.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(11)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(12)
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(13)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(11)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(12)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(13)
   // Must respond with the "done" final response from the iterator.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(14)
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(14)
   // Must respond with the other handler since the generator one is used.
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(
     'fallback',
   )
-  expect(await fetch('https://example.com/weather').then(toJson)).toEqual(
+  await expect(fetchJson('https://example.com/weather')).resolves.toEqual(
     'fallback',
   )
 })

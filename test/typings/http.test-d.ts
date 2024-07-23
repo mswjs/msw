@@ -195,3 +195,21 @@ it('infers a narrower json response type', () => {
     return HttpResponse.json({ a: 1, b: 2 })
   })
 })
+
+it('errors when returning non-Response data from resolver', () => {
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 123,
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 'foo',
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => ({}),
+  )
+})

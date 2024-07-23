@@ -191,8 +191,6 @@ class WebStorageCookieStore extends Store {
       result.push(cookie)
     }
 
-    console.log('filter result:', { cookies, matches, result })
-
     return result
   }
 

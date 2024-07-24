@@ -240,6 +240,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
       </a>
     </td>
+     <td>
+      <a href="https://codemod.com/" target="_blank">
+        <img src="media/sponsors/codemod.svg" alt="Codemod" height="64" width="128" />
+      </a>
+    </td>
   </tr>
 </table>
 

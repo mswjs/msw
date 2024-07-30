@@ -19,7 +19,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`,
 
   • POST ${url}
 
-  • Request body: {\"variables\":{\"id\":\"abc-123\"},\"query\":\"query UserName($id: String!) { user(id: $id) { name } } }\"}
+  • Request body: {\"variables\":{\"id\":\"abc-123\"},\"query\":\"query UserName($id: String!) { user(id: $id) { name } }\"}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
@@ -73,7 +73,7 @@ test('supports the "warn" request strategy with request body', async () => {
         variables: {
           id: 'abc-123',
         },
-        query: 'query UserName($id: String!) { user(id: $id) { name } } }',
+        query: 'query UserName($id: String!) { user(id: $id) { name } }',
       }),
     }),
   )

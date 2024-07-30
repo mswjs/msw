@@ -14,7 +14,7 @@ const fixtures = {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
-  warningWithResonseBody: (url = `/api`) => `\
+  warningWithResponseBody: (url = `/api`) => `\
 [MSW] Warning: intercepted a request without a matching request handler:
 
   • POST ${url}
@@ -78,7 +78,7 @@ test('supports the "warn" request strategy with request body', async () => {
     }),
   )
 
-  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithResonseBody())
+  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithResponseBody())
 })
 
 test('supports the "error" request strategy', async () => {

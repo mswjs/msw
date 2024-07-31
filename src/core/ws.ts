@@ -29,9 +29,20 @@ export type WebSocketLink = {
   /**
    * A set of all WebSocket clients connected
    * to this link.
+   *
+   * @see {@link https://mswjs.io/docs/api/ws#clients `clients` API reference}
    */
   clients: Set<WebSocketClientConnectionProtocol>
 
+  /**
+   * Adds an event listener to this WebSocket link.
+   *
+   * @example
+   * const chat = ws.link('wss://chat.example.com')
+   * chat.on('connection', listener)
+   *
+   * @see {@link https://mswjs.io/docs/api/ws#onevent-listener `on()` API reference}
+   */
   on<EventType extends keyof WebSocketHandlerEventMap>(
     event: EventType,
     listener: (...args: WebSocketHandlerEventMap[EventType]) => void,
@@ -45,6 +56,8 @@ export type WebSocketLink = {
    * service.on('connection', () => {
    *   service.broadcast('hello, everyone!')
    * })
+   *
+   * @see {@link https://mswjs.io/docs/api/ws#broadcastdata `broadcast()` API reference}
    */
   broadcast(data: WebSocketData): void
 
@@ -57,6 +70,8 @@ export type WebSocketLink = {
    * service.on('connection', ({ client }) => {
    *   service.broadcastExcept(client, 'hi, the rest of you!')
    * })
+   *
+   * @see {@link https://mswjs.io/docs/api/ws#broadcastexceptclients-data `broadcast()` API reference}
    */
   broadcastExcept(
     clients:
@@ -138,6 +153,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
  * const chat = ws.link('wss://chat.example.com')
  *
  * @see {@link https://mswjs.io/docs/api/ws `ws` API reference}
+ * @see {@link https://mswjs.io/docs/basics/handling-websocket-events Handling WebSocket events}
  */
 export const ws = {
   link: createWebSocketLinkHandler,

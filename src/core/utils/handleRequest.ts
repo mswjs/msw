@@ -4,7 +4,7 @@ import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
-import { readResponseCookies } from './request/readResponseCookies'
+import { storeResponseCookies } from './request/storeResponseCookies'
 
 export interface HandleRequestOptions {
   /**
@@ -109,8 +109,8 @@ export async function handleRequest(
     return
   }
 
-  // Store all the received response cookies in the virtual cookie store.
-  readResponseCookies(request, response)
+  // Store all the received response cookies in the cookie jar.
+  storeResponseCookies(request, response)
 
   emitter.emit('request:match', { request, requestId })
 

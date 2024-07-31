@@ -68,8 +68,6 @@ export class WebSocketClientManager {
     if (typeof localStorage !== 'undefined') {
       const inMemoryClients = Array.from(this.inMemoryClients)
 
-      console.log('get clients()', inMemoryClients, this.getSerializedClients())
-
       return new Set(
         inMemoryClients.concat(
           this.getSerializedClients()

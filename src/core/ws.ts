@@ -131,6 +131,14 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   }
 }
 
+/**
+ * A namespace to intercept and mock WebSocket connections.
+ *
+ * @example
+ * const chat = ws.link('wss://chat.example.com')
+ *
+ * @see {@link https://mswjs.io/docs/api/ws `ws` API reference}
+ */
 export const ws = {
   link: createWebSocketLinkHandler,
 }

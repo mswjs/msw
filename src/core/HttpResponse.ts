@@ -137,7 +137,7 @@ export class HttpResponse extends Response {
   static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
     const responseInit = normalizeResponseInit(init)
 
-    if (body) {
+    if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 

@@ -18,7 +18,7 @@ export function createFallbackRequestListener(
     interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
   })
 
-  interceptor.on('request', async ({ request, requestId }) => {
+  interceptor.on('request', async ({ request, requestId, controller }) => {
     const requestCloneForLogs = request.clone()
 
     const response = await handleRequest(
@@ -43,7 +43,7 @@ export function createFallbackRequestListener(
     )
 
     if (response) {
-      request.respondWith(response)
+      controller.respondWith(response)
     }
   })
 

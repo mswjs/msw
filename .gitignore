@@ -17,5 +17,5 @@ msw-*.tgz
 # Smoke test temporary files.
 /package.json.copy
 /examples
-
+/test/modules/node/node-esm-tests
 tsconfig.vitest-temp.json

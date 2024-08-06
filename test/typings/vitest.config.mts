@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import { defineConfig } from 'vitest/config'
-import * as tsPackageJson from 'typescript/package.json'
+import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 import { invariant } from 'outvariant'
 import * as fs from 'fs'
 
@@ -32,6 +32,9 @@ export default defineConfig({
         const tsConfigPath = tsConfigPaths.find((path) =>
           fs.existsSync(path),
         ) as string
+
+        console.log('Using tsconfig at: %s', tsConfigPath)
+
         return tsConfigPath
       })(),
     },

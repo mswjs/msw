@@ -1,8 +1,10 @@
 import statuses from '@bundled-es-modules/statuses'
-import type { HttpResponseInit } from '../../HttpResponse'
 import { Headers as HeadersPolyfill } from 'headers-polyfill'
+import type { HttpResponseInit } from '../../HttpResponse'
 
 const { message } = statuses
+
+export const kSetCookie = Symbol('kSetCookie')
 
 export interface HttpResponseDecoratedInit extends HttpResponseInit {
   status: number
@@ -38,21 +40,35 @@ export function decorateResponse(
     })
   }
 
-  // Cookie forwarding is only relevant in the browser.
-  if (typeof document !== 'undefined') {
-    // Write the mocked response cookies to the document.
-    // Use `headers-polyfill` to get the Set-Cookie header value correctly.
-    // This is an alternative until TypeScript 5.2
-    // and Node.js v20 become the minimum supported version
-    // and getSetCookie in Headers can be used directly.
-    const responseCookies = HeadersPolyfill.prototype.getSetCookie.call(
-      init.headers,
-    )
+  const responseCookies = init.headers.get('set-cookie')
 
-    for (const cookieString of responseCookies) {
-      // No need to parse the cookie headers because it's defined
-      // as the valid cookie string to begin with.
-      document.cookie = cookieString
+  if (responseCookies) {
+    // Record the raw "Set-Cookie" response header provided
+    // in the HeadersInit. This is later used to store these cookies
+    // in cookie jar and return the right cookies in the "cookies"
+    // response resolver argument.
+    Object.defineProperty(response, kSetCookie, {
+      value: responseCookies,
+      enumerable: false,
+      writable: false,
+    })
+
+    // Cookie forwarding is only relevant in the browser.
+    if (typeof document !== 'undefined') {
+      // Write the mocked response cookies to the document.
+      // Use `headers-polyfill` to get the Set-Cookie header value correctly.
+      // This is an alternative until TypeScript 5.2
+      // and Node.js v20 become the minimum supported version
+      // and getSetCookie in Headers can be used directly.
+      const responseCookiePairs = HeadersPolyfill.prototype.getSetCookie.call(
+        init.headers,
+      )
+
+      for (const cookieString of responseCookiePairs) {
+        // No need to parse the cookie headers because it's defined
+        // as the valid cookie string to begin with.
+        document.cookie = cookieString
+      }
     }
   }
 

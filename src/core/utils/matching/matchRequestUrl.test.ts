@@ -1,125 +1,269 @@
-/**
- * @vitest-environment jsdom
- */
-import { coercePath, matchRequestUrl } from './matchRequestUrl'
+// @vitest-environment jsdom
+import { Match, matchRequestUrl } from './matchRequestUrl'
 
-describe('matchRequestUrl', () => {
-  test('returns true when matches against an exact URL', () => {
-    const match = matchRequestUrl(
-      new URL('https://test.mswjs.io'),
-      'https://test.mswjs.io',
-    )
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {})
+test('supports RegExp', () => {
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io'), /test\.mswjs\.io/),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
   })
 
-  test('returns true when matched against a wildcard', () => {
-    const match = matchRequestUrl(new URL('https://test.mswjs.io'), '*')
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {
-      '0': 'https://test.mswjs.io/',
-    })
-  })
-
-  test('returns true when matched against a RegExp', () => {
-    const match = matchRequestUrl(
-      new URL('https://test.mswjs.io'),
-      /test\.mswjs\.io/,
-    )
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {})
-  })
-
-  test('returns path parameters when matched', () => {
-    const match = matchRequestUrl(
-      new URL('https://test.mswjs.io/user/abc-123'),
-      'https://test.mswjs.io/user/:userId',
-    )
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {
-      userId: 'abc-123',
-    })
-  })
-
-  test('decodes path parameters', () => {
-    const url = 'http://example.com:5001/example'
-    const match = matchRequestUrl(
-      new URL(`https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`),
-      'https://test.mswjs.io/reflect-url/:url',
-    )
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {
-      url,
-    })
-  })
-
-  test('returns false when does not match against the request URL', () => {
-    const match = matchRequestUrl(
-      new URL('https://test.mswjs.io'),
-      'https://google.com',
-    )
-    expect(match).toHaveProperty('matches', false)
-    expect(match).toHaveProperty('params', {})
-  })
-
-  test('returns true when matching optional path parameters', () => {
-    const match = matchRequestUrl(
-      new URL('https://test.mswjs.io/user'),
-      'https://test.mswjs.io/user/:userId?',
-    )
-    expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {
-      userId: undefined,
-    })
+  expect(
+    matchRequestUrl(new URL('https://example.com'), /test\.mswjs\.io/),
+  ).toEqual<Match>({
+    matches: false,
+    params: {},
   })
 })
 
-describe('coercePath', () => {
-  test('escapes the colon in protocol', () => {
-    expect(coercePath('https://example.com')).toEqual('https\\://example.com')
-    expect(coercePath('https://example.com/:userId')).toEqual(
-      'https\\://example.com/:userId',
-    )
-    expect(coercePath('http://localhost:3000')).toEqual(
-      'http\\://localhost\\:3000',
-    )
+test('supports exact URL', () => {
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io'), 'https://test.mswjs.io'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
   })
 
-  test('escapes the colon before the port number', () => {
-    expect(coercePath('localhost:8080')).toEqual('localhost\\:8080')
-    expect(coercePath('http://127.0.0.1:8080')).toEqual(
-      'http\\://127.0.0.1\\:8080',
-    )
-    expect(coercePath('https://example.com:1234')).toEqual(
-      'https\\://example.com\\:1234',
-    )
-
-    expect(coercePath('localhost:8080/:5678')).toEqual('localhost\\:8080/:5678')
-    expect(coercePath('https://example.com:8080/:5678')).toEqual(
-      'https\\://example.com\\:8080/:5678',
-    )
+  // Trailing slash doesn't matter.
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io'), 'https://test.mswjs.io/'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
+  })
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io/'), 'https://test.mswjs.io'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
   })
 
-  test('replaces wildcard with an unnnamed capturing group', () => {
-    expect(coercePath('*')).toEqual('(.*)')
-    expect(coercePath('**')).toEqual('(.*)')
-    expect(coercePath('/us*')).toEqual('/us(.*)')
-    expect(coercePath('/user/*')).toEqual('/user/(.*)')
-    expect(coercePath('https://example.com/user/*')).toEqual(
-      'https\\://example.com/user/(.*)',
-    )
-    expect(coercePath('https://example.com/us*')).toEqual(
-      'https\\://example.com/us(.*)',
-    )
+  // Must not match completely different URLs.
+  expect(
+    matchRequestUrl(new URL('https://example.com'), 'https://test.mswjs.io'),
+  ).toEqual<Match>({
+    matches: false,
+    params: {},
+  })
+})
+
+test('supports leading a wildcard as the entire pattern', () => {
+  expect(matchRequestUrl(new URL('https://test.mswjs.io'), '*')).toEqual<Match>(
+    {
+      matches: true,
+      params: { '0': 'https://test.mswjs.io/' },
+    },
+  )
+
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io/path/here'), '*'),
+  ).toEqual<Match>({
+    matches: true,
+    params: { '0': 'https://test.mswjs.io/path/here' },
+  })
+})
+
+test('supports leading a wildcard and path with a single unnamed group', () => {
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io/user/123'), '*/user/*'),
+  ).toEqual<Match>({
+    matches: true,
+    params: { '0': 'https://test.mswjs.io', '1': '123' },
   })
 
-  test('preserves path parameter modifiers', () => {
-    expect(coercePath(':name*')).toEqual(':name*')
-    expect(coercePath('/foo/:name*')).toEqual('/foo/:name*')
-    expect(coercePath('/foo/**:name*')).toEqual('/foo/(.*):name*')
-    expect(coercePath('**/foo/*/:name*')).toEqual('(.*)/foo/(.*)/:name*')
-    expect(coercePath('/foo/:first/bar/:second*/*')).toEqual(
-      '/foo/:first/bar/:second*/(.*)',
-    )
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/123/456/789'),
+      '*/user/*',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: { '0': 'https://test.mswjs.io', '1': '123/456/789' },
+  })
+})
+
+test('supports a wildcard and path with multiple unnamed groups', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/123/bar/456'),
+      '*/user/*/bar/*',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: { '0': 'https://test.mswjs.io', '1': '123', '2': '456' },
+  })
+})
+
+test('supports a leading wildcard and a path with wildcards and a single named group', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/john/bar/456'),
+      '*/user/:name/bar/*',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      '0': 'https://test.mswjs.io',
+      name: 'john',
+      '1': '456',
+    },
+  })
+})
+
+test('supports a leading wildcard and a path with wildcards and a multiple named group', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/foo/john/bar/456'),
+      '*/user/*/:name/bar/*',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      '0': 'https://test.mswjs.io',
+      '1': 'foo',
+      name: 'john',
+      '2': '456',
+    },
+  })
+})
+
+test('merges multiple same-named groups into an array of values', () => {
+  // Must match same-named groups in different URL components.
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/user/abc/bar'),
+      'https://:segment.com/user/:segment/bar',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      segment: ['example', 'abc'],
+    },
+  })
+
+  // Must match same-named groups in the same URL component.
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/user/abc/bar/def'),
+      'https://example.com/user/:segment/bar/:segment',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      /**
+       * @note URLPattern doesn't support multiple same-named groups
+       * within the same URL component, to begin with.
+       * @see https://github.com/whatwg/urlpattern/issues/226
+       *
+       * However, "path-to-regexp" does! So does Express, and so does MSW.
+       * But it "supports" it in a weird way. It doesn't throw but takes
+       * the latest value of the group and preceding values.
+       */
+      segment: 'def',
+    },
+  })
+})
+
+test('decodes group matches', () => {
+  const url = 'http://example.com:5001/example'
+  expect(
+    matchRequestUrl(
+      new URL(`https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`),
+      'https://test.mswjs.io/reflect-url/:url',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: { url },
+  })
+})
+
+test('supports optional groups', () => {
+  // Must match the URL if the optional parameter is present.
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/abc-123'),
+      'https://test.mswjs.io/user/:userId?',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      userId: 'abc-123',
+    },
+  })
+
+  // Must match the URL if the optional parameter is missing.
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user'),
+      'https://test.mswjs.io/user/:userId?',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      // The optional parameter key must still be present,
+      // with its value being undefined.
+      userId: undefined,
+    },
+  })
+})
+
+test('supports repeated groups', () => {
+  // Must match a single repeated group.
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/product/one'),
+      'https://example.com/product/:action+',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      action: 'one',
+    },
+  })
+
+  // Must match on multiple repeated groups.
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/product/one/two/three'),
+      'https://example.com/product/:action+',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      /**
+       * @note The whole match is a single string.
+       * @see https://github.com/whatwg/urlpattern/issues/146
+       */
+      action: 'one/two/three',
+    },
+  })
+
+  // Must match a repeated group within the path.
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/product/one/two/end'),
+      'https://example.com/product/:action+/end',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      action: 'one/two',
+    },
+  })
+})
+
+test('supports in-component matches', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://example.com/product/one.two'),
+      'https://example.com/product/:first.:second',
+    ),
+  ).toEqual<Match>({
+    matches: true,
+    params: {
+      first: 'one',
+      second: 'two',
+    },
   })
 })

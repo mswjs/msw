@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { setupWorker } from 'msw/lib/browser'
+import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   http.get('/single-cookie', () => {

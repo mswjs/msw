@@ -4,7 +4,7 @@ import { setupWorker } from 'msw/browser'
 const worker = setupWorker()
 worker.start()
 
-// @ts-ignore
+// @ts-expect-error
 window.msw = {
   worker,
   http,

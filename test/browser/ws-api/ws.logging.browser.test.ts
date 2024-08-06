@@ -2,7 +2,6 @@ import type { ws } from 'msw'
 import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
 import { WebSocketServer } from '../../support/WebSocketServer'
-import { waitFor } from '../../support/waitFor'
 
 declare global {
   interface Window {
@@ -39,17 +38,17 @@ test('does not log anything if "quiet" was set to "true"', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start({ quiet: true })
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => {
       ws.send('hello')
       ws.send('world')
-      queueMicrotask(() => ws.close())
+      ws.close()
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -65,6 +64,7 @@ test('logs the client connection', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -73,20 +73,20 @@ test('logs the client connection', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    new WebSocket('wss://example.com/path')
+    new WebSocket('wss://localhost/path')
   })
 
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2} %c▶%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2} %c▶%c wss:\/\/localhost\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -97,6 +97,7 @@ test('logs outgoing client event sending text data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -105,13 +106,13 @@ test('logs outgoing client event sending text data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => ws.send('hello world')
   })
 
@@ -130,6 +131,7 @@ test('logs outgoing client event sending a long text data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -138,13 +140,13 @@ test('logs outgoing client event sending a long text data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => ws.send('this is an extremely long sentence to log out')
   })
 
@@ -163,6 +165,7 @@ test('logs outgoing client event sending Blob data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -171,13 +174,13 @@ test('logs outgoing client event sending Blob data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => ws.send(new Blob(['hello world']))
   })
 
@@ -196,6 +199,7 @@ test('logs outgoing client event sending a long Blob data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -204,13 +208,13 @@ test('logs outgoing client event sending a long Blob data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () =>
       ws.send(new Blob(['this is an extremely long sentence to log out']))
   })
@@ -230,6 +234,7 @@ test('logs outgoing client event sending ArrayBuffer data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -238,13 +243,13 @@ test('logs outgoing client event sending ArrayBuffer data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => ws.send(new TextEncoder().encode('hello world'))
   })
 
@@ -263,6 +268,7 @@ test('logs outgoing client event sending a long ArrayBuffer data', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -271,13 +277,13 @@ test('logs outgoing client event sending a long ArrayBuffer data', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () =>
       ws.send(
         new TextEncoder().encode(
@@ -301,6 +307,7 @@ test('logs incoming client events', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -364,6 +371,7 @@ test('logs raw incoming server events', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -422,6 +430,7 @@ test('logs the close event initiated by the client', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -430,13 +439,13 @@ test('logs the close event initiated by the client', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    const ws = new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
     ws.onopen = () => ws.close()
   })
 
@@ -444,7 +453,7 @@ test('logs the close event initiated by the client', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/localhost\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -455,6 +464,7 @@ test('logs the close event initiated by the event handler', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -463,7 +473,7 @@ test('logs the close event initiated by the event handler', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
+    const api = ws.link('wss://localhost/*')
     const worker = setupWorker(
       api.on('connection', ({ client }) => {
         client.close()
@@ -473,14 +483,14 @@ test('logs the close event initiated by the event handler', async ({
   })
 
   await page.evaluate(() => {
-    new WebSocket('wss://example.com/path')
+    new WebSocket('wss://localhost/path')
   })
 
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/localhost\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
@@ -491,6 +501,7 @@ test('logs outgoing client events sent vi "server.send()"', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -528,6 +539,7 @@ test('logs incoming client events sent vi "client.send()"', async ({
   loadExample,
   page,
   spyOnConsole,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -560,10 +572,11 @@ test('logs incoming client events sent vi "client.send()"', async ({
   })
 })
 
-test('logs client errors received via "client.close()"', async ({
+test('logs connection closure initiated by the client', async ({
   loadExample,
-  page,
   spyOnConsole,
+  page,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -572,34 +585,69 @@ test('logs client errors received via "client.close()"', async ({
 
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
-    const api = ws.link('wss://example.com/*')
-    const worker = setupWorker(
-      api.on('connection', ({ client }) => {
-        queueMicrotask(() => client.close(1003, 'Custom error'))
-      }),
-    )
+    const api = ws.link('wss://localhost/*')
+    const worker = setupWorker(api.on('connection', () => {}))
     await worker.start()
   })
 
   await page.evaluate(() => {
-    new WebSocket('wss://example.com/path')
+    const ws = new WebSocket('wss://localhost/path')
+    ws.onopen = () => ws.close()
   })
 
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c wss:\/\/example\.com\/path color:#3b82f6 color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/localhost\/path color:#3b82f6 color:inherit$/,
         ),
       ]),
     )
   })
 })
 
-test('logs client errors received via server-sent close', async ({
+test('logs connection closure initiated by the interceptor', async ({
   loadExample,
-  page,
   spyOnConsole,
+  page,
+  waitFor,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./ws.runtime.js'), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://localhost/*')
+    const worker = setupWorker(
+      api.on('connection', ({ client }) => {
+        client.close(1003, 'Custom error')
+      }),
+    )
+    await worker.start()
+  })
+
+  await page.evaluate(() => {
+    new WebSocket('wss://localhost/path')
+  })
+
+  await waitFor(() => {
+    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c wss:\/\/localhost\/path color:#3b82f6 color:inherit$/,
+        ),
+      ]),
+    )
+  })
+})
+
+test('logs connection closure initiated by the original server', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(require.resolve('./ws.runtime.js'), {
@@ -607,7 +655,7 @@ test('logs client errors received via server-sent close', async ({
   })
 
   server.on('connection', (ws) => {
-    queueMicrotask(() => ws.close(1003))
+    ws.close(1003)
   })
 
   await page.evaluate(async (url) => {
@@ -629,7 +677,7 @@ test('logs client errors received via server-sent close', async ({
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c\u00D7%c ws:\/\/(.+):\d{4,}\/ color:#3b82f6 color:inherit$/,
+          /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c■%c ws:\/\/(.+):\d{4,}\/ color:#3b82f6 color:inherit$/,
         ),
       ]),
     )

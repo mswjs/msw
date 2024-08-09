@@ -6,7 +6,7 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import { StrictRequest, StrictResponse, bodyType } from '..//HttpResponse'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -41,14 +41,20 @@ export interface RequestHandlerInternalInfo {
 export type ResponseResolverReturnType<
   ResponseBodyType extends DefaultBodyType = undefined,
 > =
+  // If ResponseBodyType is a union, and one of the types is `undefined`,
+  // allow plain Response as the type.
   | ([ResponseBodyType] extends [undefined]
-      ? Response
-      : StrictResponse<ResponseBodyType>)
+      ? Response & { [bodyType]?: undefined }
+      : // If ResponseBodyType is exactly `undefined`,
+        // accept only the plain Response type.
+        ResponseBodyType extends undefined
+        ? Response & { [bodyType]?: undefined }
+        : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  ResponseBodyType extends DefaultBodyType,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
 export type AsyncResponseResolverReturnType<

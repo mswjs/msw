@@ -1,5 +1,6 @@
 import { invariant } from 'outvariant'
 import type {
+  WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
@@ -81,6 +82,13 @@ export type WebSocketLink = {
   ): void
 }
 
+export interface WebSocketLinkOptions {
+  handleMessage?: (
+    type: 'incoming' | 'outgoing',
+    data: WebSocketData,
+  ) => WebSocketData | Promise<WebSocketData>
+}
+
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
@@ -90,7 +98,10 @@ export type WebSocketLink = {
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path): WebSocketLink {
+function createWebSocketLinkHandler(
+  url: Path,
+  options: WebSocketLinkOptions = {},
+): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
@@ -99,7 +110,64 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     typeof url,
   )
 
-  const clientManager = new WebSocketClientManager(wsBroadcastChannel, url)
+  const clientManager = new WebSocketClientManager({
+    url,
+    channel: wsBroadcastChannel,
+  })
+
+  const withCustomMessageHandler = (
+    client: WebSocketClientConnection,
+  ): WebSocketClientConnection => {
+    const { handleMessage } = options
+
+    if (!handleMessage) {
+      return client
+    }
+
+    // Handle data sent to the client from MSW.
+    client.send = new Proxy(client.send, {
+      apply: (target, thisArg, args) => {
+        Promise.resolve(handleMessage('incoming', args[0])).then((nextData) => {
+          Reflect.apply(target, thisArg, [nextData].concat(args.slice(1)))
+        })
+      },
+    })
+
+    client['transport'].dispatchEvent = new Proxy(
+      client['transport'].dispatchEvent,
+      {
+        apply(target, thisArg, args: [Event]) {
+          const [event] = args
+          const dispatchEvent = (event: Event) => {
+            return Reflect.apply.bind(this, target, thisArg, [event])
+          }
+
+          if (
+            event instanceof MessageEvent &&
+            (event.type === 'outgoing' || event.type === 'incoming')
+          ) {
+            Promise.resolve(handleMessage(event.type, event.data)).then(
+              (nextData) => {
+                // Modify the original message event's `data` before dispatching.
+                // Can't do this in the event listener because those are already
+                // added internally by Interceptors.
+                Object.defineProperty(event, 'data', {
+                  value: nextData,
+                  enumerable: true,
+                })
+                dispatchEvent(event)
+              },
+            )
+            return
+          }
+
+          return dispatchEvent(event)
+        },
+      },
+    )
+
+    return client
+  }
 
   return {
     get clients() {
@@ -113,7 +181,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       // When that happens, store that connection in the
       // set of all connections for reference.
       handler[kEmitter].on('connection', ({ client }) => {
-        clientManager.addConnection(client)
+        clientManager.addConnection(withCustomMessageHandler(client))
       })
 
       // The "handleWebSocketEvent" function will invoke

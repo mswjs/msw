@@ -38,8 +38,10 @@ export class WebSocketClientManager {
   private inMemoryClients: Set<WebSocketClientConnectionProtocol>
 
   constructor(
-    private channel: BroadcastChannel,
-    private url: Path,
+    private options: {
+      url: Path
+      channel: BroadcastChannel
+    },
   ) {
     this.inMemoryClients = new Set()
 
@@ -88,7 +90,7 @@ export class WebSocketClientManager {
               return new WebSocketRemoteClientConnection(
                 serializedClient.clientId,
                 new URL(serializedClient.url),
-                this.channel,
+                this.options.channel,
               )
             }),
         ),
@@ -114,7 +116,7 @@ export class WebSocketClientManager {
 
     const allClients = JSON.parse(clientsJson) as Array<SerializedClient>
     const matchingClients = allClients.filter((client) => {
-      return matchRequestUrl(new URL(client.url), this.url).matches
+      return matchRequestUrl(new URL(client.url), this.options.url).matches
     })
 
     return matchingClients
@@ -156,7 +158,7 @@ export class WebSocketClientManager {
     ) => {
       const { type, payload } = message.data
 
-      // Ignore broadcasted messages for other clients.
+      // Ignore messages broadcasted to other clients.
       if (
         typeof payload === 'object' &&
         'clientId' in payload &&
@@ -180,7 +182,7 @@ export class WebSocketClientManager {
 
     const abortController = new AbortController()
 
-    this.channel.addEventListener('message', handleExtraneousMessage, {
+    this.options.channel.addEventListener('message', handleExtraneousMessage, {
       signal: abortController.signal,
     })
 

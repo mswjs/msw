@@ -1,7 +1,7 @@
 import { invariant } from 'outvariant'
 import type {
-  WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
+  WebSocketConnectionData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
 import {
@@ -116,18 +116,28 @@ function createWebSocketLinkHandler(
   })
 
   const withCustomMessageHandler = (
-    client: WebSocketClientConnection,
-  ): WebSocketClientConnection => {
+    connection: WebSocketConnectionData,
+  ): void => {
     const { handleMessage } = options
+    const { client, server } = connection
 
     if (!handleMessage) {
-      return client
+      return
     }
 
-    // Handle data sent to the client from MSW.
+    // Handle data sent to the client from the interceptor.
     client.send = new Proxy(client.send, {
       apply: (target, thisArg, args) => {
-        Promise.resolve(handleMessage('incoming', args[0])).then((nextData) => {
+        Promise.resolve(handleMessage('outgoing', args[0])).then((nextData) => {
+          Reflect.apply(target, thisArg, [nextData].concat(args.slice(1)))
+        })
+      },
+    })
+
+    // Handle data sent to the original server from the interceptor.
+    server.send = new Proxy(server.send, {
+      apply: (target, thisArg, args) => {
+        Promise.resolve(handleMessage('outgoing', args[0])).then((nextData) => {
           Reflect.apply(target, thisArg, [nextData].concat(args.slice(1)))
         })
       },
@@ -139,14 +149,22 @@ function createWebSocketLinkHandler(
         apply(target, thisArg, args: [Event]) {
           const [event] = args
           const dispatchEvent = (event: Event) => {
-            return Reflect.apply.bind(this, target, thisArg, [event])
+            return Reflect.apply(target, thisArg, [event])
           }
 
           if (
             event instanceof MessageEvent &&
             (event.type === 'outgoing' || event.type === 'incoming')
           ) {
-            Promise.resolve(handleMessage(event.type, event.data)).then(
+            /**
+             * @note Treat both "incoming" and "outgoing" transport events
+             * as "incoming" events in `handleMessage`. These two transport events
+             * are different to distinguish between the client sending data
+             * ("outgoing") and the original server sending data ("incoming").
+             * But for the context of `handleMessage`, both those sends are incoming
+             * because both of them MUST be decoded, not encoded.
+             */
+            Promise.resolve(handleMessage('incoming', event.data)).then(
               (nextData) => {
                 // Modify the original message event's `data` before dispatching.
                 // Can't do this in the event listener because those are already
@@ -165,8 +183,6 @@ function createWebSocketLinkHandler(
         },
       },
     )
-
-    return client
   }
 
   return {
@@ -180,8 +196,9 @@ function createWebSocketLinkHandler(
       // handler matches and emits a connection event.
       // When that happens, store that connection in the
       // set of all connections for reference.
-      handler[kEmitter].on('connection', ({ client }) => {
-        clientManager.addConnection(withCustomMessageHandler(client))
+      handler[kEmitter].on('connection', (connection) => {
+        withCustomMessageHandler(connection)
+        clientManager.addConnection(connection.client)
       })
 
       // The "handleWebSocketEvent" function will invoke

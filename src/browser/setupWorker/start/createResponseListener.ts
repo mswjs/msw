@@ -18,7 +18,12 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     // Get the Request instance reference stored in the
     // request listener.
     const { requestId } = responseJson
-    const request = context.requests.get(requestId)!
+    const request = context.requests.get(requestId)
+
+    if (!request) {
+      return
+    }
+
     context.requests.delete(requestId)
 
     /**

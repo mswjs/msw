@@ -29,7 +29,7 @@ function parsePath(
     ]
   }
 
-  if (path.startsWith('*')) {
+  if (path.startsWith('*') || path.startsWith('/')) {
     const pathname = path.slice(1)
 
     return [

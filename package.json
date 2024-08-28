@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -70,7 +70,7 @@
   "scripts": {
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
-    "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
+    "lint": "eslint \"{cli,src}/**/*.ts\"",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
@@ -163,8 +163,8 @@
     "@types/glob": "^8.1.0",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "18.x",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
     "@web/dev-server": "^0.1.38",
     "axios": "^1.6.5",
     "babel-minify": "^0.5.1",

@@ -14,6 +14,7 @@ function formatMessage(message: string, ...positionals: any[]): string {
  * Prints a library-specific warning.
  */
 function warn(message: string, ...positionals: any[]): void {
+  // eslint-disable-next-line no-console
   console.warn(formatMessage(message, ...positionals))
 }
 
@@ -21,6 +22,7 @@ function warn(message: string, ...positionals: any[]): void {
  * Prints a library-specific error.
  */
 function error(message: string, ...positionals: any[]): void {
+  // eslint-disable-next-line no-console
   console.error(formatMessage(message, ...positionals))
 }
 

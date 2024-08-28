@@ -17,15 +17,9 @@
 <p align="center">Mock Service Worker (MSW) is a seamless REST/GraphQL API mocking library for browser and Node.js.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" />
-  </a>
-  <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
-  </a>
-   <a href="https://kettanaito.com/discord" target="_blank">
-    <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
-  </a>
+  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" /></a>
+  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" /></a>
+   <a href="https://kettanaito.com/discord" target="_blank"><img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" /></a>
 </p>
 
 <br />
@@ -244,6 +238,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
     <td>
       <a href="https://www.replay.io/" target="_blank">
         <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
+      </a>
+    </td>
+     <td>
+      <a href="https://codemod.com/" target="_blank">
+        <img src="media/sponsors/codemod.svg" alt="Codemod" height="64" width="128" />
       </a>
     </td>
   </tr>

@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.3.0",
+  "version": "2.3.5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -70,18 +70,18 @@
   "scripts": {
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
-    "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
+    "lint": "eslint \"{cli,src}/**/*.ts\"",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
     "test:unit": "vitest",
-    "test:node": "vitest run --config=./test/node/vitest.config.ts",
-    "test:native": "vitest --config=./test/native/vitest.config.ts",
+    "test:node": "vitest run --config=./test/node/vitest.config.mts",
+    "test:native": "vitest --config=./test/native/vitest.config.mts",
     "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
-    "test:modules:node": "vitest --config=./test/modules/node/vitest.config.ts",
+    "test:modules:node": "vitest --config=./test/modules/node/vitest.config.mts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
-    "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.ts",
+    "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.mts",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
@@ -135,14 +135,13 @@
   "dependencies": {
     "@bundled-es-modules/cookie": "^2.0.0",
     "@bundled-es-modules/statuses": "^1.0.1",
+    "@bundled-es-modules/tough-cookie": "^0.1.6",
     "@inquirer/confirm": "^3.0.0",
-    "@mswjs/cookies": "^1.1.0",
     "@mswjs/interceptors": "^0.29.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
     "chalk": "^4.1.2",
-    "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.2",
@@ -163,8 +162,8 @@
     "@types/glob": "^8.1.0",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "18.x",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
     "@web/dev-server": "^0.1.38",
     "axios": "^1.6.5",
     "babel-minify": "^0.5.1",
@@ -181,6 +180,7 @@
     "fs-extra": "^11.2.0",
     "fs-teardown": "^0.3.0",
     "glob": "^10.3.10",
+    "graphql": "^16.8.1",
     "jsdom": "^23.2.0",
     "json-bigint": "^1.0.0",
     "lint-staged": "^15.2.0",
@@ -191,7 +191,7 @@
     "simple-git-hooks": "^2.9.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
-    "typescript": "^5.4.2",
+    "typescript": "^5.5.2",
     "undici": "^5.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^1.2.2",
@@ -203,6 +203,9 @@
     "typescript": ">= 4.7.x"
   },
   "peerDependenciesMeta": {
+    "graphql": {
+      "optional": true
+    },
     "typescript": {
       "optional": true
     }

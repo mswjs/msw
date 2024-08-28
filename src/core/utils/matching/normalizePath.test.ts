@@ -43,8 +43,14 @@ test('returns a path pattern string as-is', () => {
   expect(normalizePath('*/resource/*')).toEqual('*/resource/*')
 })
 
-test('removeß query parameters and hashes from a path pattern string', () => {
+test('removes query parameters and hashes from a path pattern string', () => {
   expect(normalizePath(':api/user?query=123#some')).toEqual(
     'http://localhost/:api/user',
+  )
+})
+
+test('preserves optional path parameters', () => {
+  expect(normalizePath('/user/:userId?')).toEqual(
+    'http://localhost/user/:userId?',
   )
 })

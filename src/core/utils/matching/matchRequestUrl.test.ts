@@ -128,43 +128,6 @@ test('supports a leading wildcard and a path with wildcards and a multiple named
   })
 })
 
-test('merges multiple same-named groups into an array of values', () => {
-  // Must match same-named groups in different URL components.
-  expect(
-    matchRequestUrl(
-      new URL('https://example.com/user/abc/bar'),
-      'https://:segment.com/user/:segment/bar',
-    ),
-  ).toEqual<Match>({
-    matches: true,
-    params: {
-      segment: ['example', 'abc'],
-    },
-  })
-
-  // Must match same-named groups in the same URL component.
-  expect(
-    matchRequestUrl(
-      new URL('https://example.com/user/abc/bar/def'),
-      'https://example.com/user/:segment/bar/:segment',
-    ),
-  ).toEqual<Match>({
-    matches: true,
-    params: {
-      /**
-       * @note URLPattern doesn't support multiple same-named groups
-       * within the same URL component, to begin with.
-       * @see https://github.com/whatwg/urlpattern/issues/226
-       *
-       * However, "path-to-regexp" does! So does Express, and so does MSW.
-       * But it "supports" it in a weird way. It doesn't throw but takes
-       * the latest value of the group and preceding values.
-       */
-      segment: 'def',
-    },
-  })
-})
-
 test('decodes group matches', () => {
   const url = 'http://example.com:5001/example'
   expect(

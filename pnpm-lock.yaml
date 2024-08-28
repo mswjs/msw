@@ -199,11 +199,11 @@ devDependencies:
 
 packages:
 
-  /@75lb/deep-merge@1.1.1:
-    resolution: {integrity: sha512-xvgv6pkMGBA6GwdyJbNAnDmfAIR/DfWhrj9jgWh3TY7gRm3KO46x/GPjRg6wJ0nOepwqrNxFfojebh0Df4h4Tw==}
+  /@75lb/deep-merge@1.1.2:
+    resolution: {integrity: sha512-08K9ou5VNbheZFxM5tDWoqjA3ImC50DiuuJ2tj1yEPRfkp8lLLg6XAaJ4On+a0yAXor/8ay5gHnAIshRM44Kpw==}
     engines: {node: '>=12.17'}
     dependencies:
-      lodash.assignwith: 4.2.0
+      lodash: 4.17.21
       typical: 7.1.1
     dev: true
 
@@ -5732,10 +5732,6 @@ packages:
       p-locate: 5.0.0
     dev: true
 
-  /lodash.assignwith@4.2.0:
-    resolution: {integrity: sha512-ZznplvbvtjK2gMvnQ1BR/zqPFZmS6jbK4p+6Up4xcRYA7yMIwxHCfbTcrYxXKzzqLsQ05eJPVznEW3tuwV7k1g==}
-    dev: true
-
   /lodash.camelcase@4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
     dev: true
@@ -7478,7 +7474,7 @@ packages:
     engines: {node: '>=12.17'}
     hasBin: true
     dependencies:
-      '@75lb/deep-merge': 1.1.1
+      '@75lb/deep-merge': 1.1.2
       array-back: 6.2.2
       command-line-args: 5.2.1
       command-line-usage: 7.0.1

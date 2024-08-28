@@ -25,20 +25,6 @@ test('supports exact URL', () => {
     params: {},
   })
 
-  // Trailing slash doesn't matter.
-  expect(
-    matchRequestUrl(new URL('https://test.mswjs.io'), 'https://test.mswjs.io/'),
-  ).toEqual<Match>({
-    matches: true,
-    params: {},
-  })
-  expect(
-    matchRequestUrl(new URL('https://test.mswjs.io/'), 'https://test.mswjs.io'),
-  ).toEqual<Match>({
-    matches: true,
-    params: {},
-  })
-
   // Must not match completely different URLs.
   expect(
     matchRequestUrl(new URL('https://example.com'), 'https://test.mswjs.io'),
@@ -69,6 +55,45 @@ test('supports relative URLs', () => {
     matchRequestUrl(new URL('http://localhost/foo'), './foo'),
   ).toEqual<Match>({
     matches: true,
+    params: {},
+  })
+})
+
+test('ignores trailing slashes for root-level URLs', () => {
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io'), 'https://test.mswjs.io/'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
+  })
+})
+
+test('respects trailing slashes for pathnames', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/foo'),
+      'https://test.mswjs.io/foo/',
+    ),
+  ).toEqual<Match>({
+    matches: false,
+    params: {},
+  })
+  expect(
+    matchRequestUrl(
+      new URL('https://api.github.com/made-up'),
+      'https://api.github.com/made-up/',
+    ),
+  ).toEqual<Match>({
+    matches: false,
+    params: {},
+  })
+  expect(
+    matchRequestUrl(
+      new URL('https://api.github.com/made-up/'),
+      'https://api.github.com/made-up',
+    ),
+  ).toEqual<Match>({
+    matches: false,
     params: {},
   })
 })

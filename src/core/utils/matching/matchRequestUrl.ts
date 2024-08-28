@@ -111,6 +111,8 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
 
   const [input, urlPatternResultToParams] = parsePath(normalizedPath)
 
+  console.log({ path, url, cleanUrl, input })
+
   // Handle pathp redicates as path strings (URL patterns).
   /**
    * @fixme URLPattern doesn't support encoding.

@@ -48,6 +48,31 @@ test('supports exact URL', () => {
   })
 })
 
+test('supports relative URLs', () => {
+  /**
+   * @note This only works because this test suite is using JSDOM,
+   * and MSW rebases relative URLs in JSDOM against the document's base URI.
+   */
+  expect(matchRequestUrl(new URL('http://localhost'), '/foo')).toEqual<Match>({
+    matches: false,
+    params: {},
+  })
+
+  expect(
+    matchRequestUrl(new URL('http://localhost/foo'), '/foo'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
+  })
+
+  expect(
+    matchRequestUrl(new URL('http://localhost/foo'), './foo'),
+  ).toEqual<Match>({
+    matches: true,
+    params: {},
+  })
+})
+
 test('supports leading a wildcard as the entire pattern', () => {
   expect(matchRequestUrl(new URL('https://test.mswjs.io'), '*')).toEqual<Match>(
     {

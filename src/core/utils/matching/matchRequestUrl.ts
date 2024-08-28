@@ -61,8 +61,19 @@ function parsePath(
     ]
   }
 
+  /**
+   * @note The path will remain relative in Node.js.
+   * In browser and browser-like environments, it's always rebased
+   * against the document's base URI. This is mostly for Node.js.
+   */
   if (path.startsWith('/') || path.startsWith('./')) {
-    throw new Error('TODO: Handle relative paths')
+    return [
+      {
+        // Construct an extremely unlikely hash string to match.
+        hash: '#relative-urls-are-not-supported-in-node',
+      },
+      () => ({}),
+    ]
   }
 
   return [

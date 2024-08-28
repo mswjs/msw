@@ -14,7 +14,7 @@ export type PathParams<KeyType extends keyof any = string> = {
 
 export interface Match {
   matches: boolean
-  params?: PathParams
+  params: PathParams
 }
 
 function parsePath(

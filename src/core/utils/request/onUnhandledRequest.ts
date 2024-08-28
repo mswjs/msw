@@ -24,7 +24,7 @@ export async function onUnhandledRequest(
   const url = new URL(request.url)
   const publicUrl = toPublicUrl(url) + url.search
 
-  const requestBody = await request.text()
+  const requestBody = await request.clone().text()
   const messageDetails = `\n\n  \u2022 ${request.method} ${publicUrl}\n\n${requestBody ? `  \u2022 Request body: ${requestBody}\n\n` : ''}`
   const unhandledRequestMessage = `intercepted a request without a matching request handler:${messageDetails}If you still wish to intercept this unhandled request, please create a request handler for it.\nRead more: https://mswjs.io/docs/getting-started/mocks`
 

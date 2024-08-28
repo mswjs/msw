@@ -22,6 +22,9 @@ function parsePath(
 ): [input: URLPatternInput | string, (result: URLPatternResult) => PathParams] {
   if (path === '*') {
     return [
+      /**
+       * @note Empty input makes URLPattern match everything.
+       */
       {},
       (result) => {
         return { '0': result.inputs[0] as string }
@@ -29,28 +32,37 @@ function parsePath(
     ]
   }
 
-  if (path.startsWith('*') || path.startsWith('/')) {
-    const pathname = path.slice(1)
-
+  if (path.startsWith('*')) {
     return [
       {
-        pathname,
+        pathname: path,
       },
       (result) => {
         const url = new URL(result.inputs[0] as string)
-        const groups = groupsToArrayObject(
-          [result.pathname.groups, result.search.groups],
-          // Set the starting index for groups to 1
-          // because the URL origin is matched at 0.
-          1,
+
+        // Grab the first pathname match because it belongs to the leading wildcard.
+        // Then, decrease each subsequent pathname group index by 1 to prevent overlap.
+        const firstPathname = result.pathname.groups[0] || ''
+        delete result.pathname.groups[0]
+        result.pathname.groups = Object.fromEntries(
+          Object.entries(result.pathname.groups).map(([key, value]) => [
+            isNaN(Number(key)) ? key : String(Number(key) - 1),
+            value,
+          ]),
         )
 
-        return {
-          '0': url.origin,
-          ...groups,
-        }
+        const groups = groupsToArrayObject([
+          { 0: url.origin + firstPathname },
+          result.pathname.groups,
+        ])
+
+        return groups
       },
     ]
+  }
+
+  if (path.startsWith('/') || path.startsWith('./')) {
+    throw new Error('TODO: Handle relative paths')
   }
 
   return [

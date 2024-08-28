@@ -64,7 +64,23 @@ test('supports leading a wildcard as the entire pattern', () => {
   })
 })
 
-test('supports leading a wildcard and path with a single unnamed group', () => {
+test('supports a leading wildcard', async () => {
+  expect(
+    matchRequestUrl(new URL('http://localhost/cookies'), '*/cookies'),
+  ).toEqual<Match>({
+    matches: true,
+    params: { 0: 'http://localhost' },
+  })
+
+  expect(
+    matchRequestUrl(new URL('http://localhost/dashboard/cookies'), '*/cookies'),
+  ).toEqual<Match>({
+    matches: true,
+    params: { 0: 'http://localhost/dashboard' },
+  })
+})
+
+test('supports a leading wildcard and path with a single unnamed group', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io/user/123'), '*/user/*'),
   ).toEqual<Match>({

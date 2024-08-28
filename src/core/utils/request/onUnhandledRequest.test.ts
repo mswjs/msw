@@ -64,11 +64,9 @@ test('supports the "warn" request strategy with request body', async () => {
   await onUnhandledRequest(
     new Request(new URL('http://localhost/api'), {
       method: 'POST',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store',
       body: JSON.stringify({
         variables: {
           id: 'abc-123',

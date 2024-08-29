@@ -40,7 +40,12 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
 }
 
 async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
-  const { parse } = await import('graphql')
+  const { parse } = await import('graphql').catch((error) => {
+    devUtils.error(
+      'Failed to parse a GraphQL query: cannot import the "graphql" module. Please make sure you install it if you wish to intercept GraphQL requests. See the original import error below.',
+    )
+    throw error
+  })
 
   try {
     const ast = parse(query)

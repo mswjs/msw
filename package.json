@@ -200,7 +200,7 @@
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "graphql": ">=16.8.0",
+    "graphql": ">= 16.8.x",
     "typescript": ">= 4.7.x"
   },
   "peerDependenciesMeta": {

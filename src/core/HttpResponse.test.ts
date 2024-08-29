@@ -223,6 +223,36 @@ describe('HttpResponse.xml()', () => {
   })
 })
 
+describe('HttpResponse.html()', () => {
+  it('creates an html response', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>')
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>', {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html; charset=utf-8',
+    })
+  })
+})
+
 it('creates an array buffer response', async () => {
   const buffer = new TextEncoder().encode('hello world')
   const response = HttpResponse.arrayBuffer(buffer)

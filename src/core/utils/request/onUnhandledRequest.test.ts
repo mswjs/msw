@@ -14,6 +14,15 @@ const fixtures = {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
+  warningWithResponseBody: (url = `/api`) => `\
+[MSW] Warning: intercepted a request without a matching request handler:
+
+  • POST ${url}
+
+  • Request body: {\"variables\":{\"id\":\"abc-123\"},\"query\":\"query UserName($id: String!) { user(id: $id) { name } }\"}
+
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`,
 
   errorWithoutSuggestions: `\
 [MSW] Error: intercepted a request without a matching request handler:
@@ -49,6 +58,25 @@ test('supports the "warn" request strategy', async () => {
   expect(console.warn).toHaveBeenCalledWith(
     fixtures.warningWithoutSuggestions(),
   )
+})
+
+test('supports the "warn" request strategy with request body', async () => {
+  await onUnhandledRequest(
+    new Request(new URL('http://localhost/api'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        variables: {
+          id: 'abc-123',
+        },
+        query: 'query UserName($id: String!) { user(id: $id) { name } }',
+      }),
+    }),
+  )
+
+  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithResponseBody())
 })
 
 test('supports the "error" request strategy', async () => {

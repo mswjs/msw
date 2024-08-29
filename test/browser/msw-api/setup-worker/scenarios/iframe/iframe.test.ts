@@ -29,6 +29,13 @@ test('intercepts a request from an iframe (nested client)', async ({
   })
 
   const frame = page.mainFrame().childFrames().find(findFrame)!
+
+  /**
+   * @note Explicitly wait for the `window.request` to be set by the iframe.
+   * Looks like Playwright won't wait for iframes loading, and this causes
+   * this test to fail sometimes.
+   */
+  await page.waitForFunction(() => typeof window.request === 'function')
   await frame.evaluate(() => window.request())
 
   const firstNameElement = await frame.waitForSelector('#first-name')
@@ -55,6 +62,7 @@ test('intercepts a request from a deeply nested iframe', async ({
     .childFrames()
     .find(findFrame)!
 
+  await page.waitForFunction(() => typeof window.request === 'function')
   await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
@@ -81,6 +89,7 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
   })
 
   const deepFrame = page.mainFrame().childFrames().find(findFrame)!
+  await page.waitForFunction(() => typeof window.request === 'function')
   await deepFrame.evaluate(() => window.request())
   const firstNameElement = await deepFrame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)
@@ -123,6 +132,7 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
     .childFrames()
     .find(findFrame)!
 
+  await page.waitForFunction(() => typeof window.request === 'function')
   await frame.evaluate(() => window.request())
   const firstNameElement = await frame.waitForSelector('#first-name')
   const firstName = await firstNameElement.evaluate((node) => node.textContent)

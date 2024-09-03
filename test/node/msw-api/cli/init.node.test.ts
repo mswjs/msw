@@ -378,3 +378,84 @@ test('prints the list of failed paths to copy', async () => {
     expect.stringContaining(copyFileError.message),
   )
 })
+
+test('copies the script to all saved paths if the public directory was not provided (previously normalizing paths Windows&Unix)', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        // Use a mixed style path to simulate different environments
+        workerDirectory: ['public\\windows-style', 'unix/style'],
+      },
+    }),
+  })
+
+  const initCommand = await init([''])
+
+  expect(initCommand.stderr).toBe('')
+  expect(
+    fs.existsSync(fsMock.resolve('public/windows-style/mockServiceWorker.js')),
+  ).toBe(true)
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    true,
+  )
+
+  const normalizedPaths = readJson(fsMock.resolve('package.json')).msw
+    .workerDirectory
+
+  // Expect normalized paths
+  expect(normalizedPaths).toContain('public\\windows-style')
+  expect(normalizedPaths).toContain('unix/style')
+})
+
+test('copy the script only to provide path in command (Windows style)', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        // Use a mixed style path to simulate different environments
+        workerDirectory: ['unix/style'],
+      },
+    }),
+  })
+
+  const initCommand = await init(['.\\windows-style\\new-folder', '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(
+    fs.existsSync(
+      fsMock.resolve('windows-style/new-folder/mockServiceWorker.js'),
+    ),
+  ).toBe(true)
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    false,
+  )
+
+  fsMock.resolve('package.json')
+})
+
+test('copy the script only to provide path in command (Unix style)', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        // Use a mixed style path to simulate different environments
+        workerDirectory: ['windows-style\\new-folder'],
+      },
+    }),
+  })
+
+  const initCommand = await init(['./unix/style', '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    true,
+  )
+  expect(
+    fs.existsSync(
+      fsMock.resolve('windows-style/new-folder/mockServiceWorker.js'),
+    ),
+  ).toBe(false)
+
+  fsMock.resolve('package.json')
+})

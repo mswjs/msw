@@ -40,12 +40,14 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
 }
 
 async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
-  const { parse } = await import('graphql').catch((error) => {
-    devUtils.error(
-      'Failed to parse a GraphQL query: cannot import the "graphql" module. Please make sure you install it if you wish to intercept GraphQL requests. See the original import error below.',
-    )
-    throw error
-  })
+  /**
+   * @note Use `require` to get the "graphql" module here.
+   * It has to be scoped to this function because this module leaks to the
+   * root export. It has to be `require` because tools like Jest have trouble
+   * handling dynamic imports. It gets replaced with a dynamic import on build time.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { parse } = require('graphql')
 
   try {
     const ast = parse(query)

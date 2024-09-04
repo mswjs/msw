@@ -17,15 +17,9 @@
 <p align="center">Mock Service Worker (MSW) is a seamless REST/GraphQL API mocking library for browser and Node.js.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" />
-  </a>
-  <a href="https://www.npmjs.com/package/msw" target="_blank">
-    <img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" />
-  </a>
-   <a href="https://kettanaito.com/discord" target="_blank">
-    <img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" />
-  </a>
+  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" /></a>
+  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" /></a>
+   <a href="https://kettanaito.com/discord" target="_blank"><img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" /></a>
 </p>
 
 <br />
@@ -100,7 +94,7 @@ const worker = setupWorker(
 )
 
 // 3. Start request interception by starting the Service Worker.
-worker.start()
+await worker.start()
 ```
 
 Performing a `GET https://github.com/octocat` request in your application will result into a mocked response that you can inspect in your browser's "Network" tab:
@@ -246,6 +240,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
       </a>
     </td>
+     <td>
+      <a href="https://codemod.com/" target="_blank">
+        <img src="media/sponsors/codemod.svg" alt="Codemod" height="64" width="128" />
+      </a>
+    </td>
   </tr>
 </table>
 
@@ -264,9 +263,14 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         <img src="media/sponsors/materialize.svg" alt="Materialize" height="64" />
       </a>
     </td>
-     <td>
+    <td>
       <a href="https://trigger.dev/" target="_blank">
-          <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+        <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://vital.io/" target="_blank">
+        <img src="media/sponsors/vital.svg" alt="Vital" width="64" />
       </a>
     </td>
   </tr>

@@ -98,7 +98,7 @@ export function parseMultipartData<T extends DefaultRequestMultipartBody>(
     }
 
     return parsedBody as T
-  } catch (error) {
+  } catch {
     return undefined
   }
 }

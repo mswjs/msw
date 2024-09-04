@@ -1,3 +1,4 @@
+import { it } from 'vitest'
 import { http, HttpRequestHandler, GraphQLRequestHandler, graphql } from 'msw'
 import { setupWorker } from 'msw/browser'
 import { setupServer } from 'msw/node'
@@ -13,11 +14,15 @@ const generateGraphQLHandler: GraphQLRequestHandler = (
   return graphql.query(operationName, resolver)
 }
 
-setupWorker(
-  generateHttpHandler('/', () => {}),
-  generateGraphQLHandler('GetResource', () => {}),
-)
-setupServer(
-  generateHttpHandler('/', () => {}),
-  generateGraphQLHandler('GetResource', () => {}),
-)
+it('accepts custom request handler (setupWorker)', () => {
+  setupWorker(
+    generateHttpHandler('/', () => {}),
+    generateGraphQLHandler('GetResource', () => {}),
+  )
+})
+it('accepts custom request handler (setupServer)', () => {
+  setupServer(
+    generateHttpHandler('/', () => {}),
+    generateGraphQLHandler('GetResource', () => {}),
+  )
+})

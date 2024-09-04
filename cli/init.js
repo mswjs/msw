@@ -1,27 +1,26 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
-const { until } = require('@open-draft/until')
-const confirm = require('@inquirer/confirm')
+const confirm = require('@inquirer/confirm').default
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
 
 module.exports = async function init(args) {
-  const [, publicDir] = args._
   const CWD = args.cwd || process.cwd()
+  const publicDir = args._[1] ? normalizePath(args._[1]) : undefined
 
   const packageJsonPath = path.resolve(CWD, 'package.json')
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-  const savedWorkerDirectories = Array.prototype.concat(
-    (packageJson.msw && packageJson.msw.workerDirectory) || [],
-  )
+  const savedWorkerDirectories = Array.prototype
+    .concat((packageJson.msw && packageJson.msw.workerDirectory) || [])
+    .map(normalizePath)
 
   if (publicDir) {
     // If the public directory was provided, copy the worker script
     // to that directory only. Even if there are paths stored in "msw.workerDirectory",
     // those will not be touched.
     await copyWorkerScript(publicDir, CWD)
-    const relativePublicDir = toRelative(publicDir, CWD)
+    const relativePublicDir = path.relative(CWD, publicDir)
     printSuccessMessage([publicDir])
 
     if (args.save) {
@@ -52,8 +51,7 @@ module.exports = async function init(args) {
     return
   }
 
-  // Calling "init" without a public directory but with the "--save" flag
-  // is no-op.
+  // Calling "init" without a public directory but with the "--save" flag is a no-op.
   invariant(
     args.save == null,
     'Failed to copy the worker script: cannot call the "init" command without a public directory but with the "--save" flag. Either drop the "--save" flag to copy the worker script to all paths listed in "msw.workerDirectory", or add an explicit public directory to the command, like "npx msw init ./public".',
@@ -69,7 +67,7 @@ module.exports = async function init(args) {
         return copyWorkerScript(destination, CWD).catch((error) => {
           // Inject the absolute destination path onto the copy function rejections
           // so it's available in the failed paths array below.
-          throw [toAbsolute(destination, CWD), error]
+          throw [toAbsolutePath(destination, CWD), error]
         })
       }),
     )
@@ -92,51 +90,61 @@ module.exports = async function init(args) {
   }
 }
 
-function toRelative(absolutePath, cwd) {
-  return path.relative(cwd, absolutePath)
-}
-
-function toAbsolute(maybeAbsolutePath, cwd) {
+/**
+ * @param {string} maybeAbsolutePath
+ * @param {string} cwd
+ * @returns {string}
+ */
+function toAbsolutePath(maybeAbsolutePath, cwd) {
   return path.isAbsolute(maybeAbsolutePath)
     ? maybeAbsolutePath
     : path.resolve(cwd, maybeAbsolutePath)
 }
 
+/**
+ * @param {string} destination
+ * @param {string} cwd
+ * @returns {Promise<string>}
+ */
 async function copyWorkerScript(destination, cwd) {
   // When running as a part of "postinstall" script, "cwd" equals the library's directory.
   // The "postinstall" script resolves the right absolute public directory path.
-  const absolutePublicDir = toAbsolute(destination, cwd)
+  const absolutePublicDir = toAbsolutePath(destination, cwd)
 
   if (!fs.existsSync(absolutePublicDir)) {
-    // Try to create the directory if it doesn't exist
-    const createDirectoryResult = await until(() =>
-      fs.promises.mkdir(absolutePublicDir, { recursive: true }),
-    )
-
-    invariant(
-      createDirectoryResult.error == null,
-      'Failed to copy the worker script at "%s": directory does not exist and could not be created.\nMake sure to include a relative path to the public directory of your application.\n\nSee the original error below:\n%s',
-      absolutePublicDir,
-      createDirectoryResult.error,
-    )
+    await fs.promises
+      .mkdir(absolutePublicDir, { recursive: true })
+      .catch((error) => {
+        throw new Error(
+          invariant(
+            false,
+            'Failed to copy the worker script at "%s": directory does not exist and could not be created.\nMake sure to include a relative path to the public directory of your application.\n\nSee the original error below:\n\n%s',
+            absolutePublicDir,
+            error,
+          ),
+        )
+      })
   }
 
   console.log('Copying the worker script at "%s"...', absolutePublicDir)
 
-  const serviceWorkerFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
-  const swDestFilepath = path.resolve(absolutePublicDir, serviceWorkerFilename)
+  const workerFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
+  const workerDestinationPath = path.resolve(absolutePublicDir, workerFilename)
 
-  fs.copyFileSync(SERVICE_WORKER_BUILD_PATH, swDestFilepath)
+  fs.copyFileSync(SERVICE_WORKER_BUILD_PATH, workerDestinationPath)
 
-  return swDestFilepath
+  return workerDestinationPath
 }
 
+/**
+ * @param {Array<string>} paths
+ */
 function printSuccessMessage(paths) {
   console.log(`
 ${chalk.green('Worker script successfully copied!')}
 ${paths.map((path) => chalk.gray(`  - ${path}\n`))}
 Continue by describing the network in your application:
-  
+
 
 ${chalk.cyan.bold('https://mswjs.io/docs/getting-started')}
 `)
@@ -151,6 +159,10 @@ ${pathsWithErrors
   `)
 }
 
+/**
+ * @param {string} packageJsonPath
+ * @param {string} publicDir
+ */
 function saveWorkerDirectory(packageJsonPath, publicDir) {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
@@ -179,6 +191,12 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
   )
 }
 
+/**
+ * @param {string} message
+ * @param {string} packageJsonPath
+ * @param {string} publicDir
+ * @returns {void}
+ */
 function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
   return confirm({
     theme: {
@@ -190,4 +208,14 @@ function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
       saveWorkerDirectory(packageJsonPath, publicDir)
     }
   })
+}
+
+/**
+ * Normalizes the given path, replacing ambiguous path separators
+ * with the platform-specific path separator.
+ * @param {string} input Path to normalize.
+ * @returns {string}
+ */
+function normalizePath(input) {
+  return input.replace(/[\\|\/]+/g, path.sep)
 }

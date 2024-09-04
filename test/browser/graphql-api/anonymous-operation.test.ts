@@ -41,8 +41,8 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
 
   const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
+    // Intentionally anonymous query.
     query: gql`
-      # Intentionally anonymous query.
       query {
         user {
           id
@@ -70,6 +70,8 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
 [MSW] Warning: intercepted a request without a matching request handler:
 
   • POST ${endpointUrl}
+
+  • Request body: {\"query\":\"\\n      query {\\n        user {\\n          id\\n        }\\n      }\\n    \"}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
@@ -105,9 +107,9 @@ test('warns on handled anonymous GraphQL operation', async ({
 
   const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
+    // Intentionally anonymous query.
+    // It will be handled in the "graphql.operation()" handler above.
     query: gql`
-      # Intentionally anonymous query.
-      # It will be handled in the "graphql.operation()" handler above.
       query {
         user {
           id
@@ -170,9 +172,9 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
 
   const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
+    // Intentionally anonymous query.
+    // It will be handled in the "graphql.operation()" handler above.
     query: gql`
-      # Intentionally anonymous query.
-      # It will be handled in the "graphql.operation()" handler above.
       query {
         user {
           id

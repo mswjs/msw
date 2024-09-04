@@ -1,4 +1,5 @@
 import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
+import type { NoInfer } from './typeUtils'
 import {
   decorateResponse,
   normalizeResponseInit,
@@ -48,7 +49,7 @@ export class HttpResponse extends Response {
    * HttpResponse.text('Error', { status: 500 })
    */
   static text<BodyType extends string>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
@@ -63,7 +64,7 @@ export class HttpResponse extends Response {
     if (!responseInit.headers.has('Content-Length')) {
       responseInit.headers.set(
         'Content-Length',
-        body ? body.length.toString() : '0',
+        body ? new Blob([body]).size.toString() : '0',
       )
     }
 
@@ -77,7 +78,7 @@ export class HttpResponse extends Response {
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
   static json<BodyType extends JsonBodyType>(
-    body?: BodyType | null,
+    body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): StrictResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
@@ -95,7 +96,7 @@ export class HttpResponse extends Response {
     if (!responseInit.headers.has('Content-Length')) {
       responseInit.headers.set(
         'Content-Length',
-        responseText ? responseText.length.toString() : '0',
+        responseText ? new Blob([responseText]).size.toString() : '0',
       )
     }
 
@@ -125,6 +126,25 @@ export class HttpResponse extends Response {
   }
 
   /**
+   * Create a `Response` with a `Content-Type: "text/html"` body.
+   * @example
+   * HttpResponse.html(`<p class="author">Jane Doe</p>`)
+   * HttpResponse.html(`<main id="abc-123">Main text</main>`, { status: 201 })
+   */
+  static html<BodyType extends string>(
+    body?: BodyType | null,
+    init?: HttpResponseInit,
+  ): Response {
+    const responseInit = normalizeResponseInit(init)
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'text/html')
+    }
+
+    return new HttpResponse(body, responseInit)
+  }
+
+  /**
    * Create a `Response` with an `ArrayBuffer` body.
    * @example
    * const buffer = new ArrayBuffer(3)
@@ -136,7 +156,7 @@ export class HttpResponse extends Response {
   static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
     const responseInit = normalizeResponseInit(init)
 
-    if (body) {
+    if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 

@@ -1,4 +1,10 @@
-import { HttpResponse, http, LifeCycleEventsMap } from 'msw'
+import {
+  HttpResponse,
+  http,
+  LifeCycleEventsMap,
+  passthrough,
+  bypass,
+} from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
@@ -7,6 +13,12 @@ const worker = setupWorker(
   }),
   http.post('*/no-response', () => {
     return
+  }),
+  http.get('*/passthrough', () => {
+    return passthrough()
+  }),
+  http.get('*/bypass', async ({ request }) => {
+    return fetch(bypass(request, { method: 'POST' }))
   }),
   http.get('*/unhandled-exception', () => {
     throw new Error('Unhandled resolver error')

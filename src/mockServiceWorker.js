@@ -2,12 +2,13 @@
 /* tslint:disable */
 
 /**
- * Mock Service Worker (<PACKAGE_VERSION>).
+ * Mock Service Worker.
  * @see https://github.com/mswjs/msw
  * - Please do NOT modify this file.
  * - Please do NOT serve this file on production.
  */
 
+const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
@@ -48,7 +49,10 @@ self.addEventListener('message', async function (event) {
     case 'INTEGRITY_CHECK_REQUEST': {
       sendToClient(client, {
         type: 'INTEGRITY_CHECK_RESPONSE',
-        payload: INTEGRITY_CHECKSUM,
+        payload: {
+          packageVersion: PACKAGE_VERSION,
+          checksum: INTEGRITY_CHECKSUM,
+        },
       })
       break
     }
@@ -202,13 +206,6 @@ async function getResponse(event, client, requestId) {
     return passthrough()
   }
 
-  // Bypass requests with the explicit bypass header.
-  // Such requests can be issued by "ctx.fetch()".
-  const mswIntention = request.headers.get('x-msw-intention')
-  if (['bypass', 'passthrough'].includes(mswIntention)) {
-    return passthrough()
-  }
-
   // Notify the client that a request has been intercepted.
   const requestBuffer = await request.arrayBuffer()
   const clientMessage = await sendToClient(
@@ -240,7 +237,7 @@ async function getResponse(event, client, requestId) {
       return respondWithMock(clientMessage.data)
     }
 
-    case 'MOCK_NOT_FOUND': {
+    case 'PASSTHROUGH': {
       return passthrough()
     }
   }

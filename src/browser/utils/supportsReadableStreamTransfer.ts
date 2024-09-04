@@ -11,7 +11,7 @@ export function supportsReadableStreamTransfer() {
     const message = new MessageChannel()
     message.port1.postMessage(stream, [stream])
     return true
-  } catch (error) {
+  } catch {
     return false
   }
 }

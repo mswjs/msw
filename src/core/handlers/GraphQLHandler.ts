@@ -68,10 +68,13 @@ export interface GraphQLJsonRequestBody<Variables extends GraphQLVariables> {
   variables?: Variables
 }
 
-export interface GraphQLResponseBody<BodyType extends DefaultBodyType> {
-  data?: BodyType | null
-  errors?: readonly Partial<GraphQLError>[] | null
-}
+export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
+  | {
+      data?: BodyType | null
+      errors?: readonly Partial<GraphQLError>[] | null
+    }
+  | null
+  | undefined
 
 export function isDocumentNode(
   value: DocumentNode | any,
@@ -152,6 +155,7 @@ export class GraphQLHandler extends RequestHandler<
       GraphQLHandler.parsedRequestCache.set(
         request,
         await parseGraphQLRequest(request).catch((error) => {
+          // eslint-disable-next-line no-console
           console.error(error)
           return undefined
         }),
@@ -249,6 +253,7 @@ Consider naming this operation or using "graphql.operation()" request handler to
       ? `${args.parsedResult.operationType} ${args.parsedResult.operationName}`
       : `anonymous ${args.parsedResult.operationType}`
 
+    // eslint-disable-next-line no-console
     console.groupCollapsed(
       devUtils.formatMessage(
         `${getTimestamp()} ${requestInfo} (%c${loggedResponse.status} ${
@@ -258,9 +263,13 @@ Consider naming this operation or using "graphql.operation()" request handler to
       `color:${statusColor}`,
       'color:inherit',
     )
+    // eslint-disable-next-line no-console
     console.log('Request:', loggedRequest)
+    // eslint-disable-next-line no-console
     console.log('Handler:', this)
+    // eslint-disable-next-line no-console
     console.log('Response:', loggedResponse)
+    // eslint-disable-next-line no-console
     console.groupEnd()
   }
 }

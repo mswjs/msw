@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { encodeBuffer } from '@mswjs/interceptors'
+import { createRequestId, encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
 import {
   GraphQLHandler,
@@ -9,7 +9,6 @@ import {
   GraphQLResolverExtras,
   isDocumentNode,
 } from './GraphQLHandler'
-import { randomId } from '../utils/internal/randomId'
 import { HttpResponse } from '../HttpResponse'
 import { ResponseResolver } from './RequestHandler'
 
@@ -737,7 +736,7 @@ describe('run', () => {
         userId: 'abc-123',
       },
     })
-    const requestId = randomId()
+    const requestId = createRequestId()
     const result = await handler.run({ request, requestId })
 
     expect(result!.handler).toEqual(handler)
@@ -779,7 +778,7 @@ describe('run', () => {
     const request = createPostGraphQLRequest({
       query: LOGIN,
     })
-    const requestId = randomId()
+    const requestId = createRequestId()
     const result = await handler.run({ request, requestId })
 
     expect(result).toBeNull()
@@ -827,7 +826,7 @@ describe('request', () => {
         `,
     })
 
-    const requestId = randomId()
+    const requestId = createRequestId()
     await handler.run({ request, requestId })
 
     expect(matchAllResolver).toHaveBeenCalledTimes(1)

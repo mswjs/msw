@@ -7,10 +7,19 @@ import {
 } from './onUnhandledRequest'
 
 const fixtures = {
-  warningWithoutSuggestions: `\
+  warningWithoutSuggestions: (url = `/api`) => `\
 [MSW] Warning: intercepted a request without a matching request handler:
 
-  • GET /api
+  • GET ${url}
+
+If you still wish to intercept this unhandled request, please create a request handler for it.
+Read more: https://mswjs.io/docs/getting-started/mocks`,
+  warningWithResponseBody: (url = `/api`) => `\
+[MSW] Warning: intercepted a request without a matching request handler:
+
+  • POST ${url}
+
+  • Request body: {\"variables\":{\"id\":\"abc-123\"},\"query\":\"query UserName($id: String!) { user(id: $id) { name } }\"}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`,
@@ -46,7 +55,28 @@ test('supports the "bypass" request strategy', async () => {
 test('supports the "warn" request strategy', async () => {
   await onUnhandledRequest(new Request(new URL('http://localhost/api')), 'warn')
 
-  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithoutSuggestions)
+  expect(console.warn).toHaveBeenCalledWith(
+    fixtures.warningWithoutSuggestions(),
+  )
+})
+
+test('supports the "warn" request strategy with request body', async () => {
+  await onUnhandledRequest(
+    new Request(new URL('http://localhost/api'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        variables: {
+          id: 'abc-123',
+        },
+        query: 'query UserName($id: String!) { user(id: $id) { name } }',
+      }),
+    }),
+  )
+
+  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithResponseBody())
 })
 
 test('supports the "error" request strategy', async () => {
@@ -103,7 +133,9 @@ test('supports calling default strategies from the custom callback function', as
 test('does not print any suggestions given no handlers to suggest', async () => {
   await onUnhandledRequest(new Request(new URL('http://localhost/api')), 'warn')
 
-  expect(console.warn).toHaveBeenCalledWith(fixtures.warningWithoutSuggestions)
+  expect(console.warn).toHaveBeenCalledWith(
+    fixtures.warningWithoutSuggestions(),
+  )
 })
 
 test('throws an exception given unknown request strategy', async () => {
@@ -115,5 +147,27 @@ test('throws an exception given unknown request strategy', async () => {
     ),
   ).rejects.toThrow(
     '[MSW] Failed to react to an unhandled request: unknown strategy "invalid-strategy". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+  )
+})
+
+test('prints with a relative URL and search params', async () => {
+  await onUnhandledRequest(
+    new Request(new URL('http://localhost/api?foo=boo')),
+    'warn',
+  )
+
+  expect(console.warn).toHaveBeenCalledWith(
+    fixtures.warningWithoutSuggestions(`/api?foo=boo`),
+  )
+})
+
+test('prints with an absolute URL and search params', async () => {
+  await onUnhandledRequest(
+    new Request(new URL('https://mswjs.io/api?foo=boo')),
+    'warn',
+  )
+
+  expect(console.warn).toHaveBeenCalledWith(
+    fixtures.warningWithoutSuggestions(`https://mswjs.io/api?foo=boo`),
   )
 })

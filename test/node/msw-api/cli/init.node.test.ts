@@ -1,7 +1,6 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import fs from 'fs'
+import path from 'node:path'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../../../support/utils'
 
@@ -34,7 +33,6 @@ afterEach(() => {
 })
 
 afterAll(async () => {
-  vi.restoreAllMocks()
   await fsMock.cleanup()
 })
 
@@ -379,13 +377,17 @@ test('prints the list of failed paths to copy', async () => {
   )
 })
 
-test('copies the script to all saved paths if the public directory was not provided (previously normalizing paths Windows&Unix)', async () => {
+test('supports a mix of unix/windows paths in "workerDirectory"', async () => {
   await fsMock.create({
     'package.json': JSON.stringify({
       name: 'example',
       msw: {
-        // Use a mixed style path to simulate different environments
-        workerDirectory: ['public\\windows-style', 'unix/style'],
+        // Use a mix of different path styles to emulate multiple developers
+        // working from different operating systems.
+        workerDirectory: [
+          path.win32.join('public', 'windows-style'),
+          'unix/style',
+        ],
       },
     }),
   })
@@ -408,18 +410,20 @@ test('copies the script to all saved paths if the public directory was not provi
   expect(normalizedPaths).toContain('unix/style')
 })
 
-test('copy the script only to provide path in command (Windows style)', async () => {
+test('copies the script only to provided windows path in args', async () => {
   await fsMock.create({
     'package.json': JSON.stringify({
       name: 'example',
       msw: {
-        // Use a mixed style path to simulate different environments
         workerDirectory: ['unix/style'],
       },
     }),
   })
 
-  const initCommand = await init(['.\\windows-style\\new-folder', '--save'])
+  const initCommand = await init([
+    `"${path.win32.join('.', 'windows-style', 'new-folder')}"`,
+    '--save',
+  ])
 
   expect(initCommand.stderr).toBe('')
   expect(
@@ -430,17 +434,14 @@ test('copy the script only to provide path in command (Windows style)', async ()
   expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
     false,
   )
-
-  fsMock.resolve('package.json')
 })
 
-test('copy the script only to provide path in command (Unix style)', async () => {
+test('copies the script only to provided unix path in args', async () => {
   await fsMock.create({
     'package.json': JSON.stringify({
       name: 'example',
       msw: {
-        // Use a mixed style path to simulate different environments
-        workerDirectory: ['windows-style\\new-folder'],
+        workerDirectory: [path.win32.join('windows-style', 'new-folder')],
       },
     }),
   })
@@ -456,6 +457,4 @@ test('copy the script only to provide path in command (Unix style)', async () =>
       fsMock.resolve('windows-style/new-folder/mockServiceWorker.js'),
     ),
   ).toBe(false)
-
-  fsMock.resolve('package.json')
 })

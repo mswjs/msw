@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { invariant } from 'outvariant'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -13,6 +14,7 @@ import {
   onAnyEvent,
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
+import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 
 const store = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -58,7 +60,7 @@ export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
-  private socket?: Socket<SyncServerEventsMap>
+  private socketPromise?: Promise<Socket<SyncServerEventsMap>>
 
   constructor(handlers: Array<RequestHandler>) {
     super(
@@ -92,44 +94,61 @@ export class SetupServerApi
   public listen(options?: Partial<ListenOptions>): void {
     super.listen(options)
 
+    // If the "remotePort" option has been provided to the server,
+    // run it in a special "remote" mode. That mode ensures that
+    // an extraneous Node.js process can affect this process' traffic.
     if (this.resolvedOptions.remotePort != null) {
-      this.mapRequestHandlers = async (handlers) => {
-        const { socket } = this
+      invariant(
+        typeof this.resolvedOptions.remotePort === 'number',
+        'Failed to enable request interception: expected the "remotePort" option to be a valid port number, but got "%s". Make sure it is the same port number you provide as the "port" option to "remote.listen()" in your tests.',
+        this.resolvedOptions.remotePort,
+      )
 
-        if (typeof socket === 'undefined') {
-          this.socket = await createSyncClient(this.resolvedOptions.remotePort)
-        }
+      // Create the WebSocket sync client immediately when starting the interception.
+      this.socketPromise = createSyncClient(this.resolvedOptions.remotePort)
 
-        if (typeof socket !== 'undefined') {
-          return Array.prototype.concat(
-            new RemoteRequestHandler({ socket }),
-            handlers,
-          )
-        }
+      // Once the sync server connection is established, prepend the
+      // remote request handler to be the first for this process.
+      // This way, the remote process' handlers take priority.
+      this.socketPromise.then((socket) => {
+        this.handlersController.currentHandlers = new Proxy(
+          this.handlersController.currentHandlers,
+          {
+            apply: (target, thisArg, args) => {
+              return Array.prototype.concat(
+                new RemoteRequestHandler({ socket }),
+                Reflect.apply(target, thisArg, args),
+              )
+            },
+          },
+        )
 
-        return handlers
+        return socket
+      })
+
+      // Before the first request gets handled, await the sync server connection.
+      // This way we ensure that all the requests go through the `RemoteRequestHandler`.
+      this.beforeRequest = async () => {
+        await this.socketPromise
       }
+
+      // Forward all life-cycle events from this process to the remote.
+      this.forwardLifeCycleEvents()
     }
-    this.forwardLifeCycleEvents()
   }
 
-  private async forwardLifeCycleEvents() {
-    onAnyEvent(this.emitter, async (eventName, listenerArgs) => {
-      const { socket } = this
-      const { request } = listenerArgs
+  private forwardLifeCycleEvents() {
+    onAnyEvent(this.emitter, async (type, listenerArgs) => {
+      const socket = await this.socketPromise
 
-      if (
-        socket &&
-        request.headers.get('x-msw-request-type') !== 'internal-request'
-      ) {
-        const args = await serializeEventPayload(listenerArgs)
+      if (socket && !shouldBypassRequest(listenerArgs.request)) {
         socket.emit(
           'lifeCycleEventForward',
           /**
            * @todo Annotating serialized/desirialized mirror channels is tough.
            */
-          eventName,
-          args as any,
+          type,
+          (await serializeEventPayload(listenerArgs)) as any,
         )
       }
     })

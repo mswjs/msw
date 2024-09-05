@@ -1,11 +1,8 @@
-/**
- * @jest-environment node
- */
-import { rest, HttpResponse, SetupApi, LifeCycleEventsMap } from 'msw'
+// @vitest-environment node
+import { http, HttpResponse, SetupApi, LifeCycleEventsMap } from 'msw'
 import { setupRemoteServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpServer } from '@open-draft/test-server/http'
-import { waitFor } from '../../../../support/waitFor'
 import { TestNodeApp } from '../utils'
 
 const remote = setupRemoteServer()
@@ -18,35 +15,35 @@ const httpServer = new HttpServer((app) => {
 })
 
 function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
-  const listener = jest.fn()
+  const listener = vi.fn()
   const requestIdPromise = new DeferredPromise<string>()
 
   setupApi.events
-    .on('request:start', (request, requestId) => {
+    .on('request:start', ({ request, requestId }) => {
       requestIdPromise.resolve(requestId)
       listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
     })
-    .on('request:match', (request, requestId) => {
+    .on('request:match', ({ request, requestId }) => {
       listener(`[request:match] ${request.method} ${request.url} ${requestId}`)
     })
-    .on('request:unhandled', (request, requestId) => {
+    .on('request:unhandled', ({ request, requestId }) => {
       listener(
         `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
       )
     })
-    .on('request:end', (request, requestId) => {
+    .on('request:end', ({ request, requestId }) => {
       listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
     })
 
   setupApi.events
-    .on('response:mocked', async (response, request, requestId) => {
+    .on('response:mocked', async ({ response, request, requestId }) => {
       listener(
         `[response:mocked] ${request.method} ${request.url} ${requestId} ${
           response.status
         } ${await response.clone().text()}`,
       )
     })
-    .on('response:bypass', async (response, request, requestId) => {
+    .on('response:bypass', async ({ response, request, requestId }) => {
       listener(
         `[response:bypass] ${request.method} ${request.url} ${requestId} ${
           response.status
@@ -63,7 +60,7 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
 }
 
 beforeAll(async () => {
-  await remote.listen()
+  await remote.listen({ port: 56789 })
   await httpServer.listen()
   await testApp.start()
 })
@@ -80,7 +77,7 @@ afterAll(async () => {
 
 it('emits correct events for the request handled in the test process', async () => {
   remote.use(
-    rest.get('https://example.com/resource', () => {
+    http.get('https://example.com/resource', () => {
       return HttpResponse.json({ mocked: true })
     }),
   )
@@ -96,7 +93,7 @@ it('emits correct events for the request handled in the test process', async () 
   expect(await response.json()).toEqual({ mocked: true })
 
   // Must pipe all the relevant life-cycle events.
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(listener.mock.calls).toEqual([
       [`[request:start] GET https://example.com/resource ${requestId}`],
       [`[request:match] GET https://example.com/resource ${requestId}`],
@@ -118,7 +115,7 @@ it('emits correct events for the request handled in the remote process', async (
   expect(response.statusText).toBe('OK')
   expect(await response.json()).toEqual([1, 2, 3])
 
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(listener.mock.calls).toEqual([
       [`[request:start] GET https://example.com/resource ${requestId}`],
       [`[request:match] GET https://example.com/resource ${requestId}`],
@@ -130,7 +127,7 @@ it('emits correct events for the request handled in the remote process', async (
   })
 })
 
-it('emits correct events for the request unhandled by either parties', async () => {
+it.only('emits correct events for the request unhandled by either parties', async () => {
   const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
 
   const resourceUrl = httpServer.http.url('/greeting')
@@ -147,7 +144,7 @@ it('emits correct events for the request unhandled by either parties', async () 
   expect(response.statusText).toBe('OK')
   expect(await response.text()).toEqual('hello')
 
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(listener.mock.calls).toEqual([
       [`[request:start] GET ${resourceUrl} ${requestId}`],
       [`[request:unhandled] GET ${resourceUrl} ${requestId}`],

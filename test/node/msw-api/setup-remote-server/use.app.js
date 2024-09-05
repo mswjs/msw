@@ -20,7 +20,6 @@ app.get('/resource', async (req, res) => {
   const data = await fetch('https://example.com/resource').then((response) =>
     response.json(),
   )
-
   res.set(200).json(data)
 })
 

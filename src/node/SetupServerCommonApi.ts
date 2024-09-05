@@ -42,29 +42,31 @@ export class SetupServerCommonApi
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
-
     this.resolvedOptions = {} as RequiredDeep<ListenOptions>
-
     this.init()
   }
 
-  protected async mapRequestHandlers(
-    handlers: Array<RequestHandler>,
-  ): Promise<Array<RequestHandler>> {
-    return handlers
+  protected async beforeRequest(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args: {
+      requestId: string
+      request: Request
+    },
+  ): Promise<void> {
+    return Promise.resolve()
   }
 
   /**
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async ({ request, requestId }) => {
+    this.interceptor.on('request', async ({ requestId, request }) => {
+      await this.beforeRequest({ requestId, request })
+
       const response = await handleRequest(
         request,
         requestId,
-        await this.mapRequestHandlers(
-          this.handlersController.currentHandlers(),
-        ),
+        this.handlersController.currentHandlers(),
         this.resolvedOptions,
         this.emitter,
       )
@@ -72,8 +74,6 @@ export class SetupServerCommonApi
       if (response) {
         request.respondWith(response)
       }
-
-      return
     })
 
     this.interceptor.on('unhandledException', ({ error }) => {

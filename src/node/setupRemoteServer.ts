@@ -1,26 +1,34 @@
-import * as http from 'http'
+import * as http from 'node:http'
 import { invariant } from 'outvariant'
 import { Server as WebSocketServer } from 'socket.io'
 import { Socket, io } from 'socket.io-client'
 import { Emitter } from 'strict-event-emitter'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { SetupApi } from '~/core/SetupApi'
-import { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
 import {
-  SerializedRequest,
-  SerializedResponse,
+  type SerializedRequest,
+  type SerializedResponse,
   deserializeRequest,
   serializeResponse,
 } from '~/core/utils/request/serializeUtils'
-import { LifeCycleEventEmitter, LifeCycleEventsMap } from '~/core/sharedOptions'
+import type {
+  LifeCycleEventEmitter,
+  LifeCycleEventsMap,
+} from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import {
-  SerializedLifeCycleEventsMap,
+  type SerializedLifeCycleEventsMap,
   deserializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
+import {
+  REQUEST_INTENTION_HEADER_NAME,
+  RequestIntention,
+} from '~/core/utils/internal/requestUtils'
 
 const kSyncServer = Symbol('kSyncServer')
+type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
 
 /**
  * Enables API mocking in a remote Node.js process.
@@ -37,26 +45,25 @@ export interface SetupRemoteServerListenOptions {
 
 export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
-  listen(options: SetupRemoteServerListenOptions): Promise<void>
-  close(): Promise<void>
+  listen: (options: SetupRemoteServerListenOptions) => Promise<void>
+  close: () => Promise<void>
 }
 
 export interface SyncServerEventsMap {
-  request(args: {
+  request: (args: {
     serializedRequest: SerializedRequest
     requestId: string
-  }): Promise<void> | void
-  response(serializedResponse?: SerializedResponse): Promise<void> | void
-  lifeCycleEventForward<EventName extends keyof SerializedLifeCycleEventsMap>(
-    eventName: EventName,
-    args: SerializedLifeCycleEventsMap[EventName],
-  ): void
-}
+  }) => Promise<void> | void
 
-interface GlobalWith extends Global {
-  [kSyncServer]: WebSocketServer<SyncServerEventsMap> | undefined
+  response: (args: {
+    serializedResponse?: SerializedResponse
+  }) => Promise<void> | void
+
+  lifeCycleEventForward: <Type extends keyof SerializedLifeCycleEventsMap>(
+    type: Type,
+    args: SerializedLifeCycleEventsMap[Type],
+  ) => void
 }
-declare var globalThis: GlobalWith
 
 export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -67,22 +74,23 @@ export class SetupRemoteServerApi
   }
 
   public async listen(options: SetupRemoteServerListenOptions): Promise<void> {
-    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
+    invariant(
+      typeof options.port === 'number',
+      'Failed to initialize remote server: expected the "port" option to be a valid port number but got "%s". Make sure it is the same port number you provide as the "remotePort" option to "server.listen()" in your application.',
+      options.port,
+    )
 
-    const url = createWebSocketServerUrl(options.port)
-    const server = await createSyncServer(url)
+    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
+    const wssUrl = createWebSocketServerUrl(options.port)
+    const server = await createSyncServer(wssUrl)
 
     server.removeAllListeners()
 
-    console.log('WS server created!')
-
     process
-      .on('SIGTERM', () => closeSyncServer(server))
-      .on('SIGINT', () => closeSyncServer(server))
+      .once('SIGTERM', () => closeSyncServer(server))
+      .once('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', (socket) => {
-      console.log('[remote] connection!')
-
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
@@ -96,21 +104,22 @@ export class SetupRemoteServerApi
           dummyEmitter,
         )
 
-        socket.emit(
-          'response',
-          response ? await serializeResponse(response) : undefined,
-        )
+        socket.emit('response', {
+          serializedResponse: response
+            ? await serializeResponse(response)
+            : undefined,
+        })
       })
 
-      socket.on('lifeCycleEventForward', async (eventName, args) => {
+      socket.on('lifeCycleEventForward', async (type, args) => {
         const deserializedArgs = await deserializeEventPayload(args)
-        this.emitter.emit(eventName, deserializedArgs as any)
+        this.emitter.emit(type, deserializedArgs as any)
       })
     })
   }
 
   public async close(): Promise<void> {
-    const { [kSyncServer]: syncServer } = globalThis
+    const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
 
     invariant(
       syncServer,
@@ -129,12 +138,12 @@ export class SetupRemoteServerApi
 async function createSyncServer(
   url: URL,
 ): Promise<WebSocketServer<SyncServerEventsMap>> {
-  const existingSyncServer = globalThis[kSyncServer]
+  const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
 
   // Reuse the existing WebSocket server reference if it exists.
   // It persists on the global scope between hot updates.
-  if (existingSyncServer) {
-    return existingSyncServer
+  if (syncServer) {
+    return syncServer
   }
 
   const serverReadyPromise = new DeferredPromise<
@@ -143,24 +152,27 @@ async function createSyncServer(
 
   const httpServer = http.createServer()
   const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
+    transports: ['websocket'],
     cors: {
       origin: '*',
       methods: ['HEAD', 'GET', 'POST'],
     },
   })
 
-  console.log('Creating a WS server...')
-
   httpServer.listen(+url.port, url.hostname, () => {
-    globalThis[kSyncServer] = ws
     serverReadyPromise.resolve(ws)
   })
 
-  httpServer.on('error', (error: Error | NodeJS.ErrnoException) => {
+  httpServer.on('error', (error) => {
     serverReadyPromise.reject(error)
   })
 
-  return serverReadyPromise
+  return serverReadyPromise.then((ws) => {
+    Object.defineProperty(globalThis, kSyncServer, {
+      value: ws,
+    })
+    return ws
+  })
 }
 
 async function closeSyncServer(server: WebSocketServer): Promise<void> {
@@ -170,12 +182,12 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
     if (error) {
       return serverClosePromise.reject(error)
     }
-
-    Reflect.deleteProperty(globalThis, kSyncServer)
     serverClosePromise.resolve()
   })
 
-  return serverClosePromise
+  return serverClosePromise.then(() => {
+    Reflect.deleteProperty(globalThis, kSyncServer)
+  })
 }
 
 function createWebSocketServerUrl(port: number): URL {
@@ -189,32 +201,29 @@ function createWebSocketServerUrl(port: number): URL {
  * WebSocket sync server of MSW.
  */
 export async function createSyncClient(port: number) {
-  const connectionPromise = new DeferredPromise<
-    Socket<SyncServerEventsMap> | undefined
-  >()
+  const connectionPromise = new DeferredPromise<Socket<SyncServerEventsMap>>()
   const url = createWebSocketServerUrl(port)
   const socket = io(url.href, {
-    // Keep a low timeout and no reconnection logic because
+    transports: ['websocket'],
+    // Keep a low timeout and no retry logic because
     // the user is expected to enable remote interception
-    // before the actual application with "setupServer" uses
-    // this function to try and connect to a potentially running server.
+    // before the actual application with "setupServer".
     timeout: 200,
     reconnection: false,
     extraHeaders: {
-      // Mark all Socket.io requests with an internal header
-      // so they are always bypassed in the remote request handler.
-      // This has no effect on the user's traffic.
-      'x-msw-request-type': 'internal-request',
+      // Bypass the internal WebSocket connection requests
+      // to exclude them from the request lookup altogether.
+      // This prevents MSW from treating these requests as unhandled.
+      [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.bypass,
     },
   })
 
   socket.on('connect', () => {
-    console.log('[msw] setupRemoteServer, CONNECTION!')
     connectionPromise.resolve(socket)
   })
 
-  socket.io.on('error', () => {
-    connectionPromise.resolve(undefined)
+  socket.io.once('error', (error) => {
+    connectionPromise.reject(error)
   })
 
   return connectionPromise

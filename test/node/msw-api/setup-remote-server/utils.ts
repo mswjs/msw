@@ -14,7 +14,7 @@ export class TestNodeApp {
       'Failed to return the URL for the test Node app: the app is not running. Did you forget to call ".spawn()"?',
     )
 
-    return this._url.href
+    return this._url
   }
 
   public async start(): Promise<URL | undefined> {

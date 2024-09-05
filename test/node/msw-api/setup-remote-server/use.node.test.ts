@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+// @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { setupRemoteServer } from 'msw/node'
 import { TestNodeApp } from './utils'

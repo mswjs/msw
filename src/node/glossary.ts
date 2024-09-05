@@ -10,9 +10,22 @@ import type {
 } from '~/core/sharedOptions'
 
 export interface ListenOptions extends SharedOptions {
+  /**
+   * Enable remote request resolution.
+   *
+   * With `remote` set to `true`, all the outgoing requests in this process
+   * will be forwarded to a remote process where `setupRemoteServer` was
+   * created to handle. If the remote process hasn't handled the request,
+   * it will be handled by whichever request handlers you have in this process.
+   */
   remote?:
     | boolean
     | {
+        /**
+         * Custom port number to synchronize this `setupServer` with
+         * the remote `setupRemoteServer`.
+         * @default 56957
+         */
         port?: number
       }
 }

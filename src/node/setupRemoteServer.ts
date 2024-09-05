@@ -42,6 +42,11 @@ export function setupRemoteServer(
 }
 
 export interface SetupRemoteServerListenOptions {
+  /**
+   * Custom port number to synchronize this this `setupRemoteServer`
+   * with the regular `setupServer`.
+   * @default 56957
+   */
   port?: number
 }
 

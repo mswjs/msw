@@ -10,7 +10,11 @@ import type {
 } from '~/core/sharedOptions'
 
 export interface ListenOptions extends SharedOptions {
-  remotePort?: number
+  remote?:
+    | boolean
+    | {
+        port?: number
+      }
 }
 
 export interface SetupServerCommon {

@@ -11,7 +11,7 @@ const server = setupServer(
 )
 
 server.listen({
-  remotePort: 56789,
+  remote: true,
 })
 
 // Spawn a Node.js application.

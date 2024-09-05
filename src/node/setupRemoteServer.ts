@@ -27,6 +27,8 @@ import {
   RequestIntention,
 } from '~/core/utils/internal/requestUtils'
 
+export const MSW_REMOTE_SERVER_PORT = 56957
+
 const kSyncServer = Symbol('kSyncServer')
 type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
 
@@ -40,7 +42,7 @@ export function setupRemoteServer(
 }
 
 export interface SetupRemoteServerListenOptions {
-  port: number
+  port?: number
 }
 
 export interface SetupRemoteServer {
@@ -73,15 +75,19 @@ export class SetupRemoteServerApi
     super(...handlers)
   }
 
-  public async listen(options: SetupRemoteServerListenOptions): Promise<void> {
+  public async listen(
+    options: SetupRemoteServerListenOptions = {},
+  ): Promise<void> {
+    const port = options.port || MSW_REMOTE_SERVER_PORT
+
     invariant(
-      typeof options.port === 'number',
+      typeof port === 'number',
       'Failed to initialize remote server: expected the "port" option to be a valid port number but got "%s". Make sure it is the same port number you provide as the "remotePort" option to "server.listen()" in your application.',
-      options.port,
+      port,
     )
 
     const dummyEmitter = new Emitter<LifeCycleEventsMap>()
-    const wssUrl = createWebSocketServerUrl(options.port)
+    const wssUrl = createWebSocketServerUrl(port)
     const server = await createSyncServer(wssUrl)
 
     server.removeAllListeners()

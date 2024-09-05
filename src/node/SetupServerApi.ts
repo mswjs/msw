@@ -8,7 +8,11 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
 import { Socket } from 'socket.io-client'
-import { SyncServerEventsMap, createSyncClient } from './setupRemoteServer'
+import {
+  MSW_REMOTE_SERVER_PORT,
+  SyncServerEventsMap,
+  createSyncClient,
+} from './setupRemoteServer'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import {
   onAnyEvent,
@@ -97,15 +101,20 @@ export class SetupServerApi
     // If the "remotePort" option has been provided to the server,
     // run it in a special "remote" mode. That mode ensures that
     // an extraneous Node.js process can affect this process' traffic.
-    if (this.resolvedOptions.remotePort != null) {
+    if (typeof this.resolvedOptions.remote !== 'undefined') {
+      const remotePort =
+        typeof this.resolvedOptions.remote === 'object'
+          ? this.resolvedOptions.remote.port || MSW_REMOTE_SERVER_PORT
+          : MSW_REMOTE_SERVER_PORT
+
       invariant(
-        typeof this.resolvedOptions.remotePort === 'number',
+        typeof remotePort === 'number',
         'Failed to enable request interception: expected the "remotePort" option to be a valid port number, but got "%s". Make sure it is the same port number you provide as the "port" option to "remote.listen()" in your tests.',
-        this.resolvedOptions.remotePort,
+        remotePort,
       )
 
       // Create the WebSocket sync client immediately when starting the interception.
-      this.socketPromise = createSyncClient(this.resolvedOptions.remotePort)
+      this.socketPromise = createSyncClient(remotePort)
 
       // Once the sync server connection is established, prepend the
       // remote request handler to be the first for this process.

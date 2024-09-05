@@ -127,7 +127,7 @@ it('emits correct events for the request handled in the remote process', async (
   })
 })
 
-it.only('emits correct events for the request unhandled by either parties', async () => {
+it('emits correct events for the request unhandled by either parties', async () => {
   const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
 
   const resourceUrl = httpServer.http.url('/greeting')

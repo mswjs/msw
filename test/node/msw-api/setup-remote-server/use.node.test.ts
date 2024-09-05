@@ -4,7 +4,6 @@ import { setupRemoteServer } from 'msw/node'
 import { TestNodeApp } from './utils'
 
 const remote = setupRemoteServer()
-
 const testApp = new TestNodeApp(require.resolve('./use.app.js'))
 
 beforeAll(async () => {

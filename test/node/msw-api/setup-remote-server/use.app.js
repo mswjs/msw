@@ -1,3 +1,4 @@
+const { Readable } = require('node:stream')
 const express = require('express')
 const { http, HttpResponse } = require('msw')
 const { setupServer } = require('msw/node')
@@ -17,10 +18,9 @@ server.listen({
 const app = express()
 
 app.get('/resource', async (req, res) => {
-  const data = await fetch('https://example.com/resource').then((response) =>
-    response.json(),
-  )
-  res.set(200).json(data)
+  const response = await fetch('https://example.com/resource')
+  res.writeHead(response.status, response.statusText)
+  Readable.fromWeb(response.body).pipe(res)
 })
 
 app.use('/proxy', async (req, res) => {

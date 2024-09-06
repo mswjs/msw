@@ -23,8 +23,12 @@ export function graphqlImportPlugin(): Plugin {
           return {
             loader: 'ts',
             contents:
+              /**
+               * @note Use `webpackIgnore: true` to prevent webpack from treating
+               * this dynamic import as a code splitting point.
+               */
               contents.slice(0, match.index - 1) +
-              `await import('graphql').catch((error) => {console.error('[MSW] Failed to parse a GraphQL query: cannot import the "graphql" module. Please make sure you install it if you wish to intercept GraphQL requests. See the original import error below.'); throw error})` +
+              `await import(/* webpackIgnore: true */'graphql').catch((error) => {console.error('[MSW] Failed to parse a GraphQL query: cannot import the "graphql" module. Please make sure you install it if you wish to intercept GraphQL requests. See the original import error below.'); throw error})` +
               contents.slice(match.index + match[0].length),
           }
         }

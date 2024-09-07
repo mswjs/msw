@@ -32,6 +32,9 @@ dependencies:
   chalk:
     specifier: ^4.1.2
     version: 4.1.2
+  graphql:
+    specifier: ^16.8.1
+    version: 16.9.0
   headers-polyfill:
     specifier: ^4.0.2
     version: 4.0.3
@@ -142,9 +145,6 @@ devDependencies:
   glob:
     specifier: ^10.3.10
     version: 10.3.12
-  graphql:
-    specifier: ^16.8.1
-    version: 16.8.2
   jsdom:
     specifier: ^23.2.0
     version: 23.2.0
@@ -4850,10 +4850,10 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /graphql@16.8.2:
-    resolution: {integrity: sha512-cvVIBILwuoSyD54U4cF/UXDh5yAobhNV/tPygI4lZhgOIJQE/WLWC4waBRb4I6bDVYb3OVx3lfHbaQOEoUD5sg==}
+  /graphql@16.9.0:
+    resolution: {integrity: sha512-GGTKBX4SD7Wdb8mqeDLni2oaRGYQWjWHGKPQ24ZMnUtKfcsVoiv4uX8+LJr1K6U5VW2Lu1BwJnj7uiori0YtRw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
-    dev: true
+    dev: false
 
   /hard-rejection@2.1.0:
     resolution: {integrity: sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==}

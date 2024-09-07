@@ -142,6 +142,7 @@
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
     "chalk": "^4.1.2",
+    "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.2",
@@ -180,7 +181,6 @@
     "fs-extra": "^11.2.0",
     "fs-teardown": "^0.3.0",
     "glob": "^10.3.10",
-    "graphql": "^16.8.1",
     "jsdom": "^23.2.0",
     "json-bigint": "^1.0.0",
     "lint-staged": "^15.2.0",
@@ -200,13 +200,9 @@
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "graphql": ">= 16.8.x",
     "typescript": ">= 4.8.x"
   },
   "peerDependenciesMeta": {
-    "graphql": {
-      "optional": true
-    },
     "typescript": {
       "optional": true
     }

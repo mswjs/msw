@@ -16,7 +16,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
-import type { SetupServerCommon } from './glossary'
+import type { ListenOptions, SetupServerCommon } from './glossary'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -30,7 +30,7 @@ export class SetupServerCommonApi
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  private resolvedOptions: RequiredDeep<SharedOptions>
+  protected resolvedOptions: RequiredDeep<ListenOptions>
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -42,17 +42,27 @@ export class SetupServerCommonApi
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
-
-    this.resolvedOptions = {} as RequiredDeep<SharedOptions>
-
+    this.resolvedOptions = {} as RequiredDeep<ListenOptions>
     this.init()
+  }
+
+  protected async beforeRequest(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args: {
+      requestId: string
+      request: Request
+    },
+  ): Promise<void> {
+    return Promise.resolve()
   }
 
   /**
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async ({ request, requestId }) => {
+    this.interceptor.on('request', async ({ requestId, request }) => {
+      await this.beforeRequest({ requestId, request })
+
       const response = await handleRequest(
         request,
         requestId,
@@ -64,8 +74,6 @@ export class SetupServerCommonApi
       if (response) {
         request.respondWith(response)
       }
-
-      return
     })
 
     this.interceptor.on('unhandledException', ({ error }) => {
@@ -89,11 +97,11 @@ export class SetupServerCommonApi
     )
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
-    ) as RequiredDeep<SharedOptions>
+    ) as RequiredDeep<ListenOptions>
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()

@@ -1,4 +1,8 @@
 import { invariant } from 'outvariant'
+import {
+  REQUEST_INTENTION_HEADER_NAME,
+  RequestIntention,
+} from './utils/internal/requestUtils'
 
 export type BypassRequestInput = string | URL | Request
 
@@ -38,7 +42,10 @@ export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
   // to bypass this request from any further request matching.
   // Unlike "passthrough()", bypass is meant for performing
   // additional requests within pending request resolution.
-  requestClone.headers.set('x-msw-intention', 'bypass')
+  requestClone.headers.set(
+    REQUEST_INTENTION_HEADER_NAME,
+    RequestIntention.bypass,
+  )
 
   return requestClone
 }

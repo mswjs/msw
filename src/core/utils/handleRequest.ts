@@ -6,6 +6,10 @@ import { RequiredDeep } from '../typeUtils'
 import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { storeResponseCookies } from './request/storeResponseCookies'
+import {
+  shouldBypassRequest,
+  shouldPassthroughRequest,
+} from './internal/requestUtils'
 
 export interface HandleRequestOptions {
   /**
@@ -53,7 +57,7 @@ export async function handleRequest(
   emitter.emit('request:start', { request, requestId })
 
   // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
-  if (request.headers.get('x-msw-intention') === 'bypass') {
+  if (shouldBypassRequest(request)) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
@@ -99,12 +103,9 @@ export async function handleRequest(
     return
   }
 
-  // Perform the request as-is when the developer explicitly returned "req.passthrough()".
+  // Perform the request as-is when the developer explicitly returned `passthrough()`.
   // This produces no warning as the request was handled.
-  if (
-    response.status === 302 &&
-    response.headers.get('x-msw-intention') === 'passthrough'
-  ) {
+  if (shouldPassthroughRequest(response)) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return

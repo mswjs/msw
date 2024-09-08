@@ -18,8 +18,8 @@ dependencies:
     specifier: ^3.0.0
     version: 3.1.1
   '@mswjs/interceptors':
-    specifier: ^0.29.0
-    version: 0.29.0
+    specifier: ^0.35.0
+    version: 0.35.0
   '@open-draft/until':
     specifier: ^2.1.0
     version: 2.1.0
@@ -1419,15 +1419,15 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@mswjs/interceptors@0.29.0:
-    resolution: {integrity: sha512-eppU9TxaRS2t5IcR00nuh+36zMHcK09pyhUvWJLO1ae5+U8KL7iatUGKlLUlbxXaq3BvDjlcF0Q8Xhzyosk/xA==}
+  /@mswjs/interceptors@0.35.0:
+    resolution: {integrity: sha512-f5cHyIvm4m4g1I5x9EH1etGx0puaU0OaX2szqGRVBVgUC6aMASlOI5hbpe7tJ9l4/VWjCUu5OMraCazLZGI24A==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
       '@open-draft/until': 2.1.0
       is-node-process: 1.2.0
-      outvariant: 1.4.2
+      outvariant: 1.4.3
       strict-event-emitter: 0.5.1
     dev: false
 
@@ -1459,7 +1459,7 @@ packages:
     resolution: {integrity: sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ==}
     dependencies:
       is-node-process: 1.2.0
-      outvariant: 1.4.2
+      outvariant: 1.4.3
     dev: false
 
   /@open-draft/test-server@0.4.2:
@@ -6283,6 +6283,10 @@ packages:
 
   /outvariant@1.4.2:
     resolution: {integrity: sha512-Ou3dJ6bA/UJ5GVHxah4LnqDwZRwAmWxrG3wtrHrbGnP4RnLCtA64A4F+ae7Y8ww660JaddSoArUR5HjipWSHAQ==}
+
+  /outvariant@1.4.3:
+    resolution: {integrity: sha512-+Sl2UErvtsoajRDKCE5/dBz4DIvHXQQnAxtQTF04OJxY0+DyZXSo5P5Bb7XYWOh81syohlYL24hbDwxedPUJCA==}
+    dev: false
 
   /p-limit@2.3.0:
     resolution: {integrity: sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==}

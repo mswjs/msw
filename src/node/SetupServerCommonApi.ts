@@ -52,21 +52,24 @@ export class SetupServerCommonApi
    * Subscribe to all requests that are using the interceptor object
    */
   private init(): void {
-    this.interceptor.on('request', async ({ request, requestId }) => {
-      const response = await handleRequest(
-        request,
-        requestId,
-        this.handlersController.currentHandlers(),
-        this.resolvedOptions,
-        this.emitter,
-      )
+    this.interceptor.on(
+      'request',
+      async ({ request, requestId, controller }) => {
+        const response = await handleRequest(
+          request,
+          requestId,
+          this.handlersController.currentHandlers(),
+          this.resolvedOptions,
+          this.emitter,
+        )
 
-      if (response) {
-        request.respondWith(response)
-      }
+        if (response) {
+          controller.respondWith(response)
+        }
 
-      return
-    })
+        return
+      },
+    )
 
     this.interceptor.on('unhandledException', ({ error }) => {
       if (error instanceof InternalError) {

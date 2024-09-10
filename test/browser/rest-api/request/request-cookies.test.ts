@@ -203,7 +203,7 @@ test('respects cookie "Path" when exposing cookies', async ({
   })
 })
 
-test('deletes a cookie when received "max-age=0" in a mocked response', async ({
+test('deletes a cookie when sending "max-age=0" in a mocked response', async ({
   loadExample,
   fetch,
 }) => {

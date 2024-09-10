@@ -177,7 +177,6 @@ test('inherits mocked "HttpOnly" cookies', async ({
 test('respects cookie "Path" when exposing cookies', async ({
   loadExample,
   fetch,
-  page,
 }) => {
   await loadExample(require.resolve('./request-cookies.mocks.ts'))
 
@@ -202,4 +201,31 @@ test('respects cookie "Path" when exposing cookies', async ({
   await expect(matchingResponse.json()).resolves.toEqual({
     mockedCookie: 'mockedValue',
   })
+})
+
+test('deletes a cookie when received "max-age=0" in a mocked response', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+
+  // First, set the cookie.
+  await fetch('/set-cookies', {
+    method: 'POST',
+    body: `mockedCookie=mockedValue`,
+  })
+
+  // Must forward the mocked cookied to the matching request.
+  await expect(fetch('/cookies').then((res) => res.json())).resolves.toEqual({
+    mockedCookie: 'mockedValue',
+  })
+
+  // Next, delete the cookie by setting "max-age=0".
+  await fetch('/set-cookies', {
+    method: 'POST',
+    body: `mockedCookie=mockedValue; max-age=0`,
+  })
+
+  // Must NOT have any cookies on the matching request.
+  await expect(fetch('/cookies').then((res) => res.json())).resolves.toEqual({})
 })

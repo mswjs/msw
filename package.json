@@ -146,9 +146,9 @@
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.2",
-    "path-to-regexp": "^6.2.0",
     "strict-event-emitter": "^0.5.1",
     "type-fest": "^4.9.0",
+    "urlpattern-polyfill": "^9.0.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

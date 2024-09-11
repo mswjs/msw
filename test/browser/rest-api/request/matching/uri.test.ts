@@ -6,7 +6,7 @@ test('matches an exact string with the same request URL with a trailing slash', 
 }) => {
   await loadExample(require.resolve('./uri.mocks.ts'))
 
-  const res = await fetch('https://api.github.com/made-up/')
+  const res = await fetch('https://api.github.com/made-up')
 
   expect(res.status()).toEqual(200)
   expect(res.fromServiceWorker()).toBe(true)

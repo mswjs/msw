@@ -1,3 +1,4 @@
+/* v8 ignore start */
 /* eslint-disable */
 /* tslint:disable */
 
@@ -282,3 +283,4 @@ async function respondWithMock(response) {
 
   return mockedResponse
 }
+/* v8 ignore stop */

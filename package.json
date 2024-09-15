@@ -146,7 +146,7 @@
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.2",
-    "path-to-regexp": "^6.2.0",
+    "path-to-regexp": "^6.3.0",
     "strict-event-emitter": "^0.5.1",
     "type-fest": "^4.9.0",
     "yargs": "^17.7.2"
@@ -177,7 +177,7 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
-    "express": "^4.18.2",
+    "express": "^5.0.0",
     "fs-extra": "^11.2.0",
     "fs-teardown": "^0.3.0",
     "glob": "^10.3.10",

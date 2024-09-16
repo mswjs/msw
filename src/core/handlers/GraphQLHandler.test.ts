@@ -164,7 +164,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'query',
@@ -193,7 +193,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'query',
@@ -221,7 +221,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'query',
@@ -250,7 +250,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'query',
@@ -280,7 +280,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'mutation',
@@ -309,7 +309,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'mutation',
@@ -337,7 +337,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'mutation',
@@ -366,7 +366,7 @@ describe('parse', () => {
         match: {
           matches: true,
           params: {
-            '0': 'https://example.com/',
+            wildcard: ['https:', '', 'example.com', ''],
           },
         },
         operationType: 'mutation',
@@ -745,7 +745,7 @@ describe('run', () => {
       match: {
         matches: true,
         params: {
-          '0': 'https://example.com/',
+          wildcard: ['https:', '', 'example.com', ''],
         },
       },
       operationType: 'query',

@@ -27,7 +27,7 @@ export function coercePath(path: string): string {
       .replace(
         /([:a-zA-Z_-]*)(\*{1,2})+/g,
         (_, parameterName: string | undefined, wildcard: string) => {
-          const expression = '(.*)'
+          const expression = '{*wildcard}'
 
           if (!parameterName) {
             return expression
@@ -37,6 +37,14 @@ export function coercePath(path: string): string {
             ? `${parameterName}${wildcard}`
             : `${parameterName}${expression}`
         },
+      )
+      /**
+       * Replace optionals ("?") with unnamed capturing groups
+       * because "path-to-regexp" doesn't support optionals.
+       */
+      .replace(
+        /(\/[:a-zA-Z_-]*)(\?)/g,
+        (_, parameterName: string) => `{${parameterName}}`,
       )
       /**
        * Escape the port so that "path-to-regexp" can match
@@ -60,7 +68,7 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
   const cleanPath =
     typeof normalizedPath === 'string'
       ? coercePath(normalizedPath)
-      : normalizedPath
+      : `{*wildcard}${normalizedPath.source}{*wildcard}`
 
   const cleanUrl = getCleanUrl(url)
   const result = match(cleanPath, { decode: decodeURIComponent })(cleanUrl)

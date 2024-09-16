@@ -17,7 +17,7 @@ describe('matchRequestUrl', () => {
     const match = matchRequestUrl(new URL('https://test.mswjs.io'), '*')
     expect(match).toHaveProperty('matches', true)
     expect(match).toHaveProperty('params', {
-      '0': 'https://test.mswjs.io/',
+      wildcard: ['https:', '', 'test.mswjs.io', ''],
     })
   })
 
@@ -27,7 +27,7 @@ describe('matchRequestUrl', () => {
       /test\.mswjs\.io/,
     )
     expect(match).toHaveProperty('matches', true)
-    expect(match).toHaveProperty('params', {})
+    expect(match).toHaveProperty('params', { wildcard: ['', ''] })
   })
 
   test('returns path parameters when matched', () => {
@@ -101,25 +101,27 @@ describe('coercePath', () => {
   })
 
   test('replaces wildcard with an unnnamed capturing group', () => {
-    expect(coercePath('*')).toEqual('(.*)')
-    expect(coercePath('**')).toEqual('(.*)')
-    expect(coercePath('/us*')).toEqual('/us(.*)')
-    expect(coercePath('/user/*')).toEqual('/user/(.*)')
+    expect(coercePath('*')).toEqual('{*wildcard}')
+    expect(coercePath('**')).toEqual('{*wildcard}')
+    expect(coercePath('/us*')).toEqual('/us{*wildcard}')
+    expect(coercePath('/user/*')).toEqual('/user/{*wildcard}')
     expect(coercePath('https://example.com/user/*')).toEqual(
-      'https\\://example.com/user/(.*)',
+      'https\\://example.com/user/{*wildcard}',
     )
     expect(coercePath('https://example.com/us*')).toEqual(
-      'https\\://example.com/us(.*)',
+      'https\\://example.com/us{*wildcard}',
     )
   })
 
   test('preserves path parameter modifiers', () => {
     expect(coercePath(':name*')).toEqual(':name*')
     expect(coercePath('/foo/:name*')).toEqual('/foo/:name*')
-    expect(coercePath('/foo/**:name*')).toEqual('/foo/(.*):name*')
-    expect(coercePath('**/foo/*/:name*')).toEqual('(.*)/foo/(.*)/:name*')
+    expect(coercePath('/foo/**:name*')).toEqual('/foo/{*wildcard}:name*')
+    expect(coercePath('**/foo/*/:name*')).toEqual(
+      '{*wildcard}/foo/{*wildcard}/:name*',
+    )
     expect(coercePath('/foo/:first/bar/:second*/*')).toEqual(
-      '/foo/:first/bar/:second*/(.*)',
+      '/foo/:first/bar/:second*/{*wildcard}',
     )
   })
 })

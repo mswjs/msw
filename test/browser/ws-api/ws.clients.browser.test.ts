@@ -139,6 +139,8 @@ test.only('broadcasts messages across runtimes', async ({
         }),
       )
       await worker.start()
+
+      window.worker = worker
     })
 
     await page.evaluate(() => {

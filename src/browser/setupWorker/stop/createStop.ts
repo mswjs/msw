@@ -1,5 +1,4 @@
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { MSW_WEBSOCKET_CLIENTS_KEY } from '~/core/ws/WebSocketClientManager'
 import { SetupWorkerInternalContext, StopHandler } from '../glossary'
 import { printStopMessage } from './utils/printStopMessage'
 
@@ -25,8 +24,11 @@ export const createStop = (
     context.isMockingEnabled = false
     window.clearInterval(context.keepAliveInterval)
 
-    // Clear the WebSocket clients from the shared storage.
-    localStorage.removeItem(MSW_WEBSOCKET_CLIENTS_KEY)
+    // Post the internal stop message on the window
+    // to let any logic know when the worker has stopped.
+    // E.g. the WebSocket client manager needs this to know
+    // when to clear its in-memory clients list.
+    window.postMessage({ type: 'msw/worker:stop' })
 
     printStopMessage({ quiet: context.startOptions?.quiet })
   }

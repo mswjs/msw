@@ -6,13 +6,6 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import { type Path } from '../utils/matching/matchRequestUrl'
 
-/**
- * @todo REMOVE this.
- * This is used by the worker to notify this manager when the worker closes
- * by removing this key from localStorage.
- */
-export const MSW_WEBSOCKET_CLIENTS_KEY = 'msw:ws:clients'
-
 const DB_NAME = 'msw-websocket-clients'
 const DB_STORE_NAME = 'clients'
 
@@ -45,7 +38,7 @@ type SerializedClient = {
 export class WebSocketClientManager {
   private db: Promise<IDBDatabase>
   private runtimeClients: Map<string, WebSocketClientConnectionProtocol>
-  private inMemoryClients: Set<WebSocketClientConnectionProtocol>
+  private allClients: Set<WebSocketClientConnectionProtocol>
 
   constructor(
     private channel: BroadcastChannel,
@@ -53,7 +46,7 @@ export class WebSocketClientManager {
   ) {
     this.db = this.createDatabase()
     this.runtimeClients = new Map()
-    this.inMemoryClients = new Set()
+    this.allClients = new Set()
 
     this.channel.addEventListener('message', (message) => {
       if (message.data?.type === 'db:update') {
@@ -62,10 +55,9 @@ export class WebSocketClientManager {
     })
 
     if (typeof window !== 'undefined') {
-      // When the worker closes, drop the IndexedDB store.
-      window.addEventListener('message', (message) => {
+      window.addEventListener('message', async (message) => {
         if (message.data?.type === 'msw/worker:stop') {
-          this.clearStore()
+          await this.removeRuntimeClients()
         }
       })
     }
@@ -109,7 +101,7 @@ export class WebSocketClientManager {
       const request = store.getAll() as IDBRequest<Array<SerializedClient>>
 
       request.onsuccess = () => {
-        this.inMemoryClients = new Set(
+        this.allClients = new Set(
           request.result.map((client) => {
             const runtimeClient = this.runtimeClients.get(client.id)
 
@@ -137,16 +129,41 @@ export class WebSocketClientManager {
     return db.transaction(DB_STORE_NAME, 'readwrite').objectStore(DB_STORE_NAME)
   }
 
-  private async clearStore(): Promise<void> {
-    const db = await this.db
-    db.deleteObjectStore(DB_STORE_NAME)
+  private async removeRuntimeClients(): Promise<void> {
+    const promise = new DeferredPromise<void>()
+    const store = await this.getStore()
+
+    this.runtimeClients.forEach((client) => {
+      store.delete(client.id)
+    })
+
+    store.transaction.oncomplete = () => {
+      this.runtimeClients.clear()
+      this.flushDatabaseToMemory()
+      this.notifyOthersAboutDatabaseUpdate()
+      promise.resolve()
+    }
+
+    store.transaction.onerror = () => {
+      promise.reject(
+        new Error('Failed to remove runtime clients from the store'),
+      )
+    }
+
+    return promise
   }
 
   /**
    * All active WebSocket client connections.
    */
   get clients(): Set<WebSocketClientConnectionProtocol> {
-    return this.inMemoryClients
+    return this.allClients
+  }
+
+  private notifyOthersAboutDatabaseUpdate(): void {
+    // Notify other runtimes to sync their in-memory clients
+    // with the updated database.
+    this.channel.postMessage({ type: 'db:update' })
   }
 
   private addClient(client: WebSocketClientConnection): void {
@@ -161,10 +178,7 @@ export class WebSocketClientManager {
           // Sync the in-memory clients in this runtime with the
           // updated database. This pulls in all the stored clients.
           this.flushDatabaseToMemory()
-
-          // Notify other runtimes to sync their in-memory clients
-          // with the updated database.
-          this.channel.postMessage({ type: 'db:update' })
+          this.notifyOthersAboutDatabaseUpdate()
         }
 
         request.onerror = () => {

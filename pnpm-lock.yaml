@@ -20,6 +20,9 @@ dependencies:
   '@mswjs/interceptors':
     specifier: ^0.35.6
     version: 0.35.6
+  '@open-draft/deferred-promise':
+    specifier: ^2.2.0
+    version: 2.2.0
   '@open-draft/until':
     specifier: ^2.1.0
     version: 2.1.0

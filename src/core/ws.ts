@@ -17,12 +17,12 @@ function isBroadcastChannelWithUnref(
   return typeof Reflect.get(channel, 'unref') !== 'undefined'
 }
 
-const wsBroadcastChannel = new BroadcastChannel('msw:ws-client-manager')
+const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
-if (isBroadcastChannelWithUnref(wsBroadcastChannel)) {
+if (isBroadcastChannelWithUnref(webSocketChannel)) {
   // Allows the Node.js thread to exit if it is the only active handle in the event system.
   // https://nodejs.org/api/worker_threads.html#broadcastchannelunref
-  wsBroadcastChannel.unref()
+  webSocketChannel.unref()
 }
 
 export type WebSocketLink = {
@@ -99,7 +99,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     typeof url,
   )
 
-  const clientManager = new WebSocketClientManager(wsBroadcastChannel, url)
+  const clientManager = new WebSocketClientManager(webSocketChannel, url)
 
   return {
     get clients() {

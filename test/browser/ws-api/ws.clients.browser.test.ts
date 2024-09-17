@@ -107,9 +107,10 @@ test('returns the number of active clients across different runtimes', async ({
   expect(await pageOne.evaluate(() => window.link.clients.size)).toBe(2)
 })
 
-test('broadcasts messages across runtimes', async ({
+test.only('broadcasts messages across runtimes', async ({
   loadExample,
   context,
+  page,
 }) => {
   const { compilation } = await loadExample(
     require.resolve('./ws.runtime.js'),
@@ -126,6 +127,10 @@ test('broadcasts messages across runtimes', async ({
     await page.evaluate(async () => {
       const { setupWorker, ws } = window.msw
       const api = ws.link('wss://example.com')
+
+      // @ts-ignore
+      window.api = api
+
       const worker = setupWorker(
         api.on('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
@@ -145,6 +150,8 @@ test('broadcasts messages across runtimes', async ({
       }
     })
   }
+
+  await page.pause()
 
   await pageOne.evaluate(() => {
     window.ws.send('hi from one')

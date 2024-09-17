@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node-websocket
- */
+// @vitest-environment node-websocket
 import {
   WebSocketClientConnection,
   WebSocketData,
@@ -25,26 +23,26 @@ afterEach(() => {
   vi.resetAllMocks()
 })
 
-it('adds a client from this runtime to the list of clients', () => {
+it('adds a client from this runtime to the list of clients', async () => {
   const manager = new WebSocketClientManager(channel, '*')
   const connection = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
   )
 
-  manager.addConnection(connection)
+  await manager.addConnection(connection)
 
   // Must add the client to the list of clients.
   expect(Array.from(manager.clients.values())).toEqual([connection])
 })
 
-it('adds multiple clients from this runtime to the list of clients', () => {
+it('adds multiple clients from this runtime to the list of clients', async () => {
   const manager = new WebSocketClientManager(channel, '*')
   const connectionOne = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
   )
-  manager.addConnection(connectionOne)
+  await manager.addConnection(connectionOne)
 
   // Must add the client to the list of clients.
   expect(Array.from(manager.clients.values())).toEqual([connectionOne])
@@ -53,7 +51,7 @@ it('adds multiple clients from this runtime to the list of clients', () => {
     socket,
     new TestWebSocketTransport(),
   )
-  manager.addConnection(connectionTwo)
+  await manager.addConnection(connectionTwo)
 
   // Must add the new cilent to the list as well.
   expect(Array.from(manager.clients.values())).toEqual([
@@ -68,7 +66,7 @@ it('replays a "send" event coming from another runtime', async () => {
     socket,
     new TestWebSocketTransport(),
   )
-  manager.addConnection(connection)
+  await manager.addConnection(connection)
   vi.spyOn(connection, 'send')
 
   // Emulate another runtime signaling this connection to receive data.
@@ -97,7 +95,7 @@ it('replays a "close" event coming from another runtime', async () => {
     socket,
     new TestWebSocketTransport(),
   )
-  manager.addConnection(connection)
+  await manager.addConnection(connection)
   vi.spyOn(connection, 'close')
 
   // Emulate another runtime signaling this connection to close.
@@ -137,7 +135,7 @@ it('removes the extraneous message listener when the connection closes', async (
   })
   vi.spyOn(connection, 'send')
 
-  manager.addConnection(connection)
+  await manager.addConnection(connection)
   connection.close()
 
   // Signals from other runtimes have no effect on the closed connection.

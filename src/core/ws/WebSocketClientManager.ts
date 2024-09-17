@@ -88,11 +88,10 @@ export class WebSocketClientManager {
   }
 
   private async removeRuntimeClients(): Promise<void> {
-    this.store.deleteMany(Array.from(this.runtimeClients.keys())).then(() => {
-      this.runtimeClients.clear()
-      this.flushDatabaseToMemory()
-      this.notifyOthersAboutDatabaseUpdate()
-    })
+    await this.store.deleteMany(Array.from(this.runtimeClients.keys()))
+    this.runtimeClients.clear()
+    await this.flushDatabaseToMemory()
+    this.notifyOthersAboutDatabaseUpdate()
   }
 
   /**
@@ -110,13 +109,12 @@ export class WebSocketClientManager {
     this.channel.postMessage({ type: 'db:update' })
   }
 
-  private addClient(client: WebSocketClientConnection): void {
-    this.store.add(client).then(() => {
-      // Sync the in-memory clients in this runtime with the
-      // updated database. This pulls in all the stored clients.
-      this.flushDatabaseToMemory()
-      this.notifyOthersAboutDatabaseUpdate()
-    })
+  private async addClient(client: WebSocketClientConnection): Promise<void> {
+    await this.store.add(client)
+    // Sync the in-memory clients in this runtime with the
+    // updated database. This pulls in all the stored clients.
+    await this.flushDatabaseToMemory()
+    this.notifyOthersAboutDatabaseUpdate()
   }
 
   /**
@@ -125,14 +123,14 @@ export class WebSocketClientManager {
    * connection object because `addConnection()` is called only
    * for the opened connections in the same runtime.
    */
-  public addConnection(client: WebSocketClientConnection): void {
+  public async addConnection(client: WebSocketClientConnection): Promise<void> {
     // Store this client in the map of clients created in this runtime.
     // This way, the manager can distinguish between this runtime clients
     // and extraneous runtime clients when synchronizing clients storage.
     this.runtimeClients.set(client.id, client)
 
     // Add the new client to the storage.
-    this.addClient(client)
+    await this.addClient(client)
 
     // Handle the incoming BroadcastChannel messages from other runtimes
     // that attempt to control this runtime (via a remote connection wrapper).

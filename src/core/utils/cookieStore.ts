@@ -75,6 +75,11 @@ class WebStorageCookieStore extends Store {
     callback: (error: Error | null) => void,
   ): void {
     try {
+      // Never set cookies with `maxAge` of `0`.
+      if (cookie.maxAge === 0) {
+        return
+      }
+
       const store = this.getStore()
       store.push(cookie)
       this.updateStore(store)
@@ -90,6 +95,21 @@ class WebStorageCookieStore extends Store {
     newCookie: CookieInstance,
     callback: (error: Error | null) => void,
   ): void {
+    /**
+     * If updating a cookie with `maxAge` of `0`, remove it from the store.
+     * Otherwise, two cookie entries will be created.
+     * @see https://github.com/mswjs/msw/issues/2272
+     */
+    if (newCookie.maxAge === 0) {
+      this.removeCookie(
+        newCookie.domain || '',
+        newCookie.path || '',
+        newCookie.key,
+        callback,
+      )
+      return
+    }
+
     this.putCookie(newCookie, callback)
   }
 

@@ -8,7 +8,6 @@ yargs
     'Initializes Mock Service Worker at the specified directory',
     (yargs) => {
       yargs
-
         .positional('publicDir', {
           type: 'string',
           description: 'Relative path to the public directory',

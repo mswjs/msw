@@ -8,6 +8,7 @@ tmp
 /yarn.lock
 stats.html
 .vscode
+.idea
 msw-*.tgz
 .husky/_
 .env

@@ -1,7 +1,7 @@
 import { invariant } from 'outvariant'
 import type {
-  WebSocketClientConnectionProtocol,
   WebSocketData,
+  WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
@@ -25,6 +25,10 @@ if (isBroadcastChannelWithUnref(webSocketChannel)) {
   webSocketChannel.unref()
 }
 
+export type WebSocketEventListener<
+  EventType extends keyof WebSocketHandlerEventMap,
+> = (...args: WebSocketHandlerEventMap[EventType]) => void
+
 export type WebSocketLink = {
   /**
    * A set of all WebSocket clients connected
@@ -45,7 +49,7 @@ export type WebSocketLink = {
    */
   on<EventType extends keyof WebSocketHandlerEventMap>(
     event: EventType,
-    listener: (...args: WebSocketHandlerEventMap[EventType]) => void,
+    listener: WebSocketEventListener<EventType>,
   ): WebSocketHandler
 
   /**
@@ -158,3 +162,5 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
 export const ws = {
   link: createWebSocketLinkHandler,
 }
+
+export { WebSocketData }

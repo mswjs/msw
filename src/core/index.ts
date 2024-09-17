@@ -52,6 +52,8 @@ export type {
 } from './handlers/GraphQLHandler'
 export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
 
+export type { WebSocketData, WebSocketEventListener } from './ws'
+
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 

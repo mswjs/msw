@@ -117,12 +117,15 @@ export function attachWebSocketLogger(
 export function logConnectionOpen(client: WebSocketClientConnection) {
   const publicUrl = toPublicUrl(client.url)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(`${getTimestamp()} %c▶%c ${publicUrl}`),
     `color:${colors.blue}`,
     'color:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log('Client:', client.socket)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -135,6 +138,7 @@ export async function logOutgoingClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c↑%c ${publicData} %c${byteLength}%c`,
@@ -144,7 +148,9 @@ export async function logOutgoingClientMessage(
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -158,6 +164,7 @@ export async function logOutgoingMockedClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇡%c ${publicData} %c${byteLength}%c`,
@@ -167,7 +174,9 @@ export async function logOutgoingMockedClientMessage(
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -183,6 +192,7 @@ export async function logIncomingClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c↓%c ${publicData} %c${byteLength}%c`,
@@ -192,7 +202,9 @@ export async function logIncomingClientMessage(
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -206,6 +218,7 @@ export async function logIncomingMockedClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
@@ -215,7 +228,9 @@ export async function logIncomingMockedClientMessage(
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -223,6 +238,7 @@ function logConnectionClose(event: CloseEvent) {
   const target = event.target as WebSocket
   const publicUrl = toPublicUrl(target.url)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c■%c ${publicUrl}`,
@@ -230,7 +246,9 @@ function logConnectionClose(event: CloseEvent) {
     `color:${colors.blue}`,
     'color:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -240,6 +258,7 @@ export async function logIncomingServerMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⇣%c ${publicData} %c${byteLength}%c`,
@@ -249,7 +268,9 @@ export async function logIncomingServerMessage(
     'color:gray;font-weight:normal',
     'color:inherit;font-weight:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -257,6 +278,7 @@ function logClientError(event: Event) {
   const socket = event.target as WebSocket
   const publicUrl = toPublicUrl(socket.url)
 
+  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c\u00D7%c ${publicUrl}`,
@@ -264,6 +286,8 @@ function logClientError(event: Event) {
     `color:${colors.blue}`,
     'color:inherit',
   )
+  // eslint-disable-next-line no-console
   console.log(event)
+  // eslint-disable-next-line no-console
   console.groupEnd()
 }

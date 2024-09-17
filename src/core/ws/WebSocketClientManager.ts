@@ -1,13 +1,12 @@
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import type {
   WebSocketData,
   WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import { type Path } from '../utils/matching/matchRequestUrl'
-
-const DB_NAME = 'msw-websocket-clients'
-const DB_STORE_NAME = 'clients'
+import { WebSocketClientStore } from './WebSocketClientStore'
+import { WebSocketMemoryClientStore } from './WebSocketMemoryClientStore'
+import { WebSocketIndexedDBClientStore } from './WebSocketIndexedDBClientStore'
 
 export type WebSocketBroadcastChannelMessage =
   | {
@@ -26,17 +25,12 @@ export type WebSocketBroadcastChannelMessage =
       }
     }
 
-type SerializedClient = {
-  id: string
-  url: string
-}
-
 /**
  * A manager responsible for accumulating WebSocket client
  * connections across different browser runtimes.
  */
 export class WebSocketClientManager {
-  private db: Promise<IDBDatabase>
+  private store: WebSocketClientStore
   private runtimeClients: Map<string, WebSocketClientConnectionProtocol>
   private allClients: Set<WebSocketClientConnectionProtocol>
 
@@ -44,7 +38,13 @@ export class WebSocketClientManager {
     private channel: BroadcastChannel,
     private url: Path,
   ) {
-    this.db = this.createDatabase()
+    // Store the clients in the IndexedDB in the browser,
+    // otherwise, store the clients in memory.
+    this.store =
+      typeof indexedDB !== 'undefined'
+        ? new WebSocketIndexedDBClientStore()
+        : new WebSocketMemoryClientStore()
+
     this.runtimeClients = new Map()
     this.allClients = new Set()
 
@@ -63,94 +63,36 @@ export class WebSocketClientManager {
     }
   }
 
-  private async createDatabase() {
-    const promise = new DeferredPromise<IDBDatabase>()
-    const request = indexedDB.open(DB_NAME, 1)
+  private async flushDatabaseToMemory() {
+    const storedClients = await this.store.getAll()
 
-    request.onsuccess = ({ currentTarget }) => {
-      const db = Reflect.get(currentTarget!, 'result') as IDBDatabase
+    this.allClients = new Set(
+      storedClients.map((client) => {
+        const runtimeClient = this.runtimeClients.get(client.id)
 
-      if (db.objectStoreNames.contains(DB_STORE_NAME)) {
-        return promise.resolve(db)
-      }
-    }
+        /**
+         * @note For clients originating in this runtime, use their
+         * direct references. No need to wrap them in a remote connection.
+         */
+        if (runtimeClient) {
+          return runtimeClient
+        }
 
-    request.onupgradeneeded = async ({ currentTarget }) => {
-      const db = Reflect.get(currentTarget!, 'result') as IDBDatabase
-      if (db.objectStoreNames.contains(DB_STORE_NAME)) {
-        return
-      }
-
-      const store = db.createObjectStore(DB_STORE_NAME, { keyPath: 'id' })
-      store.transaction.oncomplete = () => {
-        promise.resolve(db)
-      }
-      store.transaction.onerror = () => {
-        promise.reject(new Error('Failed to create WebSocket client store'))
-      }
-    }
-    request.onerror = () => {
-      promise.reject(new Error('Failed to open an IndexedDB database'))
-    }
-
-    return promise
-  }
-
-  private flushDatabaseToMemory() {
-    this.getStore().then((store) => {
-      const request = store.getAll() as IDBRequest<Array<SerializedClient>>
-
-      request.onsuccess = () => {
-        this.allClients = new Set(
-          request.result.map((client) => {
-            const runtimeClient = this.runtimeClients.get(client.id)
-
-            /**
-             * @note For clients originating in this runtime, use their
-             * direct references. No need to wrap them in a remote connection.
-             */
-            if (runtimeClient) {
-              return runtimeClient
-            }
-
-            return new WebSocketRemoteClientConnection(
-              client.id,
-              new URL(client.url),
-              this.channel,
-            )
-          }),
+        return new WebSocketRemoteClientConnection(
+          client.id,
+          new URL(client.url),
+          this.channel,
         )
-      }
-    })
-  }
-
-  private async getStore(): Promise<IDBObjectStore> {
-    const db = await this.db
-    return db.transaction(DB_STORE_NAME, 'readwrite').objectStore(DB_STORE_NAME)
+      }),
+    )
   }
 
   private async removeRuntimeClients(): Promise<void> {
-    const promise = new DeferredPromise<void>()
-    const store = await this.getStore()
-
-    this.runtimeClients.forEach((client) => {
-      store.delete(client.id)
-    })
-
-    store.transaction.oncomplete = () => {
+    this.store.deleteMany(Array.from(this.runtimeClients.keys())).then(() => {
       this.runtimeClients.clear()
       this.flushDatabaseToMemory()
       this.notifyOthersAboutDatabaseUpdate()
-      promise.resolve()
-    }
-
-    store.transaction.onerror = () => {
-      promise.reject(
-        new Error('Failed to remove runtime clients from the store'),
-      )
-    }
-
-    return promise
+    })
   }
 
   /**
@@ -160,40 +102,21 @@ export class WebSocketClientManager {
     return this.allClients
   }
 
+  /**
+   * Notify other runtimes about the database update
+   * using the shared `BroadcastChannel` instance.
+   */
   private notifyOthersAboutDatabaseUpdate(): void {
-    // Notify other runtimes to sync their in-memory clients
-    // with the updated database.
     this.channel.postMessage({ type: 'db:update' })
   }
 
   private addClient(client: WebSocketClientConnection): void {
-    this.getStore()
-      .then((store) => {
-        const request = store.add({
-          id: client.id,
-          url: client.url.href,
-        } satisfies SerializedClient)
-
-        request.onsuccess = () => {
-          // Sync the in-memory clients in this runtime with the
-          // updated database. This pulls in all the stored clients.
-          this.flushDatabaseToMemory()
-          this.notifyOthersAboutDatabaseUpdate()
-        }
-
-        request.onerror = () => {
-          // eslint-disable-next-line no-console
-          console.error(
-            `Failed to add a WebSocket client ("${client.id}") connection to the store.`,
-          )
-        }
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(
-          `Failed to add a WebSocket client ("${client.id}") to the store: ${error}`,
-        )
-      })
+    this.store.add(client).then(() => {
+      // Sync the in-memory clients in this runtime with the
+      // updated database. This pulls in all the stored clients.
+      this.flushDatabaseToMemory()
+      this.notifyOthersAboutDatabaseUpdate()
+    })
   }
 
   /**
@@ -203,7 +126,12 @@ export class WebSocketClientManager {
    * for the opened connections in the same runtime.
    */
   public addConnection(client: WebSocketClientConnection): void {
+    // Store this client in the map of clients created in this runtime.
+    // This way, the manager can distinguish between this runtime clients
+    // and extraneous runtime clients when synchronizing clients storage.
     this.runtimeClients.set(client.id, client)
+
+    // Add the new client to the storage.
     this.addClient(client)
 
     // Handle the incoming BroadcastChannel messages from other runtimes

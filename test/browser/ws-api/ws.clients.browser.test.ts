@@ -107,7 +107,7 @@ test('returns the number of active clients across different runtimes', async ({
   expect(await pageOne.evaluate(() => window.link.clients.size)).toBe(2)
 })
 
-test.only('broadcasts messages across runtimes', async ({
+test('broadcasts messages across runtimes', async ({
   loadExample,
   context,
   page,

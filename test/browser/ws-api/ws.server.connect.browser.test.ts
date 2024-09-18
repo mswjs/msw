@@ -39,7 +39,7 @@ test('does not connect to the actual server by default', async ({
     const service = ws.link(serverUrl)
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         queueMicrotask(() => client.send('mock'))
       }),
     )
@@ -78,7 +78,7 @@ test('forwards incoming server events to the client once connected', async ({
     const service = ws.link(serverUrl)
 
     const worker = setupWorker(
-      service.on('connection', ({ server }) => {
+      service.addEventListener('connection', ({ server }) => {
         // Calling "connect()" establishes the connection
         // to the actual WebSocket server.
         server.connect()
@@ -116,7 +116,7 @@ test('throws an error when connecting to a non-existing server', async ({
 
     return new Promise(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ server }) => {
+        service.addEventListener('connection', ({ server }) => {
           server.connect()
         }),
       )

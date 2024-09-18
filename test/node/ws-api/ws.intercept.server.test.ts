@@ -33,7 +33,7 @@ it('intercepts incoming server text message', async () => {
     client.send('hello')
   })
   server.use(
-    service.on('connection', ({ server }) => {
+    service.addEventListener('connection', ({ server }) => {
       server.connect()
       server.addEventListener('message', serverMessageListener)
     }),
@@ -70,7 +70,7 @@ it('intercepts incoming server Blob message', async () => {
     client.send(await new Blob(['hello']).arrayBuffer())
   })
   server.use(
-    service.on('connection', ({ server }) => {
+    service.addEventListener('connection', ({ server }) => {
       server.connect()
       server.addEventListener('message', serverMessageListener)
     }),
@@ -104,7 +104,7 @@ it('intercepts incoming ArrayBuffer message', async () => {
     client.send(encoder.encode('hello world'))
   })
   server.use(
-    service.on('connection', ({ server }) => {
+    service.addEventListener('connection', ({ server }) => {
       server.connect()
       server.addEventListener('message', serverMessageListener)
     }),

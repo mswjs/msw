@@ -9,7 +9,7 @@ const service = ws.link('ws://*')
 const originalServer = new WebSocketServer()
 
 const server = setupServer(
-  service.on('connection', ({ server }) => {
+  service.addEventListener('connection', ({ server }) => {
     server.connect()
   }),
 )
@@ -35,7 +35,7 @@ it('patches incoming server message', async () => {
   })
 
   server.use(
-    service.on('connection', ({ client, server }) => {
+    service.addEventListener('connection', ({ client, server }) => {
       /**
        * @note Since the initial handler connects to the server,
        * there's no need to call `server.connect()` again.
@@ -66,7 +66,7 @@ it('combines original and mock server messages', async () => {
   })
 
   server.use(
-    service.on('connection', ({ client, server }) => {
+    service.addEventListener('connection', ({ client, server }) => {
       server.addEventListener('message', () => {
         client.send('mocked message')
       })
@@ -95,7 +95,7 @@ it('combines original and mock server messages in the different order', async ()
   })
 
   server.use(
-    service.on('connection', ({ client, server }) => {
+    service.addEventListener('connection', ({ client, server }) => {
       server.addEventListener('message', (event) => {
         /**
          * @note To change the incoming server events order,

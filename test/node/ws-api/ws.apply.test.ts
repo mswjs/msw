@@ -20,7 +20,7 @@ it('patches WebSocket class even if no event handlers were defined', () => {
 
 it('does not patch WebSocket class until server.listen() is called', () => {
   const api = ws.link('wss://example.com')
-  server.use(api.on('connection', () => {}))
+  server.use(api.addEventListener('connection', () => {}))
 
   const raw = new WebSocket('wss://example.com')
   expect(raw.constructor.name).toBe('WebSocket')

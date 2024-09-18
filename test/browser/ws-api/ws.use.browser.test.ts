@@ -24,7 +24,7 @@ test('resolves outgoing events using initial handlers', async ({
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             client.send('hello from mock')
@@ -57,7 +57,7 @@ test('overrides an outgoing event listener', async ({ loadExample, page }) => {
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             client.send('must not be sent')
@@ -68,7 +68,7 @@ test('overrides an outgoing event listener', async ({ loadExample, page }) => {
     await worker.start()
 
     worker.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             event.stopImmediatePropagation()
@@ -105,7 +105,7 @@ test('combines initial and override listeners', async ({
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // This will be sent the last since the initial
@@ -119,7 +119,7 @@ test('combines initial and override listeners', async ({
     await worker.start()
 
     worker.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // This will be sent first since the override listener
@@ -159,7 +159,7 @@ test('combines initial and override listeners in the opposite order', async ({
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             client.send('hello from mock')
@@ -170,7 +170,7 @@ test('combines initial and override listeners in the opposite order', async ({
     await worker.start()
 
     worker.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // Queue this send to the next tick so it
@@ -210,7 +210,7 @@ test('does not affect unrelated events', async ({ loadExample, page }) => {
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             client.send('must not be sent')
@@ -226,7 +226,7 @@ test('does not affect unrelated events', async ({ loadExample, page }) => {
     await worker.start()
 
     worker.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             event.stopImmediatePropagation()

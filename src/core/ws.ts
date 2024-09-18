@@ -43,11 +43,11 @@ export type WebSocketLink = {
    *
    * @example
    * const chat = ws.link('wss://chat.example.com')
-   * chat.on('connection', listener)
+   * chat.addEventListener('connection', listener)
    *
    * @see {@link https://mswjs.io/docs/api/ws#onevent-listener `on()` API reference}
    */
-  on<EventType extends keyof WebSocketHandlerEventMap>(
+  addEventListener<EventType extends keyof WebSocketHandlerEventMap>(
     event: EventType,
     listener: WebSocketEventListener<EventType>,
   ): WebSocketHandler
@@ -57,7 +57,7 @@ export type WebSocketLink = {
    *
    * @example
    * const service = ws.link('wss://example.com')
-   * service.on('connection', () => {
+   * service.addEventListener('connection', () => {
    *   service.broadcast('hello, everyone!')
    * })
    *
@@ -71,7 +71,7 @@ export type WebSocketLink = {
    *
    * @example
    * const service = ws.link('wss://example.com')
-   * service.on('connection', ({ client }) => {
+   * service.addEventListener('connection', ({ client }) => {
    *   service.broadcastExcept(client, 'hi, the rest of you!')
    * })
    *
@@ -90,7 +90,7 @@ export type WebSocketLink = {
  *
  * @example
  * const chat = ws.link('wss://chat.example.com')
- * chat.on('connection', ({ client }) => {
+ * chat.addEventListener('connection', ({ client }) => {
  *   client.send('hello from server!')
  * })
  */
@@ -109,7 +109,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     get clients() {
       return clientManager.clients
     },
-    on(event, listener) {
+    addEventListener(event, listener) {
       const handler = new WebSocketHandler(url)
 
       // Add the connection event listener for when the

@@ -26,7 +26,7 @@ test('returns the number of active clients in the same runtime', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://example.com')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     window.link = api
     await worker.start()
   })
@@ -82,7 +82,7 @@ test('returns the number of active clients across different runtimes', async ({
     await page.evaluate(async () => {
       const { setupWorker, ws } = window.msw
       const api = ws.link('wss://example.com')
-      const worker = setupWorker(api.on('connection', () => {}))
+      const worker = setupWorker(api.addEventListener('connection', () => {}))
       window.link = api
       await worker.start()
     })
@@ -132,7 +132,7 @@ test('broadcasts messages across runtimes', async ({
       window.api = api
 
       const worker = setupWorker(
-        api.on('connection', ({ client }) => {
+        api.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             api.broadcast(event.data)
           })
@@ -186,7 +186,7 @@ test('clears the list of clients when the worker is stopped', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://example.com')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     window.link = api
     window.worker = worker
     await worker.start()
@@ -224,7 +224,7 @@ test('clears the list of clients when the page is reloaded', async ({
     await page.evaluate(async () => {
       const { setupWorker, ws } = window.msw
       const api = ws.link('wss://example.com')
-      const worker = setupWorker(api.on('connection', () => {}))
+      const worker = setupWorker(api.addEventListener('connection', () => {}))
       window.link = api
       window.worker = worker
       await worker.start()

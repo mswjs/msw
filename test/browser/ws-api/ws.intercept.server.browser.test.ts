@@ -40,7 +40,7 @@ test('intercepts incoming server text message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ server }) => {
+        service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
             resolve(event.data)
@@ -88,7 +88,7 @@ test('intercepts incoming server Blob message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ server }) => {
+        service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
             resolve(event.data.text())
@@ -134,7 +134,7 @@ test('intercepts outgoing server ArrayBuffer message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ server }) => {
+        service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
             resolve(new TextDecoder().decode(event.data))

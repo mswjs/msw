@@ -28,7 +28,7 @@ it('intercepts outgoing client text message', async () => {
   const realConnectionListener = vi.fn()
 
   server.use(
-    service.on('connection', ({ client }) => {
+    service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', mockMessageListener)
     }),
   )
@@ -56,7 +56,7 @@ it('intercepts outgoing client Blob message', async () => {
   const realConnectionListener = vi.fn()
 
   server.use(
-    service.on('connection', ({ client }) => {
+    service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', mockMessageListener)
     }),
   )
@@ -83,7 +83,7 @@ it('intercepts outgoing client ArrayBuffer message', async () => {
   const realConnectionListener = vi.fn()
 
   server.use(
-    service.on('connection', ({ client }) => {
+    service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', mockMessageListener)
     }),
   )

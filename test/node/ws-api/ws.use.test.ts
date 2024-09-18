@@ -7,7 +7,7 @@ import { setupServer } from 'msw/node'
 const service = ws.link('wss://*')
 
 const server = setupServer(
-  service.on('connection', ({ client }) => {
+  service.addEventListener('connection', ({ client }) => {
     client.addEventListener('message', (event) => {
       if (event.data === 'hello') {
         client.send('hello, client!')
@@ -47,7 +47,7 @@ it.concurrent(
   'overrides an outgoing event listener',
   server.boundary(async () => {
     server.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // Stopping immediate event propagation will prevent
@@ -76,7 +76,7 @@ it.concurrent(
   'combines initial and override listeners',
   server.boundary(async () => {
     server.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // Not stopping the event propagation will result in both
@@ -108,7 +108,7 @@ it.concurrent(
   'combines initial and override listeners in the opposite order',
   async () => {
     server.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // Queuing the send to the next tick will ensure
@@ -139,7 +139,7 @@ it.concurrent(
   'does not affect unrelated events',
   server.boundary(async () => {
     server.use(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         client.addEventListener('message', (event) => {
           if (event.data === 'hello') {
             // Stopping immediate event propagation will prevent

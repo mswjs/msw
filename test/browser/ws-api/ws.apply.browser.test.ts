@@ -23,7 +23,7 @@ test('does not apply the interceptor until "worker.start()" is called', async ({
   await page.evaluate(() => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://example.com')
-    window.worker = setupWorker(api.on('connection', () => {}))
+    window.worker = setupWorker(api.addEventListener('connection', () => {}))
   })
 
   await expect(

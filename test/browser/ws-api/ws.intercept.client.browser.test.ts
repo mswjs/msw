@@ -24,7 +24,7 @@ test('does not throw on connecting to a non-existing host', async ({
     const service = ws.link('*')
 
     const worker = setupWorker(
-      service.on('connection', ({ client }) => {
+      service.addEventListener('connection', ({ client }) => {
         queueMicrotask(() => client.close())
       }),
     )
@@ -57,7 +57,7 @@ test('intercepts outgoing client text message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ client }) => {
+        service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(event.data)
           })
@@ -89,7 +89,7 @@ test('intercepts outgoing client Blob message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ client }) => {
+        service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(event.data.text())
           })
@@ -121,7 +121,7 @@ test('intercepts outgoing client ArrayBuffer message', async ({
 
     return new Promise<string>(async (resolve) => {
       const worker = setupWorker(
-        service.on('connection', ({ client }) => {
+        service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
             resolve(new TextDecoder().decode(event.data))
           })

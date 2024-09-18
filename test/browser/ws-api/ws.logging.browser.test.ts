@@ -39,7 +39,7 @@ test('does not log anything if "quiet" was set to "true"', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start({ quiet: true })
   })
 
@@ -74,7 +74,7 @@ test('logs the client connection', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -107,7 +107,7 @@ test('logs outgoing client event sending text data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -141,7 +141,7 @@ test('logs outgoing client event sending a long text data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -175,7 +175,7 @@ test('logs outgoing client event sending Blob data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -209,7 +209,7 @@ test('logs outgoing client event sending a long Blob data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -244,7 +244,7 @@ test('logs outgoing client event sending ArrayBuffer data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -278,7 +278,7 @@ test('logs outgoing client event sending a long ArrayBuffer data', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -328,7 +328,7 @@ test('logs incoming client events', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link(url)
     const worker = setupWorker(
-      api.on('connection', ({ client, server }) => {
+      api.addEventListener('connection', ({ client, server }) => {
         server.connect()
       }),
     )
@@ -386,7 +386,7 @@ test('logs raw incoming server events', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link(url)
     const worker = setupWorker(
-      api.on('connection', ({ client, server }) => {
+      api.addEventListener('connection', ({ client, server }) => {
         server.connect()
 
         server.addEventListener('message', (event) => {
@@ -440,7 +440,7 @@ test('logs the close event initiated by the client', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -475,7 +475,7 @@ test('logs the close event initiated by the event handler', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
     const worker = setupWorker(
-      api.on('connection', ({ client }) => {
+      api.addEventListener('connection', ({ client }) => {
         client.close()
       }),
     )
@@ -512,7 +512,7 @@ test('logs outgoing client events sent vi "server.send()"', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link(url)
     const worker = setupWorker(
-      api.on('connection', ({ server }) => {
+      api.addEventListener('connection', ({ server }) => {
         server.connect()
         server.send('hello from handler')
       }),
@@ -550,7 +550,7 @@ test('logs incoming client events sent vi "client.send()"', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link(url)
     const worker = setupWorker(
-      api.on('connection', ({ client }) => {
+      api.addEventListener('connection', ({ client }) => {
         client.send('hello from handler')
       }),
     )
@@ -586,7 +586,7 @@ test('logs connection closure initiated by the client', async ({
   await page.evaluate(async () => {
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
-    const worker = setupWorker(api.on('connection', () => {}))
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
     await worker.start()
   })
 
@@ -621,7 +621,7 @@ test('logs connection closure initiated by the interceptor', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link('wss://localhost/*')
     const worker = setupWorker(
-      api.on('connection', ({ client }) => {
+      api.addEventListener('connection', ({ client }) => {
         client.close(1003, 'Custom error')
       }),
     )
@@ -662,7 +662,7 @@ test('logs connection closure initiated by the original server', async ({
     const { setupWorker, ws } = window.msw
     const api = ws.link(url)
     const worker = setupWorker(
-      api.on('connection', ({ server }) => {
+      api.addEventListener('connection', ({ server }) => {
         server.connect()
       }),
     )

@@ -50,12 +50,9 @@ test('does not connect to the actual server by default', async ({
     const socket = new WebSocket(serverUrl)
 
     return new Promise((resolve, reject) => {
-      socket.onmessage = (event) => {
-        resolve(event.data)
-        socket.close()
-      }
-      socket.onerror = reject
-    })
+      socket.onmessage = (event) => resolve(event.data)
+      socket.onerror = () => reject(new Error('WebSocket error'))
+    }).finally(() => socket.close())
   }, server.url)
 
   expect(clientMessage).toBe('mock')

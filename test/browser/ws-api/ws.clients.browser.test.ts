@@ -231,7 +231,7 @@ test('clears the list of clients when the page is reloaded', async ({
     })
   }
 
-  await enableMocking(page)
+  await enableMocking()
 
   expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
 

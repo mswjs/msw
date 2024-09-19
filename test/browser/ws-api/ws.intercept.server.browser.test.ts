@@ -43,7 +43,9 @@ test('intercepts incoming server text message', async ({
         service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
-            resolve(event.data)
+            if (typeof event.data === 'string') {
+              resolve(event.data)
+            }
           })
         }),
       )
@@ -91,7 +93,9 @@ test('intercepts incoming server Blob message', async ({
         service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
-            resolve(event.data.text())
+            if (event.data instanceof Blob) {
+              resolve(event.data.text())
+            }
           })
         }),
       )
@@ -137,7 +141,7 @@ test('intercepts outgoing server ArrayBuffer message', async ({
         service.addEventListener('connection', ({ server }) => {
           server.connect()
           server.addEventListener('message', (event) => {
-            resolve(new TextDecoder().decode(event.data))
+            resolve(new TextDecoder().decode(event.data as Uint8Array))
           })
         }),
       )

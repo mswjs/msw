@@ -59,7 +59,9 @@ test('intercepts outgoing client text message', async ({
       const worker = setupWorker(
         service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
-            resolve(event.data)
+            if (typeof event.data === 'string') {
+              resolve(event.data)
+            }
           })
         }),
       )
@@ -91,7 +93,9 @@ test('intercepts outgoing client Blob message', async ({
       const worker = setupWorker(
         service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
-            resolve(event.data.text())
+            if (event.data instanceof Blob) {
+              resolve(event.data.text())
+            }
           })
         }),
       )
@@ -123,7 +127,9 @@ test('intercepts outgoing client ArrayBuffer message', async ({
       const worker = setupWorker(
         service.addEventListener('connection', ({ client }) => {
           client.addEventListener('message', (event) => {
-            resolve(new TextDecoder().decode(event.data))
+            if (event.data instanceof Uint8Array) {
+              resolve(new TextDecoder().decode(event.data))
+            }
           })
         }),
       )

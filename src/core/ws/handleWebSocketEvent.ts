@@ -21,20 +21,21 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
     // match the "ws.link()" endpoint predicate. Don't dispatch
     // anything yet so the logger can be attached to the connection
     // before it potentially sends events.
-    const matchingHandlers = handlers.filter<WebSocketHandler>(
-      (handler): handler is WebSocketHandler => {
-        if (handler instanceof WebSocketHandler) {
-          return handler.predicate({
-            event: connectionEvent,
-            parsedResult: handler.parse({
-              event: connectionEvent,
-            }),
-          })
-        }
+    const matchingHandlers: Array<WebSocketHandler> = []
 
-        return false
-      },
-    )
+    for (const handler of handlers) {
+      if (
+        handler instanceof WebSocketHandler &&
+        handler.predicate({
+          event: connectionEvent,
+          parsedResult: handler.parse({
+            event: connectionEvent,
+          }),
+        })
+      ) {
+        matchingHandlers.push(handler)
+      }
+    }
 
     if (matchingHandlers.length > 0) {
       options?.onMockedConnection(connection)

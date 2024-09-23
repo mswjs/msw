@@ -83,7 +83,6 @@ test('overrides an outgoing event listener', async ({ loadExample, page }) => {
     const socket = new WebSocket('wss://example.com')
     return new Promise((resolve, reject) => {
       socket.onopen = () => socket.send('hello')
-
       socket.onmessage = (event) => resolve(event.data)
       socket.onerror = reject
     })

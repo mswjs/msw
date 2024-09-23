@@ -18,7 +18,14 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
   public async add(client: WebSocketClientConnectionProtocol): Promise<void> {
     const promise = new DeferredPromise<void>()
     const store = await this.getStore()
-    const request = store.add({
+
+    /**
+     * @note Use `.put()` instead of `.add()` to allow setting clients
+     * that already exist in the database. This can happen if a single page
+     * has multiple event handlers. Each handler will receive the "connection"
+     * event in parallel, and try to set that WebSocket client in the database.
+     */
+    const request = store.put({
       id: client.id,
       url: client.url.href,
     } satisfies SerializedWebSocketClient)
@@ -27,7 +34,13 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve()
     }
     request.onerror = () => {
-      promise.reject(new Error(`Failed to add WebSocket client ${client.id}`))
+      // eslint-disable-next-line no-console
+      console.error(request.error)
+      promise.reject(
+        new Error(
+          `Failed to add WebSocket client "${client.id}". There is likely an additional output above.`,
+        ),
+      )
     }
 
     return promise
@@ -44,7 +57,13 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve(request.result)
     }
     request.onerror = () => {
-      promise.reject(new Error(`Failed to get all WebSocket clients`))
+      // eslint-disable-next-line no-console
+      console.log(request.error)
+      promise.reject(
+        new Error(
+          `Failed to get all WebSocket clients. There is likely an additional output above.`,
+        ),
+      )
     }
 
     return promise
@@ -62,9 +81,11 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve()
     }
     store.transaction.onerror = () => {
+      // eslint-disable-next-line no-console
+      console.error(store.transaction.error)
       promise.reject(
         new Error(
-          `Failed to delete WebSocket clients [${clientIds.join(', ')}]`,
+          `Failed to delete WebSocket clients [${clientIds.join(', ')}]. There is likely an additional output above.`,
         ),
       )
     }
@@ -95,11 +116,23 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
         promise.resolve(db)
       }
       store.transaction.onerror = () => {
-        promise.reject(new Error('Failed to create WebSocket client store'))
+        // eslint-disable-next-line no-console
+        console.error(store.transaction.error)
+        promise.reject(
+          new Error(
+            'Failed to create WebSocket client store. There is likely an additional output above.',
+          ),
+        )
       }
     }
     request.onerror = () => {
-      promise.reject(new Error('Failed to open an IndexedDB database'))
+      // eslint-disable-next-line no-console
+      console.error(request.error)
+      promise.reject(
+        new Error(
+          'Failed to open an IndexedDB database. There is likely an additional output above.',
+        ),
+      )
     }
 
     return promise

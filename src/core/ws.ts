@@ -103,7 +103,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     typeof url,
   )
 
-  const clientManager = new WebSocketClientManager(webSocketChannel, url)
+  const clientManager = new WebSocketClientManager(webSocketChannel)
 
   return {
     get clients() {

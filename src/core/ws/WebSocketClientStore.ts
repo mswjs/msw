@@ -1,6 +1,6 @@
 import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 
-export type SerializedWebSocketClient = {
+export interface SerializedWebSocketClient {
   id: string
   url: string
 }

@@ -94,7 +94,12 @@ export class SetupServerCommonApi
       },
     )
 
+    // Preconfigure the WebSocket interception but don't enable it just yet.
+    // It will be enabled when the server starts.
     handleWebSocketEvent({
+      getUnhandledRequestStrategy: () => {
+        return this.resolvedOptions.onUnhandledRequest
+      },
       getHandlers: () => {
         return this.handlersController.currentHandlers()
       },
@@ -111,12 +116,11 @@ export class SetupServerCommonApi
 
     // Apply the interceptor when starting the server.
     this.interceptor.apply()
-    webSocketInterceptor.apply()
+    this.subscriptions.push(() => this.interceptor.dispose())
 
-    this.subscriptions.push(() => {
-      this.interceptor.dispose()
-      webSocketInterceptor.dispose()
-    })
+    // Apply the WebSocket interception.
+    webSocketInterceptor.apply()
+    this.subscriptions.push(() => webSocketInterceptor.dispose())
 
     // Assert that the interceptor has been applied successfully.
     // Also guards us from forgetting to call "interceptor.apply()"

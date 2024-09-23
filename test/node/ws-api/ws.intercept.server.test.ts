@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node-websocket
- */
+// @vitest-environment node-websocket
 import { ws } from 'msw'
 import { setupServer } from 'msw/node'
 import { WebSocketServer } from '../../support/WebSocketServer'

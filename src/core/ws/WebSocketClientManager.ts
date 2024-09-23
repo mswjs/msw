@@ -3,7 +3,6 @@ import type {
   WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
-import { type Path } from '../utils/matching/matchRequestUrl'
 import { WebSocketClientStore } from './WebSocketClientStore'
 import { WebSocketMemoryClientStore } from './WebSocketMemoryClientStore'
 import { WebSocketIndexedDBClientStore } from './WebSocketIndexedDBClientStore'
@@ -34,10 +33,7 @@ export class WebSocketClientManager {
   private runtimeClients: Map<string, WebSocketClientConnectionProtocol>
   private allClients: Set<WebSocketClientConnectionProtocol>
 
-  constructor(
-    private channel: BroadcastChannel,
-    private url: Path,
-  ) {
+  constructor(private channel: BroadcastChannel) {
     // Store the clients in the IndexedDB in the browser,
     // otherwise, store the clients in memory.
     this.store =

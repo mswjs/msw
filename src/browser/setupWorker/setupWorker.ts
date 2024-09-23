@@ -180,8 +180,11 @@ export class SetupWorkerApi
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
-    // Enable WebSocket interception.
+    // Enable the WebSocket interception.
     handleWebSocketEvent({
+      getUnhandledRequestStrategy: () => {
+        return this.context.startOptions.onUnhandledRequest
+      },
       getHandlers: () => {
         return this.handlersController.currentHandlers()
       },
@@ -192,13 +195,8 @@ export class SetupWorkerApi
           attachWebSocketLogger(connection)
         }
       },
-      onPassthroughConnection() {
-        /**
-         * @fixme Call some "onUnhandledConnection".
-         */
-      },
+      onPassthroughConnection() {},
     })
-
     webSocketInterceptor.apply()
 
     this.subscriptions.push(() => {

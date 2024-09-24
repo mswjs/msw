@@ -137,7 +137,7 @@
     "@bundled-es-modules/statuses": "^1.0.1",
     "@bundled-es-modules/tough-cookie": "^0.1.6",
     "@inquirer/confirm": "^3.0.0",
-    "@mswjs/interceptors": "^0.35.6",
+    "@mswjs/interceptors": "^0.35.8",
     "@open-draft/deferred-promise": "^2.2.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",

@@ -14,6 +14,8 @@ import type { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { SetupApi } from '~/core/SetupApi'
 import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
+import { HttpHandler } from '~/core/handlers/HttpHandler'
+import { GraphQLHandler } from '~/core/handlers/GraphQLHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
@@ -61,7 +63,12 @@ export class SetupServerCommonApi
         const response = await handleRequest(
           request,
           requestId,
-          this.handlersController.currentHandlers(),
+          this.handlersController.currentHandlers().filter((handler) => {
+            return (
+              handler instanceof HttpHandler ||
+              handler instanceof GraphQLHandler
+            )
+          }),
           this.resolvedOptions,
           this.emitter,
         )

@@ -92,12 +92,12 @@ export function attachWebSocketLogger(
         currentTarget: {
           enumerable: true,
           writable: false,
-          value: server['realWebSocket'],
+          value: server.socket,
         },
         target: {
           enumerable: true,
           writable: false,
-          value: server['realWebSocket'],
+          value: server.socket,
         },
       })
 

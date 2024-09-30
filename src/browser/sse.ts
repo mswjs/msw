@@ -1,4 +1,3 @@
-import type { Constructor } from 'type-fest'
 import type { ResponseResolver } from '~/core/handlers/RequestHandler'
 import {
   HttpHandler,
@@ -85,6 +84,8 @@ class ServerSentEventHandler extends HttpHandler {
   }
 }
 
+const kSend = Symbol('kSend')
+
 class ServerSentEventClient {
   private encoder: TextEncoder
   protected controller: ReadableStreamDefaultController
@@ -98,20 +99,11 @@ class ServerSentEventClient {
    * Dispatches the given event to the underlying `EventSource`.
    */
   public send(payload: { id?: string; event?: string; data: unknown }): void {
-    const frames: Array<string> = []
-
-    if (payload.event) {
-      frames.push(`event:${payload.event}`)
-    }
-
-    frames.push(`data:${JSON.stringify(payload.data)}`)
-
-    if (payload.id) {
-      frames.push(`id:${payload.id}`)
-    }
-
-    frames.push('', '')
-    this.controller.enqueue(this.encoder.encode(frames.join('\n')))
+    this[kSend]({
+      id: payload.id,
+      event: payload.event,
+      data: JSON.stringify(payload.data),
+    })
   }
 
   /**
@@ -119,6 +111,27 @@ class ServerSentEventClient {
    */
   public error(): void {
     this.controller.error()
+  }
+
+  private [kSend](payload: {
+    id?: string
+    event?: string
+    data: string
+  }): void {
+    const frames: Array<string> = []
+
+    if (payload.event) {
+      frames.push(`event:${payload.event}`)
+    }
+
+    frames.push(`data:${payload.data}`)
+
+    if (payload.id) {
+      frames.push(`id:${payload.id}`)
+    }
+
+    frames.push('', '')
+    this.controller.enqueue(this.encoder.encode(frames.join('\n')))
   }
 }
 
@@ -181,14 +194,24 @@ class ServerSentEventServer {
     const { client } = this
 
     return function (this: EventSource, event: Event) {
-      const EventConstructor = event.constructor as Constructor<Event>
-      const cancelableEvent = new EventConstructor(event.type, {
-        ...event,
-        cancelable: true,
+      const cancelableEvent =
+        event instanceof MessageEvent
+          ? new MessageEvent(event.type, {
+              data: event.data,
+              cancelable: true,
+            })
+          : new Event(event.type, {
+              cancelable: true,
+            })
+      Object.defineProperties(cancelableEvent, {
+        target: { enumerable: true, value: this, writable: false },
+        currentTarget: { enumerable: true, value: this, writable: false },
+        srcElement: { enumerable: true, value: this, writable: false },
       })
 
       listener.call(this, cancelableEvent)
 
+      // The "open" event cannot be prevented so ignore it.
       if (event.type === 'open') {
         return
       }
@@ -202,13 +225,10 @@ class ServerSentEventServer {
 
           default: {
             if (event instanceof MessageEvent) {
-              client.send({
+              // Use the internal send method to avoid data serialization.
+              client[kSend]({
                 id: event.lastEventId,
                 event: event.type === 'message' ? undefined : event.type,
-                /**
-                 * @fixme Data will already be stringified.
-                 * `client.send()` will stringify it again.
-                 */
                 data: event.data,
               })
             }

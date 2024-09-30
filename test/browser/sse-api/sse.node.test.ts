@@ -169,7 +169,7 @@ test('errors the connected source', async ({ loadExample, page, waitFor }) => {
   })
 })
 
-test.only('forwards original server message events to the client', async ({
+test('forwards original server message events to the client', async ({
   loadExample,
   page,
 }) => {
@@ -186,7 +186,7 @@ test.only('forwards original server message events to the client', async ({
         const source = server.connect()
 
         source.addEventListener('message', (event) => {
-          event.preventDefault()
+          console.log(event)
         })
       }),
     )

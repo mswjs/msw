@@ -53,7 +53,10 @@ export async function handleRequest(
   emitter.emit('request:start', { request, requestId })
 
   // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
-  if (request.headers.get('x-msw-intention') === 'bypass') {
+  if (
+    request.headers.get('x-msw-intention') === 'bypass' ||
+    new URL(request.url).searchParams.get('x-msw-intention') === 'bypass'
+  ) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return

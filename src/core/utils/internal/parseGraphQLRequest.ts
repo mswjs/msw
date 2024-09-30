@@ -3,6 +3,7 @@ import type {
   OperationDefinitionNode,
   OperationTypeNode,
 } from 'graphql'
+import { parse } from 'graphql'
 import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { toPublicUrl } from '../request/toPublicUrl'
 import { devUtils } from './devUtils'
@@ -39,14 +40,7 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
   }
 }
 
-async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
-  const { parse } = await import('graphql').catch((error) => {
-    devUtils.error(
-      'Failed to parse a GraphQL query: cannot import the "graphql" module. Please make sure you install it if you wish to intercept GraphQL requests. See the original import error below.',
-    )
-    throw error
-  })
-
+function parseQuery(query: string): ParsedGraphQLQuery | Error {
   try {
     const ast = parse(query)
     return parseDocumentNode(ast)
@@ -187,7 +181,7 @@ export async function parseGraphQLRequest(
   }
 
   const { query, variables } = input
-  const parsedResult = await parseQuery(query)
+  const parsedResult = parseQuery(query)
 
   if (parsedResult instanceof Error) {
     const requestPublicUrl = toPublicUrl(request.url)

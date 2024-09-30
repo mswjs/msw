@@ -7,7 +7,6 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
-import { graphqlImportPlugin } from './config/plugins/esbuild/graphQLImportPlugin'
 import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
@@ -34,7 +33,7 @@ const coreConfig: Options = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
+  esbuildPlugins: [forceEsmExtensionsPlugin()],
 }
 
 const nodeConfig: Options = {

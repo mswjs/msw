@@ -47,7 +47,6 @@ class ServerSentEventHandler extends HttpHandler {
           })
           const server = new ServerSentEventServer({
             request: info.request,
-            client,
           })
 
           resolver({
@@ -96,7 +95,7 @@ class ServerSentEventClient {
   }
 
   /**
-   * Dispatches the given event to the underlying `EventSource`.
+   * Sends the given payload to the underlying `EventSource`.
    */
   public send(payload: { id?: string; event?: string; data: unknown }): void {
     this[kSend]({
@@ -104,6 +103,29 @@ class ServerSentEventClient {
       event: payload.event,
       data: JSON.stringify(payload.data),
     })
+  }
+
+  /**
+   * Dispatches the given event to the underlying `EventSource`.
+   */
+  public dispatchEvent(event: Event) {
+    if (event instanceof MessageEvent) {
+      /**
+       * @note Use the internal send mechanism to skip normalization
+       * of the message data (already normalized by the server).
+       */
+      this[kSend]({
+        id: event.lastEventId || undefined,
+        event: event.type === 'message' ? undefined : event.type,
+        data: event.data,
+      })
+      return
+    }
+
+    if (event.type === 'error') {
+      this.error()
+      return
+    }
   }
 
   /**
@@ -135,15 +157,11 @@ class ServerSentEventClient {
   }
 }
 
-const kListener = Symbol('kListener')
-
 class ServerSentEventServer {
   protected request: Request
-  protected client: ServerSentEventClient
 
-  constructor(args: { request: Request; client: ServerSentEventClient }) {
+  constructor(args: { request: Request }) {
     this.request = args.request
-    this.client = args.client
   }
 
   /**
@@ -152,91 +170,16 @@ class ServerSentEventServer {
    */
   public connect(): EventSource {
     const requestUrl = new URL(this.request.url)
+    /**
+     * @todo @fixme Explore if there's a different way to bypass this request.
+     * It has to be bypassed not to cause an infinite loop of it being intercepted.
+     */
     requestUrl.searchParams.set('x-msw-intention', 'bypass')
 
-    let source = new EventSource(requestUrl, {
+    const source = new EventSource(requestUrl, {
       withCredentials: this.request.credentials === 'include',
     })
 
-    const addEventListener = source.addEventListener.bind(source)
-    source.addEventListener = (event: any, listener: any, options: any) => {
-      const wrappedListener = this.wrapEventListener(listener).bind(source)
-      Object.defineProperty(listener, kListener, {
-        value: wrappedListener,
-      })
-      addEventListener(event, wrappedListener, options)
-    }
-
-    const removeEventListener = source.removeEventListener.bind(source)
-    source.removeEventListener = (event: any, listener: any, options: any) => {
-      const wrappedListener = listener[kListener] || listener
-      removeEventListener(event, wrappedListener, options)
-    }
-
-    source = new Proxy(source, {
-      set: (target, property, value) => {
-        switch (property) {
-          case 'onopen':
-          case 'onmessage':
-          case 'onerror': {
-            return Reflect.set(target, property, this.wrapEventListener(value))
-          }
-        }
-
-        return Reflect.set(target, property, value)
-      },
-    })
-
     return source
-  }
-
-  private wrapEventListener(listener: (event: Event) => void) {
-    const { client } = this
-
-    return function (this: EventSource, event: Event) {
-      const cancelableEvent =
-        event instanceof MessageEvent
-          ? new MessageEvent(event.type, {
-              data: event.data,
-              cancelable: true,
-            })
-          : new Event(event.type, {
-              cancelable: true,
-            })
-      Object.defineProperties(cancelableEvent, {
-        target: { enumerable: true, value: this, writable: false },
-        currentTarget: { enumerable: true, value: this, writable: false },
-        srcElement: { enumerable: true, value: this, writable: false },
-      })
-
-      listener.call(this, cancelableEvent)
-
-      // The "open" event cannot be prevented so ignore it.
-      if (event.type === 'open') {
-        return
-      }
-
-      if (!cancelableEvent.defaultPrevented) {
-        switch (event.type) {
-          case 'error': {
-            client.error()
-            break
-          }
-
-          default: {
-            if (event instanceof MessageEvent) {
-              // Use the internal send method to avoid data serialization.
-              client[kSend]({
-                id: event.lastEventId,
-                event: event.type === 'message' ? undefined : event.type,
-                data: event.data,
-              })
-            }
-
-            break
-          }
-        }
-      }
-    }
   }
 }

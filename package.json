@@ -78,7 +78,7 @@
     "test:unit": "vitest",
     "test:node": "vitest run --config=./test/node/vitest.config.mts",
     "test:native": "vitest --config=./test/native/vitest.config.mts",
-    "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
+    "test:browser": "NODE_OPTIONS=--experimental-require-module npx playwright test -c ./test/browser/playwright.config.ts",
     "test:modules:node": "vitest --config=./test/modules/node/vitest.config.mts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
     "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.mts",
@@ -154,6 +154,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
+    "@epic-web/test-server": "^0.1.0",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.8.1",
     "@playwright/test": "^1.40.1",

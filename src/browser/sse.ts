@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import type { ResponseResolver } from '~/core/handlers/RequestHandler'
 import {
   HttpHandler,
@@ -39,6 +40,12 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
 
 class ServerSentEventHandler extends HttpHandler {
   constructor(path: Path, resolver: ServerSentEventResolver<any>) {
+    invariant(
+      typeof EventSource !== 'undefined',
+      'Failed to construct a Server-Sent Event handler for path "%s": your environment does not support the EventSource API',
+      path,
+    )
+
     super('GET', path, (info) => {
       const stream = new ReadableStream({
         start(controller) {

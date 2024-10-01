@@ -7,21 +7,26 @@ import {
 } from '~/core/handlers/HttpHandler'
 import type { Path, PathParams } from '~/core/utils/matching/matchRequestUrl'
 
-export type ServerSentEventResolverExtras<Params extends PathParams> =
-  HttpRequestResolverExtras<Params> & {
-    client: ServerSentEventClient
-    server: ServerSentEventServer
-  }
+export type ServerSentEventResolverExtras<
+  EventMap extends Record<string, unknown>,
+  Params extends PathParams,
+> = HttpRequestResolverExtras<Params> & {
+  client: ServerSentEventClient<EventMap>
+  server: ServerSentEventServer
+}
 
-export type ServerSentEventResolver<Params extends PathParams> =
-  ResponseResolver<ServerSentEventResolverExtras<Params>, any, any>
+export type ServerSentEventResolver<
+  EventMap extends Record<string, unknown>,
+  Params extends PathParams,
+> = ResponseResolver<ServerSentEventResolverExtras<EventMap, Params>, any, any>
 
 export type ServerSentEventRequestHandler = <
+  EventMap extends Record<string, unknown>,
   Params extends PathParams<keyof Params> = PathParams,
   RequestPath extends Path = Path,
 >(
   path: RequestPath,
-  resolver: ServerSentEventResolver<Params>,
+  resolver: ServerSentEventResolver<EventMap, Params>,
 ) => HttpHandler
 
 /**
@@ -38,8 +43,10 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
   return new ServerSentEventHandler(path, resolver)
 }
 
-class ServerSentEventHandler extends HttpHandler {
-  constructor(path: Path, resolver: ServerSentEventResolver<any>) {
+class ServerSentEventHandler<
+  EventMap extends Record<string, unknown>,
+> extends HttpHandler {
+  constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
       typeof EventSource !== 'undefined',
       'Failed to construct a Server-Sent Event handler for path "%s": your environment does not support the EventSource API',
@@ -49,7 +56,7 @@ class ServerSentEventHandler extends HttpHandler {
     super('GET', path, (info) => {
       const stream = new ReadableStream({
         start(controller) {
-          const client = new ServerSentEventClient({
+          const client = new ServerSentEventClient<EventMap>({
             controller,
           })
           const server = new ServerSentEventServer({
@@ -92,7 +99,7 @@ class ServerSentEventHandler extends HttpHandler {
 
 const kSend = Symbol('kSend')
 
-class ServerSentEventClient {
+class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   private encoder: TextEncoder
   protected controller: ReadableStreamDefaultController
 
@@ -104,7 +111,19 @@ class ServerSentEventClient {
   /**
    * Sends the given payload to the underlying `EventSource`.
    */
-  public send(payload: { id?: string; event?: string; data: unknown }): void {
+  public send<EventType extends keyof EventMap & string>(
+    payload:
+      | {
+          id?: string
+          event: EventType
+          data: EventMap[EventType]
+        }
+      | {
+          id?: string
+          event?: never
+          data?: EventMap['message']
+        },
+  ): void {
     this[kSend]({
       id: payload.id,
       event: payload.event,
@@ -142,9 +161,9 @@ class ServerSentEventClient {
     this.controller.error()
   }
 
-  private [kSend](payload: {
+  private [kSend]<EventType extends keyof EventMap & string>(payload: {
     id?: string
-    event?: string
+    event?: EventType
     data: string
   }): void {
     const frames: Array<string> = []

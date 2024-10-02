@@ -55,7 +55,7 @@ test('makes the actual request when called "server.connect()"', async ({
   await expect(openPromise).resolves.toBeUndefined()
 })
 
-test('forwards message event from the original server to the client', async ({
+test('forwards message event from the server to the client automatically', async ({
   loadExample,
   page,
 }) => {
@@ -92,10 +92,7 @@ test('forwards message event from the original server to the client', async ({
 
     const worker = setupWorker(
       sse(url, ({ client, server }) => {
-        const source = server.connect()
-        source.addEventListener('message', (event) => {
-          client.dispatchEvent(event)
-        })
+        server.connect()
       }),
     )
     await worker.start()
@@ -105,6 +102,8 @@ test('forwards message event from the original server to the client', async ({
     return new Promise<void>((resolve, reject) => {
       const source = new EventSource(url)
       source.addEventListener('message', (event) => {
+        console.log('client got:', event.type, event.data)
+
         resolve(JSON.parse(event.data))
       })
       source.onerror = () => reject(new Error('EventSource connection failed'))
@@ -116,7 +115,7 @@ test('forwards message event from the original server to the client', async ({
   expect(message).toEqual({ message: 'hello' })
 })
 
-test('forwards custom event from the original server to the client', async ({
+test('forwards custom event from the server to the client automatically', async ({
   loadExample,
   page,
 }) => {
@@ -155,10 +154,7 @@ test('forwards custom event from the original server to the client', async ({
 
     const worker = setupWorker(
       sse(url, ({ client, server }) => {
-        const source = server.connect()
-        source.addEventListener('custom', (event) => {
-          client.dispatchEvent(event)
-        })
+        server.connect()
       }),
     )
     await worker.start()
@@ -179,7 +175,7 @@ test('forwards custom event from the original server to the client', async ({
   expect(message).toEqual({ message: 'hello' })
 })
 
-test('forwards the original server error to the client', async ({
+test('forwards error event from the server to the client automatically', async ({
   loadExample,
   page,
 }) => {
@@ -213,10 +209,7 @@ test('forwards the original server error to the client', async ({
 
     const worker = setupWorker(
       sse(url, ({ client, server }) => {
-        const source = server.connect()
-        source.addEventListener('error', (event) => {
-          client.dispatchEvent(event)
-        })
+        server.connect()
       }),
     )
     await worker.start()

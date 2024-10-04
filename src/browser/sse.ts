@@ -103,7 +103,7 @@ const kSend = Symbol('kSend')
 
 class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   private encoder: TextEncoder
-  protected controller: ReadableStreamDefaultController
+  private controller: ReadableStreamDefaultController
 
   constructor(args: { controller: ReadableStreamDefaultController }) {
     this.encoder = new TextEncoder()
@@ -129,7 +129,10 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
     this[kSend]({
       id: payload.id,
       event: payload.event,
-      data: JSON.stringify(payload.data),
+      data:
+        typeof payload.data === 'object'
+          ? JSON.stringify(payload.data)
+          : payload.data,
     })
   }
 
@@ -166,7 +169,7 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   private [kSend]<EventType extends keyof EventMap & string>(payload: {
     id?: string
     event?: EventType
-    data: string
+    data: string | EventMap[EventType] | EventMap['message'] | undefined
   }): void {
     const frames: Array<string> = []
 

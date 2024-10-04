@@ -45,12 +45,13 @@ it('responds with a mocked response to an upload request', async () => {
   const file = new Blob(['Hello', 'world'], { type: 'text/plain' })
   formData.set('file', file, 'doc.txt')
 
-  const response = await request.post('/upload', formData)
-
-  expect(response.data).toEqual({
-    message: 'Successfully uploaded "doc.txt"!',
-    content: 'Helloworld',
+  await expect(request.post('/upload', formData)).resolves.toMatchObject({
+    data: {
+      message: 'Successfully uploaded "doc.txt"!',
+      content: 'Helloworld',
+    },
   })
+
   expect(onUploadProgress.mock.calls.length).toBeGreaterThan(0)
   expect(onUploadProgress).toHaveBeenNthCalledWith(
     1,

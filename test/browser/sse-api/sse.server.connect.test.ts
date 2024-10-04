@@ -91,7 +91,7 @@ test('forwards message event from the server to the client automatically', async
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse(url, ({ client, server }) => {
+      sse(url, ({ server }) => {
         server.connect()
       }),
     )
@@ -102,8 +102,6 @@ test('forwards message event from the server to the client automatically', async
     return new Promise<void>((resolve, reject) => {
       const source = new EventSource(url)
       source.addEventListener('message', (event) => {
-        console.log('client got:', event.type, event.data)
-
         resolve(JSON.parse(event.data))
       })
       source.onerror = () => reject(new Error('EventSource connection failed'))

@@ -1,4 +1,5 @@
 import { Emitter } from 'strict-event-emitter'
+import { createRequestId } from '@mswjs/interceptors'
 import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import {
   type Match,
@@ -23,13 +24,18 @@ interface WebSocketHandlerConnection extends WebSocketConnectionData {
 export const kEmitter = Symbol('kEmitter')
 export const kDispatchEvent = Symbol('kDispatchEvent')
 export const kSender = Symbol('kSender')
+const kStopPropagationPatched = Symbol('kStopPropagationPatched')
+const KOnStopPropagation = Symbol('KOnStopPropagation')
 
 export class WebSocketHandler {
+  public id: string
   public callFrame?: string
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(private readonly url: Path) {
+    this.id = createRequestId()
+
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
   }
@@ -63,8 +69,74 @@ export class WebSocketHandler {
       params: parsedResult.match.params || {},
     }
 
+    // Support `event.stopPropagation()` for various client/server events.
+    connection.client.addEventListener(
+      'message',
+      createStopPropagationListener(this),
+    )
+    connection.client.addEventListener(
+      'close',
+      createStopPropagationListener(this),
+    )
+
+    connection.server.addEventListener(
+      'open',
+      createStopPropagationListener(this),
+    )
+    connection.server.addEventListener(
+      'message',
+      createStopPropagationListener(this),
+    )
+    connection.server.addEventListener(
+      'error',
+      createStopPropagationListener(this),
+    )
+    connection.server.addEventListener(
+      'close',
+      createStopPropagationListener(this),
+    )
+
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
     this[kEmitter].emit('connection', resolvedConnection)
+  }
+}
+
+function createStopPropagationListener(handler: WebSocketHandler) {
+  return function stopPropagationListener(event: Event) {
+    const propagationStoppedAt = Reflect.get(event, 'kPropagationStoppedAt') as
+      | string
+      | undefined
+
+    if (propagationStoppedAt && handler.id !== propagationStoppedAt) {
+      event.stopImmediatePropagation()
+      return
+    }
+
+    Object.defineProperty(event, KOnStopPropagation, {
+      value(this: WebSocketHandler) {
+        Object.defineProperty(event, 'kPropagationStoppedAt', {
+          value: handler.id,
+        })
+      },
+      configurable: true,
+    })
+
+    // Since the same event instance is shared between all client/server objects,
+    // make sure to patch its `stopPropagation` method only once.
+    if (!Reflect.get(event, kStopPropagationPatched)) {
+      event.stopPropagation = new Proxy(event.stopPropagation, {
+        apply: (target, thisArg, args) => {
+          Reflect.get(event, KOnStopPropagation)?.call(handler)
+          return Reflect.apply(target, thisArg, args)
+        },
+      })
+
+      Object.defineProperty(event, kStopPropagationPatched, {
+        value: true,
+        // If something else attempts to redefine this, throw.
+        configurable: false,
+      })
+    }
   }
 }

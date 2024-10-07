@@ -18,8 +18,8 @@ dependencies:
     specifier: ^3.0.0
     version: 3.1.1
   '@mswjs/interceptors':
-    specifier: ^0.36.1
-    version: 0.36.1
+    specifier: ^0.36.4
+    version: 0.36.4
   '@open-draft/deferred-promise':
     specifier: ^2.2.0
     version: 2.2.0
@@ -1457,8 +1457,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@mswjs/interceptors@0.36.1:
-    resolution: {integrity: sha512-wjKbjecynhZIqtvTuq61Q1JOzC1obSlrn1U6/f9JvwIw0zFX7+CZD3C/ncdUPbxpmfgq4GoyY2mFU+JobK+1SQ==}
+  /@mswjs/interceptors@0.36.4:
+    resolution: {integrity: sha512-ktzj7bra4HatOGqXw/PXyresXxFtnZa570rm4olAyf9HbvNdEWRkQl81ykmJK0nCHxNndmh2zQ84TBYKFDM+sg==}
     engines: {node: '>=18'}
     dependencies:
       '@open-draft/deferred-promise': 2.2.0

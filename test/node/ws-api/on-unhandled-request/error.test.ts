@@ -27,12 +27,14 @@ it(
     const socket = new WebSocket('wss://localhost:4321')
     const errorListener = vi.fn()
 
-    await vi.waitFor(() => {
+    await vi.waitUntil(() => {
       return new Promise((resolve, reject) => {
         // These are intentionally swapped. The connection MUST error.
         socket.addEventListener('error', errorListener)
         socket.addEventListener('error', resolve)
-        socket.onopen = reject
+        socket.onopen = () => {
+          reject(new Error('WebSocket connection opened unexpectedly'))
+        }
       })
     })
 

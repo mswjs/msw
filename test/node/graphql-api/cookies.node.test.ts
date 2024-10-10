@@ -1,7 +1,5 @@
-/**
- * @vitest-environment node
- */
-import cookieUtils from '@bundled-es-modules/cookie'
+// @vitest-environment node
+import * as cookieUtils from 'cookie'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

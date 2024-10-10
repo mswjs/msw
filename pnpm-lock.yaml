@@ -30,8 +30,8 @@ dependencies:
     specifier: ^2.0.4
     version: 2.0.5
   chalk:
-    specifier: ^5.3.0
-    version: 5.3.0
+    specifier: ^4.1.2
+    version: 4.1.2
   graphql:
     specifier: ^16.8.1
     version: 16.9.0
@@ -3631,6 +3631,7 @@ packages:
   /chalk@5.3.0:
     resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+    dev: true
 
   /chardet@0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}

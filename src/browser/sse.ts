@@ -644,6 +644,13 @@ class EventSourceParsingStream extends WritableStream {
   private processLine(line: Uint8Array, fieldLength: number): void {
     // New line indicates the end of the message. Dispatch it.
     if (line.length === 0) {
+      // Prevent dispatching the message if the data is an empty string.
+      // That is a no-op per spec.
+      if (this.message.data === undefined) {
+        this.message.event = undefined
+        return
+      }
+
       this.underlyingSink.message(this.message)
       this.resetMessage()
       return

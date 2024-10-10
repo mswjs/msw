@@ -393,8 +393,15 @@ class ObservableEventSource extends EventTarget implements EventSource {
   }
 
   private async connect() {
-    const response = await fetch(this[kRequest])
-    this.processResponse(response)
+    await fetch(this[kRequest])
+      .then((response) => {
+        this.processResponse(response)
+      })
+      .catch(() => {
+        // Fail the connection on request errors instead of
+        // throwing a generic "Failed to fetch" error.
+        this.failConnection()
+      })
   }
 
   private processResponse(response: Response): void {

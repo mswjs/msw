@@ -1,4 +1,4 @@
-import * as cookieUtils from 'cookie'
+import cookieUtils from '@bundled-es-modules/cookie'
 import { cookieStore } from '../cookieStore'
 
 function parseCookies(input: string): Record<string, string> {

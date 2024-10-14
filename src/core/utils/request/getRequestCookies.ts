@@ -1,8 +1,21 @@
 import cookieUtils from '@bundled-es-modules/cookie'
 import { cookieStore } from '../cookieStore'
 
+function parseCookies(input: string): Record<string, string> {
+  const parsedCookies = cookieUtils.parse(input)
+  const cookies: Record<string, string> = {}
+
+  for (const cookieName in parsedCookies) {
+    if (typeof parsedCookies[cookieName] !== 'undefined') {
+      cookies[cookieName] = parsedCookies[cookieName]
+    }
+  }
+
+  return cookies
+}
+
 function getAllDocumentCookies() {
-  return cookieUtils.parse(document.cookie)
+  return parseCookies(document.cookie)
 }
 
 function getDocumentCookies(request: Request): Record<string, string> {
@@ -40,7 +53,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
    */
   const requestCookieHeader = request.headers.get('cookie')
   const cookiesFromHeaders = requestCookieHeader
-    ? cookieUtils.parse(requestCookieHeader)
+    ? parseCookies(requestCookieHeader)
     : {}
 
   const cookiesFromDocument = getDocumentCookies(request)

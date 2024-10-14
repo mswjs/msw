@@ -6,6 +6,7 @@ import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
+import { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 
 const store = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -51,9 +52,17 @@ export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
-  constructor(handlers: Array<RequestHandler>) {
+  constructor(
+    handlers: Array<RequestHandler>,
+    interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }> = [],
+  ) {
     super(
-      [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
+      [
+        ClientRequestInterceptor,
+        XMLHttpRequestInterceptor,
+        FetchInterceptor,
+        ...interceptors,
+      ],
       handlers,
     )
 

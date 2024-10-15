@@ -64,6 +64,9 @@ devDependencies:
   '@commitlint/config-conventional':
     specifier: ^18.4.4
     version: 18.6.3
+  '@epic-web/test-server':
+    specifier: ^0.1.0
+    version: 0.1.0
   '@open-draft/test-server':
     specifier: ^0.4.2
     version: 0.4.2
@@ -664,6 +667,21 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    dev: true
+
+  /@epic-web/test-server@0.1.0:
+    resolution: {integrity: sha512-RjJ2WvFepiXynHqm6svriviySVmpCA2QxJmy0DHYwy/9qjeSZvTAIttNqCLLryrV6hL+RsSpHS9CN4MSn/4DpA==}
+    engines: {node: '>=20'}
+    dependencies:
+      '@hono/node-server': 1.13.2(hono@4.6.4)
+      '@hono/node-ws': 1.0.4(@hono/node-server@1.13.2)
+      '@open-draft/deferred-promise': 2.2.0
+      '@types/ws': 8.5.12
+      hono: 4.6.4
+      ws: 8.18.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true
 
   /@esbuild/aix-ppc64@0.20.2:
@@ -1552,6 +1570,28 @@ packages:
   /@fastify/busboy@2.1.1:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
+    dev: true
+
+  /@hono/node-server@1.13.2(hono@4.6.4):
+    resolution: {integrity: sha512-0w8nEmAyx0Ul0CQp8BL2VtAG4YVdpzXd/mvvM+l0G5Oq22pUyHS+KeFFPSY+czLOF5NAiV3MUNPD1n14Ol5svg==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+    dependencies:
+      hono: 4.6.4
+    dev: true
+
+  /@hono/node-ws@1.0.4(@hono/node-server@1.13.2):
+    resolution: {integrity: sha512-0j1TMp67U5ym0CIlvPKcKtD0f2ZjaS/EnhOxFLs3bVfV+/4WInBE7hVe2x/7PLEsNIUK9+jVL8lPd28rzTAcZg==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@hono/node-server': ^1.11.1
+    dependencies:
+      '@hono/node-server': 1.13.2(hono@4.6.4)
+      ws: 8.18.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true
 
   /@humanwhocodes/config-array@0.11.14:
@@ -2538,6 +2578,12 @@ packages:
 
   /@types/ws@7.4.7:
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+    dependencies:
+      '@types/node': 18.19.28
+    dev: true
+
+  /@types/ws@8.5.12:
+    resolution: {integrity: sha512-3tPRkv1EtkDpzlgyKyI8pGsGZAGPEaXeu0DOj5DI25Ja91bdAYddYHbADRYVrZMRbfW+1l5YwXVDKohDJNQxkQ==}
     dependencies:
       '@types/node': 18.19.28
     dev: true
@@ -5539,6 +5585,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       parse-passwd: 1.0.0
+    dev: true
+
+  /hono@4.6.4:
+    resolution: {integrity: sha512-T5WqBkTOcIQblqBKB5mpzaH/A+dSpvVe938xZJCHOmOuYfF7DSwE/9/10+BMvwSPq9N/f6LiQ38HxrZSQOsXKw==}
+    engines: {node: '>=16.9.0'}
     dev: true
 
   /hosted-git-info@2.8.9:

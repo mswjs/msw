@@ -55,7 +55,7 @@ specifiers:
   node-fetch: ^2.6.7
   outvariant: ^1.4.0
   page-with: ^0.5.0
-  path-to-regexp: ^6.2.0
+  path-to-regexp: ^6.3.0
   prettier: ^2.7.1
   regenerator-runtime: ^0.13.9
   rimraf: ^3.0.2
@@ -88,7 +88,7 @@ dependencies:
   js-levenshtein: 1.1.6
   node-fetch: 2.6.9
   outvariant: 1.4.0
-  path-to-regexp: 6.2.1
+  path-to-regexp: 6.3.0
   strict-event-emitter: 0.4.6
   type-fest: 2.19.0
   yargs: 17.7.0
@@ -8221,8 +8221,8 @@ packages:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
     dev: true
 
-  /path-to-regexp/6.2.1:
-    resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==}
+  /path-to-regexp/6.3.0:
+    resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
     dev: false
 
   /path-type/4.0.0:

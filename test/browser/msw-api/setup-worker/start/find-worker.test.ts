@@ -25,15 +25,15 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
 
   expect(resolvedPayload).toBe('ServiceWorkerRegistration')
 
-  const activationMessageIndex = consoleSpy
-    .get('startGroupCollapsed')
-    ?.findIndex((text) => {
+  const activationMessageIndex =
+    consoleSpy.get('startGroupCollapsed')?.findIndex((text) => {
       return text.includes('[MSW] Mocking enabled')
-    })
+    }) ?? -1
 
-  const customMessageIndex = consoleSpy.get('log').findIndex((text) => {
-    return text.includes('Registration Promise resolved')
-  })
+  const customMessageIndex =
+    consoleSpy.get('log')?.findIndex((text) => {
+      return text.includes('Registration Promise resolved')
+    }) ?? -1
 
   expect(activationMessageIndex).toBeGreaterThan(-1)
   expect(customMessageIndex).toBeGreaterThan(-1)
@@ -55,7 +55,7 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
   })
 
   const workerStartError = await page.evaluate(() => {
-    return window.msw.registration.catch((err) => err)
+    return window.msw.registration.catch((error) => error.message)
   })
 
   const activationMessage = consoleSpy
@@ -64,7 +64,7 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
       return text.includes('[MSW] Mocking enabled')
     })
 
-  const errorMessageIndex = consoleSpy.get('error').findIndex((text) => {
+  const errorMessageIndex = consoleSpy.get('error')?.findIndex((text) => {
     return text.includes('Error - no worker instance after starting')
   })
 

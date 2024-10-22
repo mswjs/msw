@@ -7,7 +7,7 @@ const staticMiddleware = (router: express.Router) => {
   router.use(express.static(__dirname))
 }
 
-function getFrameById(id: string, page: Page): Frame {
+export function getFrameById(id: string, page: Page): Frame {
   const frame = page
     .mainFrame()
     .childFrames()

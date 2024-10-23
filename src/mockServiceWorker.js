@@ -62,7 +62,12 @@ self.addEventListener('message', async function (event) {
 
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
-        payload: true,
+        payload: {
+          client: {
+            id: client.id,
+            frameType: client.frameType,
+          },
+        },
       })
       break
     }
@@ -154,6 +159,10 @@ async function handleRequest(event, requestId) {
 // communicate with during the response resolving phase.
 async function resolveMainClient(event) {
   const client = await self.clients.get(event.clientId)
+
+  if (activeClientIds.has(event.clientId)) {
+    return client
+  }
 
   if (client?.frameType === 'top-level') {
     return client

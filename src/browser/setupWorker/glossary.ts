@@ -51,7 +51,12 @@ export type ServiceWorkerIncomingResponse = Pick<
  * Map of the events that can be received from the Service Worker.
  */
 export interface ServiceWorkerIncomingEventsMap {
-  MOCKING_ENABLED: boolean
+  MOCKING_ENABLED: {
+    client: {
+      id: string
+      frameType: string
+    }
+  }
   INTEGRITY_CHECK_RESPONSE: {
     packageVersion: string
     checksum: string

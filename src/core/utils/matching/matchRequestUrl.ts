@@ -71,3 +71,7 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
     params,
   }
 }
+
+export function isPath(value: unknown): value is Path {
+  return typeof value === 'string' || value instanceof RegExp
+}

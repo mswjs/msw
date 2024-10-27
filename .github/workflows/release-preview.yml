@@ -1,4 +1,4 @@
-name: release
+name: release-preview
 
 on:
   pull_request_review:
@@ -21,7 +21,7 @@ jobs:
         with:
           require: 'write'
 
-  preview:
+  publish:
     # The approving user must pass the permissions check
     # to trigger the preview publish.
     needs: check

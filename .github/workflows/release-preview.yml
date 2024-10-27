@@ -8,7 +8,8 @@ on:
 jobs:
   preview:
     # Publish previews only for approved pull requests.
-    if: github.event.review.state == 'APPROVED'
+    # The reviewer must have push persmissions to trigger this job.
+    if: github.event.review.state == 'approved' && github.event.review.user.permissions.push == true
     runs-on: macos-latest
     steps:
       - name: Checkout

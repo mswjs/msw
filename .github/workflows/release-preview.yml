@@ -40,4 +40,4 @@ jobs:
         run: pnpm test
 
       - name: Publish preview
-        run: pnpm dlx pkg-pr-new@0.0 publish --compact --pnpm
+        run: pnpm dlx pkg-pr-new@0.0 publish --compact --pnpm --comment=update

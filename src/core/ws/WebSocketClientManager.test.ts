@@ -1,4 +1,5 @@
 // @vitest-environment node-websocket
+import { setMaxListeners } from 'node:events'
 import {
   WebSocketClientConnection,
   WebSocketData,
@@ -10,6 +11,14 @@ import {
 } from './WebSocketClientManager'
 
 const channel = new BroadcastChannel('test:channel')
+
+/**
+ * @note Increase the number of maximum event listeners
+ * because the same channel is shared between different
+ * manager instances in different tests.
+ */
+setMaxListeners(Number.MAX_SAFE_INTEGER, channel)
+
 vi.spyOn(channel, 'postMessage')
 
 const socket = new WebSocket('ws://localhost')
@@ -24,7 +33,7 @@ afterEach(() => {
 })
 
 it('adds a client from this runtime to the list of clients', async () => {
-  const manager = new WebSocketClientManager(channel, '*')
+  const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
@@ -37,7 +46,7 @@ it('adds a client from this runtime to the list of clients', async () => {
 })
 
 it('adds multiple clients from this runtime to the list of clients', async () => {
-  const manager = new WebSocketClientManager(channel, '*')
+  const manager = new WebSocketClientManager(channel)
   const connectionOne = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
@@ -61,7 +70,7 @@ it('adds multiple clients from this runtime to the list of clients', async () =>
 })
 
 it('replays a "send" event coming from another runtime', async () => {
-  const manager = new WebSocketClientManager(channel, '*')
+  const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
@@ -90,7 +99,7 @@ it('replays a "send" event coming from another runtime', async () => {
 })
 
 it('replays a "close" event coming from another runtime', async () => {
-  const manager = new WebSocketClientManager(channel, '*')
+  const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
     new TestWebSocketTransport(),
@@ -120,7 +129,7 @@ it('replays a "close" event coming from another runtime', async () => {
 })
 
 it('removes the extraneous message listener when the connection closes', async () => {
-  const manager = new WebSocketClientManager(channel, '*')
+  const manager = new WebSocketClientManager(channel)
   const transport = new TestWebSocketTransport()
   const connection = new WebSocketClientConnection(socket, transport)
   vi.spyOn(connection, 'close').mockImplementationOnce(() => {

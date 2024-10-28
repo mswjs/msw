@@ -14,6 +14,7 @@ export { ws, type WebSocketLink } from './ws'
 export {
   WebSocketHandler,
   type WebSocketHandlerEventMap,
+  type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'
 
 /* Utils */

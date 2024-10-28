@@ -17,7 +17,7 @@ export type WebSocketHandlerEventMap = {
   connection: [args: WebSocketHandlerConnection]
 }
 
-interface WebSocketHandlerConnection extends WebSocketConnectionData {
+export interface WebSocketHandlerConnection extends WebSocketConnectionData {
   params: PathParams
 }
 

@@ -58,6 +58,12 @@
       "import": "./lib/core/graphql.mjs",
       "default": "./lib/core/graphql.js"
     },
+    "./core/ws": {
+      "types": "./lib/core/ws.d.ts",
+      "require": "./lib/core/ws.js",
+      "import": "./lib/core/ws.mjs",
+      "default": "./lib/core/ws.js"
+    },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },

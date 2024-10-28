@@ -32,7 +32,6 @@ const server = setupServer(
   http.get('/resource', () => new Response())
 )
 console.log(typeof server.listen)
-process.exit(0)
 `,
   })
 
@@ -84,7 +83,6 @@ const server = setupServer(
   http.get('/resource', () => new Response())
 )
 console.log(typeof server.listen)
-process.exit(0)
 `,
   })
 

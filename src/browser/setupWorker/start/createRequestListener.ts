@@ -9,6 +9,8 @@ import {
 } from './utils/createMessageChannel'
 import { parseWorkerRequest } from '../../utils/parseWorkerRequest'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
+import { HttpHandler } from '~/core/handlers/HttpHandler'
+import { GraphQLHandler } from '~/core/handlers/GraphQLHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
@@ -43,7 +45,11 @@ export const createRequestListener = (
       await handleRequest(
         request,
         requestId,
-        context.getRequestHandlers(),
+        context.getRequestHandlers().filter((handler) => {
+          return (
+            handler instanceof HttpHandler || handler instanceof GraphQLHandler
+          )
+        }),
         options,
         context.emitter,
         {

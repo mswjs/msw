@@ -1,6 +1,6 @@
 import {
   RequestHandler,
-  RequestHandlerExecutionResult,
+  type RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
 
 export interface HandlersExecutionResult {
@@ -18,7 +18,7 @@ export interface ResponseResolutionContext {
  * Returns the execution result object containing any matching request
  * handler and any mocked response it returned.
  */
-export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
+export const executeHandlers = async <Handlers extends Array<unknown>>({
   request,
   requestId,
   handlers,
@@ -33,6 +33,10 @@ export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
+    if (!(handler instanceof RequestHandler)) {
+      continue
+    }
+
     result = await handler.run({ request, requestId, resolutionContext })
 
     // If the handler produces some result for this request,

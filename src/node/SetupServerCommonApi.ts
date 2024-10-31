@@ -103,16 +103,22 @@ export class SetupServerCommonApi
 
     // Preconfigure the WebSocket interception but don't enable it just yet.
     // It will be enabled when the server starts.
-    handleWebSocketEvent({
-      getUnhandledRequestStrategy: () => {
-        return this.resolvedOptions.onUnhandledRequest
-      },
-      getHandlers: () => {
-        return this.handlersController.currentHandlers()
-      },
-      onMockedConnection: () => {},
-      onPassthroughConnection: () => {},
-    })
+    if (typeof WebSocket !== 'undefined') {
+      try {
+        handleWebSocketEvent({
+          getUnhandledRequestStrategy: () => {
+            return this.resolvedOptions.onUnhandledRequest
+          },
+          getHandlers: () => {
+            return this.handlersController.currentHandlers()
+          },
+          onMockedConnection: () => {},
+          onPassthroughConnection: () => {},
+        })
+      } catch (error) {
+        console.warn('Failed to set up WebSocket interception:', error)
+      }
+    }
   }
 
   public listen(options: Partial<SharedOptions> = {}): void {
@@ -126,8 +132,14 @@ export class SetupServerCommonApi
     this.subscriptions.push(() => this.interceptor.dispose())
 
     // Apply the WebSocket interception.
-    webSocketInterceptor.apply()
-    this.subscriptions.push(() => webSocketInterceptor.dispose())
+    if (typeof WebSocket !== 'undefined') {
+      try {
+        webSocketInterceptor.apply()
+        this.subscriptions.push(() => webSocketInterceptor.dispose())
+      } catch (error) {
+        console.warn('Failed to apply WebSocket interception:', error)
+      }
+    }
 
     // Assert that the interceptor has been applied successfully.
     // Also guards us from forgetting to call "interceptor.apply()"

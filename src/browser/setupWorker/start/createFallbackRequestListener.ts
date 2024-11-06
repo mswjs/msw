@@ -8,6 +8,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { SetupWorkerInternalContext, StartOptions } from '../glossary'
 import type { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
+import { toRequestHandlersOnly } from '~/core/utils/internal/filterRequestHandlers'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
@@ -24,7 +25,7 @@ export function createFallbackRequestListener(
     const response = await handleRequest(
       request,
       requestId,
-      context.getRequestHandlers(),
+      context.getRequestHandlers().filter(toRequestHandlersOnly),
       options,
       context.emitter,
       {

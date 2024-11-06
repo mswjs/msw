@@ -6,6 +6,7 @@ import {
   onUnhandledRequest,
   UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
+import { isHandlerKind } from '../utils/internal/isHandlerKind'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
@@ -30,7 +31,7 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
 
     for (const handler of handlers) {
       if (
-        handler instanceof WebSocketHandler &&
+        isHandlerKind('EventHandler')(handler) &&
         handler.predicate({
           event: connectionEvent,
           parsedResult: handler.parse({

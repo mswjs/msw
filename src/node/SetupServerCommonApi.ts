@@ -14,14 +14,13 @@ import type { LifeCycleEventsMap, SharedOptions } from '~/core/sharedOptions'
 import { SetupApi } from '~/core/SetupApi'
 import { handleRequest } from '~/core/utils/handleRequest'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
-import { HttpHandler } from '~/core/handlers/HttpHandler'
-import { GraphQLHandler } from '~/core/handlers/GraphQLHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
+import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -63,12 +62,9 @@ export class SetupServerCommonApi
         const response = await handleRequest(
           request,
           requestId,
-          this.handlersController.currentHandlers().filter((handler) => {
-            return (
-              handler instanceof HttpHandler ||
-              handler instanceof GraphQLHandler
-            )
-          }),
+          this.handlersController
+            .currentHandlers()
+            .filter(isHandlerKind('RequestHandler')),
           this.resolvedOptions,
           this.emitter,
         )

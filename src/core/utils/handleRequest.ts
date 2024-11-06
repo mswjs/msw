@@ -23,12 +23,6 @@ export interface HandleRequestOptions {
   }
 
   /**
-   * Transforms a `MockedResponse` instance returned from a handler
-   * to a response instance supported by the lower tooling (i.e. interceptors).
-   */
-  transformResponse?(response: Response): Response
-
-  /**
    * Invoked whenever a request is performed as-is.
    */
   onPassthroughResponse?(request: Request): void
@@ -118,16 +112,9 @@ export async function handleRequest(
   const requiredLookupResult =
     lookupResult.data as RequiredDeep<HandlersExecutionResult>
 
-  const transformedResponse =
-    handleRequestOptions?.transformResponse?.(response) ||
-    (response as any as Response)
-
-  handleRequestOptions?.onMockedResponse?.(
-    transformedResponse,
-    requiredLookupResult,
-  )
+  handleRequestOptions?.onMockedResponse?.(response, requiredLookupResult)
 
   emitter.emit('request:end', { request, requestId })
 
-  return transformedResponse
+  return response
 }

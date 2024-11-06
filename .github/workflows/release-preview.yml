@@ -10,7 +10,7 @@ jobs:
     # Trigger the permissions check whenever someone approves a pull request.
     # They must have the write permissions to the repo in order to
     # trigger preview package publishing.
-    if: github.event.review.state == 'approved'
+    if: github.event_name == 'workflow_dispatch' || github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     outputs:
       has-permissions: ${{ steps.checkPermissions.outputs.require-result }}
@@ -25,7 +25,7 @@ jobs:
     # The approving user must pass the permissions check
     # to trigger the preview publish.
     needs: check
-    if: needs.check.outputs.has-permissions == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.check.outputs.has-permissions == 'true'
     runs-on: macos-latest
     steps:
       - name: Checkout

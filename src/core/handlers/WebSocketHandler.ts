@@ -28,6 +28,8 @@ const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
 export class WebSocketHandler {
+  private readonly __kind: 'WebSocketHandler'
+
   public id: string
   public callFrame?: string
 
@@ -38,6 +40,7 @@ export class WebSocketHandler {
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
+    this.__kind = 'WebSocketHandler'
   }
 
   public parse(args: {

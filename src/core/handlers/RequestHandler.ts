@@ -117,6 +117,8 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
+  private readonly __kind: 'RequestHandler'
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -151,6 +153,7 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
+    this.__kind = 'RequestHandler'
   }
 
   /**

@@ -20,7 +20,7 @@ import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
-import { toRequestHandlersOnly } from '~/core/utils/internal/filterRequestHandlers'
+import { toRequestHandlersOnly } from '~/core/utils/internal/toRequestHandlersOnly'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',

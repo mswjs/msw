@@ -6,5 +6,10 @@ import { RequestHandler } from '../../handlers/RequestHandler'
  * out other handlers, like `WebSocketHandler`.
  */
 export function toRequestHandlersOnly(input: unknown): input is RequestHandler {
-  return input instanceof RequestHandler
+  return (
+    input != null &&
+    typeof input === 'object' &&
+    '__kind' in input &&
+    input.__kind === 'RequestHandler'
+  )
 }

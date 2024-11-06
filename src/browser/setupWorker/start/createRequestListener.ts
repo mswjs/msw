@@ -13,7 +13,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { toResponseInit } from '~/core/utils/toResponseInit'
-import { toRequestHandlersOnly } from '~/core/utils/internal/filterRequestHandlers'
+import { toRequestHandlersOnly } from '~/core/utils/internal/toRequestHandlersOnly'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,

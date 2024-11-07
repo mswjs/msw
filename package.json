@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.4.10",
+  "version": "2.6.1",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -57,6 +57,12 @@
       "require": "./lib/core/graphql.js",
       "import": "./lib/core/graphql.mjs",
       "default": "./lib/core/graphql.js"
+    },
+    "./core/ws": {
+      "types": "./lib/core/ws.d.ts",
+      "require": "./lib/core/ws.js",
+      "import": "./lib/core/ws.mjs",
+      "default": "./lib/core/ws.js"
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
@@ -136,8 +142,9 @@
     "@bundled-es-modules/cookie": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@bundled-es-modules/tough-cookie": "^0.1.6",
-    "@inquirer/confirm": "^3.0.0",
-    "@mswjs/interceptors": "^0.35.8",
+    "@inquirer/confirm": "^5.0.0",
+    "@mswjs/interceptors": "^0.36.5",
+    "@open-draft/deferred-promise": "^2.2.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
@@ -154,6 +161,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
+    "@fastify/websocket": "^8.3.1",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.8.1",
     "@playwright/test": "^1.48.0",
@@ -177,6 +185,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "express": "^5.0.0",
+    "fastify": "^4.26.0",
     "fs-extra": "^11.2.0",
     "fs-teardown": "^0.3.0",
     "glob": "^11.0.0",

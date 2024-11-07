@@ -13,6 +13,7 @@ import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { toResponseInit } from '~/core/utils/toResponseInit'
+import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -43,7 +44,7 @@ export const createRequestListener = (
       await handleRequest(
         request,
         requestId,
-        context.getRequestHandlers(),
+        context.getRequestHandlers().filter(isHandlerKind('RequestHandler')),
         options,
         context.emitter,
         {

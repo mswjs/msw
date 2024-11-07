@@ -139,7 +139,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@bundled-es-modules/cookie": "^2.0.0",
+    "@bundled-es-modules/cookie": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@bundled-es-modules/tough-cookie": "^0.1.6",
     "@inquirer/confirm": "^5.0.0",

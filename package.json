@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.6.0",
+  "version": "2.6.2",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
@@ -139,7 +139,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@bundled-es-modules/cookie": "^2.0.0",
+    "@bundled-es-modules/cookie": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@bundled-es-modules/tough-cookie": "^0.1.6",
     "@inquirer/confirm": "^5.0.0",

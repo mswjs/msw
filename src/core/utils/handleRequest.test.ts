@@ -46,13 +46,13 @@ afterEach(() => {
   vi.resetAllMocks()
 })
 
-test('returns undefined for a request with the "x-msw-intention" header equal to "bypass"', async () => {
+test('returns undefined for a request with the "accept: msw/passthrough" header equal to "bypass"', async () => {
   const { emitter, events } = setup()
 
   const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
-      'x-msw-intention': 'bypass',
+      accept: 'msw/passthrough',
     }),
   })
   const handlers: Array<RequestHandler> = []
@@ -79,12 +79,12 @@ test('returns undefined for a request with the "x-msw-intention" header equal to
   expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
-test('does not bypass a request with "x-msw-intention" header set to arbitrary value', async () => {
+test('does not bypass a request with "accept: msw/*" header set to arbitrary value', async () => {
   const { emitter } = setup()
 
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
-      'x-msw-intention': 'invalid',
+      acceot: 'msw/invalid',
     }),
   })
   const handlers: Array<RequestHandler> = [

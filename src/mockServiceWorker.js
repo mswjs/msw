@@ -62,7 +62,12 @@ self.addEventListener('message', async function (event) {
 
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
-        payload: true,
+        payload: {
+          client: {
+            id: client.id,
+            frameType: client.frameType,
+          },
+        },
       })
       break
     }
@@ -155,6 +160,10 @@ async function handleRequest(event, requestId) {
 async function resolveMainClient(event) {
   const client = await self.clients.get(event.clientId)
 
+  if (activeClientIds.has(event.clientId)) {
+    return client
+  }
+
   if (client?.frameType === 'top-level') {
     return client
   }
@@ -183,12 +192,14 @@ async function getResponse(event, client, requestId) {
   const requestClone = request.clone()
 
   function passthrough() {
-    const headers = Object.fromEntries(requestClone.headers.entries())
+    // Cast the request headers to a new Headers instance
+    // so the headers can be manipulated with.
+    const headers = new Headers(requestClone.headers)
 
-    // Remove internal MSW request header so the passthrough request
-    // complies with any potential CORS preflight checks on the server.
-    // Some servers forbid unknown request headers.
-    delete headers['x-msw-intention']
+    // Remove the "accept" header value that marked this request as passthrough.
+    // This prevents request alteration and also keeps it compliant with the
+    // user-defined CORS policies.
+    headers.delete('accept', 'msw/passthrough')
 
     return fetch(requestClone, { headers })
   }

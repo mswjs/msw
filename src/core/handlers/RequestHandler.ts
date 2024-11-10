@@ -7,6 +7,7 @@ import {
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import type { HandlerKind } from './common'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -117,6 +118,8 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
+  private readonly __kind: HandlerKind
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -151,6 +154,7 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
+    this.__kind = 'RequestHandler'
   }
 
   /**

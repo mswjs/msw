@@ -4,6 +4,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type { SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
 import { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
@@ -11,8 +12,8 @@ import { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 const store = new AsyncLocalStorage<RequestHandlersContext>()
 
 type RequestHandlersContext = {
-  initialHandlers: Array<RequestHandler>
-  handlers: Array<RequestHandler>
+  initialHandlers: Array<RequestHandler | WebSocketHandler>
+  handlers: Array<RequestHandler | WebSocketHandler>
 }
 
 /**
@@ -23,7 +24,7 @@ type RequestHandlersContext = {
 class AsyncHandlersController implements HandlersController {
   private rootContext: RequestHandlersContext
 
-  constructor(initialHandlers: Array<RequestHandler>) {
+  constructor(initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     this.rootContext = { initialHandlers, handlers: [] }
   }
 
@@ -31,18 +32,18 @@ class AsyncHandlersController implements HandlersController {
     return store.getStore() || this.rootContext
   }
 
-  public prepend(runtimeHandlers: Array<RequestHandler>) {
+  public prepend(runtimeHandlers: Array<RequestHandler | WebSocketHandler>) {
     this.context.handlers.unshift(...runtimeHandlers)
   }
 
-  public reset(nextHandlers: Array<RequestHandler>) {
+  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>) {
     const context = this.context
     context.handlers = []
     context.initialHandlers =
       nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
   }
 
-  public currentHandlers(): Array<RequestHandler> {
+  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
     const { initialHandlers, handlers } = this.context
     return handlers.concat(initialHandlers)
   }
@@ -53,7 +54,7 @@ export class SetupServerApi
   implements SetupServer
 {
   constructor(
-    handlers: Array<RequestHandler>,
+    handlers: Array<RequestHandler | WebSocketHandler>,
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }> = [],
   ) {
     super(

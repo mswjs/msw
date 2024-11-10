@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { passthrough } from './passthrough'
 
 it('creates a 302 response with the intention header', () => {

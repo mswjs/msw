@@ -67,6 +67,29 @@ export class SetupServerCommonApi
             .filter(isHandlerKind('RequestHandler')),
           this.resolvedOptions,
           this.emitter,
+          {
+            onPassthroughResponse(request) {
+              const acceptHeader = request.headers.get('accept')
+
+              /**
+               * @note Remove the internal bypass request header.
+               * In the browser, this is done by the worker script.
+               * In Node.js, it has to be done here.
+               */
+              if (acceptHeader) {
+                const nextAcceptHeader = acceptHeader.replace(
+                  /(,\s+)?msw\/passthrough/,
+                  '',
+                )
+
+                if (nextAcceptHeader) {
+                  request.headers.set('accept', nextAcceptHeader)
+                } else {
+                  request.headers.delete('accept')
+                }
+              }
+            },
+          },
         )
 
         if (response) {

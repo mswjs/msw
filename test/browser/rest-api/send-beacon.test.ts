@@ -27,7 +27,7 @@ test('supports mocking a response to a "sendBeacon" request', async ({
   await expect(isQueuedPromise).resolves.toBe(true)
 })
 
-test.only('supports bypassing "sendBeacon" requests', async ({
+test('supports bypassing "sendBeacon" requests', async ({
   loadExample,
   page,
 }) => {

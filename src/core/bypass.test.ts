@@ -67,3 +67,15 @@ it('allows modifying the bypassed request instance', async () => {
   expect(await request.text()).toBe('hello world')
   expect(original.bodyUsed).toBe(false)
 })
+
+it('supports bypassing "keepalive: true" requests', async () => {
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    keepalive: true,
+  })
+  const request = bypass(original)
+
+  expect(request.method).toBe('POST')
+  expect(request.url).toBe('http://localhost/resource')
+  expect(request.body).toBeNull()
+})

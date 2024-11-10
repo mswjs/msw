@@ -38,7 +38,8 @@ export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
   // to bypass this request from any further request matching.
   // Unlike "passthrough()", bypass is meant for performing
   // additional requests within pending request resolution.
-  requestClone.headers.set('x-msw-intention', 'bypass')
+
+  requestClone.headers.append('accept', 'msw/passthrough')
 
   return requestClone
 }

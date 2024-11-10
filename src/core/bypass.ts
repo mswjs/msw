@@ -34,11 +34,12 @@ export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
 
   const requestClone = request.clone()
 
-  // Set the internal header that would instruct MSW
-  // to bypass this request from any further request matching.
-  // Unlike "passthrough()", bypass is meant for performing
-  // additional requests within pending request resolution.
-
+  /**
+   * Send the internal request header that would instruct MSW
+   * to perform this request as-is, ignoring any matching handlers.
+   * @note Use the `accept` header to support scenarios when the
+   * request cannot have headers (e.g. `sendBeacon` requests).
+   */
   requestClone.headers.append('accept', 'msw/passthrough')
 
   return requestClone

@@ -9,24 +9,21 @@ it('returns bypassed request given a request url string', async () => {
   // Relative URLs are rebased against the current location.
   expect(request.method).toBe('GET')
   expect(request.url).toBe('https://api.example.com/resource')
-  expect(Object.fromEntries(request.headers.entries())).toEqual({
-    'x-msw-intention': 'bypass',
-  })
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
 })
 
 it('returns bypassed request given a request url', async () => {
   const request = bypass(new URL('/resource', 'https://api.example.com'))
 
   expect(request.url).toBe('https://api.example.com/resource')
-  expect(Object.fromEntries(request.headers)).toEqual({
-    'x-msw-intention': 'bypass',
-  })
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
 })
 
 it('returns bypassed request given request instance', async () => {
   const original = new Request('http://localhost/resource', {
     method: 'POST',
     headers: {
+      accept: '*/*',
       'X-My-Header': 'value',
     },
     body: 'hello world',
@@ -40,10 +37,11 @@ it('returns bypassed request given request instance', async () => {
   expect(original.bodyUsed).toBe(false)
 
   expect(bypassedRequestBody).toEqual(await original.text())
-  expect(Object.fromEntries(request.headers.entries())).toEqual({
-    ...Object.fromEntries(original.headers.entries()),
-    'x-msw-intention': 'bypass',
-  })
+  expect(Array.from(request.headers)).toEqual([
+    ['accept', '*/*, msw/passthrough'],
+    ['content-type', 'text/plain;charset=UTF-8'],
+    ['x-my-header', 'value'],
+  ])
 })
 
 it('allows modifying the bypassed request instance', async () => {
@@ -57,10 +55,10 @@ it('allows modifying the bypassed request instance', async () => {
   })
 
   expect(request.method).toBe('PUT')
-  expect(Object.fromEntries(request.headers.entries())).toEqual({
-    'x-msw-intention': 'bypass',
-    'x-modified-header': 'yes',
-  })
+  expect(Array.from(request.headers)).toEqual([
+    ['accept', 'msw/passthrough'],
+    ['x-modified-header', 'yes'],
+  ])
   expect(original.bodyUsed).toBe(false)
   expect(request.bodyUsed).toBe(false)
 
@@ -78,4 +76,5 @@ it('supports bypassing "keepalive: true" requests', async () => {
   expect(request.method).toBe('POST')
   expect(request.url).toBe('http://localhost/resource')
   expect(request.body).toBeNull()
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
 })

@@ -1,6 +1,11 @@
 import { it, expectTypeOf } from 'vitest'
 import { parse } from 'graphql'
-import { graphql, HttpResponse, passthrough } from 'msw'
+import {
+  graphql,
+  HttpResponse,
+  passthrough,
+  GraphQLSubscriptionHandler,
+} from 'msw'
 
 it('graphql mutation can be used without variables generic type', () => {
   graphql.mutation('GetUser', () => {
@@ -197,4 +202,14 @@ it('graphql mutation cannot extract variable and reponse types', () => {
       data: { arbitrary: true },
     })
   })
+})
+
+/**
+ * Subscriptions.
+ */
+it('exposes a "subscription" method only on a GraphQL link', () => {
+  expectTypeOf(graphql).not.toHaveProperty('subscription')
+  expectTypeOf(
+    graphql.link('http://localhost:4000').subscription,
+  ).toEqualTypeOf<GraphQLSubscriptionHandler>()
 })

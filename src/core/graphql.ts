@@ -1,4 +1,4 @@
-import type { DocumentNode, OperationTypeNode } from 'graphql'
+import { DocumentNode, OperationTypeNode } from 'graphql'
 import {
   ResponseResolver,
   RequestHandlerOptions,
@@ -13,6 +13,12 @@ import {
   GraphQLQuery,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
+import {
+  GraphQLPubsub,
+  GraphQLInternalPubsub,
+  createGraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandler,
+} from './handlers/GraphQLSubscriptionHandler'
 
 export interface TypedDocumentNode<
   Result = { [key: string]: any },
@@ -119,29 +125,33 @@ export interface GraphQLHandlers {
 }
 
 const standardGraphQLHandlers: GraphQLHandlers = {
-  query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
-  mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
+  query: createScopedGraphQLHandler(OperationTypeNode.QUERY, '*'),
+  mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, '*'),
   operation: createGraphQLOperationHandler('*'),
 }
 
 export interface GraphQLLink extends GraphQLHandlers {
+  pubsub: GraphQLPubsub
+
   /**
    * Intercepts a GraphQL subscription by its name.
    *
    * @example
    * graphql.subscription('OnPostAdded', resolver)
    */
-  subscription: GraphQLRequestHandler
+  subscription: GraphQLSubscriptionHandler
 }
 
 function createGraphQLLink(url: Path): GraphQLLink {
+  const internalPubSub = new GraphQLInternalPubsub(url)
+
   return {
-    query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
-    mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, url),
-    subscription: createScopedGraphQLHandler(
-      'subscription' as OperationTypeNode,
-      url,
+    query: createScopedGraphQLHandler(OperationTypeNode.QUERY, url),
+    mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, url),
+    subscription: createGraphQLSubscriptionHandler(
+      internalPubSub.webSocketLink,
     ),
+    pubsub: internalPubSub.pubsub,
     operation: createGraphQLOperationHandler(url),
   }
 }

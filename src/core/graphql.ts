@@ -62,22 +62,24 @@ function createScopedGraphQLHandler(
   }
 }
 
-function createGraphQLOperationHandler(url: Path) {
-  return <
-    Query extends GraphQLQuery = GraphQLQuery,
-    Variables extends GraphQLVariables = GraphQLVariables,
-  >(
-    resolver: ResponseResolver<
-      GraphQLResolverExtras<Variables>,
-      null,
-      GraphQLResponseBody<Query>
-    >,
-  ) => {
+export type GraphQLOperationHandler = <
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+>(
+  resolver: ResponseResolver<
+    GraphQLResolverExtras<Variables>,
+    null,
+    GraphQLResponseBody<Query>
+  >,
+) => GraphQLHandler
+
+function createGraphQLOperationHandler(url: Path): GraphQLOperationHandler {
+  return (resolver) => {
     return new GraphQLHandler('all', new RegExp('.*'), url, resolver)
   }
 }
 
-const standardGraphQLHandlers = {
+export interface GraphQLHandlers {
   /**
    * Intercepts a GraphQL query by a given name.
    *
@@ -88,7 +90,7 @@ const standardGraphQLHandlers = {
    *
    * @see {@link https://mswjs.io/docs/api/graphql#graphqlqueryqueryname-resolver `graphql.query()` API reference}
    */
-  query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
+  query: GraphQLRequestHandler
 
   /**
    * Intercepts a GraphQL mutation by its name.
@@ -101,7 +103,7 @@ const standardGraphQLHandlers = {
    * @see {@link https://mswjs.io/docs/api/graphql#graphqlmutationmutationname-resolver `graphql.query()` API reference}
    *
    */
-  mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
+  mutation: GraphQLRequestHandler
 
   /**
    * Intercepts any GraphQL operation, regardless of its type or name.
@@ -113,14 +115,34 @@ const standardGraphQLHandlers = {
    *
    * @see {@link https://mswjs.io/docs/api/graphql#graphloperationresolver `graphql.operation()` API reference}
    */
+  operation: GraphQLOperationHandler
+}
+
+const standardGraphQLHandlers: GraphQLHandlers = {
+  query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
+  mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
   operation: createGraphQLOperationHandler('*'),
 }
 
-function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
+export interface GraphQLLink extends GraphQLHandlers {
+  /**
+   * Intercepts a GraphQL subscription by its name.
+   *
+   * @example
+   * graphql.subscription('OnPostAdded', resolver)
+   */
+  subscription: GraphQLRequestHandler
+}
+
+function createGraphQLLink(url: Path): GraphQLLink {
   return {
-    operation: createGraphQLOperationHandler(url),
     query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
     mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, url),
+    subscription: createScopedGraphQLHandler(
+      'subscription' as OperationTypeNode,
+      url,
+    ),
+    operation: createGraphQLOperationHandler(url),
   }
 }
 

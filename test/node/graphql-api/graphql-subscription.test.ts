@@ -1,4 +1,4 @@
-// @vitest-environment node
+// @vitest-environment node-websocket
 import { graphql } from 'msw'
 import { setupServer } from 'msw/node'
 import { createClient } from 'graphql-ws'

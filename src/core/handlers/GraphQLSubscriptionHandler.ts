@@ -20,16 +20,46 @@ export interface GraphQLPubsub {
   /**
    * Publishes the given payload to all GraphQL subscriptions.
    */
-  publish: (payload: { data?: Record<string, unknown> }) => void
+  publish: (
+    payload: { data?: Record<string, unknown> },
+    predicate?: (args: {
+      subscription: GraphQLWebSocketSubscriptionWithId
+    }) => boolean,
+  ) => void
+}
+
+type GraphQLWebSocketOutgoingMessage =
+  | {
+      type: 'connection_init'
+    }
+  | {
+      type: 'subscribe'
+      id: string
+      payload: GraphQLWebSocketSubscription
+    }
+  | {
+      type: 'complete'
+      id: string
+    }
+
+interface GraphQLWebSocketSubscription {
+  query: string
+  variables: Record<string, unknown>
+  extensions: Array<any>
+}
+
+interface GraphQLWebSocketSubscriptionWithId
+  extends GraphQLWebSocketSubscription {
+  id: string
 }
 
 export class GraphQLInternalPubsub {
   public pubsub: GraphQLPubsub
   public webSocketLink: WebSocketLink
-  private subscriptions: Set<string>
+  private subscriptions: Map<string, GraphQLWebSocketSubscriptionWithId>
 
   constructor(public readonly url: Path) {
-    this.subscriptions = new Set()
+    this.subscriptions = new Map()
 
     /**
      * @fixme This isn't nice.
@@ -52,7 +82,7 @@ export class GraphQLInternalPubsub {
             return
           }
 
-          const message = jsonParse(event.data)
+          const message = jsonParse<GraphQLWebSocketOutgoingMessage>(event.data)
 
           if (!message) {
             return
@@ -65,7 +95,10 @@ export class GraphQLInternalPubsub {
             }
 
             case 'subscribe': {
-              this.subscriptions.add(message.id)
+              this.subscriptions.set(message.id, {
+                ...message.payload,
+                id: message.id,
+              })
               break
             }
 
@@ -80,14 +113,16 @@ export class GraphQLInternalPubsub {
 
     this.pubsub = {
       handler: webSocketHandler,
-      publish: (payload) => {
-        for (const subscriptionId of this.subscriptions) {
-          this.webSocketLink.broadcast(
-            this.createSubscriptionMessage({
-              id: subscriptionId,
-              payload,
-            }),
-          )
+      publish: (payload, predicate = () => true) => {
+        for (const [, subscription] of this.subscriptions) {
+          if (predicate({ subscription })) {
+            this.webSocketLink.broadcast(
+              this.createSubscriptionMessage({
+                id: subscription.id,
+                payload,
+              }),
+            )
+          }
         }
       },
     }
@@ -110,22 +145,24 @@ export type GraphQLSubscriptionHandler = <
     | GraphQLHandlerNameSelector
     | DocumentNode
     | TypedDocumentNode<Query, Variables>,
-  resolver: (info: GraphQLSubscriptionHandlerInfo<Variables>) => void,
+  resolver: (info: GraphQLSubscriptionHandlerInfo<Query, Variables>) => void,
 ) => WebSocketHandler
 
 export interface GraphQLSubscriptionHandlerInfo<
+  Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > {
   operationName: string
   query: string
   variables: Variables
+  pubsub: GraphQLSubscriptionHandlerPubsub<Query>
 }
 
 export function createGraphQLSubscriptionHandler(
-  webSocketLink: WebSocketLink,
+  internalPubsub: GraphQLInternalPubsub,
 ): GraphQLSubscriptionHandler {
   return (operationName, resolver) => {
-    const webSocketHandler = webSocketLink.addEventListener(
+    const webSocketHandler = internalPubsub.webSocketLink.addEventListener(
       'connection',
       ({ client }) => {
         client.addEventListener('message', async (event) => {
@@ -133,7 +170,7 @@ export function createGraphQLSubscriptionHandler(
             return
           }
 
-          const message = jsonParse(event.data)
+          const message = jsonParse<GraphQLWebSocketOutgoingMessage>(event.data)
 
           if (
             message != null &&
@@ -148,13 +185,19 @@ export function createGraphQLSubscriptionHandler(
               node.operationType === OperationTypeNode.SUBSCRIPTION &&
               node.operationName === operationName
             ) {
+              const pubsub = new GraphQLSubscriptionHandlerPubsub({
+                internalPubsub,
+                subscriptionId: message.id,
+              })
+
               /**
                * @todo Add the path parameters from the pubsub URL.
                */
               resolver({
                 operationName: node.operationName,
                 query: message.payload.query,
-                variables: message.payload.variables,
+                variables: message.payload.variables as any,
+                pubsub,
               })
             }
           }
@@ -163,5 +206,20 @@ export function createGraphQLSubscriptionHandler(
     )
 
     return webSocketHandler
+  }
+}
+
+class GraphQLSubscriptionHandlerPubsub<Query extends GraphQLQuery> {
+  constructor(
+    private readonly args: {
+      internalPubsub: GraphQLInternalPubsub
+      subscriptionId: string
+    },
+  ) {}
+
+  public publish(payload: { data?: Query }): void {
+    this.args.internalPubsub.pubsub.publish(payload, ({ subscription }) => {
+      return subscription.id === this.args.subscriptionId
+    })
   }
 }

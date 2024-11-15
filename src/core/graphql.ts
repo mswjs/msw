@@ -148,9 +148,7 @@ function createGraphQLLink(url: Path): GraphQLLink {
   return {
     query: createScopedGraphQLHandler(OperationTypeNode.QUERY, url),
     mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, url),
-    subscription: createGraphQLSubscriptionHandler(
-      internalPubSub.webSocketLink,
-    ),
+    subscription: createGraphQLSubscriptionHandler(internalPubSub),
     pubsub: internalPubSub.pubsub,
     operation: createGraphQLOperationHandler(url),
   }

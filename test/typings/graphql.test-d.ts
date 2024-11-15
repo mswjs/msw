@@ -191,12 +191,12 @@ it('graphql query cannot extract variable and reponse types', () => {
 
 it('graphql mutation cannot extract variable and reponse types', () => {
   const createUser = parse(`
-        mutation CreateUser {
-          user {
-            id
-          }
-        }
-      `)
+mutation CreateUser {
+  user {
+    id
+  }
+}
+  `)
   graphql.mutation(createUser, () => {
     return HttpResponse.json({
       data: { arbitrary: true },
@@ -212,4 +212,38 @@ it('exposes a "subscription" method only on a GraphQL link', () => {
   expectTypeOf(
     graphql.link('http://localhost:4000').subscription,
   ).toEqualTypeOf<GraphQLSubscriptionHandler>()
+})
+
+it('graphql subscroption accepts matching data publish', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  api.subscription<{ commentAdded: { id: string; text: string } }>(
+    'OnCommentAdded',
+    ({ pubsub }) => {
+      pubsub.publish({
+        data: {
+          commentAdded: {
+            id: '1',
+            text: 'Hello, world!',
+          },
+        },
+      })
+    },
+  )
+})
+
+it('graphql subscription does not allow mismatched data publish', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  api.subscription<{ commentAdded: { id: string; text: string } }>(
+    'OnCommentAdded',
+    ({ pubsub }) => {
+      pubsub.publish({
+        data: {
+          commentAdded: {
+            // @ts-expect-error number is not assignable to type string.
+            id: 123,
+          },
+        },
+      })
+    },
+  )
 })

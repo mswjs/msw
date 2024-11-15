@@ -189,6 +189,7 @@
     "fs-extra": "^11.2.0",
     "fs-teardown": "^0.3.0",
     "glob": "^11.0.0",
+    "graphql-ws": "^5.16.0",
     "jsdom": "^25.0.1",
     "json-bigint": "^1.0.0",
     "lint-staged": "^15.2.10",

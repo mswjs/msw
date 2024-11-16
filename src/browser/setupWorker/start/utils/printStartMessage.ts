@@ -1,3 +1,4 @@
+import type { ServiceWorkerIncomingEventsMap } from 'browser/setupWorker/glossary'
 import { devUtils } from '~/core/utils/internal/devUtils'
 
 export interface PrintStartMessageArgs {
@@ -5,6 +6,7 @@ export interface PrintStartMessageArgs {
   message?: string
   workerUrl?: string
   workerScope?: string
+  client?: ServiceWorkerIncomingEventsMap['MOCKING_ENABLED']['client']
 }
 
 /**
@@ -39,6 +41,11 @@ export function printStartMessage(args: PrintStartMessageArgs = {}) {
   if (args.workerScope) {
     // eslint-disable-next-line no-console
     console.log('Worker scope:', args.workerScope)
+  }
+
+  if (args.client) {
+    // eslint-disable-next-line no-console
+    console.log('Client ID: %s (%s)', args.client.id, args.client.frameType)
   }
 
   // eslint-disable-next-line no-console

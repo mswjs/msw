@@ -4,6 +4,7 @@ import {
   graphql,
   HttpResponse,
   passthrough,
+  GraphQLSubscription,
   GraphQLSubscriptionHandler,
 } from 'msw'
 
@@ -212,6 +213,22 @@ it('exposes a "subscription" method only on a GraphQL link', () => {
   expectTypeOf(
     graphql.link('http://localhost:4000').subscription,
   ).toEqualTypeOf<GraphQLSubscriptionHandler>()
+})
+
+it('exposes the resolver info for a graphql subscription', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  type Query = { commentAdded: { id: string; text: string } }
+  type Variables = { commentId: string }
+
+  api.subscription<Query, Variables>(
+    'OnCommentAdded',
+    ({ operationName, subscription }) => {
+      expectTypeOf(operationName).toEqualTypeOf<string>()
+      expectTypeOf(subscription).toEqualTypeOf<
+        GraphQLSubscription<Query, Variables>
+      >()
+    },
+  )
 })
 
 it('graphql subscroption accepts matching data publish', () => {

@@ -135,7 +135,7 @@ export class GraphQLInternalPubsub {
   }
 }
 
-class GraphQLSubscription<
+export class GraphQLSubscription<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > {

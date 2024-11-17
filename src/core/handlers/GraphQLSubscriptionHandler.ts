@@ -46,6 +46,15 @@ type GraphQLWebSocketOutgoingMessage =
   | GraphQLWebSocketSubscribeMessage
   | GraphQLWebSocketCompleteMessage
 
+type GraphQLWebSocketAcknowledgeMessage = {
+  type: 'connection_ack'
+}
+type GraphQLWebSocketNextMessage = {
+  type: 'next'
+  id: string
+  payload: unknown
+}
+
 interface GraphQLWebSocketSubscribeMessagePayload<
   Variables extends GraphQLVariables = GraphQLVariables,
 > {
@@ -91,7 +100,7 @@ export class GraphQLInternalPubsub {
 
           switch (message.type) {
             case 'connection_init': {
-              client.send(JSON.stringify({ type: 'connection_ack' }))
+              client.send(this.createAcknowledgeMessage())
               break
             }
 
@@ -115,7 +124,7 @@ export class GraphQLInternalPubsub {
         for (const [, subscription] of this.subscriptions) {
           if (predicate({ subscription })) {
             this.webSocketLink.broadcast(
-              this.createSubscriptionMessage({
+              this.createSubscribeMessage({
                 id: subscription.id,
                 payload,
               }),
@@ -126,12 +135,18 @@ export class GraphQLInternalPubsub {
     }
   }
 
-  private createSubscriptionMessage(args: { id: string; payload: unknown }) {
+  private createAcknowledgeMessage() {
+    return JSON.stringify({
+      type: 'connection_ack',
+    } satisfies GraphQLWebSocketAcknowledgeMessage)
+  }
+
+  private createSubscribeMessage(args: { id: string; payload: unknown }) {
     return JSON.stringify({
       id: args.id,
       type: 'next',
       payload: args.payload,
-    })
+    } satisfies GraphQLWebSocketNextMessage)
   }
 }
 

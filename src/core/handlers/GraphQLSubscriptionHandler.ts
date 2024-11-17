@@ -147,7 +147,7 @@ class GraphQLSubscription<
   constructor(
     private readonly args: {
       message: GraphQLWebSocketSubscribeMessage
-      pubsub: GraphQLPubsub
+      internalPubsub: GraphQLInternalPubsub
     },
   ) {
     this.id = args.message.id
@@ -156,10 +156,26 @@ class GraphQLSubscription<
     this.extensions = args.message.payload.extensions
   }
 
-  public publish(payload: { data?: Query }) {
-    this.args.pubsub.publish(payload, ({ subscription }) => {
+  /**
+   * Publishes data to this subscription.
+   * @param {Query} payload Data to publish.
+   */
+  public publish(payload: { data?: Query }): void {
+    this.args.internalPubsub.pubsub.publish(payload, ({ subscription }) => {
       return subscription.id === this.id
     })
+  }
+
+  /**
+   * Marks this subscription as complete.
+   */
+  public complete(): void {
+    this.args.internalPubsub.webSocketLink.broadcast(
+      JSON.stringify({
+        type: 'complete',
+        id: this.args.message.id,
+      } satisfies GraphQLWebSocketCompleteMessage),
+    )
   }
 }
 
@@ -179,6 +195,10 @@ export interface GraphQLSubscriptionHandlerInfo<
   Variables extends GraphQLVariables,
 > {
   operationName: string
+
+  /**
+   * An object representing the intercepted GraphQL subscription.
+   */
   subscription: GraphQLSubscription<Query, Variables>
 }
 
@@ -211,7 +231,7 @@ export function createGraphQLSubscriptionHandler(
             ) {
               const subscription = new GraphQLSubscription<any, any>({
                 message,
-                pubsub: internalPubsub.pubsub,
+                internalPubsub,
               })
 
               /**

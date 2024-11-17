@@ -37,7 +37,6 @@ it('intercepts and mocks a GraphQL subscription', async () => {
   const client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
-
   const subscription = client.iterate({
     query: `
 subscription OnCommendAdded {
@@ -58,5 +57,35 @@ subscription OnCommendAdded {
         },
       },
     },
+  })
+})
+
+it('marks subscription as complete by calling `subscription.complete`', async () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+
+  server.use(
+    api.pubsub.handler,
+    api.subscription('OnCommendAdded', ({ subscription }) => {
+      queueMicrotask(() => {
+        subscription.complete()
+      })
+    }),
+  )
+
+  const client = createClient({
+    url: 'ws://localhost:4000/graphql',
+  })
+  const subscription = client.iterate({
+    query: `
+subscription OnCommendAdded {
+  commentAdded {
+    text
+  }
+}
+    `,
+  })
+
+  await expect(subscription.next()).resolves.toMatchObject({
+    done: true,
   })
 })

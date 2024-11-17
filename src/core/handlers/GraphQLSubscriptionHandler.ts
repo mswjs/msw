@@ -54,15 +54,6 @@ interface GraphQLWebSocketSubscribeMessagePayload<
   extensions: Array<unknown>
 }
 
-interface GraphQLSubscription<
-  Query extends GraphQLQuery,
-  Variables extends GraphQLVariables,
-> extends GraphQLWebSocketSubscribeMessagePayload<Variables> {
-  id: string
-
-  publish: (payload: { data?: Query }) => void
-}
-
 export class GraphQLInternalPubsub {
   public pubsub: GraphQLPubsub
   public webSocketLink: WebSocketLink
@@ -144,23 +135,31 @@ export class GraphQLInternalPubsub {
   }
 }
 
-function createGraphQLSubscription<
-  Query extends GraphQLQuery = GraphQLQuery,
-  Variables extends GraphQLVariables = GraphQLVariables,
->(
-  message: GraphQLWebSocketSubscribeMessage,
-  pubsub: GraphQLPubsub,
-): GraphQLSubscription<Query, Variables> {
-  return {
-    id: message.id,
-    query: message.payload.query,
-    variables: message.payload.variables as Variables,
-    extensions: message.payload.extensions,
-    publish: (payload) => {
-      pubsub.publish(payload, ({ subscription }) => {
-        return subscription.id === message.id
-      })
+class GraphQLSubscription<
+  Query extends GraphQLQuery,
+  Variables extends GraphQLVariables,
+> {
+  public id: string
+  public query: string
+  public variables: Variables
+  public extensions: Array<unknown>
+
+  constructor(
+    private readonly args: {
+      message: GraphQLWebSocketSubscribeMessage
+      pubsub: GraphQLPubsub
     },
+  ) {
+    this.id = args.message.id
+    this.query = args.message.payload.query
+    this.variables = args.message.payload.variables as Variables
+    this.extensions = args.message.payload.extensions
+  }
+
+  public publish(payload: { data?: Query }) {
+    this.args.pubsub.publish(payload, ({ subscription }) => {
+      return subscription.id === this.id
+    })
   }
 }
 
@@ -210,10 +209,10 @@ export function createGraphQLSubscriptionHandler(
               node.operationType === OperationTypeNode.SUBSCRIPTION &&
               node.operationName === operationName
             ) {
-              const subscription = createGraphQLSubscription<any, any>(
+              const subscription = new GraphQLSubscription<any, any>({
                 message,
-                internalPubsub.pubsub,
-              )
+                pubsub: internalPubsub.pubsub,
+              })
 
               /**
                * @todo Add the path parameters from the pubsub URL.

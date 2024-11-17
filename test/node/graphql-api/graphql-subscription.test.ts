@@ -22,8 +22,8 @@ it('intercepts and mocks a GraphQL subscription', async () => {
 
   server.use(
     api.pubsub.handler,
-    api.subscription('OnCommendAdded', () => {
-      api.pubsub.publish({
+    api.subscription('OnCommendAdded', ({ subscription }) => {
+      subscription.publish({
         data: {
           commentAdded: {
             id: '1',

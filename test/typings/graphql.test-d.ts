@@ -218,8 +218,8 @@ it('graphql subscroption accepts matching data publish', () => {
   const api = graphql.link('http://localhost:4000/graphql')
   api.subscription<{ commentAdded: { id: string; text: string } }>(
     'OnCommentAdded',
-    ({ pubsub }) => {
-      pubsub.publish({
+    ({ subscription }) => {
+      subscription.publish({
         data: {
           commentAdded: {
             id: '1',
@@ -235,8 +235,8 @@ it('graphql subscription does not allow mismatched data publish', () => {
   const api = graphql.link('http://localhost:4000/graphql')
   api.subscription<{ commentAdded: { id: string; text: string } }>(
     'OnCommentAdded',
-    ({ pubsub }) => {
-      pubsub.publish({
+    ({ subscription }) => {
+      subscription.publish({
         data: {
           commentAdded: {
             // @ts-expect-error number is not assignable to type string.

@@ -3,226 +3,64 @@ import { isNodeProcess } from 'is-node-process'
 import {
   Cookie,
   CookieJar,
-  Store,
   MemoryCookieStore,
-  domainMatch,
-  pathMatch,
+  MemoryCookieStoreIndex,
 } from 'tough-cookie'
-/**
- * Custom cookie store that uses the Web Storage API.
- * @see https://github.com/expo/tough-cookie-web-storage-store
- */
-class WebStorageCookieStore extends Store {
-  private storage: Storage
-  private storageKey: string
 
-  constructor() {
-    super()
+const storageKey = '__msw-cookie-store__'
 
-    invariant(
-      typeof localStorage !== 'undefined',
-      'Failed to create a WebStorageCookieStore: `localStorage` is not available in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
-    )
+function loadFromLocalStorage(): MemoryCookieStoreIndex {
+  const json = localStorage.getItem('__msw-cookie-store__')
 
-    this.synchronous = true
-    this.storage = localStorage
-    this.storageKey = '__msw-cookie-store__'
+  if (json == null) {
+    return {}
   }
 
-  findCookie(
-    domain: string,
-    path: string,
-    key: string,
-    callback: (error: Error | null, cookie: Cookie | null) => void,
-  ): void {
-    try {
-      const store = this.getStore()
-      const cookies = this.filterCookiesFromList(store, { domain, path, key })
-      callback(null, cookies[0] || null)
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error, null)
-      }
+  const rawCookies = JSON.parse(json) as Array<Record<string, any>>
+  const cookies: MemoryCookieStoreIndex = {}
+  for (const rawCookie of rawCookies) {
+    const cookie = Cookie.fromJSON(rawCookie)
+    if (cookie != null && cookie.domain != null && cookie.path != null) {
+      cookies[cookie.domain][cookie.path][cookie.key] = cookie
     }
   }
-
-  findCookies(
-    domain: string,
-    path: string,
-    allowSpecialUseDomain: boolean,
-    callback: (error: Error | null, cookie: Array<Cookie>) => void,
-  ): void {
-    if (!domain) {
-      callback(null, [])
-      return
-    }
-
-    try {
-      const store = this.getStore()
-      const results = this.filterCookiesFromList(store, {
-        domain,
-        path,
-      })
-      callback(null, results)
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error, [])
-      }
-    }
-  }
-
-  putCookie(cookie: Cookie, callback: (error: Error | null) => void): void {
-    try {
-      // Never set cookies with `maxAge` of `0`.
-      if (cookie.maxAge === 0) {
-        return
-      }
-
-      const store = this.getStore()
-      store.push(cookie)
-      this.updateStore(store)
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error)
-      }
-    }
-  }
-
-  updateCookie(
-    oldCookie: Cookie,
-    newCookie: Cookie,
-    callback: (error: Error | null) => void,
-  ): void {
-    /**
-     * If updating a cookie with `maxAge` of `0`, remove it from the store.
-     * Otherwise, two cookie entries will be created.
-     * @see https://github.com/mswjs/msw/issues/2272
-     */
-    if (newCookie.maxAge === 0) {
-      this.removeCookie(
-        newCookie.domain || '',
-        newCookie.path || '',
-        newCookie.key,
-        callback,
-      )
-      return
-    }
-
-    this.putCookie(newCookie, callback)
-  }
-
-  removeCookie(
-    domain: string,
-    path: string,
-    key: string,
-    callback: (error: Error | null) => void,
-  ): void {
-    try {
-      const store = this.getStore()
-      const nextStore = this.deleteCookiesFromList(store, { domain, path, key })
-      this.updateStore(nextStore)
-      callback(null)
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error)
-      }
-    }
-  }
-
-  removeCookies(
-    domain: string,
-    path: string,
-    callback: (error: Error | null) => void,
-  ): void {
-    try {
-      const store = this.getStore()
-      const nextStore = this.deleteCookiesFromList(store, { domain, path })
-      this.updateStore(nextStore)
-      callback(null)
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error)
-      }
-    }
-  }
-
-  getAllCookies(
-    callback: (error: Error | null, cookie: Array<Cookie>) => void,
-  ): void {
-    try {
-      callback(null, this.getStore())
-    } catch (error) {
-      if (error instanceof Error) {
-        callback(error, [])
-      }
-    }
-  }
-
-  private getStore(): Array<Cookie> {
-    try {
-      const json = this.storage.getItem(this.storageKey)
-
-      if (json == null) {
-        return []
-      }
-
-      const rawCookies = JSON.parse(json) as Array<Record<string, any>>
-      const cookies: Array<Cookie> = []
-      for (const rawCookie of rawCookies) {
-        const cookie = Cookie.fromJSON(rawCookie)
-        if (cookie != null) {
-          cookies.push(cookie)
-        }
-      }
-      return cookies
-    } catch {
-      return []
-    }
-  }
-
-  private updateStore(nextStore: Array<Cookie>) {
-    this.storage.setItem(
-      this.storageKey,
-      JSON.stringify(nextStore.map((cookie) => cookie.toJSON())),
-    )
-  }
-
-  private filterCookiesFromList(
-    cookies: Array<Cookie>,
-    matches: { domain?: string; path?: string; key?: string },
-  ): Array<Cookie> {
-    const result: Array<Cookie> = []
-
-    for (const cookie of cookies) {
-      if (matches.domain && !domainMatch(matches.domain, cookie.domain || '')) {
-        continue
-      }
-
-      if (matches.path && !pathMatch(matches.path, cookie.path || '')) {
-        continue
-      }
-
-      if (matches.key && cookie.key !== matches.key) {
-        continue
-      }
-
-      result.push(cookie)
-    }
-
-    return result
-  }
-
-  private deleteCookiesFromList(
-    cookies: Array<Cookie>,
-    matches: { domain?: string; path?: string; key?: string },
-  ) {
-    const matchingCookies = this.filterCookiesFromList(cookies, matches)
-    return cookies.filter((cookie) => !matchingCookies.includes(cookie))
-  }
+  return cookies
 }
 
-const store = isNodeProcess()
-  ? new MemoryCookieStore()
-  : new WebStorageCookieStore()
+function storeInLocalStorage(idx: MemoryCookieStoreIndex): void {
+  const data = []
+  for (const domain in idx) {
+    for (const path in idx[domain]) {
+      for (const key in idx[domain][path]) {
+        data.push(idx[domain][path][key].toJSON())
+      }
+    }
+  }
 
-export const cookieStore = new CookieJar(store)
+  localStorage.setItem(storageKey, JSON.stringify(data))
+}
+
+const memoryStore = new MemoryCookieStore()
+// Instead of implementing our own cookie store we simply proxy the memory store.
+if (!isNodeProcess()) {
+  invariant(
+    typeof localStorage !== 'undefined',
+    'Failed to create a WebStorageCookieStore: `localStorage` is not available in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+  )
+  memoryStore.idx = loadFromLocalStorage()
+}
+
+const cookieJar = new CookieJar(memoryStore)
+
+export const cookieStore = {
+  setCookie(cookie: string | Cookie, url: string | undefined): void {
+    if (typeof url !== 'undefined') {
+      cookieJar.setCookieSync(cookie, url)
+      storeInLocalStorage(memoryStore.idx)
+    }
+  },
+
+  getCookiesSync(url: string): Cookie[] {
+    return cookieJar.getCookiesSync(url)
+  },
+}

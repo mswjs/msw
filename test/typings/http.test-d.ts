@@ -7,6 +7,28 @@ it('supports a single path parameter', () => {
   })
 })
 
+it('supports a repeating path parameter', () => {
+  http.get<{ id?: string }>('/user/id*', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
+  })
+})
+
+it('supports an optional path parameter', () => {
+  http.get<{ id?: string }>('/user/:id?', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
+  })
+})
+
+it('supports optional repeating path parameter', () => {
+  /**
+   * @note This is the newest "path-to-regexp" syntax.
+   * MSW doesn't support this quite yet.
+   */
+  http.get<{ path?: string[] }>('/user{/*path}', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ path?: string[] }>()
+  })
+})
+
 it('supports multiple path parameters', () => {
   type Params = { a: string; b: string[] }
   http.get<Params>('/user/:a/:b/:b', ({ params }) => {

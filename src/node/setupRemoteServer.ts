@@ -1,8 +1,10 @@
 import * as http from 'node:http'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
 import { Server as WebSocketServer } from 'socket.io'
 import { Socket, io } from 'socket.io-client'
 import { Emitter } from 'strict-event-emitter'
+import { createRequestId } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { SetupApi } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
@@ -26,8 +28,15 @@ import {
   REQUEST_INTENTION_HEADER_NAME,
   RequestIntention,
 } from '~/core/utils/internal/requestUtils'
+import { AsyncHandlersController } from './SetupServerApi'
 
 export const MSW_REMOTE_SERVER_PORT = 56957
+
+const store = new AsyncLocalStorage<{
+  contextId: string
+  initialHandlers: Array<RequestHandler>
+  handlers: Array<RequestHandler>
+}>()
 
 const kSyncServer = Symbol('kSyncServer')
 type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
@@ -38,7 +47,7 @@ type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
 export function setupRemoteServer(
   ...handlers: Array<RequestHandler>
 ): SetupRemoteServerApi {
-  return new SetupRemoteServerApi(...handlers)
+  return new SetupRemoteServerApi(handlers)
 }
 
 export interface SetupRemoteServerListenOptions {
@@ -53,6 +62,10 @@ export interface SetupRemoteServerListenOptions {
 export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
   listen: (options: SetupRemoteServerListenOptions) => Promise<void>
+  boundary: <Args extends Array<any>, R>(
+    callback: (...args: Args) => R,
+  ) => (...args: Args) => R
+  get contextId(): string
   close: () => Promise<void>
 }
 
@@ -76,8 +89,24 @@ export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
-  constructor(...handlers: Array<RequestHandler>) {
+  constructor(handlers: Array<RequestHandler>) {
     super(...handlers)
+
+    this.handlersController = new AsyncHandlersController({
+      store,
+      initialHandlers: handlers,
+    })
+  }
+
+  get contextId(): string {
+    const context = store.getStore()
+
+    invariant(
+      context != null,
+      'Failed to get "contextId" on "SetupRemoteServerApi": no context found. Did you forget to wrap this closure in `remote.boundary()`?',
+    )
+
+    return context.contextId
   }
 
   public async listen(
@@ -101,7 +130,7 @@ export class SetupRemoteServerApi
       .once('SIGTERM', () => closeSyncServer(server))
       .once('SIGINT', () => closeSyncServer(server))
 
-    server.on('connection', (socket) => {
+    server.on('connection', async (socket) => {
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
@@ -129,7 +158,27 @@ export class SetupRemoteServerApi
     })
   }
 
+  public boundary<Args extends Array<any>, R>(
+    callback: (...args: Args) => R,
+  ): (...args: Args) => R {
+    const contextId = createRequestId()
+
+    return (...args: Args): R => {
+      return store.run(
+        {
+          contextId,
+          initialHandlers: this.handlersController.currentHandlers(),
+          handlers: [],
+        },
+        callback,
+        ...args,
+      )
+    }
+  }
+
   public async close(): Promise<void> {
+    store.disable()
+
     const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
 
     invariant(
@@ -211,9 +260,9 @@ function createWebSocketServerUrl(port: number): URL {
  * Creates a WebSocket client connected to the internal
  * WebSocket sync server of MSW.
  */
-export async function createSyncClient(port: number) {
+export async function createSyncClient(args: { port: number }) {
   const connectionPromise = new DeferredPromise<Socket<SyncServerEventsMap>>()
-  const url = createWebSocketServerUrl(port)
+  const url = createWebSocketServerUrl(args.port)
   const socket = io(url.href, {
     transports: ['websocket'],
     // Keep a low timeout and no retry logic because

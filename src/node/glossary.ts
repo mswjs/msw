@@ -18,16 +18,17 @@ export interface ListenOptions extends SharedOptions {
    * created to handle. If the remote process hasn't handled the request,
    * it will be handled by whichever request handlers you have in this process.
    */
-  remote?:
-    | boolean
-    | {
-        /**
-         * Custom port number to synchronize this `setupServer` with
-         * the remote `setupRemoteServer`.
-         * @default 56957
-         */
-        port?: number
-      }
+  remote?: {
+    enabled: boolean
+    contextId?: string
+
+    /**
+     * Custom port number to synchronize this `setupServer` with
+     * the remote `setupRemoteServer`.
+     * @default 56957
+     */
+    port?: number
+  }
 }
 
 export interface SetupServerCommon {

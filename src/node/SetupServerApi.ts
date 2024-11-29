@@ -32,15 +32,23 @@ type RequestHandlersContext = {
  * to prevent the request handlers list from being a shared state
  * across mutliple tests.
  */
-class AsyncHandlersController implements HandlersController {
+export class AsyncHandlersController implements HandlersController {
+  private store: AsyncLocalStorage<RequestHandlersContext>
   private rootContext: RequestHandlersContext
 
-  constructor(initialHandlers: Array<RequestHandler>) {
-    this.rootContext = { initialHandlers, handlers: [] }
+  constructor(args: {
+    store: AsyncLocalStorage<RequestHandlersContext>
+    initialHandlers: Array<RequestHandler>
+  }) {
+    this.store = args.store
+    this.rootContext = {
+      initialHandlers: args.initialHandlers,
+      handlers: [],
+    }
   }
 
   get context(): RequestHandlersContext {
-    return store.getStore() || this.rootContext
+    return this.store.getStore() || this.rootContext
   }
 
   public prepend(runtimeHandlers: Array<RequestHandler>) {
@@ -72,7 +80,10 @@ export class SetupServerApi
       handlers,
     )
 
-    this.handlersController = new AsyncHandlersController(handlers)
+    this.handlersController = new AsyncHandlersController({
+      store,
+      initialHandlers: handlers,
+    })
   }
 
   public boundary<Args extends Array<any>, R>(
@@ -90,6 +101,17 @@ export class SetupServerApi
     }
   }
 
+  protected async beforeRequest(_args: {
+    requestId: string
+    request: Request
+  }): Promise<void> {
+    // Before the first request gets handled, await the sync server connection.
+    // This way we ensure that all the requests go through the `RemoteRequestHandler`.
+    if (this.socketPromise) {
+      await this.socketPromise
+    }
+  }
+
   public close(): void {
     super.close()
     store.disable()
@@ -101,7 +123,7 @@ export class SetupServerApi
     // If the "remotePort" option has been provided to the server,
     // run it in a special "remote" mode. That mode ensures that
     // an extraneous Node.js process can affect this process' traffic.
-    if (typeof this.resolvedOptions.remote !== 'undefined') {
+    if (this.resolvedOptions.remote?.enabled) {
       const remotePort =
         typeof this.resolvedOptions.remote === 'object'
           ? this.resolvedOptions.remote.port || MSW_REMOTE_SERVER_PORT
@@ -114,7 +136,9 @@ export class SetupServerApi
       )
 
       // Create the WebSocket sync client immediately when starting the interception.
-      this.socketPromise = createSyncClient(remotePort)
+      this.socketPromise = createSyncClient({
+        port: remotePort,
+      })
 
       // Once the sync server connection is established, prepend the
       // remote request handler to be the first for this process.
@@ -125,7 +149,9 @@ export class SetupServerApi
           {
             apply: (target, thisArg, args) => {
               return Array.prototype.concat(
-                new RemoteRequestHandler({ socket }),
+                new RemoteRequestHandler({
+                  socket,
+                }),
                 Reflect.apply(target, thisArg, args),
               )
             },
@@ -134,12 +160,6 @@ export class SetupServerApi
 
         return socket
       })
-
-      // Before the first request gets handled, await the sync server connection.
-      // This way we ensure that all the requests go through the `RemoteRequestHandler`.
-      this.beforeRequest = async () => {
-        await this.socketPromise
-      }
 
       // Forward all life-cycle events from this process to the remote.
       this.forwardLifeCycleEvents()

@@ -6,13 +6,10 @@ export enum RequestIntention {
 }
 
 export function shouldBypassRequest(request: Request): boolean {
-  return (
-    request.headers.get(REQUEST_INTENTION_HEADER_NAME) ===
-    RequestIntention.bypass
-  )
+  return !!request.headers.get('accept')?.includes('msw/passthrough')
 }
 
-export function shouldPassthroughRequest(response: Response): boolean {
+export function isPassthroughResponse(response: Response): boolean {
   return (
     response.status === 302 &&
     response.headers.get(REQUEST_INTENTION_HEADER_NAME) ===

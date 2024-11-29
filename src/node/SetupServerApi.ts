@@ -6,6 +6,7 @@ import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
 import { Socket } from 'socket.io-client'
 import {
@@ -23,8 +24,8 @@ import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 const store = new AsyncLocalStorage<RequestHandlersContext>()
 
 type RequestHandlersContext = {
-  initialHandlers: Array<RequestHandler>
-  handlers: Array<RequestHandler>
+  initialHandlers: Array<RequestHandler | WebSocketHandler>
+  handlers: Array<RequestHandler | WebSocketHandler>
 }
 
 /**
@@ -38,7 +39,7 @@ export class AsyncHandlersController implements HandlersController {
 
   constructor(args: {
     store: AsyncLocalStorage<RequestHandlersContext>
-    initialHandlers: Array<RequestHandler>
+    initialHandlers: Array<RequestHandler | WebSocketHandler>
   }) {
     this.store = args.store
     this.rootContext = {
@@ -51,18 +52,18 @@ export class AsyncHandlersController implements HandlersController {
     return this.store.getStore() || this.rootContext
   }
 
-  public prepend(runtimeHandlers: Array<RequestHandler>) {
+  public prepend(runtimeHandlers: Array<RequestHandler | WebSocketHandler>) {
     this.context.handlers.unshift(...runtimeHandlers)
   }
 
-  public reset(nextHandlers: Array<RequestHandler>) {
+  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>) {
     const context = this.context
     context.handlers = []
     context.initialHandlers =
       nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
   }
 
-  public currentHandlers(): Array<RequestHandler> {
+  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
     const { initialHandlers, handlers } = this.context
     return handlers.concat(initialHandlers)
   }
@@ -74,7 +75,7 @@ export class SetupServerApi
 {
   private socketPromise?: Promise<Socket<SyncServerEventsMap>>
 
-  constructor(handlers: Array<RequestHandler>) {
+  constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
     super(
       [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
       handlers,

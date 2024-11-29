@@ -8,7 +8,9 @@ import { createRequestId } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { SetupApi } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
+import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 import {
   type SerializedRequest,
   type SerializedResponse,
@@ -34,8 +36,8 @@ export const MSW_REMOTE_SERVER_PORT = 56957
 
 const store = new AsyncLocalStorage<{
   contextId: string
-  initialHandlers: Array<RequestHandler>
-  handlers: Array<RequestHandler>
+  initialHandlers: Array<RequestHandler | WebSocketHandler>
+  handlers: Array<RequestHandler | WebSocketHandler>
 }>()
 
 const kSyncServer = Symbol('kSyncServer')
@@ -45,7 +47,7 @@ type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
  * Enables API mocking in a remote Node.js process.
  */
 export function setupRemoteServer(
-  ...handlers: Array<RequestHandler>
+  ...handlers: Array<RequestHandler | WebSocketHandler>
 ): SetupRemoteServerApi {
   return new SetupRemoteServerApi(handlers)
 }
@@ -89,7 +91,7 @@ export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
-  constructor(handlers: Array<RequestHandler>) {
+  constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
 
     this.handlersController = new AsyncHandlersController({
@@ -136,7 +138,9 @@ export class SetupRemoteServerApi
         const response = await handleRequest(
           request,
           requestId,
-          this.handlersController.currentHandlers(),
+          this.handlersController
+            .currentHandlers()
+            .filter(isHandlerKind('RequestHandler')),
           /**
            * @todo Support resolve options from the `.listen()` call.
            */

@@ -95,7 +95,7 @@ const reactNativeConfig: Options = {
   name: 'react-native',
   platform: 'node',
   entry: ['./src/native/index.ts'],
-  external: ['chalk', 'util', 'events', mswCore, ecosystemDependencies],
+  external: ['picocolors', 'util', 'events', mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/native',
   bundle: true,

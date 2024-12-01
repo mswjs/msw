@@ -24,7 +24,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.5.0
+          version: 9.14.0
 
       - name: Setup Git
         run: |

@@ -1,6 +1,6 @@
 import {
   RequestHandler,
-  RequestHandlerExecutionResult,
+  type RequestHandlerExecutionResult,
 } from '../handlers/RequestHandler'
 
 export interface HandlersExecutionResult {

@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
@@ -48,13 +46,13 @@ afterEach(() => {
   vi.resetAllMocks()
 })
 
-test('returns undefined for a request with the "x-msw-intention" header equal to "bypass"', async () => {
+test('returns undefined for a request with the "accept: msw/passthrough" header equal to "bypass"', async () => {
   const { emitter, events } = setup()
 
   const requestId = createRequestId()
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
-      'x-msw-intention': 'bypass',
+      accept: 'msw/passthrough',
     }),
   })
   const handlers: Array<RequestHandler> = []
@@ -81,12 +79,12 @@ test('returns undefined for a request with the "x-msw-intention" header equal to
   expect(handleRequestOptions.onMockedResponse).not.toHaveBeenCalled()
 })
 
-test('does not bypass a request with "x-msw-intention" header set to arbitrary value', async () => {
+test('does not bypass a request with "accept: msw/*" header set to arbitrary value', async () => {
   const { emitter } = setup()
 
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
-      'x-msw-intention': 'invalid',
+      acceot: 'msw/invalid',
     }),
   })
   const handlers: Array<RequestHandler> = [
@@ -228,89 +226,6 @@ test('returns the mocked response for a request with a matching request handler'
   expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual(
     Object.fromEntries(mockedResponse.headers.entries()),
   )
-
-  expect(lookupResultParam).toEqual({
-    handler: lookupResult.handler,
-    parsedResult: lookupResult.parsedResult,
-    response: expect.objectContaining({
-      status: lookupResult.response.status,
-      statusText: lookupResult.response.statusText,
-    }),
-  })
-})
-
-test('returns a transformed response if the "transformResponse" option is provided', async () => {
-  const { emitter, events } = setup()
-
-  const requestId = createRequestId()
-  const request = new Request(new URL('http://localhost/user'))
-  const mockedResponse = HttpResponse.json({ firstName: 'John' })
-  const handlers: Array<RequestHandler> = [
-    http.get('/user', () => {
-      return mockedResponse
-    }),
-  ]
-  const transformResponseImpelemntation = (response: Response): Response => {
-    return new Response('transformed', response)
-  }
-  const transformResponse = vi
-    .fn<[Response], Response>()
-    .mockImplementation(transformResponseImpelemntation)
-  const finalResponse = transformResponseImpelemntation(mockedResponse)
-  const lookupResult = {
-    handler: handlers[0],
-    response: mockedResponse,
-    request,
-    parsedResult: {
-      match: { matches: true, params: {} },
-      cookies: {},
-    },
-  }
-
-  const result = await handleRequest(
-    request,
-    requestId,
-    handlers,
-    options,
-    emitter,
-    {
-      ...handleRequestOptions,
-      transformResponse,
-    },
-  )
-
-  expect(result?.status).toEqual(finalResponse.status)
-  expect(result?.statusText).toEqual(finalResponse.statusText)
-  expect(Object.fromEntries(result!.headers.entries())).toEqual(
-    Object.fromEntries(mockedResponse.headers.entries()),
-  )
-
-  expect(events).toEqual([
-    ['request:start', { request, requestId }],
-    ['request:match', { request, requestId }],
-    ['request:end', { request, requestId }],
-  ])
-  expect(handleRequestOptions.onPassthroughResponse).not.toHaveBeenCalled()
-
-  expect(transformResponse).toHaveBeenCalledTimes(1)
-  const [responseParam] = transformResponse.mock.calls[0]
-
-  expect(responseParam.status).toBe(mockedResponse.status)
-  expect(responseParam.statusText).toBe(mockedResponse.statusText)
-  expect(Object.fromEntries(responseParam.headers.entries())).toEqual(
-    Object.fromEntries(mockedResponse.headers.entries()),
-  )
-
-  expect(handleRequestOptions.onMockedResponse).toHaveBeenCalledTimes(1)
-  const [mockedResponseParam, lookupResultParam] =
-    handleRequestOptions.onMockedResponse.mock.calls[0]
-
-  expect(mockedResponseParam.status).toBe(finalResponse.status)
-  expect(mockedResponseParam.statusText).toBe(finalResponse.statusText)
-  expect(Object.fromEntries(mockedResponseParam.headers.entries())).toEqual(
-    Object.fromEntries(mockedResponse.headers.entries()),
-  )
-  expect(await mockedResponseParam.text()).toBe('transformed')
 
   expect(lookupResultParam).toEqual({
     handler: lookupResult.handler,

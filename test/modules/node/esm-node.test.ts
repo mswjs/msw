@@ -77,8 +77,8 @@ console.log('msw/node:', require.resolve('msw/node'))
 console.log('msw/native:', require.resolve('msw/native'))
 `,
     'runtime.cjs': `
-import { http } from 'msw'
-import { setupServer } from 'msw/node'
+const { http } = require('msw')
+const { setupServer } = require('msw/node')
 const server = setupServer(
   http.get('/resource', () => new Response())
 )

@@ -126,6 +126,25 @@ export class HttpResponse extends Response {
   }
 
   /**
+   * Create a `Response` with a `Content-Type: "text/html"` body.
+   * @example
+   * HttpResponse.html(`<p class="author">Jane Doe</p>`)
+   * HttpResponse.html(`<main id="abc-123">Main text</main>`, { status: 201 })
+   */
+  static html<BodyType extends string>(
+    body?: BodyType | null,
+    init?: HttpResponseInit,
+  ): Response {
+    const responseInit = normalizeResponseInit(init)
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'text/html')
+    }
+
+    return new HttpResponse(body, responseInit)
+  }
+
+  /**
    * Create a `Response` with an `ArrayBuffer` body.
    * @example
    * const buffer = new ArrayBuffer(3)
@@ -137,7 +156,7 @@ export class HttpResponse extends Response {
   static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
     const responseInit = normalizeResponseInit(init)
 
-    if (body) {
+    if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 

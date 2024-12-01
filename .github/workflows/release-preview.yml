@@ -1,0 +1,60 @@
+name: release-preview
+
+on:
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+
+jobs:
+  check:
+    # Trigger the permissions check whenever someone approves a pull request.
+    # They must have the write permissions to the repo in order to
+    # trigger preview package publishing.
+    if: github.event_name == 'workflow_dispatch' || github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    outputs:
+      has-permissions: ${{ steps.checkPermissions.outputs.require-result }}
+    steps:
+      - name: Check permissions
+        id: checkPermissions
+        uses: actions-cool/check-user-permission@v2
+        with:
+          require: 'write'
+
+  publish:
+    # The approving user must pass the permissions check
+    # to trigger the preview publish.
+    needs: check
+    if: github.event_name == 'workflow_dispatch' || needs.check.outputs.has-permissions == 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.6
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Publish preview
+        run: pnpm dlx pkg-pr-new@0.0 publish --compact --pnpm --comment=update

@@ -8,21 +8,25 @@ on:
 jobs:
   release:
     runs-on: macos-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_ADMIN_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           always-auth: true
           registry-url: https://registry.npmjs.org
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 
@@ -36,6 +40,9 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build
         run: pnpm build

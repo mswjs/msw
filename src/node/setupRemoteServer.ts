@@ -26,10 +26,6 @@ import {
   type SerializedLifeCycleEventsMap,
   deserializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
-import {
-  REQUEST_INTENTION_HEADER_NAME,
-  RequestIntention,
-} from '~/core/utils/internal/requestUtils'
 import { AsyncHandlersController } from './SetupServerApi'
 
 export const MSW_REMOTE_SERVER_PORT = 56957
@@ -126,6 +122,8 @@ export class SetupRemoteServerApi
     const wssUrl = createWebSocketServerUrl(port)
     const server = await createSyncServer(wssUrl)
 
+    console.log('[remote] created ws server!', wssUrl.href)
+
     server.removeAllListeners()
 
     process
@@ -133,6 +131,8 @@ export class SetupRemoteServerApi
       .once('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', async (socket) => {
+      console.log('[remote] socket CONNECTED!')
+
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
         const response = await handleRequest(
@@ -272,21 +272,27 @@ export async function createSyncClient(args: { port: number }) {
     // Keep a low timeout and no retry logic because
     // the user is expected to enable remote interception
     // before the actual application with "setupServer".
-    timeout: 200,
-    reconnection: false,
+    timeout: 1000,
+    reconnection: true,
     extraHeaders: {
       // Bypass the internal WebSocket connection requests
       // to exclude them from the request lookup altogether.
       // This prevents MSW from treating these requests as unhandled.
-      [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.bypass,
+      accept: 'msw/passthrough',
     },
   })
 
+  console.log('created ws client!')
+
   socket.on('connect', () => {
+    console.log('ws client CONNECT!')
+
     connectionPromise.resolve(socket)
   })
 
   socket.io.once('error', (error) => {
+    console.log('ws client ERROR!', error)
+
     connectionPromise.reject(error)
   })
 

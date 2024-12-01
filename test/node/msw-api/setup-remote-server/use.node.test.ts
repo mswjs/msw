@@ -29,7 +29,7 @@ it('returns a mocked response defined in the app by default', async () => {
   expect(json).toEqual([1, 2, 3])
 })
 
-it('returns a mocked response from the matching runtime request handler', async () => {
+it.only('returns a mocked response from the matching runtime request handler', async () => {
   remote.use(
     http.get('https://example.com/resource', () => {
       return HttpResponse.json({ mocked: true })

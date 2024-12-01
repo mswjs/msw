@@ -106,6 +106,12 @@ export class SetupServerCommonApi
           controller.respondWith(response)
         }
 
+        console.log(
+          '[setupServerCommonApi] performing request as-is...',
+          request.method,
+          request.url,
+        )
+
         return
       },
     )

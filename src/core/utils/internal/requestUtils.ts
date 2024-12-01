@@ -1,7 +1,6 @@
 export const REQUEST_INTENTION_HEADER_NAME = 'x-msw-intention'
 
 export enum RequestIntention {
-  bypass = 'bypass',
   passthrough = 'passthrough',
 }
 

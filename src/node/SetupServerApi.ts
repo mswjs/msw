@@ -102,17 +102,6 @@ export class SetupServerApi
     }
   }
 
-  protected async beforeRequest(_args: {
-    requestId: string
-    request: Request
-  }): Promise<void> {
-    // Before the first request gets handled, await the sync server connection.
-    // This way we ensure that all the requests go through the `RemoteRequestHandler`.
-    if (this.socketPromise) {
-      await this.socketPromise
-    }
-  }
-
   public close(): void {
     super.close()
     store.disable()
@@ -120,6 +109,8 @@ export class SetupServerApi
 
   public listen(options?: Partial<ListenOptions>): void {
     super.listen(options)
+
+    console.log('[setupServer] listen()')
 
     // If the "remotePort" option has been provided to the server,
     // run it in a special "remote" mode. That mode ensures that
@@ -136,6 +127,8 @@ export class SetupServerApi
         remotePort,
       )
 
+      console.log('SETUPSERVER IN REMOTE MODE!')
+
       // Create the WebSocket sync client immediately when starting the interception.
       this.socketPromise = createSyncClient({
         port: remotePort,
@@ -145,14 +138,14 @@ export class SetupServerApi
       // remote request handler to be the first for this process.
       // This way, the remote process' handlers take priority.
       this.socketPromise.then((socket) => {
+        console.log('[setupServer] socketPromise resolved!')
+
         this.handlersController.currentHandlers = new Proxy(
           this.handlersController.currentHandlers,
           {
             apply: (target, thisArg, args) => {
               return Array.prototype.concat(
-                new RemoteRequestHandler({
-                  socket,
-                }),
+                new RemoteRequestHandler({ socket }),
                 Reflect.apply(target, thisArg, args),
               )
             },
@@ -161,6 +154,27 @@ export class SetupServerApi
 
         return socket
       })
+
+      this.beforeRequest = async ({ request }) => {
+        console.log(
+          'beforeRequest',
+          request.method,
+          request.url,
+          Array.from(request.headers.entries()),
+        )
+
+        /**
+         * @todo This technically shouldn't trigger but it does.
+         */
+        if (request.url.includes('/socket.io/')) {
+          console.log('allow ws request passthrough...')
+          return
+        }
+
+        // Before the first request gets handled, await the sync server connection.
+        // This way we ensure that all the requests go through the `RemoteRequestHandler`.
+        await this.socketPromise
+      }
 
       // Forward all life-cycle events from this process to the remote.
       this.forwardLifeCycleEvents()

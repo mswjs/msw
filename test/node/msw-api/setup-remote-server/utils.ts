@@ -25,8 +25,11 @@ export class TestNodeApp {
       // This IPC is not required for the remote interception to work.
       // This IPC is required for the test app to be spawned at a random port
       // and be able to communicate the port back to the test.
-      stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
     })
+
+    this.io.stdout?.on('data', (c) => console.log(c.toString()))
+    this.io.stderr?.on('data', (c) => console.error(c.toString()))
 
     this.io
       .on('message', (message) => {

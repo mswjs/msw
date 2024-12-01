@@ -11,7 +11,10 @@ const server = setupServer(
 )
 
 server.listen({
-  remote: true,
+  // Start MSW in the remote mode.
+  remote: {
+    enabled: true,
+  },
 })
 
 // Spawn a Node.js application.

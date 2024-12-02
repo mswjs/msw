@@ -184,7 +184,7 @@ async function resolveMainClient(event) {
     })
 }
 
-async function getResponse(event, client, requestId) {
+export async function getResponse(event, client, requestId) {
   const { request } = event
 
   // Clone the request because it might've been already used
@@ -203,14 +203,12 @@ async function getResponse(event, client, requestId) {
     if (acceptHeader) {
       const values = acceptHeader.split(',').map(value => value.trim());
       const filteredValues = values.filter(value => value !== 'msw/passthrough');
-
       if (filteredValues.length > 0) {
         headers.set('accept', filteredValues.join(', '));
       } else {
         headers.delete('accept');
       }
     }
-
     return fetch(requestClone, { headers })
   }
 

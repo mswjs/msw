@@ -199,8 +199,16 @@ async function getResponse(event, client, requestId) {
     // Remove the "accept" header value that marked this request as passthrough.
     // This prevents request alteration and also keeps it compliant with the
     // user-defined CORS policies.
-    if (headers.get('accept') === 'msw/passthrough') {
-      headers.delete('accept')
+    const acceptHeader = headers.get('accept');
+    if (acceptHeader) {
+      const values = acceptHeader.split(',').map(value => value.trim());
+      const filteredValues = values.filter(value => value !== 'msw/passthrough');
+
+      if (filteredValues.length > 0) {
+        headers.set('accept', filteredValues.join(', '));
+      } else {
+        headers.delete('accept');
+      }
     }
 
     return fetch(requestClone, { headers })

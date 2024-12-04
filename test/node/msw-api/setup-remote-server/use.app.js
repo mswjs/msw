@@ -11,7 +11,6 @@ const server = setupServer(
 )
 
 server.listen({
-  // Start MSW in the remote mode.
   remote: {
     enabled: true,
   },

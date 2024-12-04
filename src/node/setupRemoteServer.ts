@@ -30,7 +30,7 @@ import { AsyncHandlersController } from './SetupServerApi'
 
 export const MSW_REMOTE_SERVER_PORT = 56957
 
-const store = new AsyncLocalStorage<{
+const handlersStorage = new AsyncLocalStorage<{
   contextId: string
   initialHandlers: Array<RequestHandler | WebSocketHandler>
   handlers: Array<RequestHandler | WebSocketHandler>
@@ -91,13 +91,13 @@ export class SetupRemoteServerApi
     super(...handlers)
 
     this.handlersController = new AsyncHandlersController({
-      store,
+      storage: handlersStorage,
       initialHandlers: handlers,
     })
   }
 
   get contextId(): string {
-    const context = store.getStore()
+    const context = handlersStorage.getStore()
 
     invariant(
       context != null,
@@ -122,8 +122,6 @@ export class SetupRemoteServerApi
     const wssUrl = createWebSocketServerUrl(port)
     const server = await createSyncServer(wssUrl)
 
-    console.log('[remote] created ws server!', wssUrl.href)
-
     server.removeAllListeners()
 
     process
@@ -131,16 +129,16 @@ export class SetupRemoteServerApi
       .once('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', async (socket) => {
-      console.log('[remote] socket CONNECTED!')
-
       socket.on('request', async ({ requestId, serializedRequest }) => {
         const request = deserializeRequest(serializedRequest)
+        const handlers = this.handlersController
+          .currentHandlers()
+          .filter(isHandlerKind('RequestHandler'))
+
         const response = await handleRequest(
           request,
           requestId,
-          this.handlersController
-            .currentHandlers()
-            .filter(isHandlerKind('RequestHandler')),
+          handlers,
           /**
            * @todo Support resolve options from the `.listen()` call.
            */
@@ -168,7 +166,7 @@ export class SetupRemoteServerApi
     const contextId = createRequestId()
 
     return (...args: Args): R => {
-      return store.run(
+      return handlersStorage.run(
         {
           contextId,
           initialHandlers: this.handlersController.currentHandlers(),
@@ -181,7 +179,7 @@ export class SetupRemoteServerApi
   }
 
   public async close(): Promise<void> {
-    store.disable()
+    handlersStorage.disable()
 
     const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
 
@@ -282,17 +280,11 @@ export async function createSyncClient(args: { port: number }) {
     },
   })
 
-  console.log('created ws client!')
-
   socket.on('connect', () => {
-    console.log('ws client CONNECT!')
-
     connectionPromise.resolve(socket)
   })
 
   socket.io.once('error', (error) => {
-    console.log('ws client ERROR!', error)
-
     connectionPromise.reject(error)
   })
 

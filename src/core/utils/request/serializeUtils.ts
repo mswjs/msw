@@ -1,15 +1,11 @@
-import {
-  headersToObject,
-  flattenHeadersObject,
-  type FlatHeadersObject,
-} from 'headers-polyfill'
+import { FetchResponse } from '@mswjs/interceptors'
 import { isObject } from '../internal/isObject'
 
 export interface SerializedRequest {
   __serializedType: 'request'
   method: string
   url: string
-  headers: FlatHeadersObject
+  headers: Array<[string, string]>
   body?: ArrayBuffer
 }
 
@@ -17,7 +13,7 @@ export interface SerializedResponse {
   __serializedType: 'response'
   status: number
   statusText?: string
-  headers: FlatHeadersObject
+  headers: Array<[string, string]>
   body?: ArrayBuffer
 }
 
@@ -37,7 +33,7 @@ export async function serializeRequest(
     __serializedType: 'request',
     method: request.method,
     url: request.url,
-    headers: flattenHeadersObject(headersToObject(request.headers)),
+    headers: Array.from(request.headers),
     body: requestBody,
   }
 }
@@ -79,7 +75,7 @@ export async function serializeResponse(
     __serializedType: 'response',
     status: response.status,
     statusText: response.statusText,
-    headers: flattenHeadersObject(headersToObject(response.headers)),
+    headers: Array.from(response.headers),
     body: responseBody,
   }
 }
@@ -100,7 +96,7 @@ export function isSerializedResponse(
  * serialized responses during a message channel transfer.
  */
 export function deserializeResponse(serialized: SerializedResponse): Response {
-  return new Response(serialized.body, {
+  return new FetchResponse(serialized.body, {
     status: serialized.status,
     statusText: serialized.statusText,
     headers: serialized.headers,

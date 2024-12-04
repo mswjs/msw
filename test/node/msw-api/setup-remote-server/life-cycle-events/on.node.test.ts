@@ -20,6 +20,10 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
 
   setupApi.events
     .on('request:start', ({ request, requestId }) => {
+      if (request.headers.has('upgrade')) {
+        return
+      }
+
       requestIdPromise.resolve(requestId)
       listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
     })
@@ -32,6 +36,10 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
       )
     })
     .on('request:end', ({ request, requestId }) => {
+      if (request.headers.has('upgrade')) {
+        return
+      }
+
       listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
     })
 
@@ -44,6 +52,10 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
       )
     })
     .on('response:bypass', async ({ response, request, requestId }) => {
+      if (request.headers.has('upgrade')) {
+        return
+      }
+
       listener(
         `[response:bypass] ${request.method} ${request.url} ${requestId} ${
           response.status

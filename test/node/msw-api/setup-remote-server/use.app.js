@@ -13,6 +13,9 @@ const server = setupServer(
 server.listen({
   remote: {
     enabled: true,
+    // If provided, use explicit context id to bound this
+    // runtime to a particular `remote.boundary()` in tests.
+    contextId: process.env.MSW_REMOTE_CONTEXT_ID,
   },
 })
 
@@ -48,7 +51,7 @@ app.use('/proxy', async (req, res) => {
   }
 })
 
-const httpServer = app.listen(() => {
+const httpServer = app.listen(0, () => {
   if (!process.send) {
     throw new Error(
       'Failed to start a test Node.js app: not spawned as a child process of the test',

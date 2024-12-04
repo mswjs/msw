@@ -50,12 +50,8 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
-  console.log('[handleRequest]', request.method, request.url)
-
   // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
   if (shouldBypassRequest(request)) {
-    console.log('REQUEST IS PASSTHROUGH!')
-
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return

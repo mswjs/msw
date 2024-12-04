@@ -86,8 +86,6 @@ test('prints the start message when the worker has been registered', async ({
     return window.msw.startWorker()
   })
 
-  await page.pause()
-
   expect(consoleSpy.get('log')).toContain(
     `Worker scope: ${expectedWorkerScope}`,
   )

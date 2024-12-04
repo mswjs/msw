@@ -110,7 +110,7 @@ test('combines initial and override listeners', async ({
             // This will be sent the last since the initial
             // event listener is attached the first.
             client.send('hello from mock')
-            client.close()
+            queueMicrotask(() => client.close())
           }
         })
       }),
@@ -176,7 +176,7 @@ test('combines initial and override listeners in the opposite order', async ({
             // happens after the initial listener's send.
             queueMicrotask(() => {
               client.send('override data')
-              client.close()
+              queueMicrotask(() => client.close())
             })
           }
         })
@@ -217,7 +217,7 @@ test('does not affect unrelated events', async ({ loadExample, page }) => {
 
           if (event.data === 'fallthrough') {
             client.send('ok')
-            client.close()
+            queueMicrotask(() => client.close())
           }
         })
       }),

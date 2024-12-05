@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+// @vitest-environment node
 import { encodeBuffer } from '@mswjs/interceptors'
 import { responseToLoggableObject } from './responseToLoggableObject'
 
@@ -8,7 +6,7 @@ it('serializes response without body', async () => {
   const result = await responseToLoggableObject(new Response(null))
 
   expect(result.status).toBe(200)
-  expect(result.headers).toEqual({})
+  expect(result.headers).toEqual([])
   expect(result.body).toBe('')
 })
 
@@ -25,9 +23,7 @@ it('serializes a plain text response', async () => {
 
   expect(result.status).toBe(201)
   expect(result.statusText).toBe('Created')
-  expect(result.headers).toEqual({
-    'content-type': 'text/plain',
-  })
+  expect(result.headers).toEqual([['content-type', 'text/plain']])
   expect(result.body).toBe('hello world')
 })
 
@@ -39,9 +35,7 @@ it('serializes a JSON response', async () => {
   })
   const result = await responseToLoggableObject(response)
 
-  expect(result.headers).toEqual({
-    'content-type': 'application/json',
-  })
+  expect(result.headers).toEqual([['content-type', 'application/json']])
   expect(result.body).toBe(JSON.stringify({ users: ['John'] }))
 })
 

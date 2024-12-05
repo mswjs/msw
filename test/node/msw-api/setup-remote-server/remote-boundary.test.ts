@@ -31,7 +31,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent.only(
+it.concurrent(
   'uses runtime request handlers declared in the boundary',
   remote.boundary(async () => {
     remote.use(

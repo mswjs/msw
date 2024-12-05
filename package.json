@@ -5,7 +5,7 @@
   "main": "./lib/core/index.js",
   "module": "./lib/core/index.mjs",
   "types": "./lib/core/index.d.ts",
-  "packageManager": "pnpm@8.15.6",
+  "packageManager": "pnpm@9.14.0",
   "exports": {
     ".": {
       "types": "./lib/core/index.d.ts",
@@ -193,7 +193,7 @@
     "json-bigint": "^1.0.0",
     "lint-staged": "^15.2.10",
     "page-with": "^0.6.1",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.2",
     "regenerator-runtime": "^0.14.1",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.9.0",
@@ -202,7 +202,7 @@
     "typescript": "^5.5.2",
     "undici": "^6.20.0",
     "url-loader": "^4.1.1",
-    "vitest": "^1.2.2",
+    "vitest": "^2.1.8",
     "vitest-environment-miniflare": "^2.14.4",
     "webpack": "^5.95.0",
     "webpack-http-server": "^0.5.0"

@@ -27,8 +27,6 @@ const server = setupServer(
 
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', async (req, res) => {
-    console.log('pass:', req.headers)
-
     const result = await executeGraphql({
       schema: buildSchema(gql`
         type User {

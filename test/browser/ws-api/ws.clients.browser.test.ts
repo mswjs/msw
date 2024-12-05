@@ -153,8 +153,6 @@ test('broadcasts messages across runtimes', async ({
     })
   }
 
-  await page.pause()
-
   await pageOne.evaluate(() => {
     window.ws.send('hi from one')
   })

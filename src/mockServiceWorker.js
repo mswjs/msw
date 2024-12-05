@@ -184,7 +184,7 @@ async function resolveMainClient(event) {
     })
 }
 
-export async function getResponse(event, client, requestId) {
+async function getResponse(event, client, requestId) {
   const { request } = event
 
   // Clone the request because it might've been already used
@@ -199,16 +199,20 @@ export async function getResponse(event, client, requestId) {
     // Remove the "accept" header value that marked this request as passthrough.
     // This prevents request alteration and also keeps it compliant with the
     // user-defined CORS policies.
-    const acceptHeader = headers.get('accept');
+    const acceptHeader = headers.get('accept')
     if (acceptHeader) {
-      const values = acceptHeader.split(',').map(value => value.trim());
-      const filteredValues = values.filter(value => value !== 'msw/passthrough');
+      const values = acceptHeader.split(',').map((value) => value.trim())
+      const filteredValues = values.filter(
+        (value) => value !== 'msw/passthrough',
+      )
+
       if (filteredValues.length > 0) {
-        headers.set('accept', filteredValues.join(', '));
+        headers.set('accept', filteredValues.join(', '))
       } else {
-        headers.delete('accept');
+        headers.delete('accept')
       }
     }
+
     return fetch(requestClone, { headers })
   }
 

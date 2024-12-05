@@ -57,10 +57,10 @@ jobs:
         ts: ['4.8', '4.9', '5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 

@@ -16,7 +16,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.12
+          version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -86,7 +86,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.12
+          version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -118,7 +118,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.12
+          version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -160,7 +160,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.12
+          version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3

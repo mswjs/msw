@@ -70,7 +70,11 @@ describe.sequential(
       const installCommand = await fsMock.exec(
         `npm install msw-${packageJson.version}.tgz`,
       )
-      expect(installCommand.stderr).toBe('')
+      /**
+       * @note Cannot assert on the empty stderr because npm
+       * writes to stderr if there's a new version of npm available.
+       */
+      // expect(installCommand.stderr).toBe('')
 
       expect(
         fs.existsSync(fsMock.resolve('packages/one/mockServiceWorker.js')),

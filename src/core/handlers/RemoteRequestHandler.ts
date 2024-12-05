@@ -27,8 +27,12 @@ export class RemoteRequestHandler extends RequestHandler<
   RemoteRequestHandlerResolverExtras
 > {
   private socket: Socket<SyncServerEventsMap>
+  private contextId?: string
 
-  constructor(args: { socket: Socket<SyncServerEventsMap> }) {
+  constructor(args: {
+    socket: Socket<SyncServerEventsMap>
+    contextId?: string
+  }) {
     super({
       info: {
         header: 'RemoteRequestHandler',
@@ -37,6 +41,7 @@ export class RemoteRequestHandler extends RequestHandler<
     })
 
     this.socket = args.socket
+    this.contextId = args.contextId
   }
 
   async parse(args: {
@@ -58,6 +63,7 @@ export class RemoteRequestHandler extends RequestHandler<
     this.socket.emit('request', {
       requestId: createRequestId(),
       serializedRequest: await serializeRequest(args.request),
+      contextId: this.contextId,
     })
 
     /**

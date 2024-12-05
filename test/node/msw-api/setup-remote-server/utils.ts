@@ -7,7 +7,9 @@ export async function spawnTestApp(
   options?: { contextId: string },
 ) {
   let url: string | undefined
-  const spawnPromise = new DeferredPromise<URL>()
+  const spawnPromise = new DeferredPromise<string>().then((resolvedUrl) => {
+    url = resolvedUrl
+  })
 
   const io = spawn('node', [appSourcePath], {
     // Establish an IPC between the test and the test app.
@@ -27,7 +29,7 @@ export async function spawnTestApp(
   io.on('message', (message) => {
     try {
       const url = new URL(message.toString())
-      spawnPromise.resolve(url)
+      spawnPromise.resolve(url.href)
     } catch (error) {
       return
     }
@@ -41,6 +43,15 @@ export async function spawnTestApp(
       }
     })
 
+  await Promise.race([
+    spawnPromise,
+    new Promise<undefined>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Failed to spawn a test Node app within timeout'))
+      }, 5000)
+    }),
+  ])
+
   return {
     get url() {
       invariant(
@@ -52,6 +63,10 @@ export async function spawnTestApp(
     },
 
     async [Symbol.asyncDispose]() {
+      if (io.exitCode !== null) {
+        return Promise.resolve()
+      }
+
       const closePromise = new DeferredPromise<void>()
 
       io.send('SIGTERM', (error) => {
@@ -82,7 +97,7 @@ export class TestNodeApp {
 
   get url() {
     invariant(
-      _url,
+      this._url,
       'Failed to return the URL for the test Node app: the app is not running. Did you forget to call ".spawn()"?',
     )
 

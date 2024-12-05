@@ -17,7 +17,7 @@ afterAll(async () => {
   await remote.close()
 })
 
-it.sequential(
+it.concurrent(
   'uses initial handlers if the boundary has no overrides',
   remote.boundary(async () => {
     await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
@@ -31,7 +31,7 @@ it.sequential(
   }),
 )
 
-it.sequential.only(
+it.concurrent.only(
   'uses runtime request handlers declared in the boundary',
   remote.boundary(async () => {
     remote.use(
@@ -41,7 +41,7 @@ it.sequential.only(
     )
 
     await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      // Provide the remote boundary's id to bind the app's runtime to this test.
+      // Bind the application to this test's context.
       contextId: remote.contextId,
     })
 

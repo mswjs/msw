@@ -145,7 +145,13 @@ export class SetupServerApi
           {
             apply: (target, thisArg, args) => {
               return Array.prototype.concat(
-                new RemoteRequestHandler({ socket }),
+                new RemoteRequestHandler({
+                  socket,
+                  /**
+                   * @todo Get the context ID from the environment automagically.
+                   */
+                  contextId: this.resolvedOptions.remote?.contextId,
+                }),
                 Reflect.apply(target, thisArg, args),
               )
             },

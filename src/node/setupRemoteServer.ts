@@ -28,13 +28,19 @@ import {
 } from '~/core/utils/internal/emitterUtils'
 import { AsyncHandlersController } from './SetupServerApi'
 
+/**
+ * @todo Make the remote port random.
+ * Consider getting it from the environment variable.
+ */
 export const MSW_REMOTE_SERVER_PORT = 56957
 
-const handlersStorage = new AsyncLocalStorage<{
+interface RemoteServerBoundaryContext {
   contextId: string
   initialHandlers: Array<RequestHandler | WebSocketHandler>
   handlers: Array<RequestHandler | WebSocketHandler>
-}>()
+}
+
+const handlersStorage = new AsyncLocalStorage<RemoteServerBoundaryContext>()
 
 const kSyncServer = Symbol('kSyncServer')
 type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
@@ -71,6 +77,7 @@ export interface SyncServerEventsMap {
   request: (args: {
     serializedRequest: SerializedRequest
     requestId: string
+    contextId?: string
   }) => Promise<void> | void
 
   response: (args: {
@@ -87,6 +94,8 @@ export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
+  protected executionContexts: Map<string, () => RemoteServerBoundaryContext>
+
   constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
 
@@ -94,6 +103,8 @@ export class SetupRemoteServerApi
       storage: handlersStorage,
       initialHandlers: handlers,
     })
+
+    this.executionContexts = new Map()
   }
 
   get contextId(): string {
@@ -129,29 +140,57 @@ export class SetupRemoteServerApi
       .once('SIGINT', () => closeSyncServer(server))
 
     server.on('connection', async (socket) => {
-      socket.on('request', async ({ requestId, serializedRequest }) => {
-        const request = deserializeRequest(serializedRequest)
-        const handlers = this.handlersController
-          .currentHandlers()
-          .filter(isHandlerKind('RequestHandler'))
+      socket.on(
+        'request',
+        async ({ requestId, serializedRequest, contextId }) => {
+          const request = deserializeRequest(serializedRequest)
 
-        const response = await handleRequest(
-          request,
-          requestId,
-          handlers,
-          /**
-           * @todo Support resolve options from the `.listen()` call.
-           */
-          { onUnhandledRequest() {} },
-          dummyEmitter,
-        )
+          // By default, get the handlers from the current context.
+          let allHandlers = this.handlersController.currentHandlers()
 
-        socket.emit('response', {
-          serializedResponse: response
-            ? await serializeResponse(response)
-            : undefined,
-        })
-      })
+          // If the request event has a context associated with it,
+          // look up the current state of that context to get the handlers.
+          if (contextId) {
+            invariant(
+              this.executionContexts.has(contextId),
+              'Failed to handle a remote request "%s %s": no context found by id "%s"',
+              request.method,
+              request.url,
+              contextId,
+            )
+
+            const getContext = this.executionContexts.get(contextId)
+
+            invariant(
+              getContext != null,
+              'Failed to handle a remote request "%s %s": the context by id "%s" is empty',
+              request.method,
+              request.url,
+              contextId,
+            )
+
+            const context = getContext()
+            allHandlers = context.handlers
+          }
+
+          const response = await handleRequest(
+            request,
+            requestId,
+            allHandlers.filter(isHandlerKind('RequestHandler')),
+            /**
+             * @todo Support resolve options from the `.listen()` call.
+             */
+            { onUnhandledRequest() {} },
+            dummyEmitter,
+          )
+
+          socket.emit('response', {
+            serializedResponse: response
+              ? await serializeResponse(response)
+              : undefined,
+          })
+        },
+      )
 
       socket.on('lifeCycleEventForward', async (type, args) => {
         const deserializedArgs = await deserializeEventPayload(args)
@@ -166,19 +205,19 @@ export class SetupRemoteServerApi
     const contextId = createRequestId()
 
     return (...args: Args): R => {
-      return handlersStorage.run(
-        {
-          contextId,
-          initialHandlers: this.handlersController.currentHandlers(),
-          handlers: [],
-        },
-        callback,
-        ...args,
-      )
+      const context: RemoteServerBoundaryContext = {
+        contextId,
+        initialHandlers: this.handlersController.currentHandlers(),
+        handlers: [],
+      }
+
+      this.executionContexts.set(contextId, () => context)
+      return handlersStorage.run(context, callback, ...args)
     }
   }
 
   public async close(): Promise<void> {
+    this.executionContexts.clear()
     handlersStorage.disable()
 
     const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
@@ -216,6 +255,10 @@ async function createSyncServer(
   const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
     transports: ['websocket'],
     cors: {
+      /**
+       * @todo Set the default `origin` to localhost for security reasons.
+       * Allow overridding the default origin through the `setupRemoteServer` API.
+       */
       origin: '*',
       methods: ['HEAD', 'GET', 'POST'],
     },
@@ -238,6 +281,21 @@ async function createSyncServer(
 }
 
 async function closeSyncServer(server: WebSocketServer): Promise<void> {
+  const httpServer = Reflect.get(server, 'httpServer') as
+    | http.Server
+    | undefined
+
+  /**
+   * @note `socket.io` automatically closes the server if no clients
+   * have responded to the ping request. Check if the underlying HTTP
+   * server is still running before trying to close the WebSocket server.
+   * Unfortunately, there's no means to check if the server is running
+   * on the WebSocket server instance.
+   */
+  if (!httpServer?.listening) {
+    return Promise.resolve()
+  }
+
   const serverClosePromise = new DeferredPromise<void>()
 
   server.close((error) => {
@@ -247,7 +305,7 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
     serverClosePromise.resolve()
   })
 
-  return serverClosePromise.then(() => {
+  await serverClosePromise.then(() => {
     Reflect.deleteProperty(globalThis, kSyncServer)
   })
 }
@@ -270,7 +328,7 @@ export async function createSyncClient(args: { port: number }) {
     // Keep a low timeout and no retry logic because
     // the user is expected to enable remote interception
     // before the actual application with "setupServer".
-    timeout: 1000,
+    timeout: 500,
     reconnection: true,
     extraHeaders: {
       // Bypass the internal WebSocket connection requests

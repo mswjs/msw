@@ -22,15 +22,27 @@ describe('HttpResponse.text()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.text()).toBe('hello world')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
+      'content-type': 'text/plain',
+    })
+  })
+
+  it('creates a text response with special characters', async () => {
+    const response = HttpResponse.text('안녕 세상', { status: 201 })
+
+    expect(response.status).toBe(201)
+    expect(response.statusText).toBe('Created')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('안녕 세상')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '13',
       'content-type': 'text/plain',
     })
   })
 
   it('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.text('hello world', {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     })
 
     expect(response.status).toBe(200)
@@ -38,7 +50,19 @@ describe('HttpResponse.text()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.text()).toBe('hello world')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
       'content-type': 'text/plain; charset=utf-8',
+    })
+  })
+
+  it('allows overriding the "Content-Length" response header', async () => {
+    const response = HttpResponse.text('hello world', {
+      headers: { 'Content-Length': '32' },
+    })
+
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '32',
+      'content-type': 'text/plain',
     })
   })
 })
@@ -52,6 +76,20 @@ describe('HttpResponse.json()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.json()).toEqual({ firstName: 'John' })
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '20',
+      'content-type': 'application/json',
+    })
+  })
+
+  it('creates a json response given an object with special characters', async () => {
+    const response = HttpResponse.json({ firstName: '제로' })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.json()).toEqual({ firstName: '제로' })
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '22',
       'content-type': 'application/json',
     })
   })
@@ -64,6 +102,7 @@ describe('HttpResponse.json()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.json()).toEqual([1, 2, 3])
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '7',
       'content-type': 'application/json',
     })
   })
@@ -76,6 +115,7 @@ describe('HttpResponse.json()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.json()).toBe(`"hello"`)
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
       'content-type': 'application/json',
     })
   })
@@ -88,6 +128,7 @@ describe('HttpResponse.json()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.json()).toBe(123)
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '3',
       'content-type': 'application/json',
     })
   })
@@ -112,6 +153,7 @@ describe('HttpResponse.json()', () => {
     // into a plain object.
     expect(await response.json()).toEqual({})
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '2',
       'content-type': 'application/json',
     })
   })
@@ -131,7 +173,22 @@ describe('HttpResponse.json()', () => {
     expect(response.body).toBeInstanceOf(ReadableStream)
     expect(await response.json()).toEqual({ a: 1 })
     expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '7',
       'content-type': 'application/hal+json',
+    })
+  })
+
+  it('allows overriding the "Content-Length" response header', async () => {
+    const response = HttpResponse.json(
+      { a: 1 },
+      {
+        headers: { 'Content-Length': '32' },
+      },
+    )
+
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '32',
+      'content-type': 'application/json',
     })
   })
 })
@@ -162,6 +219,36 @@ describe('HttpResponse.xml()', () => {
     expect(await response.text()).toBe('<user name="John" />')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'text/xml; charset=utf-8',
+    })
+  })
+})
+
+describe('HttpResponse.html()', () => {
+  it('creates an html response', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>')
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>', {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html; charset=utf-8',
     })
   })
 })

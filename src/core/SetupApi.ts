@@ -1,27 +1,57 @@
 import { invariant } from 'outvariant'
 import { EventMap, Emitter } from 'strict-event-emitter'
-import {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-} from './handlers/RequestHandler'
+import { RequestHandler } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
 import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { Disposable } from './utils/internal/Disposable'
+import type { WebSocketHandler } from './handlers/WebSocketHandler'
+
+export abstract class HandlersController {
+  abstract prepend(
+    runtimeHandlers: Array<RequestHandler | WebSocketHandler>,
+  ): void
+  abstract reset(nextHandles: Array<RequestHandler | WebSocketHandler>): void
+  abstract currentHandlers(): Array<RequestHandler | WebSocketHandler>
+}
+
+export class InMemoryHandlersController implements HandlersController {
+  private handlers: Array<RequestHandler | WebSocketHandler>
+
+  constructor(
+    private initialHandlers: Array<RequestHandler | WebSocketHandler>,
+  ) {
+    this.handlers = [...initialHandlers]
+  }
+
+  public prepend(
+    runtimeHandles: Array<RequestHandler | WebSocketHandler>,
+  ): void {
+    this.handlers.unshift(...runtimeHandles)
+  }
+
+  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>): void {
+    this.handlers =
+      nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
+  }
+
+  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
+    return this.handlers
+  }
+}
 
 /**
  * Generic class for the mock API setup.
  */
 export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
-  protected initialHandlers: ReadonlyArray<RequestHandler>
-  protected currentHandlers: Array<RequestHandler>
+  protected handlersController: HandlersController
   protected readonly emitter: Emitter<EventsMap>
   protected readonly publicEmitter: Emitter<EventsMap>
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(...initialHandlers: Array<RequestHandler>) {
+  constructor(...initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     super()
 
     invariant(
@@ -31,8 +61,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.initialHandlers = toReadonlyArray(initialHandlers)
-    this.currentHandlers = [...initialHandlers]
+    this.handlersController = new InMemoryHandlersController(initialHandlers)
 
     this.emitter = new Emitter<EventsMap>()
     this.publicEmitter = new Emitter<EventsMap>()
@@ -46,12 +75,14 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     })
   }
 
-  private validateHandlers(handlers: ReadonlyArray<RequestHandler>): boolean {
+  private validateHandlers(handlers: ReadonlyArray<unknown>): boolean {
     // Guard against incorrect call signature of the setup API.
     return handlers.every((handler) => !Array.isArray(handler))
   }
 
-  public use(...runtimeHandlers: Array<RequestHandler>): void {
+  public use(
+    ...runtimeHandlers: Array<RequestHandler | WebSocketHandler>
+  ): void {
     invariant(
       this.validateHandlers(runtimeHandlers),
       devUtils.formatMessage(
@@ -59,24 +90,25 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
       ),
     )
 
-    this.currentHandlers.unshift(...runtimeHandlers)
+    this.handlersController.prepend(runtimeHandlers)
   }
 
   public restoreHandlers(): void {
-    this.currentHandlers.forEach((handler) => {
-      handler.isUsed = false
+    this.handlersController.currentHandlers().forEach((handler) => {
+      if ('isUsed' in handler) {
+        handler.isUsed = false
+      }
     })
   }
 
-  public resetHandlers(...nextHandlers: Array<RequestHandler>): void {
-    this.currentHandlers =
-      nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
+  public resetHandlers(
+    ...nextHandlers: Array<RequestHandler | WebSocketHandler>
+  ): void {
+    this.handlersController.reset(nextHandlers)
   }
 
-  public listHandlers(): ReadonlyArray<
-    RequestHandler<RequestHandlerDefaultInfo, any, any>
-  > {
-    return toReadonlyArray(this.currentHandlers)
+  public listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler> {
+    return toReadonlyArray(this.handlersController.currentHandlers())
   }
 
   private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {

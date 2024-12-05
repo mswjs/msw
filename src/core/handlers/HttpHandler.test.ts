@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
+import { createRequestId } from '@mswjs/interceptors'
 import { HttpHandler, HttpRequestResolverExtras } from './HttpHandler'
 import { HttpResponse } from '..'
 import { ResponseResolver } from './RequestHandler'
@@ -151,7 +152,8 @@ describe('run', () => {
   test('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
-    const result = await handler.run({ request })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
@@ -174,6 +176,7 @@ describe('run', () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
+      requestId: createRequestId(),
     })
 
     expect(result).toBeNull()
@@ -183,12 +186,13 @@ describe('run', () => {
     const handler = new HttpHandler('GET', '/users', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
+      requestId: createRequestId(),
     })
 
     expect(result?.parsedResult?.match?.params).toEqual({})
   })
 
-  test('exhauses resolver until its generator completes', async () => {
+  test('exhausts resolver until its generator completes', async () => {
     const handler = new HttpHandler('GET', '/users', function* () {
       let count = 0
 
@@ -203,6 +207,7 @@ describe('run', () => {
     const run = async () => {
       const result = await handler.run({
         request: new Request(new URL('/users', location.href)),
+        requestId: createRequestId(),
       })
       return result?.response?.text()
     }

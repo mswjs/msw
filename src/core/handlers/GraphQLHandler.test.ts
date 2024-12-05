@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { encodeBuffer } from '@mswjs/interceptors'
+import { createRequestId, encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
 import {
   GraphQLHandler,
@@ -160,6 +160,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -188,6 +189,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -215,6 +217,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -243,6 +246,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -272,6 +276,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -300,6 +305,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -327,6 +333,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -355,6 +362,7 @@ describe('parse', () => {
       })
 
       expect(await handler.parse({ request })).toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {
@@ -393,6 +401,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {},
@@ -418,6 +427,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: true,
           params: {},
@@ -452,6 +462,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -471,6 +482,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -499,6 +511,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -518,6 +531,7 @@ describe('parse', () => {
           ),
         }),
       ).resolves.toEqual({
+        cookies: {},
         match: {
           matches: false,
           params: {},
@@ -722,10 +736,12 @@ describe('run', () => {
         userId: 'abc-123',
       },
     })
-    const result = await handler.run({ request })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
 
     expect(result!.handler).toEqual(handler)
     expect(result!.parsedResult).toEqual({
+      cookies: {},
       match: {
         matches: true,
         params: {
@@ -762,7 +778,8 @@ describe('run', () => {
     const request = createPostGraphQLRequest({
       query: LOGIN,
     })
-    const result = await handler.run({ request })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
 
     expect(result).toBeNull()
   })
@@ -809,7 +826,8 @@ describe('request', () => {
         `,
     })
 
-    await handler.run({ request })
+    const requestId = createRequestId()
+    await handler.run({ request, requestId })
 
     expect(matchAllResolver).toHaveBeenCalledTimes(1)
     expect(matchAllResolver.mock.calls[0][0]).toHaveProperty(

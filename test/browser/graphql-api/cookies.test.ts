@@ -1,4 +1,4 @@
-import * as cookieUtils from 'cookie'
+import cookieUtils from '@bundled-es-modules/cookie'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 

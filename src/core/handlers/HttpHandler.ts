@@ -1,4 +1,4 @@
-import { ResponseResolutionContext } from '../utils/getResponse'
+import { ResponseResolutionContext } from '../utils/executeHandlers'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
@@ -11,7 +11,7 @@ import {
   Path,
   PathParams,
 } from '../utils/matching/matchRequestUrl'
-import { getPublicUrlFromRequest } from '../utils/request/getPublicUrlFromRequest'
+import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
 import {
@@ -102,7 +102,7 @@ export class HttpHandler extends RequestHandler<
     })
 
     devUtils.warn(
-      `Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead and access query parameters in the response resolver function using "req.url.searchParams".`,
+      `Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead and access query parameters using "new URL(request.url).searchParams" instead. Learn more: https://mswjs.io/docs/recipes/query-parameters`,
     )
   }
 
@@ -147,11 +147,12 @@ export class HttpHandler extends RequestHandler<
   }
 
   async log(args: { request: Request; response: Response }) {
-    const publicUrl = getPublicUrlFromRequest(args.request)
+    const publicUrl = toPublicUrl(args.request.url)
     const loggedRequest = await serializeRequest(args.request)
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
 
+    // eslint-disable-next-line no-console
     console.groupCollapsed(
       devUtils.formatMessage(
         `${getTimestamp()} ${args.request.method} ${publicUrl} (%c${
@@ -161,9 +162,13 @@ export class HttpHandler extends RequestHandler<
       `color:${statusColor}`,
       'color:inherit',
     )
+    // eslint-disable-next-line no-console
     console.log('Request', loggedRequest)
+    // eslint-disable-next-line no-console
     console.log('Handler:', this)
+    // eslint-disable-next-line no-console
     console.log('Response', loggedResponse)
+    // eslint-disable-next-line no-console
     console.groupEnd()
   }
 }

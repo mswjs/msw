@@ -1,9 +1,13 @@
-import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { isIterable } from '../utils/internal/isIterable'
-import type { ResponseResolutionContext } from '../utils/getResponse'
+import {
+  AsyncIterable,
+  Iterable,
+  isIterable,
+} from '../utils/internal/isIterable'
+import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import type { HandlerKind } from './common'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -36,29 +40,40 @@ export interface RequestHandlerInternalInfo {
 }
 
 export type ResponseResolverReturnType<
-  BodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType = undefined,
 > =
-  | ([BodyType] extends [undefined] ? Response : StrictResponse<BodyType>)
+  | ([ResponseBodyType] extends [undefined]
+      ? Response
+      : StrictResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  BodyType extends DefaultBodyType,
-> = MaybePromise<ResponseResolverReturnType<BodyType>>
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
-export type AsyncResponseResolverReturnType<BodyType extends DefaultBodyType> =
-  | MaybeAsyncResponseResolverReturnType<BodyType>
-  | Generator<
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>,
-      MaybeAsyncResponseResolverReturnType<BodyType>
+export type AsyncResponseResolverReturnType<
+  ResponseBodyType extends DefaultBodyType,
+> = MaybePromise<
+  | ResponseResolverReturnType<ResponseBodyType>
+  | Iterable<
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
     >
+  | AsyncIterable<
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
+    >
+>
 
 export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
   request: StrictRequest<RequestBodyType>
+  requestId: string
 } & ResolverExtraInfo
 
 export type ResponseResolver<
@@ -88,6 +103,7 @@ export interface RequestHandlerExecutionResult<
   handler: RequestHandler
   parsedResult?: ParsedResult
   request: Request
+  requestId: string
   response?: Response
 }
 
@@ -97,6 +113,13 @@ export abstract class RequestHandler<
   ResolverExtras extends Record<string, unknown> = any,
   HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
 > {
+  static cache = new WeakMap<
+    StrictRequest<DefaultBodyType>,
+    StrictRequest<DefaultBodyType>
+  >()
+
+  private readonly __kind: HandlerKind
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -105,12 +128,18 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?: Generator<
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>
-  >
-  private resolverGeneratorResult?: Response | StrictResponse<any>
+  private resolverIterator?:
+    | Iterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+    | AsyncIterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+  private resolverIteratorResult?: Response | StrictResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -125,6 +154,7 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
+    this.__kind = 'RequestHandler'
   }
 
   /**
@@ -186,21 +216,43 @@ export abstract class RequestHandler<
     return {} as ResolverExtras
   }
 
+  // Clone the request instance before it's passed to the handler phases
+  // and the response resolver so we can always read it for logging.
+  // We only clone it once per request to avoid unnecessary overhead.
+  private cloneRequestOrGetFromCache(
+    request: StrictRequest<DefaultBodyType>,
+  ): StrictRequest<DefaultBodyType> {
+    const existingClone = RequestHandler.cache.get(request)
+
+    if (typeof existingClone !== 'undefined') {
+      return existingClone
+    }
+
+    const clonedRequest = request.clone()
+    RequestHandler.cache.set(request, clonedRequest)
+
+    return clonedRequest
+  }
+
   /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
    */
   public async run(args: {
     request: StrictRequest<any>
+    requestId: string
     resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
     if (this.isUsed && this.options?.once) {
       return null
     }
 
-    // Clone the request instance before it's passed to the handler phases
-    // and the response resolver so we can always read it for logging.
-    const mainRequestRef = args.request.clone()
+    // Clone the request.
+    // If this is the first time MSW handles this request, a fresh clone
+    // will be created and cached. Upon further handling of the same request,
+    // the request clone from the cache will be reused to prevent abundant
+    // "abort" listeners and save up resources on cloning.
+    const requestClone = this.cloneRequestOrGetFromCache(args.request)
 
     const parsedResult = await this.parse({
       request: args.request,
@@ -222,6 +274,9 @@ export abstract class RequestHandler<
       return null
     }
 
+    // Preemptively mark the handler as used.
+    // Generators will undo this because only when the resolver reaches the
+    // "done" state of the generator that it considers the handler used.
     this.isUsed = true
 
     // Create a response extraction wrapper around the resolver
@@ -232,15 +287,30 @@ export abstract class RequestHandler<
       request: args.request,
       parsedResult,
     })
-    const mockedResponse = (await executeResolver({
-      ...resolverExtras,
-      request: args.request,
-    })) as Response
+
+    const mockedResponsePromise = (
+      executeResolver({
+        ...resolverExtras,
+        requestId: args.requestId,
+        request: args.request,
+      }) as Promise<Response>
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
+
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
+
+    const mockedResponse = await mockedResponsePromise
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
-      request: mainRequestRef,
+      request: requestClone,
+      requestId: args.requestId,
       response: mockedResponse,
       parsedResult,
     })
@@ -252,59 +322,51 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      const result = this.resolverGenerator || (await resolver(info))
-
-      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
-        // Immediately mark this handler as unused.
-        // Only when the generator is done, the handler will be
-        // considered used.
-        this.isUsed = false
-
-        const { value, done } = result[Symbol.iterator]().next()
-        const nextResponse = await value
-
-        if (done) {
-          this.isUsed = true
+      if (!this.resolverIterator) {
+        const result = await resolver(info)
+        if (!isIterable(result)) {
+          return result
         }
-
-        // If the generator is done and there is no next value,
-        // return the previous generator's value.
-        if (!nextResponse && done) {
-          invariant(
-            this.resolverGeneratorResult,
-            'Failed to returned a previously stored generator response: the value is not a valid Response.',
-          )
-
-          // Clone the previously stored response from the generator
-          // so that it could be read again.
-          return this.resolverGeneratorResult.clone() as StrictResponse<any>
-        }
-
-        if (!this.resolverGenerator) {
-          this.resolverGenerator = result
-        }
-
-        if (nextResponse) {
-          // Also clone the response before storing it
-          // so it could be read again.
-          this.resolverGeneratorResult = nextResponse?.clone()
-        }
-
-        return nextResponse
+        this.resolverIterator =
+          Symbol.iterator in result
+            ? result[Symbol.iterator]()
+            : result[Symbol.asyncIterator]()
       }
 
-      return result
+      // Opt-out from marking this handler as used.
+      this.isUsed = false
+
+      const { done, value } = await this.resolverIterator.next()
+      const nextResponse = await value
+
+      if (nextResponse) {
+        this.resolverIteratorResult = nextResponse.clone()
+      }
+
+      if (done) {
+        // A one-time generator resolver stops affecting the network
+        // only after it's been completely exhausted.
+        this.isUsed = true
+
+        // Clone the previously stored response so it can be read
+        // when receiving it repeatedly from the "done" generator.
+        return this.resolverIteratorResult?.clone()
+      }
+
+      return nextResponse
     }
   }
 
   private createExecutionResult(args: {
     request: Request
+    requestId: string
     parsedResult: ParsedResult
     response?: Response
   }): RequestHandlerExecutionResult<ParsedResult> {
     return {
       handler: this,
       request: args.request,
+      requestId: args.requestId,
       response: args.response,
       parsedResult: args.parsedResult,
     }

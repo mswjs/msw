@@ -4,7 +4,7 @@ import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
 export type PathParams<KeyType extends keyof any = string> = {
-  [ParamName in KeyType]: string | ReadonlyArray<string>
+  [ParamName in KeyType]?: string | ReadonlyArray<string>
 }
 
 export interface Match {
@@ -70,4 +70,8 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
     matches: result !== false,
     params,
   }
+}
+
+export function isPath(value: unknown): value is Path {
+  return typeof value === 'string' || value instanceof RegExp
 }

@@ -1,0 +1,68 @@
+name: typescript-nightly
+
+on:
+  schedule:
+    # Schedule to run nightly at midnight
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: macos-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Get latest TypeScript version
+        id: get-versions
+        run: |
+          # Fetch the latest published version of TypeScript on npm
+          latest_version=$(npm show typescript dist-tags.latest)
+
+          # Get the currently installed version
+          rc_version=$(npm show typescript dist-tags.rc)
+
+          latest_major_minor=$(echo "$latest_version" | cut -d '.' -f 1,2)
+          rc_major_minor=$(echo "$rc_version" | cut -d '.' -f 1,2)
+
+          echo "latest_version=$latest_major_minor" >> $GITHUB_OUTPUT
+          echo "rc_version=$rc_major_minor" >> $GITHUB_OUTPUT
+
+  test:
+    runs-on: macos-latest
+    # Skip TypeScript compatibility check on "main".
+    # A merged pull request implies passing "typescript" job.
+    if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.0
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install TypeScript RC
+        run: pnpm add typescript@rc
+
+      - name: Write tsconfig
+        run: |
+          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare.outputs.rc_version}.json
+
+      - name: Typings tests
+        run: |
+          pnpm tsc --version
+          pnpm test:ts

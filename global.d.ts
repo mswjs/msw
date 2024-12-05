@@ -14,8 +14,3 @@ declare module 'babel-minify' {
     babelOpts: Record<string, any>,
   ): { code: string }
 }
-
-declare module '@bundled-es-modules/js-levenshtein' {
-  import levenshtein from 'js-levenshtein'
-  export default levenshtein
-}

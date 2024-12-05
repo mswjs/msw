@@ -1,9 +1,12 @@
-export type DisposableSubscription = () => Promise<void> | void
+export type DisposableSubscription = () => void
 
 export class Disposable {
   protected subscriptions: Array<DisposableSubscription> = []
 
-  public async dispose() {
-    await Promise.all(this.subscriptions.map((subscription) => subscription()))
+  public dispose() {
+    let subscription: DisposableSubscription | undefined
+    while ((subscription = this.subscriptions.shift())) {
+      subscription()
+    }
   }
 }

@@ -15,7 +15,15 @@ export type BypassRequestInput = string | URL | Request
  * @see {@link https://mswjs.io/docs/api/bypass `bypass()` API reference}
  */
 export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
-  const request = input instanceof Request ? input : new Request(input, init)
+  // Always create a new Request instance.
+  // This way, the "init" modifications will propagate
+  // to the bypass request instance automatically.
+  const request = new Request(
+    // If given a Request instance, clone it not to exhaust
+    // the original request's body.
+    input instanceof Request ? input.clone() : input,
+    init,
+  )
 
   invariant(
     !request.bodyUsed,
@@ -26,11 +34,13 @@ export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
 
   const requestClone = request.clone()
 
-  // Set the internal header that would instruct MSW
-  // to bypass this request from any further request matching.
-  // Unlike "passthrough()", bypass is meant for performing
-  // additional requests within pending request resolution.
-  requestClone.headers.set('x-msw-intention', 'bypass')
+  /**
+   * Send the internal request header that would instruct MSW
+   * to perform this request as-is, ignoring any matching handlers.
+   * @note Use the `accept` header to support scenarios when the
+   * request cannot have headers (e.g. `sendBeacon` requests).
+   */
+  requestClone.headers.append('accept', 'msw/passthrough')
 
   return requestClone
 }

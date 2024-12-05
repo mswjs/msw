@@ -4,14 +4,19 @@ node_modules
 /lib
 tmp
 *-error.log
-./package-lock.json
+/package-lock.json
+/yarn.lock
 stats.html
 .vscode
+.idea
 msw-*.tgz
 .husky/_
 .env
 **/test-results
+/test/modules/node/node-esm-tests
 
 # Smoke test temporary files.
 /package.json.copy
 /examples
+/test/modules/node/node-esm-tests
+tsconfig.vitest-temp.json

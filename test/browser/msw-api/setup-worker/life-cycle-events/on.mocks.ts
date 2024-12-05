@@ -1,4 +1,10 @@
-import { HttpResponse, http, LifeCycleEventsMap } from 'msw'
+import {
+  HttpResponse,
+  http,
+  LifeCycleEventsMap,
+  passthrough,
+  bypass,
+} from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
@@ -7,6 +13,12 @@ const worker = setupWorker(
   }),
   http.post('*/no-response', () => {
     return
+  }),
+  http.get('*/passthrough', () => {
+    return passthrough()
+  }),
+  http.get('*/bypass', async ({ request }) => {
+    return fetch(bypass(request, { method: 'POST' }))
   }),
   http.get('*/unhandled-exception', () => {
     throw new Error('Unhandled resolver error')
@@ -35,15 +47,25 @@ const requestEndListener: (
 
 worker.events.on('request:end', requestEndListener)
 
-worker.events.on('response:mocked', async ({ response, requestId }) => {
-  const body = await response.clone().text()
-  console.warn(`[response:mocked] ${body} ${requestId}`)
-})
+worker.events.on(
+  'response:mocked',
+  async ({ response, request, requestId }) => {
+    const body = await response.clone().text()
+    console.warn(
+      `[response:mocked] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
+    )
+  },
+)
 
-worker.events.on('response:bypass', async ({ response, requestId }) => {
-  const body = await response.clone().text()
-  console.warn(`[response:bypass] ${body} ${requestId}`)
-})
+worker.events.on(
+  'response:bypass',
+  async ({ response, request, requestId }) => {
+    const body = await response.clone().text()
+    console.warn(
+      `[response:bypass] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
+    )
+  },
+)
 
 worker.events.on('unhandledException', ({ error, request, requestId }) => {
   console.warn(

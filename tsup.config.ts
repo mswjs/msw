@@ -7,6 +7,8 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
+import { graphqlImportPlugin } from './config/plugins/esbuild/graphQLImportPlugin'
+import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
 // would get the latest published version automatically.
@@ -29,9 +31,10 @@ const coreConfig: Options = {
   outDir: './lib/core',
   bundle: false,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [forceEsmExtensionsPlugin()],
+  esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const nodeConfig: Options = {
@@ -42,9 +45,9 @@ const nodeConfig: Options = {
   external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/node',
-  sourcemap: false,
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
@@ -59,7 +62,19 @@ const browserConfig: Options = {
   outDir: './lib/browser',
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
+  noExternal: Object.keys(packageJson.dependencies).filter((packageName) => {
+    /**
+     * @note Never bundle MSW core so all builds reference the *same*
+     * JavaScript and TypeScript care files. This way types across
+     * export paths remain compatible:
+     * import { http } from 'msw' // <- core
+     * import { setupWorker } from 'msw/browser' // <- /browser
+     * setupWorker(http.get(path, resolver)) // OK
+     */
+    return !mswCore.test(packageName)
+  }),
   /**
    * @note Use a proxy TypeScript configuration where the "compilerOptions.composite"
    * option is set to false.
@@ -85,6 +100,7 @@ const reactNativeConfig: Options = {
   outDir: './lib/native',
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
@@ -104,6 +120,7 @@ const iifeConfig: Options = {
   legacyOutput: true,
   bundle: true,
   splitting: false,
+  sourcemap: true,
   dts: false,
   tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {

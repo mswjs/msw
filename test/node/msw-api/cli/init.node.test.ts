@@ -1,19 +1,11 @@
-/**
- * @vitest-environment node
- */
-import * as path from 'path'
-import * as fs from 'fs-extra'
-import { exec } from 'child_process'
+// @vitest-environment node
+import fs from 'fs'
+import path from 'node:path'
 import { createTeardown } from 'fs-teardown'
-import { fromTemp, promisifyChildProcess } from '../../../support/utils'
+import { fromTemp } from '../../../support/utils'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
-  paths: {
-    'package.json': JSON.stringify({
-      name: 'package-name',
-    }),
-  },
 })
 
 const cliPath = require.resolve('../../../../cli/index.js')
@@ -36,158 +28,433 @@ beforeEach(async () => {
   await fsMock.reset()
 })
 
-afterAll(async () => {
+afterEach(() => {
   vi.restoreAllMocks()
+})
+
+afterAll(async () => {
   await fsMock.cleanup()
 })
 
-test('copies the worker script into an existing directory without errors', async () => {
-  await fsMock.create({
-    public: null,
-  })
+async function init(inlineArgs: Array<string>) {
+  return fsMock.exec(`node ${cliPath} init ${inlineArgs.join(' ')}`)
+}
 
-  const init = await promisifyChildProcess(
-    exec(`node ${cliPath} init ${fsMock.resolve('public')} --no-save`),
-  )
-
-  // Does not produce any errors.
-  expect(init.stderr).toEqual('')
-
-  // Creates the worker script at the given path.
-  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toEqual(
-    true,
-  )
-
-  // Notifies the user about the created script.
-  expect(init.stdout).toContain('Service Worker successfully created')
-
-  // Does not change the package.json.
-  expect(readJson(fsMock.resolve('package.json'))).toEqual({
-    name: 'package-name',
-  })
-})
-
-test('creates the directory if it does not exist', async () => {
-  const { stderr } = await promisifyChildProcess(
-    exec(
-      `node ${cliPath} init ${fsMock.resolve('public/nested/path')} --no-save`,
-    ),
-  )
-
-  // Does not produce any errors.
-  expect(stderr).toEqual('')
-  expect(
-    fs.existsSync(fsMock.resolve('public/nested/path/mockServiceWorker.js')),
-  ).toEqual(true)
-})
-
-test('saves the worker directory in package.json when none are present', async () => {
-  await fsMock.create({
-    public: null,
-  })
-
-  const init = await promisifyChildProcess(
-    exec(`node ${cliPath} init ${fsMock.resolve('public')} --save`, {
-      cwd: fsMock.resolve(),
-    }),
-  )
-
-  expect(init.stderr).toEqual('')
-  expect(init.stdout).toContain(
-    'In order to ease the future updates to the worker script,\nwe recommend saving the path to the worker directory in your package.json.',
-  )
-  expect(init.stdout).toContain(
-    `Writing "msw.workerDirectory" to "${fsMock.resolve('package.json')}"...`,
-  )
-  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js')))
-  expect(readJson(fsMock.resolve('package.json'))).toEqual({
-    name: 'package-name',
-    msw: {
-      workerDirectory: 'public',
-    },
-  })
-})
-
-test('warns when current public directory does not match the saved directory from package.json', async () => {
+test('copies the script to a given path without saving', async () => {
   await fsMock.create({
     'package.json': JSON.stringify({
-      name: 'package-name',
-      msw: {
-        workerDirectory: 'dist',
-      },
+      name: 'test',
     }),
-    public: null,
   })
 
-  const init = await promisifyChildProcess(
-    exec(`node ${cliPath} init ${fsMock.resolve('public')} --save`, {
-      cwd: fsMock.resolve('.'),
-    }),
-  )
+  const initCommand = await init([
+    fsMock.resolve('./public'),
+    /**
+     * @note Pass the "--no-save" flag to prevent the "init" command
+     * from spawning a "Would you like to save the path" prompt.
+     */
+    '--no-save',
+  ])
 
-  expect(init.stderr).toEqual('')
-  expect(init.stdout).toContain(
-    'The "msw.workerDirectory" in your package.json ("dist")\nis different from the worker directory used right now ("public").',
+  expect(initCommand.stderr).toBe('')
+  expect(initCommand.stdout).toContain(
+    `Worker script successfully copied!\n  - ${fsMock.resolve('public')}`,
   )
-  expect(init.stdout).toContain(
-    `Writing "msw.workerDirectory" to "${fsMock.resolve('package.json')}"...`,
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
+    true,
   )
-  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js')))
+  // Must not write anything to package.json
   expect(readJson(fsMock.resolve('package.json'))).toEqual({
-    name: 'package-name',
+    name: 'test',
+  })
+})
+
+test('saves the path in "msw.workerDirectory" if the "--save" flag was provided', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+    }),
+  })
+
+  const initCommand = await init([fsMock.resolve('./public'), '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(initCommand.stdout).toContain(
+    `Worker script successfully copied!\n  - ${fsMock.resolve('public')}`,
+  )
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
+    true,
+  )
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
     msw: {
+      workerDirectory: ['public'],
+    },
+  })
+})
+
+test('deduplicates saved paths in "msw.workerDirectory" (using plain string)', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      msw: {
+        /**
+         * @note Use the plain string value that most users have.
+         */
+        workerDirectory: 'public',
+      },
+    }),
+  })
+
+  const initCommand = await init(['./public', '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
+    true,
+  )
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      // The plain string value will be left as-is because no
+      // updates are necessary to package.json
       workerDirectory: 'public',
     },
   })
 })
 
-test('does not produce eslint errors or warnings', async () => {
+test('deduplicates saved paths in "msw.workerDirectory" (using array)', async () => {
   await fsMock.create({
-    '.eslintrc.json': JSON.stringify({
-      rules: {
-        'no-warning-comments': [
-          'warn',
-          // intentionally degenerate config to cause a warning in the initial comment
-          { terms: ['mock'], location: 'anywhere' },
-        ],
+    'package.json': JSON.stringify({
+      name: 'test',
+      msw: {
+        workerDirectory: ['public', 'another'],
       },
     }),
-    public: null,
   })
 
-  const init = await promisifyChildProcess(
-    exec(`node ${cliPath} init ${fsMock.resolve('public')} --no-save`),
-  )
-  expect(init.stderr).toEqual('')
+  const initCommand = await init(['./public', '--save'])
 
-  const eslint = await promisifyChildProcess(
-    exec(path.resolve(`node_modules/.bin/eslint ${fsMock.resolve()}`)),
+  expect(initCommand.stderr).toBe('')
+  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
+    true,
   )
-  expect(eslint.stdout).toEqual('')
-  expect(eslint.stderr).toEqual('')
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      workerDirectory: ['public', 'another'],
+    },
+  })
 })
 
-test('errors and shuts down if creating a directory fails', async () => {
+test('does not save the path if the "--no-save" flag was provided', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      msw: {
+        workerDirectory: ['public'],
+      },
+    }),
+  })
+
+  const initCommand = await init(['./static', '--no-save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(fs.existsSync(fsMock.resolve('static/mockServiceWorker.js'))).toBe(
+    true,
+  )
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      workerDirectory: ['public'],
+    },
+  })
+})
+
+test('adds multiple paths to "msw.workerDirectory"', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+    }),
+  })
+
+  await init(['one', '--save'])
+
+  expect(fs.existsSync(fsMock.resolve('one/mockServiceWorker.js'))).toBe(true)
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      workerDirectory: ['one'],
+    },
+  })
+
+  await init(['two', '--save'])
+  expect(fs.existsSync(fsMock.resolve('two/mockServiceWorker.js'))).toBe(true)
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      workerDirectory: ['one', 'two'],
+    },
+  })
+})
+
+test('throws if creating a directory under path failed', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+    }),
+  })
+
+  /**
+   * @note Require the "init" command source
+   * so that the "fs" mocks could apply.
+   */
   const init = require('../../../../cli/init')
-  const error = new Error('Could not create this directory')
+
+  // Mock the "mkdir" method throwing an error.
+  const error = new Error('Failed to create directory')
   vi.spyOn(fs.promises, 'mkdir').mockRejectedValue(error)
 
   const exitSpy = vi.spyOn(process, 'exit').mockImplementationOnce(() => {
     throw error
   })
-
-  const consoleSpy = vi
+  const consoleErrorSpy = vi
     .spyOn(console, 'error')
     .mockImplementationOnce(() => void 0)
 
-  const publicDir = 'public'
+  const initCommandPromise = init({
+    _: [null, './does/not/exist'],
+    save: false,
+  })
 
-  await expect(init({ publicDir, save: false })).rejects.not.toBeUndefined()
-
-  expect(consoleSpy).toHaveBeenCalledWith(
-    expect.stringContaining('Failed to create a Service Worker'),
-    expect.stringContaining(publicDir),
+  await expect(initCommandPromise).rejects.toThrowError(error)
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(`Failed to copy the worker script at`),
+    // The absolute public directory path will be resolved
+    // against CWD, and not "fsMock". No need to assert it.
+    expect.any(String),
     error,
   )
   expect(exitSpy).toHaveBeenCalledWith(1)
+})
+
+test('does not copy the script to saved paths if public directory was provided', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        workerDirectory: ['one', 'two'],
+      },
+    }),
+  })
+
+  const initCommand = await init(['three', '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(initCommand.stdout).toContain('- three')
+  expect(initCommand.stdout).not.toContain('- one')
+  expect(initCommand.stdout).not.toContain('- two')
+
+  // Must not copy the worker script to stored paths
+  // when the "init" command is called with a new path.
+  expect(fs.existsSync(fsMock.resolve('one/mockServiceWorker.js'))).toBe(false)
+  expect(fs.existsSync(fsMock.resolve('two/mockServiceWorker.js'))).toBe(false)
+
+  // Must copy the worker sript only to the provided path.
+  expect(fs.existsSync(fsMock.resolve('three/mockServiceWorker.js'))).toBe(true)
+})
+
+test('copies the script to all saved paths if the public directory was not provided', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      msw: {
+        workerDirectory: ['packages/one/public', 'packages/two/static'],
+      },
+    }),
+  })
+
+  const initCommand = await init([])
+
+  expect(initCommand.stderr).toBe('')
+  expect(
+    fs.existsSync(fsMock.resolve('packages/one/public/mockServiceWorker.js')),
+  ).toBe(true)
+  expect(
+    fs.existsSync(fsMock.resolve('packages/two/static/mockServiceWorker.js')),
+  ).toBe(true)
+  expect(readJson(fsMock.resolve('package.json'))).toMatchObject({
+    msw: {
+      workerDirectory: ['packages/one/public', 'packages/two/static'],
+    },
+  })
+})
+
+test('throws when called with "--save" flag and without the public directory', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'test',
+      msw: {
+        workerDirectory: ['public'],
+      },
+    }),
+  })
+
+  const initCommandPromise = init(['--save'])
+
+  // Must throw a meaningful arrow about a no-op "--save" flag.
+  await expect(initCommandPromise).rejects.toThrowError(
+    `Failed to copy the worker script: cannot call the "init" command without a public directory but with the "--save" flag. Either drop the "--save" flag to copy the worker script to all paths listed in "msw.workerDirectory", or add an explicit public directory to the command, like "npx msw init ./public".`,
+  )
+
+  // Must not modify the package.json.
+  expect(readJson(fsMock.resolve('package.json'))).toEqual({
+    name: 'test',
+    msw: {
+      workerDirectory: ['public'],
+    },
+  })
+
+  // Must not copy the worker script.
+  expect(
+    expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
+      false,
+    ),
+  )
+})
+
+test('prints the list of failed paths to copy', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        workerDirectory: ['one', 'problematic'],
+      },
+    }),
+  })
+
+  vi.spyOn(fs, 'copyFileSync').mockImplementation((_, dest) => {
+    // Only fail one of the stored paths.
+    if (dest.toString().includes('/problematic/')) {
+      throw copyFileError
+    }
+  })
+
+  const init = require('../../../../cli/init')
+  const copyFileError = new Error('Failed to copy file')
+
+  const consoleLogSpy = vi
+    .spyOn(console, 'log')
+    .mockImplementation(() => void 0)
+  const consoleErrorSpy = vi
+    .spyOn(console, 'error')
+    .mockImplementationOnce(() => void 0)
+
+  await init({
+    // Calling "init" without the public directory
+    // to trigger it to copy the worker script to all
+    // stored paths at "msw.workerDirectory".
+    _: [null],
+    // Use a custom CWD so that the direct call to "init"
+    // resolves the "package.json" from the "fsMock".
+    cwd: fsMock.resolve('.'),
+  })
+
+  // Must still print the successful message if any paths succeeded.
+  expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect.stringContaining('Worker script successfully copied!'),
+  )
+  expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect.stringContaining(
+      `  - ${fsMock.resolve('one/mockServiceWorker.js')}`,
+    ),
+  )
+
+  // Must print the failed paths.
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(
+      `Copying the worker script failed at following paths:`,
+    ),
+  )
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(`  - ${fsMock.resolve('problematic')}`),
+  )
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(copyFileError.message),
+  )
+})
+
+test('supports a mix of unix/windows paths in "workerDirectory"', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        // Use a mix of different path styles to emulate multiple developers
+        // working from different operating systems.
+        workerDirectory: [
+          path.win32.join('public', 'windows-style'),
+          'unix/style',
+        ],
+      },
+    }),
+  })
+
+  const initCommand = await init([''])
+
+  expect(initCommand.stderr).toBe('')
+  expect(
+    fs.existsSync(fsMock.resolve('public/windows-style/mockServiceWorker.js')),
+  ).toBe(true)
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    true,
+  )
+
+  const normalizedPaths = readJson(fsMock.resolve('package.json')).msw
+    .workerDirectory
+
+  // Expect normalized paths
+  expect(normalizedPaths).toContain('public\\windows-style')
+  expect(normalizedPaths).toContain('unix/style')
+})
+
+test('copies the script only to provided windows path in args', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        workerDirectory: ['unix/style'],
+      },
+    }),
+  })
+
+  const initCommand = await init([
+    `"${path.win32.join('.', 'windows-style', 'new-folder')}"`,
+    '--save',
+  ])
+
+  expect(initCommand.stderr).toBe('')
+  expect(
+    fs.existsSync(
+      fsMock.resolve('windows-style/new-folder/mockServiceWorker.js'),
+    ),
+  ).toBe(true)
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    false,
+  )
+})
+
+test('copies the script only to provided unix path in args', async () => {
+  await fsMock.create({
+    'package.json': JSON.stringify({
+      name: 'example',
+      msw: {
+        workerDirectory: [path.win32.join('windows-style', 'new-folder')],
+      },
+    }),
+  })
+
+  const initCommand = await init(['./unix/style', '--save'])
+
+  expect(initCommand.stderr).toBe('')
+  expect(fs.existsSync(fsMock.resolve('unix/style/mockServiceWorker.js'))).toBe(
+    true,
+  )
+  expect(
+    fs.existsSync(
+      fsMock.resolve('windows-style/new-folder/mockServiceWorker.js'),
+    ),
+  ).toBe(false)
 })

@@ -1,11 +1,9 @@
-import { until } from '@open-draft/until'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
 import { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
-import { requestIntegrityCheck } from '../../utils/requestIntegrityCheck'
-import { deferNetworkRequestsUntil } from '../../utils/deferNetworkRequestsUntil'
+import { checkWorkerIntegrity } from '../../utils/checkWorkerIntegrity'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
 
@@ -73,25 +71,22 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
         window.clearInterval(context.keepAliveInterval)
+
+        // Notify others about this client disconnecting.
+        // E.g. this will purge the in-memory WebSocket clients since
+        // starting the worker again will assign them new IDs.
+        window.postMessage({ type: 'msw/worker:stop' })
       })
 
-      // Check if the active Service Worker is the latest published one
-      const integrityCheckResult = await until(() =>
-        requestIntegrityCheck(context, worker),
-      )
-
-      if (integrityCheckResult.error) {
-        devUtils.error(`\
-Detected outdated Service Worker: ${integrityCheckResult.error.message}
-
-The mocking is still enabled, but it's highly recommended that you update your Service Worker by running:
-
-$ npx msw init <PUBLIC_DIR>
-
-This is necessary to ensure that the Service Worker is in sync with the library to guarantee its stability.
-If this message still persists after updating, please report an issue: https://github.com/open-draft/msw/issues\
-      `)
-      }
+      // Check if the active Service Worker has been generated
+      // by the currently installed version of MSW.
+      await checkWorkerIntegrity(context).catch((error) => {
+        devUtils.error(
+          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below.',
+        )
+        // eslint-disable-next-line no-console
+        console.error(error)
+      })
 
       context.keepAliveInterval = window.setInterval(
         () => context.workerChannel.send('KEEPALIVE_REQUEST'),
@@ -130,13 +125,6 @@ If this message still persists after updating, please report an issue: https://g
         return registration
       },
     )
-
-    // Defer any network requests until the Service Worker instance is ready.
-    // This prevents a race condition between the Service Worker registration
-    // and application's runtime requests (i.e. requests on mount).
-    if (options.waitUntilReady) {
-      deferNetworkRequestsUntil(workerRegistration)
-    }
 
     return workerRegistration
   }

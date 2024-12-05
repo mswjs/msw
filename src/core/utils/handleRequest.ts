@@ -1,11 +1,11 @@
 import { until } from '@open-draft/until'
 import { Emitter } from 'strict-event-emitter'
-import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
-import { ResponseLookupResult, getResponse } from './getResponse'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
-import { readResponseCookies } from './request/readResponseCookies'
+import { storeResponseCookies } from './request/storeResponseCookies'
 
 export interface HandleRequestOptions {
   /**
@@ -23,12 +23,6 @@ export interface HandleRequestOptions {
   }
 
   /**
-   * Transforms a `MockedResponse` instance returned from a handler
-   * to a response instance supported by the lower tooling (i.e. interceptors).
-   */
-  transformResponse?(response: Response): Response
-
-  /**
    * Invoked whenever a request is performed as-is.
    */
   onPassthroughResponse?(request: Request): void
@@ -38,7 +32,7 @@ export interface HandleRequestOptions {
    */
   onMockedResponse?(
     response: Response,
-    handler: RequiredDeep<ResponseLookupResult>,
+    handler: RequiredDeep<HandlersExecutionResult>,
   ): void
 }
 
@@ -52,8 +46,8 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
-  // Perform bypassed requests (i.e. issued via "ctx.fetch") as-is.
-  if (request.headers.get('x-msw-intention') === 'bypass') {
+  // Perform requests wrapped in "bypass()" as-is.
+  if (request.headers.get('accept')?.includes('msw/passthrough')) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
@@ -61,11 +55,12 @@ export async function handleRequest(
 
   // Resolve a mocked response from the list of request handlers.
   const lookupResult = await until(() => {
-    return getResponse(
+    return executeHandlers({
       request,
+      requestId,
       handlers,
-      handleRequestOptions?.resolutionContext,
-    )
+      resolutionContext: handleRequestOptions?.resolutionContext,
+    })
   })
 
   if (lookupResult.error) {
@@ -81,7 +76,7 @@ export async function handleRequest(
   // If the handler lookup returned nothing, no request handler was found
   // matching this request. Report the request as unhandled.
   if (!lookupResult.data) {
-    await onUnhandledRequest(request, handlers, options.onUnhandledRequest)
+    await onUnhandledRequest(request, options.onUnhandledRequest)
     emitter.emit('request:unhandled', { request, requestId })
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
@@ -109,24 +104,17 @@ export async function handleRequest(
     return
   }
 
-  // Store all the received response cookies in the virtual cookie store.
-  readResponseCookies(request, response)
+  // Store all the received response cookies in the cookie jar.
+  storeResponseCookies(request, response)
 
   emitter.emit('request:match', { request, requestId })
 
   const requiredLookupResult =
-    lookupResult.data as RequiredDeep<ResponseLookupResult>
+    lookupResult.data as RequiredDeep<HandlersExecutionResult>
 
-  const transformedResponse =
-    handleRequestOptions?.transformResponse?.(response) ||
-    (response as any as Response)
-
-  handleRequestOptions?.onMockedResponse?.(
-    transformedResponse,
-    requiredLookupResult,
-  )
+  handleRequestOptions?.onMockedResponse?.(response, requiredLookupResult)
 
   emitter.emit('request:end', { request, requestId })
 
-  return transformedResponse
+  return response
 }

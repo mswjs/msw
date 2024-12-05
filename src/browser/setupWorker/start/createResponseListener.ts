@@ -1,9 +1,9 @@
-import {
+import { FetchResponse } from '@mswjs/interceptors'
+import type {
   ServiceWorkerIncomingEventsMap,
   SetupWorkerInternalContext,
 } from '../glossary'
-import { ServiceWorkerMessage } from './utils/createMessageChannel'
-import { isResponseWithoutBody } from '@mswjs/interceptors'
+import type { ServiceWorkerMessage } from './utils/createMessageChannel'
 
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (
@@ -14,6 +14,12 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     >,
   ) => {
     const { payload: responseJson } = message
+
+    // Get the Request instance reference stored in the
+    // request listener.
+    const { requestId } = responseJson
+    const request = context.requests.get(requestId)!
+    context.requests.delete(requestId)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -29,28 +35,32 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     const response =
       responseJson.status === 0
         ? Response.error()
-        : new Response(
+        : new FetchResponse(
             /**
              * Responses may be streams here, but when we create a response object
              * with null-body status codes, like 204, 205, 304 Response will
              * throw when passed a non-null body, so ensure it's null here
              * for those codes
              */
-            isResponseWithoutBody(responseJson.status)
-              ? null
-              : responseJson.body,
-            responseJson,
+            FetchResponse.isResponseWithBody(responseJson.status)
+              ? responseJson.body
+              : null,
+            {
+              ...responseJson,
+              /**
+               * Set response URL if it's not set already.
+               * @see https://github.com/mswjs/msw/issues/2030
+               * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+               */
+              url: request.url,
+            },
           )
 
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
       {
         response,
-        /**
-         * @todo @fixme In this context, we don't know anything about
-         * the request.
-         */
-        request: null as any,
+        request,
         requestId: responseJson.requestId,
       },
     )

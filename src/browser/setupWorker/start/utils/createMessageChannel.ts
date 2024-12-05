@@ -16,7 +16,7 @@ interface WorkerChannelEventsMap {
     data: StringifiedResponse,
     transfer?: [ReadableStream<Uint8Array>],
   ]
-  NOT_FOUND: []
+  PASSTHROUGH: []
 }
 
 export class WorkerChannel {

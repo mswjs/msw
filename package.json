@@ -193,7 +193,7 @@
     "json-bigint": "^1.0.0",
     "lint-staged": "^15.2.10",
     "page-with": "^0.6.1",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.2",
     "regenerator-runtime": "^0.14.1",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.9.0",

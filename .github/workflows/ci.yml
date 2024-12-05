@@ -42,7 +42,7 @@ jobs:
             ${{ runner.os }}-build-
 
   test_unit:
-    name: Unit tests
+    name: test (unit)
     needs: build
     runs-on: macos-latest
     steps:

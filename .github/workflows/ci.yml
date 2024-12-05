@@ -39,7 +39,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-
+            ${{ runner.os }}-build-${{ matrix.node-version }}
 
   test_unit:
     name: test (unit)
@@ -65,7 +65,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-18-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-
+            ${{ runner.os }}-node-18-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -107,7 +107,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node${{ matrix.node-version }}-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-
+            ${{ runner.os }}-node-18-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -139,7 +139,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-18-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-
+            ${{ runner.os }}-node-18-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -181,7 +181,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-18-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-
+            ${{ runner.os }}-node-18-build-
 
       - name: Install dependencies
         run: pnpm install

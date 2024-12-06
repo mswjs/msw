@@ -48,8 +48,6 @@ export class SetupServerCommonApi
     })
 
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>
-
-    this.init()
   }
 
   /**
@@ -141,7 +139,10 @@ export class SetupServerCommonApi
     ) as RequiredDeep<SharedOptions>
 
     // Apply the interceptor when starting the server.
+    // Attach the event listeners to the interceptor here
+    // so they get re-attached whenever `.listen()` is called.
     this.interceptor.apply()
+    this.init()
     this.subscriptions.push(() => this.interceptor.dispose())
 
     // Apply the WebSocket interception.

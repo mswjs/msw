@@ -105,7 +105,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node${{ matrix.node-version }}-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-node-18-build-
 
@@ -186,5 +186,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Native tests
+      - name: React Native tests
         run: pnpm test:native

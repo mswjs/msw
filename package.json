@@ -143,7 +143,7 @@
     "@bundled-es-modules/statuses": "^1.0.1",
     "@bundled-es-modules/tough-cookie": "^0.1.6",
     "@inquirer/confirm": "^5.0.0",
-    "@mswjs/interceptors": "^0.37.0",
+    "@mswjs/interceptors": "^0.37.3",
     "@open-draft/deferred-promise": "^2.2.0",
     "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
@@ -154,6 +154,8 @@
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.3",
     "path-to-regexp": "^6.3.0",
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1",
     "strict-event-emitter": "^0.5.1",
     "type-fest": "^4.26.1",
     "yargs": "^17.7.2"

@@ -13,6 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [18, 20]
+    outputs:
+      node-version: ${{ matrix.node-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,6 +46,7 @@ jobs:
   test_unit:
     name: test (unit)
     needs: build
+    if: ${{ needs.build.outputs.node-version == '18' }}
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -82,6 +85,7 @@ jobs:
   test-node:
     name: test (node.js)
     needs: build
+    if: ${{ needs.build.outputs.node-version == '18' || needs.build.outputs.node-version == '20' }}
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -118,6 +122,7 @@ jobs:
   test-browser:
     name: test (browser)
     needs: build
+    if: ${{ needs.build.outputs.node-version == '18' }}
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -160,6 +165,7 @@ jobs:
   test-native:
     name: test (react-native)
     needs: build
+    if: ${{ needs.build.outputs.node-version == '18' }}
     runs-on: macos-latest
     steps:
       - name: Checkout

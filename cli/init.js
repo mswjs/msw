@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk')
+const colors = require('picocolors')
 const confirm = require('@inquirer/confirm').default
 const invariant = require('./invariant')
 const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
@@ -34,7 +34,7 @@ module.exports = async function init(args) {
     // will equal to false.
     else if (args.save == null) {
       console.log(`\
-      ${chalk.cyan(
+      ${colors.cyan(
         'INFO',
       )} In order to ease the future updates to the worker script,
       we recommend saving the path to the worker directory in your package.json.`)
@@ -141,20 +141,20 @@ async function copyWorkerScript(destination, cwd) {
  */
 function printSuccessMessage(paths) {
   console.log(`
-${chalk.green('Worker script successfully copied!')}
-${paths.map((path) => chalk.gray(`  - ${path}\n`))}
+${colors.green('Worker script successfully copied!')}
+${paths.map((path) => colors.gray(`  - ${path}\n`))}
 Continue by describing the network in your application:
 
 
-${chalk.cyan.bold('https://mswjs.io/docs/getting-started')}
+${colors.red(colors.bold('https://mswjs.io/docs/getting-started'))}
 `)
 }
 
 function printFailureMessage(pathsWithErrors) {
   console.error(`\
-${chalk.red('Copying the worker script failed at following paths:')}
+${colors.red('Copying the worker script failed at following paths:')}
 ${pathsWithErrors
-  .map(([path, error]) => chalk.gray(`  - ${path}`) + '\n' + `  ${error}`)
+  .map(([path, error]) => colors.gray(`  - ${path}`) + '\n' + `  ${error}`)
   .join('\n\n')}
   `)
 }
@@ -167,7 +167,7 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
   console.log(
-    chalk.gray('Updating "msw.workerDirectory" at "%s"...'),
+    colors.gray('Updating "msw.workerDirectory" at "%s"...'),
     packageJsonPath,
   )
 
@@ -200,7 +200,7 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
 function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
   return confirm({
     theme: {
-      prefix: chalk.yellowBright('?'),
+      prefix: colors.yellowBright('?'),
     },
     message,
   }).then((answer) => {

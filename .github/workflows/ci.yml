@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: build-${{ matrix.node-version }}
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -43,7 +44,8 @@ jobs:
 
   test_unit:
     name: test (unit)
-    needs: build
+    needs: build-18
+    if: ${{ needs.build.outputs.nodeVersion == '18' }}
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -81,7 +83,7 @@ jobs:
 
   test-node:
     name: test (node.js)
-    needs: build
+    needs: [build-18, build-20]
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -117,7 +119,7 @@ jobs:
 
   test-browser:
     name: test (browser)
-    needs: build
+    needs: build-18
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -159,7 +161,7 @@ jobs:
 
   test-native:
     name: test (react-native)
-    needs: build
+    needs: build-18
     runs-on: macos-latest
     steps:
       - name: Checkout

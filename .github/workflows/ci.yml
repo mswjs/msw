@@ -33,6 +33,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Analyze build
+        env:
+          BUNDLE_ANALYZER_UPLOAD_TOKEN: ${{ secrets.CODECOV_ORG_TOKEN }}
+        run: pnpm build:analyze
+
       - name: Cache build output
         uses: actions/cache@v4
         with:

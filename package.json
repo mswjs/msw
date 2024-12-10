@@ -78,6 +78,7 @@
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,src}/**/*.ts\"",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
+    "build:analyze": "node analyze.js",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
@@ -159,6 +160,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@codecov/bundle-analyzer": "^1.6.0",
     "@commitlint/cli": "^18.4.4",
     "@commitlint/config-conventional": "^18.4.4",
     "@fastify/websocket": "^8.3.1",

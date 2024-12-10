@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
+import { Socket } from 'socket.io-client'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -8,7 +9,6 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
-import { Socket } from 'socket.io-client'
 import {
   MSW_REMOTE_SERVER_PORT,
   SyncServerEventsMap,
@@ -20,6 +20,7 @@ import {
   serializeEventPayload,
 } from '~/core/utils/internal/emitterUtils'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
+import { remoteContext } from './remoteContext'
 
 const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -120,6 +121,11 @@ export class SetupServerApi
     // run it in a special "remote" mode. That mode ensures that
     // an extraneous Node.js process can affect this process' traffic.
     if (this.resolvedOptions.remote?.enabled) {
+      console.log(
+        'MSW REMOTE MODE OK! context:',
+        process.env[remoteContext.variableName],
+      )
+
       const remotePort =
         typeof this.resolvedOptions.remote === 'object'
           ? this.resolvedOptions.remote.port || MSW_REMOTE_SERVER_PORT
@@ -144,13 +150,14 @@ export class SetupServerApi
           this.handlersController.currentHandlers,
           {
             apply: (target, thisArg, args) => {
+              console.log('.currentHandlers()...')
+
               return Array.prototype.concat(
                 new RemoteRequestHandler({
                   socket,
-                  /**
-                   * @todo Get the context ID from the environment automagically.
-                   */
-                  contextId: this.resolvedOptions.remote?.contextId,
+                  // Get the remote boundary context ID from the environment.
+                  // This way, the user doesn't have to explicitly drill it here.
+                  contextId: process.env[remoteContext.variableName],
                 }),
                 Reflect.apply(target, thisArg, args),
               )
@@ -171,7 +178,13 @@ export class SetupServerApi
 
         // Before the first request gets handled, await the sync server connection.
         // This way we ensure that all the requests go through the `RemoteRequestHandler`.
-        await this.socketPromise
+        await Promise.race([
+          this.socketPromise,
+          // Don't let the requests hang for long if the socket promise fails to resolve.
+          new Promise((resolve) => {
+            setTimeout(resolve, 1000)
+          }),
+        ])
       }
 
       // Forward all life-cycle events from this process to the remote.

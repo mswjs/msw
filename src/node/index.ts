@@ -6,3 +6,4 @@ export {
   SetupRemoteServerApi,
   setupRemoteServer,
 } from './setupRemoteServer'
+export { remoteContext } from './remoteContext'

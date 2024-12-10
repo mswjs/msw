@@ -51,6 +51,14 @@ export class RemoteRequestHandler extends RequestHandler<
     const parsedResult = await super.parse(args)
     const responsePromise = new DeferredPromise<Response | undefined>()
 
+    // eslint-disable-next-line no-console
+    console.log(
+      '[RemoteRequestHandler] REQUEST!',
+      args.request.method,
+      args.request.url,
+      this.contextId,
+    )
+
     /**
      * @note Remote request handler is special.
      * It cannot await the mocked response from the remote process in

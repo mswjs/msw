@@ -40,7 +40,8 @@ interface RemoteServerBoundaryContext {
   handlers: Array<RequestHandler | WebSocketHandler>
 }
 
-const handlersStorage = new AsyncLocalStorage<RemoteServerBoundaryContext>()
+export const remoteHandlersContext =
+  new AsyncLocalStorage<RemoteServerBoundaryContext>()
 
 const kSyncServer = Symbol('kSyncServer')
 type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
@@ -100,7 +101,7 @@ export class SetupRemoteServerApi
     super(...handlers)
 
     this.handlersController = new AsyncHandlersController({
-      storage: handlersStorage,
+      storage: remoteHandlersContext,
       initialHandlers: handlers,
     })
 
@@ -108,7 +109,7 @@ export class SetupRemoteServerApi
   }
 
   get contextId(): string {
-    const context = handlersStorage.getStore()
+    const context = remoteHandlersContext.getStore()
 
     invariant(
       context != null,
@@ -212,13 +213,13 @@ export class SetupRemoteServerApi
       }
 
       this.executionContexts.set(contextId, () => context)
-      return handlersStorage.run(context, callback, ...args)
+      return remoteHandlersContext.run(context, callback, ...args)
     }
   }
 
   public async close(): Promise<void> {
     this.executionContexts.clear()
-    handlersStorage.disable()
+    remoteHandlersContext.disable()
 
     const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
 

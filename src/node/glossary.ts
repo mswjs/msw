@@ -18,7 +18,6 @@ export interface ListenOptions extends SharedOptions {
    */
   remote?: {
     enabled: boolean
-    contextId?: string
 
     /**
      * Custom port number to synchronize this `setupServer` with

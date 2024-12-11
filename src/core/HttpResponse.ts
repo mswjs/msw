@@ -159,6 +159,10 @@ export class HttpResponse extends Response {
   ): Response {
     const responseInit = normalizeResponseInit(init)
 
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'application/octet-stream')
+    }
+
     if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }

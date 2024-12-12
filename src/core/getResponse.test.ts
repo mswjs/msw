@@ -61,3 +61,39 @@ it('returns the response from the first matching handler if multiple match', asy
   expect(response?.headers.get('Content-Type')).toBe('application/json')
   expect(await response?.json()).toEqual({ name: 'John' })
 })
+
+it('returns the response from a handler that matchs path when set baseUrl', async () => {
+  const response = await getResponse(
+    [http.get('/user', () => Response.json({ name: 'John' }))],
+    new Request('http://localhost/user'),
+    'http://localhost',
+  )
+  expect(response?.status).toBe(200)
+  expect(response?.headers.get('Content-Type')).toBe('application/json')
+  expect(await response?.json()).toEqual({ name: 'John' })
+})
+
+it('returns undefined to not match the host of the request although set baseUrl', async () => {
+  const response = await getResponse(
+    [http.get('/user', () => Response.json({ name: 'John' }))],
+    new Request('http://localhost:8080/user'),
+    'http://localhost',
+  )
+  expect(response).toBeUndefined()
+})
+
+it('returns the response from the second handler although set baseUrl', async () => {
+  const response = await getResponse(
+    [
+      http.get('/user', () => Response.json({ name: 'John' })),
+      http.get('http://localhost:8080/user', () =>
+        Response.json({ name: 'Kate' }),
+      ),
+    ],
+    new Request('http://localhost:8080/user'),
+    'http://localhost',
+  )
+  expect(response?.status).toBe(200)
+  expect(response?.headers.get('Content-Type')).toBe('application/json')
+  expect(await response?.json()).toEqual({ name: 'Kate' })
+})

@@ -7,16 +7,19 @@ import { executeHandlers } from './utils/executeHandlers'
  * in the array of request handlers.
  * @param handlers The array of request handlers.
  * @param request The `Request` instance.
+ * @param baseUrl The baseUrl for each handlers.
  * @returns {Response} A mocked response, if any.
  */
 export const getResponse = async (
   handlers: Array<RequestHandler>,
   request: Request,
+  baseUrl?: string,
 ): Promise<Response | undefined> => {
   const result = await executeHandlers({
     request,
     requestId: createRequestId(),
     handlers,
+    resolutionContext: baseUrl ? { baseUrl } : undefined,
   })
 
   return result?.response

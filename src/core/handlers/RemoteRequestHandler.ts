@@ -59,6 +59,24 @@ export class RemoteRequestHandler extends RequestHandler<
       this.contextId,
     )
 
+    // If the socket is disconnected, or gets disconnected,
+    // skip this remote handler and continue with the request locally.
+    if (this.socket.disconnected) {
+      console.log(
+        '[RemoteRequestHandler] socket already disconnected, skipping...',
+      )
+
+      return {
+        ...parsedResult,
+        response: undefined,
+      }
+    }
+
+    this.socket.once('disconnect', () => {
+      console.log('[RemoteRequestHandler] socket disconnected, skipping...')
+      responsePromise.resolve(undefined)
+    })
+
     /**
      * @note Remote request handler is special.
      * It cannot await the mocked response from the remote process in

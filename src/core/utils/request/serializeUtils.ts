@@ -69,7 +69,8 @@ export function deserializeRequest(serialized: SerializedRequest): Request {
 export async function serializeResponse(
   response: Response,
 ): Promise<SerializedResponse> {
-  const responseBody = await response.clone().arrayBuffer()
+  const responseBody =
+    response.body === null ? undefined : await response.clone().arrayBuffer()
 
   return {
     __serializedType: 'response',

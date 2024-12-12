@@ -192,18 +192,23 @@ export class SetupServerApi
     }
   }
 
-  private forwardLifeCycleEvents() {
-    onAnyEvent(this.emitter, async (type, listenerArgs) => {
-      const socket = await this.socketPromise
+  private async forwardLifeCycleEvents() {
+    const socket = await this.socketPromise
 
+    // Forward life-cycle events after the socket connection has been open.
+    // All outgoing requests are blocked by the connection promise so race
+    // conditions are impossible here.
+    onAnyEvent(this.emitter, async (type, listenerArgs) => {
       if (socket && !shouldBypassRequest(listenerArgs.request)) {
+        const payload = (await serializeEventPayload(listenerArgs)) as any
+
         socket.emit(
           'lifeCycleEventForward',
           /**
            * @todo Annotating serialized/desirialized mirror channels is tough.
            */
           type,
-          (await serializeEventPayload(listenerArgs)) as any,
+          payload,
         )
       }
     })

@@ -46,8 +46,8 @@ export class SetupServerCommonApi
       name: 'setup-server',
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
+
     this.resolvedOptions = {} as RequiredDeep<ListenOptions>
-    this.init()
   }
 
   protected async beforeRequest(
@@ -151,7 +151,10 @@ export class SetupServerCommonApi
     ) as RequiredDeep<ListenOptions>
 
     // Apply the interceptor when starting the server.
+    // Attach the event listeners to the interceptor here
+    // so they get re-attached whenever `.listen()` is called.
     this.interceptor.apply()
+    this.init()
     this.subscriptions.push(() => this.interceptor.dispose())
 
     // Apply the WebSocket interception.

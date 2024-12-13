@@ -40,6 +40,10 @@ export class RemoteRequestHandler extends RequestHandler<
       resolver() {},
     })
 
+    console.log('[RemoteRequestHandler] constructor', {
+      contextId: args.contextId,
+    })
+
     this.socket = args.socket
     this.contextId = args.contextId
   }
@@ -77,6 +81,21 @@ export class RemoteRequestHandler extends RequestHandler<
       responsePromise.resolve(undefined)
     })
 
+    console.log(
+      '[RemoteRequestHandler] sending request to remote...',
+      new Date(),
+    )
+
+    // this.socket.send(JSON.stringify({ a: { b: { c: 1 } } }))
+    // this.socket.emit(
+    //   'foo',
+    //   JSON.stringify({
+    //     requestId: createRequestId(),
+    //     contextId: this.contextId,
+    //     serializeRequest: await serializeRequest(args.request),
+    //   }),
+    // )
+
     /**
      * @note Remote request handler is special.
      * It cannot await the mocked response from the remote process in
@@ -86,23 +105,31 @@ export class RemoteRequestHandler extends RequestHandler<
      * Instead, the remote handler await the mocked response during the
      * parsing phase since that's the only async phase before predicate.
      */
-    this.socket.emit('request', {
-      requestId: createRequestId(),
-      serializedRequest: await serializeRequest(args.request),
-      contextId: this.contextId,
-    })
+    debugger
+    this.socket.emit(
+      'request',
+      {
+        requestId: createRequestId(),
+        serializedRequest: await serializeRequest(args.request),
+        contextId: this.contextId,
+      },
+      (serializedResponse) => {
+        // Wait for the remote server to acknowledge this request with
+        // a response before continuing with the request handling.
+        responsePromise.resolve(
+          serializedResponse
+            ? deserializeResponse(serializedResponse)
+            : undefined,
+        )
+      },
+    )
 
     /**
      * @todo Handle timeouts.
      * @todo Handle socket errors.
      */
-    this.socket.on('response', ({ serializedResponse }) => {
-      responsePromise.resolve(
-        serializedResponse
-          ? deserializeResponse(serializedResponse)
-          : undefined,
-      )
-    })
+
+    console.log('[RemoteRequestHandler] waiting for response from remote...')
 
     return {
       ...parsedResult,

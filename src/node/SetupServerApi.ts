@@ -150,8 +150,6 @@ export class SetupServerApi
           this.handlersController.currentHandlers,
           {
             apply: (target, thisArg, args) => {
-              console.log('.currentHandlers()...')
-
               return Array.prototype.concat(
                 new RemoteRequestHandler({
                   socket,
@@ -176,6 +174,8 @@ export class SetupServerApi
           return
         }
 
+        console.log('[setupSever] beforeRequest', request.method, request.url)
+
         // Before the first request gets handled, await the sync server connection.
         // This way we ensure that all the requests go through the `RemoteRequestHandler`.
         await Promise.race([
@@ -185,10 +185,12 @@ export class SetupServerApi
             setTimeout(resolve, 1000)
           }),
         ])
+
+        console.log('[setupServer] beforeRequest COMPLETE!')
       }
 
       // Forward all life-cycle events from this process to the remote.
-      this.forwardLifeCycleEvents()
+      // this.forwardLifeCycleEvents()
     }
   }
 

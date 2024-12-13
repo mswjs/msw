@@ -75,15 +75,16 @@ export interface SetupRemoteServer {
 }
 
 export interface SyncServerEventsMap {
-  request: (args: {
-    serializedRequest: SerializedRequest
-    requestId: string
-    contextId?: string
-  }) => Promise<void> | void
+  request: (
+    args: {
+      serializedRequest: SerializedRequest
+      requestId: string
+      contextId?: string
+    },
+    callback: (serializedResponse: SerializedResponse | undefined) => void,
+  ) => void
 
-  response: (args: {
-    serializedResponse?: SerializedResponse
-  }) => Promise<void> | void
+  foo: (data: string) => void
 
   lifeCycleEventForward: <Type extends keyof SerializedLifeCycleEventsMap>(
     type: Type,
@@ -140,11 +141,37 @@ export class SetupRemoteServerApi
       .once('SIGTERM', () => closeSyncServer(server))
       .once('SIGINT', () => closeSyncServer(server))
 
+    server.on('close', () => console.log('SERVER CLOSE'))
+    server.on('error', () => console.log('SERVER ERROR'))
+
     server.on('connection', async (socket) => {
+      console.log('[setupRemoteServer] ws client connected!')
+
+      socket.on('error', (error) => {
+        console.log('[setupRemoteServer] ws client ERROR!', error)
+      })
+
+      socket.addListener('message', (data) => console.log('ANY DATA:', data))
+
+      console.log('ADD REQUEST LISTENER', new Date())
+
+      socket.on('foo', (data) => {
+        console.log('FOO RECEIVED!', data)
+      })
+
       socket.on(
         'request',
-        async ({ requestId, serializedRequest, contextId }) => {
+        async ({ contextId, requestId, serializedRequest }, callback) => {
+          console.log('[setupRemoteServer] REQUEST event')
+
           const request = deserializeRequest(serializedRequest)
+
+          console.log(
+            '[setupRemoteServer] REQUEST',
+            request.method,
+            request.url,
+            { contextId },
+          )
 
           // By default, get the handlers from the current context.
           let allHandlers = this.handlersController.currentHandlers()
@@ -173,11 +200,12 @@ export class SetupRemoteServerApi
             const context = getContext()
             allHandlers = context.handlers
           }
+          const handlers = allHandlers.filter(isHandlerKind('RequestHandler'))
 
           const response = await handleRequest(
             request,
             requestId,
-            allHandlers.filter(isHandlerKind('RequestHandler')),
+            handlers,
             /**
              * @todo Support resolve options from the `.listen()` call.
              */
@@ -185,11 +213,9 @@ export class SetupRemoteServerApi
             dummyEmitter,
           )
 
-          socket.emit('response', {
-            serializedResponse: response
-              ? await serializeResponse(response)
-              : undefined,
-          })
+          console.log({ handlers, response })
+
+          callback(response ? await serializeResponse(response) : undefined)
         },
       )
 
@@ -255,6 +281,7 @@ async function createSyncServer(
   const httpServer = http.createServer()
   const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
     transports: ['websocket'],
+    httpCompression: false,
     cors: {
       /**
        * @todo Set the default `origin` to localhost for security reasons.
@@ -330,7 +357,7 @@ export async function createSyncClient(args: { port: number }) {
     // the user is expected to enable remote interception
     // before the actual application with "setupServer".
     timeout: 500,
-    reconnection: true,
+    reconnection: false,
     extraHeaders: {
       // Bypass the internal WebSocket connection requests
       // to exclude them from the request lookup altogether.
@@ -339,11 +366,14 @@ export async function createSyncClient(args: { port: number }) {
     },
   })
 
-  socket.on('connect', () => {
+  socket.once('connect', () => {
+    console.log('[setupServer] ws client connected!', new Date())
+
     connectionPromise.resolve(socket)
   })
 
   socket.io.once('error', (error) => {
+    console.log('[setupServer] ws client error!', error)
     connectionPromise.reject(error)
   })
 

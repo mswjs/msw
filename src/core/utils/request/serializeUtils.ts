@@ -6,7 +6,7 @@ export interface SerializedRequest {
   method: string
   url: string
   headers: Array<[string, string]>
-  body?: ArrayBuffer
+  body: ArrayBuffer | undefined
 }
 
 export interface SerializedResponse {
@@ -14,7 +14,7 @@ export interface SerializedResponse {
   status: number
   statusText?: string
   headers: Array<[string, string]>
-  body?: ArrayBuffer
+  body: ArrayBuffer | undefined
 }
 
 /**

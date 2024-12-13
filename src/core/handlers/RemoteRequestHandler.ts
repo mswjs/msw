@@ -1,17 +1,11 @@
-import type { Socket } from 'socket.io-client'
 import { createRequestId } from '@mswjs/interceptors'
-import { DeferredPromise } from '@open-draft/deferred-promise'
-import type { SyncServerEventsMap } from '../../node/setupRemoteServer'
-import {
-  serializeRequest,
-  deserializeResponse,
-} from '../utils/request/serializeUtils'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import {
   RequestHandler,
   type ResponseResolver,
   type RequestHandlerDefaultInfo,
 } from './RequestHandler'
+import { RemoteClient } from 'node/setupRemoteServer'
 
 interface RemoteRequestHandlerParsedResult {
   response: Response | undefined
@@ -26,13 +20,15 @@ export class RemoteRequestHandler extends RequestHandler<
   RemoteRequestHandlerParsedResult,
   RemoteRequestHandlerResolverExtras
 > {
-  private socket: Socket<SyncServerEventsMap>
-  private contextId?: string
+  protected remoteClient: RemoteClient
+  protected contextId?: string
 
-  constructor(args: {
-    socket: Socket<SyncServerEventsMap>
-    contextId?: string
-  }) {
+  constructor(
+    readonly args: {
+      remoteClient: RemoteClient
+      contextId?: string
+    },
+  ) {
     super({
       info: {
         header: 'RemoteRequestHandler',
@@ -40,11 +36,7 @@ export class RemoteRequestHandler extends RequestHandler<
       resolver() {},
     })
 
-    console.log('[RemoteRequestHandler] constructor', {
-      contextId: args.contextId,
-    })
-
-    this.socket = args.socket
+    this.remoteClient = args.remoteClient
     this.contextId = args.contextId
   }
 
@@ -53,48 +45,18 @@ export class RemoteRequestHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }): Promise<RemoteRequestHandlerParsedResult> {
     const parsedResult = await super.parse(args)
-    const responsePromise = new DeferredPromise<Response | undefined>()
 
     // eslint-disable-next-line no-console
     console.log(
       '[RemoteRequestHandler] REQUEST!',
       args.request.method,
       args.request.url,
-      this.contextId,
+      this.args.contextId,
     )
 
-    // If the socket is disconnected, or gets disconnected,
-    // skip this remote handler and continue with the request locally.
-    if (this.socket.disconnected) {
-      console.log(
-        '[RemoteRequestHandler] socket already disconnected, skipping...',
-      )
-
-      return {
-        ...parsedResult,
-        response: undefined,
-      }
+    if (!this.remoteClient.connected) {
+      return parsedResult
     }
-
-    this.socket.once('disconnect', () => {
-      console.log('[RemoteRequestHandler] socket disconnected, skipping...')
-      responsePromise.resolve(undefined)
-    })
-
-    console.log(
-      '[RemoteRequestHandler] sending request to remote...',
-      new Date(),
-    )
-
-    // this.socket.send(JSON.stringify({ a: { b: { c: 1 } } }))
-    // this.socket.emit(
-    //   'foo',
-    //   JSON.stringify({
-    //     requestId: createRequestId(),
-    //     contextId: this.contextId,
-    //     serializeRequest: await serializeRequest(args.request),
-    //   }),
-    // )
 
     /**
      * @note Remote request handler is special.
@@ -105,38 +67,14 @@ export class RemoteRequestHandler extends RequestHandler<
      * Instead, the remote handler await the mocked response during the
      * parsing phase since that's the only async phase before predicate.
      */
-    debugger
-    this.socket.emit(
-      'request',
-      {
-        requestId: createRequestId(),
-        serializedRequest: await serializeRequest(args.request),
-        contextId: this.contextId,
-      },
-      (serializedResponse) => {
-        // Wait for the remote server to acknowledge this request with
-        // a response before continuing with the request handling.
-        responsePromise.resolve(
-          serializedResponse
-            ? deserializeResponse(serializedResponse)
-            : undefined,
-        )
-      },
-    )
+    const response = await this.remoteClient.handleRequest({
+      contextId: this.contextId,
+      requestId: createRequestId(),
+      request: args.request,
+    })
 
-    /**
-     * @todo Handle timeouts.
-     * @todo Handle socket errors.
-     */
-
-    console.log('[RemoteRequestHandler] waiting for response from remote...')
-
-    return {
-      ...parsedResult,
-      // Set the received mocked response on the parsed result so it
-      // can be accessed in the predicate and response resolver functions.
-      response: await responsePromise,
-    }
+    parsedResult.response = response
+    return parsedResult
   }
 
   predicate(args: {

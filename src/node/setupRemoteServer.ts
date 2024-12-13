@@ -1,31 +1,21 @@
 import * as http from 'node:http'
+import { Readable } from 'node:stream'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
-import { Server as WebSocketServer } from 'socket.io'
-import { Socket, io } from 'socket.io-client'
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { SetupApi } from '~/core/SetupApi'
+import { delay } from '~/core/delay'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
-import {
-  type SerializedRequest,
-  type SerializedResponse,
-  deserializeRequest,
-  serializeResponse,
-} from '~/core/utils/request/serializeUtils'
 import type {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
 } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import {
-  type SerializedLifeCycleEventsMap,
-  deserializeEventPayload,
-} from '~/core/utils/internal/emitterUtils'
 import { AsyncHandlersController } from './SetupServerApi'
 
 /**
@@ -43,8 +33,7 @@ interface RemoteServerBoundaryContext {
 export const remoteHandlersContext =
   new AsyncLocalStorage<RemoteServerBoundaryContext>()
 
-const kSyncServer = Symbol('kSyncServer')
-type SyncServerType = WebSocketServer<SyncServerEventsMap> | undefined
+const kRemoteServer = Symbol('kRemoteServer')
 
 /**
  * Enables API mocking in a remote Node.js process.
@@ -66,30 +55,15 @@ export interface SetupRemoteServerListenOptions {
 
 export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
+  get contextId(): string
+
   listen: (options: SetupRemoteServerListenOptions) => Promise<void>
+
   boundary: <Args extends Array<any>, R>(
     callback: (...args: Args) => R,
   ) => (...args: Args) => R
-  get contextId(): string
+
   close: () => Promise<void>
-}
-
-export interface SyncServerEventsMap {
-  request: (
-    args: {
-      serializedRequest: SerializedRequest
-      requestId: string
-      contextId?: string
-    },
-    callback: (serializedResponse: SerializedResponse | undefined) => void,
-  ) => void
-
-  foo: (data: string) => void
-
-  lifeCycleEventForward: <Type extends keyof SerializedLifeCycleEventsMap>(
-    type: Type,
-    args: SerializedLifeCycleEventsMap[Type],
-  ) => void
 }
 
 export class SetupRemoteServerApi
@@ -123,107 +97,103 @@ export class SetupRemoteServerApi
   public async listen(
     options: SetupRemoteServerListenOptions = {},
   ): Promise<void> {
-    const port = options.port || MSW_REMOTE_SERVER_PORT
+    const resolvedPort = options.port || MSW_REMOTE_SERVER_PORT
 
     invariant(
-      typeof port === 'number',
+      typeof resolvedPort === 'number',
       'Failed to initialize remote server: expected the "port" option to be a valid port number but got "%s". Make sure it is the same port number you provide as the "remotePort" option to "server.listen()" in your application.',
-      port,
+      resolvedPort,
     )
 
     const dummyEmitter = new Emitter<LifeCycleEventsMap>()
-    const wssUrl = createWebSocketServerUrl(port)
-    const server = await createSyncServer(wssUrl)
-
-    server.removeAllListeners()
+    const server = await createSyncServer(resolvedPort)
 
     process
       .once('SIGTERM', () => closeSyncServer(server))
       .once('SIGINT', () => closeSyncServer(server))
 
-    server.on('close', () => console.log('SERVER CLOSE'))
-    server.on('error', () => console.log('SERVER ERROR'))
+    server.on('request', async (incoming, outgoing) => {
+      // Handle the handshake request from the client.
+      if (incoming.method === 'HEAD') {
+        outgoing.writeHead(200).end()
+        return
+      }
 
-    server.on('connection', async (socket) => {
-      console.log('[setupRemoteServer] ws client connected!')
+      const requestId = incoming.headers['x-msw-request-id']
+      const requestUrl = incoming.headers['x-msw-request-url']
+      const contextId = incoming.headers['x-msw-context-id']
 
-      socket.on('error', (error) => {
-        console.log('[setupRemoteServer] ws client ERROR!', error)
+      if (typeof requestId !== 'string') {
+        outgoing.writeHead(400)
+        outgoing.end('Expected the "x-msw-request-id" header to be a string')
+        return
+      }
+
+      if (typeof requestUrl !== 'string') {
+        outgoing.writeHead(400)
+        outgoing.end('Expected the "x-msw-request-url" header to be a string')
+        return
+      }
+
+      // Validate remote context id.
+      if (contextId != null && typeof contextId !== 'string') {
+        outgoing.writeHead(400)
+        outgoing.end(
+          `Expected the "contextId" value to be a string but got ${typeof contextId}`,
+        )
+        return
+      }
+
+      const request = new Request(requestUrl, {
+        method: incoming.method,
+        body:
+          incoming.method !== 'HEAD' && incoming.method !== 'GET'
+            ? (Readable.toWeb(incoming) as ReadableStream<unknown>)
+            : null,
       })
 
-      socket.addListener('message', (data) => console.log('ANY DATA:', data))
+      for (const headerName in incoming.headersDistinct) {
+        const headerValue = incoming.headersDistinct[headerName]
+        if (headerValue) {
+          headerValue.forEach((value) => {
+            request.headers.append(headerName, value)
+          })
+        }
+      }
 
-      console.log('ADD REQUEST LISTENER', new Date())
-
-      socket.on('foo', (data) => {
-        console.log('FOO RECEIVED!', data)
-      })
-
-      socket.on(
-        'request',
-        async ({ contextId, requestId, serializedRequest }, callback) => {
-          console.log('[setupRemoteServer] REQUEST event')
-
-          const request = deserializeRequest(serializedRequest)
-
-          console.log(
-            '[setupRemoteServer] REQUEST',
-            request.method,
-            request.url,
-            { contextId },
-          )
-
-          // By default, get the handlers from the current context.
-          let allHandlers = this.handlersController.currentHandlers()
-
-          // If the request event has a context associated with it,
-          // look up the current state of that context to get the handlers.
-          if (contextId) {
-            invariant(
-              this.executionContexts.has(contextId),
-              'Failed to handle a remote request "%s %s": no context found by id "%s"',
-              request.method,
-              request.url,
-              contextId,
-            )
-
-            const getContext = this.executionContexts.get(contextId)
-
-            invariant(
-              getContext != null,
-              'Failed to handle a remote request "%s %s": the context by id "%s" is empty',
-              request.method,
-              request.url,
-              contextId,
-            )
-
-            const context = getContext()
-            allHandlers = context.handlers
-          }
-          const handlers = allHandlers.filter(isHandlerKind('RequestHandler'))
-
-          const response = await handleRequest(
-            request,
-            requestId,
-            handlers,
-            /**
-             * @todo Support resolve options from the `.listen()` call.
-             */
-            { onUnhandledRequest() {} },
-            dummyEmitter,
-          )
-
-          console.log({ handlers, response })
-
-          callback(response ? await serializeResponse(response) : undefined)
-        },
+      const handlers = this.resolveHandlers({ contextId }).filter(
+        /** @todo Eventually allow all handler types */
+        isHandlerKind('RequestHandler'),
+      )
+      const response = await handleRequest(
+        request,
+        requestId,
+        handlers,
+        /** @todo Support listen options */
+        { onUnhandledRequest() {} },
+        dummyEmitter,
       )
 
-      socket.on('lifeCycleEventForward', async (type, args) => {
-        const deserializedArgs = await deserializeEventPayload(args)
-        this.emitter.emit(type, deserializedArgs as any)
-      })
+      if (response) {
+        outgoing.writeHead(
+          response.status,
+          response.statusText,
+          Array.from(response.headers),
+        )
+
+        if (response.body) {
+          Readable.fromWeb(response.body as any).pipe(outgoing)
+        } else {
+          outgoing.end()
+        }
+
+        return
+      }
+
+      outgoing.writeHead(404).end()
     })
+
+    /** @todo Decide on life-cycle events forwarding */
   }
 
   public boundary<Args extends Array<any>, R>(
@@ -247,7 +217,7 @@ export class SetupRemoteServerApi
     this.executionContexts.clear()
     remoteHandlersContext.disable()
 
-    const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
+    const syncServer = Reflect.get(globalThis, kRemoteServer)
 
     invariant(
       syncServer,
@@ -258,15 +228,44 @@ export class SetupRemoteServerApi
 
     await closeSyncServer(syncServer)
   }
+
+  private resolveHandlers(args: {
+    contextId: string | undefined
+  }): Array<RequestHandler | WebSocketHandler> {
+    const defaultHandlers = this.handlersController.currentHandlers()
+
+    // Request that are not bound to a remote context id
+    // cannot be affected by the handlers from that context.
+    // Return the list of current process handlers instead.
+    if (!args.contextId) {
+      return defaultHandlers
+    }
+
+    invariant(
+      this.executionContexts.has(args.contextId),
+      'Failed to handle a remote request: no context found by id "%s"',
+      args.contextId,
+    )
+
+    // If the request event has a context associated with it,
+    // look up the current state of that context to get the handlers.
+    const getContext = this.executionContexts.get(args.contextId)
+
+    invariant(
+      getContext != null,
+      'Failed to handle a remote request: the context by id "%s" is empty',
+      args.contextId,
+    )
+
+    return getContext().handlers
+  }
 }
 
 /**
- * Creates an internal WebSocket sync server.
+ * Creates an internal HTTP server.
  */
-async function createSyncServer(
-  url: URL,
-): Promise<WebSocketServer<SyncServerEventsMap>> {
-  const syncServer = Reflect.get(globalThis, kSyncServer) as SyncServerType
+async function createSyncServer(port: number): Promise<http.Server> {
+  const syncServer = Reflect.get(globalThis, kRemoteServer)
 
   // Reuse the existing WebSocket server reference if it exists.
   // It persists on the global scope between hot updates.
@@ -274,53 +273,27 @@ async function createSyncServer(
     return syncServer
   }
 
-  const serverReadyPromise = new DeferredPromise<
-    WebSocketServer<SyncServerEventsMap>
-  >()
+  const serverReadyPromise = new DeferredPromise<http.Server>()
+  const server = http.createServer()
 
-  const httpServer = http.createServer()
-  const ws = new WebSocketServer<SyncServerEventsMap>(httpServer, {
-    transports: ['websocket'],
-    httpCompression: false,
-    cors: {
-      /**
-       * @todo Set the default `origin` to localhost for security reasons.
-       * Allow overridding the default origin through the `setupRemoteServer` API.
-       */
-      origin: '*',
-      methods: ['HEAD', 'GET', 'POST'],
-    },
+  server.listen(+port, '127.0.0.1', () => {
+    serverReadyPromise.resolve(server)
   })
 
-  httpServer.listen(+url.port, url.hostname, () => {
-    serverReadyPromise.resolve(ws)
-  })
-
-  httpServer.on('error', (error) => {
+  server.once('error', (error) => {
     serverReadyPromise.reject(error)
+    Reflect.deleteProperty(globalThis, kRemoteServer)
   })
 
-  return serverReadyPromise.then((ws) => {
-    Object.defineProperty(globalThis, kSyncServer, {
-      value: ws,
-    })
-    return ws
+  Object.defineProperty(globalThis, kRemoteServer, {
+    value: server,
   })
+
+  return serverReadyPromise
 }
 
-async function closeSyncServer(server: WebSocketServer): Promise<void> {
-  const httpServer = Reflect.get(server, 'httpServer') as
-    | http.Server
-    | undefined
-
-  /**
-   * @note `socket.io` automatically closes the server if no clients
-   * have responded to the ping request. Check if the underlying HTTP
-   * server is still running before trying to close the WebSocket server.
-   * Unfortunately, there's no means to check if the server is running
-   * on the WebSocket server instance.
-   */
-  if (!httpServer?.listening) {
+async function closeSyncServer(server: http.Server): Promise<void> {
+  if (!server.listening) {
     return Promise.resolve()
   }
 
@@ -328,54 +301,92 @@ async function closeSyncServer(server: WebSocketServer): Promise<void> {
 
   server.close((error) => {
     if (error) {
-      return serverClosePromise.reject(error)
+      serverClosePromise.reject(error)
+      return
     }
+
     serverClosePromise.resolve()
   })
 
   await serverClosePromise.then(() => {
-    Reflect.deleteProperty(globalThis, kSyncServer)
+    Reflect.deleteProperty(globalThis, kRemoteServer)
   })
 }
 
-function createWebSocketServerUrl(port: number): URL {
-  const url = new URL('http://localhost')
-  url.port = port.toString()
-  return url
-}
+export class RemoteClient {
+  public connected: boolean
+  private port: number
 
-/**
- * Creates a WebSocket client connected to the internal
- * WebSocket sync server of MSW.
- */
-export async function createSyncClient(args: { port: number }) {
-  const connectionPromise = new DeferredPromise<Socket<SyncServerEventsMap>>()
-  const url = createWebSocketServerUrl(args.port)
-  const socket = io(url.href, {
-    transports: ['websocket'],
-    // Keep a low timeout and no retry logic because
-    // the user is expected to enable remote interception
-    // before the actual application with "setupServer".
-    timeout: 500,
-    reconnection: false,
-    extraHeaders: {
-      // Bypass the internal WebSocket connection requests
-      // to exclude them from the request lookup altogether.
-      // This prevents MSW from treating these requests as unhandled.
-      accept: 'msw/passthrough',
-    },
-  })
+  constructor(readonly args: { port: number }) {
+    this.connected = false
+    this.port = args.port
+  }
 
-  socket.once('connect', () => {
-    console.log('[setupServer] ws client connected!', new Date())
+  get url(): string {
+    return `http://localhost:${this.port}`
+  }
 
-    connectionPromise.resolve(socket)
-  })
+  public async connect(): Promise<void> {
+    if (this.connected) {
+      return
+    }
 
-  socket.io.once('error', (error) => {
-    console.log('[setupServer] ws client error!', error)
-    connectionPromise.reject(error)
-  })
+    const maxRetries = 5
+    let retries = 0
 
-  return connectionPromise
+    console.log('[RemoteClient] connecting to remote server...')
+
+    const tryConnect = (): Promise<void> => {
+      return fetch(this.url, {
+        method: 'HEAD',
+        headers: {
+          accept: 'msw/passthrough',
+        },
+      }).then(
+        () => {
+          this.connected = true
+        },
+        async () => {
+          if (retries === maxRetries) {
+            console.log(
+              '[RemoteClient] failed to connect to remote server after %d retries',
+              maxRetries,
+            )
+            return
+          }
+
+          retries++
+          await delay(500)
+          return tryConnect()
+        },
+      )
+    }
+
+    return tryConnect()
+  }
+
+  public async handleRequest(args: {
+    requestId: string
+    contextId?: string
+    request: Request
+  }): Promise<Response | undefined> {
+    const request = args.request.clone()
+
+    console.log('[setupRemoteServer] asking request:', {
+      contextId: args.contextId,
+    })
+
+    request.headers.set('accept', 'msw/passthrough')
+    request.headers.set('x-msw-request-url', args.request.url)
+    request.headers.set('x-msw-request-id', args.requestId)
+    request.headers.set('x-msw-context-id', args.contextId || '')
+
+    const response = await fetch(this.url, request).catch(() => undefined)
+
+    if (!response || !response.ok) {
+      return
+    }
+
+    return response
+  }
 }

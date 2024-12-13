@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
-import { Socket } from 'socket.io-client'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -9,16 +8,8 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
-import {
-  MSW_REMOTE_SERVER_PORT,
-  SyncServerEventsMap,
-  createSyncClient,
-} from './setupRemoteServer'
+import { MSW_REMOTE_SERVER_PORT, RemoteClient } from './setupRemoteServer'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
-import {
-  onAnyEvent,
-  serializeEventPayload,
-} from '~/core/utils/internal/emitterUtils'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 import { remoteContext } from './remoteContext'
 
@@ -80,8 +71,6 @@ export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
-  private socketPromise?: Promise<Socket<SyncServerEventsMap>>
-
   constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
     super(
       [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
@@ -137,82 +126,67 @@ export class SetupServerApi
         remotePort,
       )
 
-      // Create the WebSocket sync client immediately when starting the interception.
-      this.socketPromise = createSyncClient({
+      const remoteClient = new RemoteClient({
         port: remotePort,
       })
 
-      // Once the sync server connection is established, prepend the
-      // remote request handler to be the first for this process.
-      // This way, the remote process' handlers take priority.
-      this.socketPromise.then((socket) => {
-        this.handlersController.currentHandlers = new Proxy(
-          this.handlersController.currentHandlers,
-          {
-            apply: (target, thisArg, args) => {
-              return Array.prototype.concat(
-                new RemoteRequestHandler({
-                  socket,
-                  // Get the remote boundary context ID from the environment.
-                  // This way, the user doesn't have to explicitly drill it here.
-                  contextId: process.env[remoteContext.variableName],
-                }),
-                Reflect.apply(target, thisArg, args),
-              )
-            },
-          },
-        )
-
-        return socket
-      })
-
       this.beforeRequest = async ({ request }) => {
-        /**
-         * @todo This technically shouldn't trigger but it does.
-         */
-        if (request.url.includes('/socket.io/')) {
+        if (shouldBypassRequest(request)) {
           return
         }
 
-        console.log('[setupSever] beforeRequest', request.method, request.url)
+        console.log('BEFORE REQUEST', request.method)
 
-        // Before the first request gets handled, await the sync server connection.
-        // This way we ensure that all the requests go through the `RemoteRequestHandler`.
-        await Promise.race([
-          this.socketPromise,
-          // Don't let the requests hang for long if the socket promise fails to resolve.
-          new Promise((resolve) => {
-            setTimeout(resolve, 1000)
-          }),
-        ])
+        // Once the sync server connection is established, prepend the
+        // remote request handler to be the first for this process.
+        // This way, the remote process' handlers take priority.
+        await remoteClient.connect().then(() => {
+          console.log('[SetupServerApi] connected to remote!')
 
-        console.log('[setupServer] beforeRequest COMPLETE!')
+          this.handlersController.currentHandlers = new Proxy(
+            this.handlersController.currentHandlers,
+            {
+              apply: (target, thisArg, args) => {
+                return Array.prototype.concat(
+                  new RemoteRequestHandler({
+                    remoteClient,
+                    // Get the remote boundary context ID from the environment.
+                    // This way, the user doesn't have to explicitly drill it here.
+                    contextId: process.env[remoteContext.variableName],
+                  }),
+                  Reflect.apply(target, thisArg, args),
+                )
+              },
+            },
+          )
+        })
       }
 
       // Forward all life-cycle events from this process to the remote.
+      /** @todo */
       // this.forwardLifeCycleEvents()
     }
   }
 
-  private async forwardLifeCycleEvents() {
-    const socket = await this.socketPromise
+  // private async forwardLifeCycleEvents() {
+  //   const socket = await this.socketPromise
 
-    // Forward life-cycle events after the socket connection has been open.
-    // All outgoing requests are blocked by the connection promise so race
-    // conditions are impossible here.
-    onAnyEvent(this.emitter, async (type, listenerArgs) => {
-      if (socket && !shouldBypassRequest(listenerArgs.request)) {
-        const payload = (await serializeEventPayload(listenerArgs)) as any
+  //   // Forward life-cycle events after the socket connection has been open.
+  //   // All outgoing requests are blocked by the connection promise so race
+  //   // conditions are impossible here.
+  //   onAnyEvent(this.emitter, async (type, listenerArgs) => {
+  //     if (socket && !shouldBypassRequest(listenerArgs.request)) {
+  //       const payload = (await serializeEventPayload(listenerArgs)) as any
 
-        socket.emit(
-          'lifeCycleEventForward',
-          /**
-           * @todo Annotating serialized/desirialized mirror channels is tough.
-           */
-          type,
-          payload,
-        )
-      }
-    })
-  }
+  //       socket.emit(
+  //         'lifeCycleEventForward',
+  //         /**
+  //          * @todo Annotating serialized/desirialized mirror channels is tough.
+  //          */
+  //         type,
+  //         payload,
+  //       )
+  //     }
+  //   })
+  // }
 }

@@ -1,4 +1,3 @@
-import { ResponseResolutionContext } from '../utils/executeHandlers'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
@@ -106,16 +105,9 @@ export class HttpHandler extends RequestHandler<
     )
   }
 
-  async parse(args: {
-    request: Request
-    resolutionContext?: ResponseResolutionContext
-  }) {
+  async parse(args: { request: Request }) {
     const url = new URL(args.request.url)
-    const match = matchRequestUrl(
-      url,
-      this.info.path,
-      args.resolutionContext?.baseUrl,
-    )
+    const match = matchRequestUrl(url, this.info.path)
     const cookies = getAllRequestCookies(args.request)
 
     return {

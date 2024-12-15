@@ -9,10 +9,6 @@ export interface HandlersExecutionResult {
   response?: Response
 }
 
-export interface ResponseResolutionContext {
-  baseUrl?: string
-}
-
 /**
  * Executes the list of request handlers against the given request.
  * Returns the execution result object containing any matching request
@@ -22,18 +18,16 @@ export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
   request,
   requestId,
   handlers,
-  resolutionContext,
 }: {
   request: Request
   requestId: string
   handlers: Handlers
-  resolutionContext?: ResponseResolutionContext
 }): Promise<HandlersExecutionResult | null> => {
   let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 
   for (const handler of handlers) {
-    result = await handler.run({ request, requestId, resolutionContext })
+    result = await handler.run({ request, requestId })
 
     // If the handler produces some result for this request,
     // it automatically becomes matching.

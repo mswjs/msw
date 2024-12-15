@@ -1,8 +1,9 @@
 import fs from 'node:fs'
-import { execSync } from 'node:child_process'
+import { inject } from 'vitest'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
-import * as packageJson from '../../package.json'
+
+const tarballPath = inject('tarballPath')
 
 const fsMock = createTeardown({
   rootDir: fromTemp('worker-script-auto-update'),
@@ -38,15 +39,8 @@ describe(
         }),
       })
 
-      // Pack the current state of the "msw" package.
-      execSync(`pnpm pack --pack-destination ${fsMock.resolve('.')}`, {
-        stdio: [null, null, 'inherit'],
-      })
-
       // Install "msw" from the tarball into the dummy project.
-      const installCommand = await fsMock.exec(
-        `npm install msw-${packageJson.version}.tgz`,
-      )
+      const installCommand = await fsMock.exec(`npm install ${tarballPath}`)
       expect(installCommand.stderr).toBe('')
 
       // Asset the worker script has been created/updated.
@@ -65,13 +59,7 @@ describe(
         }),
       })
 
-      execSync(`pnpm pack --pack-destination ${fsMock.resolve('.')}`, {
-        stdio: [null, null, 'inherit'],
-      })
-
-      const installCommand = await fsMock.exec(
-        `npm install msw-${packageJson.version}.tgz`,
-      )
+      const installCommand = await fsMock.exec(`npm install ${tarballPath}`)
       /**
        * @note Cannot assert on the empty stderr because npm
        * writes to stderr if there's a new version of npm available.

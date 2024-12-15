@@ -153,8 +153,15 @@ export class HttpResponse extends Response {
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+  static arrayBuffer(
+    body?: ArrayBuffer | SharedArrayBuffer,
+    init?: HttpResponseInit,
+  ): Response {
     const responseInit = normalizeResponseInit(init)
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'application/octet-stream')
+    }
 
     if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())

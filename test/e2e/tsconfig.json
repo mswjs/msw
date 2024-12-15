@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["./**/*.test.ts"],
+  "include": ["./**/*.test.ts", "./vitest.d.ts", "./vitest.global.setup.ts"],
   "compilerOptions": {
     "types": ["node", "vitest/globals"],
     "resolveJsonModule": true,

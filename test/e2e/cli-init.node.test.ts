@@ -1,14 +1,14 @@
-// @vitest-environment node
-import fs from 'fs'
+import fs from 'node:fs'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
-import { fromTemp } from '../../../support/utils'
+import { fromTemp } from '../support/utils'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
 })
 
-const cliPath = require.resolve('../../../../cli/index.js')
+const cliPath = require.resolve('../../cli/index.js')
 
 function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
@@ -21,6 +21,7 @@ function readJson(filePath: string) {
 }
 
 beforeAll(async () => {
+  spawnSync('pnpm', ['build'])
   await fsMock.prepare()
 })
 
@@ -202,7 +203,7 @@ test('throws if creating a directory under path failed', async () => {
    * @note Require the "init" command source
    * so that the "fs" mocks could apply.
    */
-  const init = require('../../../../cli/init')
+  const init = require('../../cli/init')
 
   // Mock the "mkdir" method throwing an error.
   const error = new Error('Failed to create directory')
@@ -333,7 +334,7 @@ test('prints the list of failed paths to copy', async () => {
     }
   })
 
-  const init = require('../../../../cli/init')
+  const init = require('../../cli/init')
   const copyFileError = new Error('Failed to copy file')
 
   const consoleLogSpy = vi

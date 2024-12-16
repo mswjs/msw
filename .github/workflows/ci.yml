@@ -198,14 +198,6 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Restore build cache
-        uses: actions/cache@v4
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-20-build-
-
       - name: Install dependencies
         run: pnpm install
 

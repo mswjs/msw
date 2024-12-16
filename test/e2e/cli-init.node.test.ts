@@ -37,8 +37,17 @@ afterAll(async () => {
   await fsMock.cleanup()
 })
 
-async function init(inlineArgs: Array<string>) {
-  return fsMock.exec(`node ${cliPath} init ${inlineArgs.join(' ')}`)
+async function init(inlineArgs: Array<string>): ReturnType<typeof fsMock.exec> {
+  const result = await fsMock.exec(
+    `node ${cliPath} init ${inlineArgs.join(' ')}`,
+  )
+
+  return {
+    ...result,
+    // Strip stdout from color unicode characters:
+    stdout: result.stdout.replace(/\x1b\[\d+m/gi, ''),
+    stderr: result.stderr.replace(/\x1b\[\d+m/gi, ''),
+  }
 }
 
 test('copies the script to a given path without saving', async () => {

@@ -125,6 +125,36 @@ export class SetupServerApi
         port: remotePort,
       })
 
+      // Kick off connection to the server early.
+      const remoteConnectionPromise = remoteClient.connect().then(
+        () => {
+          this.handlersController.currentHandlers = new Proxy(
+            this.handlersController.currentHandlers,
+            {
+              apply: (target, thisArg, args) => {
+                return Array.prototype.concat(
+                  new RemoteRequestHandler({
+                    remoteClient,
+                    // Get the remote boundary context ID from the environment.
+                    // This way, the user doesn't have to explicitly drill it here.
+                    contextId: process.env[remoteContext.variableName],
+                  }),
+                  Reflect.apply(target, thisArg, args),
+                )
+              },
+            },
+          )
+        },
+        // Ignore connection errors. Continue operation as normal.
+        // The remote server is not required for `setupServer` to work.
+        () => {
+          // eslint-disable-next-line no-console
+          console.error(
+            `Failed to connect to a remote server at port "${remotePort}"`,
+          )
+        },
+      )
+
       this.beforeRequest = async ({ request }) => {
         if (shouldBypassRequest(request)) {
           return
@@ -133,29 +163,7 @@ export class SetupServerApi
         // Once the sync server connection is established, prepend the
         // remote request handler to be the first for this process.
         // This way, the remote process' handlers take priority.
-        await remoteClient.connect().then(
-          () => {
-            this.handlersController.currentHandlers = new Proxy(
-              this.handlersController.currentHandlers,
-              {
-                apply: (target, thisArg, args) => {
-                  return Array.prototype.concat(
-                    new RemoteRequestHandler({
-                      remoteClient,
-                      // Get the remote boundary context ID from the environment.
-                      // This way, the user doesn't have to explicitly drill it here.
-                      contextId: process.env[remoteContext.variableName],
-                    }),
-                    Reflect.apply(target, thisArg, args),
-                  )
-                },
-              },
-            )
-          },
-          // Ignore connection errors. Continue operation as normal.
-          // The remote server is not required for `setupServer` to work.
-          () => {},
-        )
+        await remoteConnectionPromise
       }
 
       // Forward all life-cycle events from this process to the remote.

@@ -1,11 +1,9 @@
 import { invariant } from 'outvariant'
 import { ChildProcess, spawn } from 'child_process'
 import { DeferredPromise } from '@open-draft/deferred-promise'
+import { remoteContext } from 'msw/node'
 
-export async function spawnTestApp(
-  appSourcePath: string,
-  options?: { contextId: string },
-) {
+export async function spawnTestApp(appSourcePath: string) {
   let url: string | undefined
   const spawnPromise = new DeferredPromise<string>().then((resolvedUrl) => {
     url = resolvedUrl
@@ -19,7 +17,7 @@ export async function spawnTestApp(
     stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
     env: {
       ...process.env,
-      MSW_REMOTE_CONTEXT_ID: options?.contextId,
+      [remoteContext.variableName]: remoteContext.getContextId(),
     },
   })
 

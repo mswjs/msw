@@ -13,9 +13,6 @@ const server = setupServer(
 server.listen({
   remote: {
     enabled: true,
-    // If provided, use explicit context id to bound this
-    // runtime to a particular `remote.boundary()` in tests.
-    contextId: process.env.MSW_REMOTE_CONTEXT_ID,
   },
 })
 

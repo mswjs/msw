@@ -40,10 +40,7 @@ it.concurrent(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      // Bind the application to this test's context.
-      contextId: remote.contextId,
-    })
+    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)

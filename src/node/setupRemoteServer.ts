@@ -113,6 +113,10 @@ export class SetupRemoteServerApi
       .once('SIGINT', () => closeSyncServer(server))
 
     server.on('request', async (incoming, outgoing) => {
+      if (!incoming.method) {
+        return
+      }
+
       // Handle the handshake request from the client.
       if (incoming.method === 'HEAD') {
         outgoing.writeHead(200).end()
@@ -276,7 +280,7 @@ async function createSyncServer(port: number): Promise<http.Server> {
   const serverReadyPromise = new DeferredPromise<http.Server>()
   const server = http.createServer()
 
-  server.listen(+port, '127.0.0.1', () => {
+  server.listen(port, 'localhost', async () => {
     serverReadyPromise.resolve(server)
   })
 

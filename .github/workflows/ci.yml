@@ -7,28 +7,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-18:
+    name: build (18)
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18, 20]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build
         run: pnpm build
@@ -37,19 +38,55 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-18-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ matrix.node-version }}
+            ${{ runner.os }}-build-18
 
-  test_unit:
-    name: test (unit)
-    needs: build
+  build-20:
+    name: build (20)
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Cache build output
+        uses: actions/cache@v4
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-20
+
+  test-unit-18:
+    name: test (unit) (18)
+    needs: build-18
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 
@@ -73,39 +110,33 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Unit tests
         run: pnpm test:unit
 
-  test-node:
-    name: test (node.js)
-    needs: build
+  test-node-18:
+    name: test (node.js) (18)
+    needs: build-18
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18, 20]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
           cache: 'pnpm'
 
       - name: Restore build cache
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-18-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-node-18-build-
 
@@ -115,15 +146,74 @@ jobs:
       - name: Node.js tests
         run: pnpm test:node
 
-  test-browser:
-    name: test (browser)
-    needs: build
+  test-node-20:
+    name: test (node.js) (20)
+    needs: build-20
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node-20-build-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Node.js tests
+        run: pnpm test:node
+
+  test-e2e:
+    name: test (e2e) (18)
+    needs: build-18
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+  test-browser:
+    name: test (browser)
+    needs: build-18
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 
@@ -159,13 +249,14 @@ jobs:
 
   test-native:
     name: test (react-native)
-    needs: build
+    needs: build-18
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9.14.0
 

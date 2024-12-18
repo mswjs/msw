@@ -1,45 +1,48 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { setupRemoteServer } from 'msw/node'
-import { TestNodeApp } from './utils'
+import { spawnTestApp } from './utils'
 
 const remote = setupRemoteServer()
-const testApp = new TestNodeApp(require.resolve('./use.app.js'))
 
 beforeAll(async () => {
   await remote.listen()
-  await testApp.start()
-})
-
-afterEach(() => {
-  remote.resetHandlers()
 })
 
 afterAll(async () => {
   await remote.close()
-  await testApp.close()
 })
 
-it('returns a mocked response defined in the app by default', async () => {
-  const response = await fetch(new URL('/resource', testApp.url))
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
+it(
+  'returns a mocked response defined in the app by default',
+  remote.boundary(async () => {
+    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
 
-  const json = await response.json()
-  expect(json).toEqual([1, 2, 3])
-})
+    const response = await fetch(new URL('/resource', testApp.url))
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
 
-it('returns a mocked response from the matching runtime request handler', async () => {
-  remote.use(
-    http.get('https://example.com/resource', () => {
-      return HttpResponse.json({ mocked: true })
-    }),
-  )
+    const json = await response.json()
+    expect(json).toEqual([1, 2, 3])
+  }),
+)
 
-  const response = await fetch(new URL('/resource', testApp.url))
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
+it(
+  'returns a mocked response from the matching runtime request handler',
+  remote.boundary(async () => {
+    remote.use(
+      http.get('https://example.com/resource', () => {
+        return HttpResponse.json({ mocked: true })
+      }),
+    )
 
-  const json = await response.json()
-  expect(json).toEqual({ mocked: true })
-})
+    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+
+    const response = await fetch(new URL('/resource', testApp.url))
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+
+    const json = await response.json()
+    expect(json).toEqual({ mocked: true })
+  }),
+)

@@ -9,10 +9,6 @@ beforeAll(async () => {
   await remote.listen()
 })
 
-afterEach(() => {
-  remote.resetHandlers()
-})
-
 afterAll(async () => {
   await remote.close()
 })

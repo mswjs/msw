@@ -3,11 +3,10 @@ import { http, HttpResponse, SetupApi, LifeCycleEventsMap } from 'msw'
 import { setupRemoteServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpServer } from '@open-draft/test-server/http'
-import { TestNodeApp } from '../utils'
+import { spawnTestApp } from '../utils'
 
 const remote = setupRemoteServer()
 
-const testApp = new TestNodeApp(require.resolve('../use.app.js'))
 const httpServer = new HttpServer((app) => {
   app.get('/greeting', (req, res) => {
     res.send('hello')
@@ -74,94 +73,100 @@ function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
 beforeAll(async () => {
   await remote.listen()
   await httpServer.listen()
-  await testApp.start()
-})
-
-afterEach(() => {
-  remote.resetHandlers()
 })
 
 afterAll(async () => {
   await remote.close()
   await httpServer.close()
-  await testApp.close()
 })
 
-it('emits correct events for the request handled in the test process', async () => {
-  remote.use(
-    http.get('https://example.com/resource', () => {
-      return HttpResponse.json({ mocked: true })
-    }),
-  )
+it(
+  'emits correct events for the request handled in the test process',
+  remote.boundary(async () => {
+    remote.use(
+      http.get('https://example.com/resource', () => {
+        return HttpResponse.json({ mocked: true })
+      }),
+    )
 
-  const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+    await using testApp = await spawnTestApp(require.resolve('../use.app.js'))
+    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
 
-  const response = await fetch(new URL('/resource', testApp.url))
-  const requestId = await waitForRequestId()
+    const response = await fetch(new URL('/resource', testApp.url))
+    const requestId = await waitForRequestId()
 
-  // Must return the mocked response defined in this test.
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(await response.json()).toEqual({ mocked: true })
+    // Must return the mocked response defined in this test.
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(await response.json()).toEqual({ mocked: true })
 
-  // Must pipe all the relevant life-cycle events.
-  await vi.waitFor(() => {
-    expect(listener.mock.calls).toEqual([
-      [`[request:start] GET https://example.com/resource ${requestId}`],
-      [`[request:match] GET https://example.com/resource ${requestId}`],
-      [`[request:end] GET https://example.com/resource ${requestId}`],
-      [
-        `[response:mocked] GET https://example.com/resource ${requestId} 200 {"mocked":true}`,
-      ],
-    ])
-  })
-})
+    // Must pipe all the relevant life-cycle events.
+    await vi.waitFor(() => {
+      expect(listener.mock.calls).toEqual([
+        [`[request:start] GET https://example.com/resource ${requestId}`],
+        [`[request:match] GET https://example.com/resource ${requestId}`],
+        [`[request:end] GET https://example.com/resource ${requestId}`],
+        [
+          `[response:mocked] GET https://example.com/resource ${requestId} 200 {"mocked":true}`,
+        ],
+      ])
+    })
+  }),
+)
 
-it('emits correct events for the request handled in the remote process', async () => {
-  const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+it(
+  'emits correct events for the request handled in the remote process',
+  remote.boundary(async () => {
+    await using testApp = await spawnTestApp(require.resolve('../use.app.js'))
+    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
 
-  const response = await fetch(new URL('/resource', testApp.url))
-  const requestId = await waitForRequestId()
+    const response = await fetch(new URL('/resource', testApp.url))
+    const requestId = await waitForRequestId()
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(await response.json()).toEqual([1, 2, 3])
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(await response.json()).toEqual([1, 2, 3])
 
-  await vi.waitFor(() => {
-    expect(listener.mock.calls).toEqual([
-      [`[request:start] GET https://example.com/resource ${requestId}`],
-      [`[request:match] GET https://example.com/resource ${requestId}`],
-      [`[request:end] GET https://example.com/resource ${requestId}`],
-      [
-        `[response:mocked] GET https://example.com/resource ${requestId} 200 [1,2,3]`,
-      ],
-    ])
-  })
-})
+    await vi.waitFor(() => {
+      expect(listener.mock.calls).toEqual([
+        [`[request:start] GET https://example.com/resource ${requestId}`],
+        [`[request:match] GET https://example.com/resource ${requestId}`],
+        [`[request:end] GET https://example.com/resource ${requestId}`],
+        [
+          `[response:mocked] GET https://example.com/resource ${requestId} 200 [1,2,3]`,
+        ],
+      ])
+    })
+  }),
+)
 
-it('emits correct events for the request unhandled by either parties', async () => {
-  const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+it(
+  'emits correct events for the request unhandled by either parties',
+  remote.boundary(async () => {
+    await using testApp = await spawnTestApp(require.resolve('../use.app.js'))
+    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
 
-  const resourceUrl = httpServer.http.url('/greeting')
-  // Request a special route in the running app that performs a proxy request
-  // to the resource specified in the "Location" request header.
-  const response = await fetch(new URL('/proxy', testApp.url), {
-    headers: {
-      Location: resourceUrl,
-    },
-  })
-  const requestId = await waitForRequestId()
+    const resourceUrl = httpServer.http.url('/greeting')
+    // Request a special route in the running app that performs a proxy request
+    // to the resource specified in the "Location" request header.
+    const response = await fetch(new URL('/proxy', testApp.url), {
+      headers: {
+        Location: resourceUrl,
+      },
+    })
+    const requestId = await waitForRequestId()
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(await response.text()).toEqual('hello')
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(await response.text()).toEqual('hello')
 
-  await vi.waitFor(() => {
-    expect(listener.mock.calls).toEqual([
-      [`[request:start] GET ${resourceUrl} ${requestId}`],
-      [`[request:unhandled] GET ${resourceUrl} ${requestId}`],
-      [`[request:end] GET ${resourceUrl} ${requestId}`],
-      [`[response:bypass] GET ${resourceUrl} ${requestId} 200 hello`],
-    ])
-  })
-})
+    await vi.waitFor(() => {
+      expect(listener.mock.calls).toEqual([
+        [`[request:start] GET ${resourceUrl} ${requestId}`],
+        [`[request:unhandled] GET ${resourceUrl} ${requestId}`],
+        [`[request:end] GET ${resourceUrl} ${requestId}`],
+        [`[response:bypass] GET ${resourceUrl} ${requestId} 200 hello`],
+      ])
+    })
+  }),
+)

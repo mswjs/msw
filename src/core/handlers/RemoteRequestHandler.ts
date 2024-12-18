@@ -21,12 +21,12 @@ export class RemoteRequestHandler extends RequestHandler<
   RemoteRequestHandlerResolverExtras
 > {
   protected remoteClient: RemoteClient
-  protected contextId?: string
+  protected boundaryId: string
 
   constructor(
     readonly args: {
       remoteClient: RemoteClient
-      contextId?: string
+      boundaryId: string
     },
   ) {
     super({
@@ -37,7 +37,7 @@ export class RemoteRequestHandler extends RequestHandler<
     })
 
     this.remoteClient = args.remoteClient
-    this.contextId = args.contextId
+    this.boundaryId = args.boundaryId
   }
 
   async parse(args: {
@@ -60,7 +60,7 @@ export class RemoteRequestHandler extends RequestHandler<
      * parsing phase since that's the only async phase before predicate.
      */
     const response = await this.remoteClient.handleRequest({
-      contextId: this.contextId,
+      boundaryId: this.boundaryId,
       requestId: createRequestId(),
       request: args.request,
     })

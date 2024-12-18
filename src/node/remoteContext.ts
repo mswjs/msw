@@ -1,16 +1,58 @@
 import { invariant } from 'outvariant'
 import { remoteHandlersContext } from './setupRemoteServer'
 
-export const remoteContext = {
-  variableName: 'MSW_REMOTE_CONTEXT_ID',
-  getContextId() {
-    const store = remoteHandlersContext.getStore()
+export const MSW_REMOTE_SERVER_URL = 'MSW_REMOTE_SERVER_URL'
+export const MSW_REMOTE_BOUNDARY_ID = 'MSW_REMOTE_BOUNDARY_ID'
 
-    invariant(
-      store != null,
-      'Failed to call ".getContextId()" on remote context: no context found. Did you call this outside of the `remote.boundary()` scope?',
-    )
+export interface RemoteContext {
+  serverUrl: URL
+  boundary: {
+    id: string
+  }
+}
 
-    return store.contextId
-  },
+export function getRemoteContext(): RemoteContext {
+  const store = remoteHandlersContext.getStore()
+
+  invariant(
+    store,
+    'Failed to retrieve remote context: no context found. Did you forget to call this within a `remote.boundary()`?',
+  )
+
+  return {
+    serverUrl: store.serverUrl,
+    boundary: {
+      id: store.boundaryId,
+    },
+  }
+}
+
+export function getRemoteContextFromEnvironment(): RemoteContext {
+  const serverUrl = process.env[MSW_REMOTE_SERVER_URL]
+  const boundaryId = process.env[MSW_REMOTE_BOUNDARY_ID]
+
+  invariant(
+    serverUrl,
+    'Failed to retrieve the remote context from environment: server URL is missing',
+  )
+  invariant(
+    boundaryId,
+    'Failed to retrieve the remote context from environment: boundary ID is missing',
+  )
+
+  return {
+    serverUrl: new URL(serverUrl),
+    boundary: {
+      id: boundaryId,
+    },
+  }
+}
+
+export function getRemoteEnvironment() {
+  const remoteContext = getRemoteContext()
+
+  return {
+    [MSW_REMOTE_SERVER_URL]: remoteContext.serverUrl.toString(),
+    [MSW_REMOTE_BOUNDARY_ID]: remoteContext.boundary.id,
+  }
 }

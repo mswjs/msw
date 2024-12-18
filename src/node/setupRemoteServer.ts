@@ -18,20 +18,17 @@ import type {
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { AsyncHandlersController } from './SetupServerApi'
 
-/**
- * @todo Make the remote port random.
- * Consider getting it from the environment variable.
- */
-export const MSW_REMOTE_SERVER_PORT = 56957
-
 interface RemoteServerBoundaryContext {
-  contextId: string
+  serverUrl: URL
+  boundaryId: string
   initialHandlers: Array<RequestHandler | WebSocketHandler>
   handlers: Array<RequestHandler | WebSocketHandler>
 }
 
 export const remoteHandlersContext =
   new AsyncLocalStorage<RemoteServerBoundaryContext>()
+
+const REMOTE_SERVER_HOSTNAME = 'localhost'
 
 const kRemoteServer = Symbol('kRemoteServer')
 
@@ -44,20 +41,11 @@ export function setupRemoteServer(
   return new SetupRemoteServerApi(handlers)
 }
 
-export interface SetupRemoteServerListenOptions {
-  /**
-   * Custom port number to synchronize this this `setupRemoteServer`
-   * with the regular `setupServer`.
-   * @default 56957
-   */
-  port?: number
-}
-
 export interface SetupRemoteServer {
   events: LifeCycleEventEmitter<LifeCycleEventsMap>
-  get contextId(): string
+  get boundaryId(): string
 
-  listen: (options: SetupRemoteServerListenOptions) => Promise<void>
+  listen: () => Promise<void>
 
   boundary: <Args extends Array<any>, R>(
     callback: (...args: Args) => R,
@@ -66,10 +54,14 @@ export interface SetupRemoteServer {
   close: () => Promise<void>
 }
 
+const kServerUrl = Symbol('kServerUrl')
+
 export class SetupRemoteServerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupRemoteServer
 {
+  [kServerUrl]: URL | undefined
+
   protected executionContexts: Map<string, () => RemoteServerBoundaryContext>
 
   constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
@@ -83,7 +75,16 @@ export class SetupRemoteServerApi
     this.executionContexts = new Map()
   }
 
-  get contextId(): string {
+  get serverUrl(): URL {
+    invariant(
+      this[kServerUrl],
+      'Failed to get a remote port in `setupRemoteServer`. Did you forget to `await remote.listen()`?',
+    )
+
+    return this[kServerUrl]
+  }
+
+  get boundaryId(): string {
     const context = remoteHandlersContext.getStore()
 
     invariant(
@@ -91,22 +92,13 @@ export class SetupRemoteServerApi
       'Failed to get "contextId" on "SetupRemoteServerApi": no context found. Did you forget to wrap this closure in `remote.boundary()`?',
     )
 
-    return context.contextId
+    return context.boundaryId
   }
 
-  public async listen(
-    options: SetupRemoteServerListenOptions = {},
-  ): Promise<void> {
-    const resolvedPort = options.port || MSW_REMOTE_SERVER_PORT
-
-    invariant(
-      typeof resolvedPort === 'number',
-      'Failed to initialize remote server: expected the "port" option to be a valid port number but got "%s". Make sure it is the same port number you provide as the "remotePort" option to "server.listen()" in your application.',
-      resolvedPort,
-    )
-
+  public async listen(): Promise<void> {
     const dummyEmitter = new Emitter<LifeCycleEventsMap>()
-    const server = await createSyncServer(resolvedPort)
+    const server = await createSyncServer()
+    this[kServerUrl] = getServerUrl(server)
 
     process
       .once('SIGTERM', () => closeSyncServer(server))
@@ -125,7 +117,7 @@ export class SetupRemoteServerApi
 
       const requestId = incoming.headers['x-msw-request-id']
       const requestUrl = incoming.headers['x-msw-request-url']
-      const contextId = incoming.headers['x-msw-context-id']
+      const contextId = incoming.headers['x-msw-boundary-id']
 
       if (typeof requestId !== 'string') {
         outgoing.writeHead(400)
@@ -203,16 +195,17 @@ export class SetupRemoteServerApi
   public boundary<Args extends Array<any>, R>(
     callback: (...args: Args) => R,
   ): (...args: Args) => R {
-    const contextId = createRequestId()
+    const boundaryId = createRequestId()
 
     return (...args: Args): R => {
-      const context: RemoteServerBoundaryContext = {
-        contextId,
+      const context = {
+        serverUrl: this.serverUrl,
+        boundaryId,
         initialHandlers: this.handlersController.currentHandlers(),
         handlers: [],
-      }
+      } satisfies RemoteServerBoundaryContext
 
-      this.executionContexts.set(contextId, () => context)
+      this.executionContexts.set(boundaryId, () => context)
       return remoteHandlersContext.run(context, callback, ...args)
     }
   }
@@ -268,7 +261,7 @@ export class SetupRemoteServerApi
 /**
  * Creates an internal HTTP server.
  */
-async function createSyncServer(port: number): Promise<http.Server> {
+async function createSyncServer(): Promise<http.Server> {
   const syncServer = Reflect.get(globalThis, kRemoteServer)
 
   // Reuse the existing WebSocket server reference if it exists.
@@ -280,7 +273,7 @@ async function createSyncServer(port: number): Promise<http.Server> {
   const serverReadyPromise = new DeferredPromise<http.Server>()
   const server = http.createServer()
 
-  server.listen(port, 'localhost', async () => {
+  server.listen(0, REMOTE_SERVER_HOSTNAME, async () => {
     serverReadyPromise.resolve(server)
   })
 
@@ -294,6 +287,18 @@ async function createSyncServer(port: number): Promise<http.Server> {
   })
 
   return serverReadyPromise
+}
+
+function getServerUrl(server: http.Server): URL {
+  const address = server.address()
+
+  invariant(address, 'Failed to get server URL: server address is not defined')
+
+  if (typeof address === 'string') {
+    return new URL(address)
+  }
+
+  return new URL(`http://${REMOTE_SERVER_HOSTNAME}:${address.port}`)
 }
 
 async function closeSyncServer(server: http.Server): Promise<void> {
@@ -319,15 +324,9 @@ async function closeSyncServer(server: http.Server): Promise<void> {
 
 export class RemoteClient {
   public connected: boolean
-  private port: number
 
-  constructor(readonly args: { port: number }) {
+  constructor(private readonly url: URL) {
     this.connected = false
-    this.port = args.port
-  }
-
-  get url(): string {
-    return `http://localhost:${this.port}`
   }
 
   public async connect(): Promise<void> {
@@ -369,7 +368,7 @@ export class RemoteClient {
 
   public async handleRequest(args: {
     requestId: string
-    contextId?: string
+    boundaryId: string
     request: Request
   }): Promise<Response | undefined> {
     const request = args.request.clone()
@@ -377,7 +376,7 @@ export class RemoteClient {
     request.headers.set('accept', 'msw/passthrough')
     request.headers.set('x-msw-request-url', args.request.url)
     request.headers.set('x-msw-request-id', args.requestId)
-    request.headers.set('x-msw-context-id', args.contextId || '')
+    request.headers.set('x-msw-boundary-id', args.boundaryId)
 
     const response = await fetch(this.url, request).catch(() => undefined)
 

@@ -1,5 +1,4 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { invariant } from 'outvariant'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -8,10 +7,10 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
-import { MSW_REMOTE_SERVER_PORT, RemoteClient } from './setupRemoteServer'
+import { RemoteClient } from './setupRemoteServer'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
-import { remoteContext } from './remoteContext'
+import { getRemoteContextFromEnvironment } from './remoteContext'
 
 const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -110,22 +109,12 @@ export class SetupServerApi
     // run it in a special "remote" mode. That mode ensures that
     // an extraneous Node.js process can affect this process' traffic.
     if (this.resolvedOptions.remote?.enabled) {
-      const remotePort =
-        typeof this.resolvedOptions.remote === 'object'
-          ? this.resolvedOptions.remote.port || MSW_REMOTE_SERVER_PORT
-          : MSW_REMOTE_SERVER_PORT
+      // Get the remote context from the environment since `server.listen()`
+      // is called in a different process and cannot be wrapped in `remote.boundary()`.
+      const remoteContext = getRemoteContextFromEnvironment()
+      const remoteClient = new RemoteClient(remoteContext.serverUrl)
 
-      invariant(
-        typeof remotePort === 'number',
-        'Failed to enable request interception: expected the "remotePort" option to be a valid port number, but got "%s". Make sure it is the same port number you provide as the "port" option to "remote.listen()" in your tests.',
-        remotePort,
-      )
-
-      const remoteClient = new RemoteClient({
-        port: remotePort,
-      })
-
-      // Kick off connection to the server early.
+      // Kick off the connection to the remote server early.
       const remoteConnectionPromise = remoteClient.connect().then(
         () => {
           this.handlersController.currentHandlers = new Proxy(
@@ -137,7 +126,7 @@ export class SetupServerApi
                     remoteClient,
                     // Get the remote boundary context ID from the environment.
                     // This way, the user doesn't have to explicitly drill it here.
-                    contextId: process.env[remoteContext.variableName],
+                    boundaryId: remoteContext.boundary.id,
                   }),
                   Reflect.apply(target, thisArg, args),
                 )
@@ -145,12 +134,10 @@ export class SetupServerApi
             },
           )
         },
-        // Ignore connection errors. Continue operation as normal.
-        // The remote server is not required for `setupServer` to work.
         () => {
           // eslint-disable-next-line no-console
           console.error(
-            `Failed to connect to a remote server at port "${remotePort}"`,
+            `Failed to connect to a remote server at "${remoteContext.serverUrl}"`,
           )
         },
       )

@@ -18,13 +18,6 @@ export interface ListenOptions extends SharedOptions {
    */
   remote?: {
     enabled: boolean
-
-    /**
-     * Custom port number to synchronize this `setupServer` with
-     * the remote `setupRemoteServer`.
-     * @default 56957
-     */
-    port?: number
   }
 }
 

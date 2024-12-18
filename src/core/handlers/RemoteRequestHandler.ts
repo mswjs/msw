@@ -46,14 +46,6 @@ export class RemoteRequestHandler extends RequestHandler<
   }): Promise<RemoteRequestHandlerParsedResult> {
     const parsedResult = await super.parse(args)
 
-    // eslint-disable-next-line no-console
-    console.log(
-      '[RemoteRequestHandler] REQUEST!',
-      args.request.method,
-      args.request.url,
-      this.args.contextId,
-    )
-
     if (!this.remoteClient.connected) {
       return parsedResult
     }

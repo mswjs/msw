@@ -331,10 +331,8 @@ export class RemoteClient {
       return
     }
 
-    const maxRetries = 5
+    const maxRetries = 4
     let retries = 0
-
-    console.log('[RemoteClient] connecting to remote server...')
 
     const tryConnect = (): Promise<void> => {
       return fetch(this.url, {
@@ -342,17 +340,17 @@ export class RemoteClient {
         headers: {
           accept: 'msw/passthrough',
         },
+        cache: 'no-cache',
       }).then(
-        () => {
+        (response) => {
+          invariant(response.ok, '')
           this.connected = true
         },
         async () => {
           if (retries === maxRetries) {
-            console.log(
-              '[RemoteClient] failed to connect to remote server after %d retries',
-              maxRetries,
+            throw new Error(
+              `Failed to connect to remote server after ${maxRetries} retries`,
             )
-            return
           }
 
           retries++
@@ -371,10 +369,6 @@ export class RemoteClient {
     request: Request
   }): Promise<Response | undefined> {
     const request = args.request.clone()
-
-    console.log('[setupRemoteServer] asking request:', {
-      contextId: args.contextId,
-    })
 
     request.headers.set('accept', 'msw/passthrough')
     request.headers.set('x-msw-request-url', args.request.url)

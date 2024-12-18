@@ -110,11 +110,6 @@ export class SetupServerApi
     // run it in a special "remote" mode. That mode ensures that
     // an extraneous Node.js process can affect this process' traffic.
     if (this.resolvedOptions.remote?.enabled) {
-      console.log(
-        'MSW REMOTE MODE OK! context:',
-        process.env[remoteContext.variableName],
-      )
-
       const remotePort =
         typeof this.resolvedOptions.remote === 'object'
           ? this.resolvedOptions.remote.port || MSW_REMOTE_SERVER_PORT
@@ -135,31 +130,32 @@ export class SetupServerApi
           return
         }
 
-        console.log('BEFORE REQUEST', request.method)
-
         // Once the sync server connection is established, prepend the
         // remote request handler to be the first for this process.
         // This way, the remote process' handlers take priority.
-        await remoteClient.connect().then(() => {
-          console.log('[SetupServerApi] connected to remote!')
-
-          this.handlersController.currentHandlers = new Proxy(
-            this.handlersController.currentHandlers,
-            {
-              apply: (target, thisArg, args) => {
-                return Array.prototype.concat(
-                  new RemoteRequestHandler({
-                    remoteClient,
-                    // Get the remote boundary context ID from the environment.
-                    // This way, the user doesn't have to explicitly drill it here.
-                    contextId: process.env[remoteContext.variableName],
-                  }),
-                  Reflect.apply(target, thisArg, args),
-                )
+        await remoteClient.connect().then(
+          () => {
+            this.handlersController.currentHandlers = new Proxy(
+              this.handlersController.currentHandlers,
+              {
+                apply: (target, thisArg, args) => {
+                  return Array.prototype.concat(
+                    new RemoteRequestHandler({
+                      remoteClient,
+                      // Get the remote boundary context ID from the environment.
+                      // This way, the user doesn't have to explicitly drill it here.
+                      contextId: process.env[remoteContext.variableName],
+                    }),
+                    Reflect.apply(target, thisArg, args),
+                  )
+                },
               },
-            },
-          )
-        })
+            )
+          },
+          // Ignore connection errors. Continue operation as normal.
+          // The remote server is not required for `setupServer` to work.
+          () => {},
+        )
       }
 
       // Forward all life-cycle events from this process to the remote.

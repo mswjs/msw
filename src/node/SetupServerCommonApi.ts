@@ -17,7 +17,7 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import { InternalError, devUtils } from '~/core/utils/internal/devUtils'
-import type { SetupServerCommon } from './glossary'
+import type { ListenOptions, SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
@@ -34,7 +34,7 @@ export class SetupServerCommonApi
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
-  private resolvedOptions: RequiredDeep<SharedOptions>
+  protected resolvedOptions: RequiredDeep<ListenOptions>
 
   constructor(
     interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
@@ -47,7 +47,17 @@ export class SetupServerCommonApi
       interceptors: interceptors.map((Interceptor) => new Interceptor()),
     })
 
-    this.resolvedOptions = {} as RequiredDeep<SharedOptions>
+    this.resolvedOptions = {} as RequiredDeep<ListenOptions>
+  }
+
+  protected async beforeRequest(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args: {
+      requestId: string
+      request: Request
+    },
+  ): Promise<void> {
+    return Promise.resolve()
   }
 
   /**
@@ -57,6 +67,8 @@ export class SetupServerCommonApi
     this.interceptor.on(
       'request',
       async ({ request, requestId, controller }) => {
+        await this.beforeRequest({ requestId, request })
+
         const response = await handleRequest(
           request,
           requestId,
@@ -132,11 +144,11 @@ export class SetupServerCommonApi
     })
   }
 
-  public listen(options: Partial<SharedOptions> = {}): void {
+  public listen(options: Partial<ListenOptions> = {}): void {
     this.resolvedOptions = mergeRight(
       DEFAULT_LISTEN_OPTIONS,
       options,
-    ) as RequiredDeep<SharedOptions>
+    ) as RequiredDeep<ListenOptions>
 
     // Apply the interceptor when starting the server.
     // Attach the event listeners to the interceptor here

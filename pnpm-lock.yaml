@@ -21,8 +21,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.2(@types/node@18.19.28)
       '@mswjs/interceptors':
-        specifier: ^0.37.3
-        version: 0.37.3
+        specifier: ^0.37.5
+        version: 0.37.5
       '@open-draft/deferred-promise':
         specifier: ^2.2.0
         version: 2.2.0
@@ -999,8 +999,8 @@ packages:
     resolution: {integrity: sha512-stTxvLdJ2IcGOs76AnvGYAzGvx8JvQPRxC5DW0P5zdAAnhL33noqb5LKdPt3P37BKp9FzBKZHuihQI9oVqwm0g==}
     engines: {node: '>=16.13'}
 
-  '@mswjs/interceptors@0.37.3':
-    resolution: {integrity: sha512-USvgCL/uOGFtVa6SVyRrC8kIAedzRohxIXN5LISlg5C5vLZCn7dgMFVSNhSF9cuBEFrm/O2spDWEZeMnw4ZXYg==}
+  '@mswjs/interceptors@0.37.5':
+    resolution: {integrity: sha512-AAwRb5vXFcY4L+FvZ7LZusDuZ0vEe0Zm8ohn1FM6/X7A3bj4mqmkAcGRWuvC2JwSygNwHAAmMnAI73vPHeqsHA==}
     engines: {node: '>=18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -5910,7 +5910,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@mswjs/interceptors@0.37.3':
+  '@mswjs/interceptors@0.37.5':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0

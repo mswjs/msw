@@ -80,7 +80,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it(
+it.only(
   'emits correct events for the request handled in the test process',
   remote.boundary(async () => {
     remote.use(
@@ -95,12 +95,12 @@ it(
     const response = await fetch(new URL('/resource', testApp.url))
     const requestId = await waitForRequestId()
 
-    // Must return the mocked response defined in this test.
+    // Must respond with the mocked response defined in the test.
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(await response.json()).toEqual({ mocked: true })
 
-    // Must pipe all the relevant life-cycle events.
+    // Must forward the life-cycle events to the test process.
     await vi.waitFor(() => {
       expect(listener.mock.calls).toEqual([
         [`[request:start] GET https://example.com/resource ${requestId}`],

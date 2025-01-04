@@ -2,8 +2,7 @@ import * as http from 'node:http'
 import { Readable } from 'node:stream'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
-import { Emitter } from 'strict-event-emitter'
-import { createRequestId } from '@mswjs/interceptors'
+import { createRequestId, FetchResponse } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { SetupApi } from '~/core/SetupApi'
 import { delay } from '~/core/delay'
@@ -34,6 +33,8 @@ const kRemoteServer = Symbol('kRemoteServer')
 
 /**
  * Enables API mocking in a remote Node.js process.
+ *
+ * @see {@link https://mswjs.io/docs/api/setup-remote-server `setupRemoteServer()` API reference}
  */
 export function setupRemoteServer(
   ...handlers: Array<RequestHandler | WebSocketHandler>
@@ -96,7 +97,6 @@ export class SetupRemoteServerApi
   }
 
   public async listen(): Promise<void> {
-    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
     const server = await createSyncServer()
     this[kServerUrl] = getServerUrl(server)
 
@@ -112,6 +112,12 @@ export class SetupRemoteServerApi
       // Handle the handshake request from the client.
       if (incoming.method === 'HEAD') {
         outgoing.writeHead(200).end()
+        return
+      }
+
+      // Handle life-cycle event requests forwarded from `setupServer`.
+      if (incoming.url === '/life-cycle-events') {
+        this.handleLifeCycleEventRequest(incoming, outgoing)
         return
       }
 
@@ -167,7 +173,7 @@ export class SetupRemoteServerApi
         handlers,
         /** @todo Support listen options */
         { onUnhandledRequest() {} },
-        dummyEmitter,
+        this.emitter,
       )
 
       if (response) {
@@ -188,8 +194,6 @@ export class SetupRemoteServerApi
 
       outgoing.writeHead(404).end()
     })
-
-    /** @todo Decide on life-cycle events forwarding */
   }
 
   public boundary<Args extends Array<any>, R>(
@@ -255,6 +259,22 @@ export class SetupRemoteServerApi
     )
 
     return getContext().handlers
+  }
+
+  private async handleLifeCycleEventRequest(
+    _incoming: http.IncomingMessage,
+    _outgoing: http.ServerResponse<http.IncomingMessage> & {
+      req: http.IncomingMessage
+    },
+  ) {
+    // const stream = Readable.toWeb(incoming)
+    // const { event, requestId, request, response, error } = await new Request(
+    //   incoming.url,
+    //   { body: stream },
+    // ).json()
+    // /** @todo Finish this. */
+    // this.emitter.emit(event, {})
+    // outgoing.writeHead(200).end()
   }
 }
 
@@ -325,7 +345,14 @@ async function closeSyncServer(server: http.Server): Promise<void> {
 export class RemoteClient {
   public connected: boolean
 
+  protected agent: http.Agent
+
   constructor(private readonly url: URL) {
+    this.agent = new http.Agent({
+      // Reuse the same socket between requests so we can communicate
+      // request's life-cycle events via HTTP more efficiently.
+      keepAlive: true,
+    })
     this.connected = false
   }
 
@@ -338,27 +365,48 @@ export class RemoteClient {
     let retries = 0
 
     const tryConnect = (): Promise<void> => {
-      return fetch(this.url, {
-        method: 'HEAD',
-        headers: {
-          accept: 'msw/passthrough',
-        },
-        cache: 'no-cache',
-      }).then(
-        (response) => {
-          invariant(response.ok, '')
+      const connectionPromise = new DeferredPromise<void>()
+
+      const request = http
+        .request(this.url, {
+          agent: this.agent,
+          method: 'HEAD',
+          headers: {
+            accept: 'msw/passthrough',
+          },
+          timeout: 1000,
+        })
+        .end()
+
+      request
+        .once('response', (response) => {
+          if (response.statusCode === 200) {
+            connectionPromise.resolve()
+          } else {
+            connectionPromise.reject()
+          }
+        })
+        .once('error', () => {
+          connectionPromise.reject()
+        })
+        .once('timeout', () => {
+          connectionPromise.reject()
+        })
+
+      return connectionPromise.then(
+        () => {
           this.connected = true
         },
         async () => {
-          if (retries === maxRetries) {
-            throw new Error(
-              `Failed to connect to remote server after ${maxRetries} retries`,
-            )
-          }
+          invariant(
+            retries < maxRetries,
+            'Failed to connect to the remote server after %s retries',
+            maxRetries,
+          )
 
           retries++
-          await delay(500)
-          return tryConnect()
+          request.removeAllListeners()
+          return delay(500).then(() => tryConnect())
         },
       )
     }
@@ -371,19 +419,111 @@ export class RemoteClient {
     boundaryId: string
     request: Request
   }): Promise<Response | undefined> {
-    const request = args.request.clone()
+    invariant(
+      this.connected,
+      'Failed to handle request "%s %s": client is not connected',
+      args.request.method,
+      args.request.url,
+    )
 
-    request.headers.set('accept', 'msw/passthrough')
-    request.headers.set('x-msw-request-url', args.request.url)
-    request.headers.set('x-msw-request-id', args.requestId)
-    request.headers.set('x-msw-boundary-id', args.boundaryId)
+    const fetchRequest = args.request.clone()
+    const responsePromise = new DeferredPromise<Response | undefined>()
 
-    const response = await fetch(this.url, request).catch(() => undefined)
+    fetchRequest.headers.set('accept', 'msw/passthrough')
+    fetchRequest.headers.set('x-msw-request-url', args.request.url)
+    fetchRequest.headers.set('x-msw-request-id', args.requestId)
+    fetchRequest.headers.set('x-msw-boundary-id', args.boundaryId)
 
-    if (!response || !response.ok) {
-      return
+    const request = http.request(this.url, {
+      method: fetchRequest.method,
+      headers: Object.fromEntries(fetchRequest.headers),
+    })
+
+    if (fetchRequest.body) {
+      Readable.fromWeb(fetchRequest.body as any).pipe(request, { end: true })
+    } else {
+      request.end()
     }
 
-    return response
+    request
+      .once('response', (response) => {
+        if (response.statusCode === 404) {
+          responsePromise.resolve(undefined)
+          return
+        }
+
+        const fetchResponse = new FetchResponse(
+          /** @fixme Node.js types incompatibility */
+          Readable.toWeb(response) as ReadableStream<any>,
+          {
+            url: fetchRequest.url,
+            status: response.statusCode,
+            statusText: response.statusMessage,
+            headers: FetchResponse.parseRawHeaders(response.rawHeaders),
+          },
+        )
+        responsePromise.resolve(fetchResponse)
+      })
+      .once('error', () => {
+        responsePromise.resolve(undefined)
+      })
+      .once('timeout', () => {
+        responsePromise.resolve(undefined)
+      })
+
+    return responsePromise
   }
+
+  // public async handleLifeCycleEvent<
+  //   EventType extends keyof LifeCycleEventsMap,
+  // >(event: {
+  //   type: EventType
+  //   args: LifeCycleEventsMap[EventType][0]
+  // }): Promise<void> {
+  //   const url = new URL('/life-cycle-events', this.url)
+  //   const payload: Record<string, unknown> = {
+  //     event: event.type,
+  //     requestId: event.args.requestId,
+  //     request: {
+  //       url: event.args.request.url,
+  //       method: event.args.request.method,
+  //       headers: Array.from(event.args.request.headers),
+  //       body: await event.args.request.arrayBuffer(),
+  //     },
+  //   }
+
+  //   switch (event.type) {
+  //     case 'unhandledException': {
+  //       payload.error = event.args.error
+  //       break
+  //     }
+
+  //     case 'response:bypass':
+  //     case 'response:mocked': {
+  //       payload.response = {
+  //         status: event.args.response.status,
+  //         statustext: event.args.response.statusText,
+  //         headers: Array.from(event.args.response.headers),
+  //         body: await event.args.response.arrayBuffer(),
+  //       }
+  //       break
+  //     }
+  //   }
+
+  //   const response = await fetch(url, {
+  //     method: 'POST',
+  //     headers: {
+  //       'content-type': 'application/json',
+  //     },
+  //     body: JSON.stringify(payload),
+  //   })
+
+  //   invariant(
+  //     response && response.ok,
+  //     'Failed to forward a life-cycle event "%s" (%s %s) to the remote',
+  //     event.type,
+  //     event.args.request.method,
+  //     event.args.request.url,
+  //   )
+  // }
 }

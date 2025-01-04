@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { invariant } from 'outvariant'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -11,6 +12,7 @@ import { RemoteClient } from './setupRemoteServer'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 import { getRemoteContextFromEnvironment } from './remoteContext'
+import { LifeCycleEventsMap } from '~/core/sharedOptions'
 
 const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -70,6 +72,8 @@ export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
+  protected remoteClient?: RemoteClient
+
   constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
     super(
       [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
@@ -113,10 +117,14 @@ export class SetupServerApi
       // is called in a different process and cannot be wrapped in `remote.boundary()`.
       const remoteContext = getRemoteContextFromEnvironment()
       const remoteClient = new RemoteClient(remoteContext.serverUrl)
+      this.remoteClient = remoteClient
 
-      // Kick off the connection to the remote server early.
+      // Connect to the remote server early.
       const remoteConnectionPromise = remoteClient.connect().then(
         () => {
+          // Forward the life-cycle events from this process to the remote.
+          // this.forwardLifeCycleEventsToRemote()
+
           this.handlersController.currentHandlers = new Proxy(
             this.handlersController.currentHandlers,
             {
@@ -152,32 +160,36 @@ export class SetupServerApi
         // This way, the remote process' handlers take priority.
         await remoteConnectionPromise
       }
-
-      // Forward all life-cycle events from this process to the remote.
-      /** @todo */
-      // this.forwardLifeCycleEvents()
     }
   }
 
-  // private async forwardLifeCycleEvents() {
-  //   const socket = await this.socketPromise
+  private forwardLifeCycleEventsToRemote() {
+    const { remoteClient } = this
 
-  //   // Forward life-cycle events after the socket connection has been open.
-  //   // All outgoing requests are blocked by the connection promise so race
-  //   // conditions are impossible here.
-  //   onAnyEvent(this.emitter, async (type, listenerArgs) => {
-  //     if (socket && !shouldBypassRequest(listenerArgs.request)) {
-  //       const payload = (await serializeEventPayload(listenerArgs)) as any
+    invariant(
+      remoteClient,
+      'Failed to initiate life-cycle events forwarding to the remote: remote client not found. This is likely an issue with MSW. Please report it on GitHub.',
+    )
 
-  //       socket.emit(
-  //         'lifeCycleEventForward',
-  //         /**
-  //          * @todo Annotating serialized/desirialized mirror channels is tough.
-  //          */
-  //         type,
-  //         payload,
-  //       )
-  //     }
-  //   })
-  // }
+    const events: Array<keyof LifeCycleEventsMap> = [
+      'request:start',
+      'request:match',
+      'request:unhandled',
+      'request:end',
+      'response:bypass',
+      'response:mocked',
+      'unhandledException',
+    ]
+
+    for (const event of events) {
+      this.emitter.on(event, (args) => {
+        if (!shouldBypassRequest(args.request)) {
+          // remoteClient.handleLifeCycleEvent({
+          //   type: event,
+          //   args,
+          // })
+        }
+      })
+    }
+  }
 }

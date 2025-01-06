@@ -1,11 +1,14 @@
 import * as http from 'node:http'
 import { Readable } from 'node:stream'
+import * as streamConsumers from 'node:stream/consumers'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
 import { createRequestId, FetchResponse } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
+import { Emitter } from 'strict-event-emitter'
 import { SetupApi } from '~/core/SetupApi'
 import { delay } from '~/core/delay'
+import { bypass } from '~/core/bypass'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
@@ -22,6 +25,30 @@ interface RemoteServerBoundaryContext {
   boundaryId: string
   initialHandlers: Array<RequestHandler | WebSocketHandler>
   handlers: Array<RequestHandler | WebSocketHandler>
+}
+
+export type ForwardedLifeCycleEventPayload = {
+  type: keyof LifeCycleEventsMap
+  args: {
+    requestId: string
+    request: {
+      method: string
+      url: string
+      headers: Array<[string, string]>
+      body: Uint8Array | null
+    }
+    response?: {
+      status: number
+      statusText: string
+      headers: Array<[string, string]>
+      body: Uint8Array | null
+    }
+    error?: {
+      name: string
+      message: string
+      stack?: string
+    }
+  }
 }
 
 export const remoteHandlersContext =
@@ -97,12 +124,17 @@ export class SetupRemoteServerApi
   }
 
   public async listen(): Promise<void> {
+    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
+
     const server = await createSyncServer()
     this[kServerUrl] = getServerUrl(server)
 
     process
       .once('SIGTERM', () => closeSyncServer(server))
       .once('SIGINT', () => closeSyncServer(server))
+
+    // Close the server if the setup API is disposed.
+    this.subscriptions.push(() => closeSyncServer(server))
 
     server.on('request', async (incoming, outgoing) => {
       if (!incoming.method) {
@@ -173,7 +205,12 @@ export class SetupRemoteServerApi
         handlers,
         /** @todo Support listen options */
         { onUnhandledRequest() {} },
-        this.emitter,
+        /**
+         * @note Use a dummy emitter because this context
+         * is only one layer that can resolve a request. For example,
+         * request can be resolved in the remote process and not here.
+         */
+        dummyEmitter,
       )
 
       if (response) {
@@ -262,19 +299,35 @@ export class SetupRemoteServerApi
   }
 
   private async handleLifeCycleEventRequest(
-    _incoming: http.IncomingMessage,
-    _outgoing: http.ServerResponse<http.IncomingMessage> & {
+    incoming: http.IncomingMessage,
+    outgoing: http.ServerResponse<http.IncomingMessage> & {
       req: http.IncomingMessage
     },
   ) {
-    // const stream = Readable.toWeb(incoming)
-    // const { event, requestId, request, response, error } = await new Request(
-    //   incoming.url,
-    //   { body: stream },
-    // ).json()
-    // /** @todo Finish this. */
-    // this.emitter.emit(event, {})
-    // outgoing.writeHead(200).end()
+    const event = (await streamConsumers.json(
+      incoming,
+    )) as ForwardedLifeCycleEventPayload
+
+    invariant(
+      event.type,
+      'Failed to emit a forwarded life-cycle event: request payload corrupted',
+    )
+
+    // Emit the forwarded life-cycle event on this emitter.
+    this.emitter.emit(event.type as any, {
+      requestId: event.args.requestId,
+      request: deserializeFetchRequest(event.args.request),
+      response:
+        event.args.response != null
+          ? deserializeFetchResponse(event.args.response)
+          : undefined,
+      error:
+        event.args.error != null
+          ? deserializeError(event.args.error)
+          : undefined,
+    })
+
+    outgoing.writeHead(200).end()
   }
 }
 
@@ -426,14 +479,14 @@ export class RemoteClient {
       args.request.url,
     )
 
-    const fetchRequest = args.request.clone()
-    const responsePromise = new DeferredPromise<Response | undefined>()
-
-    fetchRequest.headers.set('accept', 'msw/passthrough')
-    fetchRequest.headers.set('x-msw-request-url', args.request.url)
-    fetchRequest.headers.set('x-msw-request-id', args.requestId)
-    fetchRequest.headers.set('x-msw-boundary-id', args.boundaryId)
-
+    const fetchRequest = bypass(args.request, {
+      headers: {
+        accept: 'msw/internal',
+        'x-msw-request-url': args.request.url,
+        'x-msw-request-id': args.requestId,
+        'x-msw-boundary-id': args.boundaryId,
+      },
+    })
     const request = http.request(this.url, {
       method: fetchRequest.method,
       headers: Object.fromEntries(fetchRequest.headers),
@@ -444,6 +497,8 @@ export class RemoteClient {
     } else {
       request.end()
     }
+
+    const responsePromise = new DeferredPromise<Response | undefined>()
 
     request
       .once('response', (response) => {
@@ -474,56 +529,145 @@ export class RemoteClient {
     return responsePromise
   }
 
-  // public async handleLifeCycleEvent<
-  //   EventType extends keyof LifeCycleEventsMap,
-  // >(event: {
-  //   type: EventType
-  //   args: LifeCycleEventsMap[EventType][0]
-  // }): Promise<void> {
-  //   const url = new URL('/life-cycle-events', this.url)
-  //   const payload: Record<string, unknown> = {
-  //     event: event.type,
-  //     requestId: event.args.requestId,
-  //     request: {
-  //       url: event.args.request.url,
-  //       method: event.args.request.method,
-  //       headers: Array.from(event.args.request.headers),
-  //       body: await event.args.request.arrayBuffer(),
-  //     },
-  //   }
+  public async handleLifeCycleEvent<
+    EventType extends keyof LifeCycleEventsMap,
+  >(event: {
+    type: EventType
+    args: LifeCycleEventsMap[EventType][0]
+  }): Promise<void> {
+    invariant(
+      this.connected,
+      'Failed to forward life-cycle events for "%s %s": remote client not connected',
+      event.args.request.method,
+      event.args.request.url,
+    )
 
-  //   switch (event.type) {
-  //     case 'unhandledException': {
-  //       payload.error = event.args.error
-  //       break
-  //     }
+    const url = new URL('/life-cycle-events', this.url)
+    const payload = JSON.stringify({
+      type: event.type,
+      args: {
+        requestId: event.args.requestId,
+        request: await serializeFetchRequest(event.args.request),
+        response:
+          'response' in event.args
+            ? await serializeFetchResponse(event.args.response)
+            : undefined,
+        error:
+          'error' in event.args ? serializeError(event.args.error) : undefined,
+      },
+    } satisfies ForwardedLifeCycleEventPayload)
 
-  //     case 'response:bypass':
-  //     case 'response:mocked': {
-  //       payload.response = {
-  //         status: event.args.response.status,
-  //         statustext: event.args.response.statusText,
-  //         headers: Array.from(event.args.response.headers),
-  //         body: await event.args.response.arrayBuffer(),
-  //       }
-  //       break
-  //     }
-  //   }
+    invariant(
+      payload,
+      'Failed to serialize a life-cycle event "%s" for request "%s %s"',
+      event.type,
+      event.args.request.method,
+      event.args.request.url,
+    )
 
-  //   const response = await fetch(url, {
-  //     method: 'POST',
-  //     headers: {
-  //       'content-type': 'application/json',
-  //     },
-  //     body: JSON.stringify(payload),
-  //   })
+    const donePromise = new DeferredPromise<void>()
 
-  //   invariant(
-  //     response && response.ok,
-  //     'Failed to forward a life-cycle event "%s" (%s %s) to the remote',
-  //     event.type,
-  //     event.args.request.method,
-  //     event.args.request.url,
-  //   )
-  // }
+    http
+      .request(
+        url,
+        {
+          method: 'POST',
+          headers: {
+            accept: 'msw/passthrough, msw/internal',
+            'content-type': 'application/json',
+          },
+        },
+        (response) => {
+          if (response.statusCode === 200) {
+            donePromise.resolve()
+          } else {
+            donePromise.reject(
+              new Error(
+                `Failed to forward life-cycle event "${event.type}" for request "${event.args.request.method} ${event.args.request.url}": expected a 200 response but got ${response.statusCode}`,
+              ),
+            )
+          }
+        },
+      )
+      .end(payload)
+      .once('error', (error) => {
+        // eslint-disable-next-line no-console
+        console.error(error)
+        donePromise.reject(
+          new Error(
+            `Failed to forward life-cycle event "${event.type}" for request "${event.args.request.method} ${event.args.request.url}": unexpected error. There's likely additional information above.`,
+          ),
+        )
+      })
+
+    return donePromise
+  }
+}
+
+async function serializeFetchRequest(
+  request: Request,
+): Promise<ForwardedLifeCycleEventPayload['args']['request']> {
+  return {
+    url: request.url,
+    method: request.method,
+    headers: Array.from(request.headers),
+    body: request.body
+      ? new Uint8Array(await request.clone().arrayBuffer())
+      : null,
+  }
+}
+
+function deserializeFetchRequest(
+  value: NonNullable<ForwardedLifeCycleEventPayload['args']['request']>,
+): Request {
+  return new Request(value.url, {
+    method: value.method,
+    headers: value.headers,
+    body: value.body,
+  })
+}
+
+async function serializeFetchResponse(
+  response: Response,
+): Promise<ForwardedLifeCycleEventPayload['args']['response']> {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers: Array.from(response.headers),
+    body: response.body
+      ? new Uint8Array(await response.clone().arrayBuffer())
+      : null,
+  }
+}
+
+function deserializeFetchResponse(
+  value: NonNullable<ForwardedLifeCycleEventPayload['args']['response']>,
+): Response {
+  return new FetchResponse(
+    value.body ? new Uint8Array(Object.values(value.body)) : null,
+    {
+      status: value.status,
+      statusText: value.statusText,
+      headers: value.headers,
+    },
+  )
+}
+
+function serializeError(
+  error: Error,
+): ForwardedLifeCycleEventPayload['args']['error'] {
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+  }
+}
+
+function deserializeError(
+  value: NonNullable<ForwardedLifeCycleEventPayload['args']['error']>,
+): Error {
+  const error = new Error(value.message)
+  error.name = value.name
+  error.stack = value.stack
+  return error
 }

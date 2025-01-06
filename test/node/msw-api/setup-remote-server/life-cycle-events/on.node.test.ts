@@ -80,7 +80,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it.only(
+it(
   'emits correct events for the request handled in the test process',
   remote.boundary(async () => {
     remote.use(

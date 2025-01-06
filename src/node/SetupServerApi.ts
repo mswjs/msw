@@ -123,7 +123,7 @@ export class SetupServerApi
       const remoteConnectionPromise = remoteClient.connect().then(
         () => {
           // Forward the life-cycle events from this process to the remote.
-          // this.forwardLifeCycleEventsToRemote()
+          this.forwardLifeCycleEventsToRemote()
 
           this.handlersController.currentHandlers = new Proxy(
             this.handlersController.currentHandlers,
@@ -183,11 +183,14 @@ export class SetupServerApi
 
     for (const event of events) {
       this.emitter.on(event, (args) => {
-        if (!shouldBypassRequest(args.request)) {
-          // remoteClient.handleLifeCycleEvent({
-          //   type: event,
-          //   args,
-          // })
+        if (
+          !shouldBypassRequest(args.request) &&
+          !args.request.headers.get('accept')?.includes('msw/internal')
+        ) {
+          remoteClient.handleLifeCycleEvent({
+            type: event,
+            args,
+          })
         }
       })
     }

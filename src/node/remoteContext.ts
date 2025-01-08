@@ -33,11 +33,11 @@ export function getRemoteContextFromEnvironment(): RemoteContext {
 
   invariant(
     serverUrl,
-    'Failed to retrieve the remote context from environment: server URL is missing',
+    'Failed to enable remote mode: server URL is missing in the environment',
   )
   invariant(
     boundaryId,
-    'Failed to retrieve the remote context from environment: boundary ID is missing',
+    'Failed to enable remote mode: boundary ID is missing in the environment',
   )
 
   return {

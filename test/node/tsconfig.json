@@ -17,5 +17,5 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["../../global.d.ts", "./**/*.test.ts"]
+  "include": ["./**/*.test.ts"]
 }

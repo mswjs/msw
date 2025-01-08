@@ -53,7 +53,9 @@ it(
   remote.boundary(async () => {
     remote.use(
       http.get('https://example.com/resource', () => {
-        return HttpResponse.arrayBuffer(new TextEncoder().encode('hello world'))
+        return HttpResponse.arrayBuffer(
+          new TextEncoder().encode('hello world').buffer,
+        )
       }),
     )
 

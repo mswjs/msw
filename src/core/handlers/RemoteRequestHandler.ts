@@ -5,7 +5,7 @@ import {
   type ResponseResolver,
   type RequestHandlerDefaultInfo,
 } from './RequestHandler'
-import { RemoteClient } from '../../node/setupRemoteServer'
+import type { RemoteClient } from '../RemoteClient'
 
 interface RemoteRequestHandlerParsedResult {
   response: Response | undefined

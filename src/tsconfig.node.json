@@ -1,11 +1,11 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["./node", "./native"],
+  "include": ["../global.d.ts", "./node", "./native"],
   "references": [{ "path": "./tsconfig.core.json" }],
   "exclude": ["**/*.test.ts"],
   "compilerOptions": {
     "composite": true,
-    "types": ["@types/node"],
+    "types": ["node"],
     "baseUrl": "./",
     "paths": {
       "~/core": ["core"],

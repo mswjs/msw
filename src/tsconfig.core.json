@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["./core"],
+  "include": ["../global.d.ts", "./core"],
+  "references": [{ "path": "./tsconfig.node.json" }],
   "exclude": ["**/*.test.ts"],
   "compilerOptions": {
     "composite": true

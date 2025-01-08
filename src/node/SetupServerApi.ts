@@ -8,12 +8,12 @@ import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { ListenOptions, SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
-import { RemoteClient } from './setupRemoteServer'
 import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 import { getRemoteContextFromEnvironment } from './remoteContext'
 import { LifeCycleEventsMap } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
+import { RemoteClient } from '~/core/RemoteClient'
 
 const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 

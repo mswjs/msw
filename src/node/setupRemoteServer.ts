@@ -2,6 +2,7 @@ import * as http from 'node:http'
 import { Readable } from 'node:stream'
 import * as streamConsumers from 'node:stream/consumers'
 import { AsyncLocalStorage } from 'node:async_hooks'
+import type { RequiredDeep } from 'type-fest'
 import { invariant } from 'outvariant'
 import { createRequestId, FetchResponse } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
@@ -19,6 +20,10 @@ import type {
 } from '~/core/sharedOptions'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { AsyncHandlersController } from './SetupServerApi'
+import { ListenOptions } from './glossary'
+import { mergeRight } from '~/core/utils/internal/mergeRight'
+import { DEFAULT_LISTEN_OPTIONS } from './SetupServerCommonApi'
+import { onUnhandledRequest } from '~/core/utils/request/onUnhandledRequest'
 
 interface RemoteServerBoundaryContext {
   serverUrl: URL
@@ -90,6 +95,7 @@ export class SetupRemoteServerApi
 {
   [kServerUrl]: URL | undefined
 
+  protected resolvedOptions!: RequiredDeep<ListenOptions>
   protected executionContexts: Map<string, () => RemoteServerBoundaryContext>
 
   constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
@@ -123,7 +129,11 @@ export class SetupRemoteServerApi
     return context.boundaryId
   }
 
-  public async listen(): Promise<void> {
+  public async listen(options: Partial<ListenOptions> = {}): Promise<void> {
+    this.resolvedOptions = mergeRight(
+      DEFAULT_LISTEN_OPTIONS,
+      options,
+    ) as RequiredDeep<ListenOptions>
     const dummyEmitter = new Emitter<LifeCycleEventsMap>()
 
     const server = await createSyncServer()
@@ -203,8 +213,15 @@ export class SetupRemoteServerApi
         request,
         requestId,
         handlers,
-        /** @todo Support listen options */
-        { onUnhandledRequest() {} },
+        {
+          /**
+           * @note Ignore the `onUnhandledRequest` callback during the
+           * request handling. This context isn't the only one handling
+           * the request. Instead, this logic is moved to the forwarded
+           * life-cycle event.
+           */
+          onUnhandledRequest() {},
+        },
         /**
          * @note Use a dummy emitter because this context
          * is only one layer that can resolve a request. For example,
@@ -230,6 +247,15 @@ export class SetupRemoteServerApi
       }
 
       outgoing.writeHead(404).end()
+    })
+
+    this.emitter.on('request:unhandled', async ({ request }) => {
+      /**
+       * @note React to unhandled requests in the "request:unhandled" listener.
+       * This event will be forwarded from the remote process after neither has
+       * handled the request.
+       */
+      await onUnhandledRequest(request, this.resolvedOptions.onUnhandledRequest)
     })
   }
 

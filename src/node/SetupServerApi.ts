@@ -13,6 +13,7 @@ import { RemoteRequestHandler } from '~/core/handlers/RemoteRequestHandler'
 import { shouldBypassRequest } from '~/core/utils/internal/requestUtils'
 import { getRemoteContextFromEnvironment } from './remoteContext'
 import { LifeCycleEventsMap } from '~/core/sharedOptions'
+import { devUtils } from '~/core/utils/internal/devUtils'
 
 const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 
@@ -143,9 +144,9 @@ export class SetupServerApi
           )
         },
         () => {
-          // eslint-disable-next-line no-console
-          console.error(
-            `Failed to connect to a remote server at "${remoteContext.serverUrl}"`,
+          devUtils.error(
+            'Failed to enable remote mode: could not connect to the remote server at "%s"',
+            remoteContext.serverUrl,
           )
         },
       )

@@ -3,7 +3,7 @@ import { http, HttpResponse, SetupApi, LifeCycleEventsMap } from 'msw'
 import { setupRemoteServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpServer } from '@open-draft/test-server/http'
-import { spawnTestApp } from '../utils'
+import { spawnTestApp } from './utils'
 
 const remote = setupRemoteServer()
 

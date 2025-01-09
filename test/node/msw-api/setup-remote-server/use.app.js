@@ -3,6 +3,8 @@ const express = require('express')
 const { http, HttpResponse } = require('msw')
 const { setupServer } = require('msw/node')
 
+const { SETUP_SERVER_LISTEN_OPTIONS } = process.env
+
 // Enable API mocking as usual.
 const server = setupServer(
   http.get('https://example.com/resource', () => {
@@ -11,6 +13,9 @@ const server = setupServer(
 )
 
 server.listen({
+  ...(SETUP_SERVER_LISTEN_OPTIONS
+    ? JSON.parse(SETUP_SERVER_LISTEN_OPTIONS)
+    : {}),
   remote: {
     enabled: true,
   },

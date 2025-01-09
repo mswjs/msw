@@ -1,9 +1,12 @@
 import { invariant } from 'outvariant'
 import { ChildProcess, spawn } from 'child_process'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { getRemoteEnvironment } from 'msw/node'
+import { type ListenOptions, getRemoteEnvironment } from 'msw/node'
 
-export async function spawnTestApp(appSourcePath: string) {
+export async function spawnTestApp(
+  appSourcePath: string,
+  listenOptions: Partial<ListenOptions> = {},
+) {
   let url: string | undefined
   const spawnPromise = new DeferredPromise<string>().then((resolvedUrl) => {
     url = resolvedUrl
@@ -18,6 +21,7 @@ export async function spawnTestApp(appSourcePath: string) {
     env: {
       ...process.env,
       ...getRemoteEnvironment(),
+      SETUP_SERVER_LISTEN_OPTIONS: JSON.stringify(listenOptions),
     },
   })
 

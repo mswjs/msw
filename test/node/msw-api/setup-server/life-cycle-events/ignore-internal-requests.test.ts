@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { setupServer } from 'msw/node'
-import { spyOnLifeCycleEvents } from '../../../../support/utils'
+import { spyOnLifeCycleEvents } from '../../../utils'
 
 const server = setupServer()
 
@@ -27,7 +27,7 @@ afterAll(() => {
 })
 
 it('does not emit life-cycle events for internal requests', async () => {
-  const listener = spyOnLifeCycleEvents(server)
+  const { listener } = spyOnLifeCycleEvents(server)
 
   // Must emit no life-cycle events for internal requests.
   expect(listener).not.toHaveBeenCalled()

@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { http, HttpResponse, SetupApi, LifeCycleEventsMap } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupRemoteServer } from 'msw/node'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpServer } from '@open-draft/test-server/http'
+import { spyOnLifeCycleEvents } from '../../utils'
 import { spawnTestApp } from './utils'
 
 const remote = setupRemoteServer()
@@ -12,63 +12,6 @@ const httpServer = new HttpServer((app) => {
     res.send('hello')
   })
 })
-
-function spyOnLifeCycleEvents(setupApi: SetupApi<LifeCycleEventsMap>) {
-  const listener = vi.fn()
-  const requestIdPromise = new DeferredPromise<string>()
-
-  setupApi.events
-    .on('request:start', ({ request, requestId }) => {
-      if (request.headers.has('upgrade')) {
-        return
-      }
-
-      requestIdPromise.resolve(requestId)
-      listener(`[request:start] ${request.method} ${request.url} ${requestId}`)
-    })
-    .on('request:match', ({ request, requestId }) => {
-      listener(`[request:match] ${request.method} ${request.url} ${requestId}`)
-    })
-    .on('request:unhandled', ({ request, requestId }) => {
-      listener(
-        `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
-      )
-    })
-    .on('request:end', ({ request, requestId }) => {
-      if (request.headers.has('upgrade')) {
-        return
-      }
-
-      listener(`[request:end] ${request.method} ${request.url} ${requestId}`)
-    })
-
-  setupApi.events
-    .on('response:mocked', async ({ response, request, requestId }) => {
-      listener(
-        `[response:mocked] ${request.method} ${request.url} ${requestId} ${
-          response.status
-        } ${await response.clone().text()}`,
-      )
-    })
-    .on('response:bypass', async ({ response, request, requestId }) => {
-      if (request.headers.has('upgrade')) {
-        return
-      }
-
-      listener(
-        `[response:bypass] ${request.method} ${request.url} ${requestId} ${
-          response.status
-        } ${await response.clone().text()}`,
-      )
-    })
-
-  return {
-    listener,
-    waitForRequestId() {
-      return requestIdPromise
-    },
-  }
-}
 
 beforeAll(async () => {
   await remote.listen()
@@ -90,15 +33,15 @@ it(
     )
 
     await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
-    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+    const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const response = await fetch(new URL('/resource', testApp.url))
-    const requestId = await waitForRequestId()
+    const requestId = await requestIdPromise
 
     // Must respond with the mocked response defined in the test.
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
-    expect(await response.json()).toEqual({ mocked: true })
+    await expect(response.json()).resolves.toEqual({ mocked: true })
 
     // Must forward the life-cycle events to the test process.
     await vi.waitFor(() => {
@@ -118,14 +61,14 @@ it(
   'emits correct events for the request handled in the remote process',
   remote.boundary(async () => {
     await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
-    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+    const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const response = await fetch(new URL('/resource', testApp.url))
-    const requestId = await waitForRequestId()
+    const requestId = await requestIdPromise
 
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
-    expect(await response.json()).toEqual([1, 2, 3])
+    await expect(response.json()).resolves.toEqual([1, 2, 3])
 
     await vi.waitFor(() => {
       expect(listener.mock.calls).toEqual([
@@ -144,17 +87,17 @@ it(
   'emits correct events for the request unhandled by either parties',
   remote.boundary(async () => {
     await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
-    const { listener, waitForRequestId } = spyOnLifeCycleEvents(remote)
+    const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const resourceUrl = httpServer.http.url('/greeting')
     // Request a special route in the running app that performs a proxy request
     // to the resource specified in the "Location" request header.
     const response = await fetch(new URL('/proxy', testApp.url), {
       headers: {
-        Location: resourceUrl,
+        location: resourceUrl,
       },
     })
-    const requestId = await waitForRequestId()
+    const requestId = await requestIdPromise
 
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')

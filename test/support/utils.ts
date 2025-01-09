@@ -1,7 +1,5 @@
 import * as path from 'node:path'
 import { ClientRequest, IncomingMessage } from 'node:http'
-import { vi, afterEach } from 'vitest'
-import { LifeCycleEventsMap, SetupApi } from 'msw'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -45,24 +43,4 @@ export async function waitForClientRequest(request: ClientRequest): Promise<{
       })
     })
   })
-}
-
-export function spyOnLifeCycleEvents(api: SetupApi<LifeCycleEventsMap>) {
-  const listener = vi.fn()
-  afterEach(() => listener.mockReset())
-
-  const wrapListener = (eventName: string) => {
-    return (...args: Array<any>) => listener(eventName, ...args)
-  }
-
-  api.events
-    .on('request:start', wrapListener('request:start'))
-    .on('request:match', wrapListener('request:match'))
-    .on('request:unhandled', wrapListener('request:unhandled'))
-    .on('request:end', wrapListener('request:end'))
-    .on('response:mocked', wrapListener('response:mocked'))
-    .on('response:bypass', wrapListener('response:bypass'))
-    .on('unhandledException', wrapListener('unhandledException'))
-
-  return listener
 }

@@ -174,6 +174,8 @@ export class SetupRemoteServerApi
           incoming.method !== 'HEAD' && incoming.method !== 'GET'
             ? (Readable.toWeb(incoming) as ReadableStream<unknown>)
             : null,
+        // @ts-expect-error Missing Node.js types.
+        duplex: 'half'
       })
 
       for (const headerName in incoming.headersDistinct) {

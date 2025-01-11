@@ -13,6 +13,7 @@ export abstract class HandlersController {
     runtimeHandlers: Array<RequestHandler | WebSocketHandler>,
   ): void
   abstract reset(nextHandles: Array<RequestHandler | WebSocketHandler>): void
+  abstract clear(): void
   abstract currentHandlers(): Array<RequestHandler | WebSocketHandler>
 }
 
@@ -34,6 +35,10 @@ export class InMemoryHandlersController implements HandlersController {
   public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>): void {
     this.handlers =
       nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
+  }
+
+  public clear(): void {
+    this.handlers = []
   }
 
   public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
@@ -105,6 +110,10 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     ...nextHandlers: Array<RequestHandler | WebSocketHandler>
   ): void {
     this.handlersController.reset(nextHandlers)
+  }
+
+  public clearHandlers(): void {
+    this.handlersController.clear()
   }
 
   public listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler> {

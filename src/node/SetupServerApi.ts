@@ -42,6 +42,10 @@ class AsyncHandlersController implements HandlersController {
       nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
   }
 
+  public clear() {
+    this.context.handlers = []
+  }
+
   public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
     const { initialHandlers, handlers } = this.context
     return handlers.concat(initialHandlers)

@@ -84,7 +84,7 @@
     "test:unit": "vitest",
     "test:node": "vitest --config=./test/node/vitest.config.mts",
     "test:native": "vitest --config=./test/native/vitest.config.mts",
-    "test:browser": "NODE_OPTIONS=--experimental-require-module npx playwright test -c ./test/browser/playwright.config.ts",
+    "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
     "test:modules:node": "vitest --config=./test/modules/node/vitest.config.mts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
     "test:e2e": "vitest run --config=./test/e2e/vitest.config.mts",

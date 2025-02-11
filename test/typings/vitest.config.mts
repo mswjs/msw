@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import * as fs from 'fs'
+import * as fs from 'node:fs'
 import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
 import tsPackageJson from 'typescript/package.json' assert { type: 'json' }

@@ -84,7 +84,7 @@ test('does not bypass a request with "accept: msw/*" header set to arbitrary val
 
   const request = new Request(new URL('http://localhost/user'), {
     headers: new Headers({
-      acceot: 'msw/invalid',
+      accept: 'msw/invalid',
     }),
   })
   const handlers: Array<RequestHandler> = [

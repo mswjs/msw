@@ -10,7 +10,6 @@
     },
     "noEmit": true,
     "declaration": false,
-    "resolveJsonModule": true,
     // Support default imports for modules that have no default exports.
     // This way "http" imports stay "import http from 'http'".
     // Using wildcard there breaks request interception since it

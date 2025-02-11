@@ -166,7 +166,7 @@
     "@fastify/websocket": "^8.3.1",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.8.1",
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.50.1",
     "@types/express": "^4.17.21",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",

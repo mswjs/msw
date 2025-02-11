@@ -1,6 +1,12 @@
 import { it } from 'vitest'
 import { sse } from 'msw/browser'
 
+/**
+ * @note Define the global property to simulate an EventSource-compatible environment.
+ * MSW checks for that and throws to prevent incorrect usage.
+ */
+Object.defineProperty(globalThis, 'EventSource', { value: () => {} })
+
 it('supports custom event map type argument', () => {
   sse<{ myevent: string }>('/stream', ({ client }) => {
     client.send({

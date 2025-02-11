@@ -2,7 +2,13 @@ import * as path from 'node:path'
 import * as fs from 'node:fs'
 import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
-import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
+
+/**
+ * @note Use `createRequire` because "assert/with { type: 'json' }" is finicky.
+ */
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const tsPackageJson = require('typescript/package.json')
 
 const LIB_DIR = path.resolve(__dirname, '../../lib')
 

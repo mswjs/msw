@@ -223,6 +223,13 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
       </a>
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <a href="https://stackblitz.com/" target="_blank">
+        <img src="media/sponsors/stackblitz.svg" alt="StackBlitz" height="64" />
+      </a>
+    </td>
+  </tr>
 </table>
 
 ### Silver Sponsors

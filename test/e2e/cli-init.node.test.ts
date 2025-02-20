@@ -1,14 +1,14 @@
-// @vitest-environment node
-import fs from 'fs'
+import fs from 'node:fs'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
-import { fromTemp } from '../../../support/utils'
+import { fromTemp } from '../support/utils'
 
 const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
 })
 
-const cliPath = require.resolve('../../../../cli/index.js')
+const cliPath = require.resolve('../../cli/index.js')
 
 function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
@@ -21,6 +21,7 @@ function readJson(filePath: string) {
 }
 
 beforeAll(async () => {
+  spawnSync('pnpm', ['build'])
   await fsMock.prepare()
 })
 
@@ -36,8 +37,17 @@ afterAll(async () => {
   await fsMock.cleanup()
 })
 
-async function init(inlineArgs: Array<string>) {
-  return fsMock.exec(`node ${cliPath} init ${inlineArgs.join(' ')}`)
+async function init(inlineArgs: Array<string>): ReturnType<typeof fsMock.exec> {
+  const result = await fsMock.exec(
+    `node ${cliPath} init ${inlineArgs.join(' ')}`,
+  )
+
+  return {
+    ...result,
+    // Strip stdout from color unicode characters:
+    stdout: result.stdout.replace(/\x1b\[\d+m/gi, ''),
+    stderr: result.stderr.replace(/\x1b\[\d+m/gi, ''),
+  }
 }
 
 test('copies the script to a given path without saving', async () => {
@@ -202,7 +212,7 @@ test('throws if creating a directory under path failed', async () => {
    * @note Require the "init" command source
    * so that the "fs" mocks could apply.
    */
-  const init = require('../../../../cli/init')
+  const init = require('../../cli/init')
 
   // Mock the "mkdir" method throwing an error.
   const error = new Error('Failed to create directory')
@@ -333,7 +343,7 @@ test('prints the list of failed paths to copy', async () => {
     }
   })
 
-  const init = require('../../../../cli/init')
+  const init = require('../../cli/init')
   const copyFileError = new Error('Failed to copy file')
 
   const consoleLogSpy = vi

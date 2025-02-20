@@ -1,3 +1,4 @@
+import { FetchResponse } from '@mswjs/interceptors'
 import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
 import type { NoInfer } from './typeUtils'
 import {
@@ -35,7 +36,7 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
  *
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
-export class HttpResponse extends Response {
+export class HttpResponse extends FetchResponse {
   constructor(body?: BodyInit | null, init?: HttpResponseInit) {
     const responseInit = normalizeResponseInit(init)
     super(body, responseInit)
@@ -153,14 +154,21 @@ export class HttpResponse extends Response {
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+  static arrayBuffer(
+    body?: ArrayBuffer | SharedArrayBuffer,
+    init?: HttpResponseInit,
+  ): Response {
     const responseInit = normalizeResponseInit(init)
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'application/octet-stream')
+    }
 
     if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return new HttpResponse(body, responseInit)
+    return new HttpResponse(body as ArrayBuffer, responseInit)
   }
 
   /**

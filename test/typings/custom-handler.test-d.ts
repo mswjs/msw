@@ -15,14 +15,18 @@ const generateGraphQLHandler: GraphQLRequestHandler = (
 }
 
 it('accepts custom request handler (setupWorker)', () => {
-  setupWorker(
-    generateHttpHandler('/', () => {}),
-    generateGraphQLHandler('GetResource', () => {}),
-  )
+  try {
+    setupWorker(
+      generateHttpHandler('/', () => {}),
+      generateGraphQLHandler('GetResource', () => {}),
+    )
+  } catch {}
 })
 it('accepts custom request handler (setupServer)', () => {
-  setupServer(
-    generateHttpHandler('/', () => {}),
-    generateGraphQLHandler('GetResource', () => {}),
-  )
+  try {
+    setupServer(
+      generateHttpHandler('/', () => {}),
+      generateGraphQLHandler('GetResource', () => {}),
+    )
+  } catch {}
 })

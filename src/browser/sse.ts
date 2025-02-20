@@ -198,7 +198,7 @@ class ServerSentEventServer {
   }
 
   /**
-   * Establishes an actual connection for this SSE request
+   * Establishes the actual connection for this SSE request
    * and returns the `EventSource` instance.
    */
   public connect(): EventSource {
@@ -209,7 +209,7 @@ class ServerSentEventServer {
          * @note Mark this request as bypassed so it doesn't trigger
          * an infinite loop matching the existing request handler.
          */
-        'x-msw-intention': 'bypass',
+        accept: 'msw/passthrough',
       },
     })
 
@@ -274,7 +274,7 @@ class ObservableEventSource extends EventTarget implements EventSource {
 
     // Support custom request init.
     const headers = new Headers(init?.headers || {})
-    headers.set('accept', 'text/event-stream')
+    headers.append('accept', 'text/event-stream')
 
     this[kAbortController] = new AbortController()
     this[kReconnectionTime] = 2000

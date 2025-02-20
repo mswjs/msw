@@ -14,7 +14,7 @@
 </p>
 
 <h1 align="center">Mock Service Worker</h1>
-<p align="center">Mock Service Worker (MSW) is a seamless REST/GraphQL API mocking library for browser and Node.js.</p>
+<p align="center">Industry standard API mocking for JavaScript.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" /></a>

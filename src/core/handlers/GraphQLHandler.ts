@@ -24,7 +24,7 @@ import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
-export type GraphQLQuery = Record<string, any>
+export type GraphQLQuery = Record<string, any> | null
 export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {

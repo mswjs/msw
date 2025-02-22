@@ -210,7 +210,7 @@ Validation error:`,
   /**
    * Clears the entire collection, deleting all its records.
    */
-  public clear(): void {
+  public async clear(): Promise<void> {
     this.records.clear()
   }
 }

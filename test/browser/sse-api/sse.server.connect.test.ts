@@ -99,7 +99,7 @@ test('forwards message event from the server to the client automatically', async
   }, url)
 
   const message = await page.evaluate((url) => {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<{ message: string }>((resolve, reject) => {
       const source = new EventSource(url)
       source.addEventListener('message', (event) => {
         resolve(JSON.parse(event.data))
@@ -108,9 +108,9 @@ test('forwards message event from the server to the client automatically', async
     })
   }, url)
 
-  await page.pause()
-
   expect(message).toEqual({ message: 'hello' })
+
+  await page.pause()
 })
 
 test('forwards custom event from the server to the client automatically', async ({
@@ -159,7 +159,7 @@ test('forwards custom event from the server to the client automatically', async 
   }, url)
 
   const message = await page.evaluate((url) => {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<{ message: string }>((resolve, reject) => {
       const source = new EventSource(url)
       source.addEventListener('custom', (event) => {
         resolve(JSON.parse(event.data))
@@ -167,8 +167,6 @@ test('forwards custom event from the server to the client automatically', async 
       source.onerror = () => reject(new Error('EventSource connection failed'))
     })
   }, url)
-
-  await page.pause()
 
   expect(message).toEqual({ message: 'hello' })
 })

@@ -12,6 +12,14 @@ const store = defineStore({
 })
 
 const server = setupServer(
+  http.get<never, never, Array<Post>>(
+    'https://api.example.com/posts',
+    async () => {
+      const posts = await store.open('posts')
+      const allPosts = await posts.all()
+      return HttpResponse.json(allPosts)
+    },
+  ),
   http.post<never, Post, Post>(
     'https://api.example.com/posts',
     async ({ request }) => {
@@ -39,15 +47,11 @@ const server = setupServer(
 )
 
 beforeAll(() => {
-  server.listen({
-    /** @todo */
-    // context: {
-    // 	store
-    // }
-  })
+  server.listen()
 })
 
-afterEach(() => {
+afterEach(async () => {
+  await store.clear()
   server.resetHandlers()
 })
 
@@ -79,7 +83,7 @@ test('persists data between handlers', async () => {
   ).resolves.toMatchObject({ status: 404 })
 })
 
-test('updates an in-memory record', async () => {
+test('updates a single matching record', async () => {
   server.use(
     http.put<{ id: string }, Partial<Post>, Post>(
       'https://api.example.com/posts/:id',
@@ -130,4 +134,175 @@ test('updates an in-memory record', async () => {
       title: 'New title',
     })
   }
+})
+
+test('updates multiple matching records', async () => {
+  server.use(
+    http.get('https://api.example.com/posts/capitalize', async () => {
+      const posts = await store.open('posts')
+      const updatedPosts = await posts.updateMany(
+        (post) => {
+          return post.title.includes('Hello')
+        },
+        (post) => {
+          return {
+            ...post,
+            title: post.title.toUpperCase(),
+          }
+        },
+      )
+
+      return HttpResponse.json(updatedPosts)
+    }),
+  )
+
+  await Promise.all([
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'abc-123', title: 'Hello world' }),
+    }),
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'def-456', title: 'Hello cosmos' }),
+    }),
+  ])
+
+  // Must return all updated posts.
+  const updatedPosts = await fetch(
+    'https://api.example.com/posts/capitalize',
+  ).then((response) => response.json())
+  expect(updatedPosts).toEqual([
+    { id: 'abc-123', title: 'HELLO WORLD' },
+    { id: 'def-456', title: 'HELLO COSMOS' },
+  ])
+
+  // Must actually update the posts.
+  const allPosts = await fetch('https://api.example.com/posts').then(
+    (response) => response.json(),
+  )
+  expect(allPosts).toEqual([
+    { id: 'abc-123', title: 'HELLO WORLD' },
+    { id: 'def-456', title: 'HELLO COSMOS' },
+  ])
+})
+
+test('deletes a single matching record by its key', async () => {
+  server.use(
+    http.delete<{ id: string }>(
+      'https://api.example.com/posts/:id',
+      async ({ params }) => {
+        const posts = await store.open('posts')
+        const deletedPost = await posts.delete(params.id)
+        return HttpResponse.json(deletedPost)
+      },
+    ),
+  )
+
+  await fetch('https://api.example.com/posts', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: 'abc-123', title: 'Hello world' }),
+  })
+
+  // Must return the deleted post.
+  const deletedPost = await fetch('https://api.example.com/posts/abc-123', {
+    method: 'DELETE',
+  }).then((response) => response.json())
+  expect(deletedPost).toEqual({ id: 'abc-123', title: 'Hello world' })
+
+  // Must actually delete the post.
+  const allPosts = await fetch('https://api.example.com/posts').then(
+    (response) => response.json(),
+  )
+  expect(allPosts).toEqual([])
+})
+
+test('deletes a single matching record', async () => {
+  server.use(
+    http.delete<{ id: string }>(
+      'https://api.example.com/posts/delete-by-name',
+      async ({ params }) => {
+        const posts = await store.open('posts')
+        const deletedPost = await posts.deleteFirst((post) => {
+          return post.title.includes('Hello')
+        })
+        return HttpResponse.json(deletedPost)
+      },
+    ),
+  )
+
+  await Promise.all([
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'abc-123', title: 'Hello world' }),
+    }),
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'def-456', title: 'Another post' }),
+    }),
+  ])
+
+  // Must return the deleted post.
+  const deletedPost = await fetch(
+    'https://api.example.com/posts/delete-by-name',
+    { method: 'DELETE' },
+  ).then((response) => response.json())
+  expect(deletedPost).toEqual({
+    id: 'abc-123',
+    title: 'Hello world',
+  })
+
+  // Must actually delete the post.
+  const allPosts = await fetch('https://api.example.com/posts').then(
+    (response) => response.json(),
+  )
+  expect(allPosts).toEqual([{ id: 'def-456', title: 'Another post' }])
+})
+
+test('deletes all matching records', async () => {
+  server.use(
+    http.delete<{ id: string }>(
+      'https://api.example.com/posts/delete-by-name',
+      async ({ params }) => {
+        const posts = await store.open('posts')
+        const deletedPost = await posts.deleteMany((post) => {
+          return post.title.includes('Hello')
+        })
+        return HttpResponse.json(deletedPost)
+      },
+    ),
+  )
+
+  await Promise.all([
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'abc-123', title: 'Hello world' }),
+    }),
+    fetch('https://api.example.com/posts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'def-456', title: 'Hello cosmos' }),
+    }),
+  ])
+
+  // Must return the deleted posts.
+  const deletedPosts = await fetch(
+    'https://api.example.com/posts/delete-by-name',
+    { method: 'DELETE' },
+  ).then((response) => response.json())
+  expect(deletedPosts).toEqual([
+    { id: 'abc-123', title: 'Hello world' },
+    { id: 'def-456', title: 'Hello cosmos' },
+  ])
+
+  // Must actually delete all the posts.
+  const allPosts = await fetch('https://api.example.com/posts').then(
+    (response) => response.json(),
+  )
+  expect(allPosts).toEqual([])
 })

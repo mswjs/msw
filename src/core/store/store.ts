@@ -48,6 +48,10 @@ class Store<Collections extends CollectionsDefinition> {
 
     return newCollection
   }
+
+  public async clear(): Promise<void> {
+    this.collections.clear()
+  }
 }
 
 type CollectionPredicate<V> = (value: V, key: string) => boolean
@@ -62,6 +66,10 @@ class Collection<V> {
     this.name = args.name
     this.schema = args.schema
     this.records = new Map()
+  }
+
+  public async all(): Promise<Array<V>> {
+    return Array.from(this.records.values())
   }
 
   /**
@@ -98,7 +106,7 @@ Validation error:`,
   }
 
   /**
-   * Returns the first record matching the given predicate.
+   * Returns the first record matching the predicate.
    */
   public async findFirst(
     predicate: CollectionPredicate<V>,
@@ -111,7 +119,7 @@ Validation error:`,
   }
 
   /**
-   * Returns all records matching the given predicate.
+   * Returns all records matching the predicate.
    */
   public async findMany(predicate: CollectionPredicate<V>): Promise<Array<V>> {
     const results: Array<V> = []
@@ -126,7 +134,7 @@ Validation error:`,
   }
 
   /**
-   * Updates the recording matching the given predicate.
+   * Updates the first record matching the predicate.
    * Returns the updated record.
    */
   public async update(
@@ -161,7 +169,7 @@ Validation error:`,
   }
 
   /**
-   * Updates all records matching the given predicate.
+   * Updates all records matching the predicate.
    * Returns an array of all updated records.
    */
   public async updateMany(
@@ -172,7 +180,9 @@ Validation error:`,
 
     await this.findMany((record, key) => {
       if (predicate(record, key)) {
-        nextRecords.push(update(record, key))
+        const nextRecord = update(record, key)
+        this.records.set(key, nextRecord)
+        nextRecords.push(nextRecord)
         return true
       }
       return false
@@ -184,12 +194,34 @@ Validation error:`,
   /**
    * Deletes a record with the given key from this collection.
    */
-  public async delete(key: string): Promise<void> {
+  public async delete(key: string): Promise<V | undefined> {
+    const deletedRecord = this.get(key)
     this.records.delete(key)
+    return deletedRecord
   }
 
   /**
-   * Deletes all records matching the given predicate.
+   * Deletes the first record matching the predicate.
+   */
+  public async deleteFirst(
+    predicate: CollectionPredicate<V>,
+  ): Promise<V | undefined> {
+    let deletedRecord: V | undefined
+
+    await this.findFirst((record, key) => {
+      if (predicate(record, key)) {
+        this.records.delete(key)
+        deletedRecord = record
+        return true
+      }
+      return false
+    })
+
+    return deletedRecord
+  }
+
+  /**
+   * Deletes all records matching the predicate.
    * Returns an array of deleted records.
    */
   public async deleteMany(

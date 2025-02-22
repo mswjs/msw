@@ -22,9 +22,9 @@ class Store<Collections extends CollectionsDefinition> {
    * Opens a new collection.
    * If the collection already exists, returns its reference.
    */
-  public open<Name extends keyof Collections>(
+  public async open<Name extends keyof Collections>(
     name: Name,
-  ): Collection<StandardSchemaV1.InferInput<Collections[Name]>> {
+  ): Promise<Collection<StandardSchemaV1.InferInput<Collections[Name]>>> {
     const collectionDefinition = this.collectionDefinitions[name]
 
     invariant(

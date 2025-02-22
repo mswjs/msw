@@ -17,7 +17,7 @@ const server = setupServer(
     async ({ request }) => {
       const data = await request.json()
 
-      const posts = store.open('posts')
+      const posts = await store.open('posts')
       await posts.put(data.id, data)
 
       return HttpResponse.json(data, { status: 201 })
@@ -26,7 +26,7 @@ const server = setupServer(
   http.get<{ id: string }, never, Post>(
     'https://api.example.com/posts/:id',
     async ({ params }) => {
-      const posts = store.open('posts')
+      const posts = await store.open('posts')
       const post = await posts.get(params.id)
 
       if (!post) {
@@ -84,7 +84,7 @@ test('updates an in-memory record', async () => {
     http.put<{ id: string }, Partial<Post>, Post>(
       'https://api.example.com/posts/:id',
       async ({ request, params }) => {
-        const posts = store.open('posts')
+        const posts = await store.open('posts')
         const data = await request.json()
 
         const nextPost = await posts.update(

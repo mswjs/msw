@@ -208,9 +208,9 @@ Validation error:`,
   }
 
   /**
-   * Clears the entire collection, deleting all its records.
+   * Deletes all records in this collection.
    */
-  public async clear(): Promise<void> {
+  public async deleteAll(): Promise<void> {
     this.records.clear()
   }
 }

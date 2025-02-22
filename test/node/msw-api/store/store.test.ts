@@ -27,7 +27,7 @@ const server = setupServer(
     'https://api.example.com/posts/:id',
     async ({ params }) => {
       const posts = store.open('posts')
-      const post = posts.get(params.id)
+      const post = await posts.get(params.id)
 
       if (!post) {
         return new HttpResponse(null, { status: 404 })
@@ -87,7 +87,7 @@ test('updates an in-memory record', async () => {
         const posts = store.open('posts')
         const data = await request.json()
 
-        const nextPost = posts.update(
+        const nextPost = await posts.update(
           (post) => {
             return post.id === params.id
           },

@@ -60,12 +60,16 @@ class Collection<V> {
     this.records = new Map()
   }
 
+  /**
+   * Returns the record with the given key.
+   */
   public get(key: string): V | undefined {
     return this.records.get(key)
   }
 
   /**
    * Adds a new record to this collection.
+   * If the record by this key already exists, overrides the record.
    */
   public async put(key: string, record: V): Promise<V> {
     const validationResult = await this.schema['~standard'].validate(record)
@@ -87,6 +91,34 @@ Validation error:`,
 
     this.records.set(key.toString(), validationResult.value)
     return validationResult.value
+  }
+
+  /**
+   * Returns the first record matching the given predicate.
+   */
+  public findFirst(
+    predicate: (value: V, key: string) => boolean,
+  ): V | undefined {
+    for (const [key, value] of this.records) {
+      if (predicate(value, key)) {
+        return value
+      }
+    }
+  }
+
+  /**
+   * Returns all records matching the given predicate.
+   */
+  public findMany(predicate: (value: V, key: string) => boolean): Array<V> {
+    const results: Array<V> = []
+
+    for (const [key, value] of this.records) {
+      if (predicate(value, key)) {
+        results.push(value)
+      }
+    }
+
+    return results
   }
 
   /**

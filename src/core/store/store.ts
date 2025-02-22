@@ -1,6 +1,7 @@
 import { invariant } from 'outvariant'
 import { StandardSchemaV1 } from '@standard-schema/spec'
 import { InternalError } from '../utils/internal/devUtils'
+import { HttpResponse } from '../HttpResponse'
 
 type CollectionsDefinition = {
   [collectionName: string]: StandardSchemaV1
@@ -49,6 +50,8 @@ class Store<Collections extends CollectionsDefinition> {
   }
 }
 
+type CollectionPredicate<V> = (value: V, key: string) => boolean
+
 class Collection<V> {
   private name: string
   private records: Map<string, V>
@@ -96,9 +99,7 @@ Validation error:`,
   /**
    * Returns the first record matching the given predicate.
    */
-  public findFirst(
-    predicate: (value: V, key: string) => boolean,
-  ): V | undefined {
+  public findFirst(predicate: CollectionPredicate<V>): V | undefined {
     for (const [key, value] of this.records) {
       if (predicate(value, key)) {
         return value
@@ -109,7 +110,7 @@ Validation error:`,
   /**
    * Returns all records matching the given predicate.
    */
-  public findMany(predicate: (value: V, key: string) => boolean): Array<V> {
+  public findMany(predicate: CollectionPredicate<V>): Array<V> {
     const results: Array<V> = []
 
     for (const [key, value] of this.records) {
@@ -121,11 +122,59 @@ Validation error:`,
     return results
   }
 
+  public update(
+    predicate: CollectionPredicate<V>,
+    updateFn: (value: V, key: string) => V,
+  ): V {
+    let foundKey: string | undefined
+    const record = this.findFirst((value, key) => {
+      if (predicate(value, key)) {
+        foundKey = key
+        return true
+      }
+      return false
+    })
+
+    if (record == null) {
+      throw HttpResponse.json(
+        { error: `Failed to update a record in "${this.name}": not found` },
+        { status: 404 },
+      )
+    }
+
+    invariant(
+      foundKey,
+      'Failed to update a record in "%s": corrupted key. Please report this as a bug on GitHub.',
+      this.name,
+    )
+
+    const nextRecord = updateFn(record, foundKey)
+    this.records.set(foundKey, nextRecord)
+    return nextRecord
+  }
+
   /**
    * Deletes a record with the given key from this collection.
    */
   public delete(key: string): void {
     this.records.delete(key)
+  }
+
+  /**
+   * Deletes all records matching the given predicate.
+   * Returns an array of deleted records.
+   */
+  public deleteMany(predicate: CollectionPredicate<V>): Array<V> {
+    const deletedRecords: Array<V> = []
+
+    for (const [key, value] of this.records) {
+      if (predicate(value, key)) {
+        this.records.delete(key)
+        deletedRecords.push(value)
+      }
+    }
+
+    return deletedRecords
   }
 
   /**

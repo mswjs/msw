@@ -54,28 +54,35 @@ class Store<Collections extends CollectionsDefinition> {
   }
 }
 
-type CollectionPredicate<V> = (value: V, key: string) => boolean
-type CollectionUpdateFunction<V> = (nextValue: V, key: string) => V
+type CollectionPredicate<RecordType> = (
+  value: RecordType,
+  key: string,
+) => boolean
 
-class Collection<V> {
+type CollectionUpdateFunction<RecordType> = (
+  nextValue: RecordType,
+  key: string,
+) => RecordType
+
+class Collection<RecordType> {
   private name: string
-  private records: Map<string, V>
-  private schema: StandardSchemaV1<V>
+  private records: Map<string, RecordType>
+  private schema: StandardSchemaV1<RecordType>
 
-  constructor(args: { name: string; schema: StandardSchemaV1<V> }) {
+  constructor(args: { name: string; schema: StandardSchemaV1<RecordType> }) {
     this.name = args.name
     this.schema = args.schema
     this.records = new Map()
   }
 
-  public async all(): Promise<Array<V>> {
+  public async all(): Promise<Array<RecordType>> {
     return Array.from(this.records.values())
   }
 
   /**
    * Returns the record with the given key.
    */
-  public async get(key: string): Promise<V | undefined> {
+  public async get(key: string): Promise<RecordType | undefined> {
     return this.records.get(key)
   }
 
@@ -83,7 +90,7 @@ class Collection<V> {
    * Adds a new record to this collection.
    * If the record by this key already exists, overrides the record.
    */
-  public async put(key: string, record: V): Promise<V> {
+  public async put(key: string, record: RecordType): Promise<RecordType> {
     const validationResult = await this.schema['~standard'].validate(record)
 
     invariant.as(
@@ -109,8 +116,8 @@ Validation error:`,
    * Returns the first record matching the predicate.
    */
   public async findFirst(
-    predicate: CollectionPredicate<V>,
-  ): Promise<V | undefined> {
+    predicate: CollectionPredicate<RecordType>,
+  ): Promise<RecordType | undefined> {
     for (const [key, value] of this.records) {
       if (predicate(value, key)) {
         return value
@@ -121,8 +128,10 @@ Validation error:`,
   /**
    * Returns all records matching the predicate.
    */
-  public async findMany(predicate: CollectionPredicate<V>): Promise<Array<V>> {
-    const results: Array<V> = []
+  public async findMany(
+    predicate: CollectionPredicate<RecordType>,
+  ): Promise<Array<RecordType>> {
+    const results: Array<RecordType> = []
 
     for (const [key, value] of this.records) {
       if (predicate(value, key)) {
@@ -138,9 +147,9 @@ Validation error:`,
    * Returns the updated record.
    */
   public async update(
-    predicate: CollectionPredicate<V>,
-    update: CollectionUpdateFunction<V>,
-  ): Promise<V> {
+    predicate: CollectionPredicate<RecordType>,
+    update: CollectionUpdateFunction<RecordType>,
+  ): Promise<RecordType> {
     let foundKey: string | undefined
     const record = await this.findFirst((value, key) => {
       if (predicate(value, key)) {
@@ -173,10 +182,10 @@ Validation error:`,
    * Returns an array of all updated records.
    */
   public async updateMany(
-    predicate: CollectionPredicate<V>,
-    update: CollectionUpdateFunction<V>,
-  ): Promise<Array<V>> {
-    const nextRecords: Array<V> = []
+    predicate: CollectionPredicate<RecordType>,
+    update: CollectionUpdateFunction<RecordType>,
+  ): Promise<Array<RecordType>> {
+    const nextRecords: Array<RecordType> = []
 
     await this.findMany((record, key) => {
       if (predicate(record, key)) {
@@ -194,7 +203,7 @@ Validation error:`,
   /**
    * Deletes a record with the given key from this collection.
    */
-  public async delete(key: string): Promise<V | undefined> {
+  public async delete(key: string): Promise<RecordType | undefined> {
     const deletedRecord = this.get(key)
     this.records.delete(key)
     return deletedRecord
@@ -204,9 +213,9 @@ Validation error:`,
    * Deletes the first record matching the predicate.
    */
   public async deleteFirst(
-    predicate: CollectionPredicate<V>,
-  ): Promise<V | undefined> {
-    let deletedRecord: V | undefined
+    predicate: CollectionPredicate<RecordType>,
+  ): Promise<RecordType | undefined> {
+    let deletedRecord: RecordType | undefined
 
     await this.findFirst((record, key) => {
       if (predicate(record, key)) {
@@ -225,9 +234,9 @@ Validation error:`,
    * Returns an array of deleted records.
    */
   public async deleteMany(
-    predicate: CollectionPredicate<V>,
-  ): Promise<Array<V>> {
-    const deletedRecords: Array<V> = []
+    predicate: CollectionPredicate<RecordType>,
+  ): Promise<Array<RecordType>> {
+    const deletedRecords: Array<RecordType> = []
 
     for (const [key, value] of this.records) {
       if (predicate(value, key)) {
@@ -247,9 +256,9 @@ Validation error:`,
   }
 }
 
-export function defineStore<C extends CollectionsDefinition>(options: {
-  collections: C
-}) {
+export function defineStore<
+  Collections extends CollectionsDefinition,
+>(options: { collections: Collections }) {
   return new Store({
     collections: options.collections,
   })

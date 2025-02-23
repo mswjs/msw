@@ -2,6 +2,7 @@ import { invariant } from 'outvariant'
 import { StandardSchemaV1 } from '@standard-schema/spec'
 import { InternalError } from '../utils/internal/devUtils'
 import { HttpResponse } from '../HttpResponse'
+import { AsyncCollection, TransactionCallback } from '../AsyncCollection'
 
 type CollectionsDefinition = {
   [collectionName: string]: StandardSchemaV1
@@ -22,7 +23,7 @@ class Store<Collections extends CollectionsDefinition> {
    * Opens a new collection.
    * If the collection already exists, returns its reference.
    */
-  public async open<Name extends keyof Collections>(
+  public async open<Name extends keyof Collections & string>(
     name: Name,
   ): Promise<Collection<StandardSchemaV1.InferInput<Collections[Name]>>> {
     const collectionDefinition = this.collectionDefinitions[name]
@@ -35,13 +36,12 @@ class Store<Collections extends CollectionsDefinition> {
     )
 
     const existingCollection = this.collections.get(name)
-
     if (existingCollection) {
       return existingCollection
     }
 
     const newCollection = new Collection<any>({
-      name: name as any,
+      name,
       schema: collectionDefinition,
     })
     this.collections.set(name, newCollection)
@@ -66,24 +66,24 @@ type CollectionUpdateFunction<RecordType> = (
 
 class Collection<RecordType> {
   private name: string
-  private records: Map<string, RecordType>
   private schema: StandardSchemaV1<RecordType>
+  private collection: AsyncCollection<RecordType>
 
   constructor(args: { name: string; schema: StandardSchemaV1<RecordType> }) {
     this.name = args.name
     this.schema = args.schema
-    this.records = new Map()
+    this.collection = new AsyncCollection(this.name)
   }
 
   public async all(): Promise<Array<RecordType>> {
-    return Array.from(this.records.values())
+    return this.collection.all()
   }
 
   /**
    * Returns the record with the given key.
    */
   public async get(key: string): Promise<RecordType | undefined> {
-    return this.records.get(key)
+    return this.collection.get(key)
   }
 
   /**
@@ -108,7 +108,7 @@ Validation error:`,
       JSON.stringify(validationResult.issues, null, 2),
     )
 
-    this.records.set(key.toString(), validationResult.value)
+    await this.collection.put(key, validationResult.value)
     return validationResult.value
   }
 
@@ -118,11 +118,16 @@ Validation error:`,
   public async findFirst(
     predicate: CollectionPredicate<RecordType>,
   ): Promise<RecordType | undefined> {
-    for (const [key, value] of this.records) {
+    let foundRecord: RecordType | undefined
+
+    this.collection.forEach((value, key, done) => {
       if (predicate(value, key)) {
-        return value
+        foundRecord = value
+        done()
       }
-    }
+    })
+
+    return foundRecord
   }
 
   /**
@@ -131,15 +136,15 @@ Validation error:`,
   public async findMany(
     predicate: CollectionPredicate<RecordType>,
   ): Promise<Array<RecordType>> {
-    const results: Array<RecordType> = []
+    const foundRecords: Array<RecordType> = []
 
-    for (const [key, value] of this.records) {
+    this.collection.forEach((value, key) => {
       if (predicate(value, key)) {
-        results.push(value)
+        foundRecords.push(value)
       }
-    }
+    })
 
-    return results
+    return foundRecords
   }
 
   /**
@@ -173,7 +178,7 @@ Validation error:`,
     )
 
     const nextRecord = update(record, foundKey)
-    this.records.set(foundKey, nextRecord)
+    await this.collection.put(foundKey, nextRecord)
     return nextRecord
   }
 
@@ -186,15 +191,20 @@ Validation error:`,
     update: CollectionUpdateFunction<RecordType>,
   ): Promise<Array<RecordType>> {
     const nextRecords: Array<RecordType> = []
+    const updates: Array<TransactionCallback<RecordType>> = []
 
-    await this.findMany((record, key) => {
-      if (predicate(record, key)) {
-        const nextRecord = update(record, key)
-        this.records.set(key, nextRecord)
+    this.collection.forEach((value, key) => {
+      if (predicate(value, key)) {
+        const nextRecord = update(value, key)
         nextRecords.push(nextRecord)
-        return true
+        updates.push((store) => {
+          store[key] = nextRecord
+        })
       }
-      return false
+    })
+
+    await this.collection.transaction((store) => {
+      updates.forEach((update) => update(store))
     })
 
     return nextRecords
@@ -204,27 +214,35 @@ Validation error:`,
    * Deletes a record with the given key from this collection.
    */
   public async delete(key: string): Promise<RecordType | undefined> {
-    const deletedRecord = this.get(key)
-    this.records.delete(key)
+    const deletedRecord = await this.get(key)
+    if (deletedRecord) {
+      await this.collection.delete(key)
+    }
     return deletedRecord
   }
 
   /**
    * Deletes the first record matching the predicate.
+   * Returns the deleted record. If no matching record is found,
+   * returns undefined.
    */
   public async deleteFirst(
     predicate: CollectionPredicate<RecordType>,
   ): Promise<RecordType | undefined> {
+    let deletedRecordKey: string | undefined
     let deletedRecord: RecordType | undefined
 
-    await this.findFirst((record, key) => {
-      if (predicate(record, key)) {
-        this.records.delete(key)
-        deletedRecord = record
-        return true
+    this.collection.forEach((value, key, done) => {
+      if (predicate(value, key)) {
+        deletedRecordKey = key
+        deletedRecord = value
+        done()
       }
-      return false
     })
+
+    if (deletedRecordKey) {
+      await this.collection.delete(deletedRecordKey)
+    }
 
     return deletedRecord
   }
@@ -237,13 +255,20 @@ Validation error:`,
     predicate: CollectionPredicate<RecordType>,
   ): Promise<Array<RecordType>> {
     const deletedRecords: Array<RecordType> = []
+    const deletes: Array<TransactionCallback<RecordType>> = []
 
-    for (const [key, value] of this.records) {
+    this.collection.forEach((value, key) => {
       if (predicate(value, key)) {
-        this.records.delete(key)
         deletedRecords.push(value)
+        deletes.push((store) => {
+          delete store[key]
+        })
       }
-    }
+    })
+
+    await this.collection.transaction((store) => {
+      deletes.forEach((update) => update(store))
+    })
 
     return deletedRecords
   }
@@ -252,7 +277,7 @@ Validation error:`,
    * Deletes all records in this collection.
    */
   public async deleteAll(): Promise<void> {
-    this.records.clear()
+    await this.collection.clear()
   }
 }
 

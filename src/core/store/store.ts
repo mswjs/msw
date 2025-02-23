@@ -75,6 +75,9 @@ class Collection<RecordType> {
     this.collection = new AsyncCollection(this.name)
   }
 
+  /**
+   * Returns all records in this collection.
+   */
   public async all(): Promise<Array<RecordType>> {
     return this.collection.all()
   }

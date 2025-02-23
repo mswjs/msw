@@ -50,6 +50,13 @@ class Store<Collections extends CollectionsDefinition> {
   }
 
   public async clear(): Promise<void> {
+    const pendingCollections: Array<Promise<void>> = []
+
+    for (const [, collection] of this.collections) {
+      pendingCollections.push(collection.deleteAll())
+    }
+
+    await Promise.allSettled(pendingCollections)
     this.collections.clear()
   }
 }

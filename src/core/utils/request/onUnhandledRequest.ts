@@ -1,6 +1,6 @@
 import { toPublicUrl } from './toPublicUrl'
 import { InternalError, devUtils } from '../internal/devUtils'
-import { isAssetRequest } from '../../isAssetRequest'
+import { isCommonAssetRequest } from '../../isCommonAssetRequest'
 
 export interface UnhandledRequestPrint {
   warning(): void
@@ -75,7 +75,7 @@ export async function onUnhandledRequest(
   // Ignore common static asset requests when using a built-in strategy.
   // There's a slight overhead here because this utility will create a request URL
   // instance again despite us having done so previously in this function.
-  if (!isAssetRequest(request)) {
+  if (!isCommonAssetRequest(request)) {
     applyStrategy(strategy)
   }
 }

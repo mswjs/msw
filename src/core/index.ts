@@ -62,7 +62,7 @@ export * from './HttpResponse'
 export * from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'
-export { isAssetRequest } from './isAssetRequest'
+export { isCommonAssetRequest } from './isCommonAssetRequest'
 
 // Validate environmental globals before executing any code.
 // This ensures that the library gives user-friendly errors

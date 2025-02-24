@@ -5,17 +5,17 @@
  * static assets by creating request handlers for them.
  *
  * @example
- * import { isAssetRequest } from 'msw'
+ * import { isCommonAssetRequest } from 'msw'
  *
  * await worker.start({
  *   onUnhandledRequest(request, print) {
- *     if (!isAssetRequest(request)) {
+ *     if (!isCommonAssetRequest(request)) {
  *       print.warning()
  *     }
  *   }
  * })
  */
-export function isAssetRequest(request: Request): boolean {
+export function isCommonAssetRequest(request: Request): boolean {
   const url = new URL(request.url)
 
   // Ignore certain protocols.

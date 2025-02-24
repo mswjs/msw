@@ -6,11 +6,11 @@ import {
   normalizeResponseInit,
 } from './utils/HttpResponse/decorators'
 
+const bodyType = Symbol('bodyType')
+
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
-
-declare const bodyType: unique symbol
 
 export interface StrictRequest<BodyType extends DefaultBodyType>
   extends Request {
@@ -37,7 +37,7 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
 export class HttpResponse extends FetchResponse {
-  [bodyType]: any
+  readonly [bodyType]: any
 
   constructor(body?: BodyInit | null, init?: HttpResponseInit) {
     const responseInit = normalizeResponseInit(init)

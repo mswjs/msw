@@ -117,57 +117,40 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 ### Usage example
 
-Take a look at the example of an integration test in Vitest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
+Here's an example of using Mock Service Worker while developing your Express server:
 
-```ts
-// test/Dashboard.test.tsx
-import * as React from 'react'
+```js
+import express from 'express'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { render, screen, waitFor } from '@testing-library/react'
-import { Dashboard } from '../src/components/dashboard'
 
-type Post = {
-  id: string
-  title: string
-}
+const app = express()
+const server = setupServer()
 
-const server = setupServer(
-  http.get<never, never, Post[]>('/posts', ({ request, params, cookies }) => {
-    return HttpResponse.json([
-      {
-        id: 'f8dd058f-9006-4174-8d49-e3086bc39c21',
-        title: `Avoid Nesting When You're Testing`,
-      },
-      {
-        id: '8ac96078-6434-4959-80ed-cc834e7fef61',
-        title: `How I Built A Modern Website In 2021`,
-      },
-    ])
+app.get(
+  '/checkout/session',
+  server.boundary((req, res) => {
+    // Describe the network for this Express route.
+    server.use(
+      http.get(
+        'https://api.stripe.com/v1/checkout/sessions/:id',
+        ({ params }) => {
+          return HttpResponse.json({
+            id: params.id,
+            mode: 'payment',
+            status: 'open',
+          })
+        },
+      ),
+    )
+
+    // Continue with processing the checkout session.
+    handleSession(req, res)
   }),
 )
-
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
-
-it('displays the list of recent posts', async () => {
-  render(<Dashboard />)
-
-  // ✅ Assert that the posts are visible.
-  await waitFor(() => {
-    expect(
-      screen.getByRole('link', { name: /Avoid Nesting When You're Testing/ }),
-    ).toBeVisible()
-
-    expect(
-      screen.getByRole('link', { name: /How I Built A Modern Website In 2021/ }),
-    ).toBeVisible()
-  })
-})
 ```
 
-Don't get overwhelmed! There's a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
+> This example showcases [`server.boundary()`](https://mswjs.io/docs/api/setup-server/boundary) to scope request interception to a particular closure, which is extremely handy!
 
 ## Sponsors
 

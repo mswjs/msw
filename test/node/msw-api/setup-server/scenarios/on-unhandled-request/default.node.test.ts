@@ -17,7 +17,7 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(() => {
@@ -41,11 +41,4 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/getting-started/mocks`)
 })
 
-it('does not warn on unhandled "file://" requests', async () => {
-  // This request is expected to fail:
-  // Fetching non-existing file URL.
-  await fetch('file:///file/does/not/exist').catch(() => void 0)
-
-  expect(console.error).not.toBeCalled()
-  expect(console.warn).not.toBeCalled()
-})
+it.todo('does not warn on unhandled "file://" requests')

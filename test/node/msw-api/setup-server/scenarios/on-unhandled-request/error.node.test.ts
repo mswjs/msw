@@ -54,7 +54,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('errors on unhandled request when using the "error" value', async () => {
+test('errors on unhandled request when using the "error" strategy', async () => {
   const endpointUrl = httpServer.http.url('/')
   const makeRequest = () => {
     return fetch(endpointUrl)

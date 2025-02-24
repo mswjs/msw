@@ -30,7 +30,7 @@
 
 ## Documentation
 
-This README will give you a brief overview on the library but there's no better place to start with Mock Service Worker than its official documentation.
+This README will give you a brief overview of the library, but there's no better place to start with Mock Service Worker than its official documentation.
 
 - [Documentation](https://mswjs.io/docs)
 - [**Getting started**](https://mswjs.io/docs/getting-started)

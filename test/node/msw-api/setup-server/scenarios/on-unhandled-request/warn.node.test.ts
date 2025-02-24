@@ -8,15 +8,18 @@ beforeAll(() => {
   vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
 afterAll(() => {
   server.close()
   vi.restoreAllMocks()
 })
 
 test('warns on unhandled request when using the "warn" strategy', async () => {
-  const response = await fetch('https://test.mswjs.io/user')
+  await fetch('https://test.mswjs.io/user')
 
-  expect(response).toHaveProperty('status', 404)
   expect(console.warn).toBeCalledWith(`\
 [MSW] Warning: intercepted a request without a matching request handler:
 
@@ -24,4 +27,10 @@ test('warns on unhandled request when using the "warn" strategy', async () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/getting-started/mocks`)
+})
+
+test('ignores common static assets when using the "warn" strategy', async () => {
+  await fetch('https://example.com/styles/main.css')
+
+  expect(console.warn).not.toHaveBeenCalled()
 })

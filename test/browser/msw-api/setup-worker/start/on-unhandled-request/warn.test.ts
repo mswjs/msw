@@ -91,3 +91,19 @@ test('does not warn on request which handler implicitly returns no mocked respon
     ]),
   )
 })
+
+test('ignores common static assets when using the "warn" strategy', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const consoleSpy = spyOnConsole()
+  await loadExample(require.resolve('./warn.mocks.ts'))
+
+  // This request will error so perform it accordingly.
+  await page.evaluate(() => {
+    return fetch('https://example.com/styles/main.css').catch(() => null)
+  })
+
+  expect(consoleSpy.get('warning')).toBeUndefined()
+})

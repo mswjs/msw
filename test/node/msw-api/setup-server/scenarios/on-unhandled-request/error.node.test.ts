@@ -45,7 +45,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(async () => {
@@ -102,6 +102,12 @@ test('does not error on request which handler implicitly returns no mocked respo
     })
   }
   await makeRequest()
+
+  expect(console.error).not.toHaveBeenCalled()
+})
+
+test('ignores common static assets when using the "error" strategy', async () => {
+  await fetch('https://example.com/styles/main.css')
 
   expect(console.error).not.toHaveBeenCalled()
 })

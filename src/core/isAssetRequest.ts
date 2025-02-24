@@ -1,6 +1,8 @@
 /**
  * Determines if the given request is a static asset request.
  * Useful when deciding which unhandled requests to ignore.
+ * @note Despite being ignored, you can still intercept and mock
+ * static assets by creating request handlers for them.
  *
  * @example
  * import { isAssetRequest } from 'msw'
@@ -15,6 +17,11 @@
  */
 export function isAssetRequest(request: Request): boolean {
   const url = new URL(request.url)
+
+  // Ignore certain protocols.
+  if (url.protocol === 'file:') {
+    return true
+  }
 
   // Ignore static assets hosts.
   if (/(fonts\.googleapis\.com)/.test(url.hostname)) {

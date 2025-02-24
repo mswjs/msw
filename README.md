@@ -10,7 +10,7 @@
 <br />
 
 <p align="center">
-  <img src="media/msw-logo.svg" width="100" alt="Mock Service Worker logo" />
+  <img src="media/msw-logo.svg" width="100" alt="The Mock Service Worker logo" />
 </p>
 
 <h1 align="center">Mock Service Worker</h1>
@@ -23,7 +23,6 @@
 </p>
 
 <br />
-
 <br />
 
 ## Features
@@ -36,7 +35,7 @@
 
 > "_I found MSW and was thrilled that not only could I still see the mocked responses in my DevTools, but that the mocks didn't have to be written in a Service Worker and could instead live alongside the rest of my app. This made it silly easy to adopt. The fact that I can use it for testing as well makes MSW a huge productivity booster._"
 >
-> – [Kent C. Dodds](https://twitter.com/kentcdodds)
+> — [Kent C. Dodds](https://twitter.com/kentcdodds)
 
 ## Documentation
 
@@ -68,12 +67,11 @@ In-browser usage is what sets Mock Service Worker apart from other tools. Utiliz
 - This library intercepts requests on the network level, which means _after_ they have been performed and "left" your application. As a result, the entirety of your code runs, giving you more confidence when mocking;
 - Imagine your application as a box. Every API mocking library out there opens your box and removes the part that does the request, placing a blackbox in its stead. Mock Service Worker leaves your box intact, 1-1 as it is in production. Instead, MSW lives in a separate box next to yours;
 - No more stubbing of `fetch`, `axios`, `react-query`, you-name-it;
-- You can reuse the same mock definition for the unit, integration, and E2E testing. Did we mention local development and debugging? Yep. All running against the same network description without the need for adapters of bloated configurations.
+- You can reuse the same mock definition for the unit, integration, and E2E testing. Did we mention local development and debugging? Yep. All running against the same network description without the need for adapters or bloated configurations.
 
 ### Usage example
 
 ```js
-// src/mocks.js
 // 1. Import the library.
 import { http, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
@@ -93,7 +91,7 @@ const worker = setupWorker(
   }),
 )
 
-// 3. Start request interception by starting the Service Worker.
+// 3. Start mocking by starting the Service Worker.
 await worker.start()
 ```
 
@@ -101,7 +99,7 @@ Performing a `GET https://github.com/octocat` request in your application will r
 
 ![Chrome DevTools Network screenshot with the request mocked](https://github.com/mswjs/msw/blob/main/media/msw-quick-look-network.png?raw=true)
 
-> **Tip:** Did you know that although Service Worker runs in a separate thread, your mock definition executes entirely on the client? This way you can use the same languages, like TypeScript, third-party libraries, and internal logic to create the mocks you need.
+> **Tip:** Did you know that although Service Worker runs in a separate thread, your request handlers execute entirely on the client? This way you can use the same languages, like TypeScript, third-party libraries, and internal logic to create the mocks you need.
 
 ## Node.js
 
@@ -121,20 +119,21 @@ There's no such thing as Service Workers in Node.js. Instead, MSW implements a [
 
 Take a look at the example of an integration test in Vitest that uses [React Testing Library](https://github.com/testing-library/react-testing-library) and Mock Service Worker:
 
-```js
-// test/Dashboard.test.js
-
-import React from 'react'
+```ts
+// test/Dashboard.test.tsx
+import * as React from 'react'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { render, screen, waitFor } from '@testing-library/react'
-import Dashboard from '../src/components/Dashboard'
+import { Dashboard } from '../src/components/dashboard'
+
+type Post = {
+  id: string
+  title: string
+}
 
 const server = setupServer(
-  // Describe network behavior with request handlers.
-  // Tip: move the handlers into their own module and
-  // import it across your browser and Node.js setups!
-  http.get('/posts', ({ request, params, cookies }) => {
+  http.get<never, never, Post[]>('/posts', ({ request, params, cookies }) => {
     return HttpResponse.json([
       {
         id: 'f8dd058f-9006-4174-8d49-e3086bc39c21',
@@ -148,48 +147,35 @@ const server = setupServer(
   }),
 )
 
-// Enable request interception.
 beforeAll(() => server.listen())
-
-// Reset handlers so that each test could alter them
-// without affecting other, unrelated tests.
 afterEach(() => server.resetHandlers())
-
-// Don't forget to clean up afterwards.
 afterAll(() => server.close())
 
 it('displays the list of recent posts', async () => {
   render(<Dashboard />)
 
-  // 🕗 Wait for the posts request to be finished.
+  // ✅ Assert that the posts are visible.
   await waitFor(() => {
     expect(
-      screen.getByLabelText('Fetching latest posts...'),
-    ).not.toBeInTheDocument()
+      screen.getByRole('link', { name: /Avoid Nesting When You're Testing/ }),
+    ).toBeVisible()
+
+    expect(
+      screen.getByRole('link', { name: /How I Built A Modern Website In 2021/ }),
+    ).toBeVisible()
   })
-
-  // ✅ Assert that the correct posts have loaded.
-  expect(
-    screen.getByRole('link', { name: /Avoid Nesting When You're Testing/ }),
-  ).toBeVisible()
-
-  expect(
-    screen.getByRole('link', { name: /How I Built A Modern Website In 2021/ }),
-  ).toBeVisible()
 })
 ```
 
-> Don't get overwhelmed! We've prepared a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
-
-Despite the API being called `setupServer`, there are no actual servers involved! The name was chosen for familiarity, and the API was designed to resemble operating with an actual server.
+Don't get overwhelmed! There's a step-by-step [**Getting started**](https://mswjs.io/docs/getting-started) tutorial that you can follow to learn how to integrate Mock Service Worker into your project.
 
 ## Sponsors
 
-Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon, and countless others. Despite that, this library remains a hobby project maintained in spare time and has no opportunity to financially support even a single full-time contributor.
+Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon, Netflix, and countless others. Despite that, it remains a hobby project maintained in a spare time and has no opportunity to financially support even a single full-time contributor.
 
 **You can change that!** Consider [sponsoring the effort](https://github.com/sponsors/mswjs) behind one of the most innovative approaches around API mocking. Raise a topic of open source sponsorships with your boss and colleagues. Let's build sustainable open source together!
 
-### Golden Sponsors
+### Golden sponsors
 
 > Become our _golden sponsor_ and get featured right here, enjoying other perks like issue prioritization and a personal consulting session with us.
 >
@@ -232,7 +218,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
   </tr>
 </table>
 
-### Silver Sponsors
+### Silver sponsors
 
 > Become our _silver sponsor_ and get your profile image and link featured right here.
 >
@@ -260,7 +246,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
   </tr>
 </table>
 
-### Bronze Sponsors
+### Bronze sponsors
 
 > Become our _bronze sponsor_ and get your profile image and link featured in this section.
 >
@@ -288,7 +274,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
   </tr>
 </table>
 
-## Awards & Mentions
+## Awards & mentions
 
 We've been extremely humbled to receive awards and mentions from the community for all the innovation and reach Mock Service Worker brings to the JavaScript ecosystem.
 

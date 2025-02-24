@@ -1,12 +1,3 @@
-> **MSW 2.0 is finally here! 🎉** Read the [Release notes](https://github.com/mswjs/msw/releases/tag/v2.0.0) and please follow the [**Migration guidelines**](https://mswjs.io/docs/migrations/1.x-to-2.x) to upgrade. If you're having any questions while upgrading, please reach out in our [Discord server](https://kettanaito.com/discord).
->
-> We've also recorded the most comprehensive introduction to MSW ever. Learn how to mock APIs like a pro in our official video course:
-
-<a href="https://egghead.io/courses/mock-rest-and-graphql-apis-with-mock-service-worker-8d471ece?af=8mci9b" target="_blank">
-  <img src="media/egghead-banner.png" alt="Mock REST and GraphQL APIs with Mock Service Worker" />
-</a>
-
-<br />
 <br />
 
 <p align="center">
@@ -48,6 +39,13 @@ This README will give you a brief overview on the library but there's no better 
 ## Examples
 
 - See the list of [**Usage examples**](https://github.com/mswjs/examples)
+
+## Courses
+
+We've partnered with Egghead to bring you quality paid materials to learn the best practices of API mocking on the web. Please give them a shot! The royalties earned from them help sustain the project's development. Thank you.
+
+- 🚀 [**Mocking REST and GraphQL APIs with Mock Service Worker**](https://egghead.io/courses/mock-rest-and-graphql-apis-with-mock-service-worker-8d471ece?af=8mci9b)
+- 🔌 [Mocking (and testing) WebSocket APIs with Mock Service Worker](https://egghead.io/courses/mocking-websocket-apis-with-mock-service-worker-9933b7f5)
 
 ## Browser
 

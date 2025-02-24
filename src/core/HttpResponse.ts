@@ -37,6 +37,8 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
 export class HttpResponse extends FetchResponse {
+  [bodyType]: any
+
   constructor(body?: BodyInit | null, init?: HttpResponseInit) {
     const responseInit = normalizeResponseInit(init)
     super(body, responseInit)

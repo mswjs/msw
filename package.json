@@ -147,16 +147,12 @@
     "@mswjs/interceptors": "^0.37.0",
     "@open-draft/deferred-promise": "^2.2.0",
     "@open-draft/until": "^2.1.0",
-    "@types/cookie": "^0.6.0",
-    "@types/statuses": "^2.0.4",
-    "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.3",
     "path-to-regexp": "^6.3.0",
     "picocolors": "^1.1.1",
     "strict-event-emitter": "^0.5.1",
-    "type-fest": "^4.26.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
@@ -166,11 +162,13 @@
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.8.1",
     "@playwright/test": "^1.48.0",
+    "@types/cookie": "^0.6.0",
     "@types/express": "^4.17.21",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "18.x",
+    "@types/statuses": "^2.0.4",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
     "@web/dev-server": "^0.4.6",
@@ -201,6 +199,7 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.3.0",
     "typescript": "^5.5.2",
+    "type-fest": "^4.26.1",
     "undici": "^6.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^2.1.8",
@@ -209,10 +208,10 @@
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "typescript": ">= 4.8.x"
+    "graphql": ">=16.8.1"
   },
   "peerDependenciesMeta": {
-    "typescript": {
+    "graphql": {
       "optional": true
     }
   },

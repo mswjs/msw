@@ -12,6 +12,14 @@ declare namespace window {
   }
 }
 
+globalThis.console = new Proxy(globalThis.console, {
+  apply(target, thisArg, argArray) {
+    process.stdout.write('console called!')
+    process.stdout.write(new Error().stack!)
+    return Reflect.apply(target as any, thisArg, argArray)
+  },
+})
+
 test('makes the actual request when called "server.connect()"', async ({
   loadExample,
   page,
@@ -112,8 +120,6 @@ test('forwards message event from the server to the client automatically', async
   }, url)
 
   expect(message).toEqual({ message: 'hello' })
-
-  await page.pause()
 })
 
 test('forwards custom event from the server to the client automatically', async ({

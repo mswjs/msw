@@ -223,6 +223,16 @@ class ServerSentEventServer {
       })
     }
 
+    // Forward stream errors from the actual server to the client.
+    source.addEventListener('error', (event) => {
+      queueMicrotask(() => {
+        // Allow the user to opt-out from this forwarding.
+        if (!event.defaultPrevented) {
+          this.client.dispatchEvent(event)
+        }
+      })
+    })
+
     return source
   }
 }
@@ -380,10 +390,6 @@ class ObservableEventSource extends EventTarget implements EventSource {
   }
 
   public dispatchEvent(event: Event): boolean {
-    if (this.readyState === this.CLOSED) {
-      return false
-    }
-
     return super.dispatchEvent(event)
   }
 
@@ -460,11 +466,22 @@ class ObservableEventSource extends EventTarget implements EventSource {
         this[kOnAnyMessage]?.(messageEvent)
         this.dispatchEvent(messageEvent)
       },
+      abort: () => {
+        throw new Error('Stream abort is not implemented')
+      },
+      close: () => {
+        this.failConnection()
+      },
     })
 
-    response.body!.pipeTo(parsingStream).then(() => {
-      this.processResponseEndOfBody(response)
-    })
+    response
+      .body!.pipeTo(parsingStream)
+      .then(() => {
+        this.processResponseEndOfBody(response)
+      })
+      .catch(() => {
+        this.failConnection()
+      })
   }
 
   private processResponseEndOfBody(response: Response): void {
@@ -554,11 +571,19 @@ class EventSourceParsingStream extends WritableStream {
   constructor(
     private underlyingSink: {
       message: (message: EventSourceMessage) => void
+      abort?: (reason: any) => void
+      close?: () => void
     },
   ) {
     super({
       write: (chunk) => {
         this.processResponseBodyChunk(chunk)
+      },
+      abort: (reason) => {
+        this.underlyingSink.abort?.(reason)
+      },
+      close: () => {
+        this.underlyingSink.close?.()
       },
     })
 

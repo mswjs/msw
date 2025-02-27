@@ -1,5 +1,8 @@
 import { setupWorker, sse } from 'msw/browser'
-import { createTestHttpServer } from '@epic-web/test-server/http'
+import {
+  createTestHttpServer,
+  TestHttpServerOptions,
+} from '@epic-web/test-server/http'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
@@ -151,7 +154,7 @@ test('forwards custom event from the server to the client automatically', async 
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse(url, ({ client, server }) => {
+      sse(url, ({ server }) => {
         server.connect()
       }),
     )
@@ -190,6 +193,7 @@ test('forwards error event from the server to the client automatically', async (
 
         return new Response(stream, {
           headers: {
+            'access-control-allow-origin': '*',
             'content-type': 'text/event-stream',
             'cache-control': 'no-cache',
             connection: 'keep-alive',
@@ -204,7 +208,7 @@ test('forwards error event from the server to the client automatically', async (
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse(url, ({ client, server }) => {
+      sse(url, ({ server }) => {
         server.connect()
       }),
     )
@@ -212,9 +216,10 @@ test('forwards error event from the server to the client automatically', async (
   }, url)
 
   const errorPromise = page.evaluate((url) => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       const source = new EventSource(url)
       source.onerror = () => resolve()
+      source.onmessage = () => reject(new Error('Must not receive a message'))
     })
   }, url)
 

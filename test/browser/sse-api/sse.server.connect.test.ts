@@ -231,3 +231,58 @@ test('forwards error event from the server to the client automatically', async (
 
   await expect(errorPromise).resolves.toBeUndefined()
 })
+
+test('forward custom stream errors from the original server to the client automatically', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(require.resolve('./sse.mocks.ts'), {
+    skipActivation: true,
+  })
+
+  await using server = await createTestHttpServer({
+    defineRoutes(routes) {
+      routes.get('/stream', () => {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.error(new Error('Custom stream error'))
+          },
+        })
+
+        return new Response(stream, {
+          headers: {
+            'access-control-allow-origin': '*',
+            'content-type': 'text/event-stream',
+            'cache-control': 'no-cache',
+            connection: 'keep-alive',
+          },
+        })
+      })
+    },
+  })
+  const url = server.http.url('/stream').href
+
+  await page.evaluate(async (url) => {
+    const { setupWorker, sse } = window.msw
+
+    const worker = setupWorker(
+      sse(url, ({ server }) => {
+        server.connect()
+      }),
+    )
+    await worker.start()
+  }, url)
+
+  const errorPromise = page.evaluate((url) => {
+    return new Promise<void>((resolve, reject) => {
+      const source = new EventSource(url)
+      source.onerror = (error) => {
+        console.log(error)
+        resolve()
+      }
+      source.onmessage = () => reject(new Error('Must not receive a message'))
+    })
+  }, url)
+
+  await expect(errorPromise).resolves.toBeUndefined()
+})

@@ -28,15 +28,16 @@ export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   path: Path
 }
 
-export enum HttpMethods {
-  HEAD = 'HEAD',
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  OPTIONS = 'OPTIONS',
-  DELETE = 'DELETE',
-}
+export const HttpMethods = {
+  HEAD: 'HEAD',
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  PATCH: 'PATCH',
+  OPTIONS: 'OPTIONS',
+  DELETE: 'DELETE',
+} as const
+export type HttpMethods = (typeof HttpMethods)[keyof typeof HttpMethods]
 
 export type RequestQuery = {
   [queryName: string]: string

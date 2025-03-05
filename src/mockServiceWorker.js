@@ -76,8 +76,11 @@ self.addEventListener('message', async function (event) {
       activeClientIds.delete(clientId)
 
       // We need to make sure we resolve any in-flight post message requests or they will never resolve 
-      inflightRequests.forEach((resolve) => resolve());
-      inflightRequests.clear();
+      const inflightRequestsForClient = inflightRequests.get(clientId)
+      if (inflightRequestsForClient) {
+        inflightRequestsForClient.forEach((resolve) => resolve())
+        inflightRequestsForClient.delete(clientId)
+      }
 
       sendToClient(client, { type: 'MOCK_DEACTIVATE_RESPONSE' })
       break
@@ -226,7 +229,7 @@ async function getResponse(event, client, requestId) {
   if (!client) {
     return passthrough()
   }
-
+  
   // Bypass initial page load requests (i.e. static assets).
   // The absence of the immediate/parent client in the map of the active clients
   // means that MSW hasn't dispatched the "MOCK_ACTIVATE" event yet
@@ -234,7 +237,7 @@ async function getResponse(event, client, requestId) {
   if (!activeClientIds.has(client.id)) {
     return passthrough()
   }
-
+  
   // Notify the client that a request has been intercepted.
   const requestBuffer = await request.arrayBuffer()
 
@@ -276,22 +279,50 @@ async function getResponse(event, client, requestId) {
   return passthrough()
 }
 
-const inflightRequests = new Map();
+const inflightRequests = new Map()
+
+function addInflightRequest(clientId, requestId, resolve) {
+  let inflightRequestsForClient = inflightRequests.get(clientId)
+
+  if (!inflightRequestsForClient) {
+    inflightRequestsForClient = new Map()
+    inflightRequests.set(clientId, inflightRequestsForClient)
+  }
+
+  inflightRequestsForClient.set(requestId, () => resolve({ type: 'PASSTHROUGH' }))
+}
+
+function completeInflightRequest(clientId, requestId) {
+  const inflightRequestsForClient = inflightRequests.get(clientId)
+
+  if (inflightRequestsForClient) {
+    inflightRequestsForClient.delete(requestId)
+
+    if (inflightRequestsForClient.size === 0) {
+      inflightRequests.delete(clientId)
+    }
+  }
+}
 
 function sendHttpRequestToClient(client, requestId, message, transferrables) {
+  // We need to make sure that the client is still active. The mocking could have been deactivated while async operations happened preparing the request 
+  if (!activeClientIds.has(client.id)) {
+    return Promise.resolve({ type: 'PASSTHROUGH' })
+  }
+
   return new Promise((resolve, reject) => {
-    inflightRequests.set(requestId, () => resolve({ type: 'PASSTHROUGH' }));
+    addInflightRequest(client.id, requestId, resolve)
 
     return sendToClient(client, message, transferrables).then(
       (data) => {
-        inflightRequests.delete(requestId);
-        resolve(data);
+        completeInflightRequest(client.id, requestId)
+        resolve(data)
       },
       (error) => {
-        inflightRequests.delete(requestId);
-        reject(error);
+        completeInflightRequest(client.id, requestId)
+        reject(error)
       },
-    );
+    )
   })
 }
 

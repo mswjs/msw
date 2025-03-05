@@ -12,6 +12,7 @@ const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
+const inflightRequests = new Map()
 
 self.addEventListener('install', function () {
   self.skipWaiting()
@@ -88,6 +89,7 @@ self.addEventListener('message', async function (event) {
 
     case 'CLIENT_CLOSED': {
       activeClientIds.delete(clientId)
+      inflightRequests.delete(clientId)
 
       const remainingClients = allClients.filter((client) => {
         return client.id !== clientId
@@ -278,8 +280,6 @@ async function getResponse(event, client, requestId) {
 
   return passthrough()
 }
-
-const inflightRequests = new Map()
 
 function addInflightRequest(clientId, requestId, resolve) {
   let inflightRequestsForClient = inflightRequests.get(clientId)

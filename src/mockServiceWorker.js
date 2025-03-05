@@ -75,14 +75,7 @@ self.addEventListener('message', async function (event) {
 
     case 'MOCK_DEACTIVATE': {
       activeClientIds.delete(clientId)
-
-      // We need to make sure we resolve any in-flight post message requests or they will never resolve 
-      const inflightRequestsForClient = inflightRequests.get(clientId)
-      if (inflightRequestsForClient) {
-        inflightRequestsForClient.forEach((resolve) => resolve())
-        inflightRequestsForClient.delete(clientId)
-      }
-
+      resolveInflightRequests(clientId)
       sendToClient(client, { type: 'MOCK_DEACTIVATE_RESPONSE' })
       break
     }
@@ -301,6 +294,15 @@ function completeInflightRequest(clientId, requestId) {
     if (inflightRequestsForClient.size === 0) {
       inflightRequests.delete(clientId)
     }
+  }
+}
+
+function resolveInflightRequests(clientId) {
+  // We need to make sure we resolve any in-flight post message requests or they will never resolve 
+  const inflightRequestsForClient = inflightRequests.get(clientId)
+  if (inflightRequestsForClient) {
+    inflightRequestsForClient.forEach((resolve) => resolve())
+    inflightRequestsForClient.delete(clientId)
   }
 }
 

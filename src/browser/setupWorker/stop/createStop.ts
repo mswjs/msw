@@ -5,7 +5,7 @@ import { printStopMessage } from './utils/printStopMessage'
 export const createStop = (
   context: SetupWorkerInternalContext,
 ): StopHandler => {
-  return function stop() {
+  return async function stop() {
     // Warn developers calling "worker.stop()" more times than necessary.
     // This likely indicates a mistake in their code.
     if (!context.isMockingEnabled) {
@@ -21,6 +21,8 @@ export const createStop = (
      * the worker-client relation. Does not affect the worker's lifecycle.
      */
     context.workerChannel.send('MOCK_DEACTIVATE')
+    await context.events.once('MOCK_DEACTIVATE_RESPONSE')
+
     context.isMockingEnabled = false
     window.clearInterval(context.keepAliveInterval)
 

@@ -74,6 +74,12 @@ self.addEventListener('message', async function (event) {
 
     case 'MOCK_DEACTIVATE': {
       activeClientIds.delete(clientId)
+
+      // We need to make sure we resolve any in-flight post message requests or they will never resolve 
+      inflightRequests.forEach((resolve) => resolve());
+      inflightRequests.clear();
+
+      sendToClient(client, { type: 'MOCK_DEACTIVATE_RESPONSE' })
       break
     }
 
@@ -231,8 +237,10 @@ async function getResponse(event, client, requestId) {
 
   // Notify the client that a request has been intercepted.
   const requestBuffer = await request.arrayBuffer()
-  const clientMessage = await sendToClient(
+
+  const clientMessage = await sendHttpRequestToClient(
     client,
+    requestId,
     {
       type: 'REQUEST',
       payload: {
@@ -266,6 +274,25 @@ async function getResponse(event, client, requestId) {
   }
 
   return passthrough()
+}
+
+const inflightRequests = new Map();
+
+function sendHttpRequestToClient(client, requestId, message, transferrables) {
+  return new Promise((resolve, reject) => {
+    inflightRequests.set(requestId, () => resolve({ type: 'PASSTHROUGH' }));
+
+    return sendToClient(client, message, transferrables).then(
+      (data) => {
+        inflightRequests.delete(requestId);
+        resolve(data);
+      },
+      (error) => {
+        inflightRequests.delete(requestId);
+        reject(error);
+      },
+    );
+  })
 }
 
 function sendToClient(client, message, transferrables = []) {

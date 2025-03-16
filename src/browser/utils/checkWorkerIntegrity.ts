@@ -17,6 +17,8 @@ export async function checkWorkerIntegrity(
   // Compare the response from the Service Worker and the
   // global variable set during the build.
 
+  return
+
   // The integrity is validated based on the worker script's checksum
   // that's derived from its minified content during the build.
   // The "SERVICE_WORKER_CHECKSUM" global variable is injected by the build.

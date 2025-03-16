@@ -34,6 +34,10 @@ self.addEventListener('message', async function (event) {
     return
   }
 
+  const allClients = await self.clients.matchAll({
+    type: 'window',
+  })
+
   switch (event.data) {
     case 'KEEPALIVE_REQUEST': {
       sendToClient(client, {
@@ -64,7 +68,7 @@ self.addEventListener('message', async function (event) {
             frameType: client.frameType,
           },
         },
-        clientId: clientId, //add clientID
+        clientId,
       })
       break
     }
@@ -75,10 +79,6 @@ self.addEventListener('message', async function (event) {
     }
 
     case 'CLIENT_CLOSED': {
-      const allClients = await self.clients.matchAll({
-        type: 'window',
-      })
-
       activeClientIds.delete(clientId)
 
       const remainingClients = allClients.filter((client) => {
@@ -126,7 +126,7 @@ self.addEventListener('fetch', function (event) {
 })
 
 async function handleRequest(event, requestId) {
-  const client = await self.clients.get(event.clientId)
+  const client = await resolveMainClient(event)
   const response = await getResponse(event, client, requestId)
 
   // Send back the response clone for the "response:*" life-cycle events.
@@ -156,6 +156,36 @@ async function handleRequest(event, requestId) {
   }
 
   return response
+}
+// Resolve the main client for the given event.
+// Client that issues a request doesn't necessarily equal the client
+// that registered the worker. It's with the latter the worker should
+// communicate with during the response resolving phase.
+async function resolveMainClient(event) {
+  const client = await self.clients.get(event.clientId)
+
+  if (activeClientIds.has(event.clientId)) {
+    return client
+  }
+
+  if (client?.frameType === 'top-level') {
+    return client
+  }
+
+  const allClients = await self.clients.matchAll({
+    type: 'window',
+  })
+
+  return allClients
+    .filter((client) => {
+      // Get only those clients that are currently visible.
+      return client.visibilityState === 'visible'
+    })
+    .find((client) => {
+      // Find the client ID that's recorded in the
+      // set of clients that have registered the worker.
+      return activeClientIds.has(client.id)
+    })
 }
 
 async function getResponse(event, client, requestId) {

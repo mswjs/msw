@@ -38,7 +38,6 @@ export const createRequestListener = (
     // request handler would skip the cloning phase.
     const requestClone = request.clone()
     RequestHandler.cache.set(request, requestClone)
-
     context.requests.set(requestId, requestClone)
 
     try {

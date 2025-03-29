@@ -7,12 +7,14 @@ import {
   UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
+import { kWebSocketLinkOptions } from '../ws'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
   getHandlers: () => Array<RequestHandler | WebSocketHandler>
   onMockedConnection: (connection: WebSocketConnectionData) => void
   onPassthroughConnection: (onnection: WebSocketConnectionData) => void
+  onAttachLogger?: (connection: WebSocketConnectionData) => void
 }
 
 export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
@@ -45,6 +47,16 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
 
     if (matchingHandlers.length > 0) {
       options?.onMockedConnection(connection)
+
+      // Only prompt to attach the logger if any of the WebSocket links
+      // were created without the `quiet` option.
+      if (
+        matchingHandlers.some((handler) => {
+          return !handler[kWebSocketLinkOptions]?.quiet
+        })
+      ) {
+        options?.onAttachLogger?.(connection)
+      }
 
       // Iterate over the handlers and forward the connection
       // event to WebSocket event handlers. This is equivalent

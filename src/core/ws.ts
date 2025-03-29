@@ -85,6 +85,12 @@ export type WebSocketLink = {
   ): void
 }
 
+export interface WebSocketLinkOptions {
+  quiet?: boolean
+}
+
+export const kWebSocketLinkOptions = Symbol('kWebSocketLinkOptions')
+
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
@@ -94,7 +100,10 @@ export type WebSocketLink = {
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path): WebSocketLink {
+function createWebSocketLinkHandler(
+  url: Path,
+  options?: WebSocketLinkOptions,
+): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
@@ -111,6 +120,8 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     },
     addEventListener(event, listener) {
       const handler = new WebSocketHandler(url)
+
+      Reflect.set(handler, kWebSocketLinkOptions, options)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.

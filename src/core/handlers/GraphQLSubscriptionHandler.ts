@@ -79,10 +79,9 @@ export class GraphQLInternalPubsub {
     const webSocketUrl =
       typeof url === 'string' ? url.replace(/^http/, 'ws') : url
 
-    /**
-     * @todo Support `log: false` not to print logs from the underlying WS handler.
-     */
-    this.webSocketLink = ws.link(webSocketUrl)
+    this.webSocketLink = ws.link(webSocketUrl, {
+      quiet: true,
+    })
 
     const webSocketHandler = this.webSocketLink.addEventListener(
       'connection',

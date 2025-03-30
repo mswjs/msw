@@ -4,7 +4,7 @@ import type {
   GraphQLQuery,
   GraphQLVariables,
 } from './GraphQLHandler'
-import type { Path } from '../utils/matching/matchRequestUrl'
+import type { Path, PathParams } from '../utils/matching/matchRequestUrl'
 import { parseDocumentNode } from '../utils/internal/parseGraphQLRequest'
 import { WebSocketLink, ws } from '../ws'
 import { WebSocketHandler } from './WebSocketHandler'
@@ -207,6 +207,7 @@ export interface GraphQLSubscriptionHandlerInfo<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > {
+  params: PathParams
   operationName: string
 
   /**
@@ -221,7 +222,7 @@ export function createGraphQLSubscriptionHandler(
   return (operationName, resolver) => {
     const subscriptionHandler = internalPubsub.webSocketLink.addEventListener(
       'connection',
-      ({ client }) => {
+      ({ client, params }) => {
         client.addEventListener('message', async (event) => {
           if (typeof event.data !== 'string') {
             return
@@ -247,10 +248,8 @@ export function createGraphQLSubscriptionHandler(
                 internalPubsub,
               })
 
-              /**
-               * @todo Add the path parameters from the pubsub URL.
-               */
               resolver({
+                params,
                 operationName: node.operationName,
                 subscription,
               })

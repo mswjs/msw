@@ -14,7 +14,6 @@ import {
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
 import {
-  GraphQLPubsub,
   GraphQLInternalPubsub,
   createGraphQLSubscriptionHandler,
   GraphQLSubscriptionHandler,
@@ -131,13 +130,15 @@ const standardGraphQLHandlers: GraphQLHandlers = {
 }
 
 export interface GraphQLLink extends GraphQLHandlers {
-  pubsub: GraphQLPubsub
-
   /**
    * Intercepts a GraphQL subscription by its name.
    *
    * @example
-   * graphql.subscription('OnPostAdded', resolver)
+   * graphql.subscription('OnPostAdded', ({ pubsub }) => {
+   *   pubsub.publish({
+   *    data: { postAdded: { id: 'abc-123' } },
+   *   })
+   * })
    */
   subscription: GraphQLSubscriptionHandler
 }
@@ -149,13 +150,12 @@ function createGraphQLLink(url: Path): GraphQLLink {
     query: createScopedGraphQLHandler(OperationTypeNode.QUERY, url),
     mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, url),
     subscription: createGraphQLSubscriptionHandler(internalPubSub),
-    pubsub: internalPubSub.pubsub,
     operation: createGraphQLOperationHandler(url),
   }
 }
 
 /**
- * A namespace to intercept and mock GraphQL operations
+ * A namespace to intercept and mock GraphQL operations.
  *
  * @example
  * graphql.query('GetUser', resolver)

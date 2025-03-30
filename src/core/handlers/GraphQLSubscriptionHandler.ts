@@ -10,6 +10,7 @@ import { WebSocketLink, ws } from '../ws'
 import { WebSocketHandler } from './WebSocketHandler'
 import { jsonParse } from '../utils/internal/jsonParse'
 import type { TypedDocumentNode } from '../graphql'
+import { BatchHandler } from './BatchHandler'
 
 export interface GraphQLPubsub {
   /**
@@ -63,6 +64,8 @@ interface GraphQLWebSocketSubscribeMessagePayload<
   extensions: Array<unknown>
 }
 
+const kPubSubHandlerAdded = Symbol('pubsubHandlerAdded')
+
 export class GraphQLInternalPubsub {
   public pubsub: GraphQLPubsub
   public webSocketLink: WebSocketLink
@@ -71,11 +74,8 @@ export class GraphQLInternalPubsub {
   constructor(public readonly url: Path) {
     this.subscriptions = new Map()
 
-    /**
-     * @fixme This isn't nice.
-     * This is here to translate HTTP URLs from `graphql.link` to a WS URL.
-     * Works for strings but won't work for RegExp.
-     */
+    // Translate the HTTP predicate from `graphql.link()` to a WebSocket URL.
+    // Preserve regular expressions.
     const webSocketUrl =
       typeof url === 'string' ? url.replace(/^http/, 'ws') : url
 
@@ -172,7 +172,6 @@ export class GraphQLSubscription<
 
   /**
    * Publishes data to this subscription.
-   * @param {Query} payload Data to publish.
    */
   public publish(payload: { data?: Query }): void {
     this.args.internalPubsub.pubsub.publish(payload, ({ subscription }) => {
@@ -202,7 +201,7 @@ export type GraphQLSubscriptionHandler = <
     | DocumentNode
     | TypedDocumentNode<Query, Variables>,
   resolver: (info: GraphQLSubscriptionHandlerInfo<Query, Variables>) => void,
-) => WebSocketHandler
+) => BatchHandler | WebSocketHandler
 
 export interface GraphQLSubscriptionHandlerInfo<
   Query extends GraphQLQuery,
@@ -220,7 +219,7 @@ export function createGraphQLSubscriptionHandler(
   internalPubsub: GraphQLInternalPubsub,
 ): GraphQLSubscriptionHandler {
   return (operationName, resolver) => {
-    const webSocketHandler = internalPubsub.webSocketLink.addEventListener(
+    const subscriptionHandler = internalPubsub.webSocketLink.addEventListener(
       'connection',
       ({ client }) => {
         client.addEventListener('message', async (event) => {
@@ -261,6 +260,19 @@ export function createGraphQLSubscriptionHandler(
       },
     )
 
-    return webSocketHandler
+    // Skip adding the internal pubsub WebSocket handler if it was already added.
+    // We only need that handler once, and there's no need to pollute the handlers.
+    if (Reflect.get(internalPubsub.pubsub.handler, kPubSubHandlerAdded)) {
+      return subscriptionHandler
+    }
+
+    // If this is the first time using this subscription, add a batch handler.
+    const batchSubscriptionHandler = new BatchHandler([
+      internalPubsub.pubsub.handler,
+      subscriptionHandler,
+    ])
+    Reflect.set(internalPubsub.pubsub.handler, kPubSubHandlerAdded, true)
+
+    return batchSubscriptionHandler
   }
 }

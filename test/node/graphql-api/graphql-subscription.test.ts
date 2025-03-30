@@ -21,7 +21,6 @@ it('intercepts and mocks a GraphQL subscription', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
-    api.pubsub.handler,
     api.subscription('OnCommendAdded', ({ subscription }) => {
       subscription.publish({
         data: {
@@ -64,7 +63,6 @@ it('marks subscription as complete by calling `subscription.complete`', async ()
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
-    api.pubsub.handler,
     api.subscription('OnCommendAdded', ({ subscription }) => {
       queueMicrotask(() => {
         subscription.complete()

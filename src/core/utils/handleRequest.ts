@@ -3,6 +3,7 @@ import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import type { RequestHandler } from '../handlers/RequestHandler'
+import type { BatchHandler } from '../handlers/BatchHandler'
 import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { storeResponseCookies } from './request/storeResponseCookies'
@@ -39,7 +40,7 @@ export interface HandleRequestOptions {
 export async function handleRequest(
   request: Request,
   requestId: string,
-  handlers: Array<RequestHandler>,
+  handlers: Array<RequestHandler | BatchHandler>,
   options: RequiredDeep<SharedOptions>,
   emitter: Emitter<LifeCycleEventsMap>,
   handleRequestOptions?: HandleRequestOptions,

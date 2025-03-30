@@ -86,6 +86,10 @@ export type WebSocketLink = {
 }
 
 export interface WebSocketLinkOptions {
+  /**
+   * Disables the logging of the intercepted WebSocket events
+   * in the browser's console.
+   */
   quiet?: boolean
 }
 

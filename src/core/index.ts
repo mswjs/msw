@@ -14,7 +14,7 @@ export type {
 } from './handlers/GraphQLSubscriptionHandler'
 
 /* WebSocket handler */
-export { ws, type WebSocketLink } from './ws'
+export { ws, type WebSocketLink, type WebSocketLinkOptions } from './ws'
 export {
   WebSocketHandler,
   type WebSocketHandlerEventMap,

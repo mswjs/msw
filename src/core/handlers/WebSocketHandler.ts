@@ -9,7 +9,6 @@ import {
 } from '../utils/matching/matchRequestUrl'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import type { HandlerKind } from './common'
-import { kWebSocketLinkOptions, WebSocketLinkOptions } from '../ws'
 
 type WebSocketHandlerParsedResult = {
   match: Match
@@ -26,12 +25,12 @@ export interface WebSocketHandlerConnection extends WebSocketConnectionData {
 export const kEmitter = Symbol('kEmitter')
 export const kDispatchEvent = Symbol('kDispatchEvent')
 export const kSender = Symbol('kSender')
+
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
 export class WebSocketHandler {
   private readonly __kind: HandlerKind
-  private readonly [kWebSocketLinkOptions]!: WebSocketLinkOptions
 
   public id: string
   public callFrame?: string

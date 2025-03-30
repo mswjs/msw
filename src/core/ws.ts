@@ -93,8 +93,6 @@ export interface WebSocketLinkOptions {
   quiet?: boolean
 }
 
-export const kWebSocketLinkOptions = Symbol('kWebSocketLinkOptions')
-
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
@@ -124,8 +122,7 @@ function createWebSocketLinkHandler(
     },
     addEventListener(event, listener) {
       const handler = new WebSocketHandler(url)
-
-      Reflect.set(handler, kWebSocketLinkOptions, options)
+      setWebSocketLinkOptions(handler, options)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.
@@ -163,6 +160,21 @@ function createWebSocketLinkHandler(
       })
     },
   }
+}
+
+const kWebSocketLinkOptions = Symbol('WebSocketLinkOptions')
+
+export function getWebSocketLinkOptions(
+  handler: WebSocketHandler,
+): WebSocketLinkOptions | undefined {
+  return Reflect.get(handler, kWebSocketLinkOptions)
+}
+
+export function setWebSocketLinkOptions(
+  handler: WebSocketHandler,
+  options?: WebSocketLinkOptions,
+): void {
+  Reflect.set(handler, kWebSocketLinkOptions, options)
 }
 
 /**

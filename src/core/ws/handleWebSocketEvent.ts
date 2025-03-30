@@ -8,7 +8,7 @@ import {
   UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
-import { kWebSocketLinkOptions } from '../ws'
+import { getWebSocketLinkOptions } from '../ws'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
@@ -59,7 +59,7 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
       // were created without the `quiet` option.
       if (
         matchingHandlers.some((handler) => {
-          return !handler[kWebSocketLinkOptions]?.quiet
+          return getWebSocketLinkOptions(handler)?.quiet !== true
         })
       ) {
         options?.onAttachLogger?.(connection)

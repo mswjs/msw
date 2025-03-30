@@ -134,8 +134,8 @@ export interface GraphQLLink extends GraphQLHandlers {
    * Intercepts a GraphQL subscription by its name.
    *
    * @example
-   * graphql.subscription('OnPostAdded', ({ pubsub }) => {
-   *   pubsub.publish({
+   * graphql.subscription('OnPostAdded', ({ subscription }) => {
+   *   subscription.publish({
    *    data: { postAdded: { id: 'abc-123' } },
    *   })
    * })

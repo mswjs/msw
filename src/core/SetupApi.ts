@@ -7,36 +7,47 @@ import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
 import { Disposable } from './utils/internal/Disposable'
 import type { WebSocketHandler } from './handlers/WebSocketHandler'
+import { BatchHandler } from './handlers/BatchHandler'
 
 export abstract class HandlersController {
   abstract prepend(
-    runtimeHandlers: Array<RequestHandler | WebSocketHandler>,
+    runtimeHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>,
   ): void
-  abstract reset(nextHandles: Array<RequestHandler | WebSocketHandler>): void
-  abstract currentHandlers(): Array<RequestHandler | WebSocketHandler>
+  abstract reset(
+    nextHandles: Array<RequestHandler | WebSocketHandler | BatchHandler>,
+  ): void
+  abstract currentHandlers(): Array<
+    RequestHandler | WebSocketHandler | BatchHandler
+  >
 }
 
 export class InMemoryHandlersController implements HandlersController {
-  private handlers: Array<RequestHandler | WebSocketHandler>
+  private handlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
 
   constructor(
-    private initialHandlers: Array<RequestHandler | WebSocketHandler>,
+    private initialHandlers: Array<
+      RequestHandler | WebSocketHandler | BatchHandler
+    >,
   ) {
     this.handlers = [...initialHandlers]
   }
 
   public prepend(
-    runtimeHandles: Array<RequestHandler | WebSocketHandler>,
+    runtimeHandles: Array<RequestHandler | WebSocketHandler | BatchHandler>,
   ): void {
     this.handlers.unshift(...runtimeHandles)
   }
 
-  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>): void {
+  public reset(
+    nextHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>,
+  ): void {
     this.handlers =
       nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers]
   }
 
-  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
+  public currentHandlers(): Array<
+    RequestHandler | WebSocketHandler | BatchHandler
+  > {
     return this.handlers
   }
 }
@@ -81,7 +92,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
   }
 
   public use(
-    ...runtimeHandlers: Array<RequestHandler | WebSocketHandler>
+    ...runtimeHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
   ): void {
     invariant(
       this.validateHandlers(runtimeHandlers),
@@ -108,7 +119,11 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
   }
 
   public listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler> {
-    return toReadonlyArray(this.handlersController.currentHandlers())
+    return toReadonlyArray(
+      this.handlersController.currentHandlers().flatMap((handler) => {
+        return handler instanceof BatchHandler ? handler.entries : handler
+      }),
+    )
   }
 
   private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {

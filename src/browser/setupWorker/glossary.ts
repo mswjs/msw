@@ -7,9 +7,10 @@ import {
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
+import type { BatchHandler } from '~/core/handlers/BatchHandler'
 import type { Path } from '~/core/utils/matching/matchRequestUrl'
 import type { RequiredDeep } from '~/core/typeUtils'
-import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 
 export type ResolvedPath = Path | URL
 
@@ -90,7 +91,7 @@ export interface SetupWorkerInternalContext {
   startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  getRequestHandlers(): Array<RequestHandler | WebSocketHandler>
+  getRequestHandlers(): Array<RequestHandler | WebSocketHandler | BatchHandler>
   requests: Map<string, Request>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
@@ -214,7 +215,9 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()` API reference}
    */
-  use: (...handlers: Array<RequestHandler | WebSocketHandler>) => void
+  use: (
+    ...handlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
+  ) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.

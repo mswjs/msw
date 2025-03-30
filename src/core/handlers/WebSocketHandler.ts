@@ -25,6 +25,7 @@ export interface WebSocketHandlerConnection extends WebSocketConnectionData {
 export const kEmitter = Symbol('kEmitter')
 export const kDispatchEvent = Symbol('kDispatchEvent')
 export const kSender = Symbol('kSender')
+
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 

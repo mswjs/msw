@@ -1,5 +1,6 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
-import { RequestHandler } from '../handlers/RequestHandler'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import { BatchHandler } from '../handlers/BatchHandler'
 import { WebSocketHandler, kDispatchEvent } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'
 import {
@@ -7,17 +8,25 @@ import {
   UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
+import { getWebSocketLinkOptions } from '../ws'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
-  getHandlers: () => Array<RequestHandler | WebSocketHandler>
+  getHandlers: () => Array<RequestHandler | WebSocketHandler | BatchHandler>
   onMockedConnection: (connection: WebSocketConnectionData) => void
   onPassthroughConnection: (onnection: WebSocketConnectionData) => void
+  onAttachLogger?: (connection: WebSocketConnectionData) => void
 }
 
 export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
   webSocketInterceptor.on('connection', async (connection) => {
-    const handlers = options.getHandlers()
+    const handlers = options.getHandlers().flatMap((handler) => {
+      if (handler instanceof BatchHandler) {
+        return handler.unwrapHandlers('EventHandler')
+      }
+
+      return handler
+    })
 
     const connectionEvent = new MessageEvent('connection', {
       data: connection,
@@ -45,6 +54,16 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
 
     if (matchingHandlers.length > 0) {
       options?.onMockedConnection(connection)
+
+      // Only prompt to attach the logger if any of the WebSocket links
+      // were created without the `quiet` option.
+      if (
+        matchingHandlers.some((handler) => {
+          return getWebSocketLinkOptions(handler)?.quiet !== true
+        })
+      ) {
+        options?.onAttachLogger?.(connection)
+      }
 
       // Iterate over the handlers and forward the connection
       // event to WebSocket event handlers. This is equivalent

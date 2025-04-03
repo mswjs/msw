@@ -29,14 +29,8 @@ importers:
       '@open-draft/until':
         specifier: ^2.1.0
         version: 2.1.0
-      '@types/cookie':
-        specifier: ^0.6.0
-        version: 0.6.0
-      '@types/statuses':
-        specifier: ^2.0.4
-        version: 2.0.5
       graphql:
-        specifier: ^16.8.1
+        specifier: '>=16.8.1'
         version: 16.8.2
       headers-polyfill:
         specifier: ^4.0.2
@@ -56,9 +50,6 @@ importers:
       strict-event-emitter:
         specifier: ^0.5.1
         version: 0.5.1
-      type-fest:
-        specifier: ^4.26.1
-        version: 4.29.0
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -81,6 +72,9 @@ importers:
       '@playwright/test':
         specifier: ^1.48.0
         version: 1.49.0
+      '@types/cookie':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
@@ -96,6 +90,9 @@ importers:
       '@types/node':
         specifier: 18.x
         version: 18.19.28
+      '@types/statuses':
+        specifier: ^2.0.4
+        version: 2.0.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.8.1
         version: 8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.5.2))(eslint@8.57.0)(typescript@5.5.2)
@@ -183,6 +180,9 @@ importers:
       tsup:
         specifier: ^8.3.0
         version: 8.3.5(@swc/core@1.9.3)(jiti@1.21.0)(postcss@8.4.38)(typescript@5.5.2)(yaml@2.5.1)
+      type-fest:
+        specifier: ^4.26.1
+        version: 4.29.0
       typescript:
         specifier: ^5.5.2
         version: 5.5.2

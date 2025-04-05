@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import type { Interceptor, HttpRequestEventMap } from '@mswjs/interceptors'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
@@ -52,11 +53,15 @@ export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
-  constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
-    super(
-      [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
-      handlers,
-    )
+  constructor(
+    handlers: Array<RequestHandler | WebSocketHandler>,
+    customInterceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }> = [
+      ClientRequestInterceptor,
+      XMLHttpRequestInterceptor,
+      FetchInterceptor,
+    ],
+  ) {
+    super(customInterceptors, handlers)
 
     this.handlersController = new AsyncHandlersController(handlers)
   }

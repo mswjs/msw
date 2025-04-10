@@ -9,9 +9,5 @@
     "types": ["vitest/globals"]
   },
   "include": ["./src/**/*.test.ts", "./test/support"],
-  "references": [
-    {
-      "path": "./src/tsconfig.src.json"
-    }
-  ]
+  "references": [{ "path": "./src/tsconfig.node.json" }]
 }

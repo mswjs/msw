@@ -157,6 +157,7 @@ async function handleRequest(event, requestId) {
 
   return response
 }
+
 // Resolve the main client for the given event.
 // Client that issues a request doesn't necessarily equal the client
 // that registered the worker. It's with the latter the worker should

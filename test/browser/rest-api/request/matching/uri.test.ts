@@ -143,3 +143,18 @@ test('supports escaped parentheses in the request URL', async ({
     mocked: true,
   })
 })
+
+test('matches a relative URL starting with search parameters', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(require.resolve('./uri.mocks.ts'))
+
+  const response = await fetch('?resourceId=abc-123')
+
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  expect(await response.json()).toEqual({
+    mocked: true,
+  })
+})

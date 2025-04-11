@@ -72,6 +72,7 @@ export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
   | {
       data?: BodyType | null
       errors?: readonly Partial<GraphQLError>[] | null
+      extensions?: Record<string, any>
     }
   | null
   | undefined

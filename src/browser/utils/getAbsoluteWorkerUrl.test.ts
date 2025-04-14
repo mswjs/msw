@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { getAbsoluteWorkerUrl } from './getAbsoluteWorkerUrl'
 
 const rawLocation = window.location

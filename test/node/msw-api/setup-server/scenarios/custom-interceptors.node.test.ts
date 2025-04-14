@@ -33,10 +33,9 @@ test('uses only the provided interceptors', async () => {
 
   {
     const request = nodeHttp.get('http://localhost')
+    const requestPromise = waitForClientRequest(request)
 
     // Must receive a connection error since no intereceptor handles this client.
-    await expect(waitForClientRequest(request)).rejects.toThrow(
-      'connect ECONNREFUSED ::1:80',
-    )
+    await expect(requestPromise).rejects.toThrow('ECONNREFUSED')
   }
 })

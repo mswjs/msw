@@ -147,6 +147,7 @@
     "@mswjs/interceptors": "^0.37.0",
     "@open-draft/deferred-promise": "^2.2.0",
     "@open-draft/until": "^2.1.0",
+    "@standard-schema/spec": "^1.0.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
     "graphql": "^16.8.1",
@@ -206,7 +207,8 @@
     "vitest": "^2.1.8",
     "vitest-environment-miniflare": "^2.14.4",
     "webpack": "^5.95.0",
-    "webpack-http-server": "^0.5.0"
+    "webpack-http-server": "^0.5.0",
+    "zod": "^3.24.2"
   },
   "peerDependencies": {
     "typescript": ">= 4.8.x"

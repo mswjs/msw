@@ -3,9 +3,9 @@ import './App.css'
 import { useEffect } from 'react'
 
 function App() {
-  useEffect(() => {
-    fetch('https://example.com/user')
-  })
+  // useEffect(() => {
+  //   fetch('https://example.com/user')
+  // })
 
   return (
     <div className="App">

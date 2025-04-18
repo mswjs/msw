@@ -1,4 +1,8 @@
 import type { StrictResponse } from './HttpResponse'
+import {
+  REQUEST_INTENTION_HEADER_NAME,
+  RequestIntention,
+} from './utils/internal/requestUtils'
 
 /**
  * Performs the intercepted request as-is.
@@ -19,7 +23,7 @@ export function passthrough(): StrictResponse<any> {
     status: 302,
     statusText: 'Passthrough',
     headers: {
-      'x-msw-intention': 'passthrough',
+      [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.passthrough,
     },
   }) as StrictResponse<any>
 }

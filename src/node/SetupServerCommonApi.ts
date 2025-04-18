@@ -37,14 +37,14 @@ export class SetupServerCommonApi
   private resolvedOptions: RequiredDeep<SharedOptions>
 
   constructor(
-    interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
+    interceptors: Array<Interceptor<HttpRequestEventMap>>,
     handlers: Array<RequestHandler | WebSocketHandler>,
   ) {
     super(...handlers)
 
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
-      interceptors: interceptors.map((Interceptor) => new Interceptor()),
+      interceptors,
     })
 
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>

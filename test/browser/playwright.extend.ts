@@ -43,7 +43,7 @@ export interface TestFixtures {
   ): Promise<Response>
   query(uri: string, options: GraphQLQueryOptions): Promise<Response>
   makeUrl(path: string): string
-  spyOnConsole(): ConsoleMessages
+  spyOnConsole(page?: Page): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
 }
@@ -305,8 +305,8 @@ export const test = base.extend<TestFixtures>({
   async spyOnConsole({ page }, use) {
     let messages: ConsoleMessages | undefined
 
-    await use(() => {
-      messages = spyOnConsole(page as any)
+    await use((exactPage) => {
+      messages = spyOnConsole(exactPage || (page as any))
       return messages
     })
 

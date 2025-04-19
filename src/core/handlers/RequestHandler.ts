@@ -325,6 +325,7 @@ export abstract class RequestHandler<
       if (!this.resolverIterator) {
         const result = await resolver(info)
         if (!isIterable(result)) {
+          this.isUsed = result instanceof Response
           return result
         }
         this.resolverIterator =
@@ -346,8 +347,7 @@ export abstract class RequestHandler<
       if (done) {
         // A one-time generator resolver stops affecting the network
         // only after it's been completely exhausted.
-        this.isUsed = true
-
+        this.isUsed = nextResponse instanceof Response
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
         return this.resolverIteratorResult?.clone()

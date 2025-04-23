@@ -5,6 +5,7 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
+  WebSocketHandlerOptions,
   kEmitter,
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
@@ -85,13 +86,7 @@ export type WebSocketLink = {
   ): void
 }
 
-export interface WebSocketLinkOptions {
-  /**
-   * Disables the logging of the intercepted WebSocket events
-   * in the browser's console.
-   */
-  quiet?: boolean
-}
+export interface WebSocketLinkOptions extends WebSocketHandlerOptions {}
 
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
@@ -121,8 +116,7 @@ function createWebSocketLinkHandler(
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const handler = new WebSocketHandler(url)
-      setWebSocketLinkOptions(handler, options)
+      const handler = new WebSocketHandler(url, options)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.
@@ -160,21 +154,6 @@ function createWebSocketLinkHandler(
       })
     },
   }
-}
-
-const kWebSocketLinkOptions = Symbol('WebSocketLinkOptions')
-
-export function getWebSocketLinkOptions(
-  handler: WebSocketHandler,
-): WebSocketLinkOptions | undefined {
-  return Reflect.get(handler, kWebSocketLinkOptions)
-}
-
-export function setWebSocketLinkOptions(
-  handler: WebSocketHandler,
-  options?: WebSocketLinkOptions,
-): void {
-  Reflect.set(handler, kWebSocketLinkOptions, options)
 }
 
 /**

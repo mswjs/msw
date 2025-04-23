@@ -8,7 +8,6 @@ import {
   UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
-import { getWebSocketLinkOptions } from '../ws'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
@@ -59,7 +58,7 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
       // were created without the `quiet` option.
       if (
         matchingHandlers.some((handler) => {
-          return getWebSocketLinkOptions(handler)?.quiet !== true
+          return handler?.options.quiet !== true
         })
       ) {
         options?.onAttachLogger?.(connection)

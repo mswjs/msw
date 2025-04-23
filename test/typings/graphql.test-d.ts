@@ -5,7 +5,7 @@ import {
   HttpResponse,
   passthrough,
   GraphQLSubscription,
-  GraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandlerFactory,
 } from 'msw'
 
 it('graphql mutation can be used without variables generic type', () => {
@@ -224,7 +224,7 @@ it('exposes a "subscription" method only on a GraphQL link', () => {
   expectTypeOf(graphql).not.toHaveProperty('subscription')
   expectTypeOf(
     graphql.link('http://localhost:4000').subscription,
-  ).toEqualTypeOf<GraphQLSubscriptionHandler>()
+  ).toEqualTypeOf<GraphQLSubscriptionHandlerFactory>()
 })
 
 it('exposes the resolver info for a graphql subscription', () => {

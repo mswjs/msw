@@ -1,4 +1,4 @@
-import { DocumentNode, OperationTypeNode } from 'graphql'
+import { OperationTypeNode } from 'graphql'
 import type {
   GraphQLHandlerNameSelector,
   GraphQLQuery,
@@ -11,10 +11,11 @@ import { WebSocketHandler } from './WebSocketHandler'
 import { jsonParse } from '../utils/internal/jsonParse'
 import type { TypedDocumentNode } from '../graphql'
 import { BatchHandler } from './BatchHandler'
+import { createRequestId } from '@mswjs/interceptors'
 
 export interface GraphQLPubsub {
   /**
-   * A WebSocket handler to intercept GraphQL subscription events.
+   * A WebSocket handler associated with this pubsub.
    */
   handler: WebSocketHandler
 
@@ -32,11 +33,13 @@ export interface GraphQLPubsub {
 type GraphQLWebSocketInitMessage = {
   type: 'connection_init'
 }
+
 type GraphQLWebSocketSubscribeMessage = {
   type: 'subscribe'
   id: string
   payload: GraphQLWebSocketSubscribeMessagePayload
 }
+
 type GraphQLWebSocketCompleteMessage = {
   type: 'complete'
   id: string
@@ -50,6 +53,7 @@ type GraphQLWebSocketOutgoingMessage =
 type GraphQLWebSocketAcknowledgeMessage = {
   type: 'connection_ack'
 }
+
 type GraphQLWebSocketNextMessage = {
   type: 'next'
   id: string
@@ -192,18 +196,25 @@ export class GraphQLSubscription<
   }
 }
 
-export type GraphQLSubscriptionHandler = <
+export type GraphQLSubscriptionName<
+  Query extends GraphQLQuery,
+  Variables extends GraphQLVariables,
+> = GraphQLHandlerNameSelector | TypedDocumentNode<Query, Variables>
+
+export type GraphQLSubscriptionResolver<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> = (info: GraphQLSubscriptionResolverInfo<Query, Variables>) => void
+
+export type GraphQLSubscriptionHandlerFactory = <
   Query extends GraphQLQuery = GraphQLQuery,
   Variables extends GraphQLVariables = GraphQLVariables,
 >(
-  operationName:
-    | GraphQLHandlerNameSelector
-    | DocumentNode
-    | TypedDocumentNode<Query, Variables>,
-  resolver: (info: GraphQLSubscriptionHandlerInfo<Query, Variables>) => void,
-) => BatchHandler | WebSocketHandler
+  operationName: GraphQLSubscriptionName<Query, Variables>,
+  resolver: GraphQLSubscriptionResolver<Query, Variables>,
+) => GraphQLSubscriptionHandler<Query, Variables>
 
-export interface GraphQLSubscriptionHandlerInfo<
+export interface GraphQLSubscriptionResolverInfo<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > {
@@ -211,18 +222,47 @@ export interface GraphQLSubscriptionHandlerInfo<
   operationName: string
 
   /**
-   * An object representing the intercepted GraphQL subscription.
+   * Intercepted GraphQL subscription.
    */
   subscription: GraphQLSubscription<Query, Variables>
 }
 
-export function createGraphQLSubscriptionHandler(
-  internalPubsub: GraphQLInternalPubsub,
-): GraphQLSubscriptionHandler {
-  return (operationName, resolver) => {
-    const subscriptionHandler = internalPubsub.webSocketLink.addEventListener(
+interface GraphQLSubscriptionHandlerArgs<
+  Query extends GraphQLQuery,
+  Variables extends GraphQLVariables,
+> {
+  info: GraphQLSubscriptionHandlerInfo<Query, Variables>
+  pubsub: GraphQLInternalPubsub
+  resolver: GraphQLSubscriptionResolver<any, any>
+}
+
+interface GraphQLSubscriptionHandlerInfo<
+  Query extends GraphQLQuery,
+  Variables extends GraphQLVariables,
+> {
+  header: string
+  operationName: GraphQLSubscriptionName<Query, Variables>
+}
+
+export class GraphQLSubscriptionHandler<
+  Query extends GraphQLQuery,
+  Variables extends GraphQLVariables,
+  /**
+   * @fixme This CANNOT be a batch handler.
+   * I'm not sure a batch handler is a good concept overall.
+   * It "unfolds" its entries, making it super unclear who
+   * actually originated them. Consider "fallthrough" WebSocket handler here.
+   */
+> extends BatchHandler {
+  public id: string
+  public info: GraphQLSubscriptionHandlerInfo<Query, Variables>
+
+  constructor(
+    private readonly args: GraphQLSubscriptionHandlerArgs<Query, Variables>,
+  ) {
+    const subscriptionHandler = args.pubsub.webSocketLink.addEventListener(
       'connection',
-      ({ client, params }) => {
+      ({ params, client }) => {
         client.addEventListener('message', async (event) => {
           if (typeof event.data !== 'string') {
             return
@@ -241,14 +281,14 @@ export function createGraphQLSubscriptionHandler(
 
             if (
               node.operationType === OperationTypeNode.SUBSCRIPTION &&
-              node.operationName === operationName
+              node.operationName === args.info.operationName
             ) {
               const subscription = new GraphQLSubscription<any, any>({
                 message,
-                internalPubsub,
+                internalPubsub: args.pubsub,
               })
 
-              resolver({
+              args.resolver({
                 params,
                 operationName: node.operationName,
                 subscription,
@@ -259,19 +299,56 @@ export function createGraphQLSubscriptionHandler(
       },
     )
 
+    const isPubsubHandlerAdded = Reflect.get(
+      args.pubsub.pubsub.handler,
+      kPubsubHandlerAdded,
+    )
+
     // Skip adding the internal pubsub WebSocket handler if it was already added.
-    // We only need that handler once, and there's no need to pollute the handlers.
-    if (Reflect.get(internalPubsub.pubsub.handler, kPubSubHandlerAdded)) {
-      return subscriptionHandler
+    //  We only need that handler once, and there's no need to pollute the handlers.
+    if (isPubsubHandlerAdded) {
+      super([subscriptionHandler])
+    } else {
+      super([args.pubsub.pubsub.handler, subscriptionHandler])
+
+      /**
+       * @todo @fixme This will NOT reset on `.resetHandlers()`,
+       * breaking the subscriptions interception.
+       */
+      Reflect.set(args.pubsub.pubsub.handler, kPubSubHandlerAdded, true)
     }
 
-    // If this is the first time using this subscription, add a batch handler.
-    const batchSubscriptionHandler = new BatchHandler([
-      internalPubsub.pubsub.handler,
-      subscriptionHandler,
-    ])
-    Reflect.set(internalPubsub.pubsub.handler, kPubSubHandlerAdded, true)
+    this.id = createRequestId()
+    this.info = args.info
+  }
+}
 
-    return batchSubscriptionHandler
+function getDisplayOperationName(
+  _operationName: GraphQLSubscriptionName<any, any>,
+): string {
+  /**
+   * @todo
+   */
+  return '???'
+}
+
+const kPubsubHandlerAdded = Symbol('pubsubHandlerAdded')
+
+export function createGraphQLSubscriptionHandler(
+  internalPubsub: GraphQLInternalPubsub,
+): GraphQLSubscriptionHandlerFactory {
+  return (operationName, resolver) => {
+    return new GraphQLSubscriptionHandler({
+      /**
+       * @fixme Remove this and instead add `info` support to
+       * BatchHandler. Fill in the values in GraphQLSubscriptionHandler.
+       */
+      info: {
+        header: getDisplayOperationName(operationName),
+        operationName,
+      },
+      pubsub: internalPubsub,
+      resolver,
+    })
   }
 }

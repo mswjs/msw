@@ -11,6 +11,7 @@ export { GraphQLHandler } from './handlers/GraphQLHandler'
 export type {
   GraphQLSubscription,
   GraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandlerFactory,
 } from './handlers/GraphQLSubscriptionHandler'
 
 /* WebSocket handler */

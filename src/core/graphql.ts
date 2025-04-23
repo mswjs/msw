@@ -16,7 +16,7 @@ import type { Path } from './utils/matching/matchRequestUrl'
 import {
   GraphQLInternalPubsub,
   createGraphQLSubscriptionHandler,
-  GraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandlerFactory,
 } from './handlers/GraphQLSubscriptionHandler'
 
 export interface TypedDocumentNode<
@@ -140,7 +140,7 @@ export interface GraphQLLink extends GraphQLHandlers {
    *   })
    * })
    */
-  subscription: GraphQLSubscriptionHandler
+  subscription: GraphQLSubscriptionHandlerFactory
 }
 
 function createGraphQLLink(url: Path): GraphQLLink {

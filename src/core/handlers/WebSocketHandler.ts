@@ -48,8 +48,17 @@ export class WebSocketHandler {
   public parse(args: {
     event: MessageEvent<WebSocketConnectionData>
   }): WebSocketHandlerParsedResult {
-    const connection = args.event.data
-    const match = matchRequestUrl(connection.client.url, this.url)
+    const { data: connection } = args.event
+    const { url: clientUrl } = connection.client
+
+    /**
+     * @note Remove the Socket.IO path prefix from the WebSocket
+     * client URL. This is an exception to keep the users from
+     * including the implementation details in their handlers.
+     */
+    clientUrl.pathname = clientUrl.pathname.replace(/^\/socket.io\//, '/')
+
+    const match = matchRequestUrl(clientUrl, this.url)
 
     return {
       match,

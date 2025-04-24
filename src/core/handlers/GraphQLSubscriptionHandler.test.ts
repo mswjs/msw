@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { OperationTypeNode, parse } from 'graphql'
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import type { GraphQLHandlerInfo } from './GraphQLHandler'
 import {
   GraphQLInternalPubsub,
@@ -47,5 +48,53 @@ describe('info', () => {
       operationName: 'OnCommendAdded',
       operationType: OperationTypeNode.SUBSCRIPTION,
     })
+  })
+})
+
+describe('predicate', () => {
+  it('returns true for a matching WebSocket connection', () => {
+    const handler = new GraphQLSubscriptionHandler(
+      'OnCommendAdded',
+      pubsub,
+      () => {},
+    )
+
+    const event = new MessageEvent<WebSocketConnectionData>('connection', {
+      data: {
+        client: {
+          url: new URL('ws://localhost:4000/graphql'),
+        },
+      } as WebSocketConnectionData,
+    })
+
+    expect(
+      handler.predicate({
+        event,
+        parsedResult: handler.parse({ event }),
+      }),
+    ).toBe(true)
+  })
+
+  it('returns false for a non-matching WebSocket connection', () => {
+    const handler = new GraphQLSubscriptionHandler(
+      'OnCommendAdded',
+      pubsub,
+      () => {},
+    )
+
+    const event = new MessageEvent<WebSocketConnectionData>('connection', {
+      data: {
+        client: {
+          url: new URL('ws://example.com/chat'),
+        },
+      } as WebSocketConnectionData,
+    })
+
+    expect(
+      handler.predicate({
+        event,
+        parsedResult: handler.parse({ event }),
+      }),
+    ).toBe(false)
   })
 })

@@ -311,13 +311,15 @@ export class GraphQLSubscriptionHandler<
   ): Promise<void> {
     /**
      * @note `GraphQLSubscriptionHandler` is a WebSocket handler that
-     * inherits the URL from the underlying WebSocket link.
+     * inherits the URL from the underlying WebSocket link. This inheritance
+     * makes it of the correct "__kind" to participate in WebSocket interception
+     *
      * Once MSW matches a WebSocket connection against it,
      * instead of executing the handler itself, propagate the connection
      * to the WebSocket link and the subscription handler.
      */
-    this.pubsub.pubsub.handler[kDispatchEvent](event)
-    this.subscriptionHandler[kDispatchEvent](event)
+    await this.pubsub.pubsub.handler[kDispatchEvent](event)
+    await this.subscriptionHandler[kDispatchEvent](event)
   }
 }
 

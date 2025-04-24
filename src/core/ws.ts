@@ -31,6 +31,8 @@ export type WebSocketEventListener<
 > = (...args: WebSocketHandlerEventMap[EventType]) => void
 
 export type WebSocketLink = {
+  url: Path
+
   /**
    * A set of all WebSocket clients connected
    * to this link.
@@ -112,6 +114,7 @@ function createWebSocketLinkHandler(
   const clientManager = new WebSocketClientManager(webSocketChannel)
 
   return {
+    url,
     get clients() {
       return clientManager.clients
     },

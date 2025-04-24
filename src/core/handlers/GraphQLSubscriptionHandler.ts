@@ -1,4 +1,5 @@
 import { OperationTypeNode } from 'graphql'
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import type {
   GraphQLHandlerNameSelector,
   GraphQLQuery,
@@ -6,12 +7,11 @@ import type {
 } from './GraphQLHandler'
 import type { Path, PathParams } from '../utils/matching/matchRequestUrl'
 import { parseDocumentNode } from '../utils/internal/parseGraphQLRequest'
-import { WebSocketLink, ws } from '../ws'
-import { WebSocketHandler } from './WebSocketHandler'
+import { type WebSocketLink, ws } from '../ws'
+import { kDispatchEvent, WebSocketHandler } from './WebSocketHandler'
 import { jsonParse } from '../utils/internal/jsonParse'
 import type { TypedDocumentNode } from '../graphql'
-import { BatchHandler } from './BatchHandler'
-import { createRequestId } from '@mswjs/interceptors'
+import { isObject } from '../utils/internal/isObject'
 
 export interface GraphQLPubsub {
   /**
@@ -67,8 +67,6 @@ interface GraphQLWebSocketSubscribeMessagePayload<
   variables: Variables
   extensions: Array<unknown>
 }
-
-const kPubSubHandlerAdded = Symbol('pubsubHandlerAdded')
 
 export class GraphQLInternalPubsub {
   public pubsub: GraphQLPubsub
@@ -153,6 +151,9 @@ export class GraphQLInternalPubsub {
   }
 }
 
+/**
+ * Representation of the intercepted GraphQL subscription.
+ */
 export class GraphQLSubscription<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
@@ -218,7 +219,14 @@ export interface GraphQLSubscriptionResolverInfo<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > {
+  /**
+   * Path parameters parsed from the WebSocket connection URL.
+   */
   params: PathParams
+
+  /**
+   * The name of the intercepted operation.
+   */
   operationName: string
 
   /**
@@ -247,20 +255,25 @@ interface GraphQLSubscriptionHandlerInfo<
 export class GraphQLSubscriptionHandler<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
-  /**
-   * @fixme This CANNOT be a batch handler.
-   * I'm not sure a batch handler is a good concept overall.
-   * It "unfolds" its entries, making it super unclear who
-   * actually originated them. Consider "fallthrough" WebSocket handler here.
-   */
-> extends BatchHandler {
-  public id: string
+> extends WebSocketHandler {
   public info: GraphQLSubscriptionHandlerInfo<Query, Variables>
+
+  protected pubsub: GraphQLInternalPubsub
+  protected subscriptionHandler: WebSocketHandler
 
   constructor(
     private readonly args: GraphQLSubscriptionHandlerArgs<Query, Variables>,
   ) {
-    const subscriptionHandler = args.pubsub.webSocketLink.addEventListener(
+    super(args.pubsub.webSocketLink.url, {
+      /**
+       * @todo ???
+       */
+    })
+
+    this.info = args.info
+    this.pubsub = args.pubsub
+
+    this.subscriptionHandler = this.pubsub.webSocketLink.addEventListener(
       'connection',
       ({ params, client }) => {
         client.addEventListener('message', async (event) => {
@@ -271,7 +284,7 @@ export class GraphQLSubscriptionHandler<
           const message = jsonParse<GraphQLWebSocketOutgoingMessage>(event.data)
 
           if (
-            message != null &&
+            isObject(message) &&
             'type' in message &&
             message.type === 'subscribe'
           ) {
@@ -298,28 +311,20 @@ export class GraphQLSubscriptionHandler<
         })
       },
     )
+  }
 
-    const isPubsubHandlerAdded = Reflect.get(
-      args.pubsub.pubsub.handler,
-      kPubsubHandlerAdded,
-    )
-
-    // Skip adding the internal pubsub WebSocket handler if it was already added.
-    //  We only need that handler once, and there's no need to pollute the handlers.
-    if (isPubsubHandlerAdded) {
-      super([subscriptionHandler])
-    } else {
-      super([args.pubsub.pubsub.handler, subscriptionHandler])
-
-      /**
-       * @todo @fixme This will NOT reset on `.resetHandlers()`,
-       * breaking the subscriptions interception.
-       */
-      Reflect.set(args.pubsub.pubsub.handler, kPubSubHandlerAdded, true)
-    }
-
-    this.id = createRequestId()
-    this.info = args.info
+  async [kDispatchEvent](
+    event: MessageEvent<WebSocketConnectionData>,
+  ): Promise<void> {
+    /**
+     * @note `GraphQLSubscriptionHandler` is a WebSocket handler that
+     * inherits the URL from the underlying WebSocket link.
+     * Once MSW matches a WebSocket connection against it,
+     * instead of executing the handler itself, propagate the connection
+     * to the WebSocket link and the subscription handler.
+     */
+    this.pubsub.pubsub.handler[kDispatchEvent](event)
+    this.subscriptionHandler[kDispatchEvent](event)
   }
 }
 
@@ -331,8 +336,6 @@ function getDisplayOperationName(
    */
   return '???'
 }
-
-const kPubsubHandlerAdded = Symbol('pubsubHandlerAdded')
 
 export function createGraphQLSubscriptionHandler(
   internalPubsub: GraphQLInternalPubsub,

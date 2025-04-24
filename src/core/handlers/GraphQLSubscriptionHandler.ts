@@ -1,9 +1,11 @@
 import { OperationTypeNode } from 'graphql'
 import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
-import type {
-  GraphQLHandlerNameSelector,
-  GraphQLQuery,
-  GraphQLVariables,
+import {
+  GraphQLHandler,
+  type GraphQLHandlerInfo,
+  type GraphQLHandlerNameSelector,
+  type GraphQLQuery,
+  type GraphQLVariables,
 } from './GraphQLHandler'
 import type { Path, PathParams } from '../utils/matching/matchRequestUrl'
 import { parseDocumentNode } from '../utils/internal/parseGraphQLRequest'
@@ -235,43 +237,34 @@ export interface GraphQLSubscriptionResolverInfo<
   subscription: GraphQLSubscription<Query, Variables>
 }
 
-interface GraphQLSubscriptionHandlerArgs<
-  Query extends GraphQLQuery,
-  Variables extends GraphQLVariables,
-> {
-  info: GraphQLSubscriptionHandlerInfo<Query, Variables>
-  pubsub: GraphQLInternalPubsub
-  resolver: GraphQLSubscriptionResolver<any, any>
-}
-
-interface GraphQLSubscriptionHandlerInfo<
-  Query extends GraphQLQuery,
-  Variables extends GraphQLVariables,
-> {
-  header: string
-  operationName: GraphQLSubscriptionName<Query, Variables>
-}
-
 export class GraphQLSubscriptionHandler<
   Query extends GraphQLQuery,
   Variables extends GraphQLVariables,
 > extends WebSocketHandler {
-  public info: GraphQLSubscriptionHandlerInfo<Query, Variables>
+  public info: GraphQLHandlerInfo
 
-  protected pubsub: GraphQLInternalPubsub
   protected subscriptionHandler: WebSocketHandler
 
   constructor(
-    private readonly args: GraphQLSubscriptionHandlerArgs<Query, Variables>,
+    readonly operationName: GraphQLSubscriptionName<Query, Variables>,
+    protected readonly pubsub: GraphQLInternalPubsub,
+    protected readonly resolver: GraphQLSubscriptionResolver<Query, Variables>,
   ) {
-    super(args.pubsub.webSocketLink.url, {
+    super(pubsub.webSocketLink.url, {
       /**
        * @todo ???
        */
     })
 
-    this.info = args.info
-    this.pubsub = args.pubsub
+    // Create the same GraphQL handler info from the subscription.
+    // This will help with printing this handler in the console when debugging.
+    // We would otherwise extend the `GraphQLHandler` class, but subscriptions
+    // are WebSockets, not HTTP requests.
+    this.info = GraphQLHandler.parseGraphQLRequestInfo(
+      operationName,
+      OperationTypeNode.SUBSCRIPTION,
+      this.url,
+    )
 
     this.subscriptionHandler = this.pubsub.webSocketLink.addEventListener(
       'connection',
@@ -294,14 +287,14 @@ export class GraphQLSubscriptionHandler<
 
             if (
               node.operationType === OperationTypeNode.SUBSCRIPTION &&
-              node.operationName === args.info.operationName
+              node.operationName === this.operationName
             ) {
               const subscription = new GraphQLSubscription<any, any>({
                 message,
-                internalPubsub: args.pubsub,
+                internalPubsub: this.pubsub,
               })
 
-              args.resolver({
+              this.resolver({
                 params,
                 operationName: node.operationName,
                 subscription,
@@ -328,30 +321,14 @@ export class GraphQLSubscriptionHandler<
   }
 }
 
-function getDisplayOperationName(
-  _operationName: GraphQLSubscriptionName<any, any>,
-): string {
-  /**
-   * @todo
-   */
-  return '???'
-}
-
 export function createGraphQLSubscriptionHandler(
   internalPubsub: GraphQLInternalPubsub,
 ): GraphQLSubscriptionHandlerFactory {
   return (operationName, resolver) => {
-    return new GraphQLSubscriptionHandler({
-      /**
-       * @fixme Remove this and instead add `info` support to
-       * BatchHandler. Fill in the values in GraphQLSubscriptionHandler.
-       */
-      info: {
-        header: getDisplayOperationName(operationName),
-        operationName,
-      },
-      pubsub: internalPubsub,
+    return new GraphQLSubscriptionHandler(
+      operationName,
+      internalPubsub,
       resolver,
-    })
+    )
   }
 }

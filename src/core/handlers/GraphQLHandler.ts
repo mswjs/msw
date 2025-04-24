@@ -92,20 +92,16 @@ export class GraphQLHandler extends RequestHandler<
   GraphQLRequestParsedResult,
   GraphQLResolverExtras<any>
 > {
-  private endpoint: Path
-
   static parsedRequestCache = new WeakMap<
     Request,
     ParsedGraphQLRequest<GraphQLVariables>
   >()
 
-  constructor(
-    operationType: ExpectedOperationTypeNode,
+  static parseGraphQLRequestInfo(
     operationName: GraphQLHandlerNameSelector,
-    endpoint: Path,
-    resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
-    options?: RequestHandlerOptions,
-  ) {
+    operationType: ExpectedOperationTypeNode,
+    url: Path,
+  ): GraphQLHandlerInfo {
     let resolvedOperationName = operationName
 
     if (isDocumentNode(operationName)) {
@@ -128,20 +124,34 @@ export class GraphQLHandler extends RequestHandler<
 
     const header =
       operationType === 'all'
-        ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType} ${resolvedOperationName} (origin: ${endpoint.toString()})`
+        ? `${operationType} (origin: ${url.toString()})`
+        : `${operationType} ${resolvedOperationName} (origin: ${url.toString()})`
+
+    return {
+      operationType,
+      operationName: resolvedOperationName,
+      header,
+    }
+  }
+
+  constructor(
+    operationType: ExpectedOperationTypeNode,
+    operationName: GraphQLHandlerNameSelector,
+    protected readonly url: Path,
+    resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
+    options?: RequestHandlerOptions,
+  ) {
+    const parsedGraphQLOperationName = GraphQLHandler.parseGraphQLRequestInfo(
+      operationName,
+      operationType,
+      url,
+    )
 
     super({
-      info: {
-        header,
-        operationType,
-        operationName: resolvedOperationName,
-      },
+      info: parsedGraphQLOperationName,
       resolver,
       options,
     })
-
-    this.endpoint = endpoint
   }
 
   /**
@@ -171,7 +181,7 @@ export class GraphQLHandler extends RequestHandler<
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
-    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const match = matchRequestUrl(new URL(args.request.url), this.url)
     const cookies = getAllRequestCookies(args.request)
 
     if (!match.matches) {

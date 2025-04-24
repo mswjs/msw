@@ -46,7 +46,7 @@ export class WebSocketHandler {
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(
-    private readonly url: Path,
+    protected readonly url: Path,
     public options: WebSocketHandlerOptions = {},
   ) {
     this.id = createRequestId()

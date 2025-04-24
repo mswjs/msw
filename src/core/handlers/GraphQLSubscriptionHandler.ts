@@ -385,6 +385,7 @@ class GraphQLServerSubscription {
   protected readonly server: WebSocketServerConnection
 
   private eventTarget: EventTarget
+  private abortController: AbortController
 
   constructor(
     readonly args: {
@@ -393,46 +394,59 @@ class GraphQLServerSubscription {
     },
   ) {
     this.eventTarget = new EventTarget()
+    this.abortController = new AbortController()
     this.server = args.server
 
     this.server.connect()
-    this.server.addEventListener('open', () => {
-      // Once the server connetion has been established, send the
-      // subscription intent message. This is the same message as
-      // was sent from the GraphQL client.
-      this.server.send(JSON.stringify(this.args.message))
-    })
+    this.server.addEventListener(
+      'open',
+      () => {
+        // Once the server connetion has been established, send the
+        // subscription intent message. This is the same message as
+        // was sent from the GraphQL client.
+        this.server.send(JSON.stringify(this.args.message))
+      },
+      { signal: this.abortController.signal },
+    )
 
-    this.server.addEventListener('message', (event) => {
-      if (typeof event.data !== 'string') {
-        return
-      }
-
-      const message = jsonParse<GraphQLSubscriptionIncomingMessage>(event.data)
-      if (!message) {
-        return
-      }
-
-      switch (message.type) {
-        case 'connection_ack': {
-          this.eventTarget.dispatchEvent(new Event('connection_ack'))
-          break
+    this.server.addEventListener(
+      'message',
+      (event) => {
+        if (typeof event.data !== 'string') {
+          return
         }
 
-        case 'next': {
-          /**
-           * @fixme This isn't the same `event` from the server
-           * so calling `event.preventDefault()` won't prevent anything.
-           */
-          this.eventTarget.dispatchEvent(
-            new MessageEvent('next', {
-              data: message,
-            }),
-          )
-          break
+        const message = jsonParse<GraphQLSubscriptionIncomingMessage>(
+          event.data,
+        )
+        if (!message) {
+          return
         }
-      }
-    })
+
+        switch (message.type) {
+          case 'connection_ack': {
+            this.eventTarget.dispatchEvent(new Event('connection_ack'))
+            break
+          }
+
+          case 'next': {
+            /**
+             * @fixme This isn't the same `event` from the server
+             * so calling `event.preventDefault()` won't prevent anything.
+             */
+            this.eventTarget.dispatchEvent(
+              new MessageEvent('next', {
+                data: message,
+              }),
+            )
+            break
+          }
+        }
+      },
+      {
+        signal: this.abortController.signal,
+      },
+    )
   }
 
   public addEventListener<
@@ -441,10 +455,15 @@ class GraphQLServerSubscription {
     event: EventType,
     listener: (event: GraphQLServerSubscriptionEventMap[EventType]) => void,
   ) {
-    this.eventTarget.addEventListener(event, { handleEvent: listener })
+    this.eventTarget.addEventListener(
+      event,
+      { handleEvent: listener },
+      { signal: this.abortController.signal },
+    )
   }
 
   public unsubscribe(): void {
+    this.abortController.abort()
     this.server.close()
   }
 }

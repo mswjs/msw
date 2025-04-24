@@ -1,5 +1,9 @@
+import { invariant } from 'outvariant'
 import { OperationTypeNode } from 'graphql'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type {
+  WebSocketConnectionData,
+  WebSocketServerConnection,
+} from '@mswjs/interceptors/WebSocket'
 import {
   GraphQLHandler,
   type GraphQLHandlerInfo,
@@ -62,6 +66,10 @@ type GraphQLWebSocketNextMessage = {
   payload: unknown
 }
 
+type GraphQLSubscriptionIncomingMessage =
+  | GraphQLWebSocketAcknowledgeMessage
+  | GraphQLWebSocketNextMessage
+
 interface GraphQLWebSocketSubscribeMessagePayload<
   Variables extends GraphQLVariables = GraphQLVariables,
 > {
@@ -73,6 +81,8 @@ interface GraphQLWebSocketSubscribeMessagePayload<
 export class GraphQLInternalPubsub {
   public pubsub: GraphQLPubsub
   public webSocketLink: WebSocketLink
+  public server?: WebSocketServerConnection
+
   private subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
 
   constructor(public readonly url: Path) {
@@ -89,7 +99,9 @@ export class GraphQLInternalPubsub {
 
     const webSocketHandler = this.webSocketLink.addEventListener(
       'connection',
-      ({ client }) => {
+      ({ client, server }) => {
+        this.server = server
+
         client.addEventListener('message', (event) => {
           if (typeof event.data !== 'string') {
             return
@@ -138,13 +150,13 @@ export class GraphQLInternalPubsub {
     }
   }
 
-  private createAcknowledgeMessage() {
+  protected createAcknowledgeMessage() {
     return JSON.stringify({
       type: 'connection_ack',
     } satisfies GraphQLWebSocketAcknowledgeMessage)
   }
 
-  private createSubscribeMessage(args: { id: string; payload: unknown }) {
+  protected createSubscribeMessage(args: { id: string; payload: unknown }) {
     return JSON.stringify({
       id: args.id,
       type: 'next',
@@ -178,7 +190,7 @@ export class GraphQLSubscription<
   }
 
   /**
-   * Publishes data to this subscription.
+   * Publishes data to all subscribed GraphQL clients.
    */
   public publish(payload: { data?: Query }): void {
     this.args.internalPubsub.pubsub.publish(payload, ({ subscription }) => {
@@ -196,6 +208,31 @@ export class GraphQLSubscription<
         id: this.args.message.id,
       } satisfies GraphQLWebSocketCompleteMessage),
     )
+  }
+
+  /**
+   * Establishes this GraphQL subscription to the actual server.
+   */
+  public subscribe() {
+    const { server } = this.args.internalPubsub
+
+    /**
+     * @note One can only call `subscription.subscribe()` inside the
+     * GraphQL subscription handler. By that point, the WebSocket connection
+     * has been established and intercepted so the `server` reference
+     * is guaranteed.
+     */
+    invariant(
+      server,
+      'Failed to establish GraphQL subscription ("%s") to the actual server ("%s"): `subscription.subscribe()` was called outside the subscription handler',
+      this.args.message.payload.query,
+      this.args.internalPubsub.url,
+    )
+
+    return new GraphQLServerSubscription({
+      server,
+      message: this.args.message,
+    })
   }
 }
 
@@ -332,5 +369,82 @@ export function createGraphQLSubscriptionHandler(
       internalPubsub,
       resolver,
     )
+  }
+}
+
+interface GraphQLServerSubscriptionEventMap {
+  connection_ack: Event
+  next: MessageEvent<GraphQLWebSocketNextMessage>
+}
+
+/**
+ * Representation of a GraphQL subscription to the actual server.
+ * You interface with this object from the client's perspective.
+ */
+class GraphQLServerSubscription {
+  protected readonly server: WebSocketServerConnection
+
+  private eventTarget: EventTarget
+
+  constructor(
+    readonly args: {
+      server: WebSocketServerConnection
+      message: GraphQLWebSocketSubscribeMessage
+    },
+  ) {
+    this.eventTarget = new EventTarget()
+    this.server = args.server
+
+    this.server.connect()
+    this.server.addEventListener('open', () => {
+      // Once the server connetion has been established, send the
+      // subscription intent message. This is the same message as
+      // was sent from the GraphQL client.
+      this.server.send(JSON.stringify(this.args.message))
+    })
+
+    this.server.addEventListener('message', (event) => {
+      if (typeof event.data !== 'string') {
+        return
+      }
+
+      const message = jsonParse<GraphQLSubscriptionIncomingMessage>(event.data)
+      if (!message) {
+        return
+      }
+
+      switch (message.type) {
+        case 'connection_ack': {
+          this.eventTarget.dispatchEvent(new Event('connection_ack'))
+          break
+        }
+
+        case 'next': {
+          /**
+           * @fixme This isn't the same `event` from the server
+           * so calling `event.preventDefault()` won't prevent anything.
+           */
+          this.eventTarget.dispatchEvent(
+            new MessageEvent('next', {
+              data: message,
+            }),
+          )
+          break
+        }
+      }
+    })
+  }
+
+  public addEventListener<
+    EventType extends keyof GraphQLServerSubscriptionEventMap,
+  >(
+    event: EventType,
+    listener: (event: GraphQLServerSubscriptionEventMap[EventType]) => void,
+  ) {
+    this.eventTarget.addEventListener(event, { handleEvent: listener })
+  }
+
+  public unsubscribe(): void {
+    this.server.close()
   }
 }

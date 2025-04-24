@@ -119,3 +119,51 @@ subscription OnCommentAdded {
     service: 'user-service',
   })
 })
+
+it('supports bypassing a GraphQL subscription', async () => {
+  const api = graphql.link('https://api.example.com/graphql')
+  server.use(
+    api.subscription('OnCommentAdded', async ({ subscription }) => {
+      // This creates a NEW subscription for the same event in the actual server.
+      // - There is no client events to prevent! Subscription intent is sent ONCE.
+      const commentSubscription = subscription.subscribe()
+
+      // Event listeners here are modeled after the subscription protocol:
+      // - acknowledge, server confirmed the subscription.
+      // - next, server is sending data to the client.
+      // - error, error happened (is this event a thing?). Server connection errors!
+      // - complete, server has completed this subscription.
+      commentSubscription.addEventListener('next', (event) => {
+        // You can still prevent messages from the original server.
+        // By default, they are forwarded to the client, just like with mocking WebSockets.
+        event.preventDefault()
+        // The event data is already parsed to drop the implementation details of the subscription.
+        subscription.publish({
+          data: event.data.payload,
+        })
+      })
+
+      // You can unsubscribe from the original server subscription at any time.
+      commentSubscription.unsubscribe()
+    }),
+  )
+
+  const client = createClient({
+    url: 'wss://api.example.com/graphql',
+  })
+  const subscription = client.iterate({
+    query: `
+subscription OnCommentAdded {
+  commentAdded {
+    text
+  }
+}
+    `,
+  })
+
+  await subscription.next()
+
+  /**
+   * @fixme Expect the subscription payload from the ACTUAL server.
+   */
+})

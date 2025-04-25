@@ -53,6 +53,9 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
+      rettime:
+        specifier: ^0.5.1
+        version: 0.5.1
       strict-event-emitter:
         specifier: ^0.5.1
         version: 0.5.1
@@ -4191,6 +4194,9 @@ packages:
   ret@0.4.3:
     resolution: {integrity: sha512-0f4Memo5QP7WQyUEAYUO3esD/XjOc3Zjjg5CPsAq1p8sIu0XPeMbHJemKA0BO7tV0X7+A0FoEpbmHXWxPyD3wQ==}
     engines: {node: '>=10'}
+
+  rettime@0.5.1:
+    resolution: {integrity: sha512-7uRCcNUf3I1E6lmgrO1u/R03ra4I8U/Ifvd+J8uqLBiGXEU3eSf/jlD0sDNvHqf93fb0VL3lJLGz9qeNHJahEA==}
 
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
@@ -9437,6 +9443,8 @@ snapshots:
       signal-exit: 4.1.0
 
   ret@0.4.3: {}
+
+  rettime@0.5.1: {}
 
   reusify@1.0.4: {}
 

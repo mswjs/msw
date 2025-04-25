@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { Emitter } from 'rettime'
 import { OperationTypeNode } from 'graphql'
 import type {
   WebSocketConnectionData,
@@ -372,9 +373,9 @@ export function createGraphQLSubscriptionHandler(
   }
 }
 
-interface GraphQLServerSubscriptionEventMap {
-  connection_ack: Event
-  next: MessageEvent<GraphQLWebSocketNextMessage>
+type GraphQLServerSubscriptionEventMap = {
+  connection_ack: never
+  next: [GraphQLWebSocketNextMessage]
 }
 
 /**
@@ -384,7 +385,7 @@ interface GraphQLServerSubscriptionEventMap {
 class GraphQLServerSubscription {
   protected readonly server: WebSocketServerConnection
 
-  private eventTarget: EventTarget
+  private emitter: Emitter<GraphQLServerSubscriptionEventMap>
   private abortController: AbortController
 
   constructor(
@@ -393,7 +394,10 @@ class GraphQLServerSubscription {
       message: GraphQLWebSocketSubscribeMessage
     },
   ) {
-    this.eventTarget = new EventTarget()
+    this.emitter = new Emitter()
+
+    // An abort controller responsible for removing the server event listeners
+    // once the subscription is unsubscribed.
     this.abortController = new AbortController()
     this.server = args.server
 
@@ -425,7 +429,7 @@ class GraphQLServerSubscription {
 
         switch (message.type) {
           case 'connection_ack': {
-            this.eventTarget.dispatchEvent(new Event('connection_ack'))
+            this.emitter.emit('connection_ack')
             break
           }
 
@@ -434,11 +438,7 @@ class GraphQLServerSubscription {
              * @fixme This isn't the same `event` from the server
              * so calling `event.preventDefault()` won't prevent anything.
              */
-            this.eventTarget.dispatchEvent(
-              new MessageEvent('next', {
-                data: message,
-              }),
-            )
+            this.emitter.emit('next', message)
             break
           }
         }
@@ -450,20 +450,21 @@ class GraphQLServerSubscription {
   }
 
   public addEventListener<
-    EventType extends keyof GraphQLServerSubscriptionEventMap,
-  >(
-    event: EventType,
-    listener: (event: GraphQLServerSubscriptionEventMap[EventType]) => void,
-  ) {
-    this.eventTarget.addEventListener(
-      event,
-      { handleEvent: listener },
-      { signal: this.abortController.signal },
-    )
+    Type extends keyof GraphQLServerSubscriptionEventMap & string,
+  >(event: Type, listener: Emitter.ListenerType<typeof this.emitter, Type>) {
+    this.emitter.on(event, listener, {
+      signal: this.abortController.signal,
+    })
   }
 
   public unsubscribe(): void {
+    // Remove internal listeners on the server object.
     this.abortController.abort()
+
+    // Remove user-defined listeners.
+    this.emitter.removeAllListeners()
+
+    // Serve the WebSocket connection.
     this.server.close()
   }
 }

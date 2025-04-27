@@ -263,3 +263,79 @@ it('supports bypassing a subscription', async () => {
     done: false,
   })
 })
+
+it('supports augmenting original server subscription payload', async () => {
+  await using testServer = await createTestGraphQLServer({
+    schema: createSchema({
+      typeDefs: /* GraphQL */ `
+        type Comment {
+          text: String!
+        }
+
+        type Query {
+          comments: [Comment!]!
+        }
+
+        type Subscription {
+          commentAdded: Comment!
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          commentAdded: {
+            async *subscribe() {
+              yield { commentAdded: { text: 'hello world' } }
+            },
+          },
+        },
+      },
+    }),
+  })
+
+  const api = graphql.link(testServer.http.url().href)
+  server.use(
+    api.subscription('OnCommentAdded', async ({ subscription }) => {
+      const commentSubscription = subscription.subscribe()
+      commentSubscription.addEventListener('next', (event) => {
+        // Prevent the default server-to-client forwarding.
+        event.preventDefault()
+
+        // Publish the modified payload to the client.
+        const { payload } = event.data
+        // @ts-expect-error Missing payload type.
+        payload.data.commentAdded.text =
+          // @ts-expect-error Missing payload type.
+          payload.data.commentAdded.text.toUpperCase()
+
+        subscription.publish(event.data.payload)
+
+        commentSubscription.unsubscribe()
+      })
+    }),
+  )
+
+  const client = createClient({
+    url: testServer.ws.url().href,
+  })
+  const subscription = client.iterate({
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  // Must receive the payload from the original server.
+  await expect(subscription.next()).resolves.toEqual({
+    value: {
+      data: {
+        commentAdded: {
+          text: 'HELLO WORLD',
+        },
+      },
+    },
+    done: false,
+  })
+})

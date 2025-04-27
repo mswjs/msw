@@ -4,7 +4,7 @@ import { setupServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
-import { createSchema, createYoga } from 'graphql-yoga'
+import { createSchema, createYoga, YogaSchemaDefinition } from 'graphql-yoga'
 import { createClient } from 'graphql-ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 
@@ -125,48 +125,30 @@ it('exposes path parameters from the WebSocket link', async () => {
   })
 })
 
-it('supports bypassing a subscription', async () => {
+async function createTestGraphQLServer(options: {
+  pathname?: string
+  schema: YogaSchemaDefinition<{}, {}>
+}) {
+  const pathname = options.pathname || '/graphql'
+
   const yoga = createYoga({
-    schema: createSchema({
-      typeDefs: /* GraphQL */ `
-        type Comment {
-          text: String!
-        }
-
-        type Query {
-          comments: [Comment!]!
-        }
-
-        type Subscription {
-          commentAdded: Comment!
-        }
-      `,
-      resolvers: {
-        Subscription: {
-          commentAdded: {
-            async *subscribe() {
-              yield { commentAdded: { text: 'hello world' } }
-            },
-          },
-        },
-      },
-    }),
+    schema: options.schema,
     graphiql: false,
   })
 
-  await using testServer = await createTestHttpServer({
+  const testServer = await createTestHttpServer({
     defineRoutes(router) {
       router.get('/graphql/*', ({ req }) => {
         return yoga.fetch(req.raw)
       })
     },
   })
-  await using wss = createWebSocketMiddleware({
+  const wss = createWebSocketMiddleware({
     server: testServer,
     pathname: yoga.graphqlEndpoint,
   })
 
-  useServer(
+  const disposeOfServer = useServer(
     {
       execute: (args: any) => args.execute(args),
       subscribe: (args: any) => args.subscribe(args),
@@ -197,7 +179,56 @@ it('supports bypassing a subscription', async () => {
     wss.raw,
   )
 
-  const api = graphql.link(testServer.http.url('/graphql').href)
+  return {
+    async [Symbol.asyncDispose]() {
+      await Promise.all([
+        testServer[Symbol.asyncDispose](),
+        wss[Symbol.asyncDispose](),
+      ])
+      await disposeOfServer.dispose()
+    },
+    http: {
+      url() {
+        return testServer.http.url(pathname)
+      },
+    },
+    ws: {
+      url() {
+        return wss.ws.url()
+      },
+    },
+  }
+}
+
+it('supports bypassing a subscription', async () => {
+  await using testServer = await createTestGraphQLServer({
+    schema: createSchema({
+      typeDefs: /* GraphQL */ `
+        type Comment {
+          text: String!
+        }
+
+        type Query {
+          comments: [Comment!]!
+        }
+
+        type Subscription {
+          commentAdded: Comment!
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          commentAdded: {
+            async *subscribe() {
+              yield { commentAdded: { text: 'hello world' } }
+            },
+          },
+        },
+      },
+    }),
+  })
+
+  const api = graphql.link(testServer.http.url().href)
   server.use(
     api.subscription('OnCommentAdded', async ({ subscription }) => {
       const commentSubscription = subscription.subscribe()
@@ -207,11 +238,8 @@ it('supports bypassing a subscription', async () => {
     }),
   )
 
-  const wsUrl = testServer.http.url('/graphql')
-  wsUrl.protocol = 'ws'
-
   const client = createClient({
-    url: wsUrl.href,
+    url: testServer.ws.url().href,
   })
   const subscription = client.iterate({
     query: /* GraphQL */ `

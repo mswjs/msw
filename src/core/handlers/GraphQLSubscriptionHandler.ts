@@ -20,7 +20,7 @@ import { jsonParse } from '../utils/internal/jsonParse'
 import type { TypedDocumentNode } from '../graphql'
 import { isObject } from '../utils/internal/isObject'
 
-export interface GraphQLPubsub {
+export interface GraphQLPubSub {
   /**
    * A WebSocket handler associated with this pubsub.
    */
@@ -79,8 +79,8 @@ interface GraphQLWebSocketSubscribeMessagePayload<
   extensions: Array<unknown>
 }
 
-export class GraphQLInternalPubsub {
-  public pubsub: GraphQLPubsub
+export class GraphQLInternalPubSub {
+  public pubsub: GraphQLPubSub
   public webSocketLink: WebSocketLink
   public server?: WebSocketServerConnection
 
@@ -181,7 +181,7 @@ export class GraphQLSubscription<
   constructor(
     private readonly args: {
       message: GraphQLWebSocketSubscribeMessage
-      internalPubsub: GraphQLInternalPubsub
+      internalPubsub: GraphQLInternalPubSub
     },
   ) {
     this.id = args.message.id
@@ -285,7 +285,7 @@ export class GraphQLSubscriptionHandler<
 
   constructor(
     readonly operationName: GraphQLSubscriptionName<Query, Variables>,
-    protected readonly pubsub: GraphQLInternalPubsub,
+    protected readonly pubsub: GraphQLInternalPubSub,
     protected readonly resolver: GraphQLSubscriptionResolver<Query, Variables>,
   ) {
     super(pubsub.webSocketLink.url, {
@@ -362,7 +362,7 @@ export class GraphQLSubscriptionHandler<
 }
 
 export function createGraphQLSubscriptionHandler(
-  internalPubsub: GraphQLInternalPubsub,
+  internalPubsub: GraphQLInternalPubSub,
 ): GraphQLSubscriptionHandlerFactory {
   return (operationName, resolver) => {
     return new GraphQLSubscriptionHandler(
@@ -405,10 +405,14 @@ class GraphQLServerSubscription {
     this.server.addEventListener(
       'open',
       () => {
-        // Once the server connetion has been established, send the
-        // subscription intent message. This is the same message as
-        // was sent from the GraphQL client.
-        this.server.send(JSON.stringify(this.args.message))
+        // Once the WebSocket server connection is established, send the
+        // client connection prompt to the server. This lets the server
+        // connect and authorize this client.
+        this.server.send(
+          JSON.stringify({
+            type: 'connection_init',
+          } satisfies GraphQLWebSocketInitMessage),
+        )
       },
       { signal: this.abortController.signal },
     )
@@ -430,15 +434,22 @@ class GraphQLServerSubscription {
         switch (message.type) {
           case 'connection_ack': {
             this.emitter.emit('connection_ack')
+
+            // Once the GraphQL server acknowledges the connection, send the
+            // subscription intent message. This is the same message as
+            // was sent from the GraphQL client.
+            this.server.send(JSON.stringify(this.args.message))
             break
           }
 
           case 'next': {
-            /**
-             * @fixme This isn't the same `event` from the server
-             * so calling `event.preventDefault()` won't prevent anything.
-             */
-            this.emitter.emit('next', message)
+            const nextEvent = this.emitter.createEvent('next', message)
+            this.emitter.emit(nextEvent)
+
+            if (nextEvent.defaultPrevented) {
+              event.preventDefault()
+            }
+
             break
           }
         }
@@ -451,7 +462,14 @@ class GraphQLServerSubscription {
 
   public addEventListener<
     Type extends keyof GraphQLServerSubscriptionEventMap & string,
-  >(event: Type, listener: Emitter.ListenerType<typeof this.emitter, Type>) {
+  >(
+    event: Type,
+    listener: Emitter.ListenerType<
+      typeof this.emitter,
+      Type,
+      GraphQLServerSubscriptionEventMap
+    >,
+  ) {
     this.emitter.on(event, listener, {
       signal: this.abortController.signal,
     })

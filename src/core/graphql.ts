@@ -14,7 +14,7 @@ import {
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
 import {
-  GraphQLInternalPubsub,
+  GraphQLInternalPubSub,
   createGraphQLSubscriptionHandler,
   GraphQLSubscriptionHandlerFactory,
 } from './handlers/GraphQLSubscriptionHandler'
@@ -144,7 +144,7 @@ export interface GraphQLLink extends GraphQLHandlers {
 }
 
 function createGraphQLLink(url: Path): GraphQLLink {
-  const internalPubSub = new GraphQLInternalPubsub(url)
+  const internalPubSub = new GraphQLInternalPubSub(url)
 
   return {
     query: createScopedGraphQLHandler(OperationTypeNode.QUERY, url),

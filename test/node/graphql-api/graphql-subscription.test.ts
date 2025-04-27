@@ -1,8 +1,11 @@
 // @vitest-environment node-websocket
 import { graphql, PathParams } from 'msw'
 import { setupServer } from 'msw/node'
-import { createClient } from 'graphql-ws'
 import { DeferredPromise } from '@open-draft/deferred-promise'
+import { createTestHttpServer } from '@epic-web/test-server/http'
+import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
+import { buildSchema } from 'graphql'
+import { CloseCode, createClient, makeServer } from 'graphql-ws'
 
 const server = setupServer()
 
@@ -120,36 +123,105 @@ subscription OnCommentAdded {
   })
 })
 
-it('supports bypassing a GraphQL subscription', async () => {
-  const api = graphql.link('https://api.example.com/graphql')
+it.only('supports bypassing GraphQL subscriptions', async () => {
+  await using testServer = await createTestHttpServer()
+  await using wss = createWebSocketMiddleware({
+    server: testServer,
+    pathname: '/graphql',
+  })
+  const graphQLServer = makeServer({
+    schema: buildSchema(`
+
+type Comment {
+  text: String!
+}
+
+type Subscription {
+  commentAdded: Comment!
+}
+
+subscription OnCommentAdded {
+  commentAdded {
+    text
+  }
+}
+      `),
+    subscribe(args) {
+      return {
+        [Symbol.asyncIterator]() {
+          return {
+            next() {
+              return Promise.resolve({
+                done: false,
+                value: {
+                  data: {
+                    commentAdded: {
+                      text: 'Hello world',
+                    },
+                  },
+                },
+              })
+            },
+          }
+        },
+      }
+    },
+  })
+  wss.on('connection', (socket, request) => {
+    const closed = graphQLServer.opened(
+      {
+        protocol: socket.protocol,
+        send: (data) => {
+          return new Promise((resolve, reject) => {
+            socket.send(data, (error) => (error ? reject(error) : resolve()))
+          })
+        },
+        close: (code, reason) => {
+          socket.close(code, reason)
+        },
+        onMessage: (callback) => {
+          socket.on('message', async (event) => {
+            console.log('message:', event.toString())
+
+            try {
+              await callback(event.toString())
+            } catch (error) {
+              console.error(error)
+              socket.close(
+                CloseCode.InternalServerError,
+                error instanceof Error ? error.message : error?.toString(),
+              )
+            }
+          })
+        },
+      },
+      { socket, request },
+    )
+
+    socket.once('close', (code, reason) => closed(code, reason.toString()))
+  })
+
+  const api = graphql.link(testServer.http.url('/graphql').href)
   server.use(
     api.subscription('OnCommentAdded', async ({ subscription }) => {
-      // This creates a NEW subscription for the same event in the actual server.
-      // - There is no client events to prevent! Subscription intent is sent ONCE.
       const commentSubscription = subscription.subscribe()
 
-      // Event listeners here are modeled after the subscription protocol:
-      // - acknowledge, server confirmed the subscription.
-      // - next, server is sending data to the client.
-      // - error, error happened (is this event a thing?). Server connection errors!
-      // - complete, server has completed this subscription.
       commentSubscription.addEventListener('next', (event) => {
-        // You can still prevent messages from the original server.
-        // By default, they are forwarded to the client, just like with mocking WebSockets.
         event.preventDefault()
-        // The event data is already parsed to drop the implementation details of the subscription.
-        subscription.publish({
-          data: event.data.payload,
-        })
-      })
 
-      // You can unsubscribe from the original server subscription at any time.
-      commentSubscription.unsubscribe()
+        console.log('EVENT!')
+
+        // subscription.publish({
+        //   data: event.data.payload,
+        // })
+
+        commentSubscription.unsubscribe()
+      })
     }),
   )
 
   const client = createClient({
-    url: 'wss://api.example.com/graphql',
+    url: wss.ws.url().href,
   })
   const subscription = client.iterate({
     query: `
@@ -162,8 +234,8 @@ subscription OnCommentAdded {
   })
 
   await subscription.next()
-
   /**
    * @fixme Expect the subscription payload from the ACTUAL server.
    */
+  // await expect(subscription.next()).resolves.toEqual({ foo: 'bar' })
 })

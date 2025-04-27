@@ -3,11 +3,11 @@ import { OperationTypeNode, parse } from 'graphql'
 import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import type { GraphQLHandlerInfo } from './GraphQLHandler'
 import {
-  GraphQLInternalPubsub,
+  GraphQLInternalPubSub,
   GraphQLSubscriptionHandler,
 } from './GraphQLSubscriptionHandler'
 
-const pubsub = new GraphQLInternalPubsub('ws://localhost:4000/graphql')
+const pubsub = new GraphQLInternalPubSub('ws://localhost:4000/graphql')
 
 describe('info', () => {
   it('resolves handler info for a string operation name', () => {

@@ -180,8 +180,8 @@ jobs:
         run: pnpm test:node
 
   test-e2e:
-    name: test (e2e) (18)
-    needs: build-18
+    name: test (e2e) (20)
+    needs: build-20
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -195,7 +195,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'pnpm'
 
       - name: Install dependencies

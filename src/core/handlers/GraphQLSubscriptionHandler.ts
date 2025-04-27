@@ -438,7 +438,7 @@ class GraphQLServerSubscription {
             // Once the GraphQL server acknowledges the connection, send the
             // subscription intent message. This is the same message as
             // was sent from the GraphQL client.
-            this.server.send(JSON.stringify(this.args.message))
+            this.server.send(JSON.stringify(args.message))
             break
           }
 

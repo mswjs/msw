@@ -4,8 +4,9 @@ import { setupServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
-import { buildSchema } from 'graphql'
-import { CloseCode, createClient, makeServer } from 'graphql-ws'
+import { createSchema, createYoga } from 'graphql-yoga'
+import { createClient } from 'graphql-ws'
+import { useServer } from 'graphql-ws/lib/use/ws'
 
 const server = setupServer()
 
@@ -41,17 +42,18 @@ it('intercepts and mocks a GraphQL subscription', async () => {
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
-    query: `
-subscription OnCommentAdded {
-  commentAdded {
-    id
-    text
-  }
-}
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          id
+          text
+        }
+      }
     `,
   })
 
-  await expect(subscription.next()).resolves.toMatchObject({
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
     value: {
       data: {
         commentAdded: {
@@ -63,7 +65,7 @@ subscription OnCommentAdded {
   })
 })
 
-it('marks subscription as complete by calling `subscription.complete`', async () => {
+it('supports marking a subscription as complete', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -78,12 +80,12 @@ it('marks subscription as complete by calling `subscription.complete`', async ()
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
-    query: `
-subscription OnCommentAdded {
-  commentAdded {
-    text
-  }
-}
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
     `,
   })
 
@@ -107,12 +109,12 @@ it('exposes path parameters from the WebSocket link', async () => {
     url: 'wss://api.example.com/user-service',
   })
   const subscription = client.iterate({
-    query: `
-subscription OnCommentAdded {
-  commentAdded {
-    text
-  }
-}
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
     `,
   })
 
@@ -123,119 +125,113 @@ subscription OnCommentAdded {
   })
 })
 
-it.only('supports bypassing GraphQL subscriptions', async () => {
-  await using testServer = await createTestHttpServer()
-  await using wss = createWebSocketMiddleware({
-    server: testServer,
-    pathname: '/graphql',
-  })
-  const graphQLServer = makeServer({
-    schema: buildSchema(`
+it('supports bypassing a subscription', async () => {
+  const yoga = createYoga({
+    schema: createSchema({
+      typeDefs: /* GraphQL */ `
+        type Comment {
+          text: String!
+        }
 
-type Comment {
-  text: String!
-}
+        type Query {
+          comments: [Comment!]!
+        }
 
-type Subscription {
-  commentAdded: Comment!
-}
-
-subscription OnCommentAdded {
-  commentAdded {
-    text
-  }
-}
-      `),
-    subscribe(args) {
-      return {
-        [Symbol.asyncIterator]() {
-          return {
-            next() {
-              return Promise.resolve({
-                done: false,
-                value: {
-                  data: {
-                    commentAdded: {
-                      text: 'Hello world',
-                    },
-                  },
-                },
-              })
+        type Subscription {
+          commentAdded: Comment!
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          commentAdded: {
+            async *subscribe() {
+              yield { commentAdded: { text: 'hello world' } }
             },
-          }
-        },
-      }
-    },
-  })
-  wss.on('connection', (socket, request) => {
-    const closed = graphQLServer.opened(
-      {
-        protocol: socket.protocol,
-        send: (data) => {
-          return new Promise((resolve, reject) => {
-            socket.send(data, (error) => (error ? reject(error) : resolve()))
-          })
-        },
-        close: (code, reason) => {
-          socket.close(code, reason)
-        },
-        onMessage: (callback) => {
-          socket.on('message', async (event) => {
-            console.log('message:', event.toString())
-
-            try {
-              await callback(event.toString())
-            } catch (error) {
-              console.error(error)
-              socket.close(
-                CloseCode.InternalServerError,
-                error instanceof Error ? error.message : error?.toString(),
-              )
-            }
-          })
+          },
         },
       },
-      { socket, request },
-    )
-
-    socket.once('close', (code, reason) => closed(code, reason.toString()))
+    }),
+    graphiql: false,
   })
+
+  await using testServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/graphql/*', ({ req }) => {
+        return yoga.fetch(req.raw)
+      })
+    },
+  })
+  await using wss = createWebSocketMiddleware({
+    server: testServer,
+    pathname: yoga.graphqlEndpoint,
+  })
+
+  useServer(
+    {
+      execute: (args: any) => args.execute(args),
+      subscribe: (args: any) => args.subscribe(args),
+      onSubscribe: async (ctx, params) => {
+        const { schema, execute, subscribe, contextFactory, parse, validate } =
+          yoga.getEnveloped({
+            ...ctx,
+            req: ctx.extra.request,
+            socket: ctx.extra.socket,
+            params,
+          })
+
+        const args = {
+          schema,
+          operationName: params.payload.operationName,
+          document: parse(params.payload.query),
+          variableValues: params.payload.variables,
+          contextValue: await contextFactory(),
+          execute,
+          subscribe,
+        }
+
+        const errors = validate(args.schema, args.document)
+        if (errors.length) return errors
+        return args
+      },
+    },
+    wss.raw,
+  )
 
   const api = graphql.link(testServer.http.url('/graphql').href)
   server.use(
     api.subscription('OnCommentAdded', async ({ subscription }) => {
       const commentSubscription = subscription.subscribe()
-
-      commentSubscription.addEventListener('next', (event) => {
-        event.preventDefault()
-
-        console.log('EVENT!')
-
-        // subscription.publish({
-        //   data: event.data.payload,
-        // })
-
+      commentSubscription.addEventListener('next', () => {
         commentSubscription.unsubscribe()
       })
     }),
   )
 
+  const wsUrl = testServer.http.url('/graphql')
+  wsUrl.protocol = 'ws'
+
   const client = createClient({
-    url: wss.ws.url().href,
+    url: wsUrl.href,
   })
   const subscription = client.iterate({
-    query: `
-subscription OnCommentAdded {
-  commentAdded {
-    text
-  }
-}
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
     `,
   })
 
-  await subscription.next()
-  /**
-   * @fixme Expect the subscription payload from the ACTUAL server.
-   */
-  // await expect(subscription.next()).resolves.toEqual({ foo: 'bar' })
+  // Must receive the payload from the original server.
+  await expect(subscription.next()).resolves.toEqual({
+    value: {
+      data: {
+        commentAdded: {
+          text: 'hello world',
+        },
+      },
+    },
+    done: false,
+  })
 })

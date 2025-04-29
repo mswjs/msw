@@ -191,7 +191,30 @@ export class GraphQLSubscription<
   }
 
   /**
+   * Uses the given `Iterable` or `AsyncIterable` as the source
+   * of data for this subscription. Whenever the iterable yields
+   * value, it gets published to this subscription.
+   *
+   * @example
+   * subscription.from(async function*() {
+   *   yield { text: 'hello world' }
+   * })
+   */
+  public async from(source: Iterable<any> | AsyncIterable<any>): Promise<void> {
+    for await (const data of source) {
+      this.publish({ data })
+    }
+  }
+
+  /**
    * Publishes data to all subscribed GraphQL clients.
+   *
+   * @example
+   * subscription.publish({
+   *   data: {
+   *     comment: { text: 'hello world' }
+   *   }
+   * })
    */
   public publish(payload: { data?: Query }): void {
     this.args.internalPubsub.pubsub.publish(payload, ({ subscription }) => {
@@ -201,6 +224,9 @@ export class GraphQLSubscription<
 
   /**
    * Marks this subscription as complete.
+   *
+   * @example
+   * subscription.complete()
    */
   public complete(): void {
     this.args.internalPubsub.webSocketLink.broadcast(

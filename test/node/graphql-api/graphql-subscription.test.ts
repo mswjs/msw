@@ -1,10 +1,15 @@
 // @vitest-environment node-websocket
-import { graphql, PathParams } from 'msw'
+import { graphql, HttpResponse, PathParams } from 'msw'
 import { setupServer } from 'msw/node'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
-import { createSchema, createYoga, YogaSchemaDefinition } from 'graphql-yoga'
+import {
+  createPubSub,
+  createSchema,
+  createYoga,
+  YogaSchemaDefinition,
+} from 'graphql-yoga'
 import { createClient } from 'graphql-ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 
@@ -122,6 +127,67 @@ it('exposes path parameters from the WebSocket link', async () => {
 
   await expect(paramsPromise).resolves.toEqual({
     service: 'user-service',
+  })
+})
+
+it('supports subscribing to extraneous pubsubs', async () => {
+  const pubsub = createPubSub<{ commentAdded: [{ text: string }] }>()
+
+  const api = graphql.link('https://api.example.com/graphql')
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription }) => {
+      // Subscribe to another pubsub.
+      subscription.from(pubsub.subscribe('commentAdded'))
+    }),
+    api.mutation('AddComment', ({ variables }) => {
+      const { comment } = variables
+
+      // Publish new data to the pubsub on mutation.
+      pubsub.publish('commentAdded', comment)
+
+      return HttpResponse.json({
+        data: { comment },
+      })
+    }),
+  )
+
+  const client = createClient({
+    url: 'wss://api.example.com/graphql',
+  })
+  const subscription = client.iterate({
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  // Post a new comment using GraphQL mutation.
+  const comment = { text: 'hello world' }
+  await fetch('https://api.example.com/graphql', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: /* GraphQL */ `
+        mutation AddComment($comment: CommentInput!) {
+          comment {
+            text
+          }
+        }
+      `,
+      variables: { comment },
+    }),
+  })
+
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: {
+      data: comment,
+    },
   })
 })
 

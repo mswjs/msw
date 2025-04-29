@@ -212,7 +212,9 @@ export class GraphQLSubscription<
    * @example
    * subscription.publish({
    *   data: {
-   *     comment: { text: 'hello world' }
+   *     postAdded: {
+   *       id: 'abc-123'
+   *     }
    *   }
    * })
    */
@@ -238,25 +240,37 @@ export class GraphQLSubscription<
   }
 
   /**
-   * Establishes this GraphQL subscription to the actual server.
+   * Performs this GraphQL subscription as-is.
+   * This establishes a connection to the actual server, replays
+   * the intercepted subscription, and forwards the server payload
+   * to the GraphQL client. You can intercept, modify, or prevent
+   * any of the original server messages.
+   *
+   * @example
+   * const postAddedSubscription = subscription.passthrough()
+   * postAddedSubscription.addEventListener('next', (event) => {
+   *   event.preventDefault()
+   *   event.data.payload.data.postAdded.id = 'mock-id'
+   *   subscription.publish(event.data.payload)
+   * })
    */
-  public subscribe() {
+  public passthrough() {
     const { server } = this.args.internalPubsub
 
     /**
-     * @note One can only call `subscription.subscribe()` inside the
+     * @note One can only call this method inside the
      * GraphQL subscription handler. By that point, the WebSocket connection
      * has been established and intercepted so the `server` reference
      * is guaranteed.
      */
     invariant(
       server,
-      'Failed to establish GraphQL subscription ("%s") to the actual server ("%s"): `subscription.subscribe()` was called outside the subscription handler',
+      'Failed to passthrough GraphQL subscription ("%s") to the actual server ("%s"): `subscription.subscribe()` was called outside the subscription handler',
       this.args.message.payload.query,
       this.args.internalPubsub.url,
     )
 
-    return new GraphQLServerSubscription({
+    return new GraphQLPassthroughSubscription({
       server,
       message: this.args.message,
     })
@@ -399,7 +413,7 @@ export function createGraphQLSubscriptionHandler(
   }
 }
 
-type GraphQLServerSubscriptionEventMap = {
+type GraphQLPassthroughSubscriptionEventMap = {
   connection_ack: never
   next: [GraphQLWebSocketNextMessage]
 }
@@ -408,10 +422,10 @@ type GraphQLServerSubscriptionEventMap = {
  * Representation of a GraphQL subscription to the actual server.
  * You interface with this object from the client's perspective.
  */
-class GraphQLServerSubscription {
+class GraphQLPassthroughSubscription {
   protected readonly server: WebSocketServerConnection
 
-  private emitter: Emitter<GraphQLServerSubscriptionEventMap>
+  private emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   private abortController: AbortController
 
   constructor(
@@ -486,14 +500,24 @@ class GraphQLServerSubscription {
     )
   }
 
+  /**
+   * Adds event listener to the given GraphQL subscription event.
+   *
+   * @example
+   * const onPostAddedSubscription = subscription.passthrough()
+   * onPostAddedSubscription.addEventListener('next', (event) => {
+   *   console.log(event.data)
+   *   // { id, payload, ... }
+   * })
+   */
   public addEventListener<
-    Type extends keyof GraphQLServerSubscriptionEventMap & string,
+    Type extends keyof GraphQLPassthroughSubscriptionEventMap & string,
   >(
     event: Type,
     listener: Emitter.ListenerType<
       typeof this.emitter,
       Type,
-      GraphQLServerSubscriptionEventMap
+      GraphQLPassthroughSubscriptionEventMap
     >,
   ) {
     this.emitter.on(event, listener, {
@@ -501,6 +525,17 @@ class GraphQLServerSubscription {
     })
   }
 
+  /**
+   * Unsubscribes from this passthrough GraphQL subscription.
+   * This closes the underlying server connection.
+   *
+   * @note Unsubscribing from the original subscription has no
+   * effect on the intercepted `subscription` object.
+   *
+   * @example
+   * const onPostAddedSubscription = subscription.passthrough()
+   * onPostAddedSubscription.unsubscribe()
+   */
   public unsubscribe(): void {
     // Remove internal listeners on the server object.
     this.abortController.abort()

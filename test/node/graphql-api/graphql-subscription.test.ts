@@ -387,9 +387,9 @@ it('supports bypassing a subscription', async () => {
   const api = graphql.link(testServer.http.url().href)
   server.use(
     api.subscription('OnCommentAdded', async ({ subscription }) => {
-      const commentSubscription = subscription.subscribe()
-      commentSubscription.addEventListener('next', () => {
-        commentSubscription.unsubscribe()
+      const onCommentAddedSubscription = subscription.passthrough()
+      onCommentAddedSubscription.addEventListener('next', () => {
+        onCommentAddedSubscription.unsubscribe()
       })
     }),
   )
@@ -451,8 +451,8 @@ it('supports augmenting original server subscription payload', async () => {
   const api = graphql.link(testServer.http.url().href)
   server.use(
     api.subscription('OnCommentAdded', async ({ subscription }) => {
-      const commentSubscription = subscription.subscribe()
-      commentSubscription.addEventListener('next', (event) => {
+      const onCommentAddedSubscription = subscription.passthrough()
+      onCommentAddedSubscription.addEventListener('next', (event) => {
         // Prevent the default server-to-client forwarding.
         event.preventDefault()
 
@@ -463,9 +463,12 @@ it('supports augmenting original server subscription payload', async () => {
           // @ts-expect-error Missing payload type.
           payload.data.commentAdded.text.toUpperCase()
 
-        subscription.publish(event.data.payload)
+        subscription.publish(
+          // @ts-expect-error Missing payload type.
+          event.data.payload,
+        )
 
-        commentSubscription.unsubscribe()
+        onCommentAddedSubscription.unsubscribe()
       })
     }),
   )

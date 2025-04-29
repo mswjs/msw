@@ -94,8 +94,9 @@ it('supports marking a subscription as complete', async () => {
     `,
   })
 
-  await expect(subscription.next()).resolves.toMatchObject({
+  await expect(subscription.next()).resolves.toEqual({
     done: true,
+    value: undefined,
   })
 })
 
@@ -131,7 +132,9 @@ it('exposes path parameters from the WebSocket link', async () => {
 })
 
 it('supports subscribing to extraneous pubsubs', async () => {
-  const pubsub = createPubSub<{ commentAdded: [{ text: string }] }>()
+  const pubsub = createPubSub<{
+    commentAdded: [{ commentAdded: { text: string } }]
+  }>()
 
   const api = graphql.link('https://api.example.com/graphql')
   server.use(
@@ -143,7 +146,9 @@ it('supports subscribing to extraneous pubsubs', async () => {
       const { comment } = variables
 
       // Publish new data to the pubsub on mutation.
-      pubsub.publish('commentAdded', comment)
+      pubsub.publish('commentAdded', {
+        commentAdded: comment,
+      })
 
       return HttpResponse.json({
         data: { comment },
@@ -186,7 +191,92 @@ it('supports subscribing to extraneous pubsubs', async () => {
   await expect(subscription.next()).resolves.toEqual({
     done: false,
     value: {
-      data: comment,
+      data: {
+        commentAdded: comment,
+      },
+    },
+  })
+})
+
+it('supports combining extraneous and default pubsubs', async () => {
+  const pubsub = createPubSub<{
+    commentAdded: [{ commentAdded: { text: string } }]
+  }>()
+
+  const api = graphql.link('https://api.example.com/graphql')
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription }) => {
+      subscription.publish({
+        data: {
+          commentAdded: {
+            text: 'manual comment',
+          },
+        },
+      })
+
+      // Subscribe to another pubsub.
+      subscription.from(pubsub.subscribe('commentAdded'))
+    }),
+    api.mutation('AddComment', ({ variables }) => {
+      const { comment } = variables
+
+      // Publish new data to the pubsub on mutation.
+      pubsub.publish('commentAdded', { commentAdded: comment })
+
+      return HttpResponse.json({
+        data: { comment },
+      })
+    }),
+  )
+
+  const client = createClient({
+    url: 'wss://api.example.com/graphql',
+  })
+  const subscription = client.iterate({
+    query: /* GraphQL */ `
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  // First, must receive the payload from the manual publish.
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: {
+      data: {
+        commentAdded: { text: 'manual comment' },
+      },
+    },
+  })
+
+  const comment = { text: 'comment from mutation' }
+  await fetch('https://api.example.com/graphql', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: /* GraphQL */ `
+        mutation AddComment($comment: CommentInput!) {
+          comment {
+            text
+          }
+        }
+      `,
+      variables: { comment },
+    }),
+  })
+
+  // Then, must receive the publish from the mutation.
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: {
+      data: {
+        commentAdded: comment,
+      },
     },
   })
 })

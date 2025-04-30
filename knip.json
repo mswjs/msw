@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/{core,browser,node,native}/index.ts",
+    "src/mockServiceWorker.js",
+    "config/**/*.{js,ts}"
+  ],
+  "project": ["src/**/*.ts", "config/**/*.{js,ts}", "!test/**/*.ts"]
+}

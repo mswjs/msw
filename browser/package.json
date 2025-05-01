@@ -1,5 +1,5 @@
 {
-  "main": "../lib/browser/index.js",
-  "module": "../lib/browser/index.mjs",
+  "main": "../lib/browser/index.cjs",
+  "module": "../lib/browser/index.js",
   "types": "../lib/browser/index.d.ts"
 }

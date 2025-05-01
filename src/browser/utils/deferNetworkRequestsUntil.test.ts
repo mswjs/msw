@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { deferNetworkRequestsUntil } from './deferNetworkRequestsUntil'
 
 beforeAll(() => {

@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { coercePath, matchRequestUrl } from './matchRequestUrl'
 
 describe('matchRequestUrl', () => {

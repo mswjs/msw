@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { graphql, http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 

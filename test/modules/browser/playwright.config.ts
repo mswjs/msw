@@ -1,7 +1,7 @@
 import { Config } from '@playwright/test'
 
 const config: Config = {
-  testDir: __dirname,
+  testDir: import.meta.url,
   use: {
     launchOptions: {
       devtools: !process.env.CI,

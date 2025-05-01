@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupWorker } from './setupWorker'
 
 test('returns an error when run in a Node.js environment', () => {

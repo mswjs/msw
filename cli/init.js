@@ -1,11 +1,11 @@
-const fs = require('fs')
-const path = require('path')
-const colors = require('picocolors')
-const confirm = require('@inquirer/confirm').default
-const invariant = require('./invariant')
-const { SERVICE_WORKER_BUILD_PATH } = require('../config/constants')
+import fs from 'fs'
+import path from 'path'
+import colors from 'picocolors'
+import confirm from '@inquirer/confirm'
+import { invariant } from './invariant.js'
+import { SERVICE_WORKER_BUILD_PATH } from '../config/constants.js'
 
-module.exports = async function init(args) {
+export async function init(args) {
   const CWD = args.cwd || process.cwd()
   const publicDir = args._[1] ? normalizePath(args._[1]) : undefined
 
@@ -33,6 +33,7 @@ module.exports = async function init(args) {
     // You can also provide the "--no-save" option, and then "args.save"
     // will equal to false.
     else if (args.save == null) {
+      // eslint-disable-next-line no-console
       console.log(`\
       ${colors.cyan(
         'INFO',
@@ -126,6 +127,7 @@ async function copyWorkerScript(destination, cwd) {
       })
   }
 
+  // eslint-disable-next-line no-console
   console.log('Copying the worker script at "%s"...', absolutePublicDir)
 
   const workerFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
@@ -140,6 +142,7 @@ async function copyWorkerScript(destination, cwd) {
  * @param {Array<string>} paths
  */
 function printSuccessMessage(paths) {
+  // eslint-disable-next-line no-console
   console.log(`
 ${colors.green('Worker script successfully copied!')}
 ${paths.map((path) => colors.gray(`  - ${path}\n`))}
@@ -151,6 +154,7 @@ ${colors.red(colors.bold('https://mswjs.io/docs/getting-started'))}
 }
 
 function printFailureMessage(pathsWithErrors) {
+  // eslint-disable-next-line no-console
   console.error(`\
 ${colors.red('Copying the worker script failed at following paths:')}
 ${pathsWithErrors
@@ -166,6 +170,7 @@ ${pathsWithErrors
 function saveWorkerDirectory(packageJsonPath, publicDir) {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 
+  // eslint-disable-next-line no-console
   console.log(
     colors.gray('Updating "msw.workerDirectory" at "%s"...'),
     packageJsonPath,

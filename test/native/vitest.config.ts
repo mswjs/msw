@@ -1,7 +1,7 @@
-import * as path from 'node:path'
+import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-const LIB_DIR = path.resolve(__dirname, '../../lib')
+const LIB_DIR = new URL('../../lib', import.meta.url)
 
 export default defineConfig({
   test: {
@@ -19,10 +19,10 @@ export default defineConfig({
        * Vitest won't pick up the ESM targets because
        * the root-level "package.json" is not "module".
        */
-      'msw/node': path.resolve(LIB_DIR, 'node/index.mjs'),
-      'msw/native': path.resolve(LIB_DIR, 'native/index.mjs'),
-      'msw/browser': path.resolve(LIB_DIR, 'browser/index.mjs'),
-      msw: path.resolve(LIB_DIR, 'core/index.mjs'),
+      'msw/node': url.fileURLToPath(new URL('node/index.js', LIB_DIR)),
+      'msw/native': url.fileURLToPath(new URL('native/index.js', LIB_DIR)),
+      'msw/browser': url.fileURLToPath(new URL('browser/index.js', LIB_DIR)),
+      msw: url.fileURLToPath(new URL('core/index.js', LIB_DIR)),
     },
   },
 })

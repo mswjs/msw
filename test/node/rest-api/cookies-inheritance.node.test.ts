@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { HttpResponse, http } from 'msw'
 import { setupServer, SetupServer } from 'msw/node'
 import { HttpServer, httpsAgent } from '@open-draft/test-server/http'

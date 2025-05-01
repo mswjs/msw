@@ -1,13 +1,11 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import fetch from 'cross-fetch'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { createGraphQLClient, gql } from '../../support/graphql'
+import { createGraphQLClient } from '../../support/graphql'
 
-const schema = gql`
+const schema = /* GraphQL */ `
   type User {
     firstName: String!
   }
@@ -50,8 +48,8 @@ afterAll(() => {
 })
 
 test('fetches the data from a GraphQL schema', async () => {
-  const res = await client({
-    query: gql`
+  const response = await client({
+    query: /* GraphQL */ `
       query GetUser {
         user {
           firstName
@@ -60,17 +58,17 @@ test('fetches the data from a GraphQL schema', async () => {
     `,
   })
 
-  expect(res.data).toEqual({
+  expect(response.data).toEqual({
     user: {
       firstName: 'John',
     },
   })
-  expect(res.errors).toBeUndefined()
+  expect(response.errors).toBeUndefined()
 })
 
 test('propagates the GraphQL execution errors', async () => {
-  const res = await client({
-    query: gql`
+  const response = await client({
+    query: /* GraphQL */ `
       query GetUser {
         user {
           firstName
@@ -82,9 +80,9 @@ test('propagates the GraphQL execution errors', async () => {
     `,
   })
 
-  expect(res.data).toBeUndefined()
-  expect(res.errors).toHaveLength(1)
-  expect(res.errors?.[0]).toHaveProperty(
+  expect(response.data).toBeUndefined()
+  expect(response.errors).toHaveLength(1)
+  expect(response.errors?.[0]).toHaveProperty(
     'message',
     'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
   )

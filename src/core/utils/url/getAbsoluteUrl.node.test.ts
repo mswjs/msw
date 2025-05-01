@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { getAbsoluteUrl } from './getAbsoluteUrl'
 
 it('returns a given relative URL as-is', () => {

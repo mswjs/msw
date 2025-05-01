@@ -1,13 +1,10 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql as executeGraphql } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
 
-const schema = gql`
+const schema = /* GraphQL */ `
   type User {
     firstName: String!
   }
@@ -57,7 +54,7 @@ test('adds extensions to the original response data', async () => {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      query: gql`
+      query: /* GraphQL */ `
         query GetUser {
           user {
             firstName

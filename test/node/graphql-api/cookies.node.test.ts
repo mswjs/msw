@@ -3,9 +3,8 @@ import cookieUtils from '@bundled-es-modules/cookie'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
 
-const schema = gql`
+const schema = /* GraphQL */ `
   type User {
     firstName: String!
   }
@@ -57,7 +56,7 @@ test('sets cookie on the mocked response', async () => {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      query: gql`
+      query: /* GraphQL */ `
         query GetUser {
           user {
             firstName

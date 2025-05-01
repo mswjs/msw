@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { parseMultipartData } from './parseMultipartData'
 
 test('parses a given valid multipart string', async () => {

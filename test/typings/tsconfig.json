@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
+    "module": "esnext",
     "noEmit": true,
     "types": ["node"],
     "typeRoots": ["../../node_modules/@types"],

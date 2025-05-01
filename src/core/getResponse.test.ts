@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { http } from './http'
 import { getResponse } from './getResponse'
 

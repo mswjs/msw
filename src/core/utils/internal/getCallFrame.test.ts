@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { getCallFrame } from './getCallFrame'
 
 class ErrorWithStack extends Error {

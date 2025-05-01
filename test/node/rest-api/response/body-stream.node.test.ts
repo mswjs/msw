@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import https from 'https'
 import { HttpResponse, http, delay } from 'msw'
 import { setupServer } from 'msw/node'

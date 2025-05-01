@@ -3,7 +3,7 @@ import { bypass, graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { HttpServer } from '@open-draft/test-server/http'
-import { createGraphQLClient, gql } from '../../support/graphql'
+import { createGraphQLClient } from '../../support/graphql'
 
 const server = setupServer(
   graphql.query('GetUser', async ({ request }) => {
@@ -28,7 +28,7 @@ const server = setupServer(
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', async (req, res) => {
     const result = await executeGraphql({
-      schema: buildSchema(gql`
+      schema: buildSchema(/* GraphQL */ `
         type User {
           firstName: String!
           lastName: String!
@@ -91,7 +91,7 @@ test('patches a GraphQL response', async () => {
     }
     requestHeaders: Record<string, string>
   }>({
-    query: gql`
+    query: /* GraphQL */ `
       query GetUser {
         user {
           firstName

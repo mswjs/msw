@@ -1,4 +1,4 @@
-import * as path from 'path'
+import * as path from 'node:path'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
 

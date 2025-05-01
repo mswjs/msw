@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { encodeBuffer } from '@mswjs/interceptors'
 import { serializeResponse } from './serializeResponse'
 

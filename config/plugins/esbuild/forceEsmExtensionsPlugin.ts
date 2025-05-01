@@ -37,7 +37,7 @@ const CJS_RELATIVE_IMPORT_EXP = /require\(["'](\..+)["']\)(;)?/gm
 const ESM_RELATIVE_IMPORT_EXP = /from ["'](\..+)["'](;)?/gm
 
 function modifyRelativeImports(contents: string, isEsm: boolean): string {
-  const extension = isEsm ? '.mjs' : '.js'
+  const extension = isEsm ? '.js' : '.cjs'
   const importExpression = isEsm
     ? ESM_RELATIVE_IMPORT_EXP
     : CJS_RELATIVE_IMPORT_EXP

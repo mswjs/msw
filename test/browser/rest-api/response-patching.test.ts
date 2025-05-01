@@ -1,9 +1,9 @@
-import { matchRequestUrl } from 'msw/lib/core/index.mjs'
+import { matchRequestUrl } from 'msw'
 import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 
 const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => {
+  app.get('/user', (_req, res) => {
     res.status(200).json({
       name: 'The Octocat',
       location: 'San Francisco',
@@ -61,13 +61,11 @@ test('responds with a combination of the mocked and original responses', async (
 }) => {
   await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
-  const res = await fetch(httpServer.http.url('/user'))
-  const status = res.status()
-  const body = await res.json()
+  const response = await fetch(httpServer.http.url('/user'))
 
-  expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     name: 'The Octocat',
     location: 'San Francisco',
     mocked: true,
@@ -80,7 +78,7 @@ test('bypasses the original request when it equals the mocked request', async ({
 }) => {
   await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
-  const res = await fetch(
+  const response = await fetch(
     httpServer.http.url('/repos/mswjs/msw?mocked=true'),
     undefined,
     {
@@ -95,12 +93,9 @@ test('bypasses the original request when it equals the mocked request', async ({
     },
   )
 
-  const status = res.status()
-  const body = await res.json()
-
-  expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     name: 'msw',
     stargazers_count: 9999,
   })
@@ -118,24 +113,21 @@ test('forwards custom request headers to the original request', async ({
       Authorization: 'token',
     },
   })
-  const req = await page.waitForRequest(httpServer.http.url('/headers'))
-  const res = await requestPromise
+  const request = await page.waitForRequest(httpServer.http.url('/headers'))
+  const response = await requestPromise
 
-  expect(req.headers()).toHaveProperty('authorization', 'token')
-  expect(req.headers()).not.toHaveProperty('_headers')
-  expect(req.headers()).not.toHaveProperty('_names')
+  expect(request.headers()).toHaveProperty('authorization', 'token')
+  expect(request.headers()).not.toHaveProperty('_headers')
+  expect(request.headers()).not.toHaveProperty('_names')
 
-  const status = res.status()
-  const body = await res.json()
-
-  expect(status).toEqual(200)
-  expect(body).toEqual({ message: 'success' })
+  expect(response.status).toEqual(200)
+  await expect(response.json()).resolves.toEqual({ message: 'success' })
 })
 
 test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
   await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
-  const res = await fetch(
+  const response = await fetch(
     httpServer.http.url('/posts'),
     {
       method: 'HEAD',
@@ -151,11 +143,8 @@ test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
     },
   )
 
-  const status = res.status()
-  const headers = res.headers()
-
-  expect(status).toBe(200)
-  expect(headers).toEqual(
+  expect(response.status()).toBe(200)
+  expect(response.headers()).toEqual(
     expect.objectContaining({
       'x-source': 'msw',
       'x-custom': 'HEAD REQUEST PATCHED',
@@ -170,7 +159,7 @@ test('supports patching a GET request', async ({
 }) => {
   await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
-  const res = await fetch(
+  const response = await fetch(
     httpServer.http.url('/posts'),
     {
       method: 'GET',
@@ -187,12 +176,10 @@ test('supports patching a GET request', async ({
       },
     },
   )
-  const status = res.status()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({ id: 101, mocked: true })
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({ id: 101, mocked: true })
 })
 
 test('supports patching a POST request', async ({
@@ -202,7 +189,7 @@ test('supports patching a POST request', async ({
 }) => {
   await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
-  const res = await fetch(
+  const response = await fetch(
     httpServer.http.url('/posts'),
     {
       method: 'POST',
@@ -224,14 +211,11 @@ test('supports patching a POST request', async ({
       },
     },
   )
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  expect(response.headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
+  await expect(response.json()).resolves.toEqual({
     id: 101,
     mocked: true,
   })

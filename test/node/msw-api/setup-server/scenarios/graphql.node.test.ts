@@ -1,17 +1,15 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import fetch from 'cross-fetch'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { createGraphQLClient, gql } from '../../../../support/graphql'
+import { createGraphQLClient } from '../../../../support/graphql'
 
 const apolloClient = createGraphQLClient({
   uri: 'http://localhost:3000',
   fetch,
 })
 
-const GET_USER_DETAIL = gql`
+const GET_USER_DETAIL = /* GraphQL */ `
   query GetUserDetail($userId: String!) {
     user {
       id
@@ -21,7 +19,7 @@ const GET_USER_DETAIL = gql`
   }
 `
 
-const LOGIN = gql`
+const LOGIN = /* GraphQL */ `
   mutation Login($username: String!) {
     user {
       id

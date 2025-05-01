@@ -1,8 +1,9 @@
-const fs = require('fs')
-const path = require('path')
-const { invariant } = require('outvariant')
+import * as fs from 'node:fs'
+import * as url from 'node:url'
+import * as path from 'node:path'
+import { invariant } from 'outvariant'
 
-const ROOT_PATH = path.resolve(__dirname, '../..')
+const ROOT_PATH = url.fileURLToPath(new URL('../..', import.meta.url))
 
 function fromRoot(...paths) {
   return path.resolve(ROOT_PATH, ...paths)

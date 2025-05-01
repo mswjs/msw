@@ -1,10 +1,10 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import * as fs from 'node:fs'
+import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
-import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 import { invariant } from 'outvariant'
+import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 
-const LIB_DIR = path.resolve(__dirname, '../../lib')
+const LIB_DIR = new URL('../../lib', import.meta.url)
 
 export default defineConfig({
   test: {
@@ -26,8 +26,10 @@ export default defineConfig({
         )
 
         const tsConfigPaths = [
-          path.resolve(__dirname, `tsconfig.${tsVersionMajorMinor}.json`),
-          path.resolve(__dirname, 'tsconfig.json'),
+          url.fileURLToPath(
+            new URL(`tsconfig.${tsVersionMajorMinor}.json`, import.meta.url),
+          ),
+          url.fileURLToPath(new URL('tsconfig.json', import.meta.url)),
         ]
         const tsConfigPath = tsConfigPaths.find((path) =>
           fs.existsSync(path),
@@ -48,10 +50,10 @@ export default defineConfig({
        * Vitest won't pick up the ESM targets because
        * the root-level "package.json" is not "module".
        */
-      'msw/node': path.resolve(LIB_DIR, 'node/index.mjs'),
-      'msw/native': path.resolve(LIB_DIR, 'native/index.mjs'),
-      'msw/browser': path.resolve(LIB_DIR, 'browser/index.mjs'),
-      msw: path.resolve(LIB_DIR, 'core/index.mjs'),
+      'msw/node': url.fileURLToPath(new URL('node/index.js', LIB_DIR)),
+      'msw/native': url.fileURLToPath(new URL('native/index.js', LIB_DIR)),
+      'msw/browser': url.fileURLToPath(new URL('browser/index.js', LIB_DIR)),
+      msw: url.fileURLToPath(new URL('core/index.js', LIB_DIR)),
     },
   },
 })

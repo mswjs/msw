@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { http } from 'msw'
 import { setupServer } from 'msw/node'
 

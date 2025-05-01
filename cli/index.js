@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-const yargs = require('yargs')
+import yargs from 'yargs'
+import { init } from './init.js'
 
-yargs
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+yargs()
   .usage('$0 <cmd> [args]')
   .command(
     'init',
@@ -27,7 +29,7 @@ yargs
         .example('msw init ./public')
         .example('msw init ./static --save')
     },
-    require('./init'),
+    init,
   )
   .demandCommand()
   .help().argv

@@ -62,6 +62,9 @@ importers:
       strict-event-emitter:
         specifier: ^0.5.1
         version: 0.5.1
+      test@latest:
+        specifier: link:@@playwright/test@latest
+        version: link:@@playwright/test@latest
       type-fest:
         specifier: ^4.26.1
         version: 4.29.0

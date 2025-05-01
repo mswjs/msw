@@ -158,6 +158,7 @@
     "picocolors": "^1.1.1",
     "rettime": "^0.5.4",
     "strict-event-emitter": "^0.5.1",
+    "test@latest": "link:@@playwright/test@latest",
     "type-fest": "^4.26.1",
     "yargs": "^17.7.2"
   },

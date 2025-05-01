@@ -10,14 +10,14 @@ declare namespace window {
   }
 }
 
-const LIST_HANDLER_EXAMPLE = require.resolve('./listHandlers.mocks.ts')
+const EXAMPLE_PATH = new URL('./listHandlers.mocks.ts', import.meta.url)
 
 test('lists all current request handlers', async ({ loadExample, page }) => {
-  await loadExample(LIST_HANDLER_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const handlerHeaders = await page.evaluate(() => {
     const handlers = window.msw.worker.listHandlers()
-    return handlers.map((handler) => handler.info.header)
+    return handlers.map((handler) => 'info' in handler && handler.info.header)
   })
 
   expect(handlerHeaders).toEqual([
@@ -34,7 +34,7 @@ test('forbids from modifying the list of handlers', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(LIST_HANDLER_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   /**
    * @note For some reason, property assignment on frozen object
@@ -53,7 +53,7 @@ test('includes runtime request handlers when listing handlers', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(LIST_HANDLER_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const handlerHeaders = await page.evaluate(() => {
     const { worker, http, graphql } = window.msw
@@ -62,7 +62,7 @@ test('includes runtime request handlers when listing handlers', async ({
       graphql.query('GetRandomNumber', () => void 0),
     )
     const handlers = worker.listHandlers()
-    return handlers.map((handler) => handler.info.header)
+    return handlers.map((handler) => 'info' in handler && handler.info.header)
   })
 
   expect(handlerHeaders).toEqual([

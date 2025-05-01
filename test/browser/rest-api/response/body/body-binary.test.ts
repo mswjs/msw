@@ -3,7 +3,7 @@ import * as path from 'path'
 import { test, expect } from '../../../playwright.extend'
 
 test('responds with a given binary body', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-binary.mocks.ts'))
+  await loadExample(new URL('./body-binary.mocks.ts', import.meta.url))
 
   const res = await fetch('/images/abc-123')
   const status = res.status()

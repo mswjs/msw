@@ -1,9 +1,7 @@
-import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
-import { waitFor } from '../../support/waitFor'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
+import { waitFor } from '../../support/waitFor'
 
-const LOGGING_EXAMPLE = require.resolve('./logging.mocks.ts')
+const EXAMPLE_PATH = new URL('./logging.mocks.ts', import.meta.url)
 
 test('prints a log for a GraphQL query', async ({
   loadExample,
@@ -11,10 +9,10 @@ test('prints a log for a GraphQL query', async ({
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(LOGGING_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   await query('/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       query GetUserDetail {
         user {
           firstName
@@ -29,7 +27,7 @@ test('prints a log for a GraphQL query', async ({
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetUserDetail \\(%c200 OK%c\\) color:${StatusCodeColor.Success} color:inherit$`,
+            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetUserDetail \\(%c200 OK%c\\) color:#69AB32 color:inherit$`,
           ),
         ),
       ]),
@@ -43,10 +41,10 @@ test('prints a log for a GraphQL mutation', async ({
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(LOGGING_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   await query('/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       mutation Login {
         user {
           id
@@ -60,7 +58,7 @@ test('prints a log for a GraphQL mutation', async ({
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation Login \\(%c200 OK%c\\) color:${StatusCodeColor.Success} color:inherit$`,
+            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation Login \\(%c200 OK%c\\) color:#69AB32 color:inherit$`,
           ),
         ),
       ]),
@@ -74,10 +72,10 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(LOGGING_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   await query('/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       query GetLatestPosts {
         posts {
           title
@@ -91,7 +89,7 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetLatestPosts \\(%c301 Moved Permanently%c\\) color:${StatusCodeColor.Warning} color:inherit$`,
+            `\\[MSW\\] \\d{2}:\\d{2}:\\d{2} query GetLatestPosts \\(%c301 Moved Permanently%c\\) color:#F0BB4B color:inherit$`,
           ),
         ),
       ]),
@@ -105,10 +103,10 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(LOGGING_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   await query('/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       mutation CreatePost {
         post {
           id
@@ -122,7 +120,7 @@ test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', 
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
-            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation CreatePost \\(%c301 Moved Permanently%c\\) color:${StatusCodeColor.Warning} color:inherit$`,
+            `^\\[MSW\\] \\d{2}:\\d{2}:\\d{2} mutation CreatePost \\(%c301 Moved Permanently%c\\) color:#F0BB4B color:inherit$`,
           ),
         ),
       ]),

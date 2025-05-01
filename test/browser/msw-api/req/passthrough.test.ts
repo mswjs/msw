@@ -2,7 +2,7 @@ import { HttpResponse, http, passthrough } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { expect, test } from '../../playwright.extend'
 
-const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
+const EXAMPLE_PATH = new URL('./passthrough.mocks.ts', import.meta.url)
 
 declare namespace window {
   export const msw: {
@@ -31,7 +31,7 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
   })
 
   const consoleSpy = spyOnConsole()
-  await loadExample(PASSTHROUGH_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
@@ -68,7 +68,7 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
   })
 
   const consoleSpy = spyOnConsole()
-  await loadExample(PASSTHROUGH_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
@@ -107,7 +107,7 @@ test('performs a request as-is if nothing was returned from the resolver', async
     })
   })
 
-  await loadExample(PASSTHROUGH_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
   const endpointUrl = server.http.url('/user')
 
   await page.evaluate((endpointUrl) => {
@@ -142,7 +142,7 @@ for (const code of [204, 205, 304]) {
       })
     })
 
-    await loadExample(PASSTHROUGH_EXAMPLE)
+    await loadExample(EXAMPLE_PATH)
     const endpointUrl = server.http.url('/user')
 
     const errors: Array<Error> = []
@@ -176,7 +176,7 @@ for (const code of [204, 205, 304]) {
       })
     })
 
-    await loadExample(PASSTHROUGH_EXAMPLE)
+    await loadExample(EXAMPLE_PATH)
     const endpointUrl = server.http.url('/user')
 
     const errors: Array<Error> = []

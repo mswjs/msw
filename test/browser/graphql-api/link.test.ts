@@ -1,8 +1,7 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 
-const LINK_EXAMPLE = require.resolve('./link.mocks.ts')
+const EXAMPLE_PATH = new URL('./link.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.post('/graphql', (req, res) => {
@@ -22,10 +21,10 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(LINK_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query('https://api.github.com/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       query GetUser($username: String!) {
         user(username: $username) {
           id
@@ -57,10 +56,10 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(LINK_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query('https://api.stripe.com/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       mutation Payment($amount: Int!) {
         bankAccount {
           totalFunds
@@ -90,10 +89,10 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
   loadExample,
   query,
 }) => {
-  await loadExample(LINK_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query('/graphql', {
-    query: gql`
+    query: /* GraphQL */ `
       query GetUser($username: String!) {
         user(username: $username) {
           id
@@ -124,10 +123,10 @@ test('bypasses a GraphQL operation to an unknown endpoint', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(LINK_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query(server.http.url('/graphql'), {
-    query: gql`
+    query: /* GraphQL */ `
       mutation Payment($amount: Int!) {
         bankAccount {
           totalFunds

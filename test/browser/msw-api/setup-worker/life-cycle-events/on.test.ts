@@ -1,5 +1,5 @@
 import type { SetupWorker } from 'msw/browser'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
 
@@ -9,7 +9,7 @@ declare namespace window {
   }
 }
 
-const ON_EXAMPLE = require.resolve('./on.mocks.ts')
+const EXAMPLE_PATH = new URL('./on.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.post('/no-response', (_req, res) => {
@@ -48,7 +48,7 @@ test('emits events for a handled request and mocked response', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = server.http.url('/user')
   await fetch(url)
@@ -75,7 +75,7 @@ test('emits events for a handled request with no response', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = server.http.url('/no-response')
   await fetch(url, { method: 'POST' })
@@ -101,7 +101,7 @@ test('emits events for an unhandled request', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = server.http.url('/unknown-route')
   await fetch(url)
@@ -128,7 +128,7 @@ test('emits events for a passthrough request', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   // Explicit "passthrough()" request must go through the
   // same request processing pipeline to contain both
@@ -154,7 +154,7 @@ test('emits events for a bypassed request', async ({
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const pageErrors: Array<Error> = []
   page.on('pageerror', (error) => pageErrors.push(error))
@@ -195,7 +195,7 @@ test('emits unhandled exceptions in the request handler', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = server.http.url('/unhandled-exception')
   await fetch(url)
@@ -213,7 +213,7 @@ test('stops emitting events once the worker is stopped', async ({
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   await page.evaluate(() => {
     return window.msw.worker.stop()

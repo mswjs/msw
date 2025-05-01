@@ -1,9 +1,8 @@
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql } from 'graphql'
 import { SetupWorkerApi } from 'msw/browser'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 
 declare namespace window {
   export const dispatchGraphQLQuery: (uri: string) => Promise<ExecutionResult>
@@ -18,7 +17,7 @@ declare namespace window {
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', async (req, res) => {
     const result = await graphql({
-      schema: buildSchema(gql`
+      schema: buildSchema(/* GraphQL */ `
         type User {
           firstName: String!
           lastName: String!
@@ -50,7 +49,7 @@ test.afterEach(async () => {
 })
 
 test('patches a GraphQL response', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
   const endpointUrl = httpServer.http.url('/graphql')
 
   await page.evaluate(() => {

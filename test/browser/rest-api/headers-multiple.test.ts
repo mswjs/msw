@@ -1,6 +1,6 @@
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./headers-multiple.mocks.ts')
+const EXAMPLE_PATH = new URL('./headers-multiple.mocks.ts', import.meta.url)
 
 test('receives all headers from the request header with multiple values', async ({
   loadExample,
@@ -11,15 +11,13 @@ test('receives all headers from the request header with multiple values', async 
   const headers = new Headers({ 'x-header': 'application/json' })
   headers.append('x-header', 'application/hal+json')
 
-  const res = await fetch('https://test.mswjs.io', {
+  const response = await fetch('https://test.mswjs.io', {
     method: 'POST',
     headers: Object.fromEntries(headers.entries()),
   })
-  const status = res.status()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.json()).resolves.toEqual({
     /**
      * @fixme Multiple headers value becomes incompatible
      * with the latest testing setup changes.
@@ -34,14 +32,14 @@ test('supports setting a header with multiple values on the mocked response', as
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await fetch('https://test.mswjs.io')
-  const status = res.status()
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const response = await fetch('https://test.mswjs.io')
 
-  expect(status).toBe(200)
-  expect(headers).toHaveProperty('accept', 'application/json, image/png')
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.allHeaders()).resolves.toHaveProperty(
+    'accept',
+    'application/json, image/png',
+  )
+  await expect(response.json()).resolves.toEqual({
     mocked: true,
   })
 })

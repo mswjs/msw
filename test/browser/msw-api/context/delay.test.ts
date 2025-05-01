@@ -1,6 +1,6 @@
 import { test, expect } from '../../playwright.extend'
 
-const DELAY_EXAMPLE = require.resolve('./delay.mocks.ts')
+const EXAMPLE_PATH = new URL('./delay.mocks', import.meta.url)
 
 declare global {
   namespace PlaywrightTest {
@@ -36,7 +36,7 @@ expect.extend({
 })
 
 test('uses explicit server response delay', async ({ loadExample, fetch }) => {
-  await loadExample(DELAY_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await fetch('/delay?duration=1200')
   const timing = res.request().timing()
@@ -55,7 +55,7 @@ test('uses realistic server response delay when no delay value is provided', asy
   loadExample,
   fetch,
 }) => {
-  await loadExample(DELAY_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await fetch('/delay')
   const timing = res.request().timing()
@@ -76,7 +76,7 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   loadExample,
   fetch,
 }) => {
-  await loadExample(DELAY_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
   const res = await fetch('/delay?mode=real')
   const timing = res.request().timing()
 

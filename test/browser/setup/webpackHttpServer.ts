@@ -1,9 +1,9 @@
 import * as fs from 'fs'
-import * as path from 'path'
+import * as url from 'node:url'
 import { WebpackHttpServer } from 'webpack-http-server'
 import { getWorkerScriptPatch } from './workerConsole'
-
-const { SERVICE_WORKER_BUILD_PATH } = require('../../../config/constants.js')
+// @ts-expect-error Importing a CommonJS module.
+import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
 declare global {
   // eslint-disable-next-line
@@ -51,7 +51,9 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
                 loader: 'esbuild-loader',
                 options: {
                   loader: 'ts',
-                  tsconfigRaw: require('../../tsconfig.json'),
+                  tsconfigRaw: fs.readFileSync(
+                    new URL('../../tsconfig.json', import.meta.url),
+                  ),
                 },
               },
             ],
@@ -60,7 +62,7 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
       },
       resolve: {
         alias: {
-          msw: path.resolve(__dirname, '../../..'),
+          msw: url.fileURLToPath(new URL('../../..', import.meta.url)),
         },
         extensions: ['.ts', '.js', '.mjs'],
       },

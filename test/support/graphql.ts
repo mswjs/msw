@@ -1,13 +1,5 @@
 import type { ExecutionResult } from 'graphql'
 
-/**
- * Identity function that returns a given template string array.
- * Provides GraphQL syntax highlighting without any extra transformations.
- */
-export const gql = (str: TemplateStringsArray) => {
-  return str.join('')
-}
-
 interface GraphQLClientOPtions {
   uri: string
   fetch?: (input: any, init?: any) => Promise<Response>

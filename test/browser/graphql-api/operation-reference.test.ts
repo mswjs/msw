@@ -1,14 +1,12 @@
 import { test, expect } from '../playwright.extend'
 
-const OPERATION_REFERENCE_EXAMPLE = require.resolve(
-  './operation-reference.mocks.ts',
-)
+const EXAMPLE_PATH = new URL('./operation-reference.mocks.ts', import.meta.url)
 
 test('allows referencing the request body in the GraphQL query handler', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(OPERATION_REFERENCE_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const GET_USER_QUERY = `
     query GetUser($id: String!) {
@@ -41,7 +39,7 @@ test('allows referencing the request body in the GraphQL mutation handler', asyn
   loadExample,
   query,
 }) => {
-  await loadExample(OPERATION_REFERENCE_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const LOGIN_MUTATION = `
     mutation Login($username: String!, $password: String!) {

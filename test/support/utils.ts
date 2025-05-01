@@ -1,4 +1,5 @@
-import * as path from 'path'
+import * as url from 'node:url'
+import * as path from 'node:path'
 import { ClientRequest, IncomingMessage } from 'http'
 
 export function sleep(duration: number) {
@@ -8,7 +9,9 @@ export function sleep(duration: number) {
 }
 
 export function fromTemp(...segments: string[]) {
-  return path.join(__dirname, '../..', 'tmp', ...segments)
+  return url.fileURLToPath(
+    new URL(path.join('../..', 'tmp', ...segments), import.meta.url),
+  )
 }
 
 export function clearCookies(): void {

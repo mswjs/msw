@@ -1,8 +1,7 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 
-const OPERATION_EXAMPLE = require.resolve('./operation.mocks.ts')
+const EXAMPLE_PATH = new URL('./operation.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.post('/search', (req, res) => {
@@ -24,9 +23,9 @@ test('intercepts and mocks a GraphQL query', async ({
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(OPERATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
-  const GET_USER_QUERY = gql`
+  const GET_USER_QUERY = /* GraphQL */ `
     query GetUser($id: String!) {
       query
       variables
@@ -65,9 +64,9 @@ test('intercepts and mocks an anonymous GraphQL query', async ({
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(OPERATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
-  const ANONYMOUS_QUERY = gql`
+  const ANONYMOUS_QUERY = /* GraphQL */ `
     query {
       anonymousQuery {
         query
@@ -109,9 +108,9 @@ test('intercepts and mocks a GraphQL mutation', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(OPERATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
-  const LOGIN_MUTATION = gql`
+  const LOGIN_MUTATION = /* GraphQL */ `
     mutation Login($username: String!, $password: String!) {
       mutation
       variables
@@ -147,7 +146,7 @@ test('propagates parsing errors from the invalid GraphQL requests', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(OPERATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const INVALID_QUERY = `
     # Intentionally invalid GraphQL query.
@@ -175,7 +174,7 @@ test('bypasses seemingly compatible REST requests', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(OPERATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query(server.http.url('/search'), {
     query: 'favorite books',

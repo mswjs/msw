@@ -1,13 +1,13 @@
-export enum StatusCodeColor {
-  Success = '#69AB32',
-  Warning = '#F0BB4B',
-  Danger = '#E95F5D',
+export const StatusCodeColor = {
+  Success: '#69AB32',
+  Warning: '#F0BB4B',
+  Danger: '#E95F5D',
 }
 
 /**
  * Returns a HEX color for a given response status code number.
  */
-export function getStatusCodeColor(status: number): StatusCodeColor {
+export function getStatusCodeColor(status: number): string {
   if (status < 300) {
     return StatusCodeColor.Success
   }

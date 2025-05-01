@@ -9,7 +9,7 @@ declare namespace window {
 }
 
 const exampleOptions: Parameters<TestFixtures['loadExample']> = [
-  require.resolve('./start.mocks.ts'),
+  new URL('./start.mocks.ts', import.meta.url),
   {
     skipActivation: true,
     beforeNavigation(compilation) {

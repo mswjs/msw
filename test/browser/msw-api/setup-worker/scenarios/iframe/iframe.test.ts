@@ -21,7 +21,7 @@ test('intercepts a request from an iframe (nested client)', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./iframe.mocks.ts'), {
+  await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
     markup: path.resolve(__dirname, 'page-in-iframe.html'),
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
@@ -41,7 +41,7 @@ test('intercepts a request from a deeply nested iframe', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./iframe.mocks.ts'), {
+  await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
     markup: path.resolve(__dirname, 'page-in-nested-iframe.html'),
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
@@ -67,7 +67,7 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./iframe.mocks.ts'), {
+  await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
     markup: path.resolve(__dirname, 'page-in-iframe.html'),
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
@@ -95,7 +95,7 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
   context,
 }) => {
   // A frame that registers MSW, but does no requests.
-  await loadExample(require.resolve('./iframe.mocks.ts'))
+  await loadExample(new URL('./iframe.mocks.ts', import.meta.url))
 
   // A request-issuing frame. Here lives the `window.fetch` call.
   const requestPage = await context.newPage()

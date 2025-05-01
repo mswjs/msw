@@ -6,7 +6,7 @@ test('supports redirect in a mocked response', async ({
   makeUrl,
   page,
 }) => {
-  await loadExample(require.resolve('./redirect.mocks.ts'))
+  await loadExample(new URL('./redirect.mocks.ts', import.meta.url))
 
   const [res, redirectRes] = await Promise.all([
     await fetch('/login'),

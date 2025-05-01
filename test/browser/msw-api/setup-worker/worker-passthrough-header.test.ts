@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/lib/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../../playwright.extend'
 
 const httpServer = new HttpServer((app) => {
@@ -20,7 +20,9 @@ test('removes the internal passthrough request header', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./worker-passthrough-header.mocks.ts'))
+  await loadExample(
+    new URL('./worker-passthrough-header.mocks.ts', import.meta.url),
+  )
 
   const response = await fetch(httpServer.http.url('/resource'), {
     headers: { 'x-custom-header': 'yes' },
@@ -39,7 +41,9 @@ test('preserves existing "accept" header values when removing the internal passt
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./worker-passthrough-header.mocks.ts'))
+  await loadExample(
+    new URL('./worker-passthrough-header.mocks.ts', import.meta.url),
+  )
 
   const response = await fetch(httpServer.http.url('/resource'), {
     headers: {

@@ -1,6 +1,5 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 import { waitFor } from '../../support/waitFor'
 
 declare namespace window {
@@ -36,13 +35,13 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
   query,
   spyOnConsole,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
     // Intentionally anonymous query.
-    query: gql`
+    query: /* GraphQL */ `
       query {
         user {
           id
@@ -85,7 +84,7 @@ test('warns on handled anonymous GraphQL operation', async ({
   spyOnConsole,
   page,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   await page.evaluate(() => {
@@ -109,7 +108,7 @@ test('warns on handled anonymous GraphQL operation', async ({
   const response = await query(endpointUrl, {
     // Intentionally anonymous query.
     // It will be handled in the "graphql.operation()" handler above.
-    query: gql`
+    query: /* GraphQL */ `
       query {
         user {
           id
@@ -148,7 +147,7 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
   page,
   query,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   await page.evaluate(() => {
@@ -174,7 +173,7 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
   const response = await query(endpointUrl, {
     // Intentionally anonymous query.
     // It will be handled in the "graphql.operation()" handler above.
-    query: gql`
+    query: /* GraphQL */ `
       query {
         user {
           id

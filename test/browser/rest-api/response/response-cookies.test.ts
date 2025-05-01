@@ -5,7 +5,7 @@ test('supports mocking a single response cookie', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./response-cookies.mocks.ts'))
+  await loadExample(new URL('./response-cookies.mocks.ts', import.meta.url))
   const response = await fetch('/single-cookie')
   const documentCookies = await page.evaluate(() => document.cookie)
 
@@ -21,7 +21,7 @@ test('supports mocking multiple response cookies', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./response-cookies.mocks.ts'))
+  await loadExample(new URL('./response-cookies.mocks.ts', import.meta.url))
   const response = await fetch('/multiple-cookies')
   const documentCookies = await page.evaluate(() => document.cookie)
 
@@ -41,7 +41,7 @@ test('supports mocking cookies via a standalone Headers instance', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./response-cookies.mocks.ts'))
+  await loadExample(new URL('./response-cookies.mocks.ts', import.meta.url))
   const response = await fetch('/cookies-via-headers')
   const documentCookies = await page.evaluate(() => document.cookie)
 

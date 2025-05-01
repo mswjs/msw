@@ -1,8 +1,7 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 
-const EXAMPLE_PATH = require.resolve('./query.mocks.ts')
+const EXAMPLE_PATH = new URL('./query.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.use('*', (_, res) => res.status(405).end())
@@ -26,9 +25,9 @@ test('mocks a GraphQL query issued with a GET request', async ({
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query(endpoint(), {
+  const response = await query(endpoint(), {
     method: 'GET',
-    query: gql`
+    query: /* GraphQL */ `
       query GetUserDetail {
         user {
           firstName
@@ -38,12 +37,12 @@ test('mocks a GraphQL query issued with a GET request', async ({
     `,
   })
 
-  const headers = await res.allHeaders()
-  const body = await res.json()
-
-  expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('content-type', 'application/json')
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.allHeaders()).resolves.toHaveProperty(
+    'content-type',
+    'application/json',
+  )
+  await expect(response.json()).resolves.toEqual({
     data: {
       user: {
         firstName: 'John',
@@ -59,9 +58,9 @@ test('mocks a GraphQL query issued with a POST request', async ({
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query(endpoint(), {
+  const response = await query(endpoint(), {
     method: 'POST',
-    query: gql`
+    query: /* GraphQL */ `
       query GetUserDetail {
         user {
           firstName
@@ -70,12 +69,13 @@ test('mocks a GraphQL query issued with a POST request', async ({
       }
     `,
   })
-  const headers = await res.allHeaders()
-  const body = await res.json()
 
-  expect(res.status()).toBe(200)
-  expect(headers).toHaveProperty('content-type', 'application/json')
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.allHeaders()).resolves.toHaveProperty(
+    'content-type',
+    'application/json',
+  )
+  await expect(response.json()).resolves.toEqual({
     data: {
       user: {
         firstName: 'John',
@@ -93,8 +93,8 @@ test('prints a warning when intercepted an anonymous GraphQL query', async ({
   const consoleSpy = spyOnConsole()
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query(endpoint(), {
-    query: gql`
+  const response = await query(endpoint(), {
+    query: /* GraphQL */ `
       query {
         user {
           firstName
@@ -115,5 +115,5 @@ Consider naming this operation or using "graphql.operation()" request handler to
   )
 
   // The actual GraphQL server is hit.
-  expect(res.status()).toBe(405)
+  expect(response.status()).toBe(405)
 })

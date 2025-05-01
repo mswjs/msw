@@ -19,7 +19,7 @@ test('returns the number of active clients in the same runtime', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -68,7 +68,7 @@ test('returns the number of active clients across different runtimes', async ({
   context,
 }) => {
   const { compilation } = await loadExample(
-    require.resolve('./ws.runtime.js'),
+    new URL('./ws.runtime.js', import.meta.url),
     {
       skipActivation: true,
     },
@@ -113,7 +113,7 @@ test('broadcasts messages across runtimes', async ({
   page,
 }) => {
   const { compilation } = await loadExample(
-    require.resolve('./ws.runtime.js'),
+    new URL('./ws.runtime.js', import.meta.url),
     {
       skipActivation: true,
     },
@@ -177,7 +177,7 @@ test('clears the list of clients when the worker is stopped', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -214,7 +214,7 @@ test('clears the list of clients when the page is reloaded', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

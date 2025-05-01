@@ -34,7 +34,7 @@ Object.assign(window, {
     const client = createGraphQLClient({ uri })
 
     return client({
-      query: gql`
+      query: /* GraphQL */ `
         query GetUser {
           user {
             firstName

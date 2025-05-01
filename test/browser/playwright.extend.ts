@@ -1,4 +1,5 @@
-import * as crypto from 'crypto'
+import * as url from 'node:url'
+import * as crypto from 'node:crypto'
 import { test as base, expect, type Response, Page } from '@playwright/test'
 import {
   Headers,
@@ -7,7 +8,10 @@ import {
   type FlatHeadersObject,
 } from 'headers-polyfill'
 import { spyOnConsole, ConsoleMessages } from 'page-with'
-import { HttpServer, HttpServerMiddleware } from '@open-draft/test-server/http'
+import {
+  HttpServer,
+  HttpServerMiddleware,
+} from '@open-draft/test-server/lib/http.js'
 import {
   Compilation,
   CompilationOptions,
@@ -24,7 +28,7 @@ export interface TestFixtures {
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
   webpackServer: WebpackHttpServer
   loadExample(
-    entry: string | Array<string>,
+    entry: string | Array<string> | URL,
     options?: CompilationOptions & {
       /**
        * Do not await the "Mocking enabled" message in the console.
@@ -88,8 +92,11 @@ export const test = base.extend<TestFixtures>({
     let compilation: Compilation | undefined
 
     await use(async (entry, options = {}) => {
+      const resolvedEntry =
+        entry instanceof URL ? url.fileURLToPath(entry) : entry
+
       compilation = await webpackServer.compile(
-        Array.prototype.concat([], entry),
+        Array.prototype.concat([], resolvedEntry),
         options,
       )
 

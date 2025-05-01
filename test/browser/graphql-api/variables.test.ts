@@ -1,7 +1,6 @@
-import { gql } from '../../support/graphql'
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./variables.mocks.ts')
+const EXAMPLE_PATH = new URL('./variables.mocks.ts', import.meta.url)
 
 test('can access variables from a GraphQL query', async ({
   loadExample,
@@ -9,8 +8,8 @@ test('can access variables from a GraphQL query', async ({
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query('/graphql', {
-    query: gql`
+  const response = await query('/graphql', {
+    query: /* GraphQL */ `
       query GetGithubUser($username: String!) {
         user(login: $username) {
           firstName
@@ -22,11 +21,9 @@ test('can access variables from a GraphQL query', async ({
       username: 'octocat',
     },
   })
-  const status = res.status()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.json()).resolves.toEqual({
     data: {
       user: {
         firstName: 'John',
@@ -42,8 +39,8 @@ test('can access variables from a GraphQL mutation', async ({
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query('/graphql', {
-    query: gql`
+  const response = await query('/graphql', {
+    query: /* GraphQL */ `
       mutation DeletePost($postId: String!) {
         deletePost(id: $postId) {
           postId
@@ -54,11 +51,9 @@ test('can access variables from a GraphQL mutation', async ({
       postId: 'abc-123',
     },
   })
-  const status = res.status()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.json()).resolves.toEqual({
     data: {
       deletePost: {
         postId: 'abc-123',
@@ -73,8 +68,8 @@ test('returns an empty object when accessing variables from a GraphQL operation 
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  const res = await query('/graphql', {
-    query: gql`
+  const response = await query('/graphql', {
+    query: /* GraphQL */ `
       query GetActiveUser {
         user {
           id
@@ -82,11 +77,9 @@ test('returns an empty object when accessing variables from a GraphQL operation 
       }
     `,
   })
-  const status = res.status()
-  const body = await res.json()
 
-  expect(status).toBe(200)
-  expect(body).toEqual({
+  expect(response.status()).toBe(200)
+  await expect(response.json()).resolves.toEqual({
     data: {
       user: {
         id: 1,

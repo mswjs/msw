@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-const ON_EXAMPLE = require.resolve('./on.mocks.ts')
+const EXAMPLE_PATH = new URL('./on.mocks.ts', import.meta.url)
 
 test('removes all listeners attached to the worker instance', async ({
   loadExample,
@@ -17,7 +17,7 @@ test('removes all listeners attached to the worker instance', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = 'http://localhost/user'
   await fetch(url)
@@ -58,7 +58,7 @@ test('removes all the listeners by the event name', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(ON_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const url = 'http://localhost/user'
   await fetch(url)

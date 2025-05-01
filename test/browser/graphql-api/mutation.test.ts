@@ -1,8 +1,7 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
-import { gql } from '../../support/graphql'
 
-const MUTATION_EXAMPLE = require.resolve('./mutation.mocks.ts')
+const EXAMPLE_PATH = new URL('./mutation.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.use('*', (req, res) => res.status(405).end())
@@ -24,10 +23,10 @@ test('sends a mocked response to a GraphQL mutation', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(MUTATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query(endpoint(), {
-    query: gql`
+    query: /* GraphQL */ `
       mutation Logout {
         logout {
           userSession
@@ -55,10 +54,10 @@ test('prints a warning when intercepted an anonymous GraphQL mutation', async ({
   query,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(MUTATION_EXAMPLE)
+  await loadExample(EXAMPLE_PATH)
 
   const res = await query(endpoint(), {
-    query: gql`
+    query: /* GraphQL */ `
       mutation {
         logout {
           userSession

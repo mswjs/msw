@@ -1,8 +1,5 @@
 import { test, expect } from '../../../../playwright.extend'
-
-const {
-  SERVICE_WORKER_BUILD_PATH,
-} = require('../../../../../../config/constants')
+import { SERVICE_WORKER_BUILD_PATH } from '../../../../../../config/constants'
 
 test('warns when visiting the page outside of the worker scope', async ({
   loadExample,
@@ -10,7 +7,7 @@ test('warns when visiting the page outside of the worker scope', async ({
 }) => {
   const consoleSpy = spyOnConsole()
   const { compilation } = await loadExample(
-    require.resolve('./scope-nested.mocks.ts'),
+    new URL('./scope-nested.mocks.ts', import.meta.url),
     {
       beforeNavigation(compilation) {
         // Create a proxy to the worker script located under a nested ("/public") path.
@@ -40,7 +37,7 @@ test('does not print the scope warning when the page is within the worker scope'
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./scope-root.mocks.ts'))
+  await loadExample(new URL('./scope-root.mocks.ts', import.meta.url))
 
   expect(consoleSpy.get('warning')).toEqual(undefined)
   expect(consoleSpy.get('error')).toEqual(undefined)
@@ -51,7 +48,7 @@ test('does not print the scope warning when the "quiet" option is enabled', asyn
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./scope-nested-quiet.mocks.ts'), {
+  await loadExample(new URL('./scope-nested-quiet.mocks.ts', import.meta.url), {
     skipActivation: true,
     beforeNavigation(compilation) {
       // Create a proxy to the worker script located under a nested ("/public") path.

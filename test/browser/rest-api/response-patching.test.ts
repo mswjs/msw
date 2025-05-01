@@ -1,5 +1,5 @@
-import { matchRequestUrl } from 'msw'
-import { HttpServer } from '@open-draft/test-server/http'
+import { matchRequestUrl } from 'msw/lib/core/index.mjs'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 
 const httpServer = new HttpServer((app) => {
@@ -59,7 +59,7 @@ test('responds with a combination of the mocked and original responses', async (
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const res = await fetch(httpServer.http.url('/user'))
   const status = res.status()
@@ -78,7 +78,7 @@ test('bypasses the original request when it equals the mocked request', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const res = await fetch(
     httpServer.http.url('/repos/mswjs/msw?mocked=true'),
@@ -111,7 +111,7 @@ test('forwards custom request headers to the original request', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const requestPromise = fetch(httpServer.http.url('/headers'), {
     headers: {
@@ -133,7 +133,7 @@ test('forwards custom request headers to the original request', async ({
 })
 
 test('supports patching a HEAD request', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const res = await fetch(
     httpServer.http.url('/posts'),
@@ -168,7 +168,7 @@ test('supports patching a GET request', async ({
   fetch,
   makeUrl,
 }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const res = await fetch(
     httpServer.http.url('/posts'),
@@ -200,7 +200,7 @@ test('supports patching a POST request', async ({
   fetch,
   makeUrl,
 }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
 
   const res = await fetch(
     httpServer.http.url('/posts'),

@@ -1,5 +1,6 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import * as url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
@@ -8,7 +9,9 @@ const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
 })
 
-const cliPath = require.resolve('../../cli/index.js')
+const CLI_PATH = url.fileURLToPath(
+  new URL('../../cli/index.js', import.meta.url),
+)
 
 function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
@@ -39,7 +42,7 @@ afterAll(async () => {
 
 async function init(inlineArgs: Array<string>): ReturnType<typeof fsMock.exec> {
   const result = await fsMock.exec(
-    `node ${cliPath} init ${inlineArgs.join(' ')}`,
+    `node ${CLI_PATH} init ${inlineArgs.join(' ')}`,
   )
 
   return {

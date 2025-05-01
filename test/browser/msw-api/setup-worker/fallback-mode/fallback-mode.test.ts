@@ -1,3 +1,4 @@
+import * as url from 'node:url'
 import { SetupWorkerApi } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
 import { Page } from '@playwright/test'
@@ -63,7 +64,7 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ webpackServer }, testInfo) => {
   const compilation = await webpackServer.compile([
-    new URL('./fallback-mode.mocks.ts', import.meta.url),
+    url.fileURLToPath(new URL('./fallback-mode.mocks.ts', import.meta.url)),
   ])
   const bundleUrl = new URL('./main.js', compilation.previewUrl)
   await fsMock.create({

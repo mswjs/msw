@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { Response } from '@playwright/test'
 import { test, expect } from '../../../playwright.extend'
 

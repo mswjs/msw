@@ -62,9 +62,14 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
       },
       resolve: {
         alias: {
-          msw: url.fileURLToPath(new URL('../../..', import.meta.url)),
+          'msw/browser': url.fileURLToPath(
+            new URL('../../../lib/browser/index.js', import.meta.url),
+          ),
+          msw: url.fileURLToPath(
+            new URL('../../../lib/core/index.js', import.meta.url),
+          ),
         },
-        extensions: ['.ts', '.js', '.mjs'],
+        extensions: ['.ts', '.js', '.mjs', '.cjs'],
       },
     },
   })

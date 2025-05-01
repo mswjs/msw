@@ -3,8 +3,6 @@
   "version": "2.7.5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "type": "module",
-  "main": "./lib/core/index.cjs",
-  "module": "./lib/core/index.js",
   "types": "./lib/core/index.d.ts",
   "packageManager": "pnpm@9.14.0",
   "exports": {
@@ -181,7 +179,7 @@
     "cross-env": "^7.0.3",
     "cross-fetch": "^4.0.0",
     "cz-conventional-changelog": "3.3.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.3",
     "esbuild-loader": "^4.2.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -200,13 +198,13 @@
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.9.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.3.0",
+    "tsup": "^8.4.0",
     "typescript": "^5.5.2",
     "undici": "^6.20.0",
     "url-loader": "^4.1.1",
     "vitest": "^2.1.8",
     "vitest-environment-miniflare": "^2.14.4",
-    "webpack": "^5.95.0",
+    "webpack": "^5.99.7",
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {

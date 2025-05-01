@@ -1,11 +1,12 @@
 // @vitest-environment node
-import * as path from 'path'
-import * as fs from 'fs'
+import * as fs from 'node:fs'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 function getImageBuffer() {
-  return fs.readFileSync(path.resolve(__dirname, '../../../fixtures/image.jpg'))
+  return fs.readFileSync(
+    new URL('../../../fixtures/image.jpg', import.meta.url),
+  ).buffer
 }
 
 const server = setupServer(
@@ -21,8 +22,13 @@ const server = setupServer(
   }),
 )
 
-beforeAll(() => server.listen())
-afterAll(() => server.close())
+beforeAll(() => {
+  server.listen()
+})
+
+afterAll(() => {
+  server.close()
+})
 
 test('returns given buffer in the mocked response', async () => {
   const response = await fetch('http://test.mswjs.io/image')

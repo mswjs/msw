@@ -120,7 +120,7 @@ test('forwards custom request headers to the original request', async ({
   expect(request.headers()).not.toHaveProperty('_headers')
   expect(request.headers()).not.toHaveProperty('_names')
 
-  expect(response.status).toEqual(200)
+  expect(response.status()).toEqual(200)
   await expect(response.json()).resolves.toEqual({ message: 'success' })
 })
 
@@ -214,7 +214,7 @@ test('supports patching a POST request', async ({
 
   expect(response.status()).toBe(200)
   expect(response.fromServiceWorker()).toBe(true)
-  expect(response.headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
+  expect(response.headers()).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
   await expect(response.json()).resolves.toEqual({
     id: 101,
     mocked: true,

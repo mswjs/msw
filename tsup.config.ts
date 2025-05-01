@@ -1,5 +1,5 @@
-import * as path from 'node:path'
-import { defineConfig, Options } from 'tsup'
+import * as url from 'node:url'
+import { defineConfig, type Options } from 'tsup'
 import * as glob from 'glob'
 import {
   getWorkerChecksum,
@@ -33,7 +33,9 @@ const coreConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: true,
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  tsconfig: url.fileURLToPath(
+    new URL('src/tsconfig.core.build.json', import.meta.url),
+  ),
   esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
 }
 
@@ -49,7 +51,9 @@ const nodeConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: true,
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  tsconfig: url.fileURLToPath(
+    new URL('src/tsconfig.node.build.json', import.meta.url),
+  ),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
@@ -80,7 +84,9 @@ const browserConfig: Options = {
    * option is set to false.
    * @see https://github.com/egoist/tsup/issues/571
    */
-  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
+  tsconfig: url.fileURLToPath(
+    new URL('src/browser/tsconfig.browser.build.json', import.meta.url),
+  ),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
@@ -102,7 +108,9 @@ const reactNativeConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: true,
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  tsconfig: url.fileURLToPath(
+    new URL('src/tsconfig.node.build.json', import.meta.url),
+  ),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
@@ -122,7 +130,9 @@ const iifeConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: false,
-  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
+  tsconfig: url.fileURLToPath(
+    new URL('src/browser/tsconfig.browser.build.json', import.meta.url),
+  ),
   define: {
     // Sign the IIFE build as well because any bundle containing
     // the worker API must have the the integrity checksum defined.

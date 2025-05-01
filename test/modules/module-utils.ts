@@ -1,13 +1,13 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import { spawnSync } from 'child_process'
+import * as fs from 'node:fs'
+import * as url from 'node:url'
+import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
 
 export async function getLibraryTarball(): Promise<string> {
-  const ROOT_PATH = path.resolve(__dirname, '../..')
-  const { version } = require(`${ROOT_PATH}/package.json`)
+  const ROOT_PATH = new URL('../..', import.meta.url)
+  const { version } = await import(`${ROOT_PATH}/package.json`)
   const packFilename = `msw-${version}.tgz`
-  const packPath = path.resolve(ROOT_PATH, packFilename)
+  const packPath = url.fileURLToPath(new URL(packFilename, ROOT_PATH))
 
   /**
    * @note Beware that you need to remove the tarball after
@@ -35,18 +35,19 @@ export async function getLibraryTarball(): Promise<string> {
 export async function installLibrary(projectPath: string) {
   const TARBALL_PATH = await getLibraryTarball()
 
-  const out = spawnSync('pnpm', ['install', TARBALL_PATH], {
+  const output = spawnSync('pnpm', ['install', TARBALL_PATH], {
     cwd: projectPath,
   })
 
-  if (out.error) {
-    console.error(out.error)
+  if (output.error) {
+    console.error(output.error)
     return Promise.reject(
       'Failed to install the library. See the stderr output above.',
     )
   }
 
-  /** @todo Assert that pnpm printed success:
+  /**
+   * @todo Assert that pnpm printed success:
    * + msw 0.0.0-fetch.rc-11
    */
 }

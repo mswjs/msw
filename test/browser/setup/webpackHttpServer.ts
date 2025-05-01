@@ -1,8 +1,8 @@
-import * as fs from 'fs'
+import * as fs from 'node:fs'
 import * as url from 'node:url'
 import { WebpackHttpServer } from 'webpack-http-server'
 import { getWorkerScriptPatch } from './workerConsole'
-// @ts-expect-error Importing a CommonJS module.
+// @ts-expect-error Importing a JavaScript module.
 import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
 declare global {

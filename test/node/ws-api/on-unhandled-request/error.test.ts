@@ -1,7 +1,7 @@
 // @vitest-environment node-websocket
 import { ws } from 'msw'
 import { setupServer } from 'msw/node'
-import { InternalError } from '../../../../src/core/utils/internal/devUtils'
+import { InternalError } from '../../../../lib/core/utils/internal/devUtils'
 
 const service = ws.link('wss://localhost:4321')
 const server = setupServer()

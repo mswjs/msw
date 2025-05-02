@@ -6,14 +6,14 @@ import { setupServer } from 'msw/node'
 function getImageBuffer() {
   return fs.readFileSync(
     new URL('../../../fixtures/image.jpg', import.meta.url),
-  ).buffer
+  )
 }
 
 const server = setupServer(
   http.get('http://test.mswjs.io/image', () => {
     const imageBuffer = getImageBuffer()
 
-    return HttpResponse.arrayBuffer(imageBuffer, {
+    return HttpResponse.arrayBuffer(imageBuffer.buffer, {
       headers: {
         'Content-Type': 'image/jpeg',
         'Content-Length': imageBuffer.byteLength.toString(),

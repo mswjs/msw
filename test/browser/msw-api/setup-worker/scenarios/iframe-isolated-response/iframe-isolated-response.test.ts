@@ -1,11 +1,10 @@
 import * as url from 'node:url'
-import * as path from 'node:path'
 import * as express from 'express'
 import type { Frame, Page } from '@playwright/test'
 import { test, expect } from '../../../../playwright.extend'
 
-const staticMiddleware = (router: express.Router) => {
-  router.use(express.static(path.dirname(import.meta.url)))
+function staticMiddleware(router: express.Router) {
+  router.use(express.static(url.fileURLToPath(new URL('./', import.meta.url))))
 }
 
 export function getFrameById(id: string, page: Page): Frame {

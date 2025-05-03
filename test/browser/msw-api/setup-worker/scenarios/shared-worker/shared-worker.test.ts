@@ -1,4 +1,4 @@
-import * as path from 'node:path'
+import * as url from 'node:url'
 import express from 'express'
 import { test, expect } from '../../../../playwright.extend'
 
@@ -12,13 +12,15 @@ test('does not interfere with a shared worker', async ({
   await loadExample(new URL('./shared-worker.mocks.ts', import.meta.url), {
     beforeNavigation(compilation) {
       compilation.use((router) => {
-        router.use(express.static(path.dirname(import.meta.url)))
+        router.use(
+          express.static(url.fileURLToPath(new URL('./', import.meta.url))),
+        )
       })
     },
   })
 
   await page.evaluate(() => {
-    const worker = new SharedWorker(new URL('./worker.js', import.meta.url))
+    const worker = new SharedWorker('./worker.js')
 
     worker.addEventListener('error', () =>
       console.error('There is an error with worker'),

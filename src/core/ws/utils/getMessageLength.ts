@@ -11,13 +11,9 @@ export function getMessageLength(data: WebSocketData): number {
     return data.size
   }
 
-  if (
-    data instanceof ArrayBuffer ||
-    data instanceof SharedArrayBuffer ||
-    ArrayBuffer.isView(data)
-  ) {
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
     return data.byteLength
   }
 
-  return new Blob([data]).size
+  return new Blob([data as unknown as ArrayBuffer]).size
 }

@@ -1,5 +1,4 @@
 import * as url from 'node:url'
-import * as path from 'node:path'
 import { Frame } from '@playwright/test'
 import * as express from 'express'
 import { test, expect } from '../../../../playwright.extend'
@@ -14,8 +13,8 @@ function findFrame(frame: Frame) {
   return frame.name() === ''
 }
 
-const staticMiddleware = (router: express.Router) => {
-  router.use(express.static(path.dirname(import.meta.url)))
+function staticMiddleware(router: express.Router) {
+  router.use(express.static(url.fileURLToPath(new URL('./', import.meta.url))))
 }
 
 test('intercepts a request from an iframe (nested client)', async ({

@@ -2,6 +2,7 @@ import * as fs from 'node:fs'
 import * as url from 'node:url'
 import * as path from 'node:path'
 import { invariant } from 'outvariant'
+import PKG_JSON from '../../package.json' assert { type: 'json' }
 
 const ROOT_PATH = url.fileURLToPath(new URL('../..', import.meta.url))
 
@@ -9,19 +10,14 @@ function fromRoot(...paths) {
   return path.resolve(ROOT_PATH, ...paths)
 }
 
-const PKG_JSON_PATH = fromRoot('package.json')
-const PKG_JSON = require(PKG_JSON_PATH)
-
 function validatePackageExports() {
   const { exports } = PKG_JSON
 
   // Validate the "main", "browser", and "types" root fields.
-  invariant('main' in PKG_JSON, 'Missing "main" field in package.json')
-  invariant('module' in PKG_JSON, 'Missing "module" field in package.json')
   invariant('types' in PKG_JSON, 'Missing "types" field in package.json')
 
   invariant(
-    fs.existsSync(fromRoot(PKG_JSON.main)),
+    fs.existsSync(fromRoot(PKG_JSON.types)),
     'The "main" field points at a non-existing path at "%s"',
     PKG_JSON.main,
   )
@@ -144,11 +140,11 @@ function getCodeSnippetAt(contents, index) {
 }
 
 function validateBundle(bundlePath, isEsm = false) {
-  const expectedExtension = isEsm ? '.mjs' : '.js'
+  const expectedExtension = isEsm ? '.js' : '.cjs'
 
   invariant(
     bundlePath.endsWith(expectedExtension),
-    'Failed to validate bundle: provided bundle path does not point at an ".mjs" file: %s',
+    'Failed to validate bundle: provided bundle path does not point at an ".js" file: %s',
     bundlePath,
   )
 
@@ -163,7 +159,7 @@ function validateBundle(bundlePath, isEsm = false) {
     getCodeSnippetAt(contents, contents.indexOf('~/core')),
   )
 
-  // The "core" imports must end with the explicit ".mjs" extension.
+  // The "core" imports must end with the explicit ".js" extension.
   const coreImportsMatches =
     contents.matchAll(isEsm ? ESM_CORE_IMPORT_EXP : CJS_CORE_IMPORT_EXP) || []
 
@@ -183,11 +179,11 @@ function validateBundle(bundlePath, isEsm = false) {
     )
 
     if (isEsm) {
-      // Ensure that all relative imports in the ESM bundle end with ".mjs".
+      // Ensure that all relative imports in the ESM bundle end with ".js".
       // This way bundlers can distinguish between the referenced modules
-      // since the "core" directory contains both ".js" and ".mjs" modules on the same level.
+      // since the "core" directory contains both ".cjs" and ".js" modules on the same level.
       invariant(
-        relativeImportPath.endsWith('.mjs'),
+        relativeImportPath.endsWith('.js'),
         `Found a "core" import without "${expectedExtension}" extension at "%s":\n\n%s`,
         absoluteBundlePath,
         getCodeSnippetAt(contents, match.index),

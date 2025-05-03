@@ -1,6 +1,6 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import { execSync } from 'child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { execSync } from 'node:child_process'
 
 // When executing the "postinstall" script, the "process.cwd" equals
 // the package directory, not the parent project where the package is installed.

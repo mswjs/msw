@@ -91,7 +91,7 @@
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
-    "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\""
+    "postinstall": "node -e \"try{import('./config/scripts/postinstall.js')}catch(e){}\""
   },
   "lint-staged": {
     "**/*.ts": [

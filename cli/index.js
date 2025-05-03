@@ -3,7 +3,7 @@ import yargs from 'yargs'
 import { init } from './init.js'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-yargs()
+yargs(process.argv.slice(2))
   .usage('$0 <cmd> [args]')
   .command(
     'init',

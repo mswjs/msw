@@ -1,6 +1,6 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import * as url from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
+import url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
@@ -215,7 +215,8 @@ test('throws if creating a directory under path failed', async () => {
    * @note Require the "init" command source
    * so that the "fs" mocks could apply.
    */
-  const init = require('../../cli/init')
+  // @ts-expect-error
+  const { init } = await import('../../cli/init.js')
 
   // Mock the "mkdir" method throwing an error.
   const error = new Error('Failed to create directory')
@@ -346,7 +347,8 @@ test('prints the list of failed paths to copy', async () => {
     }
   })
 
-  const init = require('../../cli/init')
+  // @ts-expect-error
+  const { init } = await import('../../cli/init.js')
   const copyFileError = new Error('Failed to copy file')
 
   const consoleLogSpy = vi

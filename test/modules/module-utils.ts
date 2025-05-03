@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
-import packageJson from '../../package.json' with { type: 'json' }
+import packageJson from '../../package.json' assert { type: 'json' }
 
 export async function getLibraryTarball(): Promise<string> {
   const ROOT_PATH = new URL('../..', import.meta.url)

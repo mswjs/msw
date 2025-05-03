@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
-import tsPackageJson from 'typescript/package.json' with { type: 'json' }
+import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 
 const LIB_DIR = new URL('../../lib/', import.meta.url)
 

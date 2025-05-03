@@ -3,7 +3,7 @@ import * as url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
 import type { TestProject } from 'vitest/node'
-import packageJson from '../../package.json' with { type: 'json' }
+import packageJson from '../../package.json' assert { type: 'json' }
 
 export default function setup({ provide }: TestProject) {
   const tarballPath = url.fileURLToPath(

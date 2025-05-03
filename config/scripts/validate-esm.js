@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as url from 'node:url'
 import * as path from 'node:path'
 import { invariant } from 'outvariant'
-import PKG_JSON from '../../package.json' with { type: 'json' }
+import PKG_JSON from '../../package.json' assert { type: 'json' }
 
 const ROOT_PATH = url.fileURLToPath(new URL('../..', import.meta.url))
 

@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as url from 'node:url'
 import { test, expect } from '../playwright.extend'
 import copyServiceWorker from '../../../config/copyServiceWorker'
-import packageJson from '../../../package.json' with { type: 'json' }
+import packageJson from '../../../package.json' assert { type: 'json' }
 // @ts-expect-error
 import { SERVICE_WORKER_SOURCE_PATH } from '../../../config/constants'
 

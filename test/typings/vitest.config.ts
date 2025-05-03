@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
 import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
 
-const LIB_DIR = new URL('../../lib', import.meta.url)
+const LIB_DIR = new URL('../../lib/', import.meta.url)
 
 export default defineConfig({
   test: {

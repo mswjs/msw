@@ -1,7 +1,7 @@
 import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-const LIB_DIR = new URL('../../lib', import.meta.url)
+const LIB_DIR = new URL('../../lib/', import.meta.url)
 
 export default defineConfig({
   test: {

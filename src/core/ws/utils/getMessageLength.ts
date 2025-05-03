@@ -1,4 +1,4 @@
-import type { WebSocketData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import { type WebSocketData } from '@mswjs/interceptors/WebSocket'
 
 /**
  * Returns the byte length of the given WebSocket message.
@@ -11,7 +11,11 @@ export function getMessageLength(data: WebSocketData): number {
     return data.size
   }
 
-  if (data instanceof ArrayBuffer) {
+  if (
+    data instanceof ArrayBuffer ||
+    data instanceof SharedArrayBuffer ||
+    ArrayBuffer.isView(data)
+  ) {
     return data.byteLength
   }
 

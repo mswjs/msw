@@ -8,6 +8,7 @@ export default defineConfig({
     globals: true,
     dir: TESTS_DIR,
     environment: 'node',
+    hookTimeout: 60_000,
     testTimeout: 60_000,
     watch: false,
   },

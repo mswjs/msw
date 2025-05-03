@@ -1,5 +1,4 @@
 import * as url from 'node:url'
-import * as path from 'node:path'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
 
@@ -50,13 +49,13 @@ console.log(typeof server.listen)
    * That should be the source of truth.
    */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.mjs/m,
+    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
   )
 
   /**
@@ -94,13 +93,13 @@ console.log(typeof server.listen)
    * That should be the source of truth.
    */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.cjs/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.cjs/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
+    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.cjs/m,
   )
 
   const runtimeStdio = await fsMock.exec('node ./runtime.mjs')

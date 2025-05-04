@@ -11,7 +11,7 @@ const execAsync = promisify(exec)
 const BUILD_DIR = url.fileURLToPath(new URL('../../lib', import.meta.url))
 
 async function patchTypeDefs() {
-  const typeDefsPaths = glob.sync('**/*.d.{ts,cts}', {
+  const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {
     cwd: BUILD_DIR,
     absolute: true,
   })
@@ -51,7 +51,7 @@ async function patchTypeDefs() {
 
   // Next, validate that we left no "~/core" imports unresolved.
   const result = await execAsync(
-    `grep "~/core" ./**/*.{ts,cts} -R -l || exit 0`,
+    `grep "~/core" ./**/*.{ts,mts} -R -l || exit 0`,
     {
       cwd: BUILD_DIR,
       shell: '/bin/bash',

@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
-    "module": "esnext",
+    "module": "es2022",
     "target": "ES2015",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -11,8 +11,10 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "msw": [".."],
-      "msw/*": ["../*"]
+      "msw": ["../lib/core/index.d.mts"],
+      "msw/browser": ["../lib/browser/index.d.mts"],
+      "msw/node": ["../lib/node/index.d.mts"],
+      "msw/native": ["../lib/native/index.d.mts"]
     },
     "types": ["node"]
   },

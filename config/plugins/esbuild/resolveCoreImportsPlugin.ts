@@ -1,5 +1,6 @@
 import { Plugin } from 'esbuild'
 import { replaceCoreImports } from '../../replaceCoreImports'
+import { ESM_EXTENSION } from './forceEsmExtensionsPlugin'
 
 export function resolveCoreImportsPlugin(): Plugin {
   return {
@@ -11,7 +12,7 @@ export function resolveCoreImportsPlugin(): Plugin {
         }
 
         for (const outputFile of result.outputFiles || []) {
-          const isEsm = outputFile.path.endsWith('.js')
+          const isEsm = outputFile.path.endsWith(ESM_EXTENSION)
           const fileContents = outputFile.text
           const nextFileContents = replaceCoreImports(fileContents, isEsm)
 

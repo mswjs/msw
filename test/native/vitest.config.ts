@@ -1,7 +1,5 @@
-import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
-
-const LIB_DIR = new URL('../../lib/', import.meta.url)
+import { mswExports } from '../support/alias'
 
 export default defineConfig({
   test: {
@@ -19,10 +17,7 @@ export default defineConfig({
        * Vitest won't pick up the ESM targets because
        * the root-level "package.json" is not "module".
        */
-      'msw/node': url.fileURLToPath(new URL('node/index.js', LIB_DIR)),
-      'msw/native': url.fileURLToPath(new URL('native/index.js', LIB_DIR)),
-      'msw/browser': url.fileURLToPath(new URL('browser/index.js', LIB_DIR)),
-      msw: url.fileURLToPath(new URL('core/index.js', LIB_DIR)),
+      ...mswExports,
     },
   },
 })

@@ -1,5 +1,8 @@
 import { Plugin } from 'esbuild'
 
+export const ESM_EXTENSION = '.mjs'
+export const CJS_EXTENSION = '.js'
+
 export function forceEsmExtensionsPlugin(): Plugin {
   return {
     name: 'forceEsmExtensionsPlugin',
@@ -16,7 +19,7 @@ export function forceEsmExtensionsPlugin(): Plugin {
           // This ignores additional files emitted, like sourcemaps ("*.js.map").
           if (
             !(
-              outputFile.path.endsWith('.js') ||
+              outputFile.path.endsWith(ESM_EXTENSION) ||
               outputFile.path.endsWith('.mjs')
             )
           ) {
@@ -37,7 +40,7 @@ const CJS_RELATIVE_IMPORT_EXP = /require\(["'](\..+)["']\)(;)?/gm
 const ESM_RELATIVE_IMPORT_EXP = /from ["'](\..+)["'](;)?/gm
 
 function modifyRelativeImports(contents: string, isEsm: boolean): string {
-  const extension = isEsm ? '.js' : '.cjs'
+  const extension = isEsm ? ESM_EXTENSION : CJS_EXTENSION
   const importExpression = isEsm
     ? ESM_RELATIVE_IMPORT_EXP
     : CJS_RELATIVE_IMPORT_EXP

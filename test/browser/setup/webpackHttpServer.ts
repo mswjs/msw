@@ -63,10 +63,10 @@ async function startWebpackServer(): Promise<WebpackHttpServer> {
       resolve: {
         alias: {
           'msw/browser': url.fileURLToPath(
-            new URL('../../../lib/browser/index.js', import.meta.url),
+            new URL('../../../lib/browser/index.mjs', import.meta.url),
           ),
           msw: url.fileURLToPath(
-            new URL('../../../lib/core/index.js', import.meta.url),
+            new URL('../../../lib/core/index.mjs', import.meta.url),
           ),
         },
         extensions: ['.ts', '.js', '.mjs', '.cjs'],

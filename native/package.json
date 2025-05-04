@@ -1,6 +1,6 @@
 {
   "browser": null,
-  "main": "../lib/native/index.cjs",
-  "module": "../lib/native/index.js",
+  "main": "../lib/native/index.js",
+  "module": "../lib/native/index.mjs",
   "types": "../lib/native/index.d.ts"
 }

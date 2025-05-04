@@ -1,6 +1,6 @@
 {
   "browser": null,
-  "main": "../lib/node/index.cjs",
-  "module": "../lib/node/index.js",
+  "main": "../lib/node/index.js",
+  "module": "../lib/node/index.mjs",
   "types": "../lib/node/index.d.ts"
 }

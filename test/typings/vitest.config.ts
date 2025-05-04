@@ -3,8 +3,7 @@ import * as url from 'node:url'
 import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
 import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
-
-const LIB_DIR = new URL('../../lib/', import.meta.url)
+import { mswExports } from '../support/alias'
 
 export default defineConfig({
   test: {
@@ -41,10 +40,7 @@ export default defineConfig({
       })(),
     },
     alias: {
-      'msw/node': url.fileURLToPath(new URL('node/index.js', LIB_DIR)),
-      'msw/native': url.fileURLToPath(new URL('native/index.js', LIB_DIR)),
-      'msw/browser': url.fileURLToPath(new URL('browser/index.js', LIB_DIR)),
-      msw: url.fileURLToPath(new URL('core/index.js', LIB_DIR)),
+      ...mswExports,
     },
   },
 })

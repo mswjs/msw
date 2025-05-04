@@ -2,72 +2,88 @@
   "name": "msw",
   "version": "2.7.5",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
-  "type": "module",
+  "type": "commonjs",
   "types": "./lib/core/index.d.ts",
   "packageManager": "pnpm@9.14.0",
   "exports": {
     ".": {
-      "types": "./lib/core/index.d.ts",
-      "require": "./lib/core/index.cjs",
-      "import": "./lib/core/index.js",
-      "default": "./lib/core/index.cjs"
+      "types": {
+        "require": "./lib/core/index.d.ts",
+        "import": "./lib/core/index.d.mts"
+      },
+      "react-native": {
+        "require": "./lib/core/index.js",
+        "import": "./lib/core/index.mjs"
+      },
+      "module": "./lib/core/index.mjs",
+      "require": "./lib/core/index.js",
+      "import": "./lib/core/index.mjs",
+      "default": "./lib/core/index.js"
     },
     "./browser": {
       "types": "./lib/browser/index.d.ts",
       "browser": {
-        "require": "./lib/browser/index.cjs",
-        "import": "./lib/browser/index.js"
+        "require": "./lib/browser/index.js",
+        "import": "./lib/browser/index.mjs"
       },
       "node": null,
-      "require": "./lib/browser/index.cjs",
-      "import": "./lib/browser/index.js",
-      "default": "./lib/browser/index.cjs"
+      "react-native": null,
+      "module": "./lib/browser/index.mjs",
+      "require": "./lib/browser/index.js",
+      "import": "./lib/browser/index.mjs",
+      "default": "./lib/browser/index.js"
     },
     "./node": {
       "types": "./lib/node/index.d.ts",
       "node": {
-        "require": "./lib/node/index.cjs",
-        "import": "./lib/node/index.js"
+        "require": "./lib/node/index.js",
+        "import": "./lib/node/index.mjs"
       },
       "browser": null,
-      "require": "./lib/node/index.cjs",
-      "import": "./lib/node/index.js",
+      "react-native": null,
+      "module": "./lib/node/index.mjs",
+      "require": "./lib/node/index.js",
+      "import": "./lib/node/index.mjs",
       "default": "./lib/node/index.js"
     },
     "./native": {
       "types": "./lib/native/index.d.ts",
       "react-native": {
-        "require": "./lib/native/index.cjs",
-        "import": "./lib/native/index.js"
+        "require": "./lib/native/index.js",
+        "import": "./lib/native/index.mjs"
       },
       "browser": null,
-      "require": "./lib/native/index.cjs",
-      "import": "./lib/native/index.js",
-      "default": "./lib/native/index.cjs"
+      "module": "./lib/native/index.mjs",
+      "require": "./lib/native/index.js",
+      "import": "./lib/native/index.mjs",
+      "default": "./lib/native/index.js"
     },
     "./core/http": {
       "types": "./lib/core/http.d.ts",
-      "require": "./lib/core/http.cjs",
-      "import": "./lib/core/http.js",
-      "default": "./lib/core/http.cjs"
+      "module": "./lib/core/http.mjs",
+      "require": "./lib/core/http.js",
+      "import": "./lib/core/http.mjs",
+      "default": "./lib/core/http.js"
     },
     "./core/graphql": {
       "types": "./lib/core/graphql.d.ts",
-      "require": "./lib/core/graphql.cjs",
-      "import": "./lib/core/graphql.js",
-      "default": "./lib/core/graphql.cjs"
+      "module": "./lib/core/graphql.mjs",
+      "require": "./lib/core/graphql.js",
+      "import": "./lib/core/graphql.mjs",
+      "default": "./lib/core/graphql.js"
     },
     "./core/ws": {
       "types": "./lib/core/ws.d.ts",
-      "require": "./lib/core/ws.cjs",
-      "import": "./lib/core/ws.js",
-      "default": "./lib/core/ws.cjs"
+      "module": "./lib/core/ws.mjs",
+      "require": "./lib/core/ws.js",
+      "import": "./lib/core/ws.mjs",
+      "default": "./lib/core/ws.js"
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },
   "bin": {
-    "msw": "cli/index.js"
+    "msw": "./cli/index.js"
   },
   "engines": {
     "node": ">=18"

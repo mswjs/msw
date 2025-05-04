@@ -1,17 +1,15 @@
 import { isNodeProcess } from 'is-node-process'
 import { invariant } from 'outvariant'
-import {
-  Cookie,
-  CookieJar,
-  MemoryCookieStore,
-  MemoryCookieStoreIndex,
-} from 'tough-cookie'
+import * as toughCookie from 'tough-cookie'
+import type * as ToughCookie from 'tough-cookie'
 import { jsonParse } from './internal/jsonParse'
+
+const { Cookie, CookieJar, MemoryCookieStore } = toughCookie
 
 class WebStorageCookieStore {
   private readonly storageKey = '__msw-cookie-store__'
-  private readonly jar: CookieJar
-  private readonly memoryStore: MemoryCookieStore
+  private readonly jar: ToughCookie.CookieJar
+  private readonly memoryStore: ToughCookie.MemoryCookieStore
 
   constructor() {
     const memoryStore = new MemoryCookieStore()
@@ -29,7 +27,7 @@ class WebStorageCookieStore {
     this.memoryStore = memoryStore
   }
 
-  private loadFromLocalStorage(): MemoryCookieStoreIndex {
+  private loadFromLocalStorage(): ToughCookie.MemoryCookieStoreIndex {
     if (typeof localStorage === 'undefined') {
       return {}
     }
@@ -44,7 +42,7 @@ class WebStorageCookieStore {
       return {}
     }
 
-    const cookies: MemoryCookieStoreIndex = {}
+    const cookies: ToughCookie.MemoryCookieStoreIndex = {}
 
     for (const rawCookie of rawCookies) {
       const cookie = Cookie.fromJSON(rawCookie)

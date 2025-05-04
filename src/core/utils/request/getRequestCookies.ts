@@ -1,5 +1,7 @@
-import { Cookie } from 'tough-cookie'
+import * as toughCookie from 'tough-cookie'
 import { cookieStore } from '../cookieStore'
+
+const { Cookie } = toughCookie
 
 function parseCookies(input: string): Record<string, string> {
   const cookies: Record<string, string> = {}

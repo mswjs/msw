@@ -9,10 +9,7 @@ import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type { BatchHandler } from '~/core/handlers/BatchHandler'
-import type { Path } from '~/core/utils/matching/matchRequestUrl'
 import type { RequiredDeep } from '~/core/typeUtils'
-
-export type ResolvedPath = Path | URL
 
 type RequestWithoutMethods = Omit<
   Request,
@@ -40,7 +37,7 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body?: ArrayBuffer | null
 }
 
-export type ServiceWorkerIncomingResponse = Pick<
+type ServiceWorkerIncomingResponse = Pick<
   Response,
   'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
 > & {
@@ -71,7 +68,7 @@ export interface ServiceWorkerIncomingEventsMap {
  * Map of the events that can be sent to the Service Worker
  * from any execution context.
  */
-export type ServiceWorkerOutgoingEventTypes =
+type ServiceWorkerOutgoingEventTypes =
   | 'MOCK_ACTIVATE'
   | 'MOCK_DEACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
@@ -82,7 +79,7 @@ export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-export interface StrictEventListener<EventType extends Event> {
+interface StrictEventListener<EventType extends Event> {
   (event: EventType): void
 }
 

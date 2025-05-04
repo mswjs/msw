@@ -7,77 +7,151 @@
   "packageManager": "pnpm@9.14.0",
   "exports": {
     ".": {
-      "types": {
-        "require": "./lib/core/index.d.ts",
-        "import": "./lib/core/index.d.mts"
+      "module-sync": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
+      },
+      "module": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
       },
       "react-native": {
-        "require": "./lib/core/index.js",
-        "import": "./lib/core/index.mjs"
+        "import": {
+          "types": "./lib/core/index.d.mts",
+          "default": "./lib/core/index.mjs"
+        },
+        "default": {
+          "types": "./lib/core/index.d.ts",
+          "default": "./lib/core/index.js"
+        }
       },
-      "module": "./lib/core/index.mjs",
-      "require": "./lib/core/index.js",
-      "import": "./lib/core/index.mjs",
-      "default": "./lib/core/index.js"
+      "import": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
+      },
+      "default": {
+        "types": "./lib/core/index.d.ts",
+        "default": "./lib/core/index.js"
+      }
     },
     "./browser": {
-      "types": "./lib/browser/index.d.ts",
+      "module-sync": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "module": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
       "browser": {
-        "require": "./lib/browser/index.js",
-        "import": "./lib/browser/index.mjs"
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "import": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
       },
       "node": null,
       "react-native": null,
-      "module": "./lib/browser/index.mjs",
-      "require": "./lib/browser/index.js",
-      "import": "./lib/browser/index.mjs",
-      "default": "./lib/browser/index.js"
+      "default": {
+        "types": "./lib/browser/index.d.ts",
+        "default": "./lib/browser/index.js"
+      }
     },
     "./node": {
-      "types": "./lib/node/index.d.ts",
+      "module-sync": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
+      },
+      "module": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
+      },
       "node": {
         "require": "./lib/node/index.js",
         "import": "./lib/node/index.mjs"
       },
-      "browser": null,
-      "react-native": null,
-      "module": "./lib/node/index.mjs",
-      "require": "./lib/node/index.js",
-      "import": "./lib/node/index.mjs",
-      "default": "./lib/node/index.js"
-    },
-    "./native": {
-      "types": "./lib/native/index.d.ts",
-      "react-native": {
-        "require": "./lib/native/index.js",
-        "import": "./lib/native/index.mjs"
+      "import": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
       },
       "browser": null,
-      "module": "./lib/native/index.mjs",
-      "require": "./lib/native/index.js",
-      "import": "./lib/native/index.mjs",
-      "default": "./lib/native/index.js"
+      "react-native": null,
+      "default": {
+        "types": "./lib/node/index.d.ts",
+        "default": "./lib/node/index.js"
+      }
+    },
+    "./native": {
+      "react-native": {
+        "import": {
+          "types": "./lib/native/index.d.mts",
+          "default": "./lib/native/index.mjs"
+        },
+        "default": {
+          "types": "./lib/native/index.d.ts",
+          "default": "./lib/native/index.js"
+        }
+      },
+      "browser": null,
+      "default": {
+        "types": "./lib/native/index.d.ts",
+        "default": "./lib/native/index.js"
+      }
     },
     "./core/http": {
-      "types": "./lib/core/http.d.ts",
-      "module": "./lib/core/http.mjs",
-      "require": "./lib/core/http.js",
-      "import": "./lib/core/http.mjs",
-      "default": "./lib/core/http.js"
+      "module-sync": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "module": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "import": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "default": {
+        "types": "./lib/core/http.d.ts",
+        "default": "./lib/core/http.js"
+      }
     },
     "./core/graphql": {
-      "types": "./lib/core/graphql.d.ts",
-      "module": "./lib/core/graphql.mjs",
-      "require": "./lib/core/graphql.js",
-      "import": "./lib/core/graphql.mjs",
-      "default": "./lib/core/graphql.js"
+      "module-sync": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "module": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "import": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "default": {
+        "types": "./lib/core/graphql.d.ts",
+        "default": "./lib/core/graphql.js"
+      }
     },
     "./core/ws": {
-      "types": "./lib/core/ws.d.ts",
-      "module": "./lib/core/ws.mjs",
-      "require": "./lib/core/ws.js",
-      "import": "./lib/core/ws.mjs",
-      "default": "./lib/core/ws.js"
+      "module-sync": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "module": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "import": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "default": {
+        "types": "./lib/core/ws.d.ts",
+        "default": "./lib/core/ws.js"
+      }
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"

@@ -185,7 +185,7 @@
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
-    "postinstall": "node -e \"try{import('./config/scripts/postinstall.js')}catch(e){}\"",
+    "postinstall": "node -e \"try{require('./config/scripts/postinstall')}catch(e){}\"",
     "knip": "knip"
   },
   "lint-staged": {
@@ -208,6 +208,7 @@
   "license": "MIT",
   "funding": "https://github.com/sponsors/mswjs",
   "files": [
+    "config/package.json",
     "config/constants.js",
     "config/scripts/postinstall.js",
     "cli",

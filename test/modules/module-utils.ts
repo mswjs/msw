@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
 import packageJson from '../../package.json' assert { type: 'json' }
 
-export async function getLibraryTarball(): Promise<string> {
+async function getLibraryTarball(): Promise<string> {
   const ROOT_PATH = new URL('../..', import.meta.url)
   const packFilename = `msw-${packageJson.version}.tgz`
   const packPath = url.fileURLToPath(new URL(packFilename, ROOT_PATH))

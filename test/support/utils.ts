@@ -14,7 +14,7 @@ export function fromTemp(...segments: string[]) {
   )
 }
 
-export function clearCookies(): void {
+function clearCookies(): void {
   document.cookie.split(';').forEach((cookie) => {
     document.cookie = cookie
       .replace(/^ +/, '')

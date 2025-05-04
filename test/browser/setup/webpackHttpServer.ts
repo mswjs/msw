@@ -22,7 +22,7 @@ export async function getWebpackServer(): Promise<WebpackHttpServer> {
   return globalThis.webpackServerPromise
 }
 
-export async function startWebpackServer(): Promise<WebpackHttpServer> {
+async function startWebpackServer(): Promise<WebpackHttpServer> {
   const workerScriptPatch = getWorkerScriptPatch()
 
   const server = new WebpackHttpServer({

@@ -1,4 +1,4 @@
-import * as toughCookie from 'tough-cookie'
+import toughCookie from 'tough-cookie'
 import { cookieStore } from '../cookieStore'
 
 const { Cookie } = toughCookie

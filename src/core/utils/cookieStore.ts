@@ -1,6 +1,6 @@
 import { isNodeProcess } from 'is-node-process'
 import { invariant } from 'outvariant'
-import * as toughCookie from 'tough-cookie'
+import toughCookie from 'tough-cookie'
 import type * as ToughCookie from 'tough-cookie'
 import { jsonParse } from './internal/jsonParse'
 

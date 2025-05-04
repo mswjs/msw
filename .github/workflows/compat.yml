@@ -33,8 +33,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Validate package.json exports
-        run: pnpm check:exports
+      - name: Lint package
+        run: pnpm publint
 
       - name: Test modules (Node.js)
         run: pnpm test:modules:node

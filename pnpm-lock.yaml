@@ -162,6 +162,9 @@ importers:
       prettier:
         specifier: ^3.4.2
         version: 3.4.2
+      publint:
+        specifier: ^0.3.12
+        version: 0.3.12
       regenerator-runtime:
         specifier: ^0.14.1
         version: 0.14.1
@@ -1030,6 +1033,10 @@ packages:
     resolution: {integrity: sha512-DMulbwQURa8rNIQrf94+jPJQ4FmOVdpE5ZppRNvWVjvhC+6sOeo28r8MgIpQRYouXRtt/FCCXU7zn20jnHR4Qw==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@publint/pack@0.1.2':
+    resolution: {integrity: sha512-S+9ANAvUmjutrshV4jZjaiG8XQyuJIZ8a4utWmN/vW1sgQ9IfBnPndwkmQYw53QmouOIytT874u65HEmu6H5jw==}
+    engines: {node: '>=18'}
 
   '@rollup/plugin-node-resolve@15.3.0':
     resolution: {integrity: sha512-9eO5McEICxMzJpDW9OnMYSv4Sta3hmt7VtBFz5zR9273suNOydOyq/FrGeGy+KsTRFm8w0SLVhzig2ILFT63Ag==}
@@ -3902,6 +3909,9 @@ packages:
   package-json-from-dist@1.0.1:
     resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
 
+  package-manager-detector@1.3.0:
+    resolution: {integrity: sha512-ZsEbbZORsyHuO00lY1kV3/t72yp6Ysay6Pd17ZAlNGuGwmWDLCJxFpRs0IzfXfj1o4icJOkUEioexFHzyPurSQ==}
+
   page-with@0.6.1:
     resolution: {integrity: sha512-5J58fSpc8CKonUWCPsh8b2LctFrNSOpXQ8O3tB+/iJvixOQf1qHp4+cDLiIVsl/WiuheXdZTzMcuR0KLQMaWcg==}
 
@@ -4107,6 +4117,11 @@ packages:
   psl@1.9.0:
     resolution: {integrity: sha512-E/ZsdU4HLs/68gYzgGTkMicWTLPdAftJLfJFlLUAAKZGkStNU72sZjT66SnMDVOfOWY/YAoiD7Jxa9iHvngcag==}
 
+  publint@0.3.12:
+    resolution: {integrity: sha512-1w3MMtL9iotBjm1mmXtG3Nk06wnq9UhGNRpQ2j6n1Zq7YAD6gnxMMZMIxlRPAydVjVbjSm+n0lhwqsD1m4LD5w==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   pump@3.0.0:
     resolution: {integrity: sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==}
 
@@ -4292,6 +4307,10 @@ packages:
 
   rxjs@7.8.1:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
+
+  sade@1.8.1:
+    resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
+    engines: {node: '>=6'}
 
   safe-array-concat@1.1.2:
     resolution: {integrity: sha512-vj6RsCsWBCf19jIeHEfkRMw8DPiBb+DMXklQ/1SGDHOMlHdPUkZXFQ2YdplS23zESTijAcurb1aSgJA3AgMu1Q==}
@@ -6038,6 +6057,8 @@ snapshots:
   '@playwright/test@1.49.0':
     dependencies:
       playwright: 1.49.0
+
+  '@publint/pack@0.1.2': {}
 
   '@rollup/plugin-node-resolve@15.3.0(rollup@4.27.4)':
     dependencies:
@@ -9178,6 +9199,8 @@ snapshots:
 
   package-json-from-dist@1.0.1: {}
 
+  package-manager-detector@1.3.0: {}
+
   page-with@0.6.1(@swc/core@1.9.3)(esbuild@0.25.3):
     dependencies:
       '@open-draft/until': 2.1.0
@@ -9387,6 +9410,13 @@ snapshots:
   proxy-from-env@1.1.0: {}
 
   psl@1.9.0: {}
+
+  publint@0.3.12:
+    dependencies:
+      '@publint/pack': 0.1.2
+      package-manager-detector: 1.3.0
+      picocolors: 1.1.1
+      sade: 1.8.1
 
   pump@3.0.0:
     dependencies:
@@ -9621,6 +9651,10 @@ snapshots:
   rxjs@7.8.1:
     dependencies:
       tslib: 2.6.2
+
+  sade@1.8.1:
+    dependencies:
+      mri: 1.1.4
 
   safe-array-concat@1.1.2:
     dependencies:

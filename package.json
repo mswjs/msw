@@ -166,9 +166,9 @@
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
     "lint": "eslint \"{cli,src}/**/*.ts\"",
+    "publint": "publint",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
-    "check:exports": "node \"./config/scripts/validate-esm.js\"",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native",
     "test:unit": "vitest",
     "test:node": "vitest --config=./test/node/vitest.config.ts",
@@ -195,7 +195,7 @@
   "homepage": "https://mswjs.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mswjs/msw"
+    "url": "git+https://github.com/mswjs/msw.git"
   },
   "author": {
     "name": "Artem Zakharchenko",
@@ -283,6 +283,7 @@
     "lint-staged": "^15.2.10",
     "page-with": "^0.6.1",
     "prettier": "^3.4.2",
+    "publint": "^0.3.12",
     "regenerator-runtime": "^0.14.1",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.9.0",

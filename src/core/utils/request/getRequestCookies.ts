@@ -74,7 +74,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
   // Forward the raw stored cookies to request headers
   // so they contain metadata like "expires", "secure", etc.
   for (const cookie of cookiesFromStore) {
-    request.headers.append('cookie', cookie.asString)
+    request.headers.append('cookie', cookie.toString())
   }
 
   return {

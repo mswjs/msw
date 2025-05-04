@@ -235,3 +235,15 @@ it('errors when returning non-Response data from resolver', () => {
     () => ({}),
   )
 })
+
+it('treats non-typed HttpResponse body type as matching', () => {
+  http.get<never, never, { id: string }>('/resource', () => {
+    /**
+     * @note When constructing a Response/HttpResponse instance,
+     * its body type must effectively be treated as `any`. You
+     * cannot provide or infer a narrower type because these classes
+     * operate on streams or strings, none of which are type-safe.
+     */
+    return new HttpResponse(null, { status: 500 })
+  })
+})

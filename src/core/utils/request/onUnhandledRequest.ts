@@ -1,5 +1,6 @@
 import { toPublicUrl } from './toPublicUrl'
 import { InternalError, devUtils } from '../internal/devUtils'
+import { isCommonAssetRequest } from '../../isCommonAssetRequest'
 
 export interface UnhandledRequestPrint {
   warning(): void
@@ -71,15 +72,10 @@ export async function onUnhandledRequest(
     return
   }
 
-  /**
-   * @note Ignore "file://" requests.
-   * Those often are an implementation detail of modern tooling
-   * that fetches modules via HTTP. Developers don't issue those
-   * requests and so they mustn't be warned about them.
-   */
-  if (url.protocol === 'file:') {
-    return
+  // Ignore common static asset requests when using a built-in strategy.
+  // There's a slight overhead here because this utility will create a request URL
+  // instance again despite us having done so previously in this function.
+  if (!isCommonAssetRequest(request)) {
+    applyStrategy(strategy)
   }
-
-  applyStrategy(strategy)
 }

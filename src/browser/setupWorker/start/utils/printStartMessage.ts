@@ -1,7 +1,7 @@
-import type { ServiceWorkerIncomingEventsMap } from 'browser/setupWorker/glossary'
+import type { ServiceWorkerIncomingEventsMap } from '../../glossary'
 import { devUtils } from '~/core/utils/internal/devUtils'
 
-export interface PrintStartMessageArgs {
+interface PrintStartMessageArgs {
   quiet?: boolean
   message?: string
   workerUrl?: string

@@ -49,6 +49,8 @@ class WebStorageCookieStore {
     for (const rawCookie of rawCookies) {
       const cookie = Cookie.fromJSON(rawCookie)
       if (cookie != null && cookie.domain != null && cookie.path != null) {
+        cookies[cookie.domain] ??= {}
+        cookies[cookie.domain][cookie.path] ??= {}
         cookies[cookie.domain][cookie.path][cookie.key] = cookie
       }
     }

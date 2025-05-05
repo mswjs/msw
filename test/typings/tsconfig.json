@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "strict": false,
     "target": "esnext",
-    "module": "commonjs",
+    "module": "esnext",
     "noEmit": true,
     "types": ["node"],
     "typeRoots": ["../../node_modules/@types"],
@@ -11,8 +12,9 @@
     "rootDir": "../..",
     "baseUrl": ".",
     "paths": {
-      "msw": ["../.."],
-      "msw/*": ["../../*"]
+      "msw": ["../../lib/core"],
+      "msw/browser": ["../../lib/browser"],
+      "msw/node": ["../../lib/node"]
     }
   },
   "include": ["../../global.d.ts", "**/*.test-d.*"],

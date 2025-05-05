@@ -1,9 +1,9 @@
-import * as path from 'path'
+import url from 'node:url'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
 
 const fsMock = createTeardown({
-  rootDir: path.resolve(__dirname, 'node-esm-tests'),
+  rootDir: url.fileURLToPath(new URL('node-esm-tests', import.meta.url)),
   paths: {
     'package.json': JSON.stringify({ type: 'module' }),
   },

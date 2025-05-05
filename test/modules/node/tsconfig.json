@@ -1,6 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "types": ["vitest/globals"]
   },
   "include": ["./**/*.test.ts"]

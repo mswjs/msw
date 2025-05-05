@@ -5,14 +5,15 @@ import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
+import type { BatchHandler } from '~/core/handlers/BatchHandler'
 import type { SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
 
 const store = new AsyncLocalStorage<RequestHandlersContext>()
 
 type RequestHandlersContext = {
-  initialHandlers: Array<RequestHandler | WebSocketHandler>
-  handlers: Array<RequestHandler | WebSocketHandler>
+  initialHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
+  handlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
 }
 
 /**
@@ -23,7 +24,9 @@ type RequestHandlersContext = {
 class AsyncHandlersController implements HandlersController {
   private rootContext: RequestHandlersContext
 
-  constructor(initialHandlers: Array<RequestHandler | WebSocketHandler>) {
+  constructor(
+    initialHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>,
+  ) {
     this.rootContext = { initialHandlers, handlers: [] }
   }
 
@@ -31,18 +34,24 @@ class AsyncHandlersController implements HandlersController {
     return store.getStore() || this.rootContext
   }
 
-  public prepend(runtimeHandlers: Array<RequestHandler | WebSocketHandler>) {
+  public prepend(
+    runtimeHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>,
+  ) {
     this.context.handlers.unshift(...runtimeHandlers)
   }
 
-  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>) {
+  public reset(
+    nextHandlers: Array<RequestHandler | WebSocketHandler | BatchHandler>,
+  ) {
     const context = this.context
     context.handlers = []
     context.initialHandlers =
       nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
   }
 
-  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
+  public currentHandlers(): Array<
+    RequestHandler | WebSocketHandler | BatchHandler
+  > {
     const { initialHandlers, handlers } = this.context
     return handlers.concat(initialHandlers)
   }

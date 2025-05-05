@@ -5,6 +5,7 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
+  WebSocketHandlerOptions,
   kEmitter,
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
@@ -30,6 +31,8 @@ export type WebSocketEventListener<
 > = (...args: WebSocketHandlerEventMap[EventType]) => void
 
 export type WebSocketLink = {
+  url: Path
+
   /**
    * A set of all WebSocket clients connected
    * to this link.
@@ -85,6 +88,8 @@ export type WebSocketLink = {
   ): void
 }
 
+export interface WebSocketLinkOptions extends WebSocketHandlerOptions {}
+
 /**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
@@ -94,7 +99,10 @@ export type WebSocketLink = {
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path): WebSocketLink {
+function createWebSocketLinkHandler(
+  url: Path,
+  options?: WebSocketLinkOptions,
+): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
@@ -106,11 +114,12 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   const clientManager = new WebSocketClientManager(webSocketChannel)
 
   return {
+    url,
     get clients() {
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const handler = new WebSocketHandler(url)
+      const handler = new WebSocketHandler(url, options)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.

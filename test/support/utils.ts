@@ -1,5 +1,5 @@
-import * as path from 'path'
-import { ClientRequest, IncomingMessage } from 'http'
+import * as path from 'node:path'
+import { ClientRequest, IncomingMessage } from 'node:http'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {

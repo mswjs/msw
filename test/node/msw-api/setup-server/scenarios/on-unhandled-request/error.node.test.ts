@@ -68,11 +68,12 @@ test('errors on unhandled request when using the "error" strategy', async () => 
 
   const requestError = await makeRequest()
 
-  expect(requestError).toEqual(
-    new Error(
+  expect.soft(requestError).toBeInstanceOf(Error)
+  expect
+    .soft(requestError.message)
+    .toBe(
       '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-    ),
-  )
+    )
 
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:

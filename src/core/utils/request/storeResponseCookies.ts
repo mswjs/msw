@@ -1,10 +1,10 @@
 import { cookieStore } from '../cookieStore'
 import { kSetCookie } from '../HttpResponse/decorators'
 
-export function storeResponseCookies(
+export async function storeResponseCookies(
   request: Request,
   response: Response,
-): void {
+): Promise<void> {
   // Grab the raw "Set-Cookie" response header provided
   // in the HeadersInit for this mocked response.
   const responseCookies = Reflect.get(response, kSetCookie) as
@@ -12,6 +12,6 @@ export function storeResponseCookies(
     | undefined
 
   if (responseCookies) {
-    cookieStore.setCookie(responseCookies, request.url)
+    await cookieStore.setCookie(responseCookies, request.url)
   }
 }

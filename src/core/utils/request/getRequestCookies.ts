@@ -1,14 +1,20 @@
-import cookieUtils from '@bundled-es-modules/cookie'
+import toughCookie from 'tough-cookie'
 import { cookieStore } from '../cookieStore'
 
-function parseCookies(input: string): Record<string, string> {
-  const parsedCookies = cookieUtils.parse(input)
-  const cookies: Record<string, string> = {}
+const { Cookie } = toughCookie
 
-  for (const cookieName in parsedCookies) {
-    if (typeof parsedCookies[cookieName] !== 'undefined') {
-      cookies[cookieName] = parsedCookies[cookieName]
+function parseCookies(input: string): Record<string, string> {
+  const cookies: Record<string, string> = {}
+  const cookieSegments = input.split(/;\s+/)
+
+  for (const segment of cookieSegments) {
+    const cookie = Cookie.parse(segment)
+
+    if (cookie == null) {
+      continue
     }
+
+    cookies[cookie.key] = cookie.value
   }
 
   return cookies
@@ -59,14 +65,15 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
   const cookiesFromDocument = getDocumentCookies(request)
 
   // Forward the document cookies to the request headers.
-  for (const name in cookiesFromDocument) {
-    request.headers.append(
-      'cookie',
-      cookieUtils.serialize(name, cookiesFromDocument[name]),
-    )
+  for (const cookieName in cookiesFromDocument) {
+    const cookie = new Cookie({
+      key: cookieName,
+      value: cookiesFromDocument[cookieName],
+    })
+    request.headers.append('cookie', cookie.toString())
   }
 
-  const cookiesFromStore = cookieStore.getCookiesSync(request.url)
+  const cookiesFromStore = cookieStore.getCookies(request.url)
   const storedCookiesObject = Object.fromEntries(
     cookiesFromStore.map((cookie) => [cookie.key, cookie.value]),
   )

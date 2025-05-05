@@ -1,4 +1,4 @@
-import cookieUtils from '@bundled-es-modules/cookie'
+import { Cookie } from 'tough-cookie'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
@@ -32,6 +32,7 @@ test('sets cookie on the mocked GraphQL response', async ({
   const cookieString = await page.evaluate(() => {
     return document.cookie
   })
-  const allCookies = cookieUtils.parse(cookieString)
-  expect(allCookies).toHaveProperty('test-cookie', 'value')
+  const documentCookie = Cookie.parse(cookieString)
+  expect(documentCookie!.key).toBe('test-cookie')
+  expect(documentCookie!.value).toBe('value')
 })

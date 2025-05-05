@@ -5,6 +5,7 @@ import {
   getWorkerChecksum,
   copyWorkerPlugin,
 } from './config/plugins/esbuild/copyWorkerPlugin'
+import { cjsToEsmPlugin } from './config/plugins/esbuild/cjsToEsmPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
 import { graphqlImportPlugin } from './config/plugins/esbuild/graphQLImportPlugin'
@@ -34,7 +35,11 @@ const coreConfig: Options = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
+  esbuildPlugins: [
+    cjsToEsmPlugin(['tough-cookie']),
+    graphqlImportPlugin(),
+    forceEsmExtensionsPlugin(),
+  ],
 }
 
 const nodeConfig: Options = {
@@ -85,6 +90,7 @@ const browserConfig: Options = {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
   esbuildPlugins: [
+    cjsToEsmPlugin(['tough-cookie']),
     resolveCoreImportsPlugin(),
     forceEsmExtensionsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
@@ -103,7 +109,11 @@ const reactNativeConfig: Options = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
-  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
+  esbuildPlugins: [
+    cjsToEsmPlugin(['tough-cookie']),
+    resolveCoreImportsPlugin(),
+    forceEsmExtensionsPlugin(),
+  ],
 }
 
 const iifeConfig: Options = {
@@ -117,6 +127,7 @@ const iifeConfig: Options = {
    */
   outDir: './lib',
   format: ['iife'],
+  noExternal: ['tough-cookie'],
   legacyOutput: true,
   bundle: true,
   splitting: false,

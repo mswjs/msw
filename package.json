@@ -3,6 +3,9 @@
   "version": "2.7.6",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "type": "commonjs",
+  "main": "./lib/core/index.js",
+  "module": "./lib/core/index.mjs",
+  "types": "./lib/core/index.d.ts",
   "packageManager": "pnpm@9.14.0",
   "exports": {
     ".": {
@@ -180,7 +183,7 @@
     "test:modules:node": "vitest run --config=./test/modules/node/vitest.config.mts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
     "test:e2e": "vitest run --config=./test/e2e/vitest.config.mts",
-    "test:ts": "vitest --typecheck --config=./test/typings/vitest.config.ts",
+    "test:ts": "vitest --config=./test/typings/vitest.config.ts",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",

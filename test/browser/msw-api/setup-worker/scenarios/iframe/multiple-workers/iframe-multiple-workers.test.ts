@@ -5,10 +5,10 @@ test('intercepts a request issued by child frame when both child and parent have
   page,
 }) => {
   const parentCompilation = await webpackServer.compile([
-    require.resolve('./parent.mocks.ts'),
+    new URL('./parent.mocks.ts', import.meta.url),
   ])
   const childCompilation = await webpackServer.compile([
-    require.resolve('./child.mocks.ts'),
+    new URL('./child.mocks.ts', import.meta.url),
   ])
 
   await page.goto(parentCompilation.previewUrl, { waitUntil: 'networkidle' })

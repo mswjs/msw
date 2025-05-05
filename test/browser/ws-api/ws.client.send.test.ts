@@ -16,7 +16,7 @@ test('sends data to a single client on connection', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -50,7 +50,7 @@ test('sends data to multiple clients on connection', async ({
   page,
 }) => {
   const { compilation } = await loadExample(
-    require.resolve('./ws.runtime.js'),
+    new URL('./ws.runtime.js', import.meta.url),
     {
       skipActivation: true,
     },
@@ -95,7 +95,7 @@ test('sends data in response to a client message', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

@@ -11,7 +11,7 @@ test('does not interfere with a shared worker', async ({
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./shared-worker.mocks.ts'), {
+  await loadExample(new URL('./shared-worker.mocks.ts', import.meta.url), {
     beforeNavigation(compilation) {
       compilation.use((router) => {
         router.use(express.static(__dirname))

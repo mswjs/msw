@@ -1,9 +1,9 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import fs from 'node:fs'
+import url from 'node:url'
 import { WebpackHttpServer } from 'webpack-http-server'
 import { getWorkerScriptPatch } from './workerConsole'
-
-const { SERVICE_WORKER_BUILD_PATH } = require('../../../config/constants.js')
+// @ts-expect-error Importing a JavaScript module.
+import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
 declare global {
   // eslint-disable-next-line
@@ -51,7 +51,9 @@ async function startWebpackServer(): Promise<WebpackHttpServer> {
                 loader: 'esbuild-loader',
                 options: {
                   loader: 'ts',
-                  tsconfigRaw: require('../../tsconfig.json'),
+                  tsconfigRaw: fs.readFileSync(
+                    new URL('../../tsconfig.json', import.meta.url),
+                  ),
                 },
               },
             ],
@@ -60,9 +62,14 @@ async function startWebpackServer(): Promise<WebpackHttpServer> {
       },
       resolve: {
         alias: {
-          msw: path.resolve(__dirname, '../../..'),
+          'msw/browser': url.fileURLToPath(
+            new URL('../../../lib/browser/index.mjs', import.meta.url),
+          ),
+          msw: url.fileURLToPath(
+            new URL('../../../lib/core/index.mjs', import.meta.url),
+          ),
         },
-        extensions: ['.ts', '.js', '.mjs'],
+        extensions: ['.ts', '.js', '.mjs', '.cjs'],
       },
     },
   })

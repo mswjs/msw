@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../../../playwright.extend'
 
 const server = new HttpServer((app) => {
@@ -23,7 +23,7 @@ test('sends a mocked response to a matching method and url', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./method.mocks.ts'))
+  await loadExample(new URL('./method.mocks.ts', import.meta.url))
 
   const res = await fetch(server.http.url('/user'), {
     method: 'POST',
@@ -42,7 +42,7 @@ test('sends original response to a non-matching request', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./method.mocks.ts'))
+  await loadExample(new URL('./method.mocks.ts', import.meta.url))
 
   const res = await fetch(server.http.url('/user'))
   const status = res.status()

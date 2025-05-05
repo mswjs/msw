@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'node:path'
 import { test, expect } from '../../../playwright.extend'
 
 test('respects a custom "scope" Service Worker option', async ({

@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'node:path'
 import * as express from 'express'
 import type { Frame, Page } from '@playwright/test'
 import { test, expect } from '../../../../playwright.extend'
@@ -24,12 +24,15 @@ test('responds with different responses for the same request based on request re
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./iframe-isolated-response.mocks.ts'), {
-    markup: path.resolve(__dirname, 'app.html'),
-    beforeNavigation(compilation) {
-      compilation.use(staticMiddleware)
+  await loadExample(
+    new URL('./iframe-isolated-response.mocks.ts', import.meta.url),
+    {
+      markup: path.resolve(__dirname, 'app.html'),
+      beforeNavigation(compilation) {
+        compilation.use(staticMiddleware)
+      },
     },
-  })
+  )
 
   const frameOne = getFrameById('frame-one', page)!
   const frameTwo = getFrameById('frame-two', page)!

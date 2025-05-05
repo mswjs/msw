@@ -1,6 +1,6 @@
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./headers-multiple.mocks.ts')
+const EXAMPLE_PATH = new URL('./headers-multiple.mocks.ts', import.meta.url)
 
 test('receives all headers from the request header with multiple values', async ({
   loadExample,

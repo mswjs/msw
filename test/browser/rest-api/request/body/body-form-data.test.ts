@@ -11,8 +11,8 @@ test('handles FormData as a request body', async ({
   page,
   makeUrl,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'), {
-    markup: require.resolve('./body-form-data.page.html'),
+  await loadExample(new URL('./body.mocks.ts', import.meta.url), {
+    markup: new URL('./body-form-data.page.html', import.meta.url),
   })
 
   await page.evaluate(() => window.makeRequest())

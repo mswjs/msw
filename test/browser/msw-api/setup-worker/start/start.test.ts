@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'node:path'
 import { SetupWorkerApi } from 'msw/browser'
 import { TestFixtures, test, expect } from '../../../playwright.extend'
 
@@ -9,7 +9,7 @@ declare namespace window {
 }
 
 const exampleOptions: Parameters<TestFixtures['loadExample']> = [
-  require.resolve('./start.mocks.ts'),
+  new URL('./start.mocks.ts', import.meta.url),
   {
     skipActivation: true,
     beforeNavigation(compilation) {

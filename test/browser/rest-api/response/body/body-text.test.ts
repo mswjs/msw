@@ -1,7 +1,7 @@
 import { test, expect } from '../../../playwright.extend'
 
 test('responds with a text response body', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-text.mocks.ts'))
+  await loadExample(new URL('./body-text.mocks.ts', import.meta.url))
 
   const res = await fetch('/text')
   const headers = await res.allHeaders()

@@ -1,10 +1,9 @@
-import path from 'node:path'
 import * as express from 'express'
 import type { Frame, Page } from '@playwright/test'
 import { test, expect } from '../../../../playwright.extend'
 
 const staticMiddleware = (router: express.Router) => {
-  router.use(express.static(__dirname))
+  router.use(express.static(new URL('./', import.meta.url).pathname))
 }
 
 export function getFrameById(id: string, page: Page): Frame {
@@ -27,7 +26,7 @@ test('responds with different responses for the same request based on request re
   await loadExample(
     new URL('./iframe-isolated-response.mocks.ts', import.meta.url),
     {
-      markup: path.resolve(__dirname, 'app.html'),
+      markup: new URL('app.html', import.meta.url).pathname,
       beforeNavigation(compilation) {
         compilation.use(staticMiddleware)
       },

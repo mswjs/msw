@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { Frame } from '@playwright/test'
 import * as express from 'express'
 import { test, expect } from '../../../../playwright.extend'
@@ -14,7 +13,7 @@ function findFrame(frame: Frame) {
 }
 
 const staticMiddleware = (router: express.Router) => {
-  router.use(express.static(__dirname))
+  router.use(express.static(new URL('./', import.meta.url).pathname))
 }
 
 test('intercepts a request from an iframe (nested client)', async ({
@@ -22,7 +21,7 @@ test('intercepts a request from an iframe (nested client)', async ({
   page,
 }) => {
   await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
-    markup: path.resolve(__dirname, 'page-in-iframe.html'),
+    markup: new URL('page-in-iframe.html', import.meta.url).pathname,
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
     },
@@ -42,7 +41,7 @@ test('intercepts a request from a deeply nested iframe', async ({
   page,
 }) => {
   await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
-    markup: path.resolve(__dirname, 'page-in-nested-iframe.html'),
+    markup: new URL('page-in-nested-iframe.html', import.meta.url).pathname,
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
     },
@@ -68,7 +67,7 @@ test('intercepts a request from a deeply nested iframe given MSW is registered i
   page,
 }) => {
   await loadExample(new URL('./iframe.mocks.ts', import.meta.url), {
-    markup: path.resolve(__dirname, 'page-in-iframe.html'),
+    markup: new URL('page-in-iframe.html', import.meta.url).pathname,
     beforeNavigation(compilation) {
       compilation.use(staticMiddleware)
     },
@@ -100,7 +99,7 @@ test('intercepts a request from an iframe given MSW is registered in a sibling i
   // A request-issuing frame. Here lives the `window.fetch` call.
   const requestPage = await context.newPage()
   const requestCompilation = await webpackServer.compile([], {
-    markup: path.resolve(__dirname, 'page-in-iframe.html'),
+    markup: new URL('page-in-iframe.html', import.meta.url).pathname,
   })
   requestCompilation.use(staticMiddleware)
   await requestPage.goto(requestCompilation.previewUrl)

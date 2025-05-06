@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { test, expect } from '../../../playwright.extend'
 
 test('respects a custom "scope" Service Worker option', async ({
@@ -7,7 +6,7 @@ test('respects a custom "scope" Service Worker option', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(path.resolve(__dirname, 'options-sw-scope.mocks.ts'))
+  await loadExample(new URL('options-sw-scope.mocks.ts', import.meta.url))
 
   expect(consoleSpy.get('startGroupCollapsed')).toEqual(
     expect.arrayContaining([expect.stringContaining('[MSW] Mocking enabled.')]),

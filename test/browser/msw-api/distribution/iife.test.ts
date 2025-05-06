@@ -13,7 +13,7 @@ test('supports the usage of the iife bundle in a <script> tag', async ({
       compilation.use((router) => {
         router.get('/iife/index.js', (_, res) => {
           fs.createReadStream(
-            require.resolve('../../../../lib/iife/index.js'),
+            new URL('../../../../lib/iife/index.js', import.meta.url),
           ).pipe(res)
 
           return res

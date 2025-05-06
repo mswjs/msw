@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import { test, expect } from '../../../playwright.extend'
 
 test('responds with a given binary body', async ({ loadExample, fetch }) => {
@@ -10,9 +9,7 @@ test('responds with a given binary body', async ({ loadExample, fetch }) => {
   const body = await res.body()
 
   const expectedBuffer = fs.readFileSync(
-    url.fileURLToPath(
-      new URL('../../../../fixtures/image.jpg', import.meta.url),
-    ),
+    new URL('../../../../fixtures/image.jpg', import.meta.url),
   )
 
   expect(status).toBe(200)

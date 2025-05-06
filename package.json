@@ -2,10 +2,9 @@
   "name": "msw",
   "version": "2.7.6",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
-  "type": "commonjs",
-  "main": "./lib/core/index.js",
-  "module": "./lib/core/index.mjs",
-  "types": "./lib/core/index.d.ts",
+  "type": "module",
+  "main": "./lib/core/index.mjs",
+  "types": "./lib/core/index.d.mts",
   "packageManager": "pnpm@9.14.0",
   "exports": {
     ".": {
@@ -17,26 +16,22 @@
         "types": "./lib/core/index.d.mts",
         "default": "./lib/core/index.mjs"
       },
-      "react-native": {
-        "import": {
-          "types": "./lib/core/index.d.mts",
-          "default": "./lib/core/index.mjs"
-        },
-        "default": {
-          "types": "./lib/core/index.d.ts",
-          "default": "./lib/core/index.js"
-        }
-      },
       "import": {
         "types": "./lib/core/index.d.mts",
         "default": "./lib/core/index.mjs"
       },
-      "default": {
+      "require": {
         "types": "./lib/core/index.d.ts",
         "default": "./lib/core/index.js"
       }
     },
     "./browser": {
+      "node": null,
+      "react-native": null,
+      "browser": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
       "module-sync": {
         "types": "./lib/browser/index.d.mts",
         "default": "./lib/browser/index.mjs"
@@ -45,22 +40,18 @@
         "types": "./lib/browser/index.d.mts",
         "default": "./lib/browser/index.mjs"
       },
-      "browser": {
-        "types": "./lib/browser/index.d.mts",
-        "default": "./lib/browser/index.mjs"
-      },
       "import": {
         "types": "./lib/browser/index.d.mts",
         "default": "./lib/browser/index.mjs"
       },
-      "node": null,
-      "react-native": null,
-      "default": {
+      "require": {
         "types": "./lib/browser/index.d.ts",
         "default": "./lib/browser/index.js"
       }
     },
     "./node": {
+      "browser": null,
+      "react-native": null,
       "module-sync": {
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
@@ -69,38 +60,22 @@
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
       },
-      "node": {
-        "require": "./lib/node/index.js",
-        "import": "./lib/node/index.mjs"
-      },
       "import": {
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
       },
-      "browser": null,
-      "react-native": null,
-      "default": {
+      "require": {
         "types": "./lib/node/index.d.ts",
         "default": "./lib/node/index.js"
       }
     },
     "./native": {
-      "react-native": {
-        "import": {
-          "types": "./lib/native/index.d.mts",
-          "default": "./lib/native/index.mjs"
-        },
-        "default": {
-          "types": "./lib/native/index.d.ts",
-          "default": "./lib/native/index.js"
-        }
-      },
       "browser": null,
       "import": {
         "types": "./lib/native/index.d.mts",
         "default": "./lib/native/index.mjs"
       },
-      "default": {
+      "require": {
         "types": "./lib/native/index.d.ts",
         "default": "./lib/native/index.js"
       }
@@ -118,7 +93,7 @@
         "types": "./lib/core/http.d.mts",
         "default": "./lib/core/http.mjs"
       },
-      "default": {
+      "require": {
         "types": "./lib/core/http.d.ts",
         "default": "./lib/core/http.js"
       }
@@ -136,7 +111,7 @@
         "types": "./lib/core/graphql.d.mts",
         "default": "./lib/core/graphql.mjs"
       },
-      "default": {
+      "require": {
         "types": "./lib/core/graphql.d.ts",
         "default": "./lib/core/graphql.js"
       }
@@ -154,7 +129,7 @@
         "types": "./lib/core/ws.d.mts",
         "default": "./lib/core/ws.mjs"
       },
-      "default": {
+      "require": {
         "types": "./lib/core/ws.d.ts",
         "default": "./lib/core/ws.js"
       }

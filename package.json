@@ -288,6 +288,7 @@
     "json-bigint": "^1.0.0",
     "knip": "^5.51.1",
     "lint-staged": "^15.2.10",
+    "msw": "workspace:*",
     "page-with": "^0.6.1",
     "prettier": "^3.4.2",
     "publint": "^0.3.12",

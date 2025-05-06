@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { SetupWorkerApi } from 'msw/browser'
 import { TestFixtures, test, expect } from '../../../playwright.extend'
 
@@ -15,7 +14,7 @@ const exampleOptions: Parameters<TestFixtures['loadExample']> = [
     beforeNavigation(compilation) {
       compilation.use((router) => {
         router.get('/worker.js', (_, res) => {
-          res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
+          res.sendFile(new URL('worker.delayed.js', import.meta.url).pathname)
         })
       })
     },

@@ -63,7 +63,7 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ webpackServer }, testInfo) => {
   const compilation = await webpackServer.compile([
-    new URL('./fallback-mode.mocks.ts', import.meta.url),
+    new URL('./fallback-mode.mocks.ts', import.meta.url).pathname,
   ])
   const bundleUrl = new URL('./main.js', compilation.previewUrl)
   await fsMock.create({

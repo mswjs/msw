@@ -13,11 +13,6 @@
     "esModuleInterop": true,
     "declaration": false,
     "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "msw": ["../"],
-      "msw/*": ["../*"]
-    },
     "types": ["node", "vitest/globals"]
   },
   "include": ["**/*.ts"]

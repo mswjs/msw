@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import { test, expect } from '../playwright.extend'
 import copyServiceWorker from '../../../config/copyServiceWorker'
 import packageJson from '../../../package.json' assert { type: 'json' }
@@ -33,10 +32,10 @@ test('errors when activating the worker with an outdated integrity', async ({
   fetch,
   waitFor,
 }) => {
-  const TEMP_SERVICE_WORKER_PATH = path.resolve(
-    __dirname,
+  const TEMP_SERVICE_WORKER_PATH = new URL(
     '../../tmp/mockServiceWorker-outdated.js',
-  )
+    import.meta.url,
+  ).pathname
 
   // Manually create a Service Worker file with invalid integrity
   await copyServiceWorker(

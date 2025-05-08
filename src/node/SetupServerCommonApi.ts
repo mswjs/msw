@@ -22,7 +22,7 @@ import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 
-export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
+const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 

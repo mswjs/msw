@@ -3,7 +3,7 @@ import * as path from 'path'
 import { spawnSync } from 'child_process'
 import { invariant } from 'outvariant'
 
-export async function getLibraryTarball(): Promise<string> {
+async function getLibraryTarball(): Promise<string> {
   const ROOT_PATH = path.resolve(__dirname, '../..')
   const { version } = require(`${ROOT_PATH}/package.json`)
   const packFilename = `msw-${version}.tgz`

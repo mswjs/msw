@@ -11,7 +11,7 @@ export function fromTemp(...segments: string[]) {
   return path.join(__dirname, '../..', 'tmp', ...segments)
 }
 
-export function clearCookies(): void {
+function clearCookies(): void {
   document.cookie.split(';').forEach((cookie) => {
     document.cookie = cookie
       .replace(/^ +/, '')

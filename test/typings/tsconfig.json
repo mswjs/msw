@@ -3,10 +3,8 @@
   "compilerOptions": {
     "strict": false,
     "rootDir": "../..",
-    "lib": ["dom"],
-    "types": ["node"],
-    "typeRoots": ["../../node_modules/@types"]
+    "lib": ["dom"]
   },
-  "include": ["../../global.d.ts", "**/*.test-d.*"],
+  "include": ["../../global.d.ts", "**/*.test-d.ts"],
   "exclude": ["node_modules"]
 }

@@ -17,7 +17,7 @@ export function replaceCoreImports(fileContents, isEsm) {
       const semicolon = maybeSemicolon || ''
 
       return isEsm
-        ? `from "../core${submodulePath}"${semicolon}`
+        ? `from "../core${submodulePath.endsWith('.mjs') ? submodulePath : submodulePath + '.mjs'}"${semicolon}`
         : `require("../core${submodulePath}")${semicolon}`
     },
   )

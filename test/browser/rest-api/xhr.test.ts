@@ -1,7 +1,7 @@
 import { test, expect } from '../playwright.extend'
 
 test('mocks a response to an XMLHttpRequest', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./xhr.mocks.ts'))
+  await loadExample(new URL('./xhr.mocks.ts', import.meta.url))
 
   const REQUEST_URL = 'https://api.github.com/users/octocat'
 

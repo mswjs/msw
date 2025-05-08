@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import { inject } from 'vitest'
 import { createTeardown } from 'fs-teardown'
-import { fromTemp } from '../support/utils'
+import { fromTemp } from '../support/utils.js'
 
-const tarballPath = inject('tarballPath')
+const TARBALL_PATH = inject('tarballPath')
 
 const fsMock = createTeardown({
   rootDir: fromTemp('worker-script-auto-update'),
@@ -13,8 +13,6 @@ describe(
   'worker script auto-update',
   {
     sequential: true,
-    // These tests actually build, pack, and install MSW so they may take time.
-    timeout: 60_000,
   },
   () => {
     beforeAll(async () => {
@@ -40,7 +38,7 @@ describe(
       })
 
       // Install "msw" from the tarball into the dummy project.
-      const installCommand = await fsMock.exec(`npm install ${tarballPath}`)
+      const installCommand = await fsMock.exec(`npm install ${TARBALL_PATH}`)
       expect(installCommand.stderr).toBe('')
 
       // Asset the worker script has been created/updated.
@@ -59,7 +57,7 @@ describe(
         }),
       })
 
-      const installCommand = await fsMock.exec(`npm install ${tarballPath}`)
+      const installCommand = await fsMock.exec(`npm install ${TARBALL_PATH}`)
       /**
        * @note Cannot assert on the empty stderr because npm
        * writes to stderr if there's a new version of npm available.

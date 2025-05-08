@@ -6,7 +6,7 @@ test('executes a given callback on an unhandled request', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./callback.mocks.ts'))
+  await loadExample(new URL('./callback.mocks.ts', import.meta.url))
 
   const res = await fetch('https://mswjs.io/non-existing-page')
   const status = res.status()

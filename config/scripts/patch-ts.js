@@ -1,14 +1,14 @@
-const fs = require('node:fs')
-const { exec } = require('node:child_process')
-const path = require('node:path')
-const { promisify } = require('node:util')
-const { invariant } = require('outvariant')
-const glob = require('glob')
-const { hasCoreImports, replaceCoreImports } = require('../replaceCoreImports')
+import fs from 'node:fs'
+import url from 'node:url'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
+import { invariant } from 'outvariant'
+import * as glob from 'glob'
+import { hasCoreImports, replaceCoreImports } from '../replaceCoreImports.js'
 
 const execAsync = promisify(exec)
 
-const BUILD_DIR = path.resolve(__dirname, '../../lib')
+const BUILD_DIR = url.fileURLToPath(new URL('../../lib', import.meta.url))
 
 async function patchTypeDefs() {
   const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {

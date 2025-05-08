@@ -175,7 +175,7 @@ import { test, expect } from './playwright.extend'
 
 test('returns a mocked response', async ({ loadExample, fetch }) => {
   // Compile the given usage example on runtime.
-  await loadExample(require.resolve('./example.mocks.ts'))
+  await loadExample(new URL('./example.mocks.ts', import.meta.url))
 
   // Perform the "GET /books" request in the browser.
   const res = await fetch('/books')

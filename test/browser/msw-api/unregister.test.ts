@@ -14,7 +14,7 @@ test('unregisters itself when not prompted to be activated again', async ({
   waitForMswActivation,
 }) => {
   const { compilation } = await loadExample(
-    require.resolve('./unregister.mocks.ts'),
+    new URL('./unregister.mocks.ts', import.meta.url),
     {
       skipActivation: true,
       beforeNavigation(compilation) {

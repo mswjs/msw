@@ -4,7 +4,7 @@ test('responds with a network error using "Response.error" shorthand', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./response-error.mocks.ts'))
+  await loadExample(new URL('./response-error.mocks.ts', import.meta.url))
 
   const networkError = await page.evaluate(() => {
     return fetch('/resource')

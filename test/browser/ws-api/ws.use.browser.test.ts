@@ -15,7 +15,7 @@ test('resolves outgoing events using initial handlers', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -48,7 +48,7 @@ test('resolves outgoing events using initial handlers', async ({
 })
 
 test('overrides an outgoing event listener', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -95,7 +95,7 @@ test('combines initial and override listeners', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -149,7 +149,7 @@ test('combines initial and override listeners in the opposite order', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -200,7 +200,7 @@ test('combines initial and override listeners in the opposite order', async ({
 })
 
 test('does not affect unrelated events', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

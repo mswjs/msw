@@ -6,7 +6,7 @@ test('executes a default "warn" strategy in a custom callback', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./callback-print.mocks.ts'))
+  await loadExample(new URL('./callback-print.mocks.ts', import.meta.url))
 
   const res = await fetch('https://mswjs.io/use-warn')
   const status = res.status()
@@ -40,7 +40,7 @@ test('executes a default "error" strategy in a custom callback', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./callback-print.mocks.ts'))
+  await loadExample(new URL('./callback-print.mocks.ts', import.meta.url))
 
   const res = await fetch('https://mswjs.io/use-error')
   const status = res.status()

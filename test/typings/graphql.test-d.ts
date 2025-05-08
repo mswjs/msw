@@ -198,3 +198,15 @@ it('graphql mutation cannot extract variable and reponse types', () => {
     })
   })
 })
+
+it('graphql query allows extensions in the response body', () => {
+  graphql.query<{ id: string }>('GetUser', () => {
+    return HttpResponse.json({
+      data: { id: '2' },
+      extensions: {
+        requestId: '3',
+        runtime: 'foo',
+      },
+    })
+  })
+})

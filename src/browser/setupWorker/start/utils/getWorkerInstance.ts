@@ -36,17 +36,19 @@ export const getWorkerInstance = async (
   const [existingRegistration] = mockRegistrations
 
   if (existingRegistration) {
-    // When the Service Worker is registered, update it and return the reference.
-    return existingRegistration.update().then(() => {
-      return [
-        getWorkerByRegistration(
-          existingRegistration,
-          absoluteWorkerUrl,
-          findWorker,
-        ),
+    // Schedule the worker update in the background.
+    // Update ensures the existing worker is up-to-date.
+    existingRegistration.update()
+
+    // Return the worker reference immediately.
+    return [
+      getWorkerByRegistration(
         existingRegistration,
-      ]
-    })
+        absoluteWorkerUrl,
+        findWorker,
+      ),
+      existingRegistration,
+    ]
   }
 
   // When the Service Worker wasn't found, register it anew and return the reference.

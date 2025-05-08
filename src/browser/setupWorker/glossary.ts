@@ -5,15 +5,10 @@ import {
   SharedOptions,
 } from '~/core/sharedOptions'
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
-import {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-} from '~/core/handlers/RequestHandler'
+import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
-import { Path } from '~/core/utils/matching/matchRequestUrl'
-import { RequiredDeep } from '~/core/typeUtils'
-
-export type ResolvedPath = Path | URL
+import type { RequiredDeep } from '~/core/typeUtils'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 
 type RequestWithoutMethods = Omit<
   Request,
@@ -41,7 +36,7 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body?: ArrayBuffer | null
 }
 
-export type ServiceWorkerIncomingResponse = Pick<
+type ServiceWorkerIncomingResponse = Pick<
   Response,
   'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
 > & {
@@ -53,7 +48,12 @@ export type ServiceWorkerIncomingResponse = Pick<
  * Map of the events that can be received from the Service Worker.
  */
 export interface ServiceWorkerIncomingEventsMap {
-  MOCKING_ENABLED: boolean
+  MOCKING_ENABLED: {
+    client: {
+      id: string
+      frameType: string
+    }
+  }
   INTEGRITY_CHECK_RESPONSE: {
     packageVersion: string
     checksum: string
@@ -67,7 +67,7 @@ export interface ServiceWorkerIncomingEventsMap {
  * Map of the events that can be sent to the Service Worker
  * from any execution context.
  */
-export type ServiceWorkerOutgoingEventTypes =
+type ServiceWorkerOutgoingEventTypes =
   | 'MOCK_ACTIVATE'
   | 'MOCK_DEACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
@@ -78,7 +78,7 @@ export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-export interface StrictEventListener<EventType extends Event> {
+interface StrictEventListener<EventType extends Event> {
   (event: EventType): void
 }
 
@@ -87,7 +87,7 @@ export interface SetupWorkerInternalContext {
   startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  getRequestHandlers(): Array<RequestHandler>
+  getRequestHandlers(): Array<RequestHandler | WebSocketHandler>
   requests: Map<string, Request>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
@@ -211,7 +211,7 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()` API reference}
    */
-  use: (...handlers: RequestHandler[]) => void
+  use: (...handlers: Array<RequestHandler | WebSocketHandler>) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -226,14 +226,16 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()` API reference}
    */
-  resetHandlers: (...nextHandlers: RequestHandler[]) => void
+  resetHandlers: (
+    ...nextHandlers: Array<RequestHandler | WebSocketHandler>
+  ) => void
 
   /**
    * Returns a readonly list of currently active request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
+  listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
 
   /**
    * Life-cycle events.

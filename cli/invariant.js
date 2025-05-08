@@ -1,8 +1,8 @@
-const chalk = require('chalk')
+const colors = require('picocolors')
 
-module.exports = function (predicate, message, ...args) {
+module.exports = function invariant(predicate, message, ...args) {
   if (!predicate) {
-    console.error(chalk.red(message), ...args)
+    console.error(colors.red(message), ...args)
     process.exit(1)
   }
 }

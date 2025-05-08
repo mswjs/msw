@@ -10,7 +10,6 @@ test('reads request body as json', async ({ loadExample, fetch, page }) => {
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
-  await page.pause()
 
   const json = await res.json()
 

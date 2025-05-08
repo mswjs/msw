@@ -1,3 +1,4 @@
+import { FetchResponse } from '@mswjs/interceptors'
 import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
 import type { NoInfer } from './typeUtils'
 import {
@@ -34,7 +35,7 @@ interface StrictResponse<BodyType extends DefaultBodyType> extends Response {
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
 export class HttpResponse<BodyType extends DefaultBodyType>
-  extends Response
+  extends FetchResponse
   implements StrictResponse<BodyType>
 {
   [bodyType]: BodyType = null as any
@@ -126,6 +127,25 @@ export class HttpResponse<BodyType extends DefaultBodyType>
   }
 
   /**
+   * Create a `Response` with a `Content-Type: "text/html"` body.
+   * @example
+   * HttpResponse.html(`<p class="author">Jane Doe</p>`)
+   * HttpResponse.html(`<main id="abc-123">Main text</main>`, { status: 201 })
+   */
+  static html<BodyType extends string>(
+    body?: BodyType | null,
+    init?: HttpResponseInit,
+  ): Response {
+    const responseInit = normalizeResponseInit(init)
+
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'text/html')
+    }
+
+    return new HttpResponse(body, responseInit)
+  }
+
+  /**
    * Create a `Response` with an `ArrayBuffer` body.
    * @example
    * const buffer = new ArrayBuffer(3)
@@ -134,14 +154,21 @@ export class HttpResponse<BodyType extends DefaultBodyType>
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  static arrayBuffer(body?: ArrayBuffer, init?: HttpResponseInit): Response {
+  static arrayBuffer(
+    body?: ArrayBuffer | SharedArrayBuffer,
+    init?: HttpResponseInit,
+  ): Response {
     const responseInit = normalizeResponseInit(init)
 
-    if (body) {
+    if (!responseInit.headers.has('Content-Type')) {
+      responseInit.headers.set('Content-Type', 'application/octet-stream')
+    }
+
+    if (body && !responseInit.headers.has('Content-Length')) {
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return new HttpResponse(body, responseInit)
+    return new HttpResponse(body as ArrayBuffer, responseInit)
   }
 
   /**

@@ -10,7 +10,7 @@ export async function enableMocking(
   options: StartOptions,
 ) {
   context.workerChannel.send('MOCK_ACTIVATE')
-  await context.events.once('MOCKING_ENABLED')
+  const { payload } = await context.events.once('MOCKING_ENABLED')
 
   // Warn the developer on multiple "worker.start()" calls.
   // While this will not affect the worker in any way,
@@ -28,5 +28,6 @@ export async function enableMocking(
     quiet: options.quiet,
     workerScope: context.registration?.scope,
     workerUrl: context.worker?.scriptURL,
+    client: payload.client,
   })
 }

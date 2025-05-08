@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import minify from 'babel-minify'
 import { invariant } from 'outvariant'
 import type { Plugin } from 'esbuild'
-import copyServiceWorker from '../../copyServiceWorker'
+import copyServiceWorker from '../../copyServiceWorker.js'
 
 const SERVICE_WORKER_ENTRY_PATH = path.resolve(
   process.cwd(),

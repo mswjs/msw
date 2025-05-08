@@ -1,6 +1,6 @@
 import { Plugin } from 'esbuild'
-import { replaceCoreImports } from '../../replaceCoreImports'
-import { ESM_EXTENSION } from './forceEsmExtensionsPlugin'
+import { replaceCoreImports } from '../../replaceCoreImports.js'
+import { ESM_EXTENSION } from './forceEsmExtensionsPlugin.js'
 
 export function resolveCoreImportsPlugin(): Plugin {
   return {

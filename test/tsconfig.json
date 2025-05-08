@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "skipLibCheck": true,
     "module": "preserve",
     "target": "ES2015",
     "moduleResolution": "bundler",

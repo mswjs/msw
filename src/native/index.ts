@@ -15,7 +15,7 @@ export function setupServer(
   // Provision request interception via patching the `XMLHttpRequest` class only
   // in React Native. There is no `http`/`https` modules in that environment.
   return new SetupServerCommonApi(
-    [FetchInterceptor, XMLHttpRequestInterceptor],
+    [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
     handlers,
   )
 }

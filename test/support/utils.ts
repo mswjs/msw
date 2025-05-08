@@ -27,7 +27,15 @@ export async function waitForClientRequest(request: ClientRequest): Promise<{
   responseText: string
 }> {
   return new Promise((resolve, reject) => {
-    request.once('error', reject)
+    request.once('error', (error) => {
+      /**
+       * @note Since Node.js v20, Node.js may throw an AggregateError
+       * that doesn't have the `message` property and thus won't be handled
+       * here correctly. Instead, use the error's `code` as the rejection reason.
+       * The code stays consistent across Node.js versions.
+       */
+      reject('code' in error ? error.code : error)
+    })
     request.once('abort', () => reject(new Error('Request was aborted')))
 
     request.on('response', (response) => {

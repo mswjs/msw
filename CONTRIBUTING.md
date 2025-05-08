@@ -193,6 +193,8 @@ test('returns a mocked response', async ({ loadExample, fetch }) => {
 
 ##### Running all browser tests
 
+Make sure Playwright chromium has been installed before running browser tests.
+
 ```sh
 pnpm test:browser
 ```

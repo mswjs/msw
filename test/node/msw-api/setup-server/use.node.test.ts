@@ -137,3 +137,34 @@ test('throws if provided the invalid handlers array', async () => {
     '[MSW] Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?',
   )
 })
+
+test('does not consume "once" handler if it does not return a response', async () => {
+  let shouldHandle = false
+
+  server.use(
+    http.get(
+      httpServer.http.url('/book/:bookId'),
+      ({ request }) => {
+        if (!shouldHandle) {
+          return undefined
+        }
+        return HttpResponse.json({ title: 'One-time override' })
+      },
+      { once: true },
+    ),
+  )
+
+  const res1 = await fetch(httpServer.http.url('/book/abc-123'))
+  expect(res1.status).toBe(200)
+  expect(await res1.json()).toEqual({ title: 'Original title' })
+
+  shouldHandle = true
+
+  const res2 = await fetch(httpServer.http.url('/book/abc-123'))
+  expect(res2.status).toBe(200)
+  expect(await res2.json()).toEqual({ title: 'One-time override' })
+
+  const res3 = await fetch(httpServer.http.url('/book/abc-123'))
+  expect(res3.status).toBe(200)
+  expect(await res3.json()).toEqual({ title: 'Original title' })
+})

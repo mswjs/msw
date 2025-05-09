@@ -109,9 +109,9 @@ self.addEventListener('fetch', function (event) {
     return
   }
 
-  if (!activeClientIds.has(clientId)) {
-    return
-  }
+  // if (!activeClientIds.has(clientId)) {
+  //   return
+  // }
 
   // Bypass all requests when there are no active clients.
   // Prevents the self-unregistered worked from handling requests

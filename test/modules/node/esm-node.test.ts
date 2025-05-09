@@ -14,7 +14,11 @@ beforeAll(async () => {
   await installLibrary(fsMock.resolve('.'))
 })
 
-afterAll(async () => {
+afterAll(async ({ result }) => {
+  if (result?.state === 'fail') {
+    return
+  }
+
   await fsMock.cleanup()
 })
 
@@ -88,16 +92,25 @@ console.log(typeof server.listen)
 
   const resolveStdio = await fsMock.exec('node ./resolve.cjs')
   expect(resolveStdio.stderr).toBe('')
+
   /**
    * @todo Take these expected export paths from package.json.
    * That should be the source of truth.
    */
+
+  /**
+   * @note Although the test requires the package in CJS,
+   * the "module-sync" condition allows loading the ESM build.
+   * This is supported in Node.js v20+.
+   */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
   )
+
+  // Must load regular CJS build for React Native.
   expect(resolveStdio.stdout).toMatch(
     /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
   )

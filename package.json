@@ -187,7 +187,7 @@
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
-    "postinstall": "node -e \"try{import('./config/scripts/postinstall.js')}catch(e){}\"",
+    "postinstall": "node -e \"import('./config/scripts/postinstall.js').catch(() => void 0)\"",
     "knip": "knip"
   },
   "lint-staged": {

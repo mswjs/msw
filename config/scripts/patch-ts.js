@@ -18,6 +18,10 @@ async function patchTypeDefs() {
   const typeDefsWithCoreImports = typeDefsPaths
     .map((modulePath) => {
       const fileContents = fs.readFileSync(modulePath, 'utf8')
+      /**
+       * @note Treat all type definition files as ESM because even
+       * CJS .d.ts use `import` statements.
+       */
       if (hasCoreImports(fileContents, true)) {
         return [modulePath, fileContents]
       }
@@ -39,7 +43,11 @@ async function patchTypeDefs() {
   for (const [typeDefsPath, fileContents] of typeDefsWithCoreImports) {
     // Treat ".d.ts" files as ESM to replace "import" statements.
     // Force no extension on the ".d.ts" imports.
-    const nextFileContents = replaceCoreImports(fileContents, true)
+    const nextFileContents = replaceCoreImports(
+      typeDefsPath,
+      fileContents,
+      true,
+    )
     fs.writeFileSync(typeDefsPath, nextFileContents, 'utf8')
     console.log('Successfully patched "%s"!', typeDefsPath)
   }

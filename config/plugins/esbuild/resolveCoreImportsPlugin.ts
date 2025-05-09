@@ -14,7 +14,11 @@ export function resolveCoreImportsPlugin(): Plugin {
         for (const outputFile of result.outputFiles || []) {
           const isEsm = outputFile.path.endsWith(ESM_EXTENSION)
           const fileContents = outputFile.text
-          const nextFileContents = replaceCoreImports(fileContents, isEsm)
+          const nextFileContents = replaceCoreImports(
+            outputFile.path,
+            fileContents,
+            isEsm,
+          )
 
           outputFile.contents = Buffer.from(nextFileContents)
         }

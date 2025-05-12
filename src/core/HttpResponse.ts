@@ -18,10 +18,11 @@ export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
 
 /**
  * Opaque `Response` type that supports strict body type.
+ *
+ * @deprecated Will be removed in v3. Please use {@link HttpResponse} instead.
  */
-interface StrictResponse<BodyType extends DefaultBodyType> extends Response {
-  readonly [bodyType]: BodyType
-}
+export type StrictResponse<BodyType extends DefaultBodyType> =
+  HttpResponse<BodyType>
 
 /**
  * A drop-in replacement for the standard `Response` class
@@ -34,10 +35,9 @@ interface StrictResponse<BodyType extends DefaultBodyType> extends Response {
  *
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
-export class HttpResponse<BodyType extends DefaultBodyType>
-  extends FetchResponse
-  implements StrictResponse<BodyType>
-{
+export class HttpResponse<
+  BodyType extends DefaultBodyType,
+> extends FetchResponse {
   [bodyType]: BodyType = null as any
 
   constructor(body?: NoInfer<BodyType> | null, init?: HttpResponseInit) {

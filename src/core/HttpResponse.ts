@@ -19,7 +19,7 @@ export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
 /**
  * Opaque `Response` type that supports strict body type.
  *
- * @deprecated Will be removed in v3. Please use {@link HttpResponse} instead.
+ * @deprecated Please use {@link HttpResponse} instead.
  */
 export type StrictResponse<BodyType extends DefaultBodyType> =
   HttpResponse<BodyType>

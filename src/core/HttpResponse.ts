@@ -38,7 +38,7 @@ export type StrictResponse<BodyType extends DefaultBodyType> =
 export class HttpResponse<
   BodyType extends DefaultBodyType,
 > extends FetchResponse {
-  [bodyType]: BodyType = null as any
+  readonly [bodyType]: BodyType = null as any
 
   constructor(body?: NoInfer<BodyType> | null, init?: HttpResponseInit) {
     const responseInit = normalizeResponseInit(init)

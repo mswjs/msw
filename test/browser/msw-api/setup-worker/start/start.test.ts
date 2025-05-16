@@ -1,4 +1,3 @@
-import * as path from 'path'
 import { SetupWorkerApi } from 'msw/browser'
 import { TestFixtures, test, expect } from '../../../playwright.extend'
 
@@ -9,13 +8,13 @@ declare namespace window {
 }
 
 const exampleOptions: Parameters<TestFixtures['loadExample']> = [
-  require.resolve('./start.mocks.ts'),
+  new URL('./start.mocks.ts', import.meta.url),
   {
     skipActivation: true,
     beforeNavigation(compilation) {
       compilation.use((router) => {
         router.get('/worker.js', (_, res) => {
-          res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
+          res.sendFile(new URL('worker.delayed.js', import.meta.url).pathname)
         })
       })
     },

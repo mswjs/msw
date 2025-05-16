@@ -1,7 +1,6 @@
-import { PlaywrightTestConfig, devices } from '@playwright/test'
+import { type PlaywrightTestConfig, devices } from '@playwright/test'
 
-const config: PlaywrightTestConfig = {
-  testDir: __dirname,
+export default {
   projects: [
     {
       name: 'chromium',
@@ -26,6 +25,4 @@ const config: PlaywrightTestConfig = {
   // and there's no shared state leaking from the shared compilation
   // server or the preview server.
   fullyParallel: true,
-}
-
-export default config
+} satisfies PlaywrightTestConfig

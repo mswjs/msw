@@ -6,7 +6,7 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import { StrictRequest, StrictResponse } from '..//HttpResponse'
+import type { HttpResponse, StrictRequest } from '..//HttpResponse'
 import type { HandlerKind } from './common'
 
 export type DefaultRequestMultipartBody = Record<
@@ -44,7 +44,7 @@ export type ResponseResolverReturnType<
 > =
   | ([ResponseBodyType] extends [undefined]
       ? Response
-      : StrictResponse<ResponseBodyType>)
+      : HttpResponse<ResponseBodyType>)
   | undefined
   | void
 
@@ -139,7 +139,7 @@ export abstract class RequestHandler<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>
       >
-  private resolverIteratorResult?: Response | StrictResponse<any>
+  private resolverIteratorResult?: Response | HttpResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -324,9 +324,11 @@ export abstract class RequestHandler<
     return async (info): Promise<ResponseResolverReturnType<any>> => {
       if (!this.resolverIterator) {
         const result = await resolver(info)
+
         if (!isIterable(result)) {
           return result
         }
+
         this.resolverIterator =
           Symbol.iterator in result
             ? result[Symbol.iterator]()

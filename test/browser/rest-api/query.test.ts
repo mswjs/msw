@@ -1,6 +1,6 @@
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./query.mocks.ts')
+const EXAMPLE_PATH = new URL('./query.mocks.ts', import.meta.url)
 
 test('retrieves a single request URL query parameter', async ({
   loadExample,

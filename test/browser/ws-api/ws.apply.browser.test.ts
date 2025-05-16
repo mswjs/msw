@@ -16,7 +16,7 @@ test('does not apply the interceptor until "worker.start()" is called', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

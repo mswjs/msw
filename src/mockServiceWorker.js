@@ -68,6 +68,7 @@ self.addEventListener('message', async function (event) {
             frameType: client.frameType,
           },
         },
+        clientId,
       })
       break
     }
@@ -95,7 +96,7 @@ self.addEventListener('message', async function (event) {
 })
 
 self.addEventListener('fetch', function (event) {
-  const { request } = event
+  const { request, clientId } = event
 
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
@@ -105,6 +106,10 @@ self.addEventListener('fetch', function (event) {
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+    return
+  }
+
+  if (!activeClientIds.has(clientId)) {
     return
   }
 

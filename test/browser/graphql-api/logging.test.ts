@@ -3,7 +3,7 @@ import { waitFor } from '../../support/waitFor'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
-const LOGGING_EXAMPLE = require.resolve('./logging.mocks.ts')
+const LOGGING_EXAMPLE = new URL('./logging.mocks.ts', import.meta.url)
 
 test('prints a log for a GraphQL query', async ({
   loadExample,

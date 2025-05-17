@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 
 const server = new HttpServer((app) => {
@@ -27,7 +27,7 @@ test('handles a CORS request with an "opaque" response', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./cors.mocks.ts'))
+  await loadExample(new URL('./cors.mocks.ts', import.meta.url))
 
   const errors = []
   page.on('pageerror', (error) => errors.push(error))

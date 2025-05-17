@@ -102,7 +102,7 @@ it('graphql query does not allow incompatible response body type', () => {
   )
 })
 
-it("graphql operation does not accept null as variables' generic operation type", () => {
+it('graphql operation does not accept null as variables type', () => {
   graphql.operation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -195,6 +195,18 @@ it('graphql mutation cannot extract variable and reponse types', () => {
   graphql.mutation(createUser, () => {
     return HttpResponse.json({
       data: { arbitrary: true },
+    })
+  })
+})
+
+it('graphql query allows extensions in the response body', () => {
+  graphql.query<{ id: string }>('GetUser', () => {
+    return HttpResponse.json({
+      data: { id: '2' },
+      extensions: {
+        requestId: '3',
+        runtime: 'foo',
+      },
     })
   })
 })

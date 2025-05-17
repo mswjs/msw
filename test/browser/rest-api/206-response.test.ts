@@ -1,7 +1,7 @@
 /**
  * @see https://github.com/mswjs/msw/issues/1972
  */
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { expect, test } from '../playwright.extend'
 
 const encoder = new TextEncoder()
@@ -46,7 +46,7 @@ test('forwards the 206 response to a bypassed "Range" request', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./206-response.mocks.ts'))
+  await loadExample(new URL('./206-response.mocks.ts', import.meta.url))
 
   const response = await fetch(server.http.url('/range'), {
     headers: {
@@ -68,7 +68,7 @@ test('responds with a 206 response to a mocked "Range" request', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./206-response.mocks.ts'))
+  await loadExample(new URL('./206-response.mocks.ts', import.meta.url))
 
   const response = await fetch('/mocked-range', {
     headers: {

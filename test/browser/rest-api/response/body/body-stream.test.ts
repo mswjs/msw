@@ -4,7 +4,7 @@ test('responds with a mocked ReadableStream response', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./body-stream.mocks.ts'))
+  await loadExample(new URL('./body-stream.mocks.ts', import.meta.url))
 
   const chunks = await page.evaluate(() => {
     return fetch('/stream').then(async (res) => {

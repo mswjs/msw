@@ -1,7 +1,7 @@
 import { test, expect } from '../../../playwright.extend'
 
 test('decodes url componets', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./path-params-decode.mocks.ts'))
+  await loadExample(new URL('./path-params-decode.mocks.ts', import.meta.url))
 
   const url = 'http://example.com:5001/example'
   const res = await fetch(

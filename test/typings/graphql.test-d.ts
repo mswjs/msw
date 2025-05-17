@@ -102,7 +102,7 @@ it('graphql query does not allow incompatible response body type', () => {
   )
 })
 
-it("graphql operation does not accept null as variables' generic operation type", () => {
+it('graphql operation does not accept null as variables type', () => {
   graphql.operation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.

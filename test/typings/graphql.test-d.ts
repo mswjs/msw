@@ -75,6 +75,22 @@ it('graphql query allows explicit null as the response body type for the query',
   })
 })
 
+it('supports nullable queries', () => {
+  graphql.query<{ id: string } | null>('GetUser', () => {
+    return HttpResponse.json({
+      data: null,
+    })
+  })
+})
+
+it('supports nullable mutations', () => {
+  graphql.mutation<{ id: string } | null>('GetUser', () => {
+    return HttpResponse.json({
+      data: null,
+    })
+  })
+})
+
 it('graphql query does not accept invalid data type for the response body type for the query', () => {
   graphql.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({

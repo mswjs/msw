@@ -111,7 +111,7 @@ const standardGraphQLHandlers = {
    *   return HttpResponse.json({ data: { name: 'John' } })
    * })
    *
-   * @see {@link https://mswjs.io/docs/api/graphql#graphloperationresolver `graphql.operation()` API reference}
+   * @see {@link https://mswjs.io/docs/api/graphql#graphqloperationresolver `graphql.operation()` API reference}
    */
   operation: createGraphQLOperationHandler('*'),
 }

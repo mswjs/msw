@@ -17,7 +17,7 @@ test('removes a listener by the event name', async ({
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./on.mocks.ts'))
+  await loadExample(new URL('./on.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { msw } = window

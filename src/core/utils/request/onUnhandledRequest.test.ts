@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import {
   onUnhandledRequest,
   UnhandledRequestCallback,
@@ -90,7 +88,7 @@ test('supports the "error" request strategy', async () => {
 })
 
 test('supports a custom callback function', async () => {
-  const callback = vi.fn<Parameters<UnhandledRequestCallback>>((request) => {
+  const callback = vi.fn<UnhandledRequestCallback>((request) => {
     console.warn(`callback: ${request.method} ${request.url}`)
   })
   const request = new Request(new URL('/user', 'http://localhost:3000'))
@@ -109,12 +107,10 @@ test('supports a custom callback function', async () => {
 })
 
 test('supports calling default strategies from the custom callback function', async () => {
-  const callback = vi.fn<Parameters<UnhandledRequestCallback>>(
-    (request, print) => {
-      // Call the default "error" strategy.
-      print.error()
-    },
-  )
+  const callback = vi.fn<UnhandledRequestCallback>((request, print) => {
+    // Call the default "error" strategy.
+    print.error()
+  })
   const request = new Request(new URL('http://localhost/api'))
   await expect(onUnhandledRequest(request, callback)).rejects.toThrow(
     `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
@@ -170,4 +166,63 @@ test('prints with an absolute URL and search params', async () => {
   expect(console.warn).toHaveBeenCalledWith(
     fixtures.warningWithoutSuggestions(`https://mswjs.io/api?foo=boo`),
   )
+})
+
+test('ignores common static assets when using the "warn" strategy', async () => {
+  await Promise.allSettled([
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/main.css')),
+      'warn',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/index.mjs')),
+      'warn',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/node_modules/abc-123')),
+      'warn',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://fonts.googleapis.com/some-font')),
+      'warn',
+    ),
+  ])
+
+  expect(console.warn).not.toHaveBeenCalled()
+})
+
+test('ignores common static assets when using the "error" strategy', async () => {
+  await Promise.allSettled([
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/main.css')),
+      'error',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/index.mjs')),
+      'error',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://example.com/node_modules/abc-123')),
+      'error',
+    ),
+    onUnhandledRequest(
+      new Request(new URL('https://fonts.googleapis.com/some-font')),
+      'error',
+    ),
+  ])
+
+  expect(console.error).not.toHaveBeenCalled()
+})
+
+test('exposes common static assets to the explicit callback', async () => {
+  let callbackRequest!: Request
+  await onUnhandledRequest(
+    new Request(new URL('https://example.com/main.css')),
+    (request) => {
+      callbackRequest = request
+    },
+  )
+
+  expect(callbackRequest).toBeInstanceOf(Request)
+  expect(callbackRequest.url).toBe('https://example.com/main.css')
 })

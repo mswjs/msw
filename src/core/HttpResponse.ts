@@ -10,20 +10,19 @@ export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
-declare const bodyType: unique symbol
+const bodyType: unique symbol = Symbol('bodyType')
 
-export interface StrictRequest<BodyType extends DefaultBodyType>
-  extends Request {
+export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
   json(): Promise<BodyType>
 }
 
 /**
  * Opaque `Response` type that supports strict body type.
+ *
+ * @deprecated Please use {@link HttpResponse} instead.
  */
-export interface StrictResponse<BodyType extends DefaultBodyType>
-  extends Response {
-  readonly [bodyType]: BodyType
-}
+export type StrictResponse<BodyType extends DefaultBodyType> =
+  HttpResponse<BodyType>
 
 /**
  * A drop-in replacement for the standard `Response` class
@@ -36,10 +35,14 @@ export interface StrictResponse<BodyType extends DefaultBodyType>
  *
  * @see {@link https://mswjs.io/docs/api/http-response `HttpResponse` API reference}
  */
-export class HttpResponse extends FetchResponse {
-  constructor(body?: BodyInit | null, init?: HttpResponseInit) {
+export class HttpResponse<
+  BodyType extends DefaultBodyType,
+> extends FetchResponse {
+  readonly [bodyType]: BodyType = null as any
+
+  constructor(body?: NoInfer<BodyType> | null, init?: HttpResponseInit) {
     const responseInit = normalizeResponseInit(init)
-    super(body, responseInit)
+    super(body as BodyInit, responseInit)
     decorateResponse(this, responseInit)
   }
 
@@ -52,7 +55,7 @@ export class HttpResponse extends FetchResponse {
   static text<BodyType extends string>(
     body?: NoInfer<BodyType> | null,
     init?: HttpResponseInit,
-  ): StrictResponse<BodyType> {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
@@ -69,7 +72,7 @@ export class HttpResponse extends FetchResponse {
       )
     }
 
-    return new HttpResponse(body, responseInit) as StrictResponse<BodyType>
+    return new HttpResponse(body, responseInit)
   }
 
   /**
@@ -79,9 +82,9 @@ export class HttpResponse extends FetchResponse {
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
   static json<BodyType extends JsonBodyType>(
-    body?: NoInfer<BodyType> | null,
+    body?: NoInfer<BodyType> | null | undefined,
     init?: HttpResponseInit,
-  ): StrictResponse<BodyType> {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
@@ -101,10 +104,7 @@ export class HttpResponse extends FetchResponse {
       )
     }
 
-    return new HttpResponse(
-      responseText,
-      responseInit,
-    ) as StrictResponse<BodyType>
+    return new HttpResponse(responseText as BodyType, responseInit)
   }
 
   /**

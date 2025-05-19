@@ -15,7 +15,7 @@ test('returns a mocked response from the used one-time request handler when rest
   page,
   fetch,
 }) => {
-  await loadExample(require.resolve('./use.mocks.ts'))
+  await loadExample(new URL('./use.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { worker, http, HttpResponse } = window.msw

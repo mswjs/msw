@@ -45,7 +45,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(async () => {
@@ -54,7 +54,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('errors on unhandled request when using the "error" value', async () => {
+test('errors on unhandled request when using the "error" strategy', async () => {
   const endpointUrl = httpServer.http.url('/')
   const makeRequest = () => {
     return fetch(endpointUrl)
@@ -68,11 +68,12 @@ test('errors on unhandled request when using the "error" value', async () => {
 
   const requestError = await makeRequest()
 
-  expect(requestError).toEqual(
-    new Error(
+  expect.soft(requestError).toBeInstanceOf(Error)
+  expect
+    .soft(requestError.message)
+    .toBe(
       '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-    ),
-  )
+    )
 
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:
@@ -102,6 +103,12 @@ test('does not error on request which handler implicitly returns no mocked respo
     })
   }
   await makeRequest()
+
+  expect(console.error).not.toHaveBeenCalled()
+})
+
+test('ignores common static assets when using the "error" strategy', async () => {
+  await fetch('https://example.com/styles/main.css')
 
   expect(console.error).not.toHaveBeenCalled()
 })

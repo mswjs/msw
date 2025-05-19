@@ -26,7 +26,7 @@ test('does not connect to the actual server by default', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -62,7 +62,7 @@ test('forwards incoming server events to the client once connected', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -103,7 +103,7 @@ test('throws an error when connecting to a non-existing server', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

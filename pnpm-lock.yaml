@@ -65,10 +65,13 @@ importers:
     devDependencies:
       '@commitlint/cli':
         specifier: ^18.4.4
-        version: 18.6.1(@types/node@18.19.28)(typescript@5.5.2)
+        version: 18.6.1(@types/node@18.19.28)(typescript@5.8.3)
       '@commitlint/config-conventional':
         specifier: ^18.4.4
         version: 18.6.3
+      '@epic-web/test-server':
+        specifier: ^0.1.0
+        version: 0.1.5
       '@fastify/websocket':
         specifier: ^8.3.1
         version: 8.3.1
@@ -79,8 +82,8 @@ importers:
         specifier: ^0.8.1
         version: 0.8.1
       '@playwright/test':
-        specifier: ^1.48.0
-        version: 1.49.0
+        specifier: ^1.50.1
+        version: 1.52.0
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
@@ -92,10 +95,10 @@ importers:
         version: 18.19.28
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.8.1
-        version: 8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.5.2))(eslint@8.57.0)(typescript@5.5.2)
+        version: 8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)
       '@typescript-eslint/parser':
         specifier: ^8.8.1
-        version: 8.16.0(eslint@8.57.0)(typescript@5.5.2)
+        version: 8.16.0(eslint@8.57.0)(typescript@5.8.3)
       '@web/dev-server':
         specifier: ^0.4.6
         version: 0.4.6
@@ -107,7 +110,7 @@ importers:
         version: 0.5.2
       commitizen:
         specifier: ^4.3.1
-        version: 4.3.1(@types/node@18.19.28)(typescript@5.5.2)
+        version: 4.3.1(@types/node@18.19.28)(typescript@5.8.3)
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -116,7 +119,7 @@ importers:
         version: 4.0.0
       cz-conventional-changelog:
         specifier: 3.3.0
-        version: 3.3.0(@types/node@18.19.28)(typescript@5.5.2)
+        version: 3.3.0(@types/node@18.19.28)(typescript@5.8.3)
       esbuild:
         specifier: ^0.25.3
         version: 0.25.3
@@ -152,7 +155,7 @@ importers:
         version: 1.0.0
       knip:
         specifier: ^5.51.1
-        version: 5.51.1(@types/node@18.19.28)(typescript@5.5.2)
+        version: 5.51.1(@types/node@18.19.28)(typescript@5.8.3)
       lint-staged:
         specifier: ^15.2.10
         version: 15.2.10
@@ -179,10 +182,10 @@ importers:
         version: 2.11.1
       tsup:
         specifier: ^8.4.0
-        version: 8.4.0(@swc/core@1.9.3)(jiti@2.4.2)(postcss@8.4.38)(typescript@5.5.2)(yaml@2.5.1)
+        version: 8.4.0(@swc/core@1.9.3)(jiti@2.4.2)(postcss@8.4.38)(typescript@5.8.3)(yaml@2.5.1)
       typescript:
         specifier: ^5.5.2
-        version: 5.5.2
+        version: 5.8.3
       undici:
         specifier: ^6.20.0
         version: 6.21.0
@@ -403,6 +406,10 @@ packages:
   '@commitlint/types@19.0.3':
     resolution: {integrity: sha512-tpyc+7i6bPG9mvaBbtKUeghfyZSDgWquIDfMgqYtTbmZ9Y9VzEm2je9EYcQ0aoz5o7NvGS+rcDec93yO08MHYA==}
     engines: {node: '>=v18'}
+
+  '@epic-web/test-server@0.1.5':
+    resolution: {integrity: sha512-e1zv+jZ32Q7sKzC7EUYEvGkZzm5UwPIs31zHOvKB5dYLmNMdivWBR0vbr5hDVOY2h8VYfrsfUzvsaOYkhx8YPw==}
+    engines: {node: '>=20'}
 
   '@esbuild/aix-ppc64@0.20.2':
     resolution: {integrity: sha512-D+EBOJHXdNZcLJRBkhENNG8Wji2kgc9AZ9KiPr1JuZjsNtyHzrsfLRrY0tk2H2aoFu6RANO1y1iPPUCDYWkb5g==}
@@ -867,6 +874,19 @@ packages:
   '@fastify/websocket@8.3.1':
     resolution: {integrity: sha512-hsQYHHJme/kvP3ZS4v/WMUznPBVeeQHHwAoMy1LiN6m/HuPfbdXq1MBJ4Nt8qX1YI+eVbog4MnOsU7MTozkwYA==}
 
+  '@hono/node-server@1.14.1':
+    resolution: {integrity: sha512-vmbuM+HPinjWzPe7FFPWMMQMsbKE9gDPhaH0FFdqbGpkT5lp++tcWDTxwBl5EgS5y6JVgIaCdjeHRfQ4XRBRjQ==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+
+  '@hono/node-ws@1.1.4':
+    resolution: {integrity: sha512-eS/L5+xIgz5/FJOv1fiSIf5rCBO4rnVqEEqNKGN7CiA52tsdTSETDOQD6BuTDr+r5sbhdp0OuJXvMpEWOsAtXA==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@hono/node-server': ^1.11.1
+      hono: ^4.6.0
+
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
@@ -1032,8 +1052,8 @@ packages:
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@playwright/test@1.49.0':
-    resolution: {integrity: sha512-DMulbwQURa8rNIQrf94+jPJQ4FmOVdpE5ZppRNvWVjvhC+6sOeo28r8MgIpQRYouXRtt/FCCXU7zn20jnHR4Qw==}
+  '@playwright/test@1.52.0':
+    resolution: {integrity: sha512-uh6W7sb55hl7D6vsAeA+V2p5JnlAqzhqFyF0VcJkKZXkgnFcVG9PziERRHQfPLfNGx1C292a4JqbWzhR8L4R1g==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1474,6 +1494,9 @@ packages:
 
   '@types/ws@7.4.7':
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -3043,6 +3066,10 @@ packages:
     resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
     engines: {node: '>=0.10.0'}
 
+  hono@4.7.10:
+    resolution: {integrity: sha512-QkACju9MiN59CKSY5JsGZCYmPZkA6sIW6OFCUp7qDjZu6S6KHtJHhAc9Uy9mV9F8PJ1/HQ3ybZF2yjCa/73fvQ==}
+    engines: {node: '>=16.9.0'}
+
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
 
@@ -4057,8 +4084,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  playwright-core@1.49.0:
-    resolution: {integrity: sha512-R+3KKTQF3npy5GTiKH/T+kdhoJfJojjHESR1YEWhYuEKRVfVaxH3+4+GvXE5xyCngCxhxnykk0Vlah9v8fs3jA==}
+  playwright-core@1.52.0:
+    resolution: {integrity: sha512-l2osTgLXSMeuLZOML9qYODUQoPPnUsKsb5/P6LJ2e6uPKXUdPK5WYhN4z03G+YNbWmGDY4YENauNu4ZKczreHg==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4067,8 +4094,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  playwright@1.49.0:
-    resolution: {integrity: sha512-eKpmys0UFDnfNb3vfsf8Vx2LEOtflgRebl0Im2eQQnYMA4Aqd+Zw8bEOB+7ZKvN76901mRnqdsiOGKxzVTbi7A==}
+  playwright@1.52.0:
+    resolution: {integrity: sha512-JAwMNMBlxJ2oD1kce4KPtMkDeKGHQstdpFPcPH3maElAXon/QZeTvtsfXmTMRyO9TslfoYOXkSsvao2nE1ilTw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4875,8 +4902,8 @@ packages:
     resolution: {integrity: sha512-/OxDN6OtAk5KBpGb28T+HZc2M+ADtvRxXrKKbUwtsLgdoxgX13hyy7ek6bFRl5+aBs2yZzB0c4CnQfAtVypW/g==}
     engines: {node: '>= 0.4'}
 
-  typescript@5.5.2:
-    resolution: {integrity: sha512-NcRtPEOsPFFWjobJEtfihkLCZCXZt/os3zf8nTxjVH3RvTSxjrCamJpbExGvYOF+tFHc3pA65qpdwPbzjohhew==}
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -5188,6 +5215,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.18.2:
+    resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
@@ -5405,11 +5444,11 @@ snapshots:
 
   '@cloudflare/workers-types@4.20250430.0': {}
 
-  '@commitlint/cli@18.6.1(@types/node@18.19.28)(typescript@5.5.2)':
+  '@commitlint/cli@18.6.1(@types/node@18.19.28)(typescript@5.8.3)':
     dependencies:
       '@commitlint/format': 18.6.1
       '@commitlint/lint': 18.6.1
-      '@commitlint/load': 18.6.1(@types/node@18.19.28)(typescript@5.5.2)
+      '@commitlint/load': 18.6.1(@types/node@18.19.28)(typescript@5.8.3)
       '@commitlint/read': 18.6.1
       '@commitlint/types': 18.6.1
       execa: 5.1.1
@@ -5468,15 +5507,15 @@ snapshots:
       '@commitlint/rules': 18.6.1
       '@commitlint/types': 18.6.1
 
-  '@commitlint/load@18.6.1(@types/node@18.19.28)(typescript@5.5.2)':
+  '@commitlint/load@18.6.1(@types/node@18.19.28)(typescript@5.8.3)':
     dependencies:
       '@commitlint/config-validator': 18.6.1
       '@commitlint/execute-rule': 18.6.1
       '@commitlint/resolve-extends': 18.6.1
       '@commitlint/types': 18.6.1
       chalk: 4.1.2
-      cosmiconfig: 8.3.6(typescript@5.5.2)
-      cosmiconfig-typescript-loader: 5.0.0(@types/node@18.19.28)(cosmiconfig@8.3.6(typescript@5.5.2))(typescript@5.5.2)
+      cosmiconfig: 8.3.6(typescript@5.8.3)
+      cosmiconfig-typescript-loader: 5.0.0(@types/node@18.19.28)(cosmiconfig@8.3.6(typescript@5.8.3))(typescript@5.8.3)
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
@@ -5485,15 +5524,15 @@ snapshots:
       - '@types/node'
       - typescript
 
-  '@commitlint/load@19.2.0(@types/node@18.19.28)(typescript@5.5.2)':
+  '@commitlint/load@19.2.0(@types/node@18.19.28)(typescript@5.8.3)':
     dependencies:
       '@commitlint/config-validator': 19.0.3
       '@commitlint/execute-rule': 19.0.0
       '@commitlint/resolve-extends': 19.1.0
       '@commitlint/types': 19.0.3
       chalk: 5.3.0
-      cosmiconfig: 9.0.0(typescript@5.5.2)
-      cosmiconfig-typescript-loader: 5.0.0(@types/node@18.19.28)(cosmiconfig@9.0.0(typescript@5.5.2))(typescript@5.5.2)
+      cosmiconfig: 9.0.0(typescript@5.8.3)
+      cosmiconfig-typescript-loader: 5.0.0(@types/node@18.19.28)(cosmiconfig@9.0.0(typescript@5.8.3))(typescript@5.8.3)
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
@@ -5559,6 +5598,18 @@ snapshots:
       '@types/conventional-commits-parser': 5.0.0
       chalk: 5.3.0
     optional: true
+
+  '@epic-web/test-server@0.1.5':
+    dependencies:
+      '@hono/node-server': 1.14.1(hono@4.7.10)
+      '@hono/node-ws': 1.1.4(@hono/node-server@1.14.1(hono@4.7.10))(hono@4.7.10)
+      '@open-draft/deferred-promise': 2.2.0
+      '@types/ws': 8.18.1
+      hono: 4.7.10
+      ws: 8.18.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@esbuild/aix-ppc64@0.20.2':
     optional: true
@@ -5822,6 +5873,19 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@hono/node-server@1.14.1(hono@4.7.10)':
+    dependencies:
+      hono: 4.7.10
+
+  '@hono/node-ws@1.1.4(@hono/node-server@1.14.1(hono@4.7.10))(hono@4.7.10)':
+    dependencies:
+      '@hono/node-server': 1.14.1(hono@4.7.10)
+      hono: 4.7.10
+      ws: 8.18.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -6081,9 +6145,9 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
-  '@playwright/test@1.49.0':
+  '@playwright/test@1.52.0':
     dependencies:
-      playwright: 1.49.0
+      playwright: 1.52.0
 
   '@publint/pack@0.1.2': {}
 
@@ -6442,40 +6506,44 @@ snapshots:
     dependencies:
       '@types/node': 18.19.28
 
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 18.19.28
+
   '@types/yargs-parser@21.0.3': {}
 
   '@types/yargs@17.0.32':
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.5.2))(eslint@8.57.0)(typescript@5.5.2)':
+  '@typescript-eslint/eslint-plugin@8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)':
     dependencies:
       '@eslint-community/regexpp': 4.11.0
-      '@typescript-eslint/parser': 8.16.0(eslint@8.57.0)(typescript@5.5.2)
+      '@typescript-eslint/parser': 8.16.0(eslint@8.57.0)(typescript@5.8.3)
       '@typescript-eslint/scope-manager': 8.16.0
-      '@typescript-eslint/type-utils': 8.16.0(eslint@8.57.0)(typescript@5.5.2)
-      '@typescript-eslint/utils': 8.16.0(eslint@8.57.0)(typescript@5.5.2)
+      '@typescript-eslint/type-utils': 8.16.0(eslint@8.57.0)(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.16.0(eslint@8.57.0)(typescript@5.8.3)
       '@typescript-eslint/visitor-keys': 8.16.0
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.1
       natural-compare: 1.4.0
-      ts-api-utils: 1.3.0(typescript@5.5.2)
+      ts-api-utils: 1.3.0(typescript@5.8.3)
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.5.2)':
+  '@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.8.3)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.16.0
       '@typescript-eslint/types': 8.16.0
-      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.5.2)
+      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.8.3)
       '@typescript-eslint/visitor-keys': 8.16.0
       debug: 4.3.7
       eslint: 8.57.0
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
@@ -6484,21 +6552,21 @@ snapshots:
       '@typescript-eslint/types': 8.16.0
       '@typescript-eslint/visitor-keys': 8.16.0
 
-  '@typescript-eslint/type-utils@8.16.0(eslint@8.57.0)(typescript@5.5.2)':
+  '@typescript-eslint/type-utils@8.16.0(eslint@8.57.0)(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.5.2)
-      '@typescript-eslint/utils': 8.16.0(eslint@8.57.0)(typescript@5.5.2)
+      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.16.0(eslint@8.57.0)(typescript@5.8.3)
       debug: 4.3.7
       eslint: 8.57.0
-      ts-api-utils: 1.3.0(typescript@5.5.2)
+      ts-api-utils: 1.3.0(typescript@5.8.3)
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
   '@typescript-eslint/types@8.16.0': {}
 
-  '@typescript-eslint/typescript-estree@8.16.0(typescript@5.5.2)':
+  '@typescript-eslint/typescript-estree@8.16.0(typescript@5.8.3)':
     dependencies:
       '@typescript-eslint/types': 8.16.0
       '@typescript-eslint/visitor-keys': 8.16.0
@@ -6507,21 +6575,21 @@ snapshots:
       is-glob: 4.0.3
       minimatch: 9.0.4
       semver: 7.6.0
-      ts-api-utils: 1.3.0(typescript@5.5.2)
+      ts-api-utils: 1.3.0(typescript@5.8.3)
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.16.0(eslint@8.57.0)(typescript@5.5.2)':
+  '@typescript-eslint/utils@8.16.0(eslint@8.57.0)(typescript@5.8.3)':
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.0)
       '@typescript-eslint/scope-manager': 8.16.0
       '@typescript-eslint/types': 8.16.0
-      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.5.2)
+      '@typescript-eslint/typescript-estree': 8.16.0(typescript@5.8.3)
       eslint: 8.57.0
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
@@ -7247,10 +7315,10 @@ snapshots:
 
   commander@4.1.1: {}
 
-  commitizen@4.3.1(@types/node@18.19.28)(typescript@5.5.2):
+  commitizen@4.3.1(@types/node@18.19.28)(typescript@5.8.3):
     dependencies:
       cachedir: 2.3.0
-      cz-conventional-changelog: 3.3.0(@types/node@18.19.28)(typescript@5.5.2)
+      cz-conventional-changelog: 3.3.0(@types/node@18.19.28)(typescript@5.8.3)
       dedent: 0.7.0
       detect-indent: 6.1.0
       find-node-modules: 2.1.3
@@ -7329,38 +7397,38 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  cosmiconfig-typescript-loader@5.0.0(@types/node@18.19.28)(cosmiconfig@8.3.6(typescript@5.5.2))(typescript@5.5.2):
+  cosmiconfig-typescript-loader@5.0.0(@types/node@18.19.28)(cosmiconfig@8.3.6(typescript@5.8.3))(typescript@5.8.3):
     dependencies:
       '@types/node': 18.19.28
-      cosmiconfig: 8.3.6(typescript@5.5.2)
+      cosmiconfig: 8.3.6(typescript@5.8.3)
       jiti: 1.21.0
-      typescript: 5.5.2
+      typescript: 5.8.3
 
-  cosmiconfig-typescript-loader@5.0.0(@types/node@18.19.28)(cosmiconfig@9.0.0(typescript@5.5.2))(typescript@5.5.2):
+  cosmiconfig-typescript-loader@5.0.0(@types/node@18.19.28)(cosmiconfig@9.0.0(typescript@5.8.3))(typescript@5.8.3):
     dependencies:
       '@types/node': 18.19.28
-      cosmiconfig: 9.0.0(typescript@5.5.2)
+      cosmiconfig: 9.0.0(typescript@5.8.3)
       jiti: 1.21.0
-      typescript: 5.5.2
+      typescript: 5.8.3
     optional: true
 
-  cosmiconfig@8.3.6(typescript@5.5.2):
+  cosmiconfig@8.3.6(typescript@5.8.3):
     dependencies:
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
 
-  cosmiconfig@9.0.0(typescript@5.5.2):
+  cosmiconfig@9.0.0(typescript@5.8.3):
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       parse-json: 5.2.0
     optionalDependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
     optional: true
 
   cross-env@7.0.3:
@@ -7383,16 +7451,16 @@ snapshots:
     dependencies:
       rrweb-cssom: 0.7.1
 
-  cz-conventional-changelog@3.3.0(@types/node@18.19.28)(typescript@5.5.2):
+  cz-conventional-changelog@3.3.0(@types/node@18.19.28)(typescript@5.8.3):
     dependencies:
       chalk: 2.4.2
-      commitizen: 4.3.1(@types/node@18.19.28)(typescript@5.5.2)
+      commitizen: 4.3.1(@types/node@18.19.28)(typescript@5.8.3)
       conventional-commit-types: 3.0.0
       lodash.map: 4.6.0
       longest: 2.0.1
       word-wrap: 1.2.5
     optionalDependencies:
-      '@commitlint/load': 19.2.0(@types/node@18.19.28)(typescript@5.5.2)
+      '@commitlint/load': 19.2.0(@types/node@18.19.28)(typescript@5.8.3)
     transitivePeerDependencies:
       - '@types/node'
       - typescript
@@ -8378,6 +8446,8 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
+  hono@4.7.10: {}
+
   hosted-git-info@2.8.9: {}
 
   hosted-git-info@4.1.0:
@@ -8758,7 +8828,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  knip@5.51.1(@types/node@18.19.28)(typescript@5.5.2):
+  knip@5.51.1(@types/node@18.19.28)(typescript@5.8.3):
     dependencies:
       '@nodelib/fs.walk': 1.2.8
       '@types/node': 18.19.28
@@ -8773,7 +8843,7 @@ snapshots:
       pretty-ms: 9.2.0
       smol-toml: 1.3.4
       strip-json-comments: 5.0.1
-      typescript: 5.5.2
+      typescript: 5.8.3
       zod: 3.24.3
       zod-validation-error: 3.4.0(zod@3.24.3)
 
@@ -9394,7 +9464,7 @@ snapshots:
 
   playwright-core@1.42.1: {}
 
-  playwright-core@1.49.0: {}
+  playwright-core@1.52.0: {}
 
   playwright@1.42.1:
     dependencies:
@@ -9402,9 +9472,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  playwright@1.49.0:
+  playwright@1.52.0:
     dependencies:
-      playwright-core: 1.49.0
+      playwright-core: 1.52.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -10193,9 +10263,9 @@ snapshots:
 
   trim-newlines@3.0.1: {}
 
-  ts-api-utils@1.3.0(typescript@5.5.2):
+  ts-api-utils@1.3.0(typescript@5.8.3):
     dependencies:
-      typescript: 5.5.2
+      typescript: 5.8.3
 
   ts-interface-checker@0.1.13: {}
 
@@ -10203,7 +10273,7 @@ snapshots:
 
   tsscmp@1.0.6: {}
 
-  tsup@8.4.0(@swc/core@1.9.3)(jiti@2.4.2)(postcss@8.4.38)(typescript@5.5.2)(yaml@2.5.1):
+  tsup@8.4.0(@swc/core@1.9.3)(jiti@2.4.2)(postcss@8.4.38)(typescript@5.8.3)(yaml@2.5.1):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.25.3)
       cac: 6.7.14
@@ -10224,7 +10294,7 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.9.3
       postcss: 8.4.38
-      typescript: 5.5.2
+      typescript: 5.8.3
     transitivePeerDependencies:
       - jiti
       - supports-color
@@ -10290,7 +10360,7 @@ snapshots:
       is-typed-array: 1.1.13
       possible-typed-array-names: 1.0.0
 
-  typescript@5.5.2: {}
+  typescript@5.8.3: {}
 
   typical@4.0.0: {}
 
@@ -10616,6 +10686,8 @@ snapshots:
   ws@8.11.0: {}
 
   ws@8.18.0: {}
+
+  ws@8.18.2: {}
 
   xml-name-validator@5.0.0: {}
 

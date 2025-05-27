@@ -95,7 +95,7 @@ self.addEventListener('message', async function (event) {
 })
 
 self.addEventListener('fetch', function (event) {
-  const { request } = event
+  const { clientId, request } = event
 
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
@@ -112,6 +112,11 @@ self.addEventListener('fetch', function (event) {
   // Prevents the self-unregistered worked from handling requests
   // after it's been deleted (still remains active until the next reload).
   if (activeClientIds.size === 0) {
+    return
+  }
+
+  // Prevent request handling if the issuing client is not registered.
+  if (!activeClientIds.has(clientId)) {
     return
   }
 

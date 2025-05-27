@@ -116,7 +116,7 @@ export class HttpResponse<
   static xml<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
-  ): Response {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
@@ -135,7 +135,7 @@ export class HttpResponse<
   static html<BodyType extends string>(
     body?: BodyType | null,
     init?: HttpResponseInit,
-  ): Response {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
@@ -157,7 +157,7 @@ export class HttpResponse<
   static arrayBuffer(
     body?: ArrayBuffer | SharedArrayBuffer,
     init?: HttpResponseInit,
-  ): Response {
+  ): HttpResponse<ArrayBuffer | SharedArrayBuffer> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {
@@ -168,7 +168,7 @@ export class HttpResponse<
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return new HttpResponse(body as ArrayBuffer, responseInit)
+    return new HttpResponse(body, responseInit)
   }
 
   /**
@@ -179,7 +179,10 @@ export class HttpResponse<
    *
    * HttpResponse.formData(data)
    */
-  static formData(body?: FormData, init?: HttpResponseInit): Response {
+  static formData(
+    body?: FormData,
+    init?: HttpResponseInit,
+  ): HttpResponse<FormData> {
     return new HttpResponse(body, normalizeResponseInit(init))
   }
 }

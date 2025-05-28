@@ -37,6 +37,40 @@ export function getRequestCookies(request: Request): Record<string, string> {
   }
 }
 
+/**
+ * Returns all accepted mime types, ordered by priority
+ * So
+ * `"application/graphql-response+json, application/json;q=0.9"`
+ * would become
+ * ["application/graphql-response+json", "application/json"]
+ * and
+ * `"application/graphql-response+json, application/json;q=1.1"`
+ * would become
+ * ["application/json", "application/graphql-response+json"]
+ *
+ * Currently only takes into account quality weight, not other priority
+ * heuristics as described in [RFC7231 Sec 5.3.2](https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.2)
+ */
+export function getAllAcceptedMimeTypes(
+  request: Request,
+  fallback: string,
+): string[] {
+  const accepted: Array<{ type: string; weight: number }> = []
+  for (const part of (request.headers.get('accept') || '').split(',')) {
+    const [type, ...params] = part.split(';').map((v) => v.trim())
+    const entry: (typeof accepted)[number] = { type, weight: 1 }
+    for (const param of params) {
+      const [key, value] = param.split('=').map((v) => v.trim())
+      if (key === 'weight') {
+        entry.weight = Number(value)
+      }
+    }
+    accepted.push(entry)
+  }
+  if (!accepted.length) return [fallback]
+  return accepted.sort((a, b) => a.weight - b.weight).map((entry) => entry.type)
+}
+
 export function getAllRequestCookies(request: Request): Record<string, string> {
   const requestCookiesString = request.headers.get('cookie')
   const cookiesFromHeaders = requestCookiesString

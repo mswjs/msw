@@ -1,7 +1,8 @@
 {
   "type": "module",
-  "main": "../lib/browser/index.mjs",
-  "types": "../lib/browser/index.d.mts",
+  "main": "../lib/browser/index.js",
+  "module": "../lib/browser/index.mjs",
+  "types": "../lib/browser/index.d.ts",
   "exports": {
     ".": {
       "module-sync": {

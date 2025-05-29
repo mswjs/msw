@@ -206,11 +206,13 @@ export class SetupWorkerApi
     return await this.startHandler(this.context.startOptions, options)
   }
 
-  public stop(): void {
+  public async stop(): Promise<void> {
+    await this.stopHandler()
+
     super.dispose()
+
     this.context.events.removeAllListeners()
     this.context.emitter.removeAllListeners()
-    this.stopHandler()
   }
 }
 

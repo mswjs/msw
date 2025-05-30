@@ -125,29 +125,38 @@ addEventListener('fetch', function (event) {
  */
 async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
+  const requestCloneForEvents = event.request.clone()
   const response = await getResponse(event, client, requestId)
 
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
   if (client && activeClientIds.has(client.id)) {
+    const serializedRequest = await serializeRequest(requestCloneForEvents)
+
+    // Clone the response so both the client and the library could consume it.
     const responseClone = response.clone()
 
-    await sendToClient(
+    sendToClient(
       client,
       {
         type: 'RESPONSE',
         payload: {
-          requestId,
           isMockedResponse: IS_MOCKED_RESPONSE in response,
-          type: responseClone.type,
-          status: responseClone.status,
-          statusText: responseClone.statusText,
-          body: responseClone.body,
-          headers: Object.fromEntries(responseClone.headers.entries()),
+          request: {
+            id: requestId,
+            ...serializedRequest,
+          },
+          response: {
+            type: responseClone.type,
+            status: responseClone.status,
+            statusText: responseClone.statusText,
+            headers: Object.fromEntries(responseClone.headers.entries()),
+            body: responseClone.body,
+          },
         },
       },
-      responseClone.body ? [responseClone.body] : [],
+      responseClone.body ? [serializedRequest.body, responseClone.body] : [],
     )
   }
 
@@ -239,29 +248,17 @@ async function getResponse(event, client, requestId) {
   }
 
   // Notify the client that a request has been intercepted.
-  const requestBuffer = await event.request.arrayBuffer()
+  const serializedRequest = await serializeRequest(event.request)
   const clientMessage = await sendToClient(
     client,
     {
       type: 'REQUEST',
       payload: {
         id: requestId,
-        url: event.request.url,
-        mode: event.request.mode,
-        method: event.request.method,
-        headers: Object.fromEntries(event.request.headers.entries()),
-        cache: event.request.cache,
-        credentials: event.request.credentials,
-        destination: event.request.destination,
-        integrity: event.request.integrity,
-        redirect: event.request.redirect,
-        referrer: event.request.referrer,
-        referrerPolicy: event.request.referrerPolicy,
-        body: requestBuffer,
-        keepalive: event.request.keepalive,
+        ...serializedRequest,
       },
     },
-    [requestBuffer],
+    [serializedRequest.body],
   )
 
   switch (clientMessage.type) {
@@ -323,4 +320,25 @@ function respondWithMock(response) {
   })
 
   return mockedResponse
+}
+
+/**
+ * @param {Request} request
+ */
+async function serializeRequest(request) {
+  return {
+    url: request.url,
+    mode: request.mode,
+    method: request.method,
+    headers: Object.fromEntries(request.headers.entries()),
+    cache: request.cache,
+    credentials: request.credentials,
+    destination: request.destination,
+    integrity: request.integrity,
+    redirect: request.redirect,
+    referrer: request.referrer,
+    referrerPolicy: request.referrerPolicy,
+    body: await request.arrayBuffer(),
+    keepalive: request.keepalive,
+  }
 }

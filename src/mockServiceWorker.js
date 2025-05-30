@@ -94,10 +94,7 @@ addEventListener('message', async function (event) {
 })
 
 addEventListener('fetch', function (event) {
-  const { clientId, request } = event
-
-  event
-  // ^?
+  const { request } = event
 
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
@@ -117,12 +114,6 @@ addEventListener('fetch', function (event) {
     return
   }
 
-  // Prevent request handling if the issuing client is not registered.
-  if (!activeClientIds.has(clientId)) {
-    return
-  }
-
-  // Generate unique request ID.
   const requestId = crypto.randomUUID()
   event.respondWith(handleRequest(event, requestId))
 })

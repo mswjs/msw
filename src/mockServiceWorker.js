@@ -5,7 +5,6 @@
  * Mock Service Worker.
  * @see https://github.com/mswjs/msw
  * - Please do NOT modify this file.
- * - Please do NOT serve this file on production.
  */
 
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
@@ -13,16 +12,16 @@ const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
 
-self.addEventListener('install', function () {
+addEventListener('install', function () {
   self.skipWaiting()
 })
 
-self.addEventListener('activate', function (event) {
+addEventListener('activate', function (event) {
   event.waitUntil(self.clients.claim())
 })
 
-self.addEventListener('message', async function (event) {
-  const clientId = event.source.id
+addEventListener('message', async function (event) {
+  const clientId = Reflect.get(event.source || {}, 'id')
 
   if (!clientId || !self.clients) {
     return
@@ -94,8 +93,11 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-self.addEventListener('fetch', function (event) {
+addEventListener('fetch', function (event) {
   const { clientId, request } = event
+
+  event
+  // ^?
 
   // Bypass navigation requests.
   if (request.mode === 'navigate') {
@@ -125,6 +127,10 @@ self.addEventListener('fetch', function (event) {
   event.respondWith(handleRequest(event, requestId))
 })
 
+/**
+ * @param {FetchEvent} event
+ * @param {string} requestId
+ */
 async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
   const response = await getResponse(event, client, requestId)
@@ -150,7 +156,7 @@ async function handleRequest(event, requestId) {
             headers: Object.fromEntries(responseClone.headers.entries()),
           },
         },
-        [responseClone.body],
+        responseClone.body ? [responseClone.body] : [],
       )
     })()
   }
@@ -158,10 +164,14 @@ async function handleRequest(event, requestId) {
   return response
 }
 
-// Resolve the main client for the given event.
-// Client that issues a request doesn't necessarily equal the client
-// that registered the worker. It's with the latter the worker should
-// communicate with during the response resolving phase.
+/**
+ * Resolve the main client for the given event.
+ * Client that issues a request doesn't necessarily equal the client
+ * that registered the worker. It's with the latter the worker should
+ * communicate with during the response resolving phase.
+ * @param {FetchEvent} event
+ * @returns {Promise<Client | undefined>}
+ */
 async function resolveMainClient(event) {
   const client = await self.clients.get(event.clientId)
 
@@ -189,6 +199,12 @@ async function resolveMainClient(event) {
     })
 }
 
+/**
+ * @param {FetchEvent} event
+ * @param {Client | undefined} client
+ * @param {string} requestId
+ * @returns {Promise<Response>}
+ */
 async function getResponse(event, client, requestId) {
   const { request } = event
 
@@ -273,6 +289,12 @@ async function getResponse(event, client, requestId) {
   return passthrough()
 }
 
+/**
+ * @param {Client} client
+ * @param {any} message
+ * @param {Array<Transferable>} transferrables
+ * @returns {Promise<any>}
+ */
 function sendToClient(client, message, transferrables = []) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
@@ -285,14 +307,18 @@ function sendToClient(client, message, transferrables = []) {
       resolve(event.data)
     }
 
-    client.postMessage(
-      message,
-      [channel.port2].concat(transferrables.filter(Boolean)),
-    )
+    client.postMessage(message, [
+      channel.port2,
+      ...transferrables.filter(Boolean),
+    ])
   })
 }
 
-async function respondWithMock(response) {
+/**
+ * @param {Response} response
+ * @returns {Response}
+ */
+function respondWithMock(response) {
   // Setting response status code to 0 is a no-op.
   // However, when responding with a "Response.error()", the produced Response
   // instance will have status code set to 0. Since it's not possible to create

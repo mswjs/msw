@@ -94,16 +94,17 @@ addEventListener('message', async function (event) {
 })
 
 addEventListener('fetch', function (event) {
-  const { request } = event
-
   // Bypass navigation requests.
-  if (request.mode === 'navigate') {
+  if (event.request.mode === 'navigate') {
     return
   }
 
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
-  if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+  if (
+    event.request.cache === 'only-if-cached' &&
+    event.request.mode !== 'same-origin'
+  ) {
     return
   }
 
@@ -197,11 +198,9 @@ async function resolveMainClient(event) {
  * @returns {Promise<Response>}
  */
 async function getResponse(event, client, requestId) {
-  const { request } = event
-
   // Clone the request because it might've been already used
   // (i.e. its body has been read and sent to the client).
-  const requestClone = request.clone()
+  const requestClone = event.request.clone()
 
   function passthrough() {
     // Cast the request headers to a new Headers instance
@@ -242,26 +241,26 @@ async function getResponse(event, client, requestId) {
   }
 
   // Notify the client that a request has been intercepted.
-  const requestBuffer = await request.arrayBuffer()
+  const requestBuffer = await event.request.arrayBuffer()
   const clientMessage = await sendToClient(
     client,
     {
       type: 'REQUEST',
       payload: {
         id: requestId,
-        url: request.url,
-        mode: request.mode,
-        method: request.method,
-        headers: Object.fromEntries(request.headers.entries()),
-        cache: request.cache,
-        credentials: request.credentials,
-        destination: request.destination,
-        integrity: request.integrity,
-        redirect: request.redirect,
-        referrer: request.referrer,
-        referrerPolicy: request.referrerPolicy,
+        url: event.request.url,
+        mode: event.request.mode,
+        method: event.request.method,
+        headers: Object.fromEntries(event.request.headers.entries()),
+        cache: event.request.cache,
+        credentials: event.request.credentials,
+        destination: event.request.destination,
+        integrity: event.request.integrity,
+        redirect: event.request.redirect,
+        referrer: event.request.referrer,
+        referrerPolicy: event.request.referrerPolicy,
         body: requestBuffer,
-        keepalive: request.keepalive,
+        keepalive: event.request.keepalive,
       },
     },
     [requestBuffer],

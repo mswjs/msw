@@ -11,7 +11,7 @@ const fixtures = {
   • GET ${url}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
   warningWithResponseBody: (url = `/api`) => `\
 [MSW] Warning: intercepted a request without a matching request handler:
 
@@ -20,7 +20,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`,
   • Request body: {\"variables\":{\"id\":\"abc-123\"},\"query\":\"query UserName($id: String!) { user(id: $id) { name } }\"}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
 
   errorWithoutSuggestions: `\
 [MSW] Error: intercepted a request without a matching request handler:
@@ -28,7 +28,7 @@ Read more: https://mswjs.io/docs/getting-started/mocks`,
   • GET /api
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
 }
 
 beforeEach(() => {

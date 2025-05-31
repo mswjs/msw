@@ -20,7 +20,7 @@ test('warns on an unhandled REST API request with an absolute URL', async ({
   • GET https://mswjs.io/non-existing-page
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })
@@ -45,7 +45,7 @@ test('warns on an unhandled REST API request with a relative URL', async ({
   • GET /user-details
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })

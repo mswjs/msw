@@ -61,6 +61,7 @@ export interface ServiceWorkerIncomingEventsMap {
   KEEPALIVE_RESPONSE: never
   REQUEST: ServiceWorkerIncomingRequest
   RESPONSE: ServiceWorkerIncomingResponse
+  MOCK_DEACTIVATE_RESPONSE: never
 }
 
 /**
@@ -188,7 +189,7 @@ export type StartHandler = (
   options: RequiredDeep<StartOptions>,
   initialOptions: StartOptions,
 ) => StartReturnType
-export type StopHandler = () => void
+export type StopHandler = () => Promise<void>
 
 export interface SetupWorker {
   /**

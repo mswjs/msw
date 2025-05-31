@@ -57,8 +57,8 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     }),
   )
 
-  // Once reset with explicit next requets handlers,
-  // replaces all present requets handlers with those.
+  // Once reset with explicit next request handlers,
+  // replaces all present request handlers with those.
   server.resetHandlers(
     http.get('https://test.mswjs.io/products', () => {
       return HttpResponse.json([1, 2, 3])

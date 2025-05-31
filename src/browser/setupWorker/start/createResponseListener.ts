@@ -4,6 +4,7 @@ import type {
   SetupWorkerInternalContext,
 } from '../glossary'
 import type { ServiceWorkerMessage } from './utils/createMessageChannel'
+import { deserializeRequest } from '../../utils/deserializeRequest'
 
 export function createResponseListener(context: SetupWorkerInternalContext) {
   return (
@@ -14,12 +15,7 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     >,
   ) => {
     const { payload: responseJson } = message
-
-    // Get the Request instance reference stored in the
-    // request listener.
-    const { requestId } = responseJson
-    const request = context.requests.get(requestId)!
-    context.requests.delete(requestId)
+    const request = deserializeRequest(responseJson.request)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -28,12 +24,12 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
      * @see https://fetch.spec.whatwg.org/#concept-filtered-response-opaque
      * @see https://github.com/mswjs/msw/issues/529
      */
-    if (responseJson.type?.includes('opaque')) {
+    if (responseJson.response.type?.includes('opaque')) {
       return
     }
 
     const response =
-      responseJson.status === 0
+      responseJson.response.status === 0
         ? Response.error()
         : new FetchResponse(
             /**
@@ -42,8 +38,8 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
              * throw when passed a non-null body, so ensure it's null here
              * for those codes
              */
-            FetchResponse.isResponseWithBody(responseJson.status)
-              ? responseJson.body
+            FetchResponse.isResponseWithBody(responseJson.response.status)
+              ? responseJson.response.body
               : null,
             {
               ...responseJson,
@@ -59,9 +55,9 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
     context.emitter.emit(
       responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
       {
-        response,
+        requestId: responseJson.request.id,
         request,
-        requestId: responseJson.requestId,
+        response,
       },
     )
   }

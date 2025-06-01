@@ -1,5 +1,4 @@
 import { setupWorker, sse } from 'msw/browser'
-import { HttpServer } from '@open-draft/test-server/http'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
@@ -8,26 +7,6 @@ declare namespace window {
     sse: typeof sse
   }
 }
-
-const httpServer = new HttpServer((app) => {
-  app.get('/stream', (req, res) => {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    })
-
-    res.write('data: {"message": "hello"}\n\n')
-  })
-})
-
-test.beforeAll(async () => {
-  await httpServer.listen()
-})
-
-test.afterAll(async () => {
-  await httpServer.close()
-})
 
 test('sends a mock message event', async ({ loadExample, page }) => {
   await loadExample(require.resolve('./sse.mocks.ts'), {
@@ -167,35 +146,3 @@ test('errors the connected source', async ({ loadExample, page, waitFor }) => {
     expect(pageErrors).toContain('Failed to fetch')
   })
 })
-
-test.fixme(
-  'forwards original server message events to the client',
-  async ({ loadExample, page }) => {
-    await loadExample(require.resolve('./sse.mocks.ts'), {
-      skipActivation: true,
-    })
-    const url = httpServer.http.url('/stream')
-
-    await page.evaluate(async (url) => {
-      const { setupWorker, sse } = window.msw
-
-      const worker = setupWorker(
-        sse(url, async ({ server }) => {
-          const source = server.connect()
-
-          source.addEventListener('message', (event) => {
-            console.log(event)
-          })
-        }),
-      )
-      await worker.start()
-    }, url)
-
-    await page.evaluate((url) => {
-      const source = new EventSource(url)
-      source.addEventListener('message', (event) => {
-        console.warn('client received:', event)
-      })
-    }, url)
-  },
-)

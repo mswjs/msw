@@ -125,8 +125,8 @@ it('supports sending custom retry duration', () => {
     })
     client.send({
       retry: 1000,
-      event: 'custom',
       // @ts-expect-error No properties are allowed.
+      event: 'custom',
       data: 'goodbye',
     })
   })

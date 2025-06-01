@@ -131,13 +131,17 @@ class ServerSentEventClient<
           id?: string
           event?: 'message'
           data?: EventMap['message']
+          retry?: never
         }
       | {
           id?: string
           event?: EventType
           data?: EventMap[EventType]
+          retry?: never
         }
-      | { retry: number },
+      | {
+          retry: number
+        },
   ): void {
     /**
      * @note Retry is not a part of the SSE message block.
@@ -148,17 +152,13 @@ class ServerSentEventClient<
     }
 
     this.#sendMessage({
-      // @ts-expect-error
       id: payload.id,
       // @ts-expect-error
       event: payload.event,
       data:
-        // @ts-expect-error
         typeof payload.data === 'object'
-          ? // @ts-expect-error
-            JSON.stringify(payload.data)
-          : // @ts-expect-error
-            payload.data,
+          ? JSON.stringify(payload.data)
+          : payload.data,
     })
   }
 

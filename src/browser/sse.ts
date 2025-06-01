@@ -153,7 +153,6 @@ class ServerSentEventClient<
 
     this.#sendMessage({
       id: payload.id,
-      // @ts-expect-error
       event: payload.event,
       data:
         typeof payload.data === 'object'
@@ -207,7 +206,7 @@ class ServerSentEventClient<
     }
   }
 
-  #sendMessage<EventType extends keyof EventMap & string>(payload: {
+  #sendMessage<EventType extends keyof EventMap>(payload: {
     id?: string
     event?: EventType
     data: string | EventMap[EventType] | EventMap['message'] | undefined
@@ -219,7 +218,7 @@ class ServerSentEventClient<
     }
 
     if (payload.event) {
-      frames.push(`event:${payload.event}`)
+      frames.push(`event:${payload.event?.toString()}`)
     }
 
     frames.push(`data:${payload.data}`)

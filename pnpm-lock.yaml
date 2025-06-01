@@ -70,8 +70,8 @@ importers:
         specifier: ^18.4.4
         version: 18.6.3
       '@epic-web/test-server':
-        specifier: ^0.1.0
-        version: 0.1.5
+        specifier: ^0.1.6
+        version: 0.1.6
       '@fastify/websocket':
         specifier: ^8.3.1
         version: 8.3.1
@@ -407,8 +407,8 @@ packages:
     resolution: {integrity: sha512-tpyc+7i6bPG9mvaBbtKUeghfyZSDgWquIDfMgqYtTbmZ9Y9VzEm2je9EYcQ0aoz5o7NvGS+rcDec93yO08MHYA==}
     engines: {node: '>=v18'}
 
-  '@epic-web/test-server@0.1.5':
-    resolution: {integrity: sha512-e1zv+jZ32Q7sKzC7EUYEvGkZzm5UwPIs31zHOvKB5dYLmNMdivWBR0vbr5hDVOY2h8VYfrsfUzvsaOYkhx8YPw==}
+  '@epic-web/test-server@0.1.6':
+    resolution: {integrity: sha512-n6+dZKI2I3J8f3vjIFAYh5trgAJl0crji76+K1aoiRJqEYjdsCX/nVgBrkBCwPpBqhv9NZ1XlMqzfOafkqY5EQ==}
     engines: {node: '>=20'}
 
   '@esbuild/aix-ppc64@0.20.2':
@@ -5599,7 +5599,7 @@ snapshots:
       chalk: 5.3.0
     optional: true
 
-  '@epic-web/test-server@0.1.5':
+  '@epic-web/test-server@0.1.6':
     dependencies:
       '@hono/node-server': 1.14.1(hono@4.7.10)
       '@hono/node-ws': 1.1.4(@hono/node-server@1.14.1(hono@4.7.10))(hono@4.7.10)
@@ -6064,7 +6064,7 @@ snapshots:
       '@miniflare/core': 2.14.4
       '@miniflare/shared': 2.14.4
       undici: 5.28.4
-      ws: 8.18.0
+      ws: 8.18.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate

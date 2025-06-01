@@ -96,35 +96,6 @@ class ServerSentEventHandler<
   }
 }
 
-type ServerSentEventMessagePayload<EventMap extends Record<string, unknown>> = {
-  id?: string
-  event?: never
-  data?: EventMap['message']
-}
-
-type ServerSentEventStrictMessagePayload<
-  EventMap extends Record<string, unknown>,
-  EventType extends keyof EventMap,
-> = {
-  id?: string
-  event: EventType
-  data: EventMap[EventType]
-}
-
-type ServerSentEventRetryPayload = {
-  /**
-   * The reconnection time. If the connection to the server is lost, the browser
-   * will wait for the specified time before attempting to reconnect. This must be
-   * an integer, specifying the reconnection time in milliseconds. If a non-integer
-   * value is specified, the field is ignored.
-   */
-  retry: number
-
-  event?: never
-  id?: never
-  data?: never
-}
-
 class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   private encoder: TextEncoder
   private controller: ReadableStreamDefaultController
@@ -137,11 +108,16 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   /**
    * Sends the given payload to the intercepted `EventSource`.
    */
-  public send<EventType extends keyof EventMap & string>(
+  public send<EventType extends string | undefined>(
     payload:
-      | ServerSentEventMessagePayload<EventMap>
-      | ServerSentEventStrictMessagePayload<EventMap, EventType>
-      | ServerSentEventRetryPayload,
+      | {
+          id?: string
+          event?: EventType extends keyof EventMap ? EventType : 'message'
+          data: EventType extends keyof EventMap
+            ? EventMap[EventType]
+            : EventMap['message']
+        }
+      | { retry: number },
   ): void {
     /**
      * @note Retry is not a part of the SSE message block.
@@ -154,6 +130,7 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
     this.#sendMessage({
       id: payload.id,
       event: payload.event,
+      // @ts-expect-error
       data:
         typeof payload.data === 'object'
           ? JSON.stringify(payload.data)

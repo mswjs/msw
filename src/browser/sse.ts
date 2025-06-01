@@ -9,7 +9,10 @@ import type { Path, PathParams } from '~/core/utils/matching/matchRequestUrl'
 import { delay } from '~/core/delay'
 
 export type ServerSentEventResolverExtras<
-  EventMap extends Record<string, unknown>,
+  EventMap extends {
+    message?: unknown
+    [key: string]: unknown
+  },
   Params extends PathParams,
 > = HttpRequestResolverExtras<Params> & {
   client: ServerSentEventClient<EventMap>
@@ -17,12 +20,18 @@ export type ServerSentEventResolverExtras<
 }
 
 export type ServerSentEventResolver<
-  EventMap extends Record<string, unknown>,
+  EventMap extends {
+    message?: unknown
+    [key: string]: unknown
+  },
   Params extends PathParams,
 > = ResponseResolver<ServerSentEventResolverExtras<EventMap, Params>, any, any>
 
 export type ServerSentEventRequestHandler = <
-  EventMap extends Record<string, unknown>,
+  EventMap extends {
+    message?: unknown
+    [key: string]: unknown
+  },
   Params extends PathParams<keyof Params> = PathParams,
   RequestPath extends Path = Path,
 >(
@@ -45,7 +54,10 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
 }
 
 class ServerSentEventHandler<
-  EventMap extends Record<string, unknown>,
+  EventMap extends {
+    message?: unknown
+    [key: string]: unknown
+  },
 > extends HttpHandler {
   constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
@@ -96,7 +108,12 @@ class ServerSentEventHandler<
   }
 }
 
-class ServerSentEventClient<EventMap extends Record<string, unknown>> {
+class ServerSentEventClient<
+  EventMap extends {
+    message?: unknown
+    [key: string]: unknown
+  },
+> {
   private encoder: TextEncoder
   private controller: ReadableStreamDefaultController
 
@@ -108,14 +125,12 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   /**
    * Sends the given payload to the intercepted `EventSource`.
    */
-  public send<EventType extends string | undefined>(
+  public send<EventType extends keyof EventMap = 'message'>(
     payload:
       | {
           id?: string
-          event?: EventType extends keyof EventMap ? EventType : 'message'
-          data: EventType extends keyof EventMap
-            ? EventMap[EventType]
-            : EventMap['message']
+          event?: EventType
+          data: EventMap[EventType]
         }
       | { retry: number },
   ): void {

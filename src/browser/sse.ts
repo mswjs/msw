@@ -129,8 +129,13 @@ class ServerSentEventClient<
     payload:
       | {
           id?: string
+          event?: 'message'
+          data?: EventMap['message']
+        }
+      | {
+          id?: string
           event?: EventType
-          data: EventMap[EventType]
+          data?: EventMap[EventType]
         }
       | { retry: number },
   ): void {

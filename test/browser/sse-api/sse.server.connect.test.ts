@@ -1,8 +1,5 @@
 import { setupWorker, sse } from 'msw/browser'
-import {
-  createTestHttpServer,
-  TestHttpServerOptions,
-} from '@epic-web/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {

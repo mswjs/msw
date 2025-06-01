@@ -50,10 +50,11 @@ test('sends a mock message event', async ({ loadExample, page }) => {
   const message = await page.evaluate(() => {
     return new Promise((resolve, reject) => {
       const source = new EventSource('http://localhost/stream')
+      source.onerror = () => reject()
+
       source.addEventListener('message', (event) => {
         resolve(`${event.type}:${event.data}`)
       })
-      source.onerror = reject
     })
   })
 
@@ -85,7 +86,7 @@ test('sends a mock custom event', async ({ loadExample, page }) => {
       source.addEventListener('userconnect', (event) => {
         resolve(`${event.type}:${event.data}`)
       })
-      source.onerror = reject
+      source.onerror = () => reject()
     })
   })
 
@@ -119,10 +120,9 @@ test('sends a mock message event with custom id', async ({
     return new Promise((resolve, reject) => {
       const source = new EventSource('http://localhost/stream')
       source.addEventListener('userconnect', (event) => {
-        console.log(event)
         resolve(`${event.type}:${event.lastEventId}:${event.data}`)
       })
-      source.onerror = reject
+      source.onerror = () => reject()
     })
   })
 
@@ -154,7 +154,6 @@ test('errors the connected source', async ({ loadExample, page, waitFor }) => {
     return new Promise((resolve) => {
       const source = new EventSource('http://localhost/stream')
       source.addEventListener('error', (event) => {
-        console.log('ERROR!', event, source.readyState)
         resolve(source.readyState)
       })
     })
@@ -169,36 +168,34 @@ test('errors the connected source', async ({ loadExample, page, waitFor }) => {
   })
 })
 
-test('forwards original server message events to the client', async ({
-  loadExample,
-  page,
-}) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
-    skipActivation: true,
-  })
-  const url = httpServer.http.url('/stream')
-
-  await page.evaluate(async (url) => {
-    const { setupWorker, sse } = window.msw
-
-    const worker = setupWorker(
-      sse(url, async ({ server }) => {
-        const source = server.connect()
-
-        source.addEventListener('message', (event) => {
-          console.log(event)
-        })
-      }),
-    )
-    await worker.start()
-  }, url)
-
-  await page.evaluate((url) => {
-    const source = new EventSource(url)
-    source.addEventListener('message', (event) => {
-      console.warn('client received:', event)
+test.fixme(
+  'forwards original server message events to the client',
+  async ({ loadExample, page }) => {
+    await loadExample(require.resolve('./sse.mocks.ts'), {
+      skipActivation: true,
     })
-  }, url)
+    const url = httpServer.http.url('/stream')
 
-  await page.pause()
-})
+    await page.evaluate(async (url) => {
+      const { setupWorker, sse } = window.msw
+
+      const worker = setupWorker(
+        sse(url, async ({ server }) => {
+          const source = server.connect()
+
+          source.addEventListener('message', (event) => {
+            console.log(event)
+          })
+        }),
+      )
+      await worker.start()
+    }, url)
+
+    await page.evaluate((url) => {
+      const source = new EventSource(url)
+      source.addEventListener('message', (event) => {
+        console.warn('client received:', event)
+      })
+    }, url)
+  },
+)

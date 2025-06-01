@@ -87,19 +87,43 @@ class ServerSentEventHandler<
     request: Request
     parsedResult: HttpRequestParsedResult
   }): boolean {
-    // Ignore non-SSE requests.
-    if (
-      args.request.headers.get('accept')?.toLowerCase() !== 'text/event-stream'
-    ) {
+    // Ignore requests that are not SSE.
+    if (args.request.headers.get('accept') !== 'text/event-stream') {
       return false
     }
 
-    // If it is a SSE request, match it against its method and path.
     return super.predicate(args)
   }
 }
 
-const kSend = Symbol('kSend')
+type ServerSentEventMessagePayload<EventMap extends Record<string, unknown>> = {
+  id?: string
+  event?: never
+  data?: EventMap['message']
+}
+
+type ServerSentEventStrictMessagePayload<
+  EventMap extends Record<string, unknown>,
+  EventType extends keyof EventMap,
+> = {
+  id?: string
+  event: EventType
+  data: EventMap[EventType]
+}
+
+type ServerSentEventRetryPayload = {
+  /**
+   * The reconnection time. If the connection to the server is lost, the browser
+   * will wait for the specified time before attempting to reconnect. This must be
+   * an integer, specifying the reconnection time in milliseconds. If a non-integer
+   * value is specified, the field is ignored.
+   */
+  retry: number
+
+  event?: never
+  id?: never
+  data?: never
+}
 
 class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   private encoder: TextEncoder
@@ -111,22 +135,23 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   }
 
   /**
-   * Sends the given payload to the underlying `EventSource`.
+   * Sends the given payload to the intercepted `EventSource`.
    */
   public send<EventType extends keyof EventMap & string>(
     payload:
-      | {
-          id?: string
-          event: EventType
-          data: EventMap[EventType]
-        }
-      | {
-          id?: string
-          event?: never
-          data?: EventMap['message']
-        },
+      | ServerSentEventMessagePayload<EventMap>
+      | ServerSentEventStrictMessagePayload<EventMap, EventType>
+      | ServerSentEventRetryPayload,
   ): void {
-    this[kSend]({
+    /**
+     * @note Retry is not a part of the SSE message block.
+     */
+    if ('retry' in payload && payload.retry != null) {
+      this.#sendRetry(payload.retry)
+      return
+    }
+
+    this.#sendMessage({
       id: payload.id,
       event: payload.event,
       data:
@@ -137,7 +162,7 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   }
 
   /**
-   * Dispatches the given event to the underlying `EventSource`.
+   * Dispatches the given event on the intercepted `EventSource`.
    */
   public dispatchEvent(event: Event) {
     if (event instanceof MessageEvent) {
@@ -145,7 +170,7 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
        * @note Use the internal send mechanism to skip normalization
        * of the message data (already normalized by the server).
        */
-      this[kSend]({
+      this.#sendMessage({
         id: event.lastEventId || undefined,
         event: event.type === 'message' ? undefined : event.type,
         data: event.data,
@@ -160,28 +185,43 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
   }
 
   /**
-   * Errors the underlying `EventSource`, closing the connection.
+   * Errors the underlying `EventSource`, closing the connection with an error.
+   * Erroring the connection with an error will not trigger a reconnect from the client.
    */
   public error(): void {
     this.controller.error()
   }
 
-  private [kSend]<EventType extends keyof EventMap & string>(payload: {
+  /**
+   * Closes the underlying `EventSource`, closing the connection.
+   * Closing the connection will trigger a reconnect from the client.
+   */
+  public close(): void {
+    this.controller.close()
+  }
+
+  #sendRetry(retry: number): void {
+    if (typeof retry === 'number') {
+      this.controller.enqueue(this.encoder.encode(`retry:${retry}\n\n`))
+    }
+  }
+
+  #sendMessage<EventType extends keyof EventMap & string>(payload: {
     id?: string
     event?: EventType
     data: string | EventMap[EventType] | EventMap['message'] | undefined
   }): void {
     const frames: Array<string> = []
 
+    if (payload.id) {
+      frames.push(`id:${payload.id}`)
+    }
+
     if (payload.event) {
       frames.push(`event:${payload.event}`)
     }
 
     frames.push(`data:${payload.data}`)
-
-    if (payload.id) {
-      frames.push(`id:${payload.id}`)
-    }
 
     frames.push('', '')
     this.controller.enqueue(this.encoder.encode(frames.join('\n')))
@@ -206,8 +246,8 @@ class ServerSentEventServer {
       withCredentials: this.request.credentials === 'include',
       headers: {
         /**
-         * @note Mark this request as bypassed so it doesn't trigger
-         * an infinite loop matching the existing request handler.
+         * @note Mark this request as passthrough so it doesn't trigger
+         * an infinite loop matching against the existing request handler.
          */
         accept: 'msw/passthrough',
       },
@@ -241,7 +281,10 @@ interface ObservableEventSourceInit extends EventSourceInit {
   headers?: HeadersInit
 }
 
-type EventHandler<E extends Event> = (this: EventSource, event: E) => any
+type EventHandler<EventType extends Event> = (
+  this: EventSource,
+  event: EventType,
+) => any
 
 const kRequest = Symbol('kRequest')
 const kReconnectionTime = Symbol('kReconnectionTime')

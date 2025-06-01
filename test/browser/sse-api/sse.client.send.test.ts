@@ -8,8 +8,10 @@ declare namespace window {
   }
 }
 
+const EXAMPLE_URL = new URL('./sse.mocks.ts', import.meta.url)
+
 test('sends a mock message event', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -41,7 +43,7 @@ test('sends a mock message event', async ({ loadExample, page }) => {
 })
 
 test('sends a mock custom event', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -76,7 +78,7 @@ test('sends a mock message event with custom id', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -109,7 +111,7 @@ test('sends a mock message event with custom id', async ({
 })
 
 test('errors the connected source', async ({ loadExample, page, waitFor }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 

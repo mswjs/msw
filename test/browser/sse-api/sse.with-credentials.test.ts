@@ -8,13 +8,15 @@ declare namespace window {
   }
 }
 
+const EXAMPLE_URL = new URL('./sse.mocks.ts', import.meta.url)
+
 test('forwards document cookies on the request when "withCredentials" is set to true', async ({
   loadExample,
   page,
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 

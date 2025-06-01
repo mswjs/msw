@@ -9,6 +9,8 @@ declare namespace window {
   }
 }
 
+const EXAMPLE_URL = new URL('./sse.mocks.ts', import.meta.url)
+
 globalThis.console = new Proxy(globalThis.console, {
   apply(target, thisArg, argArray) {
     process.stdout.write('console called!')
@@ -21,7 +23,7 @@ test('makes the actual request when called "server.connect()"', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -67,7 +69,7 @@ test('forwards message event from the server to the client automatically', async
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -123,7 +125,7 @@ test('forwards custom event from the server to the client automatically', async 
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -181,7 +183,7 @@ test('forwards error event from the server to the client automatically', async (
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 
@@ -233,7 +235,7 @@ test('forward custom stream errors from the original server to the client automa
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 

@@ -8,11 +8,13 @@ declare namespace window {
   }
 }
 
+const EXAMPLE_URL = new URL('./sse.mocks.ts', import.meta.url)
+
 test('supports server-sent event handler overrides', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./sse.mocks.ts'), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 

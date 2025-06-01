@@ -8,8 +8,10 @@ declare namespace window {
   }
 }
 
+const EXAMPLE_URL = new URL('./sse.mocks.ts', import.meta.url)
+
 test('supports mocking the retry time', async ({ loadExample, page }) => {
-  await loadExample(new URL('./sse.mocks.ts', import.meta.url), {
+  await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
 

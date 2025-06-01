@@ -30,7 +30,16 @@ test('makes the actual request when called "server.connect()"', async ({
   await using server = await createTestHttpServer({
     defineRoutes(routes) {
       routes.get('/stream', () => {
-        return new Response(null, {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              new TextEncoder().encode('data: {"message": "hello"}\n\n'),
+            )
+            controller.close()
+          },
+        })
+
+        return new Response(stream, {
           headers: {
             'content-type': 'text/event-stream',
             'cache-control': 'no-cache',
@@ -275,11 +284,12 @@ test('forward custom stream errors from the original server to the client automa
   const errorPromise = page.evaluate((url) => {
     return new Promise<void>((resolve, reject) => {
       const source = new EventSource(url)
-      source.onerror = (error) => {
-        console.log(error)
+      source.onerror = () => {
         resolve()
       }
-      source.onmessage = () => reject(new Error('Must not receive a message'))
+      source.onmessage = () => {
+        reject(new Error('Must not receive a message'))
+      }
     })
   }, url)
 

@@ -128,13 +128,17 @@ class ServerSentEventClient<EventMap extends Record<string, unknown>> {
     }
 
     this.#sendMessage({
-      id: payload.id,
-      event: payload.event,
       // @ts-expect-error
+      id: payload.id,
+      // @ts-expect-error
+      event: payload.event,
       data:
+        // @ts-expect-error
         typeof payload.data === 'object'
-          ? JSON.stringify(payload.data)
-          : payload.data,
+          ? // @ts-expect-error
+            JSON.stringify(payload.data)
+          : // @ts-expect-error
+            payload.data,
     })
   }
 

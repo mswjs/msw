@@ -8,11 +8,14 @@ import {
 import type { Path, PathParams } from '~/core/utils/matching/matchRequestUrl'
 import { delay } from '~/core/delay'
 
+type EventMapConstraint = {
+  message?: unknown
+  [key: string]: unknown
+  [key: symbol | number]: never
+}
+
 export type ServerSentEventResolverExtras<
-  EventMap extends {
-    message?: unknown
-    [key: string]: unknown
-  },
+  EventMap extends EventMapConstraint,
   Params extends PathParams,
 > = HttpRequestResolverExtras<Params> & {
   client: ServerSentEventClient<EventMap>
@@ -20,18 +23,12 @@ export type ServerSentEventResolverExtras<
 }
 
 export type ServerSentEventResolver<
-  EventMap extends {
-    message?: unknown
-    [key: string]: unknown
-  },
+  EventMap extends EventMapConstraint,
   Params extends PathParams,
 > = ResponseResolver<ServerSentEventResolverExtras<EventMap, Params>, any, any>
 
 export type ServerSentEventRequestHandler = <
-  EventMap extends {
-    message?: unknown
-    [key: string]: unknown
-  },
+  EventMap extends EventMapConstraint = { message: unknown },
   Params extends PathParams<keyof Params> = PathParams,
   RequestPath extends Path = Path,
 >(
@@ -54,10 +51,7 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
 }
 
 class ServerSentEventHandler<
-  EventMap extends {
-    message?: unknown
-    [key: string]: unknown
-  },
+  EventMap extends EventMapConstraint,
 > extends HttpHandler {
   constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
@@ -108,11 +102,25 @@ class ServerSentEventHandler<
   }
 }
 
+type Values<T> = T[keyof T]
+type ToEventDiscriminatedUnion<T> = Values<{
+  [K in keyof T]: K extends 'message'
+    ? {
+        id?: string
+        event?: K
+        data?: T[K]
+        retry?: never
+      }
+    : {
+        id?: string
+        event: K
+        data?: T[K]
+        retry?: never
+      }
+}>
+
 class ServerSentEventClient<
-  EventMap extends {
-    message?: unknown
-    [key: string]: unknown
-  },
+  EventMap extends EventMapConstraint = { message: unknown },
 > {
   private encoder: TextEncoder
   private controller: ReadableStreamDefaultController
@@ -125,20 +133,9 @@ class ServerSentEventClient<
   /**
    * Sends the given payload to the intercepted `EventSource`.
    */
-  public send<EventType extends keyof EventMap = 'message'>(
+  public send(
     payload:
-      | {
-          id?: string
-          event?: 'message'
-          data?: EventMap['message']
-          retry?: never
-        }
-      | {
-          id?: string
-          event?: EventType
-          data?: EventMap[EventType]
-          retry?: never
-        }
+      | ToEventDiscriminatedUnion<EventMap & { message: unknown }>
       | {
           retry: number
         },

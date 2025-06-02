@@ -149,7 +149,7 @@ ${paths.map((path) => colors.gray(`  - ${path}\n`))}
 Continue by describing the network in your application:
 
 
-${colors.red(colors.bold('https://mswjs.io/docs/getting-started'))}
+${colors.red(colors.bold('https://mswjs.io/docs/quick-start'))}
 `)
 }
 

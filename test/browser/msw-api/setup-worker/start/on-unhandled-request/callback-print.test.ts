@@ -29,7 +29,7 @@ test('executes a default "warn" strategy in a custom callback', async ({
   • GET https://mswjs.io/use-warn
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })
@@ -63,7 +63,7 @@ test('executes a default "error" strategy in a custom callback', async ({
   • GET https://mswjs.io/use-error
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })

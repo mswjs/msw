@@ -137,6 +137,9 @@ class ServerSentEventClient<
     payload:
       | ToEventDiscriminatedUnion<EventMap & { message: unknown }>
       | {
+          id?: never
+          event?: never
+          data?: never
           retry: number
         },
   ): void {

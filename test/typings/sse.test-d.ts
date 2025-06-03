@@ -55,7 +55,7 @@ it('supports custom event map type', () => {
 })
 
 it('supports event map type argument for unnamed events', () => {
-  sse<{ message: number; custom: string; other: boolean }>('/stream', ({ client }) => {
+  sse<{ message: number; custom: string; other: boolean; maybe?: string }>('/stream', ({ client }) => {
     /**
      * @note TS 5.0 reports errors at different locations
      * to satisfy a wide range of TS versions in type tests formatting gets disabled here
@@ -99,6 +99,34 @@ it('supports event map type argument for unnamed events', () => {
     // boolean is only allowed for "other" event
     // @ts-expect-error
     client.send({ event: 'custom' as 'custom' | 'other', data: true })
+
+    // should error when required data is missing
+    // @ts-expect-error
+    client.send({ event: 'other' })
+
+    // should allow missing data when it's optional
+    client.send({
+      event: 'maybe',
+    })
+
+    // should allow undefined data when it's optional
+    client.send({
+      event: 'maybe',
+      data: undefined,
+    })
+
+    // should allow valid data when it's optional
+    client.send({
+      event: 'maybe',
+      data: 'awesome',
+    })
+
+    client.send({
+      event: 'maybe',
+      // should reject invalid data even when it's optional
+      // @ts-expect-error
+      data: 123,
+    })
     // prettier-ignore-end
   })
 })

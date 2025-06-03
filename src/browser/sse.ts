@@ -103,20 +103,25 @@ class ServerSentEventHandler<
 }
 
 type Values<T> = T[keyof T]
+type Identity<T> = { [K in keyof T]: T[K] } & unknown
 type ToEventDiscriminatedUnion<T> = Values<{
-  [K in keyof T]: K extends 'message'
-    ? {
-        id?: string
-        event?: K
-        data?: T[K]
-        retry?: never
-      }
-    : {
-        id?: string
-        event: K
-        data?: T[K]
-        retry?: never
-      }
+  [K in keyof T]: Identity<
+    (K extends 'message'
+      ? {
+          id?: string
+          event?: K
+          data?: T[K]
+          retry?: never
+        }
+      : {
+          id?: string
+          event: K
+          data?: T[K]
+          retry?: never
+        }) &
+      // make the `data` field conditionally required through an intersection
+      (undefined extends T[K] ? unknown : { data: unknown })
+  >
 }>
 
 class ServerSentEventClient<

@@ -111,6 +111,37 @@ it('supports event map type argument for unnamed events', () => {
   )
 })
 
+it('supports optional mnessage data', () => {
+  sse<{ message?: string }>('/stream', ({ client }) => {
+    // No data is fine because data is optional.
+    client.send({})
+
+    // Allows explicit undefined as optional data.
+    client.send({ data: undefined })
+
+    // Data is still validated even if optional.
+    client.send({ data: 'hello' })
+    client.send({
+      // @ts-expect-error Invalid data type.
+      data: 123,
+    })
+
+    // No data is fine because data is optional.
+    client.send({ event: 'message' })
+
+    // Allows explicit undefined as optional data.
+    client.send({ event: 'message', data: undefined })
+
+    // Data is still validated even if optional.
+    client.send({ event: 'message', data: 'hello' })
+    client.send({
+      event: 'message',
+      // @ts-expect-error Invalid data type.
+      data: 123,
+    })
+  })
+})
+
 it('supports optional event data', () => {
   sse<{ maybe?: string }>('/stream', ({ client }) => {
     // No data is fine because data is optional.

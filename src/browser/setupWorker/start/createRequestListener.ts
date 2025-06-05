@@ -7,7 +7,7 @@ import {
   ServiceWorkerMessage,
   WorkerChannel,
 } from './utils/createMessageChannel'
-import { parseWorkerRequest } from '../../utils/parseWorkerRequest'
+import { deserializeRequest } from '../../utils/deserializeRequest'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
@@ -29,16 +29,15 @@ export const createRequestListener = (
     const messageChannel = new WorkerChannel(event.ports[0])
 
     const requestId = message.payload.id
-    const request = parseWorkerRequest(message.payload)
+    const request = deserializeRequest(message.payload)
     const requestCloneForLogs = request.clone()
 
-    // Make this the first requets clone before the
+    // Make this the first request clone before the
     // request resolution pipeline even starts.
     // Store the clone in cache so the first matching
     // request handler would skip the cloning phase.
     const requestClone = request.clone()
     RequestHandler.cache.set(request, requestClone)
-    context.requests.set(requestId, requestClone)
 
     try {
       await handleRequest(

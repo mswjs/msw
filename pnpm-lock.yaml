@@ -93,6 +93,9 @@ importers:
       '@types/node':
         specifier: ~18.19.28
         version: 18.19.28
+      '@types/serviceworker':
+        specifier: ^0.0.136
+        version: 0.0.136
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.8.1
         version: 8.16.0(@typescript-eslint/parser@8.16.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)
@@ -1482,6 +1485,9 @@ packages:
 
   '@types/serve-static@1.15.5':
     resolution: {integrity: sha512-PDRk21MnK70hja/YF8AHfC7yIsiQHn1rcXx7ijCFBX/k+XQJhQT/gw3xekXKJvx+5SXaMMS8oqQy09Mzvz2TuQ==}
+
+  '@types/serviceworker@0.0.136':
+    resolution: {integrity: sha512-5lqryjGIegGNpkOcCfVg7j+v+aB128pEUpffB9mqUAX3sFq38mjtKTTRtAq2oLtt5Wg3Ex0G9EB52ha0qJfbsQ==}
 
   '@types/statuses@2.0.5':
     resolution: {integrity: sha512-jmIUGWrAiwu3dZpxntxieC+1n/5c3mjrImkmOSQ2NC5uP6cYO4aAZDdSmRcI5C1oiTmqlZGHC+/NmJrKogbP5A==}
@@ -6495,6 +6501,8 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/mime': 4.0.0
       '@types/node': 18.19.28
+
+  '@types/serviceworker@0.0.136': {}
 
   '@types/statuses@2.0.5': {}
 

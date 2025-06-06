@@ -74,7 +74,9 @@ export class WebSocketHandler {
     return args.parsedResult.match.matches
   }
 
-  public async run(connection: WebSocketConnectionData): Promise<boolean> {
+  public async run(
+    connection: Omit<WebSocketHandlerConnection, 'params'>,
+  ): Promise<boolean> {
     const parsedResult = this.parse({
       url: connection.client.url,
     })

@@ -1,6 +1,10 @@
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type {
+  WebSocketClientConnectionProtocol,
+  WebSocketConnectionData,
+  WebSocketServerConnectionProtocol,
+} from '@mswjs/interceptors/WebSocket'
 import {
   type Match,
   type Path,
@@ -18,7 +22,10 @@ export type WebSocketHandlerEventMap = {
   connection: [args: WebSocketHandlerConnection]
 }
 
-export interface WebSocketHandlerConnection extends WebSocketConnectionData {
+export interface WebSocketHandlerConnection {
+  client: WebSocketClientConnectionProtocol
+  server: WebSocketServerConnectionProtocol
+  info: WebSocketConnectionData['info']
   params: PathParams
 }
 

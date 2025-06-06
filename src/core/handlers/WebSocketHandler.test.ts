@@ -1,17 +1,10 @@
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import { WebSocketHandler } from './WebSocketHandler'
 
 describe('parse', () => {
   it('matches an exact url', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000'),
       }),
     ).toEqual({
       match: {
@@ -24,13 +17,7 @@ describe('parse', () => {
   it('ignores trailing slash', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000/'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000/'),
       }),
     ).toEqual({
       match: {
@@ -41,13 +28,7 @@ describe('parse', () => {
 
     expect(
       new WebSocketHandler('ws://localhost:3000/').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000/'),
       }),
     ).toEqual({
       match: {
@@ -60,13 +41,7 @@ describe('parse', () => {
   it('supports path parameters', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000/:serviceName').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000/auth'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000/auth'),
       }),
     ).toEqual({
       match: {
@@ -81,15 +56,9 @@ describe('parse', () => {
   it('ignores "/socket.io/" prefix in the client url', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL(
-                'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
-              ),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL(
+          'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
+        ),
       }),
     ).toEqual({
       match: {
@@ -100,15 +69,9 @@ describe('parse', () => {
 
     expect(
       new WebSocketHandler('ws://localhost:3000/non-matching').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL(
-                'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
-              ),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL(
+          'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
+        ),
       }),
     ).toEqual({
       match: {
@@ -125,13 +88,7 @@ describe('parse', () => {
      */
     expect(
       new WebSocketHandler('ws://localhost:3000/clients/socket.io/123').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000/clients/socket.io/123'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000/clients/socket.io/123'),
       }),
     ).toEqual({
       match: {
@@ -142,13 +99,7 @@ describe('parse', () => {
 
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
-        event: new MessageEvent('connection', {
-          data: {
-            client: {
-              url: new URL('ws://localhost:3000/clients/socket.io/123'),
-            },
-          } as WebSocketConnectionData,
-        }),
+        url: new URL('ws://localhost:3000/clients/socket.io/123'),
       }),
     ).toEqual({
       match: {

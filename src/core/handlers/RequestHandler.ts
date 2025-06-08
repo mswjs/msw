@@ -6,8 +6,13 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import type { HttpResponse, StrictRequest } from '..//HttpResponse'
+import {
+  StrictRequest,
+  HttpResponse,
+  DefaultUnsafeFetchResponse,
+} from '../HttpResponse'
 import type { HandlerKind } from './common'
+import type { GraphQLRequestBody } from './GraphQLHandler'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -42,9 +47,19 @@ export interface RequestHandlerInternalInfo {
 export type ResponseResolverReturnType<
   ResponseBodyType extends DefaultBodyType = undefined,
 > =
+  // If ResponseBodyType is a union and one of the types is `undefined`,
+  // allow plain Response as the type.
   | ([ResponseBodyType] extends [undefined]
       ? Response
-      : HttpResponse<ResponseBodyType>)
+      : /**
+         * Treat GraphQL response body type as a special case.
+         * For esome reason, making the default HttpResponse<T> | DefaultUnsafeFetchResponse
+         * union breaks the body type inference for HTTP requests.
+         * @see https://github.com/mswjs/msw/issues/2130
+         */
+        ResponseBodyType extends GraphQLRequestBody<any>
+        ? HttpResponse<ResponseBodyType> | DefaultUnsafeFetchResponse
+        : HttpResponse<ResponseBodyType>)
   | undefined
   | void
 

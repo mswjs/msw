@@ -295,3 +295,17 @@ it('treats non-typed HttpResponse body type as matching', () => {
     return new HttpResponse(null, { status: 500 })
   })
 })
+
+it('supports returning Response.error()', () => {
+  http.get('/resource', () => Response.error())
+  http.get('/resource', async () => Response.error())
+  http.get('/resource', function* () {
+    return Response.error()
+  })
+
+  http.get<never, never, string>('/resource', () => HttpResponse.error())
+  http.get<never, never, string>('/resource', async () => HttpResponse.error())
+  http.get<never, never, string>('/resource', function* () {
+    return HttpResponse.error()
+  })
+})

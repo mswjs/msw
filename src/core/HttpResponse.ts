@@ -10,7 +10,10 @@ export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
-const bodyType: unique symbol = Symbol('bodyType')
+export const bodyType: unique symbol = Symbol('bodyType')
+export type DefaultUnsafeFetchResponse = Response & {
+  [bodyType]?: never
+}
 
 export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
   json(): Promise<BodyType>
@@ -44,6 +47,10 @@ export class HttpResponse<
     const responseInit = normalizeResponseInit(init)
     super(body as BodyInit, responseInit)
     decorateResponse(this, responseInit)
+  }
+
+  static error(): HttpResponse<any> {
+    return super.error() as HttpResponse<any>
   }
 
   /**

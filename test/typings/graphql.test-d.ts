@@ -157,6 +157,23 @@ it('graphql handlers allow passthrough responses', () => {
   })
 })
 
+it('supports Response.error()', () => {
+  graphql.query<{ id: string }>('GetUser', () => HttpResponse.error())
+  graphql.mutation('UpdatePost', () => HttpResponse.error())
+  graphql.operation(() => HttpResponse.error())
+
+  graphql.query('GetUser', async () => HttpResponse.error())
+  graphql.query('GetUser', function* () {
+    return HttpResponse.error()
+  })
+
+  graphql.query('GetUser', () => Response.error())
+  graphql.query('GetUser', async () => Response.error())
+  graphql.query('GetUser', function* () {
+    return Response.error()
+  })
+})
+
 it("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {
   /**
    * Supports `DocumentNode` as the GraphQL operation name.

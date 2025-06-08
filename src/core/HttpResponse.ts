@@ -46,6 +46,10 @@ export class HttpResponse<
     decorateResponse(this, responseInit)
   }
 
+  static error(): HttpResponse<any> {
+    return super.error() as HttpResponse<any>
+  }
+
   /**
    * Create a `Response` with a `Content-Type: "text/plain"` body.
    * @example

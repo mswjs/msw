@@ -1,4 +1,4 @@
-import * as fs from 'fs'
+import fs from 'node:fs'
 import { test, expect } from '../../playwright.extend'
 
 test('supports the usage of the iife bundle in a <script> tag', async ({
@@ -7,13 +7,13 @@ test('supports the usage of the iife bundle in a <script> tag', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./iife.mocks.js'), {
+  await loadExample(new URL('./iife.mocks.js', import.meta.url), {
     markup: `<script src="./iife/index.js"></script>`,
     beforeNavigation(compilation) {
       compilation.use((router) => {
         router.get('/iife/index.js', (_, res) => {
           fs.createReadStream(
-            require.resolve('../../../../lib/iife/index.js'),
+            new URL('../../../../lib/iife/index.js', import.meta.url),
           ).pipe(res)
 
           return res

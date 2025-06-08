@@ -6,7 +6,7 @@ test('falls through all relevant request handlers until response is returned', a
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./fall-through.mocks.ts'))
+  await loadExample(new URL('./fall-through.mocks.ts', import.meta.url))
 
   const res = await fetch('/user')
   const body = await res.json()
@@ -29,7 +29,7 @@ test('falls through all relevant handler even if none returns response', async (
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./fall-through.mocks.ts'))
+  await loadExample(new URL('./fall-through.mocks.ts', import.meta.url))
 
   const res = await fetch('/blog/article', {
     method: 'POST',

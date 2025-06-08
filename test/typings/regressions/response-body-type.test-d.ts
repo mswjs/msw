@@ -1,7 +1,6 @@
 /**
  * @see https://github.com/mswjs/msw/issues/1823
  */
-import { it } from 'vitest'
 import { http, Path, HttpResponse, DefaultBodyType } from 'msw'
 
 it('accepts custom response body generic argument', () => {

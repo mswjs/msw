@@ -26,7 +26,7 @@ test('bypasses the unhandled request with the "Accept" header containing "text/e
   })
 
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./text-event-stream.mocks.ts'))
+  await loadExample(new URL('./text-event-stream.mocks.ts', import.meta.url))
 
   await page.evaluate((endpointUrl) => {
     const source = new EventSource(endpointUrl)

@@ -102,7 +102,7 @@ export class HttpHandler extends RequestHandler<
     })
 
     devUtils.warn(
-      `Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead and access query parameters using "new URL(request.url).searchParams" instead. Learn more: https://mswjs.io/docs/recipes/query-parameters`,
+      `Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead and access query parameters using "new URL(request.url).searchParams" instead. Learn more: https://mswjs.io/docs/http/intercepting-requestsquery-parameters`,
     )
   }
 
@@ -152,6 +152,7 @@ export class HttpHandler extends RequestHandler<
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
 
+    // eslint-disable-next-line no-console
     console.groupCollapsed(
       devUtils.formatMessage(
         `${getTimestamp()} ${args.request.method} ${publicUrl} (%c${
@@ -161,9 +162,13 @@ export class HttpHandler extends RequestHandler<
       `color:${statusColor}`,
       'color:inherit',
     )
+    // eslint-disable-next-line no-console
     console.log('Request', loggedRequest)
+    // eslint-disable-next-line no-console
     console.log('Handler:', this)
+    // eslint-disable-next-line no-console
     console.log('Response', loggedResponse)
+    // eslint-disable-next-line no-console
     console.groupEnd()
   }
 }

@@ -1,7 +1,7 @@
 import { test, expect } from '../.././../playwright.extend'
 
 test('responds to a request with a Blob', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-blob.mocks.ts'))
+  await loadExample(new URL('./body-blob.mocks.ts', import.meta.url))
   const res = await fetch('/greeting')
 
   const headers = await res.allHeaders()

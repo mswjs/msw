@@ -1,7 +1,7 @@
 import { test, expect } from '../../../playwright.extend'
 
 test('reads request body as json', async ({ loadExample, fetch, page }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const res = await fetch('/json', {
     method: 'POST',
@@ -10,7 +10,6 @@ test('reads request body as json', async ({ loadExample, fetch, page }) => {
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
-  await page.pause()
 
   const json = await res.json()
 
@@ -22,7 +21,7 @@ test('reads a single number as json request body', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const res = await fetch('/json', {
     method: 'POST',
@@ -41,7 +40,7 @@ test('reads request body using json() method', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const res = await fetch('/json', {
     method: 'POST',
@@ -62,7 +61,7 @@ test('reads array buffer request body using json() method', async ({
   page,
   makeUrl,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   page.evaluate(() => {
     return fetch('/json', {

@@ -1,9 +1,9 @@
-import * as path from 'path'
+import url from 'node:url'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
 
 const fsMock = createTeardown({
-  rootDir: path.resolve(__dirname, 'node-esm-tests'),
+  rootDir: url.fileURLToPath(new URL('node-esm-tests', import.meta.url)),
   paths: {
     'package.json': JSON.stringify({ type: 'module' }),
   },
@@ -14,7 +14,11 @@ beforeAll(async () => {
   await installLibrary(fsMock.resolve('.'))
 })
 
-afterAll(async () => {
+afterAll(async ({ result }) => {
+  if (result?.state === 'fail') {
+    return
+  }
+
   await fsMock.cleanup()
 })
 
@@ -77,8 +81,8 @@ console.log('msw/node:', require.resolve('msw/node'))
 console.log('msw/native:', require.resolve('msw/native'))
 `,
     'runtime.cjs': `
-import { http } from 'msw'
-import { setupServer } from 'msw/node'
+const { http } = require('msw')
+const { setupServer } = require('msw/node')
 const server = setupServer(
   http.get('/resource', () => new Response())
 )
@@ -88,16 +92,25 @@ console.log(typeof server.listen)
 
   const resolveStdio = await fsMock.exec('node ./resolve.cjs')
   expect(resolveStdio.stderr).toBe('')
+
   /**
    * @todo Take these expected export paths from package.json.
    * That should be the source of truth.
    */
+
+  /**
+   * @note Although the test requires the package in CJS,
+   * the "module-sync" condition allows loading the ESM build.
+   * This is supported in Node.js v20+.
+   */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
   )
+
+  // Must load regular CJS build for React Native.
   expect(resolveStdio.stdout).toMatch(
     /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
   )

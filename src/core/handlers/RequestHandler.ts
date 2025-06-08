@@ -1,9 +1,13 @@
-import { invariant } from 'outvariant'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { isIterable } from '../utils/internal/isIterable'
+import {
+  AsyncIterable,
+  Iterable,
+  isIterable,
+} from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import { StrictRequest, StrictResponse, bodyType } from '..//HttpResponse'
+import { StrictRequest, HttpResponse } from '../HttpResponse'
+import type { HandlerKind } from './common'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -41,24 +45,25 @@ export type ResponseResolverReturnType<
   // If ResponseBodyType is a union, and one of the types is `undefined`,
   // allow plain Response as the type.
   | ([ResponseBodyType] extends [undefined]
-      ? Response & { [bodyType]?: undefined }
-      : // If ResponseBodyType is exactly `undefined`,
-        // accept only the plain Response type.
-        ResponseBodyType extends undefined
-        ? Response & { [bodyType]?: undefined }
-        : StrictResponse<ResponseBodyType>)
+      ? Response
+      : HttpResponse<ResponseBodyType>)
   | undefined
   | void
 
 export type MaybeAsyncResponseResolverReturnType<
-  ResponseBodyType extends DefaultBodyType = undefined,
+  ResponseBodyType extends DefaultBodyType,
 > = MaybePromise<ResponseResolverReturnType<ResponseBodyType>>
 
 export type AsyncResponseResolverReturnType<
   ResponseBodyType extends DefaultBodyType,
 > = MaybePromise<
   | ResponseResolverReturnType<ResponseBodyType>
-  | Generator<
+  | Iterable<
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
+      MaybeAsyncResponseResolverReturnType<ResponseBodyType>
+    >
+  | AsyncIterable<
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>,
       MaybeAsyncResponseResolverReturnType<ResponseBodyType>
@@ -115,6 +120,8 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
+  private readonly __kind: HandlerKind
+
   public info: HandlerInfo & RequestHandlerInternalInfo
   /**
    * Indicates whether this request handler has been used
@@ -123,12 +130,18 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?: Generator<
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>,
-    MaybeAsyncResponseResolverReturnType<any>
-  >
-  private resolverGeneratorResult?: Response | StrictResponse<any>
+  private resolverIterator?:
+    | Iterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+    | AsyncIterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+  private resolverIteratorResult?: Response | HttpResponse<any>
   private options?: HandlerOptions
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
@@ -143,6 +156,7 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
+    this.__kind = 'RequestHandler'
   }
 
   /**
@@ -262,6 +276,9 @@ export abstract class RequestHandler<
       return null
     }
 
+    // Preemptively mark the handler as used.
+    // Generators will undo this because only when the resolver reaches the
+    // "done" state of the generator that it considers the handler used.
     this.isUsed = true
 
     // Create a response extraction wrapper around the resolver
@@ -307,48 +324,40 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      const result = this.resolverGenerator || (await resolver(info))
+      if (!this.resolverIterator) {
+        const result = await resolver(info)
 
-      if (isIterable<AsyncResponseResolverReturnType<any>>(result)) {
-        // Immediately mark this handler as unused.
-        // Only when the generator is done, the handler will be
-        // considered used.
-        this.isUsed = false
-
-        const { value, done } = result[Symbol.iterator]().next()
-        const nextResponse = await value
-
-        if (done) {
-          this.isUsed = true
+        if (!isIterable(result)) {
+          return result
         }
 
-        // If the generator is done and there is no next value,
-        // return the previous generator's value.
-        if (!nextResponse && done) {
-          invariant(
-            this.resolverGeneratorResult,
-            'Failed to returned a previously stored generator response: the value is not a valid Response.',
-          )
-
-          // Clone the previously stored response from the generator
-          // so that it could be read again.
-          return this.resolverGeneratorResult.clone() as StrictResponse<any>
-        }
-
-        if (!this.resolverGenerator) {
-          this.resolverGenerator = result
-        }
-
-        if (nextResponse) {
-          // Also clone the response before storing it
-          // so it could be read again.
-          this.resolverGeneratorResult = nextResponse?.clone()
-        }
-
-        return nextResponse
+        this.resolverIterator =
+          Symbol.iterator in result
+            ? result[Symbol.iterator]()
+            : result[Symbol.asyncIterator]()
       }
 
-      return result
+      // Opt-out from marking this handler as used.
+      this.isUsed = false
+
+      const { done, value } = await this.resolverIterator.next()
+      const nextResponse = await value
+
+      if (nextResponse) {
+        this.resolverIteratorResult = nextResponse.clone()
+      }
+
+      if (done) {
+        // A one-time generator resolver stops affecting the network
+        // only after it's been completely exhausted.
+        this.isUsed = true
+
+        // Clone the previously stored response so it can be read
+        // when receiving it repeatedly from the "done" generator.
+        return this.resolverIteratorResult?.clone()
+      }
+
+      return nextResponse
     }
   }
 

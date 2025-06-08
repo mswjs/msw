@@ -7,6 +7,28 @@ it('supports a single path parameter', () => {
   })
 })
 
+it('supports a repeating path parameter', () => {
+  http.get<{ id?: string }>('/user/id*', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
+  })
+})
+
+it('supports an optional path parameter', () => {
+  http.get<{ id?: string }>('/user/:id?', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
+  })
+})
+
+it('supports optional repeating path parameter', () => {
+  /**
+   * @note This is the newest "path-to-regexp" syntax.
+   * MSW doesn't support this quite yet.
+   */
+  http.get<{ path?: string[] }>('/user{/*path}', ({ params }) => {
+    expectTypeOf(params).toEqualTypeOf<{ path?: string[] }>()
+  })
+})
+
 it('supports multiple path parameters', () => {
   type Params = { a: string; b: string[] }
   http.get<Params>('/user/:a/:b/:b', ({ params }) => {
@@ -52,6 +74,54 @@ it('supports null as the request body generic', () => {
 it('returns plain Response withouth explicit response body generic', () => {
   http.get('/user', () => {
     return new Response('hello')
+  })
+})
+
+it('returns HttpResponse with URLSearchParams as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new URLSearchParams())
+  })
+})
+
+it('returns HttpResponse with FormData as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new FormData())
+  })
+})
+
+it('returns HttpResponse with ReadableStream as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ReadableStream())
+  })
+})
+
+it('returns HttpResponse with Blob as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new Blob(['hello']))
+  })
+})
+
+it('returns HttpResponse with ArrayBuffer as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ArrayBuffer(5))
+  })
+})
+
+it('supports null as a response body generic argument', () => {
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse()
+  })
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse(
+      // @ts-expect-error Expected null, got a string.
+      'hello',
+    )
+  })
+  http.get<never, never, null>('/', () => {
+    return HttpResponse.json(
+      // @ts-expect-error Expected null, got an object.
+      { id: 1 },
+    )
   })
 })
 
@@ -193,5 +263,35 @@ it('infers a narrower json response type', () => {
   http.get<never, never, ResponseBody>('/', () => {
     // @ts-expect-error Unknown property "b".
     return HttpResponse.json({ a: 1, b: 2 })
+  })
+})
+
+it('errors when returning non-Response data from resolver', () => {
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 123,
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => 'foo',
+  )
+  http.get(
+    '/resource',
+    // @ts-expect-error
+    () => ({}),
+  )
+})
+
+it('treats non-typed HttpResponse body type as matching', () => {
+  http.get<never, never, { id: string }>('/resource', () => {
+    /**
+     * @note When constructing a Response/HttpResponse instance,
+     * its body type must effectively be treated as `any`. You
+     * cannot provide or infer a narrower type because these classes
+     * operate on streams or strings, none of which are type-safe.
+     */
+    return new HttpResponse(null, { status: 500 })
   })
 })

@@ -5,6 +5,7 @@ export function printStopMessage(args: { quiet?: boolean } = {}): void {
     return
   }
 
+  // eslint-disable-next-line no-console
   console.log(
     `%c${devUtils.formatMessage('Mocking disabled.')}`,
     'color:orangered;font-weight:bold;',

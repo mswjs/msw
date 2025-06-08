@@ -295,3 +295,19 @@ it('treats non-typed HttpResponse body type as matching', () => {
     return new HttpResponse(null, { status: 500 })
   })
 })
+
+it('supports returning Response.error()', () => {
+  http.get('/resource', () => Response.error())
+  http.get('/resource', () => HttpResponse.error())
+
+  http.get<never, never, string>(
+    '/resource',
+    // @ts-expect-error Raw `Response.error()` will not pass the type check
+    // beause it's impossible to disambiguate between explicit `undefined` and
+    // implicit `undefined` body types (like Response.error() has).
+    () => {
+      return Response.error()
+    },
+  )
+  http.get<never, never, string>('/resource', () => HttpResponse.error())
+})

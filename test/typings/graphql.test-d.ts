@@ -158,9 +158,19 @@ it('graphql handlers allow passthrough responses', () => {
 })
 
 it('graphql handlers allow error response', () => {
-  graphql.query('GetUser', () => HttpResponse.error())
+  graphql.query<{ id: string }>('GetUser', () => HttpResponse.error())
   graphql.mutation('UpdatePost', () => HttpResponse.error())
   graphql.operation(() => HttpResponse.error())
+
+  graphql.query(
+    'GetUser',
+    // @ts-expect-error Raw `Response.error()` will not pass the type check
+    // beause it's impossible to disambiguate between explicit `undefined` and
+    // implicit `undefined` body types (like Response.error() has).
+    ({ request }) => {
+      return Response.error()
+    },
+  )
 })
 
 it("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {

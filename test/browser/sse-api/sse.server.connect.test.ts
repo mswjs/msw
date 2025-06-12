@@ -41,6 +41,7 @@ test('makes the actual request when called "server.connect()"', async ({
 
         return new Response(stream, {
           headers: {
+            'access-control-allow-origin': '*',
             'content-type': 'text/event-stream',
             'cache-control': 'no-cache',
             connection: 'keep-alive',

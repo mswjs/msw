@@ -100,6 +100,23 @@ class ServerSentEventHandler<
 
     return super.predicate(args)
   }
+
+  async log(args: { request: Request; response: Response }): Promise<void> {
+    super.log({
+      request: args.request,
+
+      /**
+       * @note Construct a placeholder response since SSE response
+       * is being streamed and cannot be cloned/consumed at this point.
+       * This also allows us to rely on the same logging logic as in HTTP handlers.
+       */
+      response: new Response('[streaming]', {
+        status: args.response.status,
+        statusText: args.response.statusText,
+        headers: args.response.headers,
+      }),
+    })
+  }
 }
 
 type Values<T> = T[keyof T]

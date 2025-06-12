@@ -1,6 +1,10 @@
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type {
+  WebSocketClientConnectionProtocol,
+  WebSocketConnectionData,
+  WebSocketServerConnectionProtocol,
+} from '@mswjs/interceptors/WebSocket'
 import {
   type Match,
   type Path,
@@ -18,12 +22,14 @@ export type WebSocketHandlerEventMap = {
   connection: [args: WebSocketHandlerConnection]
 }
 
-export interface WebSocketHandlerConnection extends WebSocketConnectionData {
+export interface WebSocketHandlerConnection {
+  client: WebSocketClientConnectionProtocol
+  server: WebSocketServerConnectionProtocol
+  info: WebSocketConnectionData['info']
   params: PathParams
 }
 
 export const kEmitter = Symbol('kEmitter')
-export const kDispatchEvent = Symbol('kDispatchEvent')
 export const kSender = Symbol('kSender')
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
@@ -44,11 +50,8 @@ export class WebSocketHandler {
     this.__kind = 'EventHandler'
   }
 
-  public parse(args: {
-    event: MessageEvent<WebSocketConnectionData>
-  }): WebSocketHandlerParsedResult {
-    const { data: connection } = args.event
-    const { url: clientUrl } = connection.client
+  public parse(args: { url: URL }): WebSocketHandlerParsedResult {
+    const clientUrl = new URL(args.url)
 
     /**
      * @note Remove the Socket.IO path prefix from the WebSocket
@@ -65,23 +68,32 @@ export class WebSocketHandler {
   }
 
   public predicate(args: {
-    event: MessageEvent<WebSocketConnectionData>
+    url: URL
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
     return args.parsedResult.match.matches
   }
 
-  async [kDispatchEvent](
-    event: MessageEvent<WebSocketConnectionData>,
-  ): Promise<void> {
-    const parsedResult = this.parse({ event })
-    const connection = event.data
+  public async run(
+    connection: Omit<WebSocketHandlerConnection, 'params'>,
+  ): Promise<boolean> {
+    const parsedResult = this.parse({
+      url: connection.client.url,
+    })
+
+    if (!this.predicate({ url: connection.client.url, parsedResult })) {
+      return false
+    }
 
     const resolvedConnection: WebSocketHandlerConnection = {
       ...connection,
       params: parsedResult.match.params || {},
     }
 
+    return this.connect(resolvedConnection)
+  }
+
+  protected connect(connection: WebSocketHandlerConnection): boolean {
     // Support `event.stopPropagation()` for various client/server events.
     connection.client.addEventListener(
       'message',
@@ -111,7 +123,7 @@ export class WebSocketHandler {
 
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
-    this[kEmitter].emit('connection', resolvedConnection)
+    return this[kEmitter].emit('connection', connection)
   }
 }
 

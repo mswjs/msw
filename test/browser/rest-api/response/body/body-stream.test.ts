@@ -25,7 +25,7 @@ test('responds with a mocked ReadableStream response', async ({
 
         chunks.push({
           text: decoder.decode(value),
-          timestamp: Date.now(),
+          timestamp: performance.now(),
         })
       }
     })

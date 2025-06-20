@@ -3,7 +3,7 @@
   "compilerOptions": {
     // Expose browser-specific libraries only for the
     // source code under the "src/browser" directory.
-    "lib": ["DOM", "WebWorker"]
+    "lib": ["DOM", "WebWorker", "DOM.Iterable"]
   },
   "include": ["../../global.d.ts", "./global.browser.d.ts", "./**/*.ts"]
 }

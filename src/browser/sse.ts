@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { Emitter } from 'strict-event-emitter'
 import type { ResponseResolver } from '~/core/handlers/RequestHandler'
 import {
   HttpHandler,
@@ -7,6 +8,9 @@ import {
 } from '~/core/handlers/HttpHandler'
 import type { Path, PathParams } from '~/core/utils/matching/matchRequestUrl'
 import { delay } from '~/core/delay'
+import { getTimestamp } from '~/core/utils/logging/getTimestamp'
+import { devUtils } from '~/core/utils/internal/devUtils'
+import { colors } from '~/core/ws/utils/attachWebSocketLogger'
 
 type EventMapConstraint = {
   message?: unknown
@@ -40,10 +44,11 @@ export type ServerSentEventRequestHandler = <
  * Request handler for Server-Sent Events (SSE).
  *
  * @example
- * sse('http://localhost:4321', ({ source }) => {
- *   source.send({ data: 'hello world' })
+ * sse('http://localhost:4321', ({ client }) => {
+ *   client.send({ data: 'hello world' })
  * })
  *
+ * @see {@link https://mswjs.io/docs/sse Mocking Server-Sent Events}
  * @see {@link https://mswjs.io/docs/api/sse `sse()` API reference}
  */
 export const sse: ServerSentEventRequestHandler = (path, resolver) => {
@@ -60,11 +65,14 @@ class ServerSentEventHandler<
       path,
     )
 
+    const clientEmitter = new Emitter<ServerSentEventClientEventMap>()
+
     super('GET', path, (info) => {
       const stream = new ReadableStream({
         start(controller) {
           const client = new ServerSentEventClient<EventMap>({
             controller,
+            emitter: clientEmitter,
           })
           const server = new ServerSentEventServer({
             request: info.request,
@@ -87,13 +95,14 @@ class ServerSentEventHandler<
         },
       })
     })
+
+    this.attachClientLogger(clientEmitter)
   }
 
   predicate(args: {
     request: Request
     parsedResult: HttpRequestParsedResult
   }): boolean {
-    // Ignore requests that are not SSE.
     if (args.request.headers.get('accept') !== 'text/event-stream') {
       return false
     }
@@ -117,6 +126,38 @@ class ServerSentEventHandler<
       }),
     })
   }
+
+  private attachClientLogger(
+    emitter: Emitter<ServerSentEventClientEventMap>,
+  ): void {
+    /* eslint-disable no-console */
+    emitter.on('message', (payload) => {
+      console.groupCollapsed(
+        devUtils.formatMessage(`${getTimestamp()} %c⇣%c ${payload.event}`),
+        `color:${colors.mocked}`,
+        'color:inherit',
+      )
+      console.log(payload.frames.join('\n'))
+      console.groupEnd()
+    })
+
+    emitter.on('error', () => {
+      console.log(
+        devUtils.formatMessage(`${getTimestamp()} %c\u00D7%c error`),
+        `color: ${colors.system}`,
+        'color:inherit',
+      )
+    })
+
+    emitter.on('close', () => {
+      console.log(
+        devUtils.formatMessage(`${getTimestamp()} %c■%c close`),
+        `colors:${colors.system}`,
+        'color:inherit',
+      )
+    })
+    /* eslint-enable no-console */
+  }
 }
 
 type Values<T> = T[keyof T]
@@ -136,20 +177,38 @@ type ToEventDiscriminatedUnion<T> = Values<{
           data?: T[K]
           retry?: never
         }) &
-      // make the `data` field conditionally required through an intersection
+      // Make the `data` field conditionally required through an intersection.
       (undefined extends T[K] ? unknown : { data: unknown })
   >
 }>
 
+type ServerSentEventClientEventMap = {
+  message: [
+    payload: {
+      id?: string
+      event: string
+      data?: unknown
+      frames: Array<string>
+    },
+  ]
+  error: []
+  close: []
+}
+
 class ServerSentEventClient<
   EventMap extends EventMapConstraint = { message: unknown },
 > {
-  private encoder: TextEncoder
-  private controller: ReadableStreamDefaultController
+  #encoder: TextEncoder
+  #controller: ReadableStreamDefaultController
+  #emitter?: Emitter<ServerSentEventClientEventMap>
 
-  constructor(args: { controller: ReadableStreamDefaultController }) {
-    this.encoder = new TextEncoder()
-    this.controller = args.controller
+  constructor(args: {
+    controller: ReadableStreamDefaultController
+    emitter?: Emitter<ServerSentEventClientEventMap>
+  }) {
+    this.#encoder = new TextEncoder()
+    this.#controller = args.controller
+    this.#emitter = args.emitter
   }
 
   /**
@@ -165,9 +224,6 @@ class ServerSentEventClient<
           retry: number
         },
   ): void {
-    /**
-     * @note Retry is not a part of the SSE message block.
-     */
     if ('retry' in payload && payload.retry != null) {
       this.#sendRetry(payload.retry)
       return
@@ -211,7 +267,8 @@ class ServerSentEventClient<
    * Erroring the connection with an error will not trigger a reconnect from the client.
    */
   public error(): void {
-    this.controller.error()
+    this.#controller.error()
+    this.#emitter?.emit('error')
   }
 
   /**
@@ -219,12 +276,13 @@ class ServerSentEventClient<
    * Closing the connection will trigger a reconnect from the client.
    */
   public close(): void {
-    this.controller.close()
+    this.#controller.close()
+    this.#emitter?.emit('close')
   }
 
   #sendRetry(retry: number): void {
     if (typeof retry === 'number') {
-      this.controller.enqueue(this.encoder.encode(`retry:${retry}\n\n`))
+      this.#controller.enqueue(this.#encoder.encode(`retry:${retry}\n\n`))
     }
   }
 
@@ -246,17 +304,24 @@ class ServerSentEventClient<
     frames.push(`data:${payload.data}`)
 
     frames.push('', '')
-    this.controller.enqueue(this.encoder.encode(frames.join('\n')))
+    this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))
+
+    this.#emitter?.emit('message', {
+      id: payload.id,
+      event: payload.event?.toString() || 'message',
+      data: payload.data,
+      frames,
+    })
   }
 }
 
 class ServerSentEventServer {
-  private request: Request
-  private client: ServerSentEventClient<any>
+  #request: Request
+  #client: ServerSentEventClient<ServerSentEventClientEventMap>
 
   constructor(args: { request: Request; client: ServerSentEventClient<any> }) {
-    this.request = args.request
-    this.client = args.client
+    this.#request = args.request
+    this.#client = args.client
   }
 
   /**
@@ -264,8 +329,8 @@ class ServerSentEventServer {
    * and returns the `EventSource` instance.
    */
   public connect(): EventSource {
-    const source = new ObservableEventSource(this.request.url, {
-      withCredentials: this.request.credentials === 'include',
+    const source = new ObservableEventSource(this.#request.url, {
+      withCredentials: this.#request.credentials === 'include',
       headers: {
         /**
          * @note Mark this request as passthrough so it doesn't trigger
@@ -276,21 +341,39 @@ class ServerSentEventServer {
     })
 
     source[kOnAnyMessage] = (event) => {
+      Object.defineProperties(event, {
+        target: {
+          value: this,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        },
+      })
+
       // Schedule the server-to-client forwarding for the next tick
       // so the user can prevent the message event.
       queueMicrotask(() => {
         if (!event.defaultPrevented) {
-          this.client.dispatchEvent(event)
+          this.#client.dispatchEvent(event)
         }
       })
     }
 
     // Forward stream errors from the actual server to the client.
     source.addEventListener('error', (event) => {
+      Object.defineProperties(event, {
+        target: {
+          value: this,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        },
+      })
+
       queueMicrotask(() => {
         // Allow the user to opt-out from this forwarding.
         if (!event.defaultPrevented) {
-          this.client.dispatchEvent(event)
+          this.#client.dispatchEvent(event)
         }
       })
     })

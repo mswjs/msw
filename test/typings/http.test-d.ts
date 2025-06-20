@@ -146,6 +146,12 @@ it('supports exact string as a response body generic argument', () => {
   })
 })
 
+it('does not error on json responses without explicit response body type', () => {
+  http.get('/resource', () => {
+    return HttpResponse.json({ id: 1 })
+  })
+})
+
 it('supports object as a response body generic argument', () => {
   http.get<never, never, { id: number }>('/user', () => {
     return HttpResponse.json({ id: 1 })

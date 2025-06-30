@@ -10,6 +10,15 @@ import {
 } from './handlers/HttpHandler'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 
+export type CustomHttpPredicate<Params = any> = (args: {
+  request: Request
+  params: Params
+  cookies: Record<string, string>
+  parsedResult: any
+}) => boolean | Promise<boolean>
+
+export type HttpRequestPath = Path | CustomHttpPredicate
+
 export type HttpRequestHandler = <
   Params extends PathParams<keyof Params> = PathParams,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
@@ -18,7 +27,7 @@ export type HttpRequestHandler = <
   // returns plain "Response" and the one returning "HttpResponse"
   // to enforce a stricter response body type.
   ResponseBodyType extends DefaultBodyType = undefined,
-  RequestPath extends Path = Path,
+  RequestPath extends HttpRequestPath = HttpRequestPath,
 >(
   path: RequestPath,
   resolver: HttpResponseResolver<Params, RequestBodyType, ResponseBodyType>,
@@ -39,6 +48,12 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
   method: Method,
 ): HttpRequestHandler {
   return (path, resolver, options = {}) => {
+    if (typeof path === 'function') {
+      return new HttpHandler(method, undefined, resolver, {
+        ...options,
+        predicate: path,
+      })
+    }
     return new HttpHandler(method, path, resolver, options)
   }
 }

@@ -20,6 +20,7 @@ import {
   RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
+import { CustomHttpPredicate } from '../http'
 
 type HttpHandlerMethod = string | RegExp
 
@@ -61,23 +62,29 @@ export class HttpHandler extends RequestHandler<
   HttpRequestParsedResult,
   HttpRequestResolverExtras<any>
 > {
+  private customPredicate?: CustomHttpPredicate
+
   constructor(
     method: HttpHandlerMethod,
-    path: Path,
+    path: Path | undefined,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
-    options?: RequestHandlerOptions,
+    options?: RequestHandlerOptions & {
+      predicate?: CustomHttpPredicate
+    },
   ) {
     super({
       info: {
         header: `${method} ${path}`,
-        path,
+        path: path as Path,
         method,
       },
       resolver,
       options,
     })
-
-    this.checkRedundantQueryParameters()
+    this.customPredicate = options?.predicate
+    if (path !== undefined) {
+      this.checkRedundantQueryParameters()
+    }
   }
 
   private checkRedundantQueryParameters() {
@@ -124,7 +131,23 @@ export class HttpHandler extends RequestHandler<
     }
   }
 
-  predicate(args: { request: Request; parsedResult: HttpRequestParsedResult }) {
+  async predicate(args: {
+    request: Request
+    parsedResult: HttpRequestParsedResult
+    resolutionContext?: ResponseResolutionContext
+  }) {
+    if (this.customPredicate) {
+      const clonedRequest = args.request.clone()
+      const resolverArgs = this.extendResolverArgs({
+        request: args.request,
+        parsedResult: args.parsedResult,
+      })
+      return await this.customPredicate({
+        ...resolverArgs,
+        request: clonedRequest,
+        parsedResult: args.parsedResult,
+      })
+    }
     const hasMatchingMethod = this.matchMethod(args.request.method)
     const hasMatchingUrl = args.parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl

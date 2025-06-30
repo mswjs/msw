@@ -78,7 +78,7 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
@@ -95,7 +95,7 @@ describe('predicate', () => {
 
     for (const request of requests) {
       expect(
-        handler.predicate({
+        await handler.predicate({
           request,
           parsedResult: await handler.parse({ request }),
         }),
@@ -108,7 +108,7 @@ describe('predicate', () => {
     const request = new Request(new URL('/user/abc-123', location.href))
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
@@ -219,5 +219,72 @@ describe('run', () => {
     expect(await run()).toBe('pending')
     expect(await run()).toBe('complete')
     expect(await run()).toBe('complete')
+  })
+})
+
+describe('custom predicate', () => {
+  test('matches request by custom predicate using body', async () => {
+    const handler = new HttpHandler(
+      'POST',
+      '/login',
+      () => HttpResponse.text('login success'),
+      {
+        predicate: async ({ request }) => {
+          const body = await request.json()
+          return body.username === 'test' && body.password === 'password'
+        },
+      },
+    )
+    const request = new Request(new URL('/login', location.href), {
+      method: 'POST',
+      body: JSON.stringify({ username: 'test', password: 'password' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
+    expect(result?.response).toBeDefined()
+    expect(await result?.response?.text()).toBe('login success')
+  })
+
+  test('does not match if custom predicate returns false', async () => {
+    const handler = new HttpHandler(
+      'POST',
+      '/login',
+      () => HttpResponse.text('login success'),
+      {
+        predicate: async ({ request }) => {
+          const body = await request.json()
+          return body.userId === 'foo' && body.password === 'password'
+        },
+      },
+    )
+    const request = new Request(new URL('/login', location.href), {
+      method: 'POST',
+      body: JSON.stringify({ userId: 'user', password: 'wrong' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
+    expect(result).toBeNull()
+  })
+
+  test('custom predicate receives params and cookies', async () => {
+    const handler = new HttpHandler(
+      'GET',
+      '/user/:id',
+      ({ params }) => HttpResponse.text(`user:${params.id}`),
+      {
+        predicate: ({ params, cookies }) => {
+          return params.id === 'abc-123' && cookies.token === 'secret'
+        },
+      },
+    )
+    const request = new Request(new URL('/user/abc-123', location.href), {
+      headers: { Cookie: 'token=secret' },
+    })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
+    expect(result?.response).toBeDefined()
+    expect(await result?.response?.text()).toBe('user:abc-123')
   })
 })

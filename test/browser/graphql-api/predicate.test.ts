@@ -1,11 +1,13 @@
-import { HttpServer } from '@open-draft/test-server/lib/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { gql } from '../../support/graphql'
 import { test, expect } from '../playwright.extend'
 
-const PREDICATE_EXAMPLE = require.resolve('./predicate.mocks.ts')
+const PREDICATE_EXAMPLE = new URL('./predicate.mocks.ts', import.meta.url)
 
 const httpServer = new HttpServer((app) => {
-  app.use('*', (_, res) => res.status(405).end())
+  app.post('/graphql', (req, res) => {
+    res.status(500).end()
+  })
 })
 
 const endpoint = () => {
@@ -73,5 +75,5 @@ test('does not match requests when the predicate function returns false', async 
     },
   })
 
-  expect(res.status()).toBe(405)
+  expect(res.status()).toBe(500)
 })

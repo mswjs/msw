@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/lib/http'
+import { HttpServer } from '@open-draft/test-server/http'
 import { gql } from '../../support/graphql'
 import { test, expect } from '../playwright.extend'
 

@@ -20,13 +20,12 @@ import {
   RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
-import { CustomHttpPredicate } from '../http'
 
 type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod
-  path: Path
+  path: Path | undefined
 }
 
 export enum HttpMethods {
@@ -53,6 +52,13 @@ export type HttpRequestResolverExtras<Params extends PathParams> = {
   cookies: Record<string, string>
 }
 
+export type HttpCustomPredicate = (args: {
+  request: Request
+  cookies: Record<string, string>
+}) => boolean | Promise<boolean>
+
+export type HttpRequestPath = Path | HttpCustomPredicate
+
 /**
  * Request handler for HTTP requests.
  * Provides request matching based on method and URL.
@@ -62,14 +68,14 @@ export class HttpHandler extends RequestHandler<
   HttpRequestParsedResult,
   HttpRequestResolverExtras<any>
 > {
-  private customPredicate?: CustomHttpPredicate
+  private customPredicate?: HttpCustomPredicate
 
   constructor(
     method: HttpHandlerMethod,
     path: Path | undefined,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions & {
-      predicate?: CustomHttpPredicate
+      predicate?: HttpCustomPredicate
     },
   ) {
     super({
@@ -90,7 +96,7 @@ export class HttpHandler extends RequestHandler<
   private checkRedundantQueryParameters() {
     const { method, path } = this.info
 
-    if (path instanceof RegExp) {
+    if (!path || path instanceof RegExp) {
       return
     }
 
@@ -118,11 +124,9 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     const url = new URL(args.request.url)
-    const match = matchRequestUrl(
-      url,
-      this.info.path,
-      args.resolutionContext?.baseUrl,
-    )
+    const match = this.info.path
+      ? matchRequestUrl(url, this.info.path, args.resolutionContext?.baseUrl)
+      : { matches: false, params: {} }
     const cookies = getAllRequestCookies(args.request)
 
     return {
@@ -137,15 +141,14 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     if (this.customPredicate) {
+      // Clone the request to avoid locking its body stream.
+      // The body can only be read once, so cloning allows both
+      // the predicate and resolver to access it independently.
       const clonedRequest = args.request.clone()
-      const resolverArgs = this.extendResolverArgs({
-        request: args.request,
-        parsedResult: args.parsedResult,
-      })
+
       return await this.customPredicate({
-        ...resolverArgs,
         request: clonedRequest,
-        parsedResult: args.parsedResult,
+        cookies: args.parsedResult.cookies,
       })
     }
     const hasMatchingMethod = this.matchMethod(args.request.method)

@@ -557,13 +557,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),
@@ -591,13 +591,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),
@@ -618,7 +618,7 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
@@ -643,13 +643,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),
@@ -834,5 +834,125 @@ describe('request', () => {
       'operationName',
       'GetAllUsers',
     )
+  })
+})
+
+describe('custom predicate', () => {
+  test('receives cookies parameter', async () => {
+    let receivedCookies: Record<string, string> | undefined
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      '',
+      '*',
+      resolver,
+      {
+        predicate: ({ cookies }) => {
+          receivedCookies = cookies
+          return true
+        },
+      },
+    )
+    const request = createPostGraphQLRequest(
+      {
+        query: GET_USER,
+        variables: { userId: 'abc-123' },
+      },
+      'https://example.com',
+    )
+    request.headers.set('Cookie', 'token=secret')
+    const requestId = createRequestId()
+    await handler.run({ request, requestId })
+    expect(receivedCookies).toEqual({ token: 'secret' })
+  })
+
+  test('receives query parameter', async () => {
+    let receivedQuery = ''
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      '',
+      '*',
+      resolver,
+      {
+        predicate: ({ query }) => {
+          receivedQuery = query
+          return true
+        },
+      },
+    )
+    const request = createPostGraphQLRequest({
+      query: GET_USER,
+      variables: { userId: 'abc-123' },
+    })
+    const requestId = createRequestId()
+    await handler.run({ request, requestId })
+    expect(receivedQuery).toBe(GET_USER)
+  })
+
+  test('receives operationName parameter', async () => {
+    let receivedOperationName = ''
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      '',
+      '*',
+      resolver,
+      {
+        predicate: ({ operationName }) => {
+          receivedOperationName = operationName
+          return true
+        },
+      },
+    )
+    const request = createPostGraphQLRequest({
+      query: GET_USER,
+      variables: { userId: 'abc-123' },
+    })
+    const requestId = createRequestId()
+    await handler.run({ request, requestId })
+    expect(receivedOperationName).toBe('GetUser')
+  })
+
+  test('does not match if custom predicate returns true', async () => {
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      '',
+      '*',
+      resolver,
+      {
+        predicate: async ({ variables }) => {
+          return variables?.userId === 'abc-123'
+        },
+      },
+    )
+    const request = createPostGraphQLRequest({
+      query: GET_USER,
+      variables: { userId: 'abc-123' },
+    })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
+    expect(result?.response).toBeDefined()
+    expect(await result?.response?.json()).toEqual({
+      data: { user: { id: 'abc-123' } },
+    })
+  })
+
+  test('does not match if custom predicate returns false', async () => {
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      '',
+      '*',
+      resolver,
+      {
+        predicate: async ({ variables }) => {
+          return variables?.userId === 'not-match'
+        },
+      },
+    )
+    const request = createPostGraphQLRequest({
+      query: GET_USER,
+      variables: { userId: 'abc-123' },
+    })
+    const requestId = createRequestId()
+    const result = await handler.run({ request, requestId })
+    expect(result).toBeNull()
   })
 })

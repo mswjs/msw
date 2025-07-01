@@ -7,17 +7,9 @@ import {
   HttpMethods,
   HttpHandler,
   HttpRequestResolverExtras,
+  HttpRequestPath,
 } from './handlers/HttpHandler'
-import type { Path, PathParams } from './utils/matching/matchRequestUrl'
-
-export type CustomHttpPredicate<Params = any> = (args: {
-  request: Request
-  params: Params
-  cookies: Record<string, string>
-  parsedResult: any
-}) => boolean | Promise<boolean>
-
-export type HttpRequestPath = Path | CustomHttpPredicate
+import type { PathParams } from './utils/matching/matchRequestUrl'
 
 export type HttpRequestHandler = <
   Params extends PathParams<keyof Params> = PathParams,

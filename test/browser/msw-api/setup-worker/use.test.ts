@@ -15,7 +15,7 @@ test('returns a mocked response from a runtime request handler upon match', asyn
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./use.mocks.ts'))
+  await loadExample(new URL('./use.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { worker, http, HttpResponse } = window.msw
@@ -48,7 +48,7 @@ test('returns a mocked response from a persistent request handler override', asy
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./use.mocks.ts'))
+  await loadExample(new URL('./use.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { worker, http, HttpResponse } = window.msw
@@ -78,7 +78,7 @@ test('returns a mocked response from a one-time request handler override only up
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./use.mocks.ts'))
+  await loadExample(new URL('./use.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { worker, http, HttpResponse } = window.msw
@@ -112,7 +112,7 @@ test('returns a mocked response from a one-time request handler override only up
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./use.mocks.ts'))
+  await loadExample(new URL('./use.mocks.ts', import.meta.url))
 
   await page.evaluate(() => {
     const { worker, http, HttpResponse } = window.msw

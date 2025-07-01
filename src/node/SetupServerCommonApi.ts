@@ -22,7 +22,7 @@ import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 
-export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
+const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
 }
 
@@ -37,14 +37,14 @@ export class SetupServerCommonApi
   private resolvedOptions: RequiredDeep<SharedOptions>
 
   constructor(
-    interceptors: Array<{ new (): Interceptor<HttpRequestEventMap> }>,
+    interceptors: Array<Interceptor<HttpRequestEventMap>>,
     handlers: Array<RequestHandler | WebSocketHandler>,
   ) {
     super(...handlers)
 
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',
-      interceptors: interceptors.map((Interceptor) => new Interceptor()),
+      interceptors,
     })
 
     this.resolvedOptions = {} as RequiredDeep<SharedOptions>

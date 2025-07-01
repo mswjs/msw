@@ -5,7 +5,7 @@ test('activates the worker without errors', async ({
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./exception-handling.mocks.ts'))
+  await loadExample(new URL('./exception-handling.mocks.ts', import.meta.url))
 
   expect(consoleSpy.get('error')).toBeUndefined()
 })
@@ -15,7 +15,7 @@ test('transforms uncaught exceptions into a 500 response', async ({
   fetch,
   spyOnConsole,
 }) => {
-  await loadExample(require.resolve('./exception-handling.mocks.ts'))
+  await loadExample(new URL('./exception-handling.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const res = await fetch('https://api.github.com/users/octocat')

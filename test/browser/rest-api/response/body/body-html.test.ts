@@ -1,7 +1,7 @@
 import { test, expect } from '../../../playwright.extend'
 
 test('responds with an HTML response body', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-html.mocks.ts'))
+  await loadExample(new URL('./body-html.mocks.ts', import.meta.url))
 
   const res = await fetch('/user')
   const status = res.status()

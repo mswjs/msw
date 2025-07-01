@@ -32,7 +32,7 @@ test('does not log anything if "quiet" was set to "true"', async ({
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -67,7 +67,7 @@ test('logs the open event', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -100,7 +100,7 @@ test('logs the close event initiated by the client', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -134,7 +134,7 @@ test('logs the close event initiated by the original server', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -175,7 +175,7 @@ test('logs the close event initiated by the event handler', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -212,7 +212,7 @@ test('logs outgoing client message sending text', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -246,7 +246,7 @@ test('logs outgoing client message sending long text', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -280,7 +280,7 @@ test('logs outgoing client message sending Blob', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -314,7 +314,7 @@ test('logs outgoing client message sending long Blob', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -349,7 +349,7 @@ test('logs outgoing client message sending ArrayBuffer data', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -383,7 +383,7 @@ test('logs outgoing client message sending long ArrayBuffer', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -422,7 +422,7 @@ test('logs incoming server messages', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -486,7 +486,7 @@ test('logs raw incoming server events', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -541,7 +541,7 @@ test('logs mocked outgoing client message (server.send)', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -579,7 +579,7 @@ test('logs mocked incoming server message (client.send)', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -616,7 +616,7 @@ test('marks the prevented outgoing client event as dashed', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -656,7 +656,7 @@ test('marks the prevented incoming server event as dashed', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

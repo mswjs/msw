@@ -26,11 +26,15 @@ test('warns on unhandled request when using the "warn" strategy', async () => {
   • GET https://test.mswjs.io/user
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/http/intercepting-requests`)
 })
 
-test('ignores common static assets when using the "warn" strategy', async () => {
-  await fetch('https://example.com/styles/main.css')
+test(
+  'ignores common static assets when using the "warn" strategy',
+  { timeout: 10_000 },
+  async () => {
+    await fetch('https://example.com/styles/main.css')
 
-  expect(console.warn).not.toHaveBeenCalled()
-})
+    expect(console.warn).not.toHaveBeenCalled()
+  },
+)

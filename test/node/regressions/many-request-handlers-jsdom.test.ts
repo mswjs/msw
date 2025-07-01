@@ -74,7 +74,7 @@ describe('http handlers', () => {
     )
     // Each clone is a new AbortSignal listener which needs to be registered.
     // One clone is `onUnhandledRequest` reading the request body to print.
-    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
     expect(httpResponse.status).toBe(500)
     expect(processErrorSpy).not.toHaveBeenCalled()
   })
@@ -121,7 +121,7 @@ describe('graphql handlers', () => {
     })
 
     expect(unhandledResponse.status).toEqual(500)
-    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
+    expect(requestCloneSpy).toHaveBeenCalledTimes(4)
     // Must not print any memory leak warnings.
     expect(processErrorSpy).not.toHaveBeenCalled()
   })

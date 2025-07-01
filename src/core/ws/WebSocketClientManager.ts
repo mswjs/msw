@@ -1,7 +1,7 @@
 import type {
   WebSocketData,
-  WebSocketClientConnection,
   WebSocketClientConnectionProtocol,
+  WebSocketClientEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { WebSocketClientStore } from './WebSocketClientStore'
 import { WebSocketMemoryClientStore } from './WebSocketMemoryClientStore'
@@ -105,7 +105,9 @@ export class WebSocketClientManager {
     this.channel.postMessage({ type: 'db:update' })
   }
 
-  private async addClient(client: WebSocketClientConnection): Promise<void> {
+  private async addClient(
+    client: WebSocketClientConnectionProtocol,
+  ): Promise<void> {
     await this.store.add(client)
     // Sync the in-memory clients in this runtime with the
     // updated database. This pulls in all the stored clients.
@@ -119,7 +121,9 @@ export class WebSocketClientManager {
    * connection object because `addConnection()` is called only
    * for the opened connections in the same runtime.
    */
-  public async addConnection(client: WebSocketClientConnection): Promise<void> {
+  public async addConnection(
+    client: WebSocketClientConnectionProtocol,
+  ): Promise<void> {
     // Store this client in the map of clients created in this runtime.
     // This way, the manager can distinguish between this runtime clients
     // and extraneous runtime clients when synchronizing clients storage.
@@ -207,5 +211,31 @@ export class WebSocketRemoteClientConnection
         reason,
       },
     } as WebSocketBroadcastChannelMessage)
+  }
+
+  addEventListener<EventType extends keyof WebSocketClientEventMap>(
+    _type: EventType,
+    _listener: (
+      this: WebSocket,
+      event: WebSocketClientEventMap[EventType],
+    ) => void,
+    _options?: AddEventListenerOptions | boolean,
+  ): void {
+    throw new Error(
+      'WebSocketRemoteClientConnection.addEventListener is not supported',
+    )
+  }
+
+  removeEventListener<EventType extends keyof WebSocketClientEventMap>(
+    _event: EventType,
+    _listener: (
+      this: WebSocket,
+      event: WebSocketClientEventMap[EventType],
+    ) => void,
+    _options?: EventListenerOptions | boolean,
+  ): void {
+    throw new Error(
+      'WebSocketRemoteClientConnection.removeEventListener is not supported',
+    )
   }
 }

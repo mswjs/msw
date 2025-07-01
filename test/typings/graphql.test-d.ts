@@ -75,6 +75,22 @@ it('graphql query allows explicit null as the response body type for the query',
   })
 })
 
+it('supports nullable queries', () => {
+  graphql.query<{ id: string } | null>('GetUser', () => {
+    return HttpResponse.json({
+      data: null,
+    })
+  })
+})
+
+it('supports nullable mutations', () => {
+  graphql.mutation<{ id: string } | null>('GetUser', () => {
+    return HttpResponse.json({
+      data: null,
+    })
+  })
+})
+
 it('graphql query does not accept invalid data type for the response body type for the query', () => {
   graphql.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
@@ -102,7 +118,7 @@ it('graphql query does not allow incompatible response body type', () => {
   )
 })
 
-it("graphql operation does not accept null as variables' generic operation type", () => {
+it('graphql operation does not accept null as variables type', () => {
   graphql.operation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -138,6 +154,23 @@ it('graphql handlers allow passthrough responses', () => {
     }
 
     return HttpResponse.json({ data: {} })
+  })
+})
+
+it('supports Response.error()', () => {
+  graphql.query<{ id: string }>('GetUser', () => HttpResponse.error())
+  graphql.mutation('UpdatePost', () => HttpResponse.error())
+  graphql.operation(() => HttpResponse.error())
+
+  graphql.query('GetUser', async () => HttpResponse.error())
+  graphql.query('GetUser', function* () {
+    return HttpResponse.error()
+  })
+
+  graphql.query('GetUser', () => Response.error())
+  graphql.query('GetUser', async () => Response.error())
+  graphql.query('GetUser', function* () {
+    return Response.error()
   })
 })
 
@@ -195,6 +228,18 @@ it('graphql mutation cannot extract variable and reponse types', () => {
   graphql.mutation(createUser, () => {
     return HttpResponse.json({
       data: { arbitrary: true },
+    })
+  })
+})
+
+it('graphql query allows extensions in the response body', () => {
+  graphql.query<{ id: string }>('GetUser', () => {
+    return HttpResponse.json({
+      data: { id: '2' },
+      extensions: {
+        requestId: '3',
+        runtime: 'foo',
+      },
     })
   })
 })

@@ -1,12 +1,10 @@
 import { test, expect } from '../../../playwright.extend'
 
-const PREDICATE_EXAMPLE = require.resolve('./predicate.mocks.ts')
-
 test('matches requests when the predicate function returns true', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(PREDICATE_EXAMPLE)
+  await loadExample(require.resolve('./predicate.mocks.ts'))
   const res = await fetch('/api/foo', {
     method: 'POST',
     body: JSON.stringify({ foo: 'bar' }),
@@ -20,7 +18,7 @@ test('does not match requests when the predicate function returns false', async 
   loadExample,
   fetch,
 }) => {
-  await loadExample(PREDICATE_EXAMPLE)
+  await loadExample(require.resolve('./predicate.mocks.ts'))
   const res = await fetch('/api/foo', {
     method: 'POST',
     body: JSON.stringify({ foo: 'baz' }),

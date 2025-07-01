@@ -41,7 +41,7 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
 ): HttpRequestHandler {
   return (path, resolver, options = {}) => {
     if (typeof path === 'function') {
-      return new HttpHandler(method, undefined, resolver, {
+      return new HttpHandler(method, '', resolver, {
         ...options,
         predicate: path,
       })

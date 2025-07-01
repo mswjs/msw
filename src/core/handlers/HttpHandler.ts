@@ -25,7 +25,7 @@ type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod
-  path: Path | undefined
+  path: Path
 }
 
 export enum HttpMethods {
@@ -72,7 +72,7 @@ export class HttpHandler extends RequestHandler<
 
   constructor(
     method: HttpHandlerMethod,
-    path: Path | undefined,
+    path: Path,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions & {
       predicate?: HttpCustomPredicate
@@ -81,16 +81,14 @@ export class HttpHandler extends RequestHandler<
     super({
       info: {
         header: `${method} ${path}`,
-        path: path as Path,
+        path,
         method,
       },
       resolver,
       options,
     })
     this.customPredicate = options?.predicate
-    if (path !== undefined) {
-      this.checkRedundantQueryParameters()
-    }
+    this.checkRedundantQueryParameters()
   }
 
   private checkRedundantQueryParameters() {

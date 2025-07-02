@@ -6,10 +6,7 @@ it('does not leak memory when handling a large number of requests', async () => 
   // so the test runner's memory consumption does not affect the results.
   const child = spawn(
     'node',
-    [
-      new URL('./memory-consumption.js', import.meta.url).pathname,
-      '--expose-gc',
-    ],
+    [new URL('./memory-usage.js', import.meta.url).pathname, '--expose-gc'],
     {
       stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
     },
@@ -23,5 +20,5 @@ it('does not leak memory when handling a large number of requests', async () => 
   })
   const memoryUsed = await memoryUsedPromise
 
-  console.log({ memoryUsed })
+  expect(memoryUsed).toBeLessThan(8)
 })

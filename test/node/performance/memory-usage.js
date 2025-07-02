@@ -4,9 +4,13 @@ import { setupServer } from 'msw/node'
 async function profile() {
   const startMemoryUsage = process.memoryUsage().heapUsed
 
-  for (let i = 0; i < 1000; i++) {
-    const server = setupServer()
-    server.listen({ onUnhandledRequest: 'bypass' })
+  for (let i = 0; i < 10_000; i++) {
+    let server
+
+    if (!process.env.USE_NODE) {
+      server = setupServer()
+      server.listen({ onUnhandledRequest: 'bypass' })
+    }
 
     await new Promise((resolve) => {
       http
@@ -14,11 +18,20 @@ async function profile() {
         .on('error', () => resolve())
     })
 
-    server.close()
+    if (!process.env.USE_NODE) {
+      server.close()
+    }
   }
 
   const endMemoryUsage = process.memoryUsage().heapUsed
-  const memoryUsed = endMemoryUsage - startMemoryUsage
+  const memoryUsed = (endMemoryUsage - startMemoryUsage) / 1024 / 1024
+
+  console.log(
+    'Memory used:',
+    memoryUsed,
+    'MB',
+    process.env.USE_NODE ? '(Node.js)' : '(MSW)',
+  )
 
   global.gc?.()
   process.send?.(memoryUsed)

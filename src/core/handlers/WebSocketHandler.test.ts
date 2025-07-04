@@ -108,4 +108,20 @@ describe('parse', () => {
       },
     })
   })
+
+  it('supports a custom resolution context (base url)', () => {
+    expect(
+      new WebSocketHandler('/api/ws').parse({
+        url: new URL('ws://localhost:3000/api/ws'),
+        resolutionContext: {
+          baseUrl: 'ws://localhost:3000/',
+        },
+      }),
+    ).toEqual({
+      match: {
+        matches: true,
+        params: {},
+      },
+    })
+  })
 })

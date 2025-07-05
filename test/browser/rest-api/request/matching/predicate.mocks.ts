@@ -4,7 +4,7 @@ import { setupWorker } from 'msw/browser'
 const worker = setupWorker(
   http.post(
     async ({ request }) => {
-      const body = await request.json()
+      const body = await request.clone().json()
       return body.foo === 'bar'
     },
     () => {

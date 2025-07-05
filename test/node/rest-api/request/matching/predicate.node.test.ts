@@ -32,7 +32,7 @@ beforeEach(() => {
   server.use(
     http.post(
       async ({ request }) => {
-        const body = await request.json()
+        const body = await request.clone().json()
         return body.foo === 'bar'
       },
       () => {

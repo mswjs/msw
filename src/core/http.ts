@@ -7,7 +7,7 @@ import {
   HttpMethods,
   HttpHandler,
   HttpRequestResolverExtras,
-  HttpRequestPath,
+  HttpRequestPredicate,
 } from './handlers/HttpHandler'
 import type { PathParams } from './utils/matching/matchRequestUrl'
 
@@ -19,9 +19,9 @@ export type HttpRequestHandler = <
   // returns plain "Response" and the one returning "HttpResponse"
   // to enforce a stricter response body type.
   ResponseBodyType extends DefaultBodyType = undefined,
-  RequestPath extends HttpRequestPath = HttpRequestPath,
+  RequestPredicate extends HttpRequestPredicate = HttpRequestPredicate,
 >(
-  path: RequestPath,
+  predicate: RequestPredicate,
   resolver: HttpResponseResolver<Params, RequestBodyType, ResponseBodyType>,
   options?: RequestHandlerOptions,
 ) => HttpHandler
@@ -39,14 +39,8 @@ export type HttpResponseResolver<
 function createHttpHandler<Method extends HttpMethods | RegExp>(
   method: Method,
 ): HttpRequestHandler {
-  return (path, resolver, options = {}) => {
-    if (typeof path === 'function') {
-      return new HttpHandler(method, '', resolver, {
-        ...options,
-        predicate: path,
-      })
-    }
-    return new HttpHandler(method, path, resolver, options)
+  return (predicate, resolver, options = {}) => {
+    return new HttpHandler(method, predicate, resolver, options)
   }
 }
 

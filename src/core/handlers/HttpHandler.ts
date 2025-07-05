@@ -57,7 +57,7 @@ export type HttpCustomPredicate = (args: {
   cookies: Record<string, string>
 }) => boolean | Promise<boolean>
 
-export type HttpRequestPath = Path | HttpCustomPredicate
+export type HttpRequestPredicate = Path | HttpCustomPredicate
 
 /**
  * Request handler for HTTP requests.
@@ -72,22 +72,27 @@ export class HttpHandler extends RequestHandler<
 
   constructor(
     method: HttpHandlerMethod,
-    path: Path,
+    predicate: HttpRequestPredicate,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
-    options?: RequestHandlerOptions & {
-      predicate?: HttpCustomPredicate
-    },
+    options?: RequestHandlerOptions,
   ) {
+    const isPredicateFunction = typeof predicate === 'function'
+    const path = isPredicateFunction ? '' : predicate
+
     super({
       info: {
-        header: `${method} ${path}`,
+        header: `${method}${path ? ` ${path}` : ''}`,
         path,
         method,
       },
       resolver,
       options,
     })
-    this.customPredicate = options?.predicate
+
+    if (isPredicateFunction) {
+      this.customPredicate = predicate
+    }
+
     this.checkRedundantQueryParameters()
   }
 
@@ -139,13 +144,8 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     if (this.customPredicate) {
-      // Clone the request to avoid locking its body stream.
-      // The body can only be read once, so cloning allows both
-      // the predicate and resolver to access it independently.
-      const clonedRequest = args.request.clone()
-
       return await this.customPredicate({
-        request: clonedRequest,
+        request: args.request,
         cookies: args.parsedResult.cookies,
       })
     }

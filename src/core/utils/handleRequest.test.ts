@@ -501,7 +501,7 @@ describe('handler with custom predicate', () => {
     const handlers: Array<RequestHandler> = [
       http.post(
         async ({ request }) => {
-          const body = await request.json()
+          const body = await request.clone().json()
           return body.username === 'test' && body.password === 'password'
         },
         () =>
@@ -542,7 +542,7 @@ describe('handler with custom predicate', () => {
     const handlers: Array<RequestHandler> = [
       http.post(
         async ({ request }) => {
-          const body = await request.json()
+          const body = await request.clone().json()
           return body.username === 'test' && body.password === 'password'
         },
         () =>

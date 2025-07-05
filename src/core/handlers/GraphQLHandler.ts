@@ -110,13 +110,16 @@ export class GraphQLHandler extends RequestHandler<
 
   constructor(
     operationType: ExpectedOperationTypeNode,
-    operationName: GraphQLHandlerNameSelector,
+    predicate:
+      | GraphQLHandlerNameSelector
+      | GraphQLCustomPredicate<GraphQLVariables>,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
-    options?: RequestHandlerOptions & {
-      predicate?: GraphQLCustomPredicate<GraphQLVariables>
-    },
+    options?: RequestHandlerOptions,
   ) {
+    const isPredicateFunction = typeof predicate === 'function'
+    const operationName = isPredicateFunction ? '' : predicate
+
     let resolvedOperationName = operationName
 
     if (isDocumentNode(operationName)) {
@@ -140,7 +143,7 @@ export class GraphQLHandler extends RequestHandler<
     const header =
       operationType === 'all'
         ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType} ${resolvedOperationName} (origin: ${endpoint.toString()})`
+        : `${operationType}${resolvedOperationName ? ` ${resolvedOperationName}` : ''} (origin: ${endpoint.toString()})`
 
     super({
       info: {
@@ -152,7 +155,9 @@ export class GraphQLHandler extends RequestHandler<
       options,
     })
 
-    this.customPredicate = options?.predicate
+    if (isPredicateFunction) {
+      this.customPredicate = predicate
+    }
     this.endpoint = endpoint
   }
 
@@ -213,37 +218,38 @@ export class GraphQLHandler extends RequestHandler<
     parsedResult: GraphQLRequestParsedResult
   }): Promise<boolean> {
     if (this.customPredicate) {
-      // Clone the request to avoid locking its body stream.
-      // The body can only be read once, so cloning allows both
-      // the predicate and resolver to access it independently.
-      const clonedRequest = args.request.clone()
-
       return await this.customPredicate({
-        request: clonedRequest,
+        request: args.request,
         ...this.extendResolverArgs({
-          request: clonedRequest,
+          request: args.request,
           parsedResult: args.parsedResult,
         }),
       })
     }
+
     if (args.parsedResult.operationType === undefined) {
       return false
     }
+
     if (!args.parsedResult.operationName && this.info.operationType !== 'all') {
       const publicUrl = toPublicUrl(args.request.url)
+
       devUtils.warn(`\
 Failed to intercept a GraphQL request at "${args.request.method} ${publicUrl}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
       return false
     }
+
     const hasMatchingOperationType =
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
+
     const hasMatchingOperationName =
       this.info.operationName instanceof RegExp
         ? this.info.operationName.test(args.parsedResult.operationName || '')
         : args.parsedResult.operationName === this.info.operationName
+
     return (
       args.parsedResult.match.matches &&
       hasMatchingOperationType &&

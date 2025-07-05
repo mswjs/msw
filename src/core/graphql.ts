@@ -28,7 +28,7 @@ export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
   Variables extends GraphQLVariables = GraphQLVariables,
 >(
-  operationName:
+  predicate:
     | GraphQLHandlerNameSelector
     | DocumentNode
     | TypedDocumentNode<Query, Variables>
@@ -53,20 +53,8 @@ function createScopedGraphQLHandler(
   operationType: ExpectedOperationTypeNode,
   url: Path,
 ): GraphQLRequestHandler {
-  return (operationName, resolver, options = {}) => {
-    if (typeof operationName === 'function') {
-      return new GraphQLHandler(operationType, '', url, resolver, {
-        ...options,
-        predicate: operationName,
-      })
-    }
-    return new GraphQLHandler(
-      operationType,
-      operationName,
-      url,
-      resolver,
-      options,
-    )
+  return (predicate, resolver, options = {}) => {
+    return new GraphQLHandler(operationType, predicate, url, resolver, options)
   }
 }
 

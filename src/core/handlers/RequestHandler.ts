@@ -133,7 +133,10 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
-  static predicateCache = new WeakMap<StrictRequest<DefaultBodyType>, boolean>()
+  static predicateCache = new WeakMap<
+    StrictRequest<DefaultBodyType>,
+    Map<RequestHandler, boolean>
+  >()
 
   private readonly __kind: HandlerKind
 
@@ -259,16 +262,21 @@ export abstract class RequestHandler<
     parsedResult: ParsedResult
     resolutionContext?: ResponseResolutionContext
   }): Promise<boolean> {
-    const existingPredicateResult = RequestHandler.predicateCache.get(
-      args.request,
-    )
+    let handlerCache = RequestHandler.predicateCache.get(args.request)
 
-    if (typeof existingPredicateResult !== 'undefined') {
+    if (handlerCache === undefined) {
+      handlerCache = new Map()
+      RequestHandler.predicateCache.set(args.request, handlerCache)
+    }
+
+    const existingPredicateResult = handlerCache.get(this)
+
+    if (existingPredicateResult !== undefined) {
       return existingPredicateResult
     }
 
     const predicateResult = await this.predicate(args)
-    RequestHandler.predicateCache.set(args.request, predicateResult)
+    handlerCache.set(this, predicateResult)
 
     return predicateResult
   }

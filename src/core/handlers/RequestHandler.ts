@@ -264,14 +264,14 @@ export abstract class RequestHandler<
   }): Promise<boolean> {
     let handlerCache = RequestHandler.predicateCache.get(args.request)
 
-    if (handlerCache === undefined) {
+    if (typeof handlerCache === 'undefined') {
       handlerCache = new Map()
       RequestHandler.predicateCache.set(args.request, handlerCache)
     }
 
     const existingPredicateResult = handlerCache.get(this)
 
-    if (existingPredicateResult !== undefined) {
+    if (typeof existingPredicateResult !== 'undefined') {
       return existingPredicateResult
     }
 

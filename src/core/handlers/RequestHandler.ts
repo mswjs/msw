@@ -133,6 +133,11 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
+  static predicateCache = new WeakMap<
+    StrictRequest<DefaultBodyType>,
+    Map<RequestHandler, boolean>
+  >()
+
   private readonly __kind: HandlerKind
 
   public info: HandlerInfo & RequestHandlerInternalInfo
@@ -179,7 +184,7 @@ export abstract class RequestHandler<
     request: Request
     parsedResult: ParsedResult
     resolutionContext?: ResponseResolutionContext
-  }): boolean
+  }): boolean | Promise<boolean>
 
   /**
    * Print out the successfully handled request.
@@ -250,6 +255,33 @@ export abstract class RequestHandler<
   }
 
   /**
+   * Get the cached predicate result or execute the predicate and cache the result.
+   */
+  private async getCachedPredicateResult(args: {
+    request: Request
+    parsedResult: ParsedResult
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<boolean> {
+    let handlerCache = RequestHandler.predicateCache.get(args.request)
+
+    if (typeof handlerCache === 'undefined') {
+      handlerCache = new Map()
+      RequestHandler.predicateCache.set(args.request, handlerCache)
+    }
+
+    const existingPredicateResult = handlerCache.get(this)
+
+    if (typeof existingPredicateResult !== 'undefined') {
+      return existingPredicateResult
+    }
+
+    const predicateResult = await this.predicate(args)
+    handlerCache.set(this, predicateResult)
+
+    return predicateResult
+  }
+
+  /**
    * Execute this request handler and produce a mocked response
    * using the given resolver function.
    */
@@ -273,7 +305,8 @@ export abstract class RequestHandler<
       request: args.request,
       resolutionContext: args.resolutionContext,
     })
-    const shouldInterceptRequest = this.predicate({
+
+    const shouldInterceptRequest = await this.getCachedPredicateResult({
       request: args.request,
       parsedResult,
       resolutionContext: args.resolutionContext,

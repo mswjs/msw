@@ -78,7 +78,7 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
@@ -95,7 +95,7 @@ describe('predicate', () => {
 
     for (const request of requests) {
       expect(
-        handler.predicate({
+        await handler.predicate({
           request,
           parsedResult: await handler.parse({ request }),
         }),
@@ -108,7 +108,7 @@ describe('predicate', () => {
     const request = new Request(new URL('/user/abc-123', location.href))
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),

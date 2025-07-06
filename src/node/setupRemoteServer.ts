@@ -6,11 +6,10 @@ import type { RequiredDeep } from 'type-fest'
 import { invariant } from 'outvariant'
 import { createRequestId } from '@mswjs/interceptors'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { Emitter } from 'strict-event-emitter'
 import { SetupApi } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { handleRequest } from '~/core/utils/handleRequest'
+import { getResponse } from '~/core/getResponse'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 import type {
   LifeCycleEventEmitter,
@@ -114,7 +113,6 @@ export class SetupRemoteServerApi
       DEFAULT_LISTEN_OPTIONS,
       options,
     ) as RequiredDeep<ListenOptions>
-    const dummyEmitter = new Emitter<LifeCycleEventsMap>()
 
     const server = await createSyncServer()
     this[kServerUrl] = getServerUrl(server)
@@ -191,26 +189,8 @@ export class SetupRemoteServerApi
         /** @todo Eventually allow all handler types */
         isHandlerKind('RequestHandler'),
       )
-      const response = await handleRequest(
-        request,
-        requestId,
-        handlers,
-        {
-          /**
-           * @note Ignore the `onUnhandledRequest` callback during the
-           * request handling. This context isn't the only one handling
-           * the request. Instead, this logic is moved to the forwarded
-           * life-cycle event.
-           */
-          onUnhandledRequest() {},
-        },
-        /**
-         * @note Use a dummy emitter because this context
-         * is only one layer that can resolve a request. For example,
-         * request can be resolved in the remote process and not here.
-         */
-        dummyEmitter,
-      )
+
+      const response = await getResponse(handlers, request)
 
       if (response) {
         outgoing.writeHead(

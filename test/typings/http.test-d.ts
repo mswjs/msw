@@ -52,7 +52,7 @@ it('supports path parameters declared via interface', () => {
   })
 })
 
-it('supports json as a request body generic argument', () => {
+it('supports json as a request body type argument', () => {
   http.post<never, { id: string }>('/user', async ({ request }) => {
     const data = await request.json()
 
@@ -64,20 +64,98 @@ it('supports json as a request body generic argument', () => {
   })
 })
 
-it('supports null as the request body generic', () => {
+it('supports null as the request body type argument', () => {
   http.get<never, null>('/user', async ({ request }) => {
     const data = await request.json()
     expectTypeOf(data).toEqualTypeOf<null>()
   })
 })
 
-it('returns plain Response withouth explicit response body generic', () => {
+it('returns plain Response withouth explicit response body type argument', () => {
   http.get('/user', () => {
     return new Response('hello')
   })
 })
 
-it('supports string as a response body generic argument', () => {
+it('supports a text response without explicit response body type argument', () => {
+  http.get('/resource', () => {
+    return HttpResponse.text('hello world')
+  })
+})
+
+it('supports a json response without explicit response body type argument', () => {
+  http.get('/resource', () => {
+    return HttpResponse.json({ id: 1 })
+  })
+})
+
+it('supports an xml response without explicit response body type argument', () => {
+  http.get('/resource', () => {
+    return HttpResponse.xml('<hello>world</hello>')
+  })
+})
+
+it('supports a form data response without explicit response body type argument', () => {
+  http.get('/resource', () => {
+    return HttpResponse.formData(new FormData())
+  })
+})
+
+it('supports a stream response without explicit response body type argument', () => {
+  http.get('/resource', () => {
+    return new HttpResponse(new ReadableStream())
+  })
+})
+
+it('returns HttpResponse with URLSearchParams as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new URLSearchParams())
+  })
+})
+
+it('returns HttpResponse with FormData as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new FormData())
+  })
+})
+
+it('returns HttpResponse with ReadableStream as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ReadableStream())
+  })
+})
+
+it('returns HttpResponse with Blob as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new Blob(['hello']))
+  })
+})
+
+it('returns HttpResponse with ArrayBuffer as response body', () => {
+  http.get('/', () => {
+    return new HttpResponse(new ArrayBuffer(5))
+  })
+})
+
+it('supports null as a response body type argument', () => {
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse()
+  })
+  http.get<never, never, null>('/', () => {
+    return new HttpResponse(
+      // @ts-expect-error Expected null, got a string.
+      'hello',
+    )
+  })
+  http.get<never, never, null>('/', () => {
+    return HttpResponse.json(
+      // @ts-expect-error Expected null, got an object.
+      { id: 1 },
+    )
+  })
+})
+
+it('supports string as a response body type argument', () => {
   http.get<never, never, string>('/', ({ request }) => {
     if (request.headers.has('x-foo')) {
       return HttpResponse.text('conditional')
@@ -87,7 +165,7 @@ it('supports string as a response body generic argument', () => {
   })
 })
 
-it('supports exact string as a response body generic argument', () => {
+it('supports exact string as a response body type argument', () => {
   http.get<never, never, 'hello'>('/', () => {
     return HttpResponse.text('hello')
   })
@@ -98,13 +176,13 @@ it('supports exact string as a response body generic argument', () => {
   })
 })
 
-it('supports object as a response body generic argument', () => {
+it('supports object as a response body type argument', () => {
   http.get<never, never, { id: number }>('/user', () => {
     return HttpResponse.json({ id: 1 })
   })
 })
 
-it('supports narrow object as a response body generic argument', () => {
+it('supports narrow object as a response body type argument', () => {
   http.get<never, never, { id: 123 }>('/user', () => {
     return HttpResponse.json({ id: 123 })
   })
@@ -117,7 +195,7 @@ it('supports narrow object as a response body generic argument', () => {
   })
 })
 
-it('supports object with extra keys as a response body generic argument', () => {
+it('supports object with extra keys as a response body type argument', () => {
   type ResponseBody = {
     [key: string]: number | string
     id: 123
@@ -148,7 +226,7 @@ it('supports object with extra keys as a response body generic argument', () => 
   })
 })
 
-it('supports response body generic declared via type', () => {
+it('supports response body type argument declared via type', () => {
   type ResponseBodyType = { id: number }
   http.get<never, never, ResponseBodyType>('/user', () => {
     const data: ResponseBodyType = { id: 1 }
@@ -156,7 +234,7 @@ it('supports response body generic declared via type', () => {
   })
 })
 
-it('supports response body generic declared via interface', () => {
+it('supports response body type argument declared via interface', () => {
   interface ResponseBodyInterface {
     id: number
   }
@@ -166,7 +244,7 @@ it('supports response body generic declared via interface', () => {
   })
 })
 
-it('throws when returning a json response not matching the response body generic', () => {
+it('throws when returning a json response not matching the response body type argument', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error String not assignable to number
@@ -174,7 +252,7 @@ it('throws when returning a json response not matching the response body generic
   )
 })
 
-it('throws when returning an empty json response not matching the response body generic', () => {
+it('throws when returning an empty json response not matching the response body type argument', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error Missing property "id"
@@ -234,4 +312,30 @@ it('errors when returning non-Response data from resolver', () => {
     // @ts-expect-error
     () => ({}),
   )
+})
+
+it('treats non-typed HttpResponse body type as matching', () => {
+  http.get<never, never, { id: string }>('/resource', () => {
+    /**
+     * @note When constructing a Response/HttpResponse instance,
+     * its body type must effectively be treated as `any`. You
+     * cannot provide or infer a narrower type because these classes
+     * operate on streams or strings, none of which are type-safe.
+     */
+    return new HttpResponse(null, { status: 500 })
+  })
+})
+
+it('supports returning Response.error()', () => {
+  http.get('/resource', () => Response.error())
+  http.get('/resource', async () => Response.error())
+  http.get('/resource', function* () {
+    return Response.error()
+  })
+
+  http.get<never, never, string>('/resource', () => HttpResponse.error())
+  http.get<never, never, string>('/resource', async () => HttpResponse.error())
+  http.get<never, never, string>('/resource', function* () {
+    return HttpResponse.error()
+  })
 })

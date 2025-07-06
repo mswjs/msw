@@ -15,9 +15,12 @@ test('removes all listeners when the worker is stopped', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./removes-all-listeners.mocks.ts'), {
-    skipActivation: true,
-  })
+  await loadExample(
+    new URL('./removes-all-listeners.mocks.ts', import.meta.url),
+    {
+      skipActivation: true,
+    },
+  )
 
   await page.waitForFunction(() => {
     return typeof window.msw !== 'undefined'

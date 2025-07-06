@@ -1,8 +1,8 @@
-import type { StrictResponse } from './HttpResponse'
 import {
   REQUEST_INTENTION_HEADER_NAME,
   RequestIntention,
 } from './utils/internal/requestUtils'
+import type { HttpResponse } from './HttpResponse'
 
 /**
  * Performs the intercepted request as-is.
@@ -18,12 +18,12 @@ import {
  *
  * @see {@link https://mswjs.io/docs/api/passthrough `passthrough()` API reference}
  */
-export function passthrough(): StrictResponse<any> {
+export function passthrough(): HttpResponse<any> {
   return new Response(null, {
     status: 302,
     statusText: 'Passthrough',
     headers: {
       [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.passthrough,
     },
-  }) as StrictResponse<any>
+  }) as HttpResponse<any>
 }

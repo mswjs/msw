@@ -2,7 +2,7 @@ import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
 test('mocks a GraphQL error response', async ({ loadExample, query }) => {
-  await loadExample(require.resolve('./errors.mocks.ts'))
+  await loadExample(new URL('./errors.mocks.ts', import.meta.url))
 
   const res = await query('/graphql', {
     query: gql`

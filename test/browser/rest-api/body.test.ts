@@ -1,6 +1,6 @@
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./body.mocks.ts')
+const EXAMPLE_PATH = new URL('./body.mocks.ts', import.meta.url)
 
 test('handles a GET request without a body', async ({ loadExample, fetch }) => {
   await loadExample(EXAMPLE_PATH)

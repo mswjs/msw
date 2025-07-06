@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { invariant } from 'outvariant'
+import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -75,11 +76,15 @@ export class SetupServerApi
 {
   protected remoteClient?: RemoteClient
 
-  constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
-    super(
-      [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
-      handlers,
-    )
+  constructor(
+    handlers: Array<RequestHandler | WebSocketHandler>,
+    interceptors: Array<Interceptor<HttpRequestEventMap>> = [
+      new ClientRequestInterceptor(),
+      new XMLHttpRequestInterceptor(),
+      new FetchInterceptor(),
+    ],
+  ) {
+    super(interceptors, handlers)
 
     this.handlersController = new AsyncHandlersController({
       storage: handlersStorage,

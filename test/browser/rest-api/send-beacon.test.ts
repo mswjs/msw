@@ -4,7 +4,7 @@ test('supports mocking a response to a "sendBeacon" request', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./send-beacon.mocks.ts'))
+  await loadExample(new URL('./send-beacon.mocks.ts', import.meta.url))
 
   const isQueuedPromise = page.evaluate(() => {
     return navigator.sendBeacon(
@@ -32,7 +32,7 @@ test('supports bypassing "sendBeacon" requests', async ({
   page,
 }) => {
   const { compilation } = await loadExample(
-    require.resolve('./send-beacon.mocks.ts'),
+    new URL('./send-beacon.mocks.ts', import.meta.url),
     {
       beforeNavigation(compilation) {
         compilation.use((router) => {

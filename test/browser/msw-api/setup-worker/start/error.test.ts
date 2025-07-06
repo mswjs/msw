@@ -11,7 +11,7 @@ test('rejects with a custom error message when given a non-existing worker scrip
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./error.mocks.ts'), {
+  await loadExample(new URL('./error.mocks.ts', import.meta.url), {
     skipActivation: true,
   })
 

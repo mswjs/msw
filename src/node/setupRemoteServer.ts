@@ -175,7 +175,7 @@ export class SetupRemoteServerApi
             ? (Readable.toWeb(incoming) as ReadableStream<unknown>)
             : null,
         // @ts-expect-error Missing Node.js types.
-        duplex: 'half'
+        duplex: 'half',
       })
 
       for (const headerName in incoming.headersDistinct) {

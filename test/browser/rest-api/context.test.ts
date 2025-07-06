@@ -4,7 +4,7 @@ test('composes various context utilities into a valid mocked response', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./context.mocks.ts'))
+  await loadExample(new URL('./context.mocks.ts', import.meta.url))
 
   const res = await fetch('https://test.mswjs.io/')
   const headers = await res.allHeaders()

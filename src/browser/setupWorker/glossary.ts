@@ -7,11 +7,8 @@ import {
 import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
-import type { Path } from '~/core/utils/matching/matchRequestUrl'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-
-export type ResolvedPath = Path | URL
 
 type RequestWithoutMethods = Omit<
   Request,
@@ -39,12 +36,13 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body?: ArrayBuffer | null
 }
 
-export type ServiceWorkerIncomingResponse = Pick<
-  Response,
-  'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
-> & {
-  requestId: string
+type ServiceWorkerIncomingResponse = {
   isMockedResponse: boolean
+  request: ServiceWorkerIncomingRequest
+  response: Pick<
+    Response,
+    'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
+  >
 }
 
 /**
@@ -70,7 +68,7 @@ export interface ServiceWorkerIncomingEventsMap {
  * Map of the events that can be sent to the Service Worker
  * from any execution context.
  */
-export type ServiceWorkerOutgoingEventTypes =
+type ServiceWorkerOutgoingEventTypes =
   | 'MOCK_ACTIVATE'
   | 'MOCK_DEACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
@@ -81,7 +79,7 @@ export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-export interface StrictEventListener<EventType extends Event> {
+interface StrictEventListener<EventType extends Event> {
   (event: EventType): void
 }
 
@@ -90,8 +88,7 @@ export interface SetupWorkerInternalContext {
   startOptions: RequiredDeep<StartOptions>
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
-  getRequestHandlers(): Array<RequestHandler | WebSocketHandler>
-  requests: Map<string, Request>
+  getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {

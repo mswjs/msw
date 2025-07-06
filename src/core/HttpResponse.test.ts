@@ -13,6 +13,10 @@ it('creates a plain response', async () => {
   expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
+it('supports non-configurable status codes', () => {
+  expect(new HttpResponse(null, { status: 101 })).toHaveProperty('status', 101)
+})
+
 describe('HttpResponse.text()', () => {
   it('creates a text response', async () => {
     const response = HttpResponse.text('hello world', { status: 201 })

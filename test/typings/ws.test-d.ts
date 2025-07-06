@@ -53,7 +53,6 @@ it('exposes root-level "client" APIs', () => {
 
   link.addEventListener('connection', ({ client }) => {
     expectTypeOf(client.id).toBeString()
-    expectTypeOf(client.socket).toEqualTypeOf<WebSocket>()
     expectTypeOf(client.url).toEqualTypeOf<URL>()
 
     expectTypeOf(client.addEventListener).toBeFunction()
@@ -103,8 +102,6 @@ it('exposes root-level "server" APIs', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
-    expectTypeOf(server.socket).toEqualTypeOf<WebSocket>()
-
     expectTypeOf(server.connect).toEqualTypeOf<() => void>()
     expectTypeOf(server.addEventListener).toBeFunction()
     expectTypeOf(server.send).toBeFunction()

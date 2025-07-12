@@ -77,6 +77,14 @@ export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
   | null
   | undefined
 
+export type GraphQLCustomPredicate<GraphQLVariables> = (args: {
+  request: Request
+  query: string
+  operationName: string
+  variables: GraphQLVariables
+  cookies: Record<string, string>
+}) => boolean | Promise<boolean>
+
 export function isDocumentNode(
   value: DocumentNode | any,
 ): value is DocumentNode {
@@ -93,6 +101,7 @@ export class GraphQLHandler extends RequestHandler<
   GraphQLResolverExtras<any>
 > {
   private endpoint: Path
+  private customPredicate?: GraphQLCustomPredicate<GraphQLVariables>
 
   static parsedRequestCache = new WeakMap<
     Request,
@@ -101,11 +110,16 @@ export class GraphQLHandler extends RequestHandler<
 
   constructor(
     operationType: ExpectedOperationTypeNode,
-    operationName: GraphQLHandlerNameSelector,
+    predicate:
+      | GraphQLHandlerNameSelector
+      | GraphQLCustomPredicate<GraphQLVariables>,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
+    const isPredicateFunction = typeof predicate === 'function'
+    const operationName = isPredicateFunction ? '' : predicate
+
     let resolvedOperationName = operationName
 
     if (isDocumentNode(operationName)) {
@@ -129,7 +143,7 @@ export class GraphQLHandler extends RequestHandler<
     const header =
       operationType === 'all'
         ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType} ${resolvedOperationName} (origin: ${endpoint.toString()})`
+        : `${operationType}${resolvedOperationName ? ` ${resolvedOperationName}` : ''} (origin: ${endpoint.toString()})`
 
     super({
       info: {
@@ -141,6 +155,9 @@ export class GraphQLHandler extends RequestHandler<
       options,
     })
 
+    if (isPredicateFunction) {
+      this.customPredicate = predicate
+    }
     this.endpoint = endpoint
   }
 
@@ -196,10 +213,20 @@ export class GraphQLHandler extends RequestHandler<
     }
   }
 
-  predicate(args: {
+  async predicate(args: {
     request: Request
     parsedResult: GraphQLRequestParsedResult
-  }) {
+  }): Promise<boolean> {
+    if (this.customPredicate) {
+      return await this.customPredicate({
+        request: args.request,
+        ...this.extendResolverArgs({
+          request: args.request,
+          parsedResult: args.parsedResult,
+        }),
+      })
+    }
+
     if (args.parsedResult.operationType === undefined) {
       return false
     }

@@ -557,13 +557,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),
@@ -591,13 +591,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),
@@ -618,7 +618,7 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
@@ -643,13 +643,13 @@ describe('predicate', () => {
     })
 
     expect(
-      handler.predicate({
+      await handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
     ).toBe(true)
     expect(
-      handler.predicate({
+      await handler.predicate({
         request: alienRequest,
         parsedResult: await handler.parse({ request: alienRequest }),
       }),

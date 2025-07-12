@@ -1,5 +1,5 @@
 import { it } from 'vitest'
-import { sse } from 'msw/browser'
+import { sse } from 'msw'
 
 /**
  * @note Define the global property to simulate an EventSource-compatible environment.

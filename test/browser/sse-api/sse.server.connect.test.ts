@@ -1,4 +1,5 @@
-import { setupWorker, sse } from 'msw/browser'
+import { sse } from 'msw'
+import { setupWorker } from 'msw/browser'
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { test, expect } from '../playwright.extend'
 
@@ -285,9 +286,7 @@ test('forward custom stream errors from the original server to the client automa
   const errorPromise = page.evaluate((url) => {
     return new Promise<void>((resolve, reject) => {
       const source = new EventSource(url)
-      source.onerror = () => {
-        resolve()
-      }
+      source.onerror = () => resolve()
       source.onmessage = () => {
         reject(new Error('Must not receive a message'))
       }

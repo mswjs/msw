@@ -1,4 +1,5 @@
-import { setupWorker, sse } from 'msw/browser'
+import { sse } from 'msw'
+import { setupWorker } from 'msw/browser'
 
 // @ts-ignore
 window.msw = {

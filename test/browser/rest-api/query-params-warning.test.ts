@@ -9,8 +9,8 @@ test('warns when a request handler URL contains query parameters', async ({
   await loadExample(new URL('./query-params-warning.mocks.ts', import.meta.url))
 
   expect(consoleSpy.get('warning')).toEqual([
-    `[MSW] Found a redundant usage of query parameters in the request handler URL for "GET /user?name=admin". Please match against a path instead and access query parameters using \"new URL(request.url).searchParams\" instead. Learn more: https://mswjs.io/docs/http/intercepting-requestsquery-parameters`,
-    `[MSW] Found a redundant usage of query parameters in the request handler URL for "POST /login?id=123&type=auth". Please match against a path instead and access query parameters using \"new URL(request.url).searchParams\" instead. Learn more: https://mswjs.io/docs/http/intercepting-requestsquery-parameters`,
+    `[MSW] Found a redundant usage of query parameters in the request handler URL for "GET /user?name=admin". Please match against a path instead and access query parameters using \"new URL(request.url).searchParams\" instead. Learn more: https://mswjs.io/docs/http/intercepting-requests#querysearch-parameters`,
+    `[MSW] Found a redundant usage of query parameters in the request handler URL for "POST /login?id=123&type=auth". Please match against a path instead and access query parameters using \"new URL(request.url).searchParams\" instead. Learn more: https://mswjs.io/docs/http/intercepting-requests#querysearch-parameters`,
   ])
 
   await fetch('/user?name=admin').then(async (res) => {

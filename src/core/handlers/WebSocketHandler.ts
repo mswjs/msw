@@ -29,6 +29,10 @@ export interface WebSocketHandlerConnection {
   params: PathParams
 }
 
+export interface WebSocketResolutionContext {
+  baseUrl?: string
+}
+
 export const kEmitter = Symbol('kEmitter')
 export const kSender = Symbol('kSender')
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
@@ -50,7 +54,10 @@ export class WebSocketHandler {
     this.__kind = 'EventHandler'
   }
 
-  public parse(args: { url: URL }): WebSocketHandlerParsedResult {
+  public parse(args: {
+    url: URL
+    resolutionContext?: WebSocketResolutionContext
+  }): WebSocketHandlerParsedResult {
     const clientUrl = new URL(args.url)
 
     /**
@@ -60,7 +67,11 @@ export class WebSocketHandler {
      */
     clientUrl.pathname = clientUrl.pathname.replace(/^\/socket.io\//, '/')
 
-    const match = matchRequestUrl(clientUrl, this.url)
+    const match = matchRequestUrl(
+      clientUrl,
+      this.url,
+      args.resolutionContext?.baseUrl,
+    )
 
     return {
       match,
@@ -76,9 +87,11 @@ export class WebSocketHandler {
 
   public async run(
     connection: Omit<WebSocketHandlerConnection, 'params'>,
+    resolutionContext?: WebSocketResolutionContext,
   ): Promise<boolean> {
     const parsedResult = this.parse({
       url: connection.client.url,
+      resolutionContext,
     })
 
     if (!this.predicate({ url: connection.client.url, parsedResult })) {

@@ -11,6 +11,7 @@ import { delay } from '~/core/delay'
 import { getTimestamp } from '~/core/utils/logging/getTimestamp'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { colors } from '~/core/ws/utils/attachWebSocketLogger'
+import { toPublicUrl } from '~/core/utils/request/toPublicUrl'
 
 type EventMapConstraint = {
   message?: unknown
@@ -61,15 +62,38 @@ class ServerSentEventHandler<
   constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
       typeof EventSource !== 'undefined',
-      'Failed to construct a Server-Sent Event handler for path "%s": your environment does not support the EventSource API',
+      'Failed to construct a Server-Sent Event handler for path "%s": the EventSource API is not supported in this environment',
       path,
     )
 
     const clientEmitter = new Emitter<ServerSentEventClientEventMap>()
 
-    super('GET', path, (info) => {
+    super('GET', path, async (info) => {
+      const responseInit: ResponseInit = {
+        headers: {
+          'content-type': 'text/event-stream',
+          'cache-control': 'no-cache',
+          connection: 'keep-alive',
+        },
+      }
+
+      /**
+       * @note Log the intercepted request early.
+       * Normally, the `this.log()` method is called when the handler returns a response.
+       * For SSE, call that method earlier so the logs are in correct order.
+       */
+      await super.log({
+        request: info.request,
+        /**
+         * @note Construct a placeholder response since SSE response
+         * is being streamed and cannot be cloned/consumed for logging.
+         */
+        response: new Response('[streaming]', responseInit),
+      })
+      this.#attachClientLogger(info.request, clientEmitter)
+
       const stream = new ReadableStream({
-        start(controller) {
+        async start(controller) {
           const client = new ServerSentEventClient<EventMap>({
             controller,
             emitter: clientEmitter,
@@ -79,7 +103,7 @@ class ServerSentEventHandler<
             client,
           })
 
-          resolver({
+          await resolver({
             ...info,
             client,
             server,
@@ -87,16 +111,8 @@ class ServerSentEventHandler<
         },
       })
 
-      return new Response(stream, {
-        headers: {
-          'content-type': 'text/event-stream',
-          'cache-control': 'no-cache',
-          connection: 'keep-alive',
-        },
-      })
+      return new Response(stream, responseInit)
     })
-
-    this.attachClientLogger(clientEmitter)
   }
 
   predicate(args: {
@@ -110,30 +126,27 @@ class ServerSentEventHandler<
     return super.predicate(args)
   }
 
-  async log(args: { request: Request; response: Response }): Promise<void> {
-    super.log({
-      request: args.request,
-
-      /**
-       * @note Construct a placeholder response since SSE response
-       * is being streamed and cannot be cloned/consumed at this point.
-       * This also allows us to rely on the same logging logic as in HTTP handlers.
-       */
-      response: new Response('[streaming]', {
-        status: args.response.status,
-        statusText: args.response.statusText,
-        headers: args.response.headers,
-      }),
-    })
+  async log(_args: { request: Request; response: Response }): Promise<void> {
+    /**
+     * @note Skip the default `this.log()` logic so that when this handler is logged
+     * upon handling the request, nothing is printed (we log SSE requests early).
+     */
+    return
   }
 
-  private attachClientLogger(
+  #attachClientLogger(
+    request: Request,
     emitter: Emitter<ServerSentEventClientEventMap>,
   ): void {
+    const publicUrl = toPublicUrl(request.url)
+
     /* eslint-disable no-console */
     emitter.on('message', (payload) => {
       console.groupCollapsed(
-        devUtils.formatMessage(`${getTimestamp()} %c⇣%c ${payload.event}`),
+        devUtils.formatMessage(
+          `${getTimestamp()} SSE %s %c⇣%c ${payload.event}`,
+        ),
+        publicUrl,
         `color:${colors.mocked}`,
         'color:inherit',
       )
@@ -142,19 +155,25 @@ class ServerSentEventHandler<
     })
 
     emitter.on('error', () => {
-      console.log(
-        devUtils.formatMessage(`${getTimestamp()} %c\u00D7%c error`),
+      console.groupCollapsed(
+        devUtils.formatMessage(`${getTimestamp()} SSE %s %c\u00D7%c error`),
+        publicUrl,
         `color: ${colors.system}`,
         'color:inherit',
       )
+      console.log('Handler:', this)
+      console.groupEnd()
     })
 
     emitter.on('close', () => {
-      console.log(
-        devUtils.formatMessage(`${getTimestamp()} %c■%c close`),
+      console.groupCollapsed(
+        devUtils.formatMessage(`${getTimestamp()} SSE %s %c■%c close`),
+        publicUrl,
         `colors:${colors.system}`,
         'color:inherit',
       )
+      console.log('Handler:', this)
+      console.groupEnd()
     })
     /* eslint-enable no-console */
   }
@@ -200,11 +219,11 @@ class ServerSentEventClient<
 > {
   #encoder: TextEncoder
   #controller: ReadableStreamDefaultController
-  #emitter?: Emitter<ServerSentEventClientEventMap>
+  #emitter: Emitter<ServerSentEventClientEventMap>
 
   constructor(args: {
     controller: ReadableStreamDefaultController
-    emitter?: Emitter<ServerSentEventClientEventMap>
+    emitter: Emitter<ServerSentEventClientEventMap>
   }) {
     this.#encoder = new TextEncoder()
     this.#controller = args.controller
@@ -260,24 +279,29 @@ class ServerSentEventClient<
       this.error()
       return
     }
+
+    if (event.type === 'close') {
+      this.close()
+      return
+    }
   }
 
   /**
    * Errors the underlying `EventSource`, closing the connection with an error.
-   * Erroring the connection with an error will not trigger a reconnect from the client.
+   * This is equivalent to aborting the connection and will produce a `TypeError: Failed to fetch`
+   * error.
    */
   public error(): void {
     this.#controller.error()
-    this.#emitter?.emit('error')
+    this.#emitter.emit('error')
   }
 
   /**
    * Closes the underlying `EventSource`, closing the connection.
-   * Closing the connection will trigger a reconnect from the client.
    */
   public close(): void {
     this.#controller.close()
-    this.#emitter?.emit('close')
+    this.#emitter.emit('close')
   }
 
   #sendRetry(retry: number): void {
@@ -306,7 +330,7 @@ class ServerSentEventClient<
     frames.push('', '')
     this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))
 
-    this.#emitter?.emit('message', {
+    this.#emitter.emit('message', {
       id: payload.id,
       event: payload.event?.toString() || 'message',
       data: payload.data,

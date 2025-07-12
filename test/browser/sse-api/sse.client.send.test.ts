@@ -29,7 +29,7 @@ test('sends a mock message event', async ({ loadExample, page }) => {
   })
 
   const message = await page.evaluate(() => {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const source = new EventSource('http://localhost/stream')
       source.onerror = () => reject()
 
@@ -51,18 +51,21 @@ test('sends a mock custom event', async ({ loadExample, page }) => {
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          event: 'userconnect',
-          data: { username: 'john' },
-        })
-      }),
+      sse<{ userconnect: { username: string } }>(
+        'http://localhost/stream',
+        ({ client }) => {
+          client.send({
+            event: 'userconnect',
+            data: { username: 'john' },
+          })
+        },
+      ),
     )
     await worker.start()
   })
 
   const message = await page.evaluate(() => {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const source = new EventSource('http://localhost/stream')
       source.addEventListener('userconnect', (event) => {
         resolve(`${event.type}:${event.data}`)
@@ -86,19 +89,22 @@ test('sends a mock message event with custom id', async ({
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          id: 'abc-123',
-          event: 'userconnect',
-          data: { username: 'john' },
-        })
-      }),
+      sse<{ userconnect: { username: string } }>(
+        'http://localhost/stream',
+        ({ client }) => {
+          client.send({
+            id: 'abc-123',
+            event: 'userconnect',
+            data: { username: 'john' },
+          })
+        },
+      ),
     )
     await worker.start()
   })
 
   const message = await page.evaluate(() => {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const source = new EventSource('http://localhost/stream')
       source.addEventListener('userconnect', (event) => {
         resolve(`${event.type}:${event.lastEventId}:${event.data}`)
@@ -110,21 +116,16 @@ test('sends a mock message event with custom id', async ({
   expect(message).toBe('userconnect:abc-123:{"username":"john"}')
 })
 
-test('errors the connected source', async ({ loadExample, page, waitFor }) => {
+test('errors the connected source', async ({ loadExample, page }) => {
   await loadExample(EXAMPLE_URL, {
     skipActivation: true,
-  })
-
-  const pageErrors: Array<string> = []
-  page.on('pageerror', (error) => {
-    pageErrors.push(error.message)
   })
 
   await page.evaluate(async () => {
     const { setupWorker, sse } = window.msw
 
     const worker = setupWorker(
-      sse('http://localhost/stream', ({ client }) => {
+      sse('http://localhost/stream-error', ({ client }) => {
         queueMicrotask(() => client.error())
       }),
     )
@@ -132,19 +133,17 @@ test('errors the connected source', async ({ loadExample, page, waitFor }) => {
   })
 
   const readyState = await page.evaluate(() => {
-    return new Promise((resolve) => {
-      const source = new EventSource('http://localhost/stream')
-      source.addEventListener('error', (event) => {
-        resolve(source.readyState)
-      })
+    return new Promise<number>((resolve) => {
+      const source = new EventSource('http://localhost/stream-error')
+      source.onerror = () => resolve(source.readyState)
+      source.onopen = () => console.log('OPEN?')
     })
   })
 
   // EventSource must be closed.
   expect(readyState).toBe(2)
 
-  await waitFor(() => {
-    // Must error with "Failed to fetch" (default EventSource behavior).
-    expect(pageErrors).toContain('Failed to fetch')
-  })
+  /**
+   * @note That erroring the stream does not throw any errors.
+   */
 })

@@ -1,9 +1,9 @@
+import confirm from '@inquirer/confirm'
 import fs from 'node:fs'
 import path from 'node:path'
 import colors from 'picocolors'
-import confirm from '@inquirer/confirm'
-import { invariant } from './invariant.js'
 import { SERVICE_WORKER_BUILD_PATH } from '../config/constants.js'
+import { invariant } from './invariant.js'
 
 export async function init(args) {
   const CWD = args.cwd || process.cwd()
@@ -14,14 +14,18 @@ export async function init(args) {
   const savedWorkerDirectories = Array.prototype
     .concat((packageJson.msw && packageJson.msw.workerDirectory) || [])
     .map(normalizePath)
+  const isQuiet = args.quiet || false
 
   if (publicDir) {
     // If the public directory was provided, copy the worker script
     // to that directory only. Even if there are paths stored in "msw.workerDirectory",
     // those will not be touched.
-    await copyWorkerScript(publicDir, CWD)
+    await copyWorkerScript(publicDir, CWD, isQuiet)
     const relativePublicDir = path.relative(CWD, publicDir)
-    printSuccessMessage([publicDir])
+
+    if (!isQuiet) {
+      printSuccessMessage([publicDir])
+    }
 
     if (args.save) {
       // Only save the public path if it's not already saved in "package.json".
@@ -65,7 +69,7 @@ export async function init(args) {
   if (savedWorkerDirectories.length > 0) {
     const copyResults = await Promise.allSettled(
       savedWorkerDirectories.map((destination) => {
-        return copyWorkerScript(destination, CWD).catch((error) => {
+        return copyWorkerScript(destination, CWD, isQuiet).catch((error) => {
           // Inject the absolute destination path onto the copy function rejections
           // so it's available in the failed paths array below.
           throw [toAbsolutePath(destination, CWD), error]
@@ -85,7 +89,7 @@ export async function init(args) {
     }
 
     // Notify about successful copies, if any.
-    if (successfulPaths.length > 0) {
+    if (successfulPaths.length > 0 && !isQuiet) {
       printSuccessMessage(successfulPaths)
     }
   }
@@ -105,9 +109,10 @@ function toAbsolutePath(maybeAbsolutePath, cwd) {
 /**
  * @param {string} destination
  * @param {string} cwd
+ * @param {boolean} isQuiet
  * @returns {Promise<string>}
  */
-async function copyWorkerScript(destination, cwd) {
+async function copyWorkerScript(destination, cwd, isQuiet) {
   // When running as a part of "postinstall" script, "cwd" equals the library's directory.
   // The "postinstall" script resolves the right absolute public directory path.
   const absolutePublicDir = toAbsolutePath(destination, cwd)
@@ -127,8 +132,10 @@ async function copyWorkerScript(destination, cwd) {
       })
   }
 
-  // eslint-disable-next-line no-console
-  console.log('Copying the worker script at "%s"...', absolutePublicDir)
+  if (!isQuiet) {
+    // eslint-disable-next-line no-console
+    console.log('Copying the worker script at "%s"...', absolutePublicDir)
+  }
 
   const workerFilename = path.basename(SERVICE_WORKER_BUILD_PATH)
   const workerDestinationPath = path.resolve(absolutePublicDir, workerFilename)

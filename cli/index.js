@@ -25,9 +25,15 @@ yargs(process.argv.slice(2))
           description: 'Custom current worker directory',
           normalize: true,
         })
+        .option('quiet', {
+          alias: 'q',
+          type: 'boolean',
+          description: 'Suppress informational output messages',
+        })
         .example('msw init')
         .example('msw init ./public')
         .example('msw init ./static --save')
+        .example('msw init ./public --quiet')
     },
     init,
   )

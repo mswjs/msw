@@ -487,3 +487,87 @@ describe('[Private] - resolutionContext - used for extensions', () => {
     })
   })
 })
+
+describe('handler with custom predicate', () => {
+  test('matches if custom predicate returns true', async () => {
+    const { emitter, events } = setup()
+
+    const requestId = createRequestId()
+    const request = new Request(new URL('http://localhost/login'), {
+      method: 'POST',
+      body: JSON.stringify({ username: 'test', password: 'password' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const handlers: Array<RequestHandler> = [
+      http.post(
+        async ({ request }) => {
+          const body = await request.clone().json()
+          return body.username === 'test' && body.password === 'password'
+        },
+        () =>
+          HttpResponse.json({
+            success: true,
+          }),
+      ),
+    ]
+
+    const result = await handleRequest(
+      request,
+      requestId,
+      handlers,
+      options,
+      emitter,
+      handleRequestOptions,
+    )
+
+    expect(result).toBeDefined()
+    expect(await result?.json()).toStrictEqual({ success: true })
+    expect(events).toEqual([
+      ['request:start', { request, requestId }],
+      ['request:match', { request, requestId }],
+      ['request:end', { request, requestId }],
+    ])
+    expect(handleRequestOptions.onMockedResponse).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not match if custom predicate returns false', async () => {
+    const { emitter, events } = setup()
+
+    const requestId = createRequestId()
+    const request = new Request(new URL('http://localhost/login'), {
+      method: 'POST',
+      body: JSON.stringify({ username: 'test', password: 'passwordd' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const handlers: Array<RequestHandler> = [
+      http.post(
+        async ({ request }) => {
+          const body = await request.clone().json()
+          return body.username === 'test' && body.password === 'password'
+        },
+        () =>
+          HttpResponse.json({
+            success: true,
+          }),
+      ),
+    ]
+
+    const result = await handleRequest(
+      request,
+      requestId,
+      handlers,
+      options,
+      emitter,
+      handleRequestOptions,
+    )
+
+    expect(result).toBeUndefined()
+    expect(events).toEqual([
+      ['request:start', { request, requestId }],
+      ['request:unhandled', { request, requestId }],
+      ['request:end', { request, requestId }],
+    ])
+    expect(options.onUnhandledRequest).toHaveBeenCalledTimes(1)
+    expect(handleRequestOptions.onPassthroughResponse).toHaveBeenCalledTimes(1)
+  })
+})

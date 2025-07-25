@@ -1,5 +1,5 @@
 import { format } from 'outvariant'
-import { Emitter } from 'strict-event-emitter'
+import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 import { type Page } from '@playwright/test'
 
 type WorkerConsoleMessageType =
@@ -33,8 +33,8 @@ type WorkerConsoleMessageType =
   | 'context'
   | 'memory'
 
-type WorkerConsoleEventMap = {
-  [MessageType in WorkerConsoleMessageType]: [message: string]
+type WorkerConsoleEventMap = DefaultEventMap & {
+  [MessageType in WorkerConsoleMessageType]: TypedEvent<string>
 }
 
 type InternalWorkerConsoleMessageData = {
@@ -85,7 +85,7 @@ export class WorkerConsole extends Emitter<WorkerConsoleEventMap> {
         const formattedMessage = format(template, ...positionals)
 
         this.addMessage(messageType, formattedMessage)
-        this.emit(messageType, formattedMessage)
+        this.emit(new TypedEvent(messageType, { data: formattedMessage }))
       },
     )
 

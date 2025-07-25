@@ -1,5 +1,5 @@
 import { until } from '@open-draft/until'
-import { Emitter } from 'strict-event-emitter'
+import { Emitter } from 'rettime'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import type { RequestHandler } from '../handlers/RequestHandler'

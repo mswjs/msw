@@ -1,4 +1,4 @@
-import { Emitter } from 'strict-event-emitter'
+import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 import { createRequestId } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
@@ -18,8 +18,8 @@ type WebSocketHandlerParsedResult = {
   match: Match
 }
 
-export type WebSocketHandlerEventMap = {
-  connection: [args: WebSocketHandlerConnection]
+export interface WebSocketHandlerEventMap extends DefaultEventMap {
+  connection: TypedEvent<WebSocketHandlerConnection>
 }
 
 export interface WebSocketHandlerConnection {
@@ -136,7 +136,9 @@ export class WebSocketHandler {
 
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
-    return this[kEmitter].emit('connection', connection)
+    return this[kEmitter].emit(
+      new TypedEvent('connection', { data: connection }),
+    )
   }
 }
 

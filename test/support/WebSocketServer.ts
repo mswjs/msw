@@ -1,12 +1,12 @@
 import { invariant } from 'outvariant'
-import { Emitter } from 'strict-event-emitter'
+import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 import fastify, { FastifyInstance } from 'fastify'
 import fastifyWebSocket, { SocketStream } from '@fastify/websocket'
 
 type FastifySocket = SocketStream['socket']
 
-type WebSocketEventMap = {
-  connection: [client: FastifySocket]
+interface WebSocketEventMap extends DefaultEventMap {
+  connection: TypedEvent<FastifySocket>
 }
 
 export class WebSocketServer extends Emitter<WebSocketEventMap> {
@@ -24,8 +24,7 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
       fastify.get('/', { websocket: true }, ({ socket }) => {
         this.clients.add(socket)
         socket.once('close', () => this.clients.delete(socket))
-
-        this.emit('connection', socket)
+        this.emit(new TypedEvent('connection', { data: socket }))
       })
     })
   }

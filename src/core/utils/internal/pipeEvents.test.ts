@@ -1,4 +1,4 @@
-import { Emitter } from 'strict-event-emitter'
+import { Emitter, TypedEvent } from 'rettime'
 import { pipeEvents } from './pipeEvents'
 
 it('pipes events from the source emitter to the destination emitter', () => {
@@ -9,6 +9,7 @@ it('pipes events from the source emitter to the destination emitter', () => {
   const callback = vi.fn()
   destination.on('hello', callback)
 
-  source.emit('hello', 'world', { data: true })
-  expect(callback).toHaveBeenNthCalledWith(1, 'world', { data: true })
+  const event = new TypedEvent('hello', { data: 'world' })
+  source.emit(event)
+  expect(callback).toHaveBeenNthCalledWith(1, event)
 })

@@ -1,11 +1,11 @@
-import { Emitter, EventMap } from 'strict-event-emitter'
+import type { Emitter, DefaultEventMap } from 'rettime'
 
 /**
  * Pipes all emitted events from one emitter to another.
  */
-export function pipeEvents<Events extends EventMap>(
-  source: Emitter<Events>,
-  destination: Emitter<Events>,
+export function pipeEvents<EventMap extends DefaultEventMap>(
+  source: Emitter<EventMap>,
+  destination: Emitter<EventMap>,
 ): void {
   const rawEmit: typeof source.emit & { _isPiped?: boolean } = source.emit
 
@@ -14,9 +14,9 @@ export function pipeEvents<Events extends EventMap>(
   }
 
   const sourceEmit: typeof source.emit & { _isPiped?: boolean } =
-    function sourceEmit(this: typeof source, event, ...data) {
-      destination.emit(event, ...data)
-      return rawEmit.call(this, event, ...data)
+    function sourceEmit(this: typeof source, event) {
+      destination.emit(event)
+      return rawEmit.call(this, event)
     }
 
   sourceEmit._isPiped = true

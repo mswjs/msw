@@ -116,8 +116,8 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       // handler matches and emits a connection event.
       // When that happens, store that connection in the
       // set of all connections for reference.
-      handler[kEmitter].on('connection', async ({ client }) => {
-        await clientManager.addConnection(client)
+      handler[kEmitter].on('connection', async (event) => {
+        await clientManager.addConnection(event.data.client)
       })
 
       // The "handleWebSocketEvent" function will invoke

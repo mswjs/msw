@@ -1,4 +1,4 @@
-import { Emitter } from 'strict-event-emitter'
+import { Emitter } from 'rettime'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
@@ -95,7 +95,7 @@ export interface SetupWorkerInternalContext {
     /**
      * Adds a Service Worker event listener.
      */
-    on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
+    on: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
       eventType: EventType,
       callback: (
         event: MessageEvent,
@@ -104,10 +104,10 @@ export interface SetupWorkerInternalContext {
           ServiceWorkerIncomingEventsMap[EventType]
         >,
       ) => void,
-    ): void
-    send<EventType extends ServiceWorkerOutgoingEventTypes>(
+    ) => void
+    send: <EventType extends ServiceWorkerOutgoingEventTypes>(
       eventType: EventType,
-    ): void
+    ) => void
   }
   events: {
     /**
@@ -122,13 +122,13 @@ export interface SetupWorkerInternalContext {
     /**
      * Removes all currently attached listeners.
      */
-    removeAllListeners(): void
+    removeAllListeners: () => void
     /**
      * Awaits a given message type from the Service Worker.
      */
-    once<EventType extends keyof ServiceWorkerIncomingEventsMap>(
+    once: <EventType extends keyof ServiceWorkerIncomingEventsMap>(
       eventType: EventType,
-    ): Promise<
+    ) => Promise<
       ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
     >
   }
@@ -235,7 +235,7 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
+  listHandlers: () => ReadonlyArray<RequestHandler | WebSocketHandler>
 
   /**
    * Life-cycle events.

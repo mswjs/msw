@@ -37,11 +37,15 @@ export type {
   DefaultBodyType,
   DefaultRequestMultipartBody,
   JsonBodyType,
+  ResponseResolverInfo,
 } from './handlers/RequestHandler'
 
 export type {
   RequestQuery,
   HttpRequestParsedResult,
+  HttpHandlerInfo,
+  HttpRequestResolverExtras,
+  HttpHandlerMethod,
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
 
@@ -57,6 +61,7 @@ export type { WebSocketData, WebSocketEventListener } from './ws'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
+export type { ResponseResolutionContext } from './utils/executeHandlers'
 
 export * from './HttpResponse'
 export * from './delay'

@@ -21,7 +21,7 @@ import {
   ResponseResolver,
 } from './RequestHandler'
 
-type HttpHandlerMethod = string | RegExp
+export type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod

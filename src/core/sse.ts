@@ -32,14 +32,28 @@ export type ServerSentEventResolver<
   Params extends PathParams,
 > = ResponseResolver<ServerSentEventResolverExtras<EventMap, Params>, any, any>
 
-export type ServerSentEventRequestHandler = <
+export interface ServerSentEventRequestHandler<
   EventMap extends EventMapConstraint = { message: unknown },
   Params extends PathParams<keyof Params> = PathParams,
   RequestPath extends Path = Path,
->(
-  path: RequestPath,
-  resolver: ServerSentEventResolver<EventMap, Params>,
-) => HttpHandler
+> {
+  (
+    path: RequestPath,
+    resolver: ServerSentEventResolver<EventMap, Params>,
+  ): HttpHandler
+
+  createMessage: <
+    EventMap extends EventMapConstraint = { message: unknown },
+    EventType extends keyof EventMap = 'message',
+  >(payload: {
+    id?: string
+    event?: EventType
+    data: string | EventMap[EventType] | EventMap['message'] | undefined
+  }) => Uint8Array<ArrayBuffer>
+}
+
+const encoder = new TextEncoder()
+const decoder = new TextDecoder()
 
 /**
  * Request handler for Server-Sent Events (SSE).
@@ -54,6 +68,23 @@ export type ServerSentEventRequestHandler = <
  */
 export const sse: ServerSentEventRequestHandler = (path, resolver) => {
   return new ServerSentEventHandler(path, resolver)
+}
+
+sse.createMessage = function createMessage(payload) {
+  const frames: Array<string> = []
+
+  if (payload.id) {
+    frames.push(`id:${payload.id}`)
+  }
+
+  if (payload.event) {
+    frames.push(`event:${payload.event?.toString()}`)
+  }
+
+  frames.push(`data:${payload.data}`)
+  frames.push('', '')
+
+  return encoder.encode(frames.join('\n'))
 }
 
 class ServerSentEventHandler<
@@ -150,7 +181,7 @@ class ServerSentEventHandler<
         `color:${colors.mocked}`,
         'color:inherit',
       )
-      console.log(payload.frames.join('\n'))
+      console.log(decoder.decode(payload.message))
       console.groupEnd()
     })
 
@@ -207,7 +238,7 @@ type ServerSentEventClientEventMap = {
       id?: string
       event: string
       data?: unknown
-      frames: Array<string>
+      message: Uint8Array<ArrayBuffer>
     },
   ]
   error: []
@@ -315,26 +346,14 @@ class ServerSentEventClient<
     event?: EventType
     data: string | EventMap[EventType] | EventMap['message'] | undefined
   }): void {
-    const frames: Array<string> = []
-
-    if (payload.id) {
-      frames.push(`id:${payload.id}`)
-    }
-
-    if (payload.event) {
-      frames.push(`event:${payload.event?.toString()}`)
-    }
-
-    frames.push(`data:${payload.data}`)
-
-    frames.push('', '')
-    this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))
+    const message = sse.createMessage(payload)
+    this.#controller.enqueue(message)
 
     this.#emitter.emit('message', {
       id: payload.id,
       event: payload.event?.toString() || 'message',
       data: payload.data,
-      frames,
+      message,
     })
   }
 }

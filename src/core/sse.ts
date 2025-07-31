@@ -32,28 +32,25 @@ export type ServerSentEventResolver<
   Params extends PathParams,
 > = ResponseResolver<ServerSentEventResolverExtras<EventMap, Params>, any, any>
 
-export interface ServerSentEventRequestHandler<
+export type ServerSentEventRequestHandler = <
   EventMap extends EventMapConstraint = { message: unknown },
   Params extends PathParams<keyof Params> = PathParams,
   RequestPath extends Path = Path,
-> {
-  (
-    path: RequestPath,
-    resolver: ServerSentEventResolver<EventMap, Params>,
-  ): HttpHandler
+>(
+  path: RequestPath,
+  resolver: ServerSentEventResolver<EventMap, Params>,
+) => HttpHandler
 
-  createMessage: <
-    EventMap extends EventMapConstraint = { message: unknown },
-    EventType extends keyof EventMap = 'message',
-  >(payload: {
-    id?: string
-    event?: EventType
-    data: string | EventMap[EventType] | EventMap['message'] | undefined
-  }) => Uint8Array<ArrayBuffer>
-}
-
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
+export type ServerSentEventMessage<
+  EventMap extends EventMapConstraint = { message: unknown },
+> =
+  | ToEventDiscriminatedUnion<EventMap & { message: unknown }>
+  | {
+      id?: never
+      event?: never
+      data?: never
+      retry: number
+    }
 
 /**
  * Request handler for Server-Sent Events (SSE).
@@ -68,23 +65,6 @@ const decoder = new TextDecoder()
  */
 export const sse: ServerSentEventRequestHandler = (path, resolver) => {
   return new ServerSentEventHandler(path, resolver)
-}
-
-sse.createMessage = function createMessage(payload) {
-  const frames: Array<string> = []
-
-  if (payload.id) {
-    frames.push(`id:${payload.id}`)
-  }
-
-  if (payload.event) {
-    frames.push(`event:${payload.event?.toString()}`)
-  }
-
-  frames.push(`data:${payload.data}`)
-  frames.push('', '')
-
-  return encoder.encode(frames.join('\n'))
 }
 
 class ServerSentEventHandler<
@@ -181,7 +161,7 @@ class ServerSentEventHandler<
         `color:${colors.mocked}`,
         'color:inherit',
       )
-      console.log(decoder.decode(payload.message))
+      console.log(payload.frames)
       console.groupEnd()
     })
 
@@ -238,7 +218,7 @@ type ServerSentEventClientEventMap = {
       id?: string
       event: string
       data?: unknown
-      message: Uint8Array<ArrayBuffer>
+      frames: Array<string>
     },
   ]
   error: []
@@ -264,16 +244,7 @@ class ServerSentEventClient<
   /**
    * Sends the given payload to the intercepted `EventSource`.
    */
-  public send(
-    payload:
-      | ToEventDiscriminatedUnion<EventMap & { message: unknown }>
-      | {
-          id?: never
-          event?: never
-          data?: never
-          retry: number
-        },
-  ): void {
+  public send(payload: ServerSentEventMessage<EventMap>): void {
     if ('retry' in payload && payload.retry != null) {
       this.#sendRetry(payload.retry)
       return
@@ -341,19 +312,31 @@ class ServerSentEventClient<
     }
   }
 
-  #sendMessage<EventType extends keyof EventMap>(payload: {
+  #sendMessage(message: {
     id?: string
-    event?: EventType
-    data: string | EventMap[EventType] | EventMap['message'] | undefined
+    event?: unknown
+    data: unknown | undefined
   }): void {
-    const message = sse.createMessage(payload)
-    this.#controller.enqueue(message)
+    const frames: Array<string> = []
+
+    if (message.id) {
+      frames.push(`id:${message.id}`)
+    }
+
+    if (message.event) {
+      frames.push(`event:${message.event?.toString()}`)
+    }
+
+    frames.push(`data:${message.data}`)
+    frames.push('', '')
+
+    this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))
 
     this.#emitter.emit('message', {
-      id: payload.id,
-      event: payload.event?.toString() || 'message',
-      data: payload.data,
-      message,
+      id: message.id,
+      event: message.event?.toString() || 'message',
+      data: message.data,
+      frames,
     })
   }
 }

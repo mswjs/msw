@@ -3,8 +3,6 @@ name: release-preview
 on:
   pull_request:
   push:
-    branches:
-      - '**'
     branches-ignore:
       - 'main'
     tags:

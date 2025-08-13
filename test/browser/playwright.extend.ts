@@ -20,6 +20,7 @@ import {
 import { waitFor } from '../support/waitFor'
 import { WorkerConsole } from './setup/workerConsole'
 import { getWebpackServer } from './setup/webpackHttpServer'
+import { WebSocketServer } from '../support/WebSocketServer'
 
 export interface TestFixtures {
   /**
@@ -50,6 +51,7 @@ export interface TestFixtures {
   spyOnConsole(): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
+  defineWebSocketServer(): Promise<WebSocketServer>
 }
 
 interface FetchOptions {
@@ -318,6 +320,14 @@ export const test = base.extend<TestFixtures>({
     })
 
     messages?.clear()
+  },
+  async defineWebSocketServer({ page }, use) {
+    const server = new WebSocketServer()
+    await use(async () => {
+      await server.listen()
+      return server
+    })
+    await server.close()
   },
 })
 

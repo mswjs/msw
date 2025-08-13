@@ -4,8 +4,9 @@ on:
   pull_request:
   push:
     branches:
-      - '!main'
       - '**'
+    branches-ignore:
+      - 'main'
     tags:
       - '!**'
   workflow_dispatch:

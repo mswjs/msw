@@ -9,7 +9,7 @@ import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
 
-const colors = {
+export const colors = {
   system: '#3b82f6',
   outgoing: '#22c55e',
   incoming: '#ef4444',

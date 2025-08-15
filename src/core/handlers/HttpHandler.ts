@@ -52,6 +52,13 @@ export type HttpRequestResolverExtras<Params extends PathParams> = {
   cookies: Record<string, string>
 }
 
+export type HttpCustomPredicate = (args: {
+  request: Request
+  cookies: Record<string, string>
+}) => boolean | Promise<boolean>
+
+export type HttpRequestPredicate = Path | HttpCustomPredicate
+
 /**
  * Request handler for HTTP requests.
  * Provides request matching based on method and URL.
@@ -61,15 +68,20 @@ export class HttpHandler extends RequestHandler<
   HttpRequestParsedResult,
   HttpRequestResolverExtras<any>
 > {
+  private customPredicate?: HttpCustomPredicate
+
   constructor(
     method: HttpHandlerMethod,
-    path: Path,
+    predicate: HttpRequestPredicate,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
+    const isPredicateFunction = typeof predicate === 'function'
+    const path = isPredicateFunction ? '' : predicate
+
     super({
       info: {
-        header: `${method} ${path}`,
+        header: `${method}${path ? ` ${path}` : ''}`,
         path,
         method,
       },
@@ -77,13 +89,17 @@ export class HttpHandler extends RequestHandler<
       options,
     })
 
+    if (isPredicateFunction) {
+      this.customPredicate = predicate
+    }
+
     this.checkRedundantQueryParameters()
   }
 
   private checkRedundantQueryParameters() {
     const { method, path } = this.info
 
-    if (path instanceof RegExp) {
+    if (!path || path instanceof RegExp) {
       return
     }
 
@@ -111,11 +127,9 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     const url = new URL(args.request.url)
-    const match = matchRequestUrl(
-      url,
-      this.info.path,
-      args.resolutionContext?.baseUrl,
-    )
+    const match = this.info.path
+      ? matchRequestUrl(url, this.info.path, args.resolutionContext?.baseUrl)
+      : { matches: false, params: {} }
     const cookies = getAllRequestCookies(args.request)
 
     return {
@@ -124,7 +138,17 @@ export class HttpHandler extends RequestHandler<
     }
   }
 
-  predicate(args: { request: Request; parsedResult: HttpRequestParsedResult }) {
+  async predicate(args: {
+    request: Request
+    parsedResult: HttpRequestParsedResult
+    resolutionContext?: ResponseResolutionContext
+  }) {
+    if (this.customPredicate) {
+      return await this.customPredicate({
+        request: args.request,
+        cookies: args.parsedResult.cookies,
+      })
+    }
     const hasMatchingMethod = this.matchMethod(args.request.method)
     const hasMatchingUrl = args.parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl

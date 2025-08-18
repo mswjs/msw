@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { Emitter } from 'strict-event-emitter'
+import { Emitter } from 'rettime'
 import { createRequestId } from '@mswjs/interceptors'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequestHandler } from '../handlers/RequestHandler'

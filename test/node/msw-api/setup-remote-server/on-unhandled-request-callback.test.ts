@@ -26,9 +26,12 @@ afterAll(async () => {
 it(
   'calls the custom callback on the request not handled here and there',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/proxy', testApp.url), {
       headers: {
@@ -52,9 +55,12 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/proxy', testApp.url), {
       headers: {
@@ -74,9 +80,12 @@ it(
 it(
   'does not call the custom callback on the request handled there',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/resource', testApp.url))
 

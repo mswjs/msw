@@ -1,7 +1,7 @@
-const { Readable } = require('node:stream')
-const express = require('express')
-const { http, HttpResponse } = require('msw')
-const { setupServer } = require('msw/node')
+import { Readable } from 'node:stream'
+import express from 'express'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
 
 const { SETUP_SERVER_LISTEN_OPTIONS } = process.env
 

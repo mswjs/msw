@@ -32,7 +32,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
     const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const response = await fetch(new URL('/resource', testApp.url))
@@ -60,7 +62,9 @@ it(
 it(
   'emits correct events for the request handled in the remote process',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
     const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const response = await fetch(new URL('/resource', testApp.url))
@@ -86,7 +90,9 @@ it(
 it(
   'emits correct events for the request unhandled by either parties',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
     const { listener, requestIdPromise } = spyOnLifeCycleEvents(remote)
 
     const resourceUrl = httpServer.http.url('/greeting')

@@ -28,7 +28,9 @@ afterAll(async () => {
 it(
   'warns on requests not handled by either party be default',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     // Hit a special endpoint that will perform a request to "Location"
     // in the application's context. Neither party handles this request.
@@ -47,7 +49,7 @@ it(
   • GET http://localhost/unhandled
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/http/intercepting-requests`)
     })
   }),
 )
@@ -61,7 +63,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     // Hit a special endpoint that will perform a request to "Location"
     // in the application's context. Neither party handles this request.
@@ -78,7 +82,7 @@ it(
 • GET http://localhost/handled
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/http/intercepting-requests`)
     })
 
     await expect(unhandledWarningPromise).rejects.toThrow()
@@ -89,7 +93,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 it(
   'does not warn on the request not handled here but handled there',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     await fetch(new URL('/resource', testApp.url))
 
@@ -100,7 +106,7 @@ it(
 • GET https://example.com/resource
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/http/intercepting-requests`)
     })
 
     await expect(unhandledWarningPromise).rejects.toThrow()

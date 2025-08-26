@@ -24,9 +24,12 @@ afterAll(async () => {
 it(
   'does not error on the request not handled here and there',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/proxy', testApp.url), {
       headers: {
@@ -58,9 +61,12 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/proxy', testApp.url), {
       headers: {
@@ -86,9 +92,12 @@ Read more: https://mswjs.io/docs/getting-started/mocks`)
 it(
   'does not error on the request handled there',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'), {
-      onUnhandledRequest: 'bypass',
-    })
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+      {
+        onUnhandledRequest: 'bypass',
+      },
+    )
 
     await fetch(new URL('/resource', testApp.url))
 

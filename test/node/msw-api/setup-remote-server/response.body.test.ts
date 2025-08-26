@@ -22,7 +22,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -40,7 +42,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -59,7 +63,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     const buffer = await response.arrayBuffer()
@@ -78,7 +84,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -97,7 +105,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -128,7 +138,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)

@@ -16,7 +16,9 @@ afterAll(async () => {
 it(
   'returns a mocked response defined in the app by default',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -36,7 +38,9 @@ it(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)

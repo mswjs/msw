@@ -1,10 +1,11 @@
+import { fileURLToPath } from 'node:url'
+import { spawn } from 'node:child_process'
 import { invariant } from 'outvariant'
-import { spawn } from 'child_process'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { type ListenOptions, getRemoteEnvironment } from 'msw/node'
 
 export async function spawnTestApp(
-  appSourcePath: string,
+  appUrl: URL,
   listenOptions: Partial<ListenOptions> = {},
 ) {
   let url: string | undefined
@@ -12,7 +13,7 @@ export async function spawnTestApp(
     url = resolvedUrl
   })
 
-  const io = spawn('node', [appSourcePath], {
+  const io = spawn('node', [fileURLToPath(appUrl.href)], {
     // Establish an IPC between the test and the test app.
     // This IPC is not required for the remote interception to work.
     // This IPC is required for the test app to be spawned at a random port

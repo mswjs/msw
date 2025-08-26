@@ -20,7 +20,9 @@ afterAll(async () => {
 it.concurrent(
   'uses initial handlers if the boundary has no overrides',
   remote.boundary(async () => {
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)
@@ -40,7 +42,9 @@ it.concurrent(
       }),
     )
 
-    await using testApp = await spawnTestApp(require.resolve('./use.app.js'))
+    await using testApp = await spawnTestApp(
+      new URL('./use.app.js', import.meta.url),
+    )
 
     const response = await fetch(new URL('/resource', testApp.url))
     expect(response.status).toBe(200)

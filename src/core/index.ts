@@ -49,6 +49,7 @@ export type {
   GraphQLQuery,
   GraphQLVariables,
   GraphQLRequestBody,
+  GraphQLResponseBody,
   GraphQLJsonRequestBody,
 } from './handlers/GraphQLHandler'
 export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'

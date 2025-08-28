@@ -21,14 +21,14 @@ import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 
-export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
+export type GraphQLOperationType = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
 export type GraphQLQuery = Record<string, any> | null
 export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
-  operationType: ExpectedOperationTypeNode
+  operationType: GraphQLOperationType
   operationName: GraphQLHandlerNameSelector | GraphQLCustomPredicate
 }
 
@@ -80,7 +80,7 @@ export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
 export type GraphQLCustomPredicate = (args: {
   request: Request
   query: string
-  operationType: ExpectedOperationTypeNode
+  operationType: GraphQLOperationType
   operationName: string
   variables: GraphQLVariables
   cookies: Record<string, string>
@@ -115,7 +115,7 @@ export class GraphQLHandler extends RequestHandler<
   >()
 
   constructor(
-    operationType: ExpectedOperationTypeNode,
+    operationType: GraphQLOperationType,
     predicate: GraphQLPredicate,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,

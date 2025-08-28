@@ -6,7 +6,7 @@ import {
 import {
   GraphQLHandler,
   GraphQLVariables,
-  ExpectedOperationTypeNode,
+  GraphQLOperationType,
   GraphQLHandlerNameSelector,
   GraphQLResolverExtras,
   GraphQLResponseBody,
@@ -50,7 +50,7 @@ export type GraphQLResponseResolver<
 >
 
 function createScopedGraphQLHandler(
-  operationType: ExpectedOperationTypeNode,
+  operationType: GraphQLOperationType,
   url: Path,
 ): GraphQLRequestHandler {
   return (predicate, resolver, options = {}) => {

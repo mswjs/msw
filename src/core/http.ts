@@ -19,9 +19,8 @@ export type HttpRequestHandler = <
   // returns plain "Response" and the one returning "HttpResponse"
   // to enforce a stricter response body type.
   ResponseBodyType extends DefaultBodyType = undefined,
-  RequestPredicate extends HttpRequestPredicate = HttpRequestPredicate,
 >(
-  predicate: RequestPredicate,
+  predicate: HttpRequestPredicate<Params>,
   resolver: HttpResponseResolver<Params, RequestBodyType, ResponseBodyType>,
   options?: RequestHandlerOptions,
 ) => HttpHandler

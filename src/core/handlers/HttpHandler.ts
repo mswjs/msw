@@ -25,7 +25,7 @@ type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod
-  path: HttpRequestPredicate
+  path: HttpRequestPredicate<PathParams>
 }
 
 export enum HttpMethods {
@@ -52,19 +52,23 @@ export type HttpRequestResolverExtras<Params extends PathParams> = {
   cookies: Record<string, string>
 }
 
-export type HttpCustomPredicate = (args: {
+export type HttpCustomPredicate<Params extends PathParams> = (args: {
   request: Request
   cookies: Record<string, string>
-}) => HttpCustomPredicateResult | Promise<HttpCustomPredicateResult>
+}) =>
+  | HttpCustomPredicateResult<Params>
+  | Promise<HttpCustomPredicateResult<Params>>
 
-export type HttpCustomPredicateResult =
+export type HttpCustomPredicateResult<Params extends PathParams> =
   | boolean
   | {
       matches: boolean
-      params: PathParams
+      params: Params
     }
 
-export type HttpRequestPredicate = Path | HttpCustomPredicate
+export type HttpRequestPredicate<Params extends PathParams> =
+  | Path
+  | HttpCustomPredicate<Params>
 
 /**
  * Request handler for HTTP requests.
@@ -77,7 +81,7 @@ export class HttpHandler extends RequestHandler<
 > {
   constructor(
     method: HttpHandlerMethod,
-    predicate: HttpRequestPredicate,
+    predicate: HttpRequestPredicate<PathParams>,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {

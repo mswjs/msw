@@ -50,6 +50,7 @@ export type {
   GraphQLQuery,
   GraphQLVariables,
   GraphQLRequestBody,
+  GraphQLResponseBody,
   GraphQLJsonRequestBody,
   GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'

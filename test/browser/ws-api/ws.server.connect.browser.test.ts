@@ -1,7 +1,6 @@
 import type { ws } from 'msw'
 import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import { WebSocketServer } from '../../support/WebSocketServer'
 
 declare global {
   interface Window {
@@ -12,20 +11,12 @@ declare global {
   }
 }
 
-const server = new WebSocketServer()
-
-test.beforeAll(async () => {
-  await server.listen()
-})
-
-test.afterAll(async () => {
-  await server.close()
-})
-
 test('does not connect to the actual server by default', async ({
   loadExample,
   page,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
@@ -61,7 +52,9 @@ test('does not connect to the actual server by default', async ({
 test('forwards incoming server events to the client once connected', async ({
   loadExample,
   page,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })

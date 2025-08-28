@@ -32,7 +32,7 @@ export type GraphQLRequestHandler = <
     | GraphQLHandlerNameSelector
     | DocumentNode
     | TypedDocumentNode<Query, Variables>
-    | GraphQLCustomPredicate<GraphQLVariables>,
+    | GraphQLCustomPredicate,
   resolver: GraphQLResponseResolver<
     [Query] extends [never] ? GraphQLQuery : Query,
     Variables

@@ -25,7 +25,7 @@ type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod
-  path: Path
+  path: HttpRequestPredicate
 }
 
 export enum HttpMethods {
@@ -55,7 +55,14 @@ export type HttpRequestResolverExtras<Params extends PathParams> = {
 export type HttpCustomPredicate = (args: {
   request: Request
   cookies: Record<string, string>
-}) => boolean | Promise<boolean>
+}) => HttpCustomPredicateResult | Promise<HttpCustomPredicateResult>
+
+export type HttpCustomPredicateResult =
+  | boolean
+  | {
+      matches: boolean
+      params: PathParams
+    }
 
 export type HttpRequestPredicate = Path | HttpCustomPredicate
 
@@ -68,30 +75,24 @@ export class HttpHandler extends RequestHandler<
   HttpRequestParsedResult,
   HttpRequestResolverExtras<any>
 > {
-  private customPredicate?: HttpCustomPredicate
-
   constructor(
     method: HttpHandlerMethod,
     predicate: HttpRequestPredicate,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
-    const isPredicateFunction = typeof predicate === 'function'
-    const path = isPredicateFunction ? '' : predicate
+    const displayPath =
+      typeof predicate === 'function' ? '[custom predicate]' : predicate
 
     super({
       info: {
-        header: `${method}${path ? ` ${path}` : ''}`,
-        path,
+        header: `${method}${displayPath ? ` ${displayPath}` : ''}`,
+        path: predicate,
         method,
       },
       resolver,
       options,
     })
-
-    if (isPredicateFunction) {
-      this.customPredicate = predicate
-    }
 
     this.checkRedundantQueryParameters()
   }
@@ -99,7 +100,7 @@ export class HttpHandler extends RequestHandler<
   private checkRedundantQueryParameters() {
     const { method, path } = this.info
 
-    if (!path || path instanceof RegExp) {
+    if (!path || path instanceof RegExp || typeof path === 'function') {
       return
     }
 
@@ -111,7 +112,7 @@ export class HttpHandler extends RequestHandler<
     }
 
     const searchParams = getSearchParams(path)
-    const queryParams: string[] = []
+    const queryParams: Array<string> = []
 
     searchParams.forEach((_, paramName) => {
       queryParams.push(paramName)
@@ -127,10 +128,36 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     const url = new URL(args.request.url)
+    const cookies = getAllRequestCookies(args.request)
+
+    /**
+     * Handle custom predicate functions.
+     * @note Invoke this during parsing so the user can parse the path parameters
+     * manually. Otherwise, `params` is always an empty object, which isn't nice.
+     */
+    if (typeof this.info.path === 'function') {
+      const customPredicateResult = await this.info.path({
+        request: args.request,
+        cookies,
+      })
+
+      const match =
+        typeof customPredicateResult === 'boolean'
+          ? {
+              matches: customPredicateResult,
+              params: {},
+            }
+          : customPredicateResult
+
+      return {
+        match,
+        cookies,
+      }
+    }
+
     const match = this.info.path
       ? matchRequestUrl(url, this.info.path, args.resolutionContext?.baseUrl)
       : { matches: false, params: {} }
-    const cookies = getAllRequestCookies(args.request)
 
     return {
       match,
@@ -143,12 +170,6 @@ export class HttpHandler extends RequestHandler<
     parsedResult: HttpRequestParsedResult
     resolutionContext?: ResponseResolutionContext
   }) {
-    if (this.customPredicate) {
-      return await this.customPredicate({
-        request: args.request,
-        cookies: args.parsedResult.cookies,
-      })
-    }
     const hasMatchingMethod = this.matchMethod(args.request.method)
     const hasMatchingUrl = args.parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl

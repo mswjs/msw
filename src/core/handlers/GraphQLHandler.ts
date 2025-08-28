@@ -29,7 +29,7 @@ export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationType: ExpectedOperationTypeNode
-  operationName: GraphQLHandlerNameSelector
+  operationName: GraphQLHandlerNameSelector | GraphQLCustomPredicate
 }
 
 export type GraphQLRequestParsedResult = {
@@ -77,13 +77,18 @@ export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
   | null
   | undefined
 
-export type GraphQLCustomPredicate<GraphQLVariables> = (args: {
+export type GraphQLCustomPredicate = (args: {
   request: Request
   query: string
+  operationType: ExpectedOperationTypeNode
   operationName: string
   variables: GraphQLVariables
   cookies: Record<string, string>
 }) => boolean | Promise<boolean>
+
+export type GraphQLPredicate =
+  | GraphQLHandlerNameSelector
+  | GraphQLCustomPredicate
 
 export function isDocumentNode(
   value: DocumentNode | any,
@@ -101,7 +106,6 @@ export class GraphQLHandler extends RequestHandler<
   GraphQLResolverExtras<any>
 > {
   private endpoint: Path
-  private customPredicate?: GraphQLCustomPredicate<GraphQLVariables>
 
   static parsedRequestCache = new WeakMap<
     Request,
@@ -110,20 +114,15 @@ export class GraphQLHandler extends RequestHandler<
 
   constructor(
     operationType: ExpectedOperationTypeNode,
-    predicate:
-      | GraphQLHandlerNameSelector
-      | GraphQLCustomPredicate<GraphQLVariables>,
+    predicate: GraphQLPredicate,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
-    const isPredicateFunction = typeof predicate === 'function'
-    const operationName = isPredicateFunction ? '' : predicate
+    let resolvedOperationName = predicate
 
-    let resolvedOperationName = operationName
-
-    if (isDocumentNode(operationName)) {
-      const parsedNode = parseDocumentNode(operationName)
+    if (isDocumentNode(resolvedOperationName)) {
+      const parsedNode = parseDocumentNode(resolvedOperationName)
 
       if (parsedNode.operationType !== operationType) {
         throw new Error(
@@ -140,10 +139,15 @@ export class GraphQLHandler extends RequestHandler<
       resolvedOperationName = parsedNode.operationName
     }
 
+    const displayOperationName =
+      typeof resolvedOperationName === 'function'
+        ? '[custom predicate]'
+        : resolvedOperationName
+
     const header =
       operationType === 'all'
         ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType}${resolvedOperationName ? ` ${resolvedOperationName}` : ''} (origin: ${endpoint.toString()})`
+        : `${operationType}${displayOperationName ? ` ${displayOperationName}` : ''} (origin: ${endpoint.toString()})`
 
     super({
       info: {
@@ -155,9 +159,6 @@ export class GraphQLHandler extends RequestHandler<
       options,
     })
 
-    if (isPredicateFunction) {
-      this.customPredicate = predicate
-    }
     this.endpoint = endpoint
   }
 
@@ -192,7 +193,10 @@ export class GraphQLHandler extends RequestHandler<
     const cookies = getAllRequestCookies(args.request)
 
     if (!match.matches) {
-      return { match, cookies }
+      return {
+        match,
+        cookies,
+      }
     }
 
     const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
@@ -200,7 +204,10 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match, cookies }
+      return {
+        match,
+        cookies,
+      }
     }
 
     return {
@@ -217,16 +224,6 @@ export class GraphQLHandler extends RequestHandler<
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }): Promise<boolean> {
-    if (this.customPredicate) {
-      return await this.customPredicate({
-        request: args.request,
-        ...this.extendResolverArgs({
-          request: args.request,
-          parsedResult: args.parsedResult,
-        }),
-      })
-    }
-
     if (args.parsedResult.operationType === undefined) {
       return false
     }
@@ -245,10 +242,16 @@ Consider naming this operation or using "graphql.operation()" request handler to
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
 
-    const hasMatchingOperationName =
-      this.info.operationName instanceof RegExp
-        ? this.info.operationName.test(args.parsedResult.operationName || '')
-        : args.parsedResult.operationName === this.info.operationName
+    /**
+     * Check if the operation name matches the outgoing GraphQL request.
+     * @note Unlike the HTTP handler, the custom predicate functions are invoked
+     * during predicate, not parsing, because GraphQL request parsing happens first,
+     * and non-GraphQL requests are filtered out automatically.
+     */
+    const hasMatchingOperationName = await this.matchOperationName({
+      request: args.request,
+      parsedResult: args.parsedResult,
+    })
 
     return (
       args.parsedResult.match.matches &&
@@ -257,12 +260,34 @@ Consider naming this operation or using "graphql.operation()" request handler to
     )
   }
 
+  private async matchOperationName(args: {
+    request: Request
+    parsedResult: GraphQLRequestParsedResult
+  }): Promise<boolean> {
+    if (typeof this.info.operationName === 'function') {
+      return await this.info.operationName({
+        request: args.request,
+        ...this.extendResolverArgs({
+          request: args.request,
+          parsedResult: args.parsedResult,
+        }),
+      })
+    }
+
+    if (this.info.operationName instanceof RegExp) {
+      return this.info.operationName.test(args.parsedResult.operationName || '')
+    }
+
+    return args.parsedResult.operationName === this.info.operationName
+  }
+
   protected extendResolverArgs(args: {
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
     return {
       query: args.parsedResult.query || '',
+      operationType: args.parsedResult.operationType!,
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
       cookies: args.parsedResult.cookies,

@@ -84,7 +84,9 @@ export type GraphQLCustomPredicate = (args: {
   operationName: string
   variables: GraphQLVariables
   cookies: Record<string, string>
-}) => boolean | Promise<boolean>
+}) => GraphQLCustomPredicateResult | Promise<GraphQLCustomPredicateResult>
+
+export type GraphQLCustomPredicateResult = boolean | { matches: boolean }
 
 export type GraphQLPredicate =
   | GraphQLHandlerNameSelector
@@ -265,13 +267,23 @@ Consider naming this operation or using "graphql.operation()" request handler to
     parsedResult: GraphQLRequestParsedResult
   }): Promise<boolean> {
     if (typeof this.info.operationName === 'function') {
-      return await this.info.operationName({
+      const customPredicateResult = await this.info.operationName({
         request: args.request,
         ...this.extendResolverArgs({
           request: args.request,
           parsedResult: args.parsedResult,
         }),
       })
+
+      /**
+       * @note Keep the { matches } signature in case we decide to support path parameters
+       * in GraphQL handlers. If that happens, the custom predicate would have to be moved
+       * to the parsing phase, the same as we have for the HttpHandler, and the user will
+       * have a possibility to return parsed path parameters from the custom predicate.
+       */
+      return typeof customPredicateResult === 'boolean'
+        ? customPredicateResult
+        : customPredicateResult.matches
     }
 
     if (this.info.operationName instanceof RegExp) {

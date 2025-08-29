@@ -198,7 +198,7 @@ export const test = base.extend<TestFixtures>({
   },
   async query({ page }, use) {
     await use(async (uri, options) => {
-      const requestId = crypto.createHash('md5').digest('hex')
+      const requestId = crypto.randomUUID()
       const method = options.method || 'POST'
       const requestUrl = new URL(uri, 'http://localhost:8080')
       const headers: FlatHeadersObject = {

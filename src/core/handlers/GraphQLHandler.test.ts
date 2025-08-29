@@ -653,6 +653,43 @@ describe('predicate', () => {
       }),
     ).resolves.toBe(false)
   })
+
+  it('supports custom predicate function', async () => {
+    const handler = new GraphQLHandler(
+      OperationTypeNode.QUERY,
+      ({ query }) => {
+        return query.includes('password')
+      },
+      /.+/,
+      resolver,
+    )
+
+    {
+      const request = createPostGraphQLRequest({
+        query: `query GetUser { user { password } }`,
+      })
+
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(true)
+    }
+
+    {
+      const request = createPostGraphQLRequest({
+        query: `query GetUser { user { nonMatching } }`,
+      })
+
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(false)
+    }
+  })
 })
 
 describe('test', () => {

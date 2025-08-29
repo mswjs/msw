@@ -83,7 +83,7 @@ describe('predicate', () => {
     ).resolves.toBe(true)
   })
 
-  it('respects RegExp as the request method', async () => {
+  it('supports RegExp as the request method', async () => {
     const handler = new HttpHandler(/.+/, '/login', resolver)
     const requests = [
       new Request(new URL('/login', location.href)),
@@ -111,6 +111,36 @@ describe('predicate', () => {
         parsedResult: await handler.parse({ request }),
       }),
     ).resolves.toBe(false)
+  })
+
+  it('supports custom predicate function', async () => {
+    const handler = new HttpHandler(
+      'GET',
+      ({ request }) => {
+        return new URL(request.url).searchParams.get('a') === '1'
+      },
+      resolver,
+    )
+
+    {
+      const request = new Request(new URL('/login?a=1', location.href))
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(true)
+    }
+
+    {
+      const request = new Request(new URL('/login', location.href))
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(false)
+    }
   })
 })
 

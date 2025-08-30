@@ -56,7 +56,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('inherits cookies set from a preceeding request', async () => {
+test('inherits cookies set from a preceding request', async () => {
   const res = await fetch(httpServer.https.url('/login'), {
     method: 'POST',
   }).then(() => {

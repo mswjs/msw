@@ -117,7 +117,7 @@ export const test = base.extend<TestFixtures>({
       page.goto(compilation.previewUrl)
       await Promise.all(oncePageReady)
 
-      // All examlpes await the MSW activation message by default.
+      // All examples await the MSW activation message by default.
       // Support opting-out from this behavior for tests where activation
       // is not expected (e.g. when testing activation errors).
       if (!options.skipActivation) {

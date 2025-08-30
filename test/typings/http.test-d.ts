@@ -71,7 +71,7 @@ it('supports null as the request body type argument', () => {
   })
 })
 
-it('returns plain Response withouth explicit response body type argument', () => {
+it('returns plain Response without explicit response body type argument', () => {
   http.get('/user', () => {
     return new Response('hello')
   })

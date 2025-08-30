@@ -20,6 +20,9 @@ importers:
       '@inquirer/confirm':
         specifier: ^5.0.0
         version: 5.0.2(@types/node@18.19.28)
+      '@msgpack/msgpack':
+        specifier: ^3.1.2
+        version: 3.1.2
       '@mswjs/interceptors':
         specifier: ^0.39.1
         version: 0.39.1
@@ -35,6 +38,9 @@ importers:
       '@types/statuses':
         specifier: ^2.0.4
         version: 2.0.5
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       graphql:
         specifier: ^16.8.1
         version: 16.8.2
@@ -53,12 +59,18 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
+      rettime:
+        specifier: ^0.6.3
+        version: 0.6.3
       strict-event-emitter:
         specifier: ^0.5.1
         version: 0.5.1
       type-fest:
         specifier: ^4.26.1
         version: 4.29.0
+      ws:
+        specifier: ^8.18.3
+        version: 8.18.3
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -995,6 +1007,10 @@ packages:
     resolution: {integrity: sha512-stTxvLdJ2IcGOs76AnvGYAzGvx8JvQPRxC5DW0P5zdAAnhL33noqb5LKdPt3P37BKp9FzBKZHuihQI9oVqwm0g==}
     engines: {node: '>=16.13'}
 
+  '@msgpack/msgpack@3.1.2':
+    resolution: {integrity: sha512-JEW4DEtBzfe8HvUYecLU9e6+XJnKDlUAIve8FvPzF3Kzs6Xo/KuZkZJsDH0wJXl/qEZbeeE7edxDNY3kMs39hQ==}
+    engines: {node: '>= 18'}
+
   '@mswjs/interceptors@0.39.1':
     resolution: {integrity: sha512-f/OVak8vv5LCi85wPDOUpqgAQV4qoZTr4H/pPuRggtdzgnU4+BYBv0+gK853ln//PDL7mUkAkR2kW313Tu1i8g==}
     engines: {node: '>=18'}
@@ -1480,6 +1496,9 @@ packages:
 
   '@types/ws@7.4.7':
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -4291,6 +4310,9 @@ packages:
     resolution: {integrity: sha512-0f4Memo5QP7WQyUEAYUO3esD/XjOc3Zjjg5CPsAq1p8sIu0XPeMbHJemKA0BO7tV0X7+A0FoEpbmHXWxPyD3wQ==}
     engines: {node: '>=10'}
 
+  rettime@0.6.3:
+    resolution: {integrity: sha512-9JZQchSQ+jf2QMr/2R+xn7nP9o1+oMZWtAUDjmXVdy4nG30uDUjA3Dpb5Xf5XeJHExDwvkXw1CJYTN0sfDoBAA==}
+
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
@@ -5182,8 +5204,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.18.0:
-    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -5823,7 +5845,7 @@ snapshots:
   '@fastify/websocket@8.3.1':
     dependencies:
       fastify-plugin: 4.5.1
-      ws: 8.18.0
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -6006,10 +6028,12 @@ snapshots:
       '@miniflare/core': 2.14.4
       '@miniflare/shared': 2.14.4
       undici: 5.28.4
-      ws: 8.18.0
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@msgpack/msgpack@3.1.2': {}
 
   '@mswjs/interceptors@0.39.1':
     dependencies:
@@ -6447,6 +6471,10 @@ snapshots:
   '@types/uuid@8.3.4': {}
 
   '@types/ws@7.4.7':
+    dependencies:
+      '@types/node': 18.19.28
+
+  '@types/ws@8.18.1':
     dependencies:
       '@types/node': 18.19.28
 
@@ -8717,7 +8745,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.0.0
-      ws: 8.18.0
+      ws: 8.18.3
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -9622,6 +9650,8 @@ snapshots:
       signal-exit: 4.1.0
 
   ret@0.4.3: {}
+
+  rettime@0.6.3: {}
 
   reusify@1.0.4: {}
 
@@ -10623,7 +10653,7 @@ snapshots:
 
   ws@8.11.0: {}
 
-  ws@8.18.0: {}
+  ws@8.18.3: {}
 
   xml-name-validator@5.0.0: {}
 

@@ -1,11 +1,10 @@
 import * as http from 'node:http'
-import { Readable } from 'node:stream'
 import * as streamConsumers from 'node:stream/consumers'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import type { RequiredDeep } from 'type-fest'
 import { invariant } from 'outvariant'
 import { createRequestId } from '@mswjs/interceptors'
-import { DeferredPromise } from '@open-draft/deferred-promise'
+import { until } from '@open-draft/until'
 import { SetupApi } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
@@ -27,6 +26,8 @@ import {
   deserializeFetchRequest,
   deserializeFetchResponse,
 } from '~/core/RemoteClient'
+import { NetworkBridgeReceiver } from '~/core/nhp/receiver'
+import { intent } from '~/core/nhp'
 
 interface RemoteServerBoundaryContext {
   serverUrl: URL
@@ -37,8 +38,6 @@ interface RemoteServerBoundaryContext {
 
 export const remoteHandlersContext =
   new AsyncLocalStorage<RemoteServerBoundaryContext>()
-
-const REMOTE_SERVER_HOSTNAME = 'localhost'
 
 const kRemoteServer = Symbol('kRemoteServer')
 
@@ -114,102 +113,126 @@ export class SetupRemoteServerApi
       options,
     ) as RequiredDeep<ListenOptions>
 
-    const server = await createSyncServer()
-    this[kServerUrl] = getServerUrl(server)
+    const server = new NetworkBridgeReceiver()
+    await server.open()
+    this[kServerUrl] = server.url
 
     process
-      .once('SIGTERM', () => closeSyncServer(server))
-      .once('SIGINT', () => closeSyncServer(server))
+      .once('SIGTERM', () => server.close())
+      .once('SIGINT', () => server.close())
 
     // Close the server if the setup API is disposed.
-    this.subscriptions.push(() => closeSyncServer(server))
+    this.subscriptions.push(() => server.close())
 
-    server.on('request', async (incoming, outgoing) => {
-      if (!incoming.method) {
-        return
-      }
+    // server.on('request', async (incoming, outgoing) => {
+    //   if (!incoming.method) {
+    //     return
+    //   }
 
-      // Handle the handshake request from the client.
-      if (incoming.method === 'HEAD') {
-        outgoing.writeHead(200).end()
-        return
-      }
+    //   // Handle the handshake request from the client.
+    //   if (incoming.method === 'HEAD') {
+    //     outgoing.writeHead(200).end()
+    //     return
+    //   }
 
-      // Handle life-cycle event requests forwarded from `setupServer`.
-      if (incoming.url === '/life-cycle-events') {
-        this.handleLifeCycleEventRequest(incoming, outgoing)
-        return
-      }
+    //   // Handle life-cycle event requests forwarded from `setupServer`.
+    //   if (incoming.url === '/life-cycle-events') {
+    //     this.handleLifeCycleEventRequest(incoming, outgoing)
+    //     return
+    //   }
 
-      const requestId = incoming.headers['x-msw-request-id']
-      const requestUrl = incoming.headers['x-msw-request-url']
-      const contextId = incoming.headers['x-msw-boundary-id']
+    //   const requestId = incoming.headers['x-msw-request-id']
+    //   const requestUrl = incoming.headers['x-msw-request-url']
+    //   const contextId = incoming.headers['x-msw-boundary-id']
 
-      if (typeof requestId !== 'string') {
-        outgoing.writeHead(400)
-        outgoing.end('Expected the "x-msw-request-id" header to be a string')
-        return
-      }
+    //   if (typeof requestId !== 'string') {
+    //     outgoing.writeHead(400)
+    //     outgoing.end('Expected the "x-msw-request-id" header to be a string')
+    //     return
+    //   }
 
-      if (typeof requestUrl !== 'string') {
-        outgoing.writeHead(400)
-        outgoing.end('Expected the "x-msw-request-url" header to be a string')
-        return
-      }
+    //   if (typeof requestUrl !== 'string') {
+    //     outgoing.writeHead(400)
+    //     outgoing.end('Expected the "x-msw-request-url" header to be a string')
+    //     return
+    //   }
 
-      // Validate remote context id.
-      if (contextId != null && typeof contextId !== 'string') {
-        outgoing.writeHead(400)
-        outgoing.end(
-          `Expected the "contextId" value to be a string but got ${typeof contextId}`,
-        )
-        return
-      }
+    //   // Validate remote context id.
+    //   if (contextId != null && typeof contextId !== 'string') {
+    //     outgoing.writeHead(400)
+    //     outgoing.end(
+    //       `Expected the "contextId" value to be a string but got ${typeof contextId}`,
+    //     )
+    //     return
+    //   }
 
-      const request = new Request(requestUrl, {
-        method: incoming.method,
-        body:
-          incoming.method !== 'HEAD' && incoming.method !== 'GET'
-            ? (Readable.toWeb(incoming) as ReadableStream<unknown>)
-            : null,
-        // @ts-expect-error Missing Node.js types.
-        duplex: 'half',
-      })
+    //   const request = new Request(requestUrl, {
+    //     method: incoming.method,
+    //     body:
+    //       incoming.method !== 'HEAD' && incoming.method !== 'GET'
+    //         ? (Readable.toWeb(incoming) as ReadableStream<unknown>)
+    //         : null,
+    //     // @ts-expect-error Missing Node.js types.
+    //     duplex: 'half',
+    //   })
 
-      for (const headerName in incoming.headersDistinct) {
-        const headerValue = incoming.headersDistinct[headerName]
-        if (headerValue) {
-          headerValue.forEach((value) => {
-            request.headers.append(headerName, value)
-          })
-        }
-      }
+    //   for (const headerName in incoming.headersDistinct) {
+    //     const headerValue = incoming.headersDistinct[headerName]
+    //     if (headerValue) {
+    //       headerValue.forEach((value) => {
+    //         request.headers.append(headerName, value)
+    //       })
+    //     }
+    //   }
+
+    //   const handlers = this.resolveHandlers({ contextId }).filter(
+    //     /** @todo Eventually allow all handler types */
+    //     isHandlerKind('RequestHandler'),
+    //   )
+
+    //   const response = await getResponse(handlers, request)
+
+    //   if (response) {
+    //     outgoing.writeHead(
+    //       response.status,
+    //       response.statusText,
+    //       Array.from(response.headers),
+    //     )
+
+    //     if (response.body) {
+    //       Readable.fromWeb(response.body as any).pipe(outgoing)
+    //     } else {
+    //       outgoing.end()
+    //     }
+
+    //     return
+    //   }
+
+    //   outgoing.writeHead(404).end()
+    // })
+
+    server.on('http', async (event) => {
+      const { request } = event.data
+      const contextId = request.headers.get('x-msw-boundary-id')
 
       const handlers = this.resolveHandlers({ contextId }).filter(
-        /** @todo Eventually allow all handler types */
         isHandlerKind('RequestHandler'),
       )
 
-      const response = await getResponse(handlers, request)
+      const result = await until(() => getResponse(handlers, request))
 
-      if (response) {
-        outgoing.writeHead(
-          response.status,
-          response.statusText,
-          Array.from(response.headers),
-        )
-
-        if (response.body) {
-          Readable.fromWeb(response.body as any).pipe(outgoing)
-        } else {
-          outgoing.end()
-        }
-
-        return
+      if (result.error) {
+        return intent.http.errorWith(result.error)
       }
 
-      outgoing.writeHead(404).end()
+      if (result.data) {
+        return intent.http.respondWith(result.data)
+      }
+
+      return intent.http.passthrough()
     })
+
+    /** @todo server.on('ws', listener) */
 
     this.emitter.on('request:unhandled', async ({ request }) => {
       /**
@@ -256,7 +279,7 @@ export class SetupRemoteServerApi
   }
 
   private resolveHandlers(args: {
-    contextId: string | undefined
+    contextId: string | null | undefined
   }): Array<RequestHandler | WebSocketHandler> {
     const defaultHandlers = this.handlersController.currentHandlers()
 
@@ -319,66 +342,66 @@ export class SetupRemoteServerApi
   }
 }
 
-/**
- * Creates an internal HTTP server.
- */
-async function createSyncServer(): Promise<http.Server> {
-  const syncServer = Reflect.get(globalThis, kRemoteServer)
+// /**
+//  * Creates an internal HTTP server.
+//  */
+// async function createSyncServer(): Promise<http.Server> {
+//   const syncServer = Reflect.get(globalThis, kRemoteServer)
 
-  // Reuse the existing WebSocket server reference if it exists.
-  // It persists on the global scope between hot updates.
-  if (syncServer) {
-    return syncServer
-  }
+//   // Reuse the existing WebSocket server reference if it exists.
+//   // It persists on the global scope between hot updates.
+//   if (syncServer) {
+//     return syncServer
+//   }
 
-  const serverReadyPromise = new DeferredPromise<http.Server>()
-  const server = http.createServer()
+//   const serverReadyPromise = new DeferredPromise<http.Server>()
+//   const server = http.createServer()
 
-  server.listen(0, REMOTE_SERVER_HOSTNAME, async () => {
-    serverReadyPromise.resolve(server)
-  })
+//   server.listen(0, REMOTE_SERVER_HOSTNAME, async () => {
+//     serverReadyPromise.resolve(server)
+//   })
 
-  server.once('error', (error) => {
-    serverReadyPromise.reject(error)
-    Reflect.deleteProperty(globalThis, kRemoteServer)
-  })
+//   server.once('error', (error) => {
+//     serverReadyPromise.reject(error)
+//     Reflect.deleteProperty(globalThis, kRemoteServer)
+//   })
 
-  Object.defineProperty(globalThis, kRemoteServer, {
-    value: server,
-  })
+//   Object.defineProperty(globalThis, kRemoteServer, {
+//     value: server,
+//   })
 
-  return serverReadyPromise
-}
+//   return serverReadyPromise
+// }
 
-function getServerUrl(server: http.Server): URL {
-  const address = server.address()
+// function getServerUrl(server: http.Server): URL {
+//   const address = server.address()
 
-  invariant(address, 'Failed to get server URL: server address is not defined')
+//   invariant(address, 'Failed to get server URL: server address is not defined')
 
-  if (typeof address === 'string') {
-    return new URL(address)
-  }
+//   if (typeof address === 'string') {
+//     return new URL(address)
+//   }
 
-  return new URL(`http://${REMOTE_SERVER_HOSTNAME}:${address.port}`)
-}
+//   return new URL(`http://${REMOTE_SERVER_HOSTNAME}:${address.port}`)
+// }
 
-async function closeSyncServer(server: http.Server): Promise<void> {
-  if (!server.listening) {
-    return Promise.resolve()
-  }
+// async function closeSyncServer(server: http.Server): Promise<void> {
+//   if (!server.listening) {
+//     return Promise.resolve()
+//   }
 
-  const serverClosePromise = new DeferredPromise<void>()
+//   const serverClosePromise = new DeferredPromise<void>()
 
-  server.close((error) => {
-    if (error) {
-      serverClosePromise.reject(error)
-      return
-    }
+//   server.close((error) => {
+//     if (error) {
+//       serverClosePromise.reject(error)
+//       return
+//     }
 
-    serverClosePromise.resolve()
-  })
+//     serverClosePromise.resolve()
+//   })
 
-  await serverClosePromise.then(() => {
-    Reflect.deleteProperty(globalThis, kRemoteServer)
-  })
-}
+//   await serverClosePromise.then(() => {
+//     Reflect.deleteProperty(globalThis, kRemoteServer)
+//   })
+// }

@@ -602,7 +602,7 @@ describe('predicate', () => {
     ).resolves.toBe(false)
   })
 
-  it('allows anonymous GraphQL opertaions when using "all" expected operation type', async () => {
+  it('allows anonymous GraphQL operations when using "all" expected operation type', async () => {
     const handler = new GraphQLHandler('all', new RegExp('.*'), '*', resolver)
     const request = createPostGraphQLRequest({
       query: `

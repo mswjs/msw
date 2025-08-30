@@ -65,7 +65,7 @@ console.log(typeof server.listen)
   /**
    * @todo Also test the "msw/browser" import that throws,
    * saying that the "./browser" export is not defined.
-   * That's correct, it's exlpicitly set as "browser: null" for Node.js.
+   * That's correct, it's explicitly set as "browser: null" for Node.js.
    */
 
   const runtimeStdio = await fsMock.exec('node ./runtime.mjs')

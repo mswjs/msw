@@ -8,7 +8,7 @@ import {
 export default defineConfig({
   test: {
     globals: true,
-    // Lookup the unit tests in the "src" directory becase
+    // Lookup the unit tests in the "src" directory because
     // they are located next to the source code they are testing.
     dir: './src',
     alias: {

@@ -267,7 +267,7 @@ test('does not copy the script to saved paths if public directory was provided',
   expect(fs.existsSync(fsMock.resolve('one/mockServiceWorker.js'))).toBe(false)
   expect(fs.existsSync(fsMock.resolve('two/mockServiceWorker.js'))).toBe(false)
 
-  // Must copy the worker sript only to the provided path.
+  // Must copy the worker script only to the provided path.
   expect(fs.existsSync(fsMock.resolve('three/mockServiceWorker.js'))).toBe(true)
 })
 

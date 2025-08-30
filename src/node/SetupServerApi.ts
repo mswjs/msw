@@ -19,7 +19,7 @@ type RequestHandlersContext = {
 /**
  * A handlers controller that utilizes `AsyncLocalStorage` in Node.js
  * to prevent the request handlers list from being a shared state
- * across mutliple tests.
+ * across multiple tests.
  */
 class AsyncHandlersController implements HandlersController {
   private rootContext: RequestHandlersContext

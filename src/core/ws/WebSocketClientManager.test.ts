@@ -62,7 +62,7 @@ it('adds multiple clients from this runtime to the list of clients', async () =>
   )
   await manager.addConnection(connectionTwo)
 
-  // Must add the new cilent to the list as well.
+  // Must add the new client to the list as well.
   expect(Array.from(manager.clients.values())).toEqual([
     connectionOne,
     connectionTwo,

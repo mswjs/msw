@@ -34,7 +34,7 @@ it('stops propagation for client "message" event', async () => {
     service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `client` beloning to a different event handler.
+        // dispatched on the `client` belonging to a different event handler.
         event.stopPropagation()
         clientMessageListener(1)
       })
@@ -80,7 +80,7 @@ it('stops immediate propagation for client "message" event', async () => {
     service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `client` beloning to a different event handler.
+        // dispatched on the `client` belonging to a different event handler.
         event.stopImmediatePropagation()
         clientMessageListener(1)
       })
@@ -127,7 +127,7 @@ it('stops propagation for server "open" event', async () => {
 
       server.addEventListener('open', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `server` beloning to a different event handler.
+        // dispatched on the `server` belonging to a different event handler.
         event.stopPropagation()
         serverOpenListener(1)
 
@@ -221,7 +221,7 @@ it('stops propagation for server "message" event', async () => {
 
       server.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `server` beloning to a different event handler.
+        // dispatched on the `server` belonging to a different event handler.
         event.stopPropagation()
         serverMessageListener(1)
 

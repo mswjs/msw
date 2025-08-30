@@ -193,7 +193,7 @@ it("graphql variables cannot extract type from the runtime 'DocumentNode'", () =
   })
 })
 
-it('graphql query cannot extract variable and reponse types', () => {
+it('graphql query cannot extract variable and response types', () => {
   const getUserById = parse(`
       query GetUserById($userId: String!) {
         user(id: $userId) {
@@ -217,7 +217,7 @@ it('graphql query cannot extract variable and reponse types', () => {
   })
 })
 
-it('graphql mutation cannot extract variable and reponse types', () => {
+it('graphql mutation cannot extract variable and response types', () => {
   const createUser = parse(`
         mutation CreateUser {
           user {

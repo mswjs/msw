@@ -18,7 +18,7 @@ test('falls through all relevant request handlers until response is returned', a
   expect(consoleSpy.get('log')).toContain('[get] first')
   expect(consoleSpy.get('log')).toContain('[get] second')
 
-  // The third handler is listed after the one that returnes the response,
+  // The third handler is listed after the one that returns the response,
   // so it must never execute (response is sent).
   expect(consoleSpy.get('log')).not.toContain('[get] third')
 })

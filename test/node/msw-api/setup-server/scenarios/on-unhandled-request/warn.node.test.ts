@@ -18,12 +18,12 @@ afterAll(() => {
 })
 
 test('warns on unhandled request when using the "warn" strategy', async () => {
-  await fetch('https://test.mswjs.io/user')
+  await fetch('http://localhost:3000/user').catch(() => void 0)
 
   expect(console.warn).toBeCalledWith(`\
 [MSW] Warning: intercepted a request without a matching request handler:
 
-  • GET https://test.mswjs.io/user
+  • GET http://localhost:3000/user
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/http/intercepting-requests`)
@@ -33,7 +33,7 @@ test(
   'ignores common static assets when using the "warn" strategy',
   { timeout: 10_000 },
   async () => {
-    await fetch('https://example.com/styles/main.css')
+    await fetch('http://localhost:3000/styles/main.css').catch(() => void 0)
 
     expect(console.warn).not.toHaveBeenCalled()
   },

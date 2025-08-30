@@ -161,10 +161,10 @@ export class HttpResponse<
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  static arrayBuffer(
-    body?: ArrayBuffer | SharedArrayBuffer,
+  static arrayBuffer<BodyType extends ArrayBuffer | SharedArrayBuffer>(
+    body?: BodyType,
     init?: HttpResponseInit,
-  ): HttpResponse<ArrayBuffer | SharedArrayBuffer> {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {

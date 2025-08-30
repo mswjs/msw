@@ -510,7 +510,7 @@ test('logs raw incoming server events', async ({
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
-        // The actual (raw) message recieved from the server.
+        // The actual (raw) message received from the server.
         // The arrow is dotted because the message's default has been prevented.
         expect.stringMatching(
           /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from server %c17%c color:#ef4444 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,

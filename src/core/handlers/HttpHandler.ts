@@ -25,7 +25,7 @@ type HttpHandlerMethod = string | RegExp
 
 export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
   method: HttpHandlerMethod
-  path: Path
+  path: HttpRequestPredicate<PathParams>
 }
 
 export enum HttpMethods {
@@ -52,6 +52,24 @@ export type HttpRequestResolverExtras<Params extends PathParams> = {
   cookies: Record<string, string>
 }
 
+export type HttpCustomPredicate<Params extends PathParams> = (args: {
+  request: Request
+  cookies: Record<string, string>
+}) =>
+  | HttpCustomPredicateResult<Params>
+  | Promise<HttpCustomPredicateResult<Params>>
+
+export type HttpCustomPredicateResult<Params extends PathParams> =
+  | boolean
+  | {
+      matches: boolean
+      params: Params
+    }
+
+export type HttpRequestPredicate<Params extends PathParams> =
+  | Path
+  | HttpCustomPredicate<Params>
+
 /**
  * Request handler for HTTP requests.
  * Provides request matching based on method and URL.
@@ -63,14 +81,17 @@ export class HttpHandler extends RequestHandler<
 > {
   constructor(
     method: HttpHandlerMethod,
-    path: Path,
+    predicate: HttpRequestPredicate<PathParams>,
     resolver: ResponseResolver<HttpRequestResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
+    const displayPath =
+      typeof predicate === 'function' ? '[custom predicate]' : predicate
+
     super({
       info: {
-        header: `${method} ${path}`,
-        path,
+        header: `${method}${displayPath ? ` ${displayPath}` : ''}`,
+        path: predicate,
         method,
       },
       resolver,
@@ -83,7 +104,7 @@ export class HttpHandler extends RequestHandler<
   private checkRedundantQueryParameters() {
     const { method, path } = this.info
 
-    if (path instanceof RegExp) {
+    if (!path || path instanceof RegExp || typeof path === 'function') {
       return
     }
 
@@ -95,7 +116,7 @@ export class HttpHandler extends RequestHandler<
     }
 
     const searchParams = getSearchParams(path)
-    const queryParams: string[] = []
+    const queryParams: Array<string> = []
 
     searchParams.forEach((_, paramName) => {
       queryParams.push(paramName)
@@ -111,12 +132,36 @@ export class HttpHandler extends RequestHandler<
     resolutionContext?: ResponseResolutionContext
   }) {
     const url = new URL(args.request.url)
-    const match = matchRequestUrl(
-      url,
-      this.info.path,
-      args.resolutionContext?.baseUrl,
-    )
     const cookies = getAllRequestCookies(args.request)
+
+    /**
+     * Handle custom predicate functions.
+     * @note Invoke this during parsing so the user can parse the path parameters
+     * manually. Otherwise, `params` is always an empty object, which isn't nice.
+     */
+    if (typeof this.info.path === 'function') {
+      const customPredicateResult = await this.info.path({
+        request: args.request,
+        cookies,
+      })
+
+      const match =
+        typeof customPredicateResult === 'boolean'
+          ? {
+              matches: customPredicateResult,
+              params: {},
+            }
+          : customPredicateResult
+
+      return {
+        match,
+        cookies,
+      }
+    }
+
+    const match = this.info.path
+      ? matchRequestUrl(url, this.info.path, args.resolutionContext?.baseUrl)
+      : { matches: false, params: {} }
 
     return {
       match,
@@ -124,7 +169,11 @@ export class HttpHandler extends RequestHandler<
     }
   }
 
-  predicate(args: { request: Request; parsedResult: HttpRequestParsedResult }) {
+  async predicate(args: {
+    request: Request
+    parsedResult: HttpRequestParsedResult
+    resolutionContext?: ResponseResolutionContext
+  }) {
     const hasMatchingMethod = this.matchMethod(args.request.method)
     const hasMatchingUrl = args.parsedResult.match.matches
     return hasMatchingMethod && hasMatchingUrl

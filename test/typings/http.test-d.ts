@@ -137,6 +137,22 @@ it('returns HttpResponse with ArrayBuffer as response body', () => {
   })
 })
 
+it('supports HttpResponse.arrayBuffer shorthand method', () => {
+  http.get('/', () => {
+    return HttpResponse.arrayBuffer(new ArrayBuffer(5))
+  })
+
+  http.get('/', async () => {
+    return HttpResponse.arrayBuffer(
+      await fetch('/image').then((response) => response.arrayBuffer()),
+    )
+  })
+
+  http.get<never, never, ArrayBuffer>('/', () => {
+    return HttpResponse.arrayBuffer(new ArrayBuffer(5))
+  })
+})
+
 it('supports null as a response body type argument', () => {
   http.get<never, never, null>('/', () => {
     return new HttpResponse()

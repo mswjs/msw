@@ -126,10 +126,10 @@ class ServerSentEventHandler<
     })
   }
 
-  predicate(args: {
+  async predicate(args: {
     request: Request
     parsedResult: HttpRequestParsedResult
-  }): boolean {
+  }) {
     if (args.request.headers.get('accept') !== 'text/event-stream') {
       return false
     }

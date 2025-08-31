@@ -17,7 +17,7 @@ class CookieStore {
     if (!isNodeProcess()) {
       invariant(
         typeof localStorage !== 'undefined',
-        'Failed to create a WebStorageCookieStore: `localStorage` is not available in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+        'Failed to create a CookieStore: `localStorage` is not available in this environment. This is likely an issue with your environment, which has been detected as browser (or browser-like) environment and must implement global browser APIs correctly.',
       )
     }
 

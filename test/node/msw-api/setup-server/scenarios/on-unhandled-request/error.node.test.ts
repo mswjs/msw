@@ -111,7 +111,7 @@ test(
   'ignores common static assets when using the "error" strategy',
   { timeout: 8000 },
   async () => {
-    await fetch('https://example.com/styles/main.css')
+    await fetch('http://localhost:3000/styles/main.css').catch(() => void 0)
 
     expect(console.error).not.toHaveBeenCalled()
   },

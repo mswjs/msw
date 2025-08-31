@@ -105,7 +105,7 @@ export async function handleRequest(
   }
 
   // Store all the received response cookies in the cookie jar.
-  storeResponseCookies(request, response)
+  await storeResponseCookies(request, response)
 
   emitter.emit('request:match', { request, requestId })
 

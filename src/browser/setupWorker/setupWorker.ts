@@ -7,6 +7,7 @@ import {
   StopHandler,
   StartHandler,
   StartOptions,
+  SetupWorker,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
@@ -20,7 +21,6 @@ import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { SetupWorker } from './glossary'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'

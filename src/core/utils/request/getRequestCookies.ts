@@ -66,7 +66,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
     )
   }
 
-  const cookiesFromStore = cookieStore.getCookiesSync(request.url)
+  const cookiesFromStore = cookieStore.getCookies(request.url)
   const storedCookiesObject = Object.fromEntries(
     cookiesFromStore.map((cookie) => [cookie.key, cookie.value]),
   )

@@ -252,7 +252,7 @@
     "path-to-regexp": "^6.3.0",
     "picocolors": "^1.1.1",
     "strict-event-emitter": "^0.5.1",
-    "tough-cookie": "^5.1.2",
+    "tough-cookie": "^6.0.0",
     "type-fest": "^4.26.1",
     "yargs": "^17.7.2"
   },

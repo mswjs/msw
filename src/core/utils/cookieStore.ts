@@ -4,63 +4,75 @@ import {
   Cookie,
   CookieJar,
   MemoryCookieStore,
-  MemoryCookieStoreIndex,
+  type MemoryCookieStoreIndex,
 } from 'tough-cookie'
+import { jsonParse } from './internal/jsonParse'
 
-type SimpleCookie = {
-  asString: string
-  key: string
-  value: string
-}
-
-class SimpleStore {
-  private readonly storageKey = '__msw-cookie-store__'
-  private readonly jar: CookieJar
-  private readonly memoryStore: MemoryCookieStore
+class CookieStore {
+  #storageKey = '__msw-cookie-store__'
+  #jar: CookieJar
+  #memoryStore: MemoryCookieStore
 
   constructor() {
-    const memoryStore = new MemoryCookieStore()
     if (!isNodeProcess()) {
       invariant(
         typeof localStorage !== 'undefined',
         'Failed to create a WebStorageCookieStore: `localStorage` is not available in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
       )
     }
-    memoryStore.idx = this.loadFromLocalStorage()
 
-    this.jar = new CookieJar(memoryStore)
-    this.memoryStore = memoryStore
+    this.#memoryStore = new MemoryCookieStore()
+    this.#memoryStore.idx = this.getCookieStoreIndex()
+    this.#jar = new CookieJar(this.#memoryStore)
   }
 
-  private loadFromLocalStorage(): MemoryCookieStoreIndex {
+  public getCookies(url: string): Array<Cookie> {
+    return this.#jar.getCookiesSync(url)
+  }
+
+  public async setCookie(cookieName: string, url: string): Promise<void> {
+    await this.#jar.setCookie(cookieName, url)
+    this.persist()
+  }
+
+  private getCookieStoreIndex(): MemoryCookieStoreIndex {
     if (typeof localStorage === 'undefined') {
       return {}
     }
 
-    const json = localStorage.getItem(this.storageKey)
-
-    if (json == null) {
+    const cookiesString = localStorage.getItem(this.#storageKey)
+    if (cookiesString == null) {
       return {}
     }
 
-    const rawCookies = JSON.parse(json) as Array<Record<string, any>>
+    const rawCookies = jsonParse<Array<Record<string, unknown>>>(cookiesString)
+    if (rawCookies == null) {
+      return {}
+    }
+
     const cookies: MemoryCookieStoreIndex = {}
+
     for (const rawCookie of rawCookies) {
       const cookie = Cookie.fromJSON(rawCookie)
+
       if (cookie != null && cookie.domain != null && cookie.path != null) {
+        cookies[cookie.domain] ||= {}
+        cookies[cookie.domain][cookie.path] ||= {}
         cookies[cookie.domain][cookie.path][cookie.key] = cookie
       }
     }
+
     return cookies
   }
 
-  private storeInLocalStorage(): void {
+  private persist(): void {
     if (typeof localStorage === 'undefined') {
       return
     }
 
     const data = []
-    const idx = this.memoryStore.idx
+    const { idx } = this.#memoryStore
+
     for (const domain in idx) {
       for (const path in idx[domain]) {
         for (const key in idx[domain][path]) {
@@ -68,22 +80,9 @@ class SimpleStore {
         }
       }
     }
-    localStorage.setItem(this.storageKey, JSON.stringify(data))
-  }
 
-  async setCookie(cookie: string, url: string): Promise<void> {
-    await this.jar.setCookie(cookie, url)
-    this.storeInLocalStorage()
-    return
-  }
-
-  getCookies(url: string): SimpleCookie[] {
-    return this.jar.getCookiesSync(url).map((c: Cookie) => ({
-      key: c.key,
-      value: c.value,
-      asString: c.toString(),
-    }))
+    localStorage.setItem(this.#storageKey, JSON.stringify(data))
   }
 }
 
-export const cookieStore = new SimpleStore()
+export const cookieStore = new CookieStore()

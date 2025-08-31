@@ -1,6 +1,10 @@
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type {
+  WebSocketClientConnectionProtocol,
+  WebSocketConnectionData,
+  WebSocketServerConnectionProtocol,
+} from '@mswjs/interceptors/WebSocket'
 import {
   type Match,
   type Path,
@@ -18,7 +22,10 @@ export type WebSocketHandlerEventMap = {
   connection: [args: WebSocketHandlerConnection]
 }
 
-export interface WebSocketHandlerConnection extends WebSocketConnectionData {
+export interface WebSocketHandlerConnection {
+  client: WebSocketClientConnectionProtocol
+  server: WebSocketServerConnectionProtocol
+  info: WebSocketConnectionData['info']
   params: PathParams
 }
 
@@ -30,8 +37,11 @@ export interface WebSocketHandlerOptions {
   quiet?: boolean
 }
 
+export interface WebSocketResolutionContext {
+  baseUrl?: string
+}
+
 export const kEmitter = Symbol('kEmitter')
-export const kDispatchEvent = Symbol('kDispatchEvent')
 export const kSender = Symbol('kSender')
 
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
@@ -57,10 +67,10 @@ export class WebSocketHandler {
   }
 
   public parse(args: {
-    event: MessageEvent<WebSocketConnectionData>
+    url: URL
+    resolutionContext?: WebSocketResolutionContext
   }): WebSocketHandlerParsedResult {
-    const { data: connection } = args.event
-    const { url: clientUrl } = connection.client
+    const clientUrl = new URL(args.url)
 
     /**
      * @note Remove the Socket.IO path prefix from the WebSocket
@@ -69,7 +79,11 @@ export class WebSocketHandler {
      */
     clientUrl.pathname = clientUrl.pathname.replace(/^\/socket.io\//, '/')
 
-    const match = matchRequestUrl(clientUrl, this.url)
+    const match = matchRequestUrl(
+      clientUrl,
+      this.url,
+      args.resolutionContext?.baseUrl,
+    )
 
     return {
       match,
@@ -77,23 +91,34 @@ export class WebSocketHandler {
   }
 
   public predicate(args: {
-    event: MessageEvent<WebSocketConnectionData>
+    url: URL
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
     return args.parsedResult.match.matches
   }
 
-  async [kDispatchEvent](
-    event: MessageEvent<WebSocketConnectionData>,
-  ): Promise<void> {
-    const parsedResult = this.parse({ event })
-    const connection = event.data
+  public async run(
+    connection: Omit<WebSocketHandlerConnection, 'params'>,
+    resolutionContext?: WebSocketResolutionContext,
+  ): Promise<boolean> {
+    const parsedResult = this.parse({
+      url: connection.client.url,
+      resolutionContext,
+    })
+
+    if (!this.predicate({ url: connection.client.url, parsedResult })) {
+      return false
+    }
 
     const resolvedConnection: WebSocketHandlerConnection = {
       ...connection,
       params: parsedResult.match.params || {},
     }
 
+    return this.connect(resolvedConnection)
+  }
+
+  protected connect(connection: WebSocketHandlerConnection): boolean {
     // Support `event.stopPropagation()` for various client/server events.
     connection.client.addEventListener(
       'message',
@@ -123,7 +148,7 @@ export class WebSocketHandler {
 
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
-    this[kEmitter].emit('connection', resolvedConnection)
+    return this[kEmitter].emit('connection', connection)
   }
 }
 

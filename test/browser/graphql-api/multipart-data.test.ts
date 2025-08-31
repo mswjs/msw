@@ -4,7 +4,7 @@ test('accepts a file from a GraphQL mutation', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(require.resolve('./multipart-data.mocks.ts'))
+  await loadExample(new URL('./multipart-data.mocks.ts', import.meta.url))
 
   const UPLOAD_MUTATION = `
     mutation UploadFile(

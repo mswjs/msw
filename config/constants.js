@@ -1,17 +1,13 @@
-const path = require('path')
+import url from 'node:url'
+import path from 'node:path'
 
-const SERVICE_WORKER_SOURCE_PATH = path.resolve(
-  __dirname,
-  '../src/mockServiceWorker.js',
+export const SERVICE_WORKER_SOURCE_PATH = url.fileURLToPath(
+  new URL('../src/mockServiceWorker.js', import.meta.url),
 )
 
-const SERVICE_WORKER_BUILD_PATH = path.resolve(
-  __dirname,
-  '../lib',
-  path.basename(SERVICE_WORKER_SOURCE_PATH),
+export const SERVICE_WORKER_BUILD_PATH = url.fileURLToPath(
+  new URL(
+    path.join('../lib', path.basename(SERVICE_WORKER_SOURCE_PATH)),
+    import.meta.url,
+  ),
 )
-
-module.exports = {
-  SERVICE_WORKER_SOURCE_PATH,
-  SERVICE_WORKER_BUILD_PATH,
-}

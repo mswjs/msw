@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -19,7 +20,7 @@ type RequestHandlersContext = {
 /**
  * A handlers controller that utilizes `AsyncLocalStorage` in Node.js
  * to prevent the request handlers list from being a shared state
- * across mutliple tests.
+ * across multiple tests.
  */
 class AsyncHandlersController implements HandlersController {
   private rootContext: RequestHandlersContext
@@ -56,16 +57,19 @@ class AsyncHandlersController implements HandlersController {
     return handlers.concat(initialHandlers)
   }
 }
-
 export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
 {
-  constructor(handlers: Array<RequestHandler | WebSocketHandler>) {
-    super(
-      [ClientRequestInterceptor, XMLHttpRequestInterceptor, FetchInterceptor],
-      handlers,
-    )
+  constructor(
+    handlers: Array<RequestHandler | WebSocketHandler>,
+    interceptors: Array<Interceptor<HttpRequestEventMap>> = [
+      new ClientRequestInterceptor(),
+      new XMLHttpRequestInterceptor(),
+      new FetchInterceptor(),
+    ],
+  ) {
+    super(interceptors, handlers)
 
     this.handlersController = new AsyncHandlersController(handlers)
   }

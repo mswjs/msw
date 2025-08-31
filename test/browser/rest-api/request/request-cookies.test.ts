@@ -14,7 +14,7 @@ test('returns empty object if document has no cookies', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   const response = await fetch('/cookies')
   const documentCookies = await page.evaluate(() => document.cookie)
 
@@ -28,12 +28,12 @@ test('returns empty object for request with "credentials: omit"', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
   const response = await fetch('/cookies', { credentials: 'omit' })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({})
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({})
 })
 
 test('returns empty object for cross-origin request with "credentials: same-origin"', async ({
@@ -41,14 +41,14 @@ test('returns empty object for cross-origin request with "credentials: same-orig
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
   const response = await fetch('https://example.com/cookies', {
     credentials: 'same-origin',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({})
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({})
 })
 
 test('returns cookies for same-origin request with "credentials: same-origin"', async ({
@@ -56,14 +56,14 @@ test('returns cookies for same-origin request with "credentials: same-origin"', 
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
   const response = await fetch('/cookies', {
     credentials: 'same-origin',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
   })
 })
@@ -73,14 +73,14 @@ test('returns cookies for same-origin request with "credentials: include"', asyn
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['firstCookie=value', 'secondCookie=anotherValue'])
   const response = await fetch('/cookies', {
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     firstCookie: 'value',
     secondCookie: 'anotherValue',
   })
@@ -91,20 +91,20 @@ test('returns cookies for cross-origin request with "credentials: include"', asy
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
   const response = await fetch('https://example.com/cookies', {
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
   })
 })
 
 test('inherits mocked cookies', async ({ loadExample, fetch, page }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
 
   // Make a request that sends mocked cookies.
@@ -116,8 +116,8 @@ test('inherits mocked cookies', async ({ loadExample, fetch, page }) => {
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -128,7 +128,7 @@ test('inherits mocked cookies after page reload', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
 
   await fetch('/set-cookies', {
@@ -142,8 +142,8 @@ test('inherits mocked cookies after page reload', async ({
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -154,7 +154,7 @@ test('inherits mocked "HttpOnly" cookies', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
   await bakeCookies(page, ['documentCookie=value'])
 
   await fetch('/set-cookies', {
@@ -167,8 +167,8 @@ test('inherits mocked "HttpOnly" cookies', async ({
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -178,7 +178,7 @@ test('respects cookie "Path" when exposing cookies', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
 
   /**
    * @note I tried including the `document.cookie` with
@@ -207,7 +207,7 @@ test('deletes a cookie when sending "max-age=0" in a mocked response', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./request-cookies.mocks.ts'))
+  await loadExample(new URL('./request-cookies.mocks.ts', import.meta.url))
 
   // First, set the cookie.
   await fetch('/set-cookies', {
@@ -227,5 +227,7 @@ test('deletes a cookie when sending "max-age=0" in a mocked response', async ({
   })
 
   // Must NOT have any cookies on the matching request.
-  await expect(fetch('/cookies').then((res) => res.json())).resolves.toEqual({})
+  await expect(
+    fetch('/cookies').then((response) => response.json()),
+  ).resolves.toEqual({})
 })

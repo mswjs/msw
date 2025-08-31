@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { SetupServerApi, setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
@@ -71,20 +69,24 @@ test('emits events for a handled request and mocked response', async () => {
     1,
     'request:start',
     expect.objectContaining({
-      request: expect.any(Request),
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId: expect.any(String),
     }),
   )
 
-  const { request, requestId } = listener.mock.calls[0][1]
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe(url)
+  const { requestId } = listener.mock.calls[0][1]
 
   expect(listener).toHaveBeenNthCalledWith(
     2,
     'request:match',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
     }),
   )
@@ -92,7 +94,10 @@ test('emits events for a handled request and mocked response', async () => {
     3,
     'request:end',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
     }),
   )
@@ -100,7 +105,10 @@ test('emits events for a handled request and mocked response', async () => {
     4,
     'response:mocked',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
       response: expect.any(Response),
     }),
@@ -123,20 +131,24 @@ test('emits events for a handled request with no response', async () => {
     1,
     'request:start',
     expect.objectContaining({
-      request: expect.any(Request),
+      request: expect.objectContaining({
+        method: 'POST',
+        url,
+      }),
       requestId: expect.any(String),
     }),
   )
 
-  const { request, requestId } = listener.mock.calls[0][1]
-  expect(request.method).toBe('POST')
-  expect(request.url).toBe(url)
+  const { requestId } = listener.mock.calls[0][1]
 
   expect(listener).toHaveBeenNthCalledWith(
     2,
     'request:end',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'POST',
+        url,
+      }),
       requestId,
     }),
   )
@@ -144,7 +156,10 @@ test('emits events for a handled request with no response', async () => {
     3,
     'response:bypass',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'POST',
+        url,
+      }),
       requestId,
       response: expect.any(Response),
     }),
@@ -172,15 +187,16 @@ test('emits events for an unhandled request', async () => {
     }),
   )
 
-  const { request, requestId } = listener.mock.calls[0][1]
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe(url)
+  const { requestId } = listener.mock.calls[0][1]
 
   expect(listener).toHaveBeenNthCalledWith(
     2,
     'request:unhandled',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
     }),
   )
@@ -188,7 +204,10 @@ test('emits events for an unhandled request', async () => {
     3,
     'request:end',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
     }),
   )
@@ -197,7 +216,10 @@ test('emits events for an unhandled request', async () => {
     4,
     'response:bypass',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
       response: expect.any(Response),
     }),
@@ -225,15 +247,16 @@ test('emits unhandled exceptions in the request handler', async () => {
     }),
   )
 
-  const { request, requestId } = listener.mock.calls[0][1]
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe(url)
+  const { requestId } = listener.mock.calls[0][1]
 
   expect(listener).toHaveBeenNthCalledWith(
     2,
     'unhandledException',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
       error: new Error('Unhandled resolver error'),
     }),
@@ -248,7 +271,10 @@ test('emits unhandled exceptions in the request handler', async () => {
     3,
     'response:mocked',
     expect.objectContaining({
-      request,
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId,
       response: expect.any(Response),
     }),

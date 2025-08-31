@@ -1,7 +1,7 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
-import type { RequestHandler } from '../handlers/RequestHandler'
 import { BatchHandler } from '../handlers/BatchHandler'
-import { WebSocketHandler, kDispatchEvent } from '../handlers/WebSocketHandler'
+import { RequestHandler } from '../handlers/RequestHandler'
+import { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'
 import {
   onUnhandledRequest,
@@ -19,83 +19,57 @@ interface HandleWebSocketEventOptions {
 
 export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
   webSocketInterceptor.on('connection', async (connection) => {
-    const handlers = options.getHandlers().flatMap((handler) => {
-      if (handler instanceof BatchHandler) {
-        return handler.unwrapHandlers('EventHandler')
-      }
+    const handlers = options
+      .getHandlers()
+      .flatMap((handler) => {
+        if (handler instanceof BatchHandler) {
+          return handler.unwrapHandlers('EventHandler')
+        }
 
-      return handler
-    })
+        return handler
+      })
+      .filter(isHandlerKind('EventHandler'))
 
-    const connectionEvent = new MessageEvent('connection', {
-      data: connection,
-    })
-
-    // First, filter only those WebSocket handlers that
-    // match the "ws.link()" endpoint predicate. Don't dispatch
-    // anything yet so the logger can be attached to the connection
-    // before it potentially sends events.
-    const matchingHandlers: Array<WebSocketHandler> = []
-
-    for (const handler of handlers) {
-      if (
-        isHandlerKind('EventHandler')(handler) &&
-        handler.predicate({
-          event: connectionEvent,
-          parsedResult: handler.parse({
-            event: connectionEvent,
-          }),
-        })
-      ) {
-        matchingHandlers.push(handler)
-      }
-    }
-
-    if (matchingHandlers.length > 0) {
+    // Ignore this connection if the user hasn't defined any handlers.
+    if (handlers.length > 0) {
       options?.onMockedConnection(connection)
 
-      // Only prompt to attach the logger if any of the WebSocket links
-      // were created without the `quiet` option.
-      if (
-        matchingHandlers.some((handler) => {
-          return handler?.options.quiet !== true
-        })
-      ) {
-        options?.onAttachLogger?.(connection)
-      }
+      await Promise.all(
+        handlers.map((handler) => {
+          // Iterate over the handlers and forward the connection
+          // event to WebSocket event handlers. This is equivalent
+          // to dispatching that event onto multiple listeners.
+          return handler.run(connection)
+        }),
+      )
 
-      // Iterate over the handlers and forward the connection
-      // event to WebSocket event handlers. This is equivalent
-      // to dispatching that event onto multiple listeners.
-      for (const handler of matchingHandlers) {
-        handler[kDispatchEvent](connectionEvent)
-      }
-    } else {
-      // Construct a request representing this WebSocket connection.
-      const request = new Request(connection.client.url, {
-        headers: {
-          upgrade: 'websocket',
-          connection: 'upgrade',
-        },
-      })
-      await onUnhandledRequest(
-        request,
-        options.getUnhandledRequestStrategy(),
-      ).catch((error) => {
-        const errorEvent = new Event('error')
-        Object.defineProperty(errorEvent, 'cause', {
-          enumerable: true,
-          configurable: false,
-          value: error,
-        })
-        connection.client.socket.dispatchEvent(errorEvent)
-      })
-
-      options?.onPassthroughConnection(connection)
-
-      // If none of the "ws" handlers matched,
-      // establish the WebSocket connection as-is.
-      connection.server.connect()
+      return
     }
+
+    // Construct a request representing this WebSocket connection.
+    const request = new Request(connection.client.url, {
+      headers: {
+        upgrade: 'websocket',
+        connection: 'upgrade',
+      },
+    })
+    await onUnhandledRequest(
+      request,
+      options.getUnhandledRequestStrategy(),
+    ).catch((error) => {
+      const errorEvent = new Event('error')
+      Object.defineProperty(errorEvent, 'cause', {
+        enumerable: true,
+        configurable: false,
+        value: error,
+      })
+      connection.client.socket.dispatchEvent(errorEvent)
+    })
+
+    options?.onPassthroughConnection(connection)
+
+    // If none of the "ws" handlers matched,
+    // establish the WebSocket connection as-is.
+    connection.server.connect()
   })
 }

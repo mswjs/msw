@@ -15,5 +15,5 @@ export function getMessageLength(data: WebSocketData): number {
     return data.byteLength
   }
 
-  return new Blob([data]).size
+  return new Blob([data as any]).size
 }

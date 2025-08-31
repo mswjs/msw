@@ -6,7 +6,7 @@ for (const code of [204, 205, 304]) {
     fetch,
     page,
   }) => {
-    await loadExample(require.resolve('./null-body.mocks.ts'))
+    await loadExample(new URL('./null-body.mocks.ts', import.meta.url))
 
     const errors: Array<Error> = []
     page.on('pageerror', (pageError) => {

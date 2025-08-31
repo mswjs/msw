@@ -37,12 +37,13 @@ export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
   body?: ArrayBuffer | null
 }
 
-type ServiceWorkerIncomingResponse = Pick<
-  Response,
-  'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
-> & {
-  requestId: string
+type ServiceWorkerIncomingResponse = {
   isMockedResponse: boolean
+  request: ServiceWorkerIncomingRequest
+  response: Pick<
+    Response,
+    'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
+  >
 }
 
 /**
@@ -89,7 +90,6 @@ export interface SetupWorkerInternalContext {
   worker: ServiceWorker | null
   registration: ServiceWorkerRegistration | null
   getRequestHandlers(): Array<RequestHandler | WebSocketHandler | BatchHandler>
-  requests: Map<string, Request>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: {

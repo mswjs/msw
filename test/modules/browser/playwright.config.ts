@@ -1,13 +1,14 @@
-import { Config } from '@playwright/test'
+import url from 'node:url'
+import { type Config } from '@playwright/test'
 
-const config: Config = {
-  testDir: __dirname,
+const TEST_DIR = url.fileURLToPath(new URL('./', import.meta.url))
+
+export default {
+  testDir: TEST_DIR,
   use: {
     launchOptions: {
       devtools: !process.env.CI,
     },
   },
   fullyParallel: true,
-}
-
-export default config
+} satisfies Config

@@ -1,7 +1,6 @@
 // @vitest-environment node-websocket
 import { ws } from 'msw'
 import { setupServer } from 'msw/node'
-import { InternalError } from '../../../../src/core/utils/internal/devUtils'
 
 const service = ws.link('wss://localhost:4321')
 const server = setupServer()
@@ -45,7 +44,7 @@ it(
   • GET wss://localhost:4321/
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
     )
 
     expect(errorListener).toHaveBeenCalledOnce()
@@ -55,10 +54,9 @@ Read more: https://mswjs.io/docs/getting-started/mocks`,
     const [event] = errorListener.mock.calls[0]
     expect(event).toBeInstanceOf(Event)
     expect(event.type).toBe('error')
-    expect(event.cause).toEqual(
-      new InternalError(
-        '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-      ),
+    expect(event.cause).toBeInstanceOf(Error)
+    expect(event.cause.message).toBe(
+      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
     )
   }),
 )

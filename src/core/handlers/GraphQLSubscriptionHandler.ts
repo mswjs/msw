@@ -1,10 +1,7 @@
 import { invariant } from 'outvariant'
 import { Emitter } from 'rettime'
 import { OperationTypeNode } from 'graphql'
-import type {
-  WebSocketConnectionData,
-  WebSocketServerConnection,
-} from '@mswjs/interceptors/WebSocket'
+import type { WebSocketServerConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 import {
   GraphQLHandler,
   type GraphQLHandlerInfo,
@@ -15,7 +12,11 @@ import {
 import type { Path, PathParams } from '../utils/matching/matchRequestUrl'
 import { parseDocumentNode } from '../utils/internal/parseGraphQLRequest'
 import { type WebSocketLink, ws } from '../ws'
-import { kDispatchEvent, WebSocketHandler } from './WebSocketHandler'
+import {
+  WebSocketHandler,
+  WebSocketHandlerConnection,
+  WebSocketResolutionContext,
+} from './WebSocketHandler'
 import { jsonParse } from '../utils/internal/jsonParse'
 import type { TypedDocumentNode } from '../graphql'
 import { isObject } from '../utils/internal/isObject'
@@ -30,7 +31,7 @@ export interface GraphQLPubSub {
    * Publishes the given payload to all GraphQL subscriptions.
    */
   publish: (
-    payload: { data?: Record<string, unknown> },
+    payload: { data?: Record<string, unknown> | null },
     predicate?: (args: {
       subscription: GraphQLWebSocketSubscribeMessage
     }) => boolean,
@@ -82,7 +83,7 @@ interface GraphQLWebSocketSubscribeMessagePayload<
 export class GraphQLInternalPubSub {
   public pubsub: GraphQLPubSub
   public webSocketLink: WebSocketLink
-  public server?: WebSocketServerConnection
+  public server?: WebSocketServerConnectionProtocol
 
   private subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
 
@@ -338,11 +339,11 @@ export class GraphQLSubscriptionHandler<
     // This will help with printing this handler in the console when debugging.
     // We would otherwise extend the `GraphQLHandler` class, but subscriptions
     // are WebSockets, not HTTP requests.
-    this.info = GraphQLHandler.parseGraphQLRequestInfo(
-      operationName,
-      OperationTypeNode.SUBSCRIPTION,
-      this.url,
-    )
+    this.info = GraphQLHandler.parseGraphQLRequestInfo({
+      operationType: OperationTypeNode.SUBSCRIPTION,
+      predicate: operationName,
+      url: this.url,
+    })
 
     this.subscriptionHandler = this.pubsub.webSocketLink.addEventListener(
       'connection',
@@ -384,9 +385,10 @@ export class GraphQLSubscriptionHandler<
     )
   }
 
-  async [kDispatchEvent](
-    event: MessageEvent<WebSocketConnectionData>,
-  ): Promise<void> {
+  public async run(
+    connection: Omit<WebSocketHandlerConnection, 'params'>,
+    resolutionContext?: WebSocketResolutionContext,
+  ): Promise<boolean> {
     /**
      * @note `GraphQLSubscriptionHandler` is a WebSocket handler that
      * inherits the URL from the underlying WebSocket link. This inheritance
@@ -396,9 +398,21 @@ export class GraphQLSubscriptionHandler<
      * instead of executing the handler itself, propagate the connection
      * to the WebSocket link and the subscription handler.
      */
-    await this.pubsub.pubsub.handler[kDispatchEvent](event)
-    await this.subscriptionHandler[kDispatchEvent](event)
+    const pubsubResult = await this.pubsub.pubsub.handler.run(
+      connection,
+      resolutionContext,
+    )
+    const handlerResult = await this.subscriptionHandler.run(
+      connection,
+      resolutionContext,
+    )
+
+    return pubsubResult && handlerResult
   }
+
+  // async [kDispatchEvent](
+  //   event: MessageEvent<WebSocketConnectionData>,
+  // ): Promise<void> {}
 }
 
 export function createGraphQLSubscriptionHandler(
@@ -423,14 +437,14 @@ type GraphQLPassthroughSubscriptionEventMap = {
  * You interface with this object from the client's perspective.
  */
 class GraphQLPassthroughSubscription {
-  protected readonly server: WebSocketServerConnection
+  protected readonly server: WebSocketServerConnectionProtocol
 
   private emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   private abortController: AbortController
 
   constructor(
     readonly args: {
-      server: WebSocketServerConnection
+      server: WebSocketServerConnectionProtocol
       message: GraphQLWebSocketSubscribeMessage
     },
   ) {

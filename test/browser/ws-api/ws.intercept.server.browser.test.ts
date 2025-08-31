@@ -1,7 +1,6 @@
 import type { ws } from 'msw'
 import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import { WebSocketServer } from '../../support/WebSocketServer'
 
 declare global {
   interface Window {
@@ -12,21 +11,13 @@ declare global {
   }
 }
 
-const server = new WebSocketServer()
-
-test.beforeAll(async () => {
-  await server.listen()
-})
-
-test.afterAll(async () => {
-  await server.close()
-})
-
 test('intercepts incoming server text message', async ({
   loadExample,
   page,
+  defineWebSocketServer,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  const server = await defineWebSocketServer()
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -71,8 +62,10 @@ test('intercepts incoming server text message', async ({
 test('intercepts incoming server Blob message', async ({
   loadExample,
   page,
+  defineWebSocketServer,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  const server = await defineWebSocketServer()
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -121,8 +114,10 @@ test('intercepts incoming server Blob message', async ({
 test('intercepts outgoing server ArrayBuffer message', async ({
   loadExample,
   page,
+  defineWebSocketServer,
 }) => {
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  const server = await defineWebSocketServer()
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

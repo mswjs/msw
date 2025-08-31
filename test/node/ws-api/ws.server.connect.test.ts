@@ -86,7 +86,7 @@ it('throws an error when connecting to a non-existing server', async () => {
   )
 
   const errorListener = vi.fn()
-  const ws = new WebSocket('wss://localhost:9876')
+  const ws = new WebSocket('ws://localhost:9876')
   ws.onerror = errorListener
 
   await vi.waitFor(() => {

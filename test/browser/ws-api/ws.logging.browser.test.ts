@@ -1,7 +1,6 @@
 import type { ws } from 'msw'
 import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
-import { WebSocketServer } from '../../support/WebSocketServer'
 
 declare global {
   interface Window {
@@ -12,27 +11,13 @@ declare global {
   }
 }
 
-const server = new WebSocketServer()
-
-test.beforeAll(async () => {
-  await server.listen()
-})
-
-test.afterEach(async () => {
-  server.resetState()
-})
-
-test.afterAll(async () => {
-  await server.close()
-})
-
 test('does not log anything if "quiet" was set to "true"', async ({
   loadExample,
   page,
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -67,7 +52,7 @@ test('logs the open event', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -100,7 +85,7 @@ test('logs the close event initiated by the client', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -132,9 +117,11 @@ test('logs the close event initiated by the original server', async ({
   spyOnConsole,
   page,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -175,7 +162,7 @@ test('logs the close event initiated by the event handler', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -212,7 +199,7 @@ test('logs outgoing client message sending text', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -246,7 +233,7 @@ test('logs outgoing client message sending long text', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -280,7 +267,7 @@ test('logs outgoing client message sending Blob', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -314,7 +301,7 @@ test('logs outgoing client message sending long Blob', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -349,7 +336,7 @@ test('logs outgoing client message sending ArrayBuffer data', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -383,7 +370,7 @@ test('logs outgoing client message sending long ArrayBuffer', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -420,9 +407,11 @@ test('logs incoming server messages', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -484,9 +473,11 @@ test('logs raw incoming server events', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -519,7 +510,7 @@ test('logs raw incoming server events', async ({
   await waitFor(() => {
     expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
       expect.arrayContaining([
-        // The actual (raw) message recieved from the server.
+        // The actual (raw) message received from the server.
         // The arrow is dotted because the message's default has been prevented.
         expect.stringMatching(
           /^\[MSW\] \d{2}:\d{2}:\d{2}\.\d{3} %c⇣%c hello from server %c17%c color:#ef4444 color:inherit color:gray;font-weight:normal color:inherit;font-weight:inherit$/,
@@ -539,9 +530,11 @@ test('logs mocked outgoing client message (server.send)', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -577,9 +570,11 @@ test('logs mocked incoming server message (client.send)', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -614,9 +609,11 @@ test('marks the prevented outgoing client event as dashed', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 
@@ -654,9 +651,11 @@ test('marks the prevented incoming server event as dashed', async ({
   page,
   spyOnConsole,
   waitFor,
+  defineWebSocketServer,
 }) => {
+  const server = await defineWebSocketServer()
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./ws.runtime.js'), {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
     skipActivation: true,
   })
 

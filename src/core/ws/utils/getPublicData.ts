@@ -9,7 +9,7 @@ export async function getPublicData(data: WebSocketData): Promise<string> {
 
   // Handle all ArrayBuffer-like objects.
   if (typeof data === 'object' && 'byteLength' in data) {
-    const text = new TextDecoder().decode(data)
+    const text = new TextDecoder().decode(data as ArrayBuffer)
     return `ArrayBuffer(${truncateMessage(text)})`
   }
 

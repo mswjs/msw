@@ -3,7 +3,7 @@
  */
 import { toPublicUrl } from './toPublicUrl'
 
-test('returns an absolute request URL withouth search params', () => {
+test('returns an absolute request URL without search params', () => {
   expect(toPublicUrl(new URL('https://test.mswjs.io/path'))).toBe(
     'https://test.mswjs.io/path',
   )

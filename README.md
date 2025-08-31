@@ -8,9 +8,7 @@
 <p align="center">Industry standard API mocking for JavaScript.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/v/msw.svg?style=for-the-badge&label=Latest&color=black" alt="Package version" /></a>
-  <a href="https://www.npmjs.com/package/msw" target="_blank"><img src="https://img.shields.io/npm/dm/msw?style=for-the-badge&color=black" alt="Downloads per month" /></a>
-   <a href="https://kettanaito.com/discord" target="_blank"><img src="https://img.shields.io/badge/chat-online-green?style=for-the-badge&color=black" alt="Discord server" /></a>
+   <a href="https://kettanaito.com/discord" target="_blank">Join our Discord server</a>
 </p>
 
 <br />
@@ -33,7 +31,7 @@
 This README will give you a brief overview of the library, but there's no better place to start with Mock Service Worker than its official documentation.
 
 - [Documentation](https://mswjs.io/docs)
-- [**Getting started**](https://mswjs.io/docs/getting-started)
+- [**Quick start**](https://mswjs.io/docs/quick-start)
 - [FAQ](https://mswjs.io/docs/faq)
 
 ## Examples

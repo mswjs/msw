@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'node:fs'
 import type { Plugin } from 'esbuild'
 
 /**
@@ -16,7 +16,7 @@ export function graphqlImportPlugin(): Plugin {
       }
 
       build.onLoad({ filter: /\.ts$/ }, async (args) => {
-        const contents = await fs.readFile(args.path, 'utf-8')
+        const contents = await fs.promises.readFile(args.path, 'utf-8')
         const match = /require\(['"]graphql['"]\)/g.exec(contents)
 
         if (match) {

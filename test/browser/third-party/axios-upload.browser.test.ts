@@ -12,7 +12,7 @@ test('responds with a mocked response to an upload request', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./axios-upload.runtime.js'))
+  await loadExample(new URL('./axios-upload.runtime.js', import.meta.url))
 
   const uploadResult = await page.evaluate(() => {
     return window.upload().then((response) => response.data)

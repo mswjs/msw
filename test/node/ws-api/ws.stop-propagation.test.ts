@@ -28,13 +28,13 @@ afterAll(async () => {
 })
 
 it('stops propagation for client "message" event', async () => {
-  const clientMessageListener = vi.fn<[number]>()
+  const clientMessageListener = vi.fn<(input: number) => void>()
 
   server.use(
     service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `client` beloning to a different event handler.
+        // dispatched on the `client` belonging to a different event handler.
         event.stopPropagation()
         clientMessageListener(1)
       })
@@ -74,13 +74,13 @@ it('stops propagation for client "message" event', async () => {
 })
 
 it('stops immediate propagation for client "message" event', async () => {
-  const clientMessageListener = vi.fn<[number]>()
+  const clientMessageListener = vi.fn<(input: number) => void>()
 
   server.use(
     service.addEventListener('connection', ({ client }) => {
       client.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `client` beloning to a different event handler.
+        // dispatched on the `client` belonging to a different event handler.
         event.stopImmediatePropagation()
         clientMessageListener(1)
       })
@@ -117,7 +117,7 @@ it('stops immediate propagation for client "message" event', async () => {
 })
 
 it('stops propagation for server "open" event', async () => {
-  const serverOpenListener = vi.fn<[number]>()
+  const serverOpenListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', () => {})
 
@@ -127,7 +127,7 @@ it('stops propagation for server "open" event', async () => {
 
       server.addEventListener('open', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `server` beloning to a different event handler.
+        // dispatched on the `server` belonging to a different event handler.
         event.stopPropagation()
         serverOpenListener(1)
 
@@ -164,7 +164,7 @@ it('stops propagation for server "open" event', async () => {
 })
 
 it('stops immediate propagation for server "open" event', async () => {
-  const serverOpenListener = vi.fn<[number]>()
+  const serverOpenListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', () => {})
 
@@ -208,7 +208,7 @@ it('stops immediate propagation for server "open" event', async () => {
 })
 
 it('stops propagation for server "message" event', async () => {
-  const serverMessageListener = vi.fn<[number]>()
+  const serverMessageListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', (ws) => {
     // Send data from the original server to trigger the "message" event.
@@ -221,7 +221,7 @@ it('stops propagation for server "message" event', async () => {
 
       server.addEventListener('message', (event) => {
         // Calling `stopPropagation` will prevent this event from being
-        // dispatched on the `server` beloning to a different event handler.
+        // dispatched on the `server` belonging to a different event handler.
         event.stopPropagation()
         serverMessageListener(1)
 
@@ -258,7 +258,7 @@ it('stops propagation for server "message" event', async () => {
 })
 
 it('stops immediate propagation for server "message" event', async () => {
-  const serverMessageListener = vi.fn<[number]>()
+  const serverMessageListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', (ws) => {
     // Send data from the original server to trigger the "message" event.
@@ -305,7 +305,7 @@ it('stops immediate propagation for server "message" event', async () => {
 })
 
 it('stops propagation for server "error" event', async () => {
-  const serverErrorListener = vi.fn<[number]>()
+  const serverErrorListener = vi.fn<(input: number) => void>()
 
   server.use(
     service.addEventListener('connection', ({ client, server }) => {
@@ -353,7 +353,7 @@ it('stops propagation for server "error" event', async () => {
 })
 
 it('stops immediate propagation for server "error" event', async () => {
-  const serverErrorListener = vi.fn<[number]>()
+  const serverErrorListener = vi.fn<(input: number) => void>()
 
   server.use(
     service.addEventListener('connection', ({ client, server }) => {
@@ -400,7 +400,7 @@ it('stops immediate propagation for server "error" event', async () => {
 })
 
 it('stops propagation for server "close" event', async () => {
-  const serverCloseListener = vi.fn<[number]>()
+  const serverCloseListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', (ws) => {
     ws.close()
@@ -447,7 +447,7 @@ it('stops propagation for server "close" event', async () => {
 })
 
 it('stops immediate propagation for server "close" event', async () => {
-  const serverCloseListener = vi.fn<[number]>()
+  const serverCloseListener = vi.fn<(input: number) => void>()
 
   originalServer.addListener('connection', (ws) => {
     ws.close()

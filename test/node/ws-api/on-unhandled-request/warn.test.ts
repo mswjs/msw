@@ -39,7 +39,7 @@ it(
   • GET wss://localhost:4321/
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
     )
   }),
 )

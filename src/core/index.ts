@@ -42,6 +42,7 @@ export type {
 export type {
   RequestQuery,
   HttpRequestParsedResult,
+  HttpCustomPredicate,
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
 
@@ -49,7 +50,10 @@ export type {
   GraphQLQuery,
   GraphQLVariables,
   GraphQLRequestBody,
+  GraphQLResponseBody,
   GraphQLJsonRequestBody,
+  GraphQLOperationType,
+  GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'
 export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
 

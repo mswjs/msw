@@ -4,11 +4,15 @@ test('warns on an unhandled REST API request with an absolute URL', async ({
   loadExample,
   spyOnConsole,
   fetch,
+  createServer,
 }) => {
+  const server = await createServer((app) => {
+    app.get('/resource', (req, res) => res.status(404).end())
+  })
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn.mocks.ts'))
+  await loadExample(new URL('./warn.mocks.ts', import.meta.url))
 
-  const res = await fetch('https://mswjs.io/non-existing-page')
+  const res = await fetch(server.http.url('/resource'))
   const status = res.status()
 
   expect(status).toBe(404)
@@ -17,10 +21,10 @@ test('warns on an unhandled REST API request with an absolute URL', async ({
       expect.stringContaining(`\
 [MSW] Warning: intercepted a request without a matching request handler:
 
-  • GET https://mswjs.io/non-existing-page
+  • GET ${server.http.url('/resource')}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })
@@ -31,7 +35,7 @@ test('warns on an unhandled REST API request with a relative URL', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn.mocks.ts'))
+  await loadExample(new URL('./warn.mocks.ts', import.meta.url))
 
   const res = await fetch('/user-details')
   const status = res.status()
@@ -45,7 +49,7 @@ test('warns on an unhandled REST API request with a relative URL', async ({
   • GET /user-details
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })
@@ -56,7 +60,7 @@ test('does not warn on request which handler explicitly returns no mocked respon
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn.mocks.ts'))
+  await loadExample(new URL('./warn.mocks.ts', import.meta.url))
 
   const res = await fetch('/explicit-return', { method: 'POST' })
   const status = res.status()
@@ -77,7 +81,7 @@ test('does not warn on request which handler implicitly returns no mocked respon
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn.mocks.ts'))
+  await loadExample(new URL('./warn.mocks.ts', import.meta.url))
 
   const res = await fetch('/implicit-return', { method: 'POST' })
   const status = res.status()
@@ -98,11 +102,11 @@ test('ignores common static assets when using the "warn" strategy', async ({
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn.mocks.ts'))
+  await loadExample(new URL('./warn.mocks.ts', import.meta.url))
 
   // This request will error so perform it accordingly.
   await page.evaluate(() => {
-    return fetch('https://example.com/styles/main.css').catch(() => null)
+    return fetch('http://localhost/styles/main.css').catch(() => null)
   })
 
   expect(consoleSpy.get('warning')).toBeUndefined()

@@ -13,7 +13,7 @@ test('resolves the "start" Promise and returns a ServiceWorkerRegistration when 
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./find-worker.mocks.ts'))
+  await loadExample(new URL('./find-worker.mocks.ts', import.meta.url))
 
   await page.waitForFunction(() => {
     return typeof window.msw !== 'undefined'
@@ -46,7 +46,7 @@ test('fails to return a ServiceWorkerRegistration when using a findWorker that r
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./find-worker.error.mocks.ts'), {
+  await loadExample(new URL('./find-worker.error.mocks.ts', import.meta.url), {
     skipActivation: true,
   })
 

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
@@ -8,7 +9,9 @@ const fsMock = createTeardown({
   rootDir: fromTemp('cli/init'),
 })
 
-const cliPath = require.resolve('../../cli/index.js')
+const CLI_PATH = url.fileURLToPath(
+  new URL('../../cli/index.js', import.meta.url),
+)
 
 function readJson(filePath: string) {
   const rawContent = fs.readFileSync(filePath, 'utf8')
@@ -39,7 +42,7 @@ afterAll(async () => {
 
 async function init(inlineArgs: Array<string>): ReturnType<typeof fsMock.exec> {
   const result = await fsMock.exec(
-    `node ${cliPath} init ${inlineArgs.join(' ')}`,
+    `node ${CLI_PATH} init ${inlineArgs.join(' ')}`,
   )
 
   return {
@@ -212,7 +215,8 @@ test('throws if creating a directory under path failed', async () => {
    * @note Require the "init" command source
    * so that the "fs" mocks could apply.
    */
-  const init = require('../../cli/init')
+  // @ts-expect-error
+  const { init } = await import('../../cli/init.js')
 
   // Mock the "mkdir" method throwing an error.
   const error = new Error('Failed to create directory')
@@ -263,7 +267,7 @@ test('does not copy the script to saved paths if public directory was provided',
   expect(fs.existsSync(fsMock.resolve('one/mockServiceWorker.js'))).toBe(false)
   expect(fs.existsSync(fsMock.resolve('two/mockServiceWorker.js'))).toBe(false)
 
-  // Must copy the worker sript only to the provided path.
+  // Must copy the worker script only to the provided path.
   expect(fs.existsSync(fsMock.resolve('three/mockServiceWorker.js'))).toBe(true)
 })
 
@@ -343,7 +347,8 @@ test('prints the list of failed paths to copy', async () => {
     }
   })
 
-  const init = require('../../cli/init')
+  // @ts-expect-error
+  const { init } = await import('../../cli/init.js')
   const copyFileError = new Error('Failed to copy file')
 
   const consoleLogSpy = vi

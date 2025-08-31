@@ -39,7 +39,7 @@ test('disables the mocking when the worker is stopped', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./stop.mocks.ts'))
+  await loadExample(new URL('./stop.mocks.ts', import.meta.url))
   await stopWorkerOn(page)
 
   const res = await fetch('https://api.github.com')
@@ -56,7 +56,9 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   context,
   fetch,
 }) => {
-  const { compilation } = await loadExample(require.resolve('./stop.mocks.ts'))
+  const { compilation } = await loadExample(
+    new URL('./stop.mocks.ts', import.meta.url),
+  )
 
   const firstPage = await context.newPage()
   await firstPage.goto(compilation.previewUrl, {
@@ -90,7 +92,7 @@ test('prints a warning on multiple "worker.stop()" calls', async ({
   page,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./stop.mocks.ts'))
+  await loadExample(new URL('./stop.mocks.ts', import.meta.url))
 
   function byStopMessage(text: string): boolean {
     return text === '[MSW] Mocking disabled.'

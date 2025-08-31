@@ -1,7 +1,7 @@
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql } from 'graphql'
 import { SetupWorkerApi } from 'msw/browser'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
@@ -50,7 +50,7 @@ test.afterEach(async () => {
 })
 
 test('patches a GraphQL response', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./response-patching.mocks.ts'))
+  await loadExample(new URL('./response-patching.mocks.ts', import.meta.url))
   const endpointUrl = httpServer.http.url('/graphql')
 
   await page.evaluate(() => {

@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 import { waitFor } from '../../support/waitFor'
@@ -36,7 +36,7 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
   query,
   spyOnConsole,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const endpointUrl = httpServer.http.url('/graphql')
@@ -74,7 +74,7 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
   • Request body: {\"query\":\"\\n      query {\\n        user {\\n          id\\n        }\\n      }\\n    \"}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`,
+Read more: https://mswjs.io/docs/http/intercepting-requests`,
     ])
   })
 })
@@ -85,7 +85,7 @@ test('warns on handled anonymous GraphQL operation', async ({
   spyOnConsole,
   page,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   await page.evaluate(() => {
@@ -148,7 +148,7 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
   page,
   query,
 }) => {
-  await loadExample(require.resolve('./anonymous-operation.mocks.ts'))
+  await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   await page.evaluate(() => {

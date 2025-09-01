@@ -1,6 +1,12 @@
 import { it, expectTypeOf } from 'vitest'
 import { parse } from 'graphql'
-import { graphql, HttpResponse, passthrough } from 'msw'
+import {
+  graphql,
+  HttpResponse,
+  passthrough,
+  GraphQLSubscription,
+  GraphQLSubscriptionHandlerFactory,
+} from 'msw'
 
 it('graphql mutation can be used without variables generic type', () => {
   graphql.mutation('GetUser', () => {
@@ -219,12 +225,12 @@ it('graphql query cannot extract variable and response types', () => {
 
 it('graphql mutation cannot extract variable and response types', () => {
   const createUser = parse(`
-        mutation CreateUser {
-          user {
-            id
-          }
-        }
-      `)
+mutation CreateUser {
+  user {
+    id
+  }
+}
+  `)
   graphql.mutation(createUser, () => {
     return HttpResponse.json({
       data: { arbitrary: true },
@@ -242,4 +248,64 @@ it('graphql query allows extensions in the response body', () => {
       },
     })
   })
+})
+
+/**
+ * Subscriptions.
+ */
+it('exposes a "subscription" method only on a GraphQL link', () => {
+  expectTypeOf(graphql).not.toHaveProperty('subscription')
+  expectTypeOf(
+    graphql.link('http://localhost:4000').subscription,
+  ).toEqualTypeOf<GraphQLSubscriptionHandlerFactory>()
+})
+
+it('exposes the resolver info for a graphql subscription', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  type Query = { commentAdded: { id: string; text: string } }
+  type Variables = { commentId: string }
+
+  api.subscription<Query, Variables>(
+    'OnCommentAdded',
+    ({ operationName, subscription }) => {
+      expectTypeOf(operationName).toEqualTypeOf<string>()
+      expectTypeOf(subscription).toEqualTypeOf<
+        GraphQLSubscription<Query, Variables>
+      >()
+    },
+  )
+})
+
+it('graphql subscroption accepts matching data publish', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  api.subscription<{ commentAdded: { id: string; text: string } }>(
+    'OnCommentAdded',
+    ({ subscription }) => {
+      subscription.publish({
+        data: {
+          commentAdded: {
+            id: '1',
+            text: 'Hello, world!',
+          },
+        },
+      })
+    },
+  )
+})
+
+it('graphql subscription does not allow mismatched data publish', () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+  api.subscription<{ commentAdded: { id: string; text: string } }>(
+    'OnCommentAdded',
+    ({ subscription }) => {
+      subscription.publish({
+        data: {
+          commentAdded: {
+            // @ts-expect-error number is not assignable to type string.
+            id: 123,
+          },
+        },
+      })
+    },
+  )
 })

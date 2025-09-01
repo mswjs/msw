@@ -30,6 +30,7 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
+    '@typescript-eslint/no-empty-object-type': 0,
   },
   overrides: [
     {

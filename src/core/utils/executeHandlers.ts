@@ -1,3 +1,4 @@
+import { BatchHandler } from '../handlers/BatchHandler'
 import {
   RequestHandler,
   type RequestHandlerExecutionResult,
@@ -18,7 +19,9 @@ export interface ResponseResolutionContext {
  * Returns the execution result object containing any matching request
  * handler and any mocked response it returned.
  */
-export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
+export const executeHandlers = async <
+  Handlers extends Array<RequestHandler | BatchHandler>,
+>({
   request,
   requestId,
   handlers,
@@ -32,7 +35,16 @@ export const executeHandlers = async <Handlers extends Array<RequestHandler>>({
   let matchingHandler: RequestHandler | null = null
   let result: RequestHandlerExecutionResult<any> | null = null
 
-  for (const handler of handlers) {
+  // Flatten the handlers to account for batched handlers.
+  const flatHandlers = handlers.flatMap((handler) => {
+    if (handler instanceof BatchHandler) {
+      return handler.unwrapHandlers('RequestHandler')
+    }
+
+    return handler
+  })
+
+  for (const handler of flatHandlers) {
     result = await handler.run({ request, requestId, resolutionContext })
 
     // If the handler produces some result for this request,

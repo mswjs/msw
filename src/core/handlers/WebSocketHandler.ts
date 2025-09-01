@@ -29,12 +29,21 @@ export interface WebSocketHandlerConnection {
   params: PathParams
 }
 
+export interface WebSocketHandlerOptions {
+  /**
+   * Disables the logging of the intercepted WebSocket events
+   * in the browser's console.
+   */
+  quiet?: boolean
+}
+
 export interface WebSocketResolutionContext {
   baseUrl?: string
 }
 
 export const kEmitter = Symbol('kEmitter')
 export const kSender = Symbol('kSender')
+
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
@@ -46,7 +55,10 @@ export class WebSocketHandler {
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
-  constructor(private readonly url: Path) {
+  constructor(
+    protected readonly url: Path,
+    public options: WebSocketHandlerOptions = {},
+  ) {
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()

@@ -8,9 +8,14 @@ export { http } from './http'
 export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 export { graphql } from './graphql'
 export { GraphQLHandler } from './handlers/GraphQLHandler'
+export type {
+  GraphQLSubscription,
+  GraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandlerFactory,
+} from './handlers/GraphQLSubscriptionHandler'
 
 /* WebSocket handler */
-export { ws, type WebSocketLink } from './ws'
+export { ws, type WebSocketLink, type WebSocketLinkOptions } from './ws'
 export {
   WebSocketHandler,
   type WebSocketHandlerEventMap,

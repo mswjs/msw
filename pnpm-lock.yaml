@@ -69,6 +69,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^18.4.4
         version: 18.6.3
+      '@epic-web/test-server':
+        specifier: ^0.1.6
+        version: 0.1.6
       '@fastify/websocket':
         specifier: ^8.3.1
         version: 8.3.1
@@ -79,7 +82,7 @@ importers:
         specifier: ^0.8.1
         version: 0.8.1
       '@playwright/test':
-        specifier: ^1.48.0
+        specifier: ^1.50.1
         version: 1.52.0
       '@types/express':
         specifier: ^4.17.21
@@ -403,6 +406,10 @@ packages:
   '@commitlint/types@19.0.3':
     resolution: {integrity: sha512-tpyc+7i6bPG9mvaBbtKUeghfyZSDgWquIDfMgqYtTbmZ9Y9VzEm2je9EYcQ0aoz5o7NvGS+rcDec93yO08MHYA==}
     engines: {node: '>=v18'}
+
+  '@epic-web/test-server@0.1.6':
+    resolution: {integrity: sha512-n6+dZKI2I3J8f3vjIFAYh5trgAJl0crji76+K1aoiRJqEYjdsCX/nVgBrkBCwPpBqhv9NZ1XlMqzfOafkqY5EQ==}
+    engines: {node: '>=20'}
 
   '@esbuild/aix-ppc64@0.20.2':
     resolution: {integrity: sha512-D+EBOJHXdNZcLJRBkhENNG8Wji2kgc9AZ9KiPr1JuZjsNtyHzrsfLRrY0tk2H2aoFu6RANO1y1iPPUCDYWkb5g==}
@@ -866,6 +873,19 @@ packages:
 
   '@fastify/websocket@8.3.1':
     resolution: {integrity: sha512-hsQYHHJme/kvP3ZS4v/WMUznPBVeeQHHwAoMy1LiN6m/HuPfbdXq1MBJ4Nt8qX1YI+eVbog4MnOsU7MTozkwYA==}
+
+  '@hono/node-server@1.19.1':
+    resolution: {integrity: sha512-h44e5s+ByUriaRIbeS/C74O8v90m0A95luyYQGMF7KEn96KkYMXO7bZAwombzTpjQTU4e0TkU8U1WBIXlwuwtA==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+
+  '@hono/node-ws@1.2.0':
+    resolution: {integrity: sha512-OBPQ8OSHBw29mj00wT/xGYtB6HY54j0fNSdVZ7gZM3TUeq0So11GXaWtFf1xWxQNfumKIsj0wRuLKWfVsO5GgQ==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@hono/node-server': ^1.11.1
+      hono: ^4.6.0
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -1474,6 +1494,9 @@ packages:
 
   '@types/ws@7.4.7':
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -3042,6 +3065,10 @@ packages:
   homedir-polyfill@1.0.3:
     resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
     engines: {node: '>=0.10.0'}
+
+  hono@4.9.5:
+    resolution: {integrity: sha512-aLAVl5/67ifNnoFVxnhR89dpmSLsgwBprw/PT671ASwUpJqmd7Ne8KPTQo37DbRZfgpHaHeZ4bPVUvbOkeedMw==}
+    engines: {node: '>=16.9.0'}
 
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -5558,6 +5585,18 @@ snapshots:
       chalk: 5.3.0
     optional: true
 
+  '@epic-web/test-server@0.1.6':
+    dependencies:
+      '@hono/node-server': 1.19.1(hono@4.9.5)
+      '@hono/node-ws': 1.2.0(@hono/node-server@1.19.1(hono@4.9.5))(hono@4.9.5)
+      '@open-draft/deferred-promise': 2.2.0
+      '@types/ws': 8.18.1
+      hono: 4.9.5
+      ws: 8.18.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@esbuild/aix-ppc64@0.20.2':
     optional: true
 
@@ -5816,6 +5855,19 @@ snapshots:
     dependencies:
       fastify-plugin: 4.5.1
       ws: 8.18.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@hono/node-server@1.19.1(hono@4.9.5)':
+    dependencies:
+      hono: 4.9.5
+
+  '@hono/node-ws@1.2.0(@hono/node-server@1.19.1(hono@4.9.5))(hono@4.9.5)':
+    dependencies:
+      '@hono/node-server': 1.19.1(hono@4.9.5)
+      hono: 4.9.5
+      ws: 8.18.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -6437,6 +6489,10 @@ snapshots:
   '@types/uuid@8.3.4': {}
 
   '@types/ws@7.4.7':
+    dependencies:
+      '@types/node': 18.19.28
+
+  '@types/ws@8.18.1':
     dependencies:
       '@types/node': 18.19.28
 
@@ -8375,6 +8431,8 @@ snapshots:
   homedir-polyfill@1.0.3:
     dependencies:
       parse-passwd: 1.0.0
+
+  hono@4.9.5: {}
 
   hosted-git-info@2.8.9: {}
 

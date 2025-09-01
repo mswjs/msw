@@ -4,13 +4,13 @@ test('matches an exact string with the same request URL with a trailing slash', 
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch('https://api.github.com/made-up/')
+  const response = await fetch('https://api.github.com/made-up/')
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     mocked: true,
   })
 })
@@ -20,24 +20,26 @@ test('does not match an exact string with a different request URL with a trailin
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await page.evaluate(() => fetch('https://api.github.com/other/'))
+  const response = await page.evaluate(() =>
+    fetch('https://api.github.com/other/'),
+  )
 
-  expect(res.status).not.toBe(200)
+  expect(response.status).not.toBe(200)
 })
 
 test('matches an exact string with the same request URL without a trailing slash', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch('https://api.github.com/made-up')
+  const response = await fetch('https://api.github.com/made-up')
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     mocked: true,
   })
 })
@@ -47,24 +49,26 @@ test('does not match an exact string with a different request URL without a trai
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await page.evaluate(() => fetch('https://api.github.com/other'))
+  const response = await page.evaluate(() =>
+    fetch('https://api.github.com/other'),
+  )
 
-  expect(res.status).not.toBe(200)
+  expect(response.status).not.toBe(200)
 })
 
 test('matches a mask against a matching request URL', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch('https://test.mswjs.io/messages/abc-123')
+  const response = await fetch('https://test.mswjs.io/messages/abc-123')
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     messageId: 'abc-123',
   })
 })
@@ -73,15 +77,15 @@ test('ignores query parameters when matching a mask against a matching request U
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch(
+  const response = await fetch(
     'https://test.mswjs.io/messages/abc-123/items?hello=true',
   )
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     messageId: 'abc-123',
   })
 })
@@ -91,26 +95,26 @@ test('does not match a mask against a non-matching request URL', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await page.evaluate(() =>
+  const response = await page.evaluate(() =>
     fetch('https://test.mswjs.io/users/def-456').catch(() => null),
   )
 
-  expect(res).toBeNull()
+  expect(response).toBeNull()
 })
 
 test('matches a RegExp against a matching request URL', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch('https://mswjs.google.com/path')
+  const response = await fetch('https://mswjs.google.com/path')
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     mocked: true,
   })
 })
@@ -120,26 +124,41 @@ test('does not match a RegExp against a non-matching request URL', async ({
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await page.evaluate(() =>
+  const response = await page.evaluate(() =>
     fetch('https://mswjs.google.com/other').catch(() => null),
   )
 
-  expect(res).toBeNull()
+  expect(response).toBeNull()
 })
 
 test('supports escaped parentheses in the request URL', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./uri.mocks.ts'))
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
 
-  const res = await fetch(`/resource('id')`)
+  const response = await fetch(`/resource('id')`)
 
-  expect(res.status()).toEqual(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
+    mocked: true,
+  })
+})
+
+test('matches a relative URL starting with search parameters', async ({
+  loadExample,
+  fetch,
+}) => {
+  await loadExample(new URL('./uri.mocks.ts', import.meta.url))
+
+  const response = await fetch('?resourceId=abc-123')
+
+  expect(response.status()).toEqual(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({
     mocked: true,
   })
 })

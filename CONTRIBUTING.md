@@ -89,7 +89,7 @@ There are two levels of tests on the project:
 
 #### Writing a unit test
 
-Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiple.test.ts` file next to where the function is located:
+Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiply.test.ts` file next to where the function is located:
 
 ```bash
 $ touch src/utils/multiply.test.ts
@@ -175,7 +175,7 @@ import { test, expect } from './playwright.extend'
 
 test('returns a mocked response', async ({ loadExample, fetch }) => {
   // Compile the given usage example on runtime.
-  await loadExample(require.resolve('./example.mocks.ts'))
+  await loadExample(new URL('./example.mocks.ts', import.meta.url))
 
   // Perform the "GET /books" request in the browser.
   const res = await fetch('/books')
@@ -192,6 +192,8 @@ test('returns a mocked response', async ({ loadExample, fetch }) => {
 ```
 
 ##### Running all browser tests
+
+Make sure Playwright chromium has been installed before running browser tests.
 
 ```sh
 pnpm test:browser
@@ -267,4 +269,4 @@ $ pnpm build
 
 [pnpm-url]: https://pnpm.io/
 [page-with-url]: https://github.com/kettanaito/page-with
-[pnpm-install-guide-url]: https://pnpm.io/7.x/installation#installing-a-specific-version
+[pnpm-install-guide-url]: https://pnpm.io/8.x/installation#installing-a-specific-version

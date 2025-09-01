@@ -1,5 +1,5 @@
 import type { SetupWorker } from 'msw/browser'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
 
@@ -9,7 +9,7 @@ declare namespace window {
   }
 }
 
-const ON_EXAMPLE = require.resolve('./on.mocks.ts')
+const ON_EXAMPLE = new URL('./on.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.post('/no-response', (_req, res) => {

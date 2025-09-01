@@ -71,6 +71,11 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
         window.clearInterval(context.keepAliveInterval)
+
+        // Notify others about this client disconnecting.
+        // E.g. this will purge the in-memory WebSocket clients since
+        // starting the worker again will assign them new IDs.
+        window.postMessage({ type: 'msw/worker:stop' })
       })
 
       // Check if the active Service Worker has been generated
@@ -79,6 +84,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         devUtils.error(
           'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below.',
         )
+        // eslint-disable-next-line no-console
         console.error(error)
       })
 

@@ -31,14 +31,13 @@ graphql.query(GetUserQuery, ({ variables }) => {
   })
 })
 
-graphql.query(
-  GetUserQuery,
-  // @ts-expect-error Invalid response type.
-  () => {
-    return HttpResponse.json({
-      data: {
-        user: { name: 123 },
+graphql.query(GetUserQuery, () => {
+  return HttpResponse.json({
+    data: {
+      user: {
+        // @ts-expect-error Invalid response type.
+        name: 123,
       },
-    })
-  },
-)
+    },
+  })
+})

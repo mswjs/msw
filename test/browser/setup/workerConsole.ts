@@ -2,7 +2,7 @@ import { format } from 'outvariant'
 import { Emitter } from 'strict-event-emitter'
 import { type Page } from '@playwright/test'
 
-export type WorkerConsoleMessageType =
+type WorkerConsoleMessageType =
   | 'log'
   | 'info'
   | 'warn'

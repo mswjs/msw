@@ -1,29 +1,37 @@
 import cookieUtils from '@bundled-es-modules/cookie'
-import { store } from '@mswjs/cookies'
+import { cookieStore } from '../cookieStore'
 
-function getAllDocumentCookies() {
-  return cookieUtils.parse(document.cookie)
+function parseCookies(input: string): Record<string, string> {
+  const parsedCookies = cookieUtils.parse(input)
+  const cookies: Record<string, string> = {}
+
+  for (const cookieName in parsedCookies) {
+    if (typeof parsedCookies[cookieName] !== 'undefined') {
+      cookies[cookieName] = parsedCookies[cookieName]
+    }
+  }
+
+  return cookies
 }
 
-/** @todo Rename this to "getDocumentCookies" */
-/**
- * Returns relevant document cookies based on the request `credentials` option.
- */
-export function getRequestCookies(request: Request): Record<string, string> {
-  /**
-   * @note No cookies persist on the document in Node.js: no document.
-   */
+function getAllDocumentCookies() {
+  return parseCookies(document.cookie)
+}
+
+function getDocumentCookies(request: Request): Record<string, string> {
   if (typeof document === 'undefined' || typeof location === 'undefined') {
     return {}
   }
 
   switch (request.credentials) {
     case 'same-origin': {
-      const url = new URL(request.url)
+      const requestUrl = new URL(request.url)
 
       // Return document cookies only when requested a resource
       // from the same origin as the current document.
-      return location.origin === url.origin ? getAllDocumentCookies() : {}
+      return location.origin === requestUrl.origin
+        ? getAllDocumentCookies()
+        : {}
     }
 
     case 'include': {
@@ -38,38 +46,40 @@ export function getRequestCookies(request: Request): Record<string, string> {
 }
 
 export function getAllRequestCookies(request: Request): Record<string, string> {
-  const requestCookiesString = request.headers.get('cookie')
-  const cookiesFromHeaders = requestCookiesString
-    ? cookieUtils.parse(requestCookiesString)
+  /**
+   * @note While the "cookie" header is a forbidden header field
+   * in the browser, you can read it in Node.js. We need to respect
+   * it for mocking in Node.js.
+   */
+  const requestCookieHeader = request.headers.get('cookie')
+  const cookiesFromHeaders = requestCookieHeader
+    ? parseCookies(requestCookieHeader)
     : {}
 
-  store.hydrate()
+  const cookiesFromDocument = getDocumentCookies(request)
 
-  const cookiesFromStore = Array.from(store.get(request)?.entries()).reduce<
-    Record<string, string>
-  >((cookies, [name, { value }]) => {
-    return Object.assign(cookies, { [name.trim()]: value })
-  }, {})
-
-  const cookiesFromDocument = getRequestCookies(request)
-
-  const forwardedCookies = {
-    ...cookiesFromDocument,
-    ...cookiesFromStore,
+  // Forward the document cookies to the request headers.
+  for (const name in cookiesFromDocument) {
+    request.headers.append(
+      'cookie',
+      cookieUtils.serialize(name, cookiesFromDocument[name]),
+    )
   }
 
-  // Set the inferred cookies from the cookie store and the document
-  // on the request's headers.
-  /**
-   * @todo Consider making this a separate step so this function
-   * is pure-er.
-   */
-  for (const [name, value] of Object.entries(forwardedCookies)) {
-    request.headers.append('cookie', cookieUtils.serialize(name, value))
+  const cookiesFromStore = cookieStore.getCookies(request.url)
+  const storedCookiesObject = Object.fromEntries(
+    cookiesFromStore.map((cookie) => [cookie.key, cookie.value]),
+  )
+
+  // Forward the raw stored cookies to request headers
+  // so they contain metadata like "expires", "secure", etc.
+  for (const cookie of cookiesFromStore) {
+    request.headers.append('cookie', cookie.toString())
   }
 
   return {
-    ...forwardedCookies,
+    ...cookiesFromDocument,
+    ...storedCookiesObject,
     ...cookiesFromHeaders,
   }
 }

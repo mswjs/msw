@@ -10,7 +10,7 @@ declare namespace window {
   }
 }
 
-const LIST_HANDLER_EXAMPLE = require.resolve('./listHandlers.mocks.ts')
+const LIST_HANDLER_EXAMPLE = new URL('./listHandlers.mocks.ts', import.meta.url)
 
 test('lists all current request handlers', async ({ loadExample, page }) => {
   await loadExample(LIST_HANDLER_EXAMPLE)

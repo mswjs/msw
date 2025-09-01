@@ -5,7 +5,7 @@ test('uses a custom transformer to parse BigInt in response body', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./custom-transformers.mocks.ts'))
+  await loadExample(new URL('./custom-transformers.mocks.ts', import.meta.url))
 
   const res = await fetch('/user')
   const body = await res.text()

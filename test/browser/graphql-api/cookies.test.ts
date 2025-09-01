@@ -1,4 +1,4 @@
-import * as cookieUtils from 'cookie'
+import cookieUtils from '@bundled-es-modules/cookie'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
@@ -7,7 +7,7 @@ test('sets cookie on the mocked GraphQL response', async ({
   query,
   page,
 }) => {
-  await loadExample(require.resolve('./cookies.mocks.ts'))
+  await loadExample(new URL('./cookies.mocks.ts', import.meta.url))
 
   const res = await query('/graphql', {
     query: gql`

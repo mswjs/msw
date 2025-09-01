@@ -1,22 +1,4 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "baseUrl": ".",
-    "paths": {
-      "msw": ["../.."],
-      "msw/*": ["../../*"]
-    },
-    "noEmit": true,
-    "declaration": false,
-    "resolveJsonModule": true,
-    // Support default imports for modules that have no default exports.
-    // This way "http" imports stay "import http from 'http'".
-    // Using wildcard there breaks request interception since it
-    // encapsulates the values under the ".default" key.
-    "allowSyntheticDefaultImports": true,
-    "types": ["node", "vitest/globals"]
-  },
+  "extends": "../tsconfig.json",
   "include": ["../../global.d.ts", "./**/*.test.ts"]
 }

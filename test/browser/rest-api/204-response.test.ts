@@ -1,4 +1,4 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 
 const httpServer = new HttpServer((app) => {
@@ -24,7 +24,7 @@ test('handles a 204 status response without Response instance exceptions', async
   fetch,
   page,
 }) => {
-  await loadExample(require.resolve('./basic.mocks.ts'))
+  await loadExample(new URL('./basic.mocks.ts', import.meta.url))
 
   let pageError: Error
 

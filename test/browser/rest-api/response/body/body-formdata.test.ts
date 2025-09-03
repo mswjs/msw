@@ -1,7 +1,7 @@
 import { test, expect } from '../.././../playwright.extend'
 
 test('responds to a request with FormData', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-formdata.mocks.ts'))
+  await loadExample(new URL('./body-formdata.mocks.ts', import.meta.url))
   const res = await fetch('/user')
 
   const headers = await res.allHeaders()

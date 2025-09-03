@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { until } from '@open-draft/until'
 
 /**
@@ -30,7 +30,7 @@ export default async function copyServiceWorker(
   }
 
   const packageJson = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'),
+    fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
   )
 
   const nextFileContent = readFileResult.data

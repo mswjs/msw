@@ -1,7 +1,7 @@
 import { gql } from '../../support/graphql'
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./variables.mocks.ts')
+const EXAMPLE_PATH = new URL('./variables.mocks.ts', import.meta.url)
 
 test('can access variables from a GraphQL query', async ({
   loadExample,

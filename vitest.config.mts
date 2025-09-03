@@ -1,14 +1,20 @@
-import * as path from 'node:path'
 import { defineConfig } from 'vitest/config'
+import {
+  mswExports,
+  customViteEnvironments,
+  fromRoot,
+} from './test/support/alias'
 
 export default defineConfig({
   test: {
     globals: true,
-    // Lookup the unit tests in the "src" directory becase
+    // Lookup the unit tests in the "src" directory because
     // they are located next to the source code they are testing.
     dir: './src',
     alias: {
-      '~/core': path.resolve(__dirname, 'src/core'),
+      ...mswExports,
+      ...customViteEnvironments,
+      '~/core': fromRoot('src/core'),
     },
     typecheck: {
       // Load the TypeScript configuration to the unit tests.

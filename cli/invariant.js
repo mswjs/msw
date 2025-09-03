@@ -1,8 +1,9 @@
-const chalk = require('chalk')
+import colors from 'picocolors'
 
-module.exports = function (predicate, message, ...args) {
+export function invariant(predicate, message, ...args) {
   if (!predicate) {
-    console.error(chalk.red(message), ...args)
+    // eslint-disable-next-line no-console
+    console.error(colors.red(message), ...args)
     process.exit(1)
   }
 }

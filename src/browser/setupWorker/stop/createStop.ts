@@ -24,6 +24,12 @@ export const createStop = (
     context.isMockingEnabled = false
     window.clearInterval(context.keepAliveInterval)
 
+    // Post the internal stop message on the window
+    // to let any logic know when the worker has stopped.
+    // E.g. the WebSocket client manager needs this to know
+    // when to clear its in-memory clients list.
+    window.postMessage({ type: 'msw/worker:stop' })
+
     printStopMessage({ quiet: context.startOptions?.quiet })
   }
 }

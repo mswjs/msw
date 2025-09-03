@@ -1,13 +1,12 @@
-import * as path from 'path'
 import * as express from 'express'
 import type { Frame, Page } from '@playwright/test'
 import { test, expect } from '../../../../playwright.extend'
 
 const staticMiddleware = (router: express.Router) => {
-  router.use(express.static(__dirname))
+  router.use(express.static(new URL('./', import.meta.url).pathname))
 }
 
-function getFrameById(id: string, page: Page): Frame {
+export function getFrameById(id: string, page: Page): Frame {
   const frame = page
     .mainFrame()
     .childFrames()
@@ -24,12 +23,15 @@ test('responds with different responses for the same request based on request re
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./iframe-isolated-response.mocks.ts'), {
-    markup: path.resolve(__dirname, 'app.html'),
-    beforeNavigation(compilation) {
-      compilation.use(staticMiddleware)
+  await loadExample(
+    new URL('./iframe-isolated-response.mocks.ts', import.meta.url),
+    {
+      markup: new URL('app.html', import.meta.url).pathname,
+      beforeNavigation(compilation) {
+        compilation.use(staticMiddleware)
+      },
     },
-  })
+  )
 
   const frameOne = getFrameById('frame-one', page)!
   const frameTwo = getFrameById('frame-two', page)!

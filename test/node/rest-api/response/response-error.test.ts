@@ -29,7 +29,11 @@ it('responds with a mocked error response using "Response.error" shorthand', asy
     .then(() => null)
     .catch((error) => error)
 
-  expect(responseError).toEqual(new TypeError('Failed to fetch'))
+  expect(responseError.name).toBe('TypeError')
+  expect(responseError.message).toBe('Failed to fetch')
+
   // Guard against false positives due to exceptions arising from the library.
-  expect(responseError.cause).toEqual(Response.error())
+  expect(responseError.cause).toBeInstanceOf(Response)
+  expect(responseError.cause.type).toBe('error')
+  expect(responseError.cause.status).toBe(0)
 })

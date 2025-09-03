@@ -1,4 +1,5 @@
-import * as crypto from 'crypto'
+import url from 'node:url'
+import crypto from 'node:crypto'
 import { test as base, expect, type Response, Page } from '@playwright/test'
 import {
   Headers,
@@ -7,7 +8,10 @@ import {
   type FlatHeadersObject,
 } from 'headers-polyfill'
 import { spyOnConsole, ConsoleMessages } from 'page-with'
-import { HttpServer, HttpServerMiddleware } from '@open-draft/test-server/http'
+import {
+  HttpServer,
+  HttpServerMiddleware,
+} from '@open-draft/test-server/lib/http.js'
 import {
   Compilation,
   CompilationOptions,
@@ -16,6 +20,7 @@ import {
 import { waitFor } from '../support/waitFor'
 import { WorkerConsole } from './setup/workerConsole'
 import { getWebpackServer } from './setup/webpackHttpServer'
+import { WebSocketServer } from '../support/WebSocketServer'
 
 export interface TestFixtures {
   /**
@@ -24,7 +29,7 @@ export interface TestFixtures {
   createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
   webpackServer: WebpackHttpServer
   loadExample(
-    entry: string | Array<string>,
+    entry: string | Array<string> | URL,
     options?: CompilationOptions & {
       /**
        * Do not await the "Mocking enabled" message in the console.
@@ -46,6 +51,7 @@ export interface TestFixtures {
   spyOnConsole(): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
+  defineWebSocketServer(): Promise<WebSocketServer>
 }
 
 interface FetchOptions {
@@ -90,8 +96,11 @@ export const test = base.extend<TestFixtures>({
     let compilation: Compilation | undefined
 
     await use(async (entry, options = {}) => {
+      const resolvedEntry =
+        entry instanceof URL ? url.fileURLToPath(entry) : entry
+
       compilation = await webpackServer.compile(
-        Array.prototype.concat([], entry),
+        Array.prototype.concat([], resolvedEntry),
         options,
       )
 
@@ -110,7 +119,7 @@ export const test = base.extend<TestFixtures>({
       page.goto(compilation.previewUrl)
       await Promise.all(oncePageReady)
 
-      // All examlpes await the MSW activation message by default.
+      // All examples await the MSW activation message by default.
       // Support opting-out from this behavior for tests where activation
       // is not expected (e.g. when testing activation errors).
       if (!options.skipActivation) {
@@ -192,7 +201,7 @@ export const test = base.extend<TestFixtures>({
   },
   async query({ page }, use) {
     await use(async (uri, options) => {
-      const requestId = crypto.createHash('md5').digest('hex')
+      const requestId = crypto.randomUUID()
       const method = options.method || 'POST'
       const requestUrl = new URL(uri, 'http://localhost:8080')
       const headers: FlatHeadersObject = {
@@ -314,6 +323,14 @@ export const test = base.extend<TestFixtures>({
     })
 
     messages?.clear()
+  },
+  async defineWebSocketServer({}, use) {
+    const server = new WebSocketServer()
+    await use(async () => {
+      await server.listen()
+      return server
+    })
+    await server.close()
   },
 })
 

@@ -10,7 +10,7 @@ test('propagates a mocked network error', async ({
 }) => {
   const consoleSpy = spyOnConsole()
   const { workerConsole } = await loadExample(
-    require.resolve('./network-error.mocks.ts'),
+    new URL('./network-error.mocks.ts', import.meta.url),
   )
 
   const endpointUrl = makeUrl('/user')
@@ -34,7 +34,7 @@ test('propagates a CORS violation error from a non-matching request', async ({
   waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./network-error.mocks.ts'))
+  await loadExample(new URL('./network-error.mocks.ts', import.meta.url))
 
   await until(() => page.evaluate(() => fetch('/user')))
 

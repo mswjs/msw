@@ -1,20 +1,17 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "esnext",
-    "module": "commonjs",
-    "noEmit": true,
-    "types": ["node"],
-    "typeRoots": ["../../node_modules/@types"],
-    "lib": ["dom"],
-    "resolveJsonModule": true,
+    // Use non-strict TypeScript configuration because Vitest only ever
+    // generates a single "tsconfig.json" during the typecheck run
+    // but we are running against different versions of TypeScript.
+    // Keeping strict mode will error with "Unknown compiler option" errors.
+    "strict": false,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
     "rootDir": "../..",
-    "baseUrl": ".",
-    "paths": {
-      "msw": ["../.."],
-      "msw/*": ["../../*"]
-    }
+    "lib": ["dom"]
   },
-  "include": ["../../global.d.ts", "**/*.test-d.*"],
+  "include": ["../../global.d.ts", "**/*.test-d.ts"],
   "exclude": ["node_modules"]
 }

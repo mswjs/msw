@@ -2,7 +2,7 @@ import { HttpResponse, http, passthrough } from 'msw'
 import { SetupWorkerApi } from 'msw/browser'
 import { expect, test } from '../../playwright.extend'
 
-const PASSTHROUGH_EXAMPLE = require.resolve('./passthrough.mocks.ts')
+const PASSTHROUGH_EXAMPLE = new URL('./passthrough.mocks.ts', import.meta.url)
 
 declare namespace window {
   export const msw: {

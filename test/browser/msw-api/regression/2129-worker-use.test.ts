@@ -7,7 +7,7 @@ test('handles a stream response without throwing a timeout error', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./2129-worker-use.mocks.ts'))
+  await loadExample(new URL('./2129-worker-use.mocks.ts', import.meta.url))
 
   const getResponse = await fetch('/v1/issues')
   expect(await getResponse.text()).toBe('get-body')

@@ -7,6 +7,7 @@ import {
   StopHandler,
   StartHandler,
   StartOptions,
+  SetupWorker,
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
@@ -18,9 +19,12 @@ import { createFallbackStop } from './stop/createFallbackStop'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
-import { LifeCycleEventsMap } from '~/core/sharedOptions'
-import { SetupWorker } from './glossary'
+import type { LifeCycleEventsMap } from '~/core/sharedOptions'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
+import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
+import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
+import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 
 interface Listener {
   target: EventTarget
@@ -37,7 +41,7 @@ export class SetupWorkerApi
   private stopHandler: StopHandler = null as any
   private listeners: Array<Listener>
 
-  constructor(...handlers: Array<RequestHandler>) {
+  constructor(...handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
 
     invariant(
@@ -62,7 +66,6 @@ export class SetupWorkerApi
         return this.handlersController.currentHandlers()
       },
       registration: null,
-      requests: new Map(),
       emitter: this.emitter,
       workerChannel: {
         on: (eventType, callback) => {
@@ -176,6 +179,29 @@ export class SetupWorkerApi
       options,
     ) as SetupWorkerInternalContext['startOptions']
 
+    // Enable the WebSocket interception.
+    handleWebSocketEvent({
+      getUnhandledRequestStrategy: () => {
+        return this.context.startOptions.onUnhandledRequest
+      },
+      getHandlers: () => {
+        return this.handlersController.currentHandlers()
+      },
+      onMockedConnection: (connection) => {
+        if (!this.context.startOptions.quiet) {
+          // Attach the logger for mocked connections since
+          // those won't be visible in the browser's devtools.
+          attachWebSocketLogger(connection)
+        }
+      },
+      onPassthroughConnection() {},
+    })
+    webSocketInterceptor.apply()
+
+    this.subscriptions.push(() => {
+      webSocketInterceptor.dispose()
+    })
+
     return await this.startHandler(this.context.startOptions, options)
   }
 
@@ -193,6 +219,8 @@ export class SetupWorkerApi
  *
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
-export function setupWorker(...handlers: Array<RequestHandler>): SetupWorker {
+export function setupWorker(
+  ...handlers: Array<RequestHandler | WebSocketHandler>
+): SetupWorker {
   return new SetupWorkerApi(...handlers)
 }

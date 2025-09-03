@@ -23,14 +23,14 @@ body:
       options:
         - label: I'm using the [latest](https://github.com/mswjs/msw/releases/latest) `msw` version
           required: true
-        - label: I'm using Node.js version 18 or higher
+        - label: I'm using Node.js version 20 or higher
           required: true
 
   - type: input
     attributes:
       label: Node.js version
       description: Specify which Node.js version you're using (`node -v`).
-      placeholder: i.e. v18.14.0
+      placeholder: i.e. v20.18.0
     validations:
       required: true
 

@@ -81,7 +81,7 @@ test('supports delays when enqueuing chunks', async () => {
       response.on('data', (data) => {
         chunks.push({
           buffer: Buffer.from(data),
-          timestamp: Date.now(),
+          timestamp: performance.now(),
         })
       })
 

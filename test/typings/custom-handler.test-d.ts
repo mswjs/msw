@@ -20,6 +20,7 @@ it('accepts custom request handler (setupWorker)', () => {
     generateGraphQLHandler('GetResource', () => {}),
   )
 })
+
 it('accepts custom request handler (setupServer)', () => {
   setupServer(
     generateHttpHandler('/', () => {}),

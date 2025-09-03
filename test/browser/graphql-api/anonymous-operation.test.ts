@@ -71,7 +71,7 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
 
   • POST ${endpointUrl}
 
-  • Request body: {"query":"\n      query {\n        user {\n          id\n        }\n      }\n    "}
+  • Request body: {"query":"\\n      query {\\n        user {\\n          id\\n        }\\n      }\\n    "}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/http/intercepting-requests`,

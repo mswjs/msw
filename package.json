@@ -171,7 +171,7 @@
   "scripts": {
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
-    "lint": "eslint \"{cli,src}/**/*.ts\"",
+    "lint": "eslint \"{cli,src,test}/**/*.ts\"",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "publint": "publint",

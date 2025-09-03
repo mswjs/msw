@@ -16,7 +16,6 @@ test('responds with a mocked ReadableStream response', async ({
       const chunks: Array<{ text: string; timestamp: number }> = []
       const reader = res.body.getReader()
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const { value, done } = await reader.read()
 

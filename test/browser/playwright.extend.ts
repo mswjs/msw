@@ -72,7 +72,6 @@ interface GraphQLMultipartDataOptions {
 }
 
 export const test = base.extend<TestFixtures>({
-  // eslint-disable-next-line no-empty-pattern -- First argument must use the destructuring pattern.
   async createServer({}, use) {
     let server: HttpServer | undefined
 
@@ -84,7 +83,6 @@ export const test = base.extend<TestFixtures>({
 
     await server?.close()
   },
-  // eslint-disable-next-line no-empty-pattern -- First argument must use the destructuring pattern.
   async webpackServer({}, use) {
     use(await getWebpackServer())
   },
@@ -137,7 +135,6 @@ export const test = base.extend<TestFixtures>({
     workerConsole.removeAllListeners()
     await compilation?.dispose()
   },
-  // eslint-disable-next-line no-empty-pattern -- First argument must use the destructuring pattern.
   async waitFor({}, use) {
     await use(waitFor)
   },

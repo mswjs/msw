@@ -11,20 +11,17 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     languageOptions: {
-      parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+      },
     },
+    ignores: ['/lib', '/node', '/native', '/config', 'test'],
     rules: {
       'no-console': [
         'error',
         {
-          allow: [
-            'log',
-            'warn',
-            'error',
-            'group',
-            'groupCollapsed',
-            'groupEnd',
-          ],
+          allow: ['warn', 'error', 'group', 'groupCollapsed', 'groupEnd'],
         },
       ],
       'no-async-promise-executor': 'off',
@@ -53,11 +50,23 @@ export default tseslint.config(
   },
   // Unused variables are useful in test files, and type test files
   {
-    files: ['**/*.test.ts', '**/*.test-d.ts'],
+    files: [
+      '**/*.test.ts',
+      '**/*.test-d.ts',
+      '**/*.mocks.ts',
+      '**/*.setup.ts',
+      '**/*.config.ts',
+    ],
     rules: {
+      'no-console': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
-  // @ts-expect-error tseslint adds strict typing to this configuration, eslint-plugin-prettier has an incompatible type
+  {
+    files: ['**/*.test-d.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-expressions': 'off',
+    },
+  },
   eslintPluginPrettier,
 )

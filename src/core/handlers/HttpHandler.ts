@@ -201,7 +201,6 @@ export class HttpHandler extends RequestHandler<
     const loggedResponse = await serializeResponse(args.response)
     const statusColor = getStatusCodeColor(loggedResponse.status)
 
-    // eslint-disable-next-line no-console
     console.groupCollapsed(
       devUtils.formatMessage(
         `${getTimestamp()} ${args.request.method} ${publicUrl} (%c${
@@ -217,7 +216,6 @@ export class HttpHandler extends RequestHandler<
     console.log('Handler:', this)
     // eslint-disable-next-line no-console
     console.log('Response', loggedResponse)
-    // eslint-disable-next-line no-console
     console.groupEnd()
   }
 }

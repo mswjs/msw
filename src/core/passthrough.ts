@@ -1,3 +1,7 @@
+import {
+  REQUEST_INTENTION_HEADER_NAME,
+  RequestIntention,
+} from './utils/internal/requestUtils'
 import type { HttpResponse } from './HttpResponse'
 
 /**
@@ -19,7 +23,7 @@ export function passthrough(): HttpResponse<any> {
     status: 302,
     statusText: 'Passthrough',
     headers: {
-      'x-msw-intention': 'passthrough',
+      [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.passthrough,
     },
   }) as HttpResponse<any>
 }

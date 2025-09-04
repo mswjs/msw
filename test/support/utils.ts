@@ -14,14 +14,6 @@ export function fromTemp(...segments: string[]) {
   )
 }
 
-function clearCookies(): void {
-  document.cookie.split(';').forEach((cookie) => {
-    document.cookie = cookie
-      .replace(/^ +/, '')
-      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`)
-  })
-}
-
 export async function waitForClientRequest(request: ClientRequest): Promise<{
   response: IncomingMessage
   responseText: string

@@ -321,7 +321,7 @@ export const test = base.extend<TestFixtures>({
 
     messages?.clear()
   },
-  async defineWebSocketServer({ page }, use) {
+  async defineWebSocketServer({}, use) {
     const server = new WebSocketServer()
     await use(async () => {
       await server.listen()

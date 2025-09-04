@@ -5,7 +5,6 @@ import { getWorkerScriptPatch } from './workerConsole'
 import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
 declare global {
-  // eslint-disable-next-line
   var webpackServerPromise: Promise<WebpackHttpServer> | null
 }
 

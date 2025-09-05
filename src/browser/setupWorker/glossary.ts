@@ -1,4 +1,5 @@
 import { Emitter } from 'strict-event-emitter'
+import type { DeferredPromise } from '@open-draft/deferred-promise'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
@@ -8,7 +9,7 @@ import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { WorkerChannel } from '../utils/workerChannel'
+import type { WorkerChannel } from '../utils/workerChannel'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
@@ -17,7 +18,7 @@ export interface StringifiedResponse extends ResponseInit {
 export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
   startOptions: RequiredDeep<StartOptions>
-  worker: ServiceWorker | null
+  workerPromise: DeferredPromise<ServiceWorker>
   registration: ServiceWorkerRegistration | null
   getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
   emitter: Emitter<LifeCycleEventsMap>

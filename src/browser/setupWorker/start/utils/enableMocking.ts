@@ -13,7 +13,7 @@ export function enableMocking(
   const mockingEnabledPromise = new DeferredPromise<boolean>()
 
   context.workerChannel.postMessage('MOCK_ACTIVATE')
-  context.workerChannel.once('MOCKING_ENABLED', (event) => {
+  context.workerChannel.once('MOCKING_ENABLED', async (event) => {
     // Warn the developer on multiple "worker.start()" calls.
     // While this will not affect the worker in any way,
     // it likely indicates an issue with the developer's code.
@@ -25,11 +25,12 @@ export function enableMocking(
     }
 
     context.isMockingEnabled = true
+    const worker = await context.workerPromise
 
     printStartMessage({
       quiet: options.quiet,
       workerScope: context.registration?.scope,
-      workerUrl: context.worker?.scriptURL,
+      workerUrl: worker.scriptURL,
       client: event.data.client,
     })
 

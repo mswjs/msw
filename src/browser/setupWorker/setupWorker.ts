@@ -24,6 +24,7 @@ import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 import { WorkerChannel } from '../utils/workerChannel'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 
 interface Listener {
   target: EventTarget
@@ -55,25 +56,20 @@ export class SetupWorkerApi
   }
 
   private createWorkerContext(): SetupWorkerInternalContext {
+    const workerPromise = new DeferredPromise<ServiceWorker>()
     const context: SetupWorkerInternalContext = {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
       startOptions: null as any,
-      worker: null,
+      workerPromise,
       getRequestHandlers: () => {
         return this.handlersController.currentHandlers()
       },
       registration: null,
       emitter: this.emitter,
       workerChannel: new WorkerChannel({
-        get worker() {
-          invariant(
-            context.worker,
-            'Failed to retrieve worker reference for WorkerChannel: the worker is not set',
-          )
-          return context.worker
-        },
+        worker: workerPromise,
       }),
       supports: {
         serviceWorkerApi:

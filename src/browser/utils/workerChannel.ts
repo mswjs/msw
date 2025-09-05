@@ -3,7 +3,7 @@ import { isObject } from '~/core/utils/internal/isObject'
 import type { StringifiedResponse } from '../setupWorker/glossary'
 
 export interface WorkerChannelOptions {
-  worker: ServiceWorker
+  worker: Promise<ServiceWorker>
 }
 
 export type WorkerChannelEventMap = {
@@ -110,7 +110,7 @@ export class WorkerEvent<
  * Map of the events that can be sent to the Service Worker
  * from any execution context.
  */
-type ServiceWorkerOutgoingEventTypes =
+type OutgoingWorkerEvents =
   | 'MOCK_ACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
   | 'KEEPALIVE_REQUEST'
@@ -120,8 +120,10 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
   constructor(protected readonly options: WorkerChannelOptions) {
     super()
 
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.source !== this.options.worker) {
+    navigator.serviceWorker.addEventListener('message', async (event) => {
+      const worker = await this.options.worker
+
+      if (event.source != null && event.source !== worker) {
         return
       }
 
@@ -135,11 +137,9 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
    * Send data to the Service Worker controlling this client.
    * This triggers the `message` event listener on ServiceWorkerGlobalScope.
    */
-  public postMessage(type: ServiceWorkerOutgoingEventTypes): void {
-    /**
-     * @note Previously, we posted messages on `context.worker` directly.
-     * Make sure this change isn't breaking anything.
-     */
-    this.options.worker.postMessage(type)
+  public postMessage(type: OutgoingWorkerEvents): void {
+    this.options.worker.then((worker) => {
+      worker.postMessage(type)
+    })
   }
 }

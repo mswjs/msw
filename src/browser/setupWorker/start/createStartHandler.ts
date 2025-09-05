@@ -6,6 +6,7 @@ import { createRequestListener } from './createRequestListener'
 import { checkWorkerIntegrity } from '../../utils/checkWorkerIntegrity'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 
 export const createStartHandler = (
   context: SetupWorkerInternalContext,
@@ -57,7 +58,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         throw new Error(missingWorkerMessage)
       }
 
-      context.worker = worker
+      context.workerPromise.resolve(worker)
       context.registration = registration
 
       window.addEventListener('beforeunload', () => {
@@ -83,7 +84,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       // by the currently installed version of MSW.
       await checkWorkerIntegrity(context).catch((error) => {
         devUtils.error(
-          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below.',
+          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues) and include the original error below.',
         )
         console.error(error)
       })
@@ -104,22 +105,27 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       async (registration) => {
         const pendingInstance = registration.installing || registration.waiting
 
-        // Wait until the worker is activated.
-        // Assume the worker is already activated if there's no pending registration
-        // (i.e. when reloading the page after a successful activation).
         if (pendingInstance) {
-          await new Promise<void>((resolve) => {
-            pendingInstance.addEventListener('statechange', () => {
-              if (pendingInstance.state === 'activated') {
-                return resolve()
-              }
-            })
+          const activationPromise = new DeferredPromise<void>()
+
+          pendingInstance.addEventListener('statechange', () => {
+            if (pendingInstance.state === 'activated') {
+              activationPromise.resolve()
+            }
           })
+
+          // Wait until the worker is activated.
+          // Assume the worker is already activated if there's no pending registration
+          // (i.e. when reloading the page after a successful activation).
+          await activationPromise
         }
 
         // Print the activation message only after the worker has been activated.
         await enableMocking(context, options).catch((error) => {
-          throw new Error(`Failed to enable mocking: ${error?.message}`)
+          devUtils.error(
+            'Failed to enable mocking. Please report this on GitHub (https://github.com/mswjs/msw/issues) and include the original error below.',
+          )
+          throw error
         })
 
         return registration

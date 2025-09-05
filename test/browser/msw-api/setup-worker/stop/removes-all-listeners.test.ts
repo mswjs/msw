@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-test('removes all listeners when the worker is stopped', async ({
+test.only('removes all listeners when the worker is stopped', async ({
   loadExample,
   spyOnConsole,
   waitFor,
@@ -42,6 +42,8 @@ test('removes all listeners when the worker is stopped', async ({
   ])
 
   await fetch('/user')
+
+  await page.pause()
 
   await waitFor(() => {
     expect(consoleSpy.get('startGroupCollapsed')).toEqual([

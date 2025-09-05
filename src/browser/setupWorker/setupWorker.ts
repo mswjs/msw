@@ -3,17 +3,12 @@ import { isNodeProcess } from 'is-node-process'
 import type {
   SetupWorkerInternalContext,
   StartReturnType,
-  StopHandler,
-  StartHandler,
   StartOptions,
   SetupWorker,
 } from './glossary'
-import { createStartHandler } from './start/createStartHandler'
-import { createStop } from './stop/createStop'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
-import { createFallbackStart } from './start/createFallbackStart'
-import { createFallbackStop } from './stop/createFallbackStop'
+import { createStartHandler } from './start/createStartHandler'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
@@ -25,21 +20,15 @@ import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 import { WorkerChannel } from '../utils/workerChannel'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-
-interface Listener {
-  target: EventTarget
-  eventType: string
-  callback: EventListenerOrEventListenerObject
-}
+import { createFallbackRequestListener } from './start/createFallbackRequestListener'
+import { printStartMessage } from './start/utils/printStartMessage'
+import { printStopMessage } from './stop/utils/printStopMessage'
 
 export class SetupWorkerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupWorker
 {
   private context: SetupWorkerInternalContext
-  private startHandler: StartHandler = null as any
-  private stopHandler: StopHandler = null as any
-  private listeners: Array<Listener>
 
   constructor(...handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
@@ -51,46 +40,36 @@ export class SetupWorkerApi
       ),
     )
 
-    this.listeners = []
     this.context = this.createWorkerContext()
   }
 
   private createWorkerContext(): SetupWorkerInternalContext {
     const workerPromise = new DeferredPromise<ServiceWorker>()
-    const context: SetupWorkerInternalContext = {
+
+    return {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
       startOptions: null as any,
       workerPromise,
+      registration: null,
       getRequestHandlers: () => {
         return this.handlersController.currentHandlers()
       },
-      registration: null,
       emitter: this.emitter,
       workerChannel: new WorkerChannel({
         worker: workerPromise,
       }),
       supports: {
         serviceWorkerApi:
-          !('serviceWorker' in navigator) || location.protocol === 'file:',
+          'serviceWorker' in navigator && location.protocol !== 'file:',
         readableStreamTransfer: supportsReadableStreamTransfer(),
       },
     }
-
-    this.startHandler = context.supports.serviceWorkerApi
-      ? createFallbackStart(context)
-      : createStartHandler(context)
-
-    this.stopHandler = context.supports.serviceWorkerApi
-      ? createFallbackStop(context)
-      : createStop(context)
-
-    return context
   }
 
   public async start(options: StartOptions = {}): StartReturnType {
-    if (options.waitUntilReady === true) {
+    if ('waitUntilReady' in options) {
       devUtils.warn(
         'The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.',
       )
@@ -124,12 +103,56 @@ export class SetupWorkerApi
       webSocketInterceptor.dispose()
     })
 
-    return await this.startHandler(this.context.startOptions, options)
+    // Use a fallback interception algorithm in the environments
+    // where the Service Worker API isn't supported.
+    if (!this.context.supports.serviceWorkerApi) {
+      const fallbackInterceptor = createFallbackRequestListener(
+        this.context,
+        this.context.startOptions,
+      )
+
+      this.subscriptions.push(() => {
+        fallbackInterceptor.dispose()
+      })
+
+      printStartMessage({
+        message: 'Mocking enabled (fallback mode).',
+        quiet: this.context.startOptions.quiet,
+      })
+
+      return undefined
+    }
+
+    const startHandler = createStartHandler(this.context)
+    return await startHandler(this.context.startOptions, options)
   }
 
   public stop(): void {
     super.dispose()
-    this.stopHandler()
+
+    if (!this.context.isMockingEnabled) {
+      devUtils.warn(
+        'Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.',
+      )
+      return
+    }
+
+    if (this.context.supports.serviceWorkerApi) {
+      this.context.isMockingEnabled = false
+      this.context.emitter.removeAllListeners()
+      this.context.workerChannel.removeAllListeners('RESPONSE')
+      window.clearInterval(this.context.keepAliveInterval)
+    }
+
+    // Post the internal stop message on the window
+    // to let any logic know when the worker has stopped.
+    // E.g. the WebSocket client manager needs this to know
+    // when to clear its in-memory clients list.
+    window.postMessage({ type: 'msw/worker:stop' })
+
+    printStopMessage({
+      quiet: this.context.startOptions?.quiet,
+    })
   }
 }
 

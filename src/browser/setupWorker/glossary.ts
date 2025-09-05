@@ -76,10 +76,12 @@ export interface StartOptions extends SharedOptions {
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
+
 export type StartHandler = (
   options: RequiredDeep<StartOptions>,
   initialOptions: StartOptions,
 ) => StartReturnType
+
 export type StopHandler = () => void
 
 export interface SetupWorker {

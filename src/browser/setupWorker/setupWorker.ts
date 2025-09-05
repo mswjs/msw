@@ -23,7 +23,7 @@ import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamT
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
-import { WorkerChannel } from 'browser/utils/workerChannel'
+import { WorkerChannel } from '../utils/workerChannel'
 
 interface Listener {
   target: EventTarget

@@ -137,9 +137,10 @@ export class SetupWorkerApi
       return
     }
 
+    this.context.isMockingEnabled = false
+    this.context.emitter.removeAllListeners()
+
     if (this.context.supports.serviceWorkerApi) {
-      this.context.isMockingEnabled = false
-      this.context.emitter.removeAllListeners()
       this.context.workerChannel.removeAllListeners('RESPONSE')
       window.clearInterval(this.context.keepAliveInterval)
     }

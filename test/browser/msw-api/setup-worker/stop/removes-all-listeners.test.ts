@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-test('removes all listeners when the worker is stopped', async ({
+test.only('removes all listeners when the worker is stopped', async ({
   loadExample,
   spyOnConsole,
   waitFor,

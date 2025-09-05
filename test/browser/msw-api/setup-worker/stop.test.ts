@@ -111,6 +111,6 @@ test('prints a warning on multiple "worker.stop()" calls', async ({
 
   // Prints a warning so the user knows something is not right.
   expect(consoleSpy.get('warning')).toEqual([
-    `[MSW] Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.`,
+    `[MSW] Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
   ])
 })

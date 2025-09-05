@@ -1,7 +1,7 @@
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
-import { SetupWorkerInternalContext, StartHandler } from '../glossary'
+import type { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
 import { checkWorkerIntegrity } from '../../utils/checkWorkerIntegrity'
 import { createResponseListener } from './createResponseListener'
@@ -15,7 +15,7 @@ export const createStartHandler = (
       // Remove all previously existing event listeners.
       // This way none of the listeners persists between Fast refresh
       // of the application's code.
-      context.events.removeAllListeners()
+      context.workerChannel.removeAllListeners()
 
       // Handle requests signaled by the worker.
       context.workerChannel.on(
@@ -60,14 +60,15 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       context.worker = worker
       context.registration = registration
 
-      context.events.addListener(window, 'beforeunload', () => {
+      window.addEventListener('beforeunload', () => {
         if (worker.state !== 'redundant') {
           // Notify the Service Worker that this client has closed.
           // Internally, it's similar to disabling the mocking, only
           // client close event has a handler that self-terminates
           // the Service Worker when there are no open clients.
-          context.workerChannel.send('CLIENT_CLOSED')
+          context.workerChannel.postMessage('CLIENT_CLOSED')
         }
+
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
         window.clearInterval(context.keepAliveInterval)
@@ -88,7 +89,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       })
 
       context.keepAliveInterval = window.setInterval(
-        () => context.workerChannel.send('KEEPALIVE_REQUEST'),
+        () => context.workerChannel.postMessage('KEEPALIVE_REQUEST'),
         5000,
       )
 

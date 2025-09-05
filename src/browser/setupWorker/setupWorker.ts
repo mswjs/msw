@@ -1,8 +1,7 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
-import {
+import type {
   SetupWorkerInternalContext,
-  ServiceWorkerIncomingEventsMap,
   StartReturnType,
   StopHandler,
   StartHandler,
@@ -11,7 +10,6 @@ import {
 } from './glossary'
 import { createStartHandler } from './start/createStartHandler'
 import { createStop } from './stop/createStop'
-import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
 import { createFallbackStart } from './start/createFallbackStart'
@@ -25,6 +23,7 @@ import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamT
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
+import { WorkerChannel } from 'browser/utils/workerChannel'
 
 interface Listener {
   target: EventTarget
@@ -67,88 +66,15 @@ export class SetupWorkerApi
       },
       registration: null,
       emitter: this.emitter,
-      workerChannel: {
-        on: (eventType, callback) => {
-          this.context.events.addListener<
-            MessageEvent<ServiceWorkerMessage<typeof eventType, any>>
-          >(navigator.serviceWorker, 'message', (event) => {
-            // Avoid messages broadcasted from unrelated workers.
-            if (event.source !== this.context.worker) {
-              return
-            }
-
-            const message = event.data
-
-            if (!message) {
-              return
-            }
-
-            if (message.type === eventType) {
-              callback(event, message)
-            }
-          })
+      workerChannel: new WorkerChannel({
+        get worker() {
+          invariant(
+            context.worker,
+            'Failed to retrieve worker reference for WorkerChannel: the worker is not set',
+          )
+          return context.worker
         },
-        send: (type) => {
-          this.context.worker?.postMessage(type)
-        },
-      },
-      events: {
-        addListener: (target, eventType, callback) => {
-          target.addEventListener(eventType, callback as EventListener)
-          this.listeners.push({
-            eventType,
-            target,
-            callback: callback as EventListener,
-          })
-
-          return () => {
-            target.removeEventListener(eventType, callback as EventListener)
-          }
-        },
-        removeAllListeners: () => {
-          for (const { target, eventType, callback } of this.listeners) {
-            target.removeEventListener(eventType, callback)
-          }
-          this.listeners = []
-        },
-        once: (eventType) => {
-          const bindings: Array<() => void> = []
-
-          return new Promise<
-            ServiceWorkerMessage<
-              typeof eventType,
-              ServiceWorkerIncomingEventsMap[typeof eventType]
-            >
-          >((resolve, reject) => {
-            const handleIncomingMessage = (event: MessageEvent) => {
-              try {
-                const message = event.data
-
-                if (message.type === eventType) {
-                  resolve(message)
-                }
-              } catch (error) {
-                reject(error)
-              }
-            }
-
-            bindings.push(
-              this.context.events.addListener(
-                navigator.serviceWorker,
-                'message',
-                handleIncomingMessage,
-              ),
-              this.context.events.addListener(
-                navigator.serviceWorker,
-                'messageerror',
-                reject,
-              ),
-            )
-          }).finally(() => {
-            bindings.forEach((unbind) => unbind())
-          })
-        },
-      },
+      }),
       supports: {
         serviceWorkerApi:
           !('serviceWorker' in navigator) || location.protocol === 'file:',
@@ -207,8 +133,6 @@ export class SetupWorkerApi
 
   public stop(): void {
     super.dispose()
-    this.context.events.removeAllListeners()
-    this.context.emitter.removeAllListeners()
     this.stopHandler()
   }
 }

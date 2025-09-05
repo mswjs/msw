@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import { WebpackHttpServer } from 'webpack-http-server'
-import { getWorkerScriptPatch } from './workerConsole'
 // @ts-expect-error Importing a JavaScript module.
 import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
@@ -21,8 +20,6 @@ export async function getWebpackServer(): Promise<WebpackHttpServer> {
 }
 
 async function startWebpackServer(): Promise<WebpackHttpServer> {
-  const workerScriptPatch = getWorkerScriptPatch()
-
   const server = new WebpackHttpServer({
     before(app) {
       // Prevent Express from responding with cached 304 responses.
@@ -35,7 +32,7 @@ async function startWebpackServer(): Promise<WebpackHttpServer> {
         const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
         // Apply the worker script patch to forward console messages
         // from the worker to all its clients.
-        readable.push(workerScriptPatch, 'utf8')
+        // readable.push(workerScriptPatch, 'utf8')
         readable.pipe(res)
       })
     },

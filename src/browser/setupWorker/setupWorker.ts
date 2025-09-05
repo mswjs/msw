@@ -75,6 +75,16 @@ export class SetupWorkerApi
       )
     }
 
+    // Warn the developer on multiple "worker.start()" calls.
+    // While this will not affect the worker in any way,
+    // it likely indicates an issue with the developer's code.
+    if (this.context.isMockingEnabled) {
+      devUtils.warn(
+        `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+      )
+      return this.context.registration || undefined
+    }
+
     this.context.startOptions = mergeRight(
       DEFAULT_START_OPTIONS,
       options,

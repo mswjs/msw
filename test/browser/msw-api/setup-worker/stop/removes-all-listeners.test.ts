@@ -1,4 +1,4 @@
-import { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
@@ -7,14 +7,14 @@ declare namespace window {
   }
 }
 
-test.only('removes all listeners when the worker is stopped', async ({
+test('removes all listeners when the worker is stopped', async ({
   loadExample,
   spyOnConsole,
-  waitFor,
+  browser,
   page,
   fetch,
 }) => {
-  const consoleSpy = spyOnConsole()
+  const firstPageConsoleSpy = spyOnConsole()
   await loadExample(
     new URL('./removes-all-listeners.mocks.ts', import.meta.url),
     {
@@ -26,28 +26,37 @@ test.only('removes all listeners when the worker is stopped', async ({
     return typeof window.msw !== 'undefined'
   })
 
-  await page.evaluate(() => {
-    const firstWorker = window.msw.createWorker()
-    const secondWorker = window.msw.createWorker()
-
-    return firstWorker.start().then(() => {
-      firstWorker.stop()
-      return secondWorker.start()
-    })
+  await page.evaluate(async () => {
+    await window.msw.createWorker().start()
   })
 
-  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
-    '[MSW] Mocking enabled.',
+  const secondPage = await browser.newPage()
+  const secondPageConsoleSpy = spyOnConsole(secondPage)
+  await secondPage.goto(page.url())
+  await secondPage.evaluate(async () => {
+    const worker = window.msw.createWorker()
+    await worker.start()
+    worker.stop()
+  })
+
+  expect(firstPageConsoleSpy.get('startGroupCollapsed')).toEqual([
     '[MSW] Mocking enabled.',
   ])
 
-  await fetch('/user')
+  expect(secondPageConsoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+  ])
+  expect(secondPageConsoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 
-  await waitFor(() => {
-    expect(consoleSpy.get('startGroupCollapsed')).toEqual([
-      '[MSW] Mocking enabled.',
-      '[MSW] Mocking enabled.',
-      expect.stringContaining('GET /user'),
-    ])
-  })
+  await page.evaluate(() => fetch('/user'))
+  await page.waitForLoadState('networkidle')
+  expect(firstPageConsoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+    expect.stringContaining('GET /user'),
+  ])
+
+  await secondPage.evaluate(() => fetch('/user'))
+  expect(secondPageConsoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+  ])
 })

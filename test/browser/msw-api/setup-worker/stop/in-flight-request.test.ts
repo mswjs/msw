@@ -52,12 +52,8 @@ test('bypasses in-flight request made after the worker was stopped', async ({
     window.msw.worker.stop()
   })
 
-  const data = await page.evaluate<string>((url) => {
-    return fetch(
-      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-      // @ts-ignore TypeScript and Playwright are having a bad day, apparently.
-      url,
-    ).then((response) => response.text())
+  const data = await page.evaluate((url) => {
+    return fetch(url).then((response) => response.text())
   }, resourceUrl.href)
 
   expect(data).toBe('original response')

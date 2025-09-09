@@ -19,7 +19,7 @@ export interface SetupWorkerInternalContext {
   isMockingEnabled: boolean
   startOptions: RequiredDeep<StartOptions>
   workerPromise: DeferredPromise<ServiceWorker>
-  registration: ServiceWorkerRegistration | null
+  registration: ServiceWorkerRegistration | undefined
   getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number

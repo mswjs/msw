@@ -52,7 +52,7 @@ export class SetupWorkerApi
       isMockingEnabled: false,
       startOptions: null as any,
       workerPromise,
-      registration: null,
+      registration: undefined,
       getRequestHandlers: () => {
         return this.handlersController.currentHandlers()
       },
@@ -82,7 +82,7 @@ export class SetupWorkerApi
       devUtils.warn(
         `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
       )
-      return this.context.registration || undefined
+      return this.context.registration
     }
 
     this.context.startOptions = mergeRight(

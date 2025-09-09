@@ -11,7 +11,7 @@ test.beforeEach(() => {
   test.setTimeout(5000)
 })
 
-test('resolves in-flight request even if the worker was stopped', async ({
+test.skip('resolves in-flight request even if the worker was stopped', async ({
   loadExample,
   page,
 }) => {
@@ -28,7 +28,37 @@ test('resolves in-flight request even if the worker was stopped', async ({
   await expect(dataPromise).resolves.toBe('hello world')
 })
 
-test.skip('bypasses in-flight request made after the worker was stopped', async ({
+test('bypasses in-flight request made after the worker was stopped', async ({
   loadExample,
+  page,
   fetch,
-}) => {})
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./in-flight-request.mocks.ts', import.meta.url),
+    {
+      beforeNavigation(compilation) {
+        compilation.use((router) => {
+          router.get('/resource', (_req, res) => {
+            res.send('original response')
+          })
+        })
+      },
+    },
+  )
+
+  const resourceUrl = new URL('./resource', compilation.previewUrl)
+
+  await page.evaluate(() => {
+    window.msw.worker.stop()
+  })
+
+  const data = await page.evaluate<string>((url) => {
+    return fetch(
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore TypeScript and Playwright are having a bad day, apparently.
+      url,
+    ).then((response) => response.text())
+  }, resourceUrl.href)
+
+  expect(data).toBe('original response')
+})

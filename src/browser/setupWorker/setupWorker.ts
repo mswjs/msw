@@ -125,6 +125,8 @@ export class SetupWorkerApi
         fallbackInterceptor.dispose()
       })
 
+      this.context.isMockingEnabled = true
+
       printStartMessage({
         message: 'Mocking enabled (fallback mode).',
         quiet: this.context.startOptions.quiet,
@@ -134,7 +136,11 @@ export class SetupWorkerApi
     }
 
     const startHandler = createStartHandler(this.context)
-    return await startHandler(this.context.startOptions, options)
+    const registration = await startHandler(this.context.startOptions, options)
+
+    this.context.isMockingEnabled = true
+
+    return registration
   }
 
   public stop(): void {

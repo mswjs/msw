@@ -11,13 +11,13 @@ test.beforeEach(() => {
   test.setTimeout(5000)
 })
 
-test.skip('resolves in-flight request even if the worker was stopped', async ({
+test('resolves in-flight requests even if the worker was stopped', async ({
   loadExample,
   page,
 }) => {
   await loadExample(new URL('./in-flight-request.mocks.ts', import.meta.url))
 
-  const dataPromise = page.evaluate<string>(() => {
+  const dataPromise: Promise<string> = page.evaluate(() => {
     return fetch('/resource').then((response) => response.text())
   })
 
@@ -28,7 +28,7 @@ test.skip('resolves in-flight request even if the worker was stopped', async ({
   await expect(dataPromise).resolves.toBe('hello world')
 })
 
-test('bypasses in-flight request made after the worker was stopped', async ({
+test('bypasses requests made after the worker was stopped', async ({
   loadExample,
   page,
   fetch,

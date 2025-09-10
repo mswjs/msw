@@ -1,21 +1,14 @@
 import { FetchResponse } from '@mswjs/interceptors'
-import type {
-  ServiceWorkerIncomingEventsMap,
-  SetupWorkerInternalContext,
-} from '../glossary'
-import type { ServiceWorkerMessage } from './utils/createMessageChannel'
+import type { Emitter } from 'rettime'
+import type { SetupWorkerInternalContext } from '../glossary'
 import { deserializeRequest } from '../../utils/deserializeRequest'
 
-export function createResponseListener(context: SetupWorkerInternalContext) {
-  return (
-    _: MessageEvent,
-    message: ServiceWorkerMessage<
-      'RESPONSE',
-      ServiceWorkerIncomingEventsMap['RESPONSE']
-    >,
-  ) => {
-    const { payload: responseJson } = message
-    const request = deserializeRequest(responseJson.request)
+export function createResponseListener(
+  context: SetupWorkerInternalContext,
+): Emitter.ListenerType<typeof context.workerChannel, 'RESPONSE'> {
+  return (event) => {
+    const responseMessage = event.data
+    const request = deserializeRequest(responseMessage.request)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -24,12 +17,12 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
      * @see https://fetch.spec.whatwg.org/#concept-filtered-response-opaque
      * @see https://github.com/mswjs/msw/issues/529
      */
-    if (responseJson.response.type?.includes('opaque')) {
+    if (responseMessage.response.type?.includes('opaque')) {
       return
     }
 
     const response =
-      responseJson.response.status === 0
+      responseMessage.response.status === 0
         ? Response.error()
         : new FetchResponse(
             /**
@@ -38,11 +31,11 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
              * throw when passed a non-null body, so ensure it's null here
              * for those codes
              */
-            FetchResponse.isResponseWithBody(responseJson.response.status)
-              ? responseJson.response.body
+            FetchResponse.isResponseWithBody(responseMessage.response.status)
+              ? responseMessage.response.body
               : null,
             {
-              ...responseJson,
+              ...responseMessage,
               /**
                * Set response URL if it's not set already.
                * @see https://github.com/mswjs/msw/issues/2030
@@ -53,9 +46,9 @@ export function createResponseListener(context: SetupWorkerInternalContext) {
           )
 
     context.emitter.emit(
-      responseJson.isMockedResponse ? 'response:mocked' : 'response:bypass',
+      responseMessage.isMockedResponse ? 'response:mocked' : 'response:bypass',
       {
-        requestId: responseJson.request.id,
+        requestId: responseMessage.request.id,
         request,
         response,
       },

@@ -1,12 +1,5 @@
-import {
-  StartOptions,
-  SetupWorkerInternalContext,
-  ServiceWorkerIncomingEventsMap,
-} from '../glossary'
-import {
-  ServiceWorkerMessage,
-  WorkerChannel,
-} from './utils/createMessageChannel'
+import { Emitter } from 'rettime'
+import { StartOptions, SetupWorkerInternalContext } from '../glossary'
 import { deserializeRequest } from '../../utils/deserializeRequest'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
@@ -18,18 +11,21 @@ import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
   options: RequiredDeep<StartOptions>,
-) => {
-  return async (
-    event: MessageEvent,
-    message: ServiceWorkerMessage<
-      'REQUEST',
-      ServiceWorkerIncomingEventsMap['REQUEST']
-    >,
-  ) => {
-    const messageChannel = new WorkerChannel(event.ports[0])
+): Emitter.ListenerType<typeof context.workerChannel, 'REQUEST'> => {
+  return async (event) => {
+    // Treat any incoming requests from the worker as passthrough
+    // if `worker.stop()` has been called for this client.
+    if (
+      !context.isMockingEnabled &&
+      context.workerStoppedAt &&
+      event.data.interceptedAt > context.workerStoppedAt
+    ) {
+      event.postMessage('PASSTHROUGH')
+      return
+    }
 
-    const requestId = message.payload.id
-    const request = deserializeRequest(message.payload)
+    const requestId = event.data.id
+    const request = deserializeRequest(event.data)
     const requestCloneForLogs = request.clone()
 
     // Make this the first request clone before the
@@ -48,7 +44,7 @@ export const createRequestListener = (
         context.emitter,
         {
           onPassthroughResponse() {
-            messageChannel.postMessage('PASSTHROUGH')
+            event.postMessage('PASSTHROUGH')
           },
           async onMockedResponse(response, { handler, parsedResult }) {
             // Clone the mocked response so its body could be read
@@ -65,7 +61,7 @@ export const createRequestListener = (
             if (context.supports.readableStreamTransfer) {
               const responseStreamOrNull = response.body
 
-              messageChannel.postMessage(
+              event.postMessage(
                 'MOCK_RESPONSE',
                 {
                   ...responseInit,
@@ -85,7 +81,7 @@ export const createRequestListener = (
                   ? null
                   : await responseClone.arrayBuffer()
 
-              messageChannel.postMessage('MOCK_RESPONSE', {
+              event.postMessage('MOCK_RESPONSE', {
                 ...responseInit,
                 body: responseBufferOrNull,
               })
@@ -118,7 +114,7 @@ This exception has been gracefully handled as a 500 response, however, it's stro
 
         // Treat all other exceptions in a request handler as unintended,
         // alerting that there is a problem that needs fixing.
-        messageChannel.postMessage('MOCK_RESPONSE', {
+        event.postMessage('MOCK_RESPONSE', {
           status: 500,
           statusText: 'Request Handler Error',
           headers: {

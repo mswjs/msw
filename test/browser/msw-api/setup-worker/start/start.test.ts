@@ -105,8 +105,9 @@ test('prints a warning if "worker.start()" is called multiple times', async ({
     return typeof window.msw !== 'undefined'
   })
 
-  await page.evaluate(() => {
-    return Promise.all([window.msw.startWorker(), window.msw.startWorker()])
+  await page.evaluate(async () => {
+    await window.msw.startWorker()
+    await window.msw.startWorker()
   })
 
   // The activation message ise printed only once.

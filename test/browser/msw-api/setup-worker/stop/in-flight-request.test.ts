@@ -11,7 +11,7 @@ test.beforeEach(() => {
   test.setTimeout(5000)
 })
 
-test('resolves in-flight requests even if the worker was stopped', async ({
+test('resolves in-flight requests before the worker was stopped', async ({
   loadExample,
   page,
 }) => {

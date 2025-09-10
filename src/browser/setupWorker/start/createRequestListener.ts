@@ -15,7 +15,11 @@ export const createRequestListener = (
   return async (event) => {
     // Treat any incoming requests from the worker as passthrough
     // if `worker.stop()` has been called for this client.
-    if (!context.isMockingEnabled) {
+    if (
+      !context.isMockingEnabled &&
+      context.workerStoppedAt &&
+      event.data.interceptedAt > context.workerStoppedAt
+    ) {
       event.postMessage('PASSTHROUGH')
       return
     }

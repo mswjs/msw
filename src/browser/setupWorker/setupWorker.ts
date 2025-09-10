@@ -85,6 +85,8 @@ export class SetupWorkerApi
       return this.context.registration
     }
 
+    this.context.workerStoppedAt = undefined
+
     this.context.startOptions = mergeRight(
       DEFAULT_START_OPTIONS,
       options,
@@ -154,6 +156,7 @@ export class SetupWorkerApi
     }
 
     this.context.isMockingEnabled = false
+    this.context.workerStoppedAt = Date.now()
     this.context.emitter.removeAllListeners()
 
     if (this.context.supports.serviceWorkerApi) {

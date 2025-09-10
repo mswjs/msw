@@ -15,8 +15,9 @@ export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-export interface SetupWorkerInternalContext {
+export type SetupWorkerInternalContext = {
   isMockingEnabled: boolean
+  workerStoppedAt?: number
   startOptions: RequiredDeep<StartOptions>
   workerPromise: DeferredPromise<ServiceWorker>
   registration: ServiceWorkerRegistration | undefined

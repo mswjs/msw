@@ -44,6 +44,7 @@ export interface IncomingWorkerRequest
    * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
+  interceptedAt: number
   body?: ArrayBuffer | null
 }
 

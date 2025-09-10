@@ -89,6 +89,8 @@ addEventListener('message', async function (event) {
 })
 
 addEventListener('fetch', function (event) {
+  const requestInterceptedAt = Date.now()
+
   // Bypass navigation requests.
   if (event.request.mode === 'navigate') {
     return
@@ -111,17 +113,23 @@ addEventListener('fetch', function (event) {
   }
 
   const requestId = crypto.randomUUID()
-  event.respondWith(handleRequest(event, requestId))
+  event.respondWith(handleRequest(event, requestId, requestInterceptedAt))
 })
 
 /**
  * @param {FetchEvent} event
  * @param {string} requestId
+ * @param {number} requestInterceptedAt
  */
-async function handleRequest(event, requestId) {
+async function handleRequest(event, requestId, requestInterceptedAt) {
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
-  const response = await getResponse(event, client, requestId)
+  const response = await getResponse(
+    event,
+    client,
+    requestId,
+    requestInterceptedAt,
+  )
 
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
@@ -199,7 +207,7 @@ async function resolveMainClient(event) {
  * @param {string} requestId
  * @returns {Promise<Response>}
  */
-async function getResponse(event, client, requestId) {
+async function getResponse(event, client, requestId, requestInterceptedAt) {
   // Clone the request because it might've been already used
   // (i.e. its body has been read and sent to the client).
   const requestClone = event.request.clone()
@@ -250,6 +258,7 @@ async function getResponse(event, client, requestId) {
       type: 'REQUEST',
       payload: {
         id: requestId,
+        interceptedAt: requestInterceptedAt,
         ...serializedRequest,
       },
     },

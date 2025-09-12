@@ -20,3 +20,4 @@ msw-*.tgz
 /examples
 /test/modules/node/node-esm-tests
 *.vitest-temp.json
+*.heapprofile

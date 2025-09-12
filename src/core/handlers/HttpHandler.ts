@@ -13,7 +13,7 @@ import {
 } from '../utils/matching/matchRequestUrl'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { cleanUrl, getSearchParams } from '../utils/url/cleanUrl'
+import { cleanUrl } from '../utils/url/cleanUrl'
 import {
   RequestHandler,
   RequestHandlerDefaultInfo,
@@ -114,13 +114,6 @@ export class HttpHandler extends RequestHandler<
     if (url === path) {
       return
     }
-
-    const searchParams = getSearchParams(path)
-    const queryParams: Array<string> = []
-
-    searchParams.forEach((_, paramName) => {
-      queryParams.push(paramName)
-    })
 
     devUtils.warn(
       `Found a redundant usage of query parameters in the request handler URL for "${method} ${path}". Please match against a path instead and access query parameters using "new URL(request.url).searchParams" instead. Learn more: https://mswjs.io/docs/http/intercepting-requests#querysearch-parameters`,

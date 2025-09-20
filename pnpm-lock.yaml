@@ -23,9 +23,6 @@ importers:
       '@open-draft/deferred-promise':
         specifier: ^2.2.0
         version: 2.2.0
-      '@open-draft/until':
-        specifier: ^2.1.0
-        version: 2.1.0
       '@types/cookie':
         specifier: ^0.6.0
         version: 0.6.0
@@ -62,6 +59,9 @@ importers:
       type-fest:
         specifier: ^4.26.1
         version: 4.29.0
+      until-async:
+        specifier: ^3.0.2
+        version: 3.0.2
       yargs:
         specifier: ^17.7.2
         version: 17.7.2
@@ -4873,6 +4873,9 @@ packages:
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
+
+  until-async@3.0.2:
+    resolution: {integrity: sha512-IiSk4HlzAMqTUseHHe3VhIGyuFmN90zMTpD3Z3y8jeQbzLIq500MVM7Jq2vUAnTKAFPJrqwkzr6PoTcPhGcOiw==}
 
   update-browserslist-db@1.0.13:
     resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
@@ -10245,6 +10248,8 @@ snapshots:
   universalify@2.0.1: {}
 
   unpipe@1.0.0: {}
+
+  until-async@3.0.2: {}
 
   update-browserslist-db@1.0.13(browserslist@4.23.0):
     dependencies:

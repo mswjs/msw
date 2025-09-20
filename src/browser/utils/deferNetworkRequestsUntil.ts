@@ -1,4 +1,4 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 
 /**
  * Intercepts and defers any requests on the page

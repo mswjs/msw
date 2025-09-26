@@ -1,12 +1,15 @@
 import { Emitter } from 'rettime'
 import { StartOptions, SetupWorkerInternalContext } from '../glossary'
 import { deserializeRequest } from '../../utils/deserializeRequest'
+import { supportsReadableStreamTransfer } from '../../utils/supports'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { handleRequest } from '~/core/utils/handleRequest'
 import { RequiredDeep } from '~/core/typeUtils'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { toResponseInit } from '~/core/utils/toResponseInit'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
+
+const SUPPORTS_READABLE_STREAM_TRANSFER = supportsReadableStreamTransfer()
 
 export const createRequestListener = (
   context: SetupWorkerInternalContext,
@@ -58,7 +61,7 @@ export const createRequestListener = (
              * @note Safari doesn't support transferring a "ReadableStream".
              * Check that the browser supports that before sending it to the worker.
              */
-            if (context.supports.readableStreamTransfer) {
+            if (SUPPORTS_READABLE_STREAM_TRANSFER) {
               const responseStreamOrNull = response.body
 
               event.postMessage(

@@ -14,7 +14,6 @@ import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
@@ -61,9 +60,6 @@ export class SetupWorkerApi
       workerChannel: new WorkerChannel({
         worker: workerPromise,
       }),
-      supports: {
-        readableStreamTransfer: supportsReadableStreamTransfer(),
-      },
     }
   }
 

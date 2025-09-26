@@ -25,9 +25,6 @@ export type SetupWorkerInternalContext = {
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: WorkerChannel
-  supports: {
-    readableStreamTransfer: boolean
-  }
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 

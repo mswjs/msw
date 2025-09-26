@@ -67,6 +67,8 @@ export type WorkerEventResponse = {
   PASSTHROUGH: []
 }
 
+const SUPPORTS_SERVICE_WORKER = supportsServiceWorker()
+
 export class WorkerEvent<
   DataType,
   ReturnType = any,
@@ -123,7 +125,7 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
   constructor(protected readonly options: WorkerChannelOptions) {
     super()
 
-    if (!supportsServiceWorker()) {
+    if (!SUPPORTS_SERVICE_WORKER) {
       return
     }
 
@@ -146,7 +148,7 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
    */
   public postMessage(type: OutgoingWorkerEvents): void {
     invariant(
-      supportsServiceWorker(),
+      SUPPORTS_SERVICE_WORKER,
       'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this context. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
     )
 

@@ -205,6 +205,7 @@ async function resolveMainClient(event) {
  * @param {FetchEvent} event
  * @param {Client | undefined} client
  * @param {string} requestId
+ * @param {number} requestInterceptedAt
  * @returns {Promise<Response>}
  */
 async function getResponse(event, client, requestId, requestInterceptedAt) {

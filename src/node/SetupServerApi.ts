@@ -48,6 +48,7 @@ class AsyncHandlersController implements HandlersController {
     return handlers.concat(initialHandlers)
   }
 }
+
 export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer

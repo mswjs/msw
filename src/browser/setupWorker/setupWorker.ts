@@ -1,5 +1,7 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
+import { AsyncContext } from 'simple-async-context'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import type {
   SetupWorkerInternalContext,
   StartReturnType,
@@ -10,7 +12,7 @@ import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
 import { createStartHandler } from './start/createStartHandler'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import { SetupApi } from '~/core/SetupApi'
+import { HandlersController, SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
@@ -19,10 +21,52 @@ import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 import { WorkerChannel } from '../utils/workerChannel'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createFallbackRequestListener } from './start/createFallbackRequestListener'
 import { printStartMessage } from './start/utils/printStartMessage'
 import { printStopMessage } from './stop/utils/printStopMessage'
+import { createRequestListener } from './start/createRequestListener'
+
+type RequestHandlersContext = {
+  initialHandlers: Array<RequestHandler | WebSocketHandler>
+  handlers: Array<RequestHandler | WebSocketHandler>
+}
+
+const workerAsyncContext = new AsyncContext.Variable<RequestHandlersContext>()
+
+type AsyncVariable<T> = InstanceType<typeof AsyncContext.Variable<T>>
+
+class AsyncContextHandlersController implements HandlersController {
+  #context: AsyncVariable<RequestHandlersContext>
+  #defaultContext: RequestHandlersContext
+
+  constructor(
+    context: AsyncVariable<RequestHandlersContext>,
+    initialHandlers: Array<RequestHandler | WebSocketHandler>,
+  ) {
+    this.#context = context
+    this.#defaultContext = { initialHandlers, handlers: [] }
+  }
+
+  get context(): RequestHandlersContext {
+    return this.#context.get() || this.#defaultContext
+  }
+
+  public prepend(runtimeHandlers: Array<RequestHandler | WebSocketHandler>) {
+    this.context.handlers.unshift(...runtimeHandlers)
+  }
+
+  public reset(nextHandlers: Array<RequestHandler | WebSocketHandler>) {
+    const context = this.context
+    context.handlers = []
+    context.initialHandlers =
+      nextHandlers.length > 0 ? nextHandlers : context.initialHandlers
+  }
+
+  public currentHandlers(): Array<RequestHandler | WebSocketHandler> {
+    const { initialHandlers, handlers } = this.context
+    return handlers.concat(initialHandlers)
+  }
+}
 
 export class SetupWorkerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -40,13 +84,17 @@ export class SetupWorkerApi
       ),
     )
 
+    this.handlersController = new AsyncContextHandlersController(
+      workerAsyncContext,
+      handlers,
+    )
     this.context = this.createWorkerContext()
   }
 
   private createWorkerContext(): SetupWorkerInternalContext {
     const workerPromise = new DeferredPromise<ServiceWorker>()
 
-    return {
+    const context: SetupWorkerInternalContext = {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
@@ -57,15 +105,21 @@ export class SetupWorkerApi
         return this.handlersController.currentHandlers()
       },
       emitter: this.emitter,
-      workerChannel: new WorkerChannel({
-        worker: workerPromise,
-      }),
+      workerChannel: null,
       supports: {
         serviceWorkerApi:
           'serviceWorker' in navigator && location.protocol !== 'file:',
         readableStreamTransfer: supportsReadableStreamTransfer(),
       },
     }
+
+    if (context.supports.serviceWorkerApi) {
+      context.workerChannel = new WorkerChannel({
+        worker: workerPromise,
+      })
+    }
+
+    return context
   }
 
   public async start(options: StartOptions = {}): StartReturnType {
@@ -137,12 +191,64 @@ export class SetupWorkerApi
       return undefined
     }
 
-    const startHandler = createStartHandler(this.context)
-    const registration = await startHandler(this.context.startOptions, options)
+    const registration = await this.boundary(async () => {
+      const startHandler = createStartHandler(this.context)
+      const registration = await startHandler(
+        this.context.startOptions,
+        options,
+      )
+      return registration
+    })()
 
     this.context.isMockingEnabled = true
 
     return registration
+  }
+
+  public boundary<Args extends Array<any>, R>(callback: (...args: Args) => R) {
+    return (...args: Args): R => {
+      return workerAsyncContext.run(
+        {
+          initialHandlers: this.handlersController.currentHandlers(),
+          handlers: [],
+          // @ts-expect-error
+          __boundary: true,
+        },
+        async () => {
+          const boundaryId = crypto.randomUUID()
+          const ctx = workerAsyncContext.get()
+
+          this.context.workerChannel.earlyOn('REQUEST', (event) => {
+            if (event.data.boundaryId !== boundaryId) {
+              return
+            }
+
+            event.stopImmediatePropagation()
+            createRequestListener(
+              {
+                ...this.context,
+                getRequestHandlers: () => ctx.handlers,
+              },
+              this.context.startOptions,
+            )(event)
+          })
+
+          const boundaryCache = await caches.open('worker-boundary-cache')
+
+          globalThis.fetch = new Proxy(globalThis.fetch, {
+            apply: async (fetch, thisArg, args) => {
+              await boundaryCache.put(
+                new Request(args[0], args[1]),
+                new Response(boundaryId),
+              )
+              return Reflect.apply(fetch, thisArg, args)
+            },
+          })
+
+          return callback(...args)
+        },
+      )
+    }
   }
 
   public stop(): void {

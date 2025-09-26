@@ -250,6 +250,11 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
     return passthrough()
   }
 
+  const workerBoundaryCache = await caches.open('worker-boundary-cache')
+  const boundaryId = await workerBoundaryCache
+    .match(event.request)
+    .then((response) => response?.text())
+
   // Notify the client that a request has been intercepted.
   const serializedRequest = await serializeRequest(event.request)
   const clientMessage = await sendToClient(
@@ -258,6 +263,7 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
       type: 'REQUEST',
       payload: {
         id: requestId,
+        boundaryId,
         interceptedAt: requestInterceptedAt,
         ...serializedRequest,
       },

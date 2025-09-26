@@ -44,6 +44,7 @@ export interface IncomingWorkerRequest
    * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
+  boundaryId: string | undefined
   interceptedAt: number
   body?: ArrayBuffer | null
 }

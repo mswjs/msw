@@ -1,0 +1,14 @@
+{
+  "include": ["./**/*.test.ts", "./vitest.config.ts"],
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "vitest/globals", "@vitest/browser/providers/playwright"],
+    "baseUrl": ".",
+    "paths": {
+      "#/tests/*": ["../*"]
+    }
+  }
+}

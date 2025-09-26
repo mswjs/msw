@@ -24,7 +24,7 @@ export type SetupWorkerInternalContext = {
   getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
-  workerChannel: WorkerChannel
+  workerChannel: WorkerChannel | null
   supports: {
     serviceWorkerApi: boolean
     readableStreamTransfer: boolean
@@ -131,6 +131,10 @@ export interface SetupWorker {
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()` API reference}
    */
   listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
+
+  boundary: <Args extends Array<any>, R>(
+    callback: (...args: Args) => R,
+  ) => (...args: Args) => R
 
   /**
    * Life-cycle events.

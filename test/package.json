@@ -1,3 +1,6 @@
 {
-  "type": "module"
+  "type": "module",
+  "imports": {
+    "#/tests/*": "./*"
+  }
 }

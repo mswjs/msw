@@ -28,6 +28,7 @@ export default tseslint.config(
       'require-yield': 'off',
       'no-empty-pattern': 'off',
       'no-control-regex': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/prefer-ts-expect-error': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',

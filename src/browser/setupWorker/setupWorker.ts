@@ -14,7 +14,6 @@ import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
@@ -23,6 +22,7 @@ import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createFallbackRequestListener } from './start/createFallbackRequestListener'
 import { printStartMessage } from './start/utils/printStartMessage'
 import { printStopMessage } from './stop/utils/printStopMessage'
+import { supportsServiceWorker } from '../utils/supports'
 
 export class SetupWorkerApi
   extends SetupApi<LifeCycleEventsMap>
@@ -60,11 +60,6 @@ export class SetupWorkerApi
       workerChannel: new WorkerChannel({
         worker: workerPromise,
       }),
-      supports: {
-        serviceWorkerApi:
-          'serviceWorker' in navigator && location.protocol !== 'file:',
-        readableStreamTransfer: supportsReadableStreamTransfer(),
-      },
     }
   }
 
@@ -117,7 +112,7 @@ export class SetupWorkerApi
 
     // Use a fallback interception algorithm in the environments
     // where the Service Worker API isn't supported.
-    if (!this.context.supports.serviceWorkerApi) {
+    if (!supportsServiceWorker()) {
       const fallbackInterceptor = createFallbackRequestListener(
         this.context,
         this.context.startOptions,
@@ -159,7 +154,7 @@ export class SetupWorkerApi
     this.context.workerStoppedAt = Date.now()
     this.context.emitter.removeAllListeners()
 
-    if (this.context.supports.serviceWorkerApi) {
+    if (supportsServiceWorker()) {
       this.context.workerChannel.removeAllListeners('RESPONSE')
       window.clearInterval(this.context.keepAliveInterval)
     }

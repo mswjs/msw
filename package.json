@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.11.2",
+  "version": "2.11.3",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "type": "commonjs",
   "main": "./lib/core/index.js",
@@ -242,7 +242,6 @@
     "@inquirer/confirm": "^5.0.0",
     "@mswjs/interceptors": "^0.39.1",
     "@open-draft/deferred-promise": "^2.2.0",
-    "@open-draft/until": "^2.1.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
     "graphql": "^16.8.1",
@@ -255,6 +254,7 @@
     "strict-event-emitter": "^0.5.1",
     "tough-cookie": "^6.0.0",
     "type-fest": "^4.26.1",
+    "until-async": "^3.0.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
@@ -265,7 +265,7 @@
     "@fastify/websocket": "^8.3.1",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
-    "@ossjs/release": "^0.8.1",
+    "@ossjs/release": "^0.10.0",
     "@playwright/test": "^1.48.0",
     "@swc/core": "^1.13.5",
     "@types/eslint__js": "^8.42.3",
@@ -307,7 +307,7 @@
     "typescript-eslint": "^8.42.0",
     "undici": "^6.20.0",
     "url-loader": "^4.1.1",
-    "vitest": "^3.1.4",
+    "vitest": "^3.2.4",
     "vitest-environment-miniflare": "^2.14.4",
     "webpack": "^5.95.0",
     "webpack-http-server": "^0.5.0"

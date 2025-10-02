@@ -17,6 +17,7 @@ export type DefaultUnsafeFetchResponse = Response & {
 
 export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
   json(): Promise<BodyType>
+  clone(): StrictRequest<BodyType>
 }
 
 /**

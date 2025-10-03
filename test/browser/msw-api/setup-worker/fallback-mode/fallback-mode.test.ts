@@ -166,10 +166,8 @@ test('stops the fallback interceptor when called "worker.stop()"', async ({
     window.worker.stop()
   })
 
-  // Must print the stop message to the console.
   expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 
-  // Must not intercept requests anymore.
   const response = await fetch(server.http.url('/user'))
 
   expect(response.status).toBe(200)

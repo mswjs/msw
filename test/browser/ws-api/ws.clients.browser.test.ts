@@ -128,7 +128,7 @@ test('broadcasts messages across runtimes', async ({
       const { setupWorker, ws } = window.msw
       const api = ws.link('wss://example.com')
 
-      // @ts-ignore
+      // @ts-expect-error
       window.api = api
 
       const worker = setupWorker(

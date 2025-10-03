@@ -71,7 +71,7 @@ it('supports null as the request body type argument', () => {
   })
 })
 
-it('returns plain Response withouth explicit response body type argument', () => {
+it('returns plain Response without explicit response body type argument', () => {
   http.get('/user', () => {
     return new Response('hello')
   })
@@ -134,6 +134,22 @@ it('returns HttpResponse with Blob as response body', () => {
 it('returns HttpResponse with ArrayBuffer as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new ArrayBuffer(5))
+  })
+})
+
+it('supports HttpResponse.arrayBuffer shorthand method', () => {
+  http.get('/', () => {
+    return HttpResponse.arrayBuffer(new ArrayBuffer(5))
+  })
+
+  http.get('/', async () => {
+    return HttpResponse.arrayBuffer(
+      await fetch('/image').then((response) => response.arrayBuffer()),
+    )
+  })
+
+  http.get<never, never, ArrayBuffer>('/', () => {
+    return HttpResponse.arrayBuffer(new ArrayBuffer(5))
   })
 })
 

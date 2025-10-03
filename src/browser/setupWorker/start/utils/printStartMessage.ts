@@ -19,7 +19,6 @@ export function printStartMessage(args: PrintStartMessageArgs = {}) {
 
   const message = args.message || 'Mocking enabled.'
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     `%c${devUtils.formatMessage(message)}`,
     'color:orangered;font-weight:bold;',
@@ -48,6 +47,5 @@ export function printStartMessage(args: PrintStartMessageArgs = {}) {
     console.log('Client ID: %s (%s)', args.client.id, args.client.frameType)
   }
 
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }

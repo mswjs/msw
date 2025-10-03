@@ -6,11 +6,12 @@ import {
 import {
   GraphQLHandler,
   GraphQLVariables,
-  ExpectedOperationTypeNode,
+  GraphQLOperationType,
   GraphQLHandlerNameSelector,
   GraphQLResolverExtras,
   GraphQLResponseBody,
   GraphQLQuery,
+  GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
 
@@ -27,10 +28,11 @@ export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
   Variables extends GraphQLVariables = GraphQLVariables,
 >(
-  operationName:
+  predicate:
     | GraphQLHandlerNameSelector
     | DocumentNode
-    | TypedDocumentNode<Query, Variables>,
+    | TypedDocumentNode<Query, Variables>
+    | GraphQLCustomPredicate,
   resolver: GraphQLResponseResolver<
     [Query] extends [never] ? GraphQLQuery : Query,
     Variables
@@ -48,17 +50,11 @@ export type GraphQLResponseResolver<
 >
 
 function createScopedGraphQLHandler(
-  operationType: ExpectedOperationTypeNode,
+  operationType: GraphQLOperationType,
   url: Path,
 ): GraphQLRequestHandler {
-  return (operationName, resolver, options = {}) => {
-    return new GraphQLHandler(
-      operationType,
-      operationName,
-      url,
-      resolver,
-      options,
-    )
+  return (predicate, resolver, options = {}) => {
+    return new GraphQLHandler(operationType, predicate, url, resolver, options)
   }
 }
 

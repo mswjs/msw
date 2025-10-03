@@ -240,10 +240,12 @@
     "@bundled-es-modules/cookie": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@inquirer/confirm": "^5.0.0",
+    "@msgpack/msgpack": "^3.1.2",
     "@mswjs/interceptors": "^0.39.1",
     "@open-draft/deferred-promise": "^2.2.0",
     "@types/cookie": "^0.6.0",
     "@types/statuses": "^2.0.4",
+    "@types/ws": "^8.18.1",
     "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
@@ -255,6 +257,7 @@
     "tough-cookie": "^6.0.0",
     "type-fest": "^4.26.1",
     "until-async": "^3.0.2",
+    "ws": "^8.18.3",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

@@ -237,12 +237,12 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@bundled-es-modules/cookie": "^2.0.1",
     "@bundled-es-modules/statuses": "^1.0.1",
     "@inquirer/confirm": "^5.0.0",
     "@mswjs/interceptors": "^0.39.1",
     "@open-draft/deferred-promise": "^2.2.0",
     "@types/statuses": "^2.0.4",
+    "cookie": "^1.0.2",
     "graphql": "^16.8.1",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",

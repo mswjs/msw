@@ -1,5 +1,5 @@
 // @vitest-environment node
-import cookieUtils from '@bundled-es-modules/cookie'
+import { parse as parseCookie } from 'cookie'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -68,7 +68,7 @@ test('sets cookie on the mocked response', async () => {
   })
   const body = await res.json()
   const cookieString = res.headers.get('set-cookie')!
-  const responseCookies = cookieUtils.parse(cookieString)
+  const responseCookies = parseCookie(cookieString)
 
   expect(cookieString).toBe('test-cookie=value')
   expect(body).toEqual({

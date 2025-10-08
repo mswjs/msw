@@ -1,8 +1,8 @@
-import cookieUtils from '@bundled-es-modules/cookie'
+import { parse as parseCookie, serialize as serializeCookie } from 'cookie'
 import { cookieStore } from '../cookieStore'
 
 function parseCookies(input: string): Record<string, string> {
-  const parsedCookies = cookieUtils.parse(input)
+  const parsedCookies = parseCookie(input)
   const cookies: Record<string, string> = {}
 
   for (const cookieName in parsedCookies) {
@@ -62,7 +62,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
   for (const name in cookiesFromDocument) {
     request.headers.append(
       'cookie',
-      cookieUtils.serialize(name, cookiesFromDocument[name]),
+      serializeCookie(name, cookiesFromDocument[name]),
     )
   }
 

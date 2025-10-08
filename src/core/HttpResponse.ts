@@ -175,7 +175,7 @@ export class HttpResponse<
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return new HttpResponse(body, responseInit)
+    return new HttpResponse(body as any, responseInit)
   }
 
   /**

@@ -5,11 +5,12 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { HandlersController } from '~/core/SetupApi'
 import type { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { ListenOptions, SetupServer } from './glossary'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import type { SetupServer } from './glossary'
 import { SetupServerCommonApi } from './SetupServerCommonApi'
+import { RemoteRequestHandler } from '~/core/rpc/handlers/remote-request-handler'
 
-const store = new AsyncLocalStorage<RequestHandlersContext>()
+const handlersStorage = new AsyncLocalStorage<RequestHandlersContext>()
 
 type RequestHandlersContext = {
   initialHandlers: Array<RequestHandler | WebSocketHandler>
@@ -21,15 +22,29 @@ type RequestHandlersContext = {
  * to prevent the request handlers list from being a shared state
  * across multiple tests.
  */
-class AsyncHandlersController implements HandlersController {
+export class AsyncHandlersController implements HandlersController {
+  private storage: AsyncLocalStorage<RequestHandlersContext>
   private rootContext: RequestHandlersContext
 
-  constructor(initialHandlers: Array<RequestHandler | WebSocketHandler>) {
-    this.rootContext = { initialHandlers, handlers: [] }
+  constructor(args: {
+    storage: AsyncLocalStorage<RequestHandlersContext>
+    initialHandlers: Array<RequestHandler | WebSocketHandler>
+  }) {
+    this.storage = args.storage
+    this.rootContext = {
+      initialHandlers: args.initialHandlers,
+      handlers: [],
+    }
   }
 
   get context(): RequestHandlersContext {
-    return store.getStore() || this.rootContext
+    const store = this.storage.getStore()
+
+    if (store) {
+      return store
+    }
+
+    return this.rootContext
   }
 
   public prepend(runtimeHandlers: Array<RequestHandler | WebSocketHandler>) {
@@ -48,6 +63,7 @@ class AsyncHandlersController implements HandlersController {
     return handlers.concat(initialHandlers)
   }
 }
+
 export class SetupServerApi
   extends SetupServerCommonApi
   implements SetupServer
@@ -62,14 +78,17 @@ export class SetupServerApi
   ) {
     super(interceptors, handlers)
 
-    this.handlersController = new AsyncHandlersController(handlers)
+    this.handlersController = new AsyncHandlersController({
+      storage: handlersStorage,
+      initialHandlers: handlers,
+    })
   }
 
   public boundary<Args extends Array<any>, R>(
     callback: (...args: Args) => R,
   ): (...args: Args) => R {
     return (...args: Args): R => {
-      return store.run<any, any>(
+      return handlersStorage.run<any, any>(
         {
           initialHandlers: this.handlersController.currentHandlers(),
           handlers: [],
@@ -82,6 +101,29 @@ export class SetupServerApi
 
   public close(): void {
     super.close()
-    store.disable()
+    handlersStorage.disable()
+  }
+
+  public listen(options?: Partial<ListenOptions>): void {
+    super.listen(options)
+
+    // Support the remote interception mode.
+    if (this.resolvedOptions.remote?.enabled) {
+      const remoteHttpHandler = new RemoteRequestHandler({
+        port: this.resolvedOptions.remote.port,
+      })
+
+      this.handlersController.currentHandlers = new Proxy(
+        this.handlersController.currentHandlers,
+        {
+          apply(target, thisArg, argArray) {
+            return [
+              remoteHttpHandler,
+              ...Reflect.apply(target, thisArg, argArray),
+            ]
+          },
+        },
+      )
+    }
   }
 }

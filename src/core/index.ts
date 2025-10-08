@@ -68,6 +68,8 @@ export { bypass } from './bypass'
 export { passthrough } from './passthrough'
 export { isCommonAssetRequest } from './isCommonAssetRequest'
 
+export { NetworkSource } from './sources'
+
 // Validate environmental globals before executing any code.
 // This ensures that the library gives user-friendly errors
 // when ran in the environments that require additional polyfills

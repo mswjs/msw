@@ -7,13 +7,28 @@ import type {
   SharedOptions,
 } from '~/core/sharedOptions'
 
+export interface ListenOptions extends SharedOptions {
+  /**
+   * Enable remote request resolution.
+   *
+   * With `remote` set to `true`, all the outgoing requests in this process
+   * will be forwarded to a remote process where `setupRemoteServer` was
+   * created to handle. If the remote process hasn't handled the request,
+   * it will be handled by whichever request handlers you have in this process.
+   */
+  remote?: {
+    enabled: boolean
+    port: number
+  }
+}
+
 export interface SetupServerCommon {
   /**
    * Starts requests interception based on the previously provided request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()` API reference}
    */
-  listen(options?: PartialDeep<SharedOptions>): void
+  listen(options?: PartialDeep<ListenOptions>): void
 
   /**
    * Stops requests interception by restoring all augmented modules.

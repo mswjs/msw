@@ -30,7 +30,7 @@ export class SetupServerCommonApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupServerCommon
 {
-  protected readonly interceptor: BatchInterceptor<
+  protected interceptor: BatchInterceptor<
     Array<Interceptor<HttpRequestEventMap>>,
     HttpRequestEventMap
   >
@@ -63,7 +63,7 @@ export class SetupServerCommonApi
   /**
    * Subscribe to all requests that are using the interceptor object
    */
-  private init(): void {
+  protected init(): void {
     this.interceptor.on(
       'request',
       async ({ request, requestId, controller }) => {

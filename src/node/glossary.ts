@@ -18,6 +18,7 @@ export interface ListenOptions extends SharedOptions {
    */
   remote?: {
     enabled: boolean
+    port: number
   }
 }
 

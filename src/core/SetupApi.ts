@@ -52,7 +52,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(...initialHandlers: Array<RequestHandler | WebSocketHandler>) {
+  constructor(initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     super()
 
     invariant(

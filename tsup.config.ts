@@ -30,7 +30,7 @@ const shimConfig: Options = {
   platform: 'neutral',
   entry: glob.sync('./src/shims/**/*.ts'),
   format: ['esm', 'cjs'],
-  noExternal: ['cookie'],
+  noExternal: Object.keys(packageJson.dependencies),
   outDir: './lib/shims',
   bundle: true,
   splitting: false,

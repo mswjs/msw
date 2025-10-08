@@ -1,5 +1,6 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import type {
   SetupWorkerInternalContext,
   StartReturnType,
@@ -18,7 +19,6 @@ import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
 import { WorkerChannel } from '../utils/workerChannel'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createFallbackRequestListener } from './start/createFallbackRequestListener'
 import { printStartMessage } from './start/utils/printStartMessage'
 import { printStopMessage } from './stop/utils/printStopMessage'

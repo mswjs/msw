@@ -40,7 +40,7 @@ export class SetupServerCommonApi
     interceptors: Array<Interceptor<HttpRequestEventMap>>,
     handlers: Array<RequestHandler | WebSocketHandler>,
   ) {
-    super(...handlers)
+    super(handlers)
 
     this.interceptor = new BatchInterceptor({
       name: 'setup-server',

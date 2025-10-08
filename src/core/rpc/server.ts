@@ -43,7 +43,7 @@ export class RpcServer extends Emitter<RpcServerPublicEventMap> {
 
         const response = new Response('hello world')
 
-        client.emit('response', serializeHttpResponse(response))
+        // client.emit('response', serializeHttpResponse(response))
 
         if (response.body != null) {
           emitReadableStream(

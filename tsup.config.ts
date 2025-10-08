@@ -24,7 +24,7 @@ const coreConfig: Options = {
   name: 'core',
   platform: 'neutral',
   entry: glob.sync('./src/core/**/*.ts', {
-    ignore: '**/*.test.ts',
+    ignore: ['**/__*/**/*', '**/*.test.ts'],
   }),
   external: [ecosystemDependencies],
   format: ['esm', 'cjs'],

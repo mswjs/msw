@@ -1,12 +1,13 @@
-import { NetworkSource } from './sources'
+import { NetworkSource } from './sources/index'
 import {
   AnyHandler,
   HandlersController,
   inMemoryHandlersController,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
+import { resolveNetworkFrame } from './resolve-network-frame'
 
-interface DefineNetworkOptions<Handler extends AnyHandler> {
+export interface DefineNetworkOptions<Handler extends AnyHandler> {
   /**
    * A list of network sources.
    */
@@ -24,7 +25,8 @@ interface DefineNetworkOptions<Handler extends AnyHandler> {
   handlersController?: HandlersController<Handler>
 }
 
-interface NetworkApi<Handler extends AnyHandler> {
+export interface NetworkApi<Handler extends AnyHandler>
+  extends NetworkHandlersApi<Handler> {
   /**
    * Enables the network interception.
    */
@@ -34,7 +36,9 @@ interface NetworkApi<Handler extends AnyHandler> {
    * Disables the network interception.
    */
   disable: () => Promise<void>
+}
 
+export interface NetworkHandlersApi<Handler extends AnyHandler> {
   use: (...handlers: Array<Handler>) => void
   resetHandlers: (...nextHandlers: Array<Handler>) => void
   restoreHandlers: () => void
@@ -44,7 +48,7 @@ interface NetworkApi<Handler extends AnyHandler> {
 export function defineNetwork<Handler extends AnyHandler>(
   options: DefineNetworkOptions<Handler>,
 ): NetworkApi<Handler> {
-  const source = NetworkSource.from(options.sources)
+  const source = NetworkSource.from(...options.sources)
 
   const handlersController =
     options.handlersController ||
@@ -54,15 +58,11 @@ export function defineNetwork<Handler extends AnyHandler>(
     async enable() {
       await source.enable()
 
-      source.on('frame', (event) => {
-        const frame = event.data
-        const handlers = handlersController.currentHandlers()
-
-        /** @todo */
-        /** @todo */
-        /** @todo */
-        /** @todo */
-        /** @todo */
+      source.on('frame', async (event) => {
+        await resolveNetworkFrame(
+          event.data,
+          handlersController.currentHandlers(),
+        )
       })
     },
     async disable() {
@@ -70,7 +70,7 @@ export function defineNetwork<Handler extends AnyHandler>(
       await source.disable()
     },
     use(...handlers) {
-      handlersController.prepend(handlers)
+      handlersController.use(handlers)
     },
     resetHandlers(...nextHandlers) {
       handlersController.reset(nextHandlers)

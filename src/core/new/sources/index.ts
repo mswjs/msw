@@ -1,12 +1,25 @@
 import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 
-interface NetworkFrame {
+export type NetworkFrame = HttpNetworkFrame | WebSocketFrame
+
+interface BaseNetworkFrame {
   protocol: string
-  /**
-   * @fixme This has to be type-safe.
-   * Different Frame event classes?
-   */
   data: unknown
+}
+
+export interface HttpNetworkFrame extends BaseNetworkFrame {
+  protocol: 'http'
+  data: {
+    request: Request
+  }
+  respondWith: (response?: Response) => void
+  errorWith: (reason?: unknown) => void
+  passthrough: () => void
+}
+
+export interface WebSocketFrame extends BaseNetworkFrame {
+  protocol: 'ws'
+  TODO: 'TODO' /** @todo */
 }
 
 interface NetworkSourceEventMap extends DefaultEventMap {
@@ -18,7 +31,11 @@ export abstract class NetworkSource {
    * @todo Combine multiple network sources into one.
    */
   static from(...sources: Array<NetworkSource>): NetworkSource {
-    throw new Error('Not implemented')
+    if (sources.length > 1) {
+      throw new Error('Not implemented')
+    }
+
+    return sources[0]
   }
 
   #emitter: Emitter<NetworkSourceEventMap>
@@ -34,10 +51,10 @@ export abstract class NetworkSource {
    * Enables this network source.
    * Once enabled, it will start emitting network frame events.
    */
-  public abstract enable(): Promise<void>
+  public abstract enable(): Promise<unknown>
 
   public push(frame: NetworkFrame): void {
-    this.#emitter.emit(new TypedEvent('frame', frame))
+    this.#emitter.emit(new TypedEvent('frame', { data: frame }))
   }
 
   public async disable(): Promise<void> {
@@ -45,10 +62,11 @@ export abstract class NetworkSource {
   }
 }
 
-export abstract class NetworkFrame {
-  constructor() {
-    //
-  }
-
-  public abstract respondWith(...args: Array<any>): void
+/**
+ * Defines a new network frame.
+ * @param frame Network frame definition
+ * @returns A new network frame
+ */
+export function defineNetworkFrame(frame: NetworkFrame): NetworkFrame {
+  return frame
 }

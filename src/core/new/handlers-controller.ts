@@ -5,7 +5,7 @@ export type AnyHandler = RequestHandler | WebSocketHandler
 
 export interface HandlersController<Handler extends AnyHandler = AnyHandler> {
   currentHandlers(): Array<Handler>
-  prepend(nextHandlers: Array<Handler>): void
+  use(nextHandlers: Array<Handler>): void
   reset(nextHandlers: Array<Handler>): void
 }
 
@@ -21,7 +21,7 @@ export function inMemoryHandlersController<Handler extends AnyHandler>(
     currentHandlers() {
       return handlers
     },
-    prepend(nextHandlers) {
+    use(nextHandlers) {
       handlers.unshift(...nextHandlers)
     },
     reset(nextHandlers) {

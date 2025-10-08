@@ -300,7 +300,7 @@ You can also automate this process and make the worker script update automatical
   }
 
   async #respondWith(event: RequestEvent, response: Response): Promise<void> {
-    let responseBody
+    let responseBody: ReadableStream<any> | ArrayBuffer | null
     let transfer: [ReadableStream<Uint8Array>] | undefined
 
     const responseInit = toResponseInit(response)

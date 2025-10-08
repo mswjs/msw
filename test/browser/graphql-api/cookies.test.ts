@@ -1,4 +1,4 @@
-import { parse as parseCookie } from 'cookie'
+import { parse as parseCookie } from '../../../src/shims/cookie'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 

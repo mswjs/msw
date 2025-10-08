@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { parse as parseCookie } from 'cookie'
+import { parse as parseCookie } from '../../../src/shims/cookie'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

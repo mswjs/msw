@@ -1,4 +1,4 @@
-import type { WebSocketData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import type { WebSocketData } from '@mswjs/interceptors/WebSocket'
 
 /**
  * Returns the byte length of the given WebSocket message.

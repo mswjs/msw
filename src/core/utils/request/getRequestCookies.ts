@@ -1,4 +1,7 @@
-import { parse as parseCookie, serialize as serializeCookie } from 'cookie'
+import {
+  parse as parseCookie,
+  serialize as serializeCookie,
+} from '../../../shims/cookie'
 import { cookieStore } from '../cookieStore'
 
 function parseCookies(input: string): Record<string, string> {

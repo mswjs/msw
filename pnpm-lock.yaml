@@ -23,9 +23,6 @@ importers:
       '@open-draft/deferred-promise':
         specifier: ^2.2.0
         version: 2.2.0
-      '@types/cookie':
-        specifier: ^0.6.0
-        version: 0.6.0
       '@types/statuses':
         specifier: ^2.0.4
         version: 2.0.5
@@ -1332,9 +1329,6 @@ packages:
 
   '@types/cookie@0.4.1':
     resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
-
-  '@types/cookie@0.6.0':
-    resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
   '@types/cookies@0.9.0':
     resolution: {integrity: sha512-40Zk8qR147RABiQ7NQnBzWzDcjKzNrntB5BAmeGCb2p/MIyOE+4BVvc17wumsUqUw00bJYqoXFHYygQnEFh4/Q==}
@@ -6332,8 +6326,6 @@ snapshots:
       '@types/node': 18.19.28
 
   '@types/cookie@0.4.1': {}
-
-  '@types/cookie@0.6.0': {}
 
   '@types/cookies@0.9.0':
     dependencies:

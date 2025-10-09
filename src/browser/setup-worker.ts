@@ -4,12 +4,15 @@ import {
   type NetworkHandlersApi,
   type NetworkApi,
 } from '~/core/new/define-network'
-import { ServiceWorkerSource } from './service-worker-source'
 import {
   onUnhandledFrame,
   UnhandledFrameStrategy,
 } from '~/core/new/on-unhandled-frame'
 import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
+import { NetworkSource } from '~/core/new/sources'
+import { ServiceWorkerSource } from './service-worker-source'
+import { FallbackSource } from './fallback-source'
+import { supportsServiceWorker } from './utils/supports'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
@@ -47,14 +50,17 @@ export function setupWorker(
 
   return {
     async start(options) {
-      const source = new ServiceWorkerSource({
-        quiet: options?.quiet,
-        serviceWorker: {
-          url: options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
-          options: options?.serviceWorker?.options,
-        },
-        findWorker: options?.findWorker,
-      })
+      const source: NetworkSource = supportsServiceWorker()
+        ? new ServiceWorkerSource({
+            quiet: options?.quiet,
+            serviceWorker: {
+              url:
+                options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
+              options: options?.serviceWorker?.options,
+            },
+            findWorker: options?.findWorker,
+          })
+        : new FallbackSource()
 
       network = defineNetwork({
         sources: [source],

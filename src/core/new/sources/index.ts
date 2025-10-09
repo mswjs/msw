@@ -10,14 +10,11 @@ interface NetworkSourceEventMap extends DefaultEventMap {
 
 export abstract class NetworkSource {
   /**
-   * @todo Combine multiple network sources into one.
+   * Combines multiple network sources into one.
+   * @param sources A list of network sources.
    */
   static from(...sources: Array<NetworkSource>): NetworkSource {
-    if (sources.length > 1) {
-      throw new Error('Not implemented')
-    }
-
-    return sources[0]
+    return new BatchNetworkSource(sources)
   }
 
   #emitter: Emitter<NetworkSourceEventMap>
@@ -41,5 +38,32 @@ export abstract class NetworkSource {
 
   public async disable(): Promise<void> {
     this.#emitter.removeAllListeners()
+  }
+}
+
+class BatchNetworkSource extends NetworkSource {
+  constructor(private readonly sources: Array<NetworkSource>) {
+    super()
+
+    this.on = (...args: any[]): any => {
+      for (const source of sources) {
+        source.on(args[0], args[1])
+      }
+    }
+  }
+
+  public async enable(): Promise<void> {
+    await Promise.all(this.sources.map((source) => source.enable()))
+  }
+
+  public push(frame: NetworkFrame): void {
+    for (const source of this.sources) {
+      source.push(frame)
+    }
+  }
+
+  public async disable(): Promise<void> {
+    await super.disable()
+    await Promise.all(this.sources.map((source) => source.disable()))
   }
 }

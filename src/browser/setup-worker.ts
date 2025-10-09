@@ -5,6 +5,11 @@ import {
   type NetworkApi,
 } from '~/core/new/define-network'
 import { ServiceWorkerSource } from './service-worker-source'
+import {
+  onUnhandledFrame,
+  UnhandledFrameStrategy,
+} from '~/core/new/on-unhandled-frame'
+import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
@@ -21,6 +26,7 @@ interface SetupWorkerStartOptions {
     options?: RegistrationOptions
   }
   findWorker?: FindWorker
+  onUnhandledRequest?: UnhandledFrameStrategy | UnhandledRequestCallback
 }
 
 export type FindWorker = (
@@ -53,9 +59,24 @@ export function setupWorker(
       network = defineNetwork({
         sources: [source],
         handlers,
-        onUnhandledFrame({ frame }) {
-          if (frame.protocol === 'http') {
-            //
+        async onUnhandledFrame({ frame, defaults }) {
+          /**
+           * @note `setupWorker` does not handle unhandled WebSocket events.
+           * This will be a new API in 3.0, most likely. We can remove this
+           * mapping then.
+           */
+          if (
+            frame.protocol === 'http' &&
+            options?.onUnhandledRequest !== undefined
+          ) {
+            if (typeof options.onUnhandledRequest === 'function') {
+              options.onUnhandledRequest(frame.data.request, {
+                warning: defaults.warn,
+                error: defaults.error,
+              })
+            } else {
+              await onUnhandledFrame(frame, 'warn')
+            }
           }
         },
       })

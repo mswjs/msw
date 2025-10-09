@@ -10,11 +10,20 @@ import {
 import { executeHandlers } from '../utils/executeHandlers'
 import { storeResponseCookies } from '../utils/request/storeResponseCookies'
 
+/**
+ * Resolve a network frame against the given list of handlers.
+ * @param frame A network frame.
+ * @param handlers A list of handlers.
+ * @returns A boolean indicating whether this frame has been handled.
+ */
 export async function resolveNetworkFrame(
   frame: NetworkFrame,
   handlers: Array<AnyHandler>,
 ): Promise<boolean> {
   switch (frame.protocol) {
+    /**
+     * HTTP.
+     */
     case 'http': {
       const { request } = frame.data
       const requestId = createRequestId()
@@ -93,12 +102,36 @@ export async function resolveNetworkFrame(
         parsedResult,
       })
 
-      break
+      return true
     }
 
+    /**
+     * WebSocket.
+     */
     case 'ws': {
-      /** @todo */
-      break
+      const { connection } = frame.data
+      const eventHandlers = handlers.filter(isHandlerKind('EventHandler'))
+
+      frame.events.emit('websocket:connection', {
+        url: connection.client.url,
+        protocols: connection.info.protocols,
+      })
+
+      if (eventHandlers.length > 0) {
+        await Promise.all(
+          eventHandlers.map((handler) => {
+            // Foward the connection data to every WebSocket handler.
+            // This is equivalent to dispatching the connection event
+            // onto multiple listeners.
+            return handler.run(connection)
+          }),
+        )
+
+        return true
+      }
+
+      frame.passthrough()
+      return false
     }
 
     default: {
@@ -108,6 +141,4 @@ export async function resolveNetworkFrame(
       )
     }
   }
-
-  return false
 }

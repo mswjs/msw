@@ -1,3 +1,4 @@
+import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import type { HttpHandler, WebSocketHandler } from '~/core'
 import {
   defineNetwork,
@@ -11,8 +12,9 @@ import {
 import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
 import { NetworkSource } from '~/core/new/sources'
 import { ServiceWorkerSource } from './service-worker-source'
-import { FallbackSource } from './fallback-source'
+import { SetupWorkerFallbackSource } from './setup-worker-fallback-source'
 import { supportsServiceWorker } from './utils/supports'
+import { InterceptorSource } from '~/core/new/sources/interceptor-source'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
@@ -50,7 +52,7 @@ export function setupWorker(
 
   return {
     async start(options) {
-      const source: NetworkSource = supportsServiceWorker()
+      const httpSource: NetworkSource = supportsServiceWorker()
         ? new ServiceWorkerSource({
             quiet: options?.quiet,
             serviceWorker: {
@@ -60,10 +62,19 @@ export function setupWorker(
             },
             findWorker: options?.findWorker,
           })
-        : new FallbackSource()
+        : new SetupWorkerFallbackSource()
 
       network = defineNetwork({
-        sources: [source],
+        sources: [
+          httpSource,
+          /**
+           * @note Get WebSocket connections from the interceptor because
+           * Service Workers do not intercept WebSocket connections.
+           */
+          new InterceptorSource({
+            interceptors: [new WebSocketInterceptor()],
+          }),
+        ],
         handlers,
         async onUnhandledFrame({ frame, defaults }) {
           /**

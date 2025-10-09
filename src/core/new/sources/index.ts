@@ -1,8 +1,8 @@
 import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 import type { HttpNetworkFrame } from '../frames/http-frame'
-import type { WebSocketFrame } from '../frames/websocket-frame'
+import type { WebSocketNetworkFrame } from '../frames/websocket-frame'
 
-export type NetworkFrame = HttpNetworkFrame | WebSocketFrame
+export type NetworkFrame = HttpNetworkFrame | WebSocketNetworkFrame
 
 interface NetworkSourceEventMap extends DefaultEventMap {
   frame: TypedEvent<NetworkFrame>

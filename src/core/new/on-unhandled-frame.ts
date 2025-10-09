@@ -35,7 +35,7 @@ export async function onUnhandledFrame(
 
     throw new InternalError(
       devUtils.formatMessage(
-        'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+        'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
         strategy,
       ),
     )

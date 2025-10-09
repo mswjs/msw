@@ -3,7 +3,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { InterceptorSource } from '~/core/new/sources/interceptor-source'
 import { devUtils } from '~/core/utils/internal/devUtils'
 
-export class FallbackSource extends InterceptorSource {
+export class SetupWorkerFallbackSource extends InterceptorSource {
   constructor() {
     super({
       interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],

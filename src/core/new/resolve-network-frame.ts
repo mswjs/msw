@@ -130,6 +130,10 @@ export async function resolveNetworkFrame(
         return true
       }
 
+      /**
+       * @todo Support WebSocket logging, somehow.
+       */
+
       frame.passthrough()
       return false
     }

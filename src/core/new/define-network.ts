@@ -42,12 +42,12 @@ export interface NetworkApi<Handler extends AnyHandler>
   /**
    * Enables the network interception.
    */
-  enable: () => Promise<void>
+  enable(): Promise<void>
 
   /**
    * Disables the network interception.
    */
-  disable: () => Promise<void>
+  disable(): Promise<void>
 
   /**
    * @fixme Infer the EventMap type from the sources passed to this network.
@@ -56,10 +56,10 @@ export interface NetworkApi<Handler extends AnyHandler>
 }
 
 export interface NetworkHandlersApi<Handler extends AnyHandler> {
-  use: (...handlers: Array<Handler>) => void
-  resetHandlers: (...nextHandlers: Array<Handler>) => void
-  restoreHandlers: () => void
-  listHandlers: () => ReadonlyArray<Handler>
+  use(...handlers: Array<Handler>): void
+  resetHandlers(...nextHandlers: Array<Handler>): void
+  restoreHandlers(): void
+  listHandlers(): ReadonlyArray<Handler>
 }
 
 export function defineNetwork<Handler extends AnyHandler>(

@@ -9,6 +9,8 @@ import {
 } from '../utils/internal/requestUtils'
 import { executeHandlers } from '../utils/executeHandlers'
 import { storeResponseCookies } from '../utils/request/storeResponseCookies'
+import { HttpNetworkFrame } from './frames/http-frame'
+import { WebSocketNetworkFrame } from './frames/websocket-frame'
 
 /**
  * Resolve a network frame against the given list of handlers.
@@ -21,121 +23,15 @@ export async function resolveNetworkFrame(
   handlers: Array<AnyHandler>,
 ): Promise<boolean> {
   switch (frame.protocol) {
-    /**
-     * HTTP.
-     */
     case 'http': {
-      const { request } = frame.data
-      const requestId = createRequestId()
-      const requestCloneForLogs = request.clone()
-
-      frame.events.emit('request:start', { request, requestId })
-
-      // Perform requests wrapped in "bypass()" as-is.
-      if (shouldBypassRequest(request)) {
-        frame.passthrough()
-        return true
-      }
-
-      const requestHandlers = handlers.filter(isHandlerKind('RequestHandler'))
-
-      const [lookupError, lookupResult] = await until(() => {
-        return executeHandlers({
-          request,
-          requestId,
-          handlers: requestHandlers,
-          resolutionContext: {},
-        })
-      })
-
-      if (lookupError) {
-        // Allow developers to react to unhandled exceptions in request handlers.
-        frame.events.emit('unhandledException', {
-          error: lookupError,
-          request,
-          requestId,
-        })
-        frame.errorWith(lookupError)
-        return false
-      }
-
-      // If the handler lookup returned nothing, no request handler was found
-      // matching this request. Report the request as unhandled.
-      if (!lookupResult) {
-        frame.events.emit('request:unhandled', { request, requestId })
-        frame.events.emit('request:end', { request, requestId })
-        frame.passthrough()
-        return false
-      }
-
-      const { response, handler, parsedResult } = lookupResult
-
-      // When the handled request returned no mocked response, warn the developer,
-      // as it may be an oversight on their part. Perform the request as-is.
-      if (!response) {
-        frame.events.emit('request:end', { request, requestId })
-        frame.passthrough()
-        return true
-      }
-
-      // Perform the request as-is when the developer explicitly returned `passthrough()`.
-      // This produces no warning as the request was handled.
-      if (isPassthroughResponse(response)) {
-        frame.events.emit('request:end', { request, requestId })
-        frame.passthrough()
-        return true
-      }
-
-      // Store all the received response cookies in the cookie jar.
-      await storeResponseCookies(request, response)
-
-      frame.events.emit('request:match', { request, requestId })
-
-      frame.respondWith(response.clone())
-
-      frame.events.emit('request:end', { request, requestId })
-
-      // Log mocked responses. Use the Network tab to observe the original network.
-      handler.log({
-        request: requestCloneForLogs,
-        response,
-        parsedResult,
-      })
-
-      return true
+      return resolveHttpNetworkFrame(frame, handlers)
     }
 
     /**
      * WebSocket.
      */
     case 'ws': {
-      const { connection } = frame.data
-      const eventHandlers = handlers.filter(isHandlerKind('EventHandler'))
-
-      frame.events.emit('websocket:connection', {
-        url: connection.client.url,
-        protocols: connection.info.protocols,
-      })
-
-      if (eventHandlers.length > 0) {
-        await Promise.all(
-          eventHandlers.map((handler) => {
-            // Foward the connection data to every WebSocket handler.
-            // This is equivalent to dispatching the connection event
-            // onto multiple listeners.
-            return handler.run(connection)
-          }),
-        )
-
-        return true
-      }
-
-      /**
-       * @todo Support WebSocket logging, somehow.
-       */
-
-      frame.passthrough()
-      return false
+      return resolveWebSocketNetworkFrame(frame, handlers)
     }
 
     default: {
@@ -145,4 +41,121 @@ export async function resolveNetworkFrame(
       )
     }
   }
+}
+
+async function resolveHttpNetworkFrame(
+  frame: HttpNetworkFrame,
+  handlers: Array<AnyHandler>,
+): Promise<boolean> {
+  const { request } = frame.data
+  const requestId = createRequestId()
+  const requestCloneForLogs = request.clone()
+
+  frame.events.emit('request:start', { request, requestId })
+
+  // Perform requests wrapped in "bypass()" as-is.
+  if (shouldBypassRequest(request)) {
+    frame.passthrough()
+    return true
+  }
+
+  const requestHandlers = handlers.filter(isHandlerKind('RequestHandler'))
+
+  const [lookupError, lookupResult] = await until(() => {
+    return executeHandlers({
+      request,
+      requestId,
+      handlers: requestHandlers,
+      resolutionContext: {},
+    })
+  })
+
+  if (lookupError) {
+    // Allow developers to react to unhandled exceptions in request handlers.
+    frame.events.emit('unhandledException', {
+      error: lookupError,
+      request,
+      requestId,
+    })
+    frame.errorWith(lookupError)
+    return false
+  }
+
+  // If the handler lookup returned nothing, no request handler was found
+  // matching this request. Report the request as unhandled.
+  if (!lookupResult) {
+    frame.events.emit('request:unhandled', { request, requestId })
+    frame.events.emit('request:end', { request, requestId })
+    frame.passthrough()
+    return false
+  }
+
+  const { response, handler, parsedResult } = lookupResult
+
+  // When the handled request returned no mocked response, warn the developer,
+  // as it may be an oversight on their part. Perform the request as-is.
+  if (!response) {
+    frame.events.emit('request:end', { request, requestId })
+    frame.passthrough()
+    return true
+  }
+
+  // Perform the request as-is when the developer explicitly returned `passthrough()`.
+  // This produces no warning as the request was handled.
+  if (isPassthroughResponse(response)) {
+    frame.events.emit('request:end', { request, requestId })
+    frame.passthrough()
+    return true
+  }
+
+  // Store all the received response cookies in the cookie jar.
+  await storeResponseCookies(request, response)
+
+  frame.events.emit('request:match', { request, requestId })
+
+  frame.respondWith(response.clone())
+
+  frame.events.emit('request:end', { request, requestId })
+
+  // Log mocked responses. Use the Network tab to observe the original network.
+  handler.log({
+    request: requestCloneForLogs,
+    response,
+    parsedResult,
+  })
+
+  return true
+}
+
+async function resolveWebSocketNetworkFrame(
+  frame: WebSocketNetworkFrame,
+  handlers: Array<AnyHandler>,
+): Promise<boolean> {
+  const { connection } = frame.data
+  const eventHandlers = handlers.filter(isHandlerKind('EventHandler'))
+
+  frame.events.emit('websocket:connection', {
+    url: connection.client.url,
+    protocols: connection.info.protocols,
+  })
+
+  if (eventHandlers.length > 0) {
+    await Promise.all(
+      eventHandlers.map((handler) => {
+        // Foward the connection data to every WebSocket handler.
+        // This is equivalent to dispatching the connection event
+        // onto multiple listeners.
+        return handler.run(connection)
+      }),
+    )
+
+    return true
+  }
+
+  /**
+   * @todo Support WebSocket logging, somehow.
+   */
+
+  frame.passthrough()
+  return false
 }

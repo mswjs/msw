@@ -18,6 +18,7 @@ export async function resolveNetworkFrame(
     case 'http': {
       const { request } = frame.data
       const requestId = createRequestId()
+      const requestCloneForLogs = request.clone()
 
       frame.events.emit('request:start', { request, requestId })
 
@@ -45,7 +46,8 @@ export async function resolveNetworkFrame(
           request,
           requestId,
         })
-        throw lookupError
+        frame.errorWith(lookupError)
+        return false
       }
 
       // If the handler lookup returned nothing, no request handler was found
@@ -57,7 +59,7 @@ export async function resolveNetworkFrame(
         return false
       }
 
-      const { response } = lookupResult
+      const { response, handler, parsedResult } = lookupResult
 
       // When the handled request returned no mocked response, warn the developer,
       // as it may be an oversight on their part. Perform the request as-is.
@@ -80,9 +82,16 @@ export async function resolveNetworkFrame(
 
       frame.events.emit('request:match', { request, requestId })
 
-      frame.respondWith(response)
+      frame.respondWith(response.clone())
 
       frame.events.emit('request:end', { request, requestId })
+
+      // Log mocked responses. Use the Network tab to observe the original network.
+      handler.log({
+        request: requestCloneForLogs,
+        response,
+        parsedResult,
+      })
 
       break
     }

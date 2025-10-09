@@ -11,13 +11,10 @@ export interface LoggedRequest {
 export async function serializeRequest(
   request: Request,
 ): Promise<LoggedRequest> {
-  const requestClone = request.clone()
-  const requestText = await requestClone.text()
-
   return {
     url: new URL(request.url),
     method: request.method,
     headers: Object.fromEntries(request.headers.entries()),
-    body: requestText,
+    body: await request.clone().text(),
   }
 }

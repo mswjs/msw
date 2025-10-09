@@ -13,8 +13,8 @@ import { getWorkerInstance } from './setupWorker/start/utils/getWorkerInstance'
 import { deserializeRequest } from './utils/deserializeRequest'
 import { toResponseInit } from '~/core/utils/toResponseInit'
 import { devUtils } from '~/core/utils/internal/devUtils'
-import type { FindWorker } from './setup-worker'
 import { HttpNetworkFrame } from '~/core/new/frames/http-frame'
+import type { FindWorker } from './setup-worker'
 
 interface ServiceWorkerSourceOptions {
   quiet?: boolean
@@ -277,7 +277,7 @@ You can also automate this process and make the worker script update automatical
 
   #printStartMessage(args: {
     registration: ServiceWorkerRegistration
-    client: ServiceWorkerIncomingEventsMap['MOCKING_ENABLED']['client']
+    client: WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
   }): void {
     if (this.options.quiet) {
       return
@@ -347,13 +347,18 @@ This exception has been gracefully handled as a 500 response, however, it's stro
 
       // Treat exceptions during the request handling as 500 responses.
       // This should alert the developer that there's a problem.
-      this.#event.postMessage(
-        'MOCK_RESPONSE',
-        HttpResponse.json({
-          name: reason.name,
-          message: reason.message,
-          stack: reason.stack,
-        }),
+      this.respondWith(
+        HttpResponse.json(
+          {
+            name: reason.name,
+            message: reason.message,
+            stack: reason.stack,
+          },
+          {
+            status: 500,
+            statusText: 'Request Handler Error',
+          },
+        ),
       )
     }
   }

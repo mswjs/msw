@@ -1,11 +1,18 @@
+import { Emitter } from 'strict-event-emitter'
 import { NetworkSource } from './sources/index'
 import {
-  AnyHandler,
-  HandlersController,
+  type AnyHandler,
+  type HandlersController,
   inMemoryHandlersController,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 import { resolveNetworkFrame } from './resolve-network-frame'
+import {
+  onUnhandledFrame,
+  type UnhandledFrameCallback,
+  type UnhandledFrameStrategy,
+} from './on-unhandled-frame'
+import { pipeEvents } from '../utils/internal/pipeEvents'
 
 export interface DefineNetworkOptions<Handler extends AnyHandler> {
   /**
@@ -23,6 +30,11 @@ export interface DefineNetworkOptions<Handler extends AnyHandler> {
    * Use this to customize how handlers are storeded (e.g. in memory, `AsyncLocalStorage`, etc).
    */
   handlersController?: HandlersController<Handler>
+
+  /**
+   * A fixed strategy or a custom callback for dealing with unhandled frames.
+   */
+  onUnhandledFrame?: UnhandledFrameStrategy | UnhandledFrameCallback
 }
 
 export interface NetworkApi<Handler extends AnyHandler>
@@ -36,6 +48,11 @@ export interface NetworkApi<Handler extends AnyHandler>
    * Disables the network interception.
    */
   disable: () => Promise<void>
+
+  /**
+   * @fixme Infer the EventMap type from the sources passed to this network.
+   */
+  events: Emitter<any>
 }
 
 export interface NetworkHandlersApi<Handler extends AnyHandler> {
@@ -49,6 +66,7 @@ export function defineNetwork<Handler extends AnyHandler>(
   options: DefineNetworkOptions<Handler>,
 ): NetworkApi<Handler> {
   const source = NetworkSource.from(...options.sources)
+  const events = new Emitter()
 
   const handlersController =
     options.handlersController ||
@@ -59,10 +77,18 @@ export function defineNetwork<Handler extends AnyHandler>(
       await source.enable()
 
       source.on('frame', async (event) => {
-        await resolveNetworkFrame(
-          event.data,
+        const frame = event.data
+
+        pipeEvents<any>(frame.events, events)
+
+        const wasFrameHandled = await resolveNetworkFrame(
+          frame,
           handlersController.currentHandlers(),
         )
+
+        if (!wasFrameHandled) {
+          await onUnhandledFrame(frame, options.onUnhandledFrame || 'bypass')
+        }
       })
     },
     async disable() {
@@ -85,5 +111,6 @@ export function defineNetwork<Handler extends AnyHandler>(
     listHandlers() {
       return toReadonlyArray(handlersController.currentHandlers())
     },
+    events,
   }
 }

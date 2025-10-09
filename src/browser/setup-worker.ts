@@ -10,7 +10,7 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
 export interface SetupWorkerApi
   extends NetworkHandlersApi<HttpHandler | WebSocketHandler> {
-  start: () => Promise<void>
+  start: (options?: SetupWorkerStartOptions) => Promise<void>
   stop: () => void
 }
 
@@ -40,7 +40,7 @@ export function setupWorker(
   let network: NetworkApi<HttpHandler | WebSocketHandler>
 
   return {
-    async start(options?: SetupWorkerStartOptions) {
+    async start(options) {
       const source = new ServiceWorkerSource({
         quiet: options?.quiet,
         serviceWorker: {
@@ -53,6 +53,11 @@ export function setupWorker(
       network = defineNetwork({
         sources: [source],
         handlers,
+        onUnhandledFrame({ frame }) {
+          if (frame.protocol === 'http') {
+            //
+          }
+        },
       })
 
       await network.enable()

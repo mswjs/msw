@@ -1,8 +1,9 @@
 import { invariant } from 'outvariant'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { Emitter } from 'rettime'
+import { FetchResponse } from '@mswjs/interceptors'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import { HttpResponse, RequestHandler } from '~/core'
-import { defineNetworkFrame, NetworkSource } from '~/core/new/sources/index'
+import { NetworkSource } from '~/core/new/sources/index'
 import {
   supportsReadableStreamTransfer,
   supportsServiceWorker,
@@ -13,6 +14,7 @@ import { deserializeRequest } from './utils/deserializeRequest'
 import { toResponseInit } from '~/core/utils/toResponseInit'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import type { FindWorker } from './setup-worker'
+import { HttpNetworkFrame } from '~/core/new/frames/http-frame'
 
 interface ServiceWorkerSourceOptions {
   quiet?: boolean
@@ -29,7 +31,14 @@ type RequestEvent = Emitter.EventType<
   WorkerChannelEventMap
 >
 
+type ResponseEvent = Emitter.EventType<
+  WorkerChannel,
+  'RESPONSE',
+  WorkerChannelEventMap
+>
+
 export class ServiceWorkerSource extends NetworkSource {
+  #framesMap: Map<string, ServiceWorkerHttpNetworkFrame>
   #stoppedAt?: number
   #channel: WorkerChannel
   #workerPromise: DeferredPromise<ServiceWorker>
@@ -43,6 +52,7 @@ export class ServiceWorkerSource extends NetworkSource {
       'Cannot use Service Worker network source: the Service Worker API is not supported',
     )
 
+    this.#framesMap = new Map()
     this.#workerPromise = new DeferredPromise()
     this.#channel = new WorkerChannel({
       worker: this.#workerPromise,
@@ -130,6 +140,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
     this.#workerPromise.resolve(worker)
     this.#channel.on('REQUEST', this.#onRequest.bind(this))
+    this.#channel.on('RESPONSE', this.#onResponse.bind(this))
 
     window.addEventListener('beforeunload', () => {
       if (worker.state !== 'redundant') {
@@ -166,15 +177,10 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     return registartion
   }
 
-  #defaultFindWorker: FindWorker = (scriptUrl, mockServiceWorkerUrl) => {
-    return scriptUrl === mockServiceWorkerUrl
-  }
-
   #onRequest(event: RequestEvent): void {
     // Passthrough any requests performed after the interception was stopped.
     if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
-      event.postMessage('PASSTHROUGH')
-      return
+      return event.postMessage('PASSTHROUGH')
     }
 
     const request = deserializeRequest(event.data)
@@ -183,51 +189,59 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     // will skip the cloning phase altogether.
     RequestHandler.cache.set(request, request.clone())
 
-    const frame = defineNetworkFrame({
-      protocol: 'http',
-      data: {
-        request,
-      },
-      respondWith: (response) => {
-        if (response) {
-          this.#respondWith(event, response)
-        }
-      },
-      errorWith: (reason) => {
-        if (reason instanceof Response) {
-          return this.#respondWith(event, reason)
-        }
-
-        if (reason instanceof Error) {
-          devUtils.error(
-            `Uncaught exception in the request handler for "%s %s":
-
-%s
-
-This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
-            request.method,
-            request.url,
-            reason.stack ?? reason,
-          )
-
-          // Treat exceptions during the request handling as 500 responses.
-          // This should alert the developer that there's a problem.
-          event.postMessage(
-            'MOCK_RESPONSE',
-            HttpResponse.json({
-              name: reason.name,
-              message: reason.message,
-              stack: reason.stack,
-            }),
-          )
-        }
-      },
-      passthrough: () => {
-        event.postMessage('PASSTHROUGH')
-      },
+    // Create an HTTP frame that taps into the underlying `MessageChannel`
+    // for scenario handling. Service Worker source only deals with HTTP requests.
+    const frame = new ServiceWorkerHttpNetworkFrame({
+      event,
+      request,
     })
+    this.#framesMap.set(event.data.id, frame)
 
     this.push(frame)
+  }
+
+  async #onResponse(event: ResponseEvent) {
+    const { request, response, isMockedResponse } = event.data
+    const frame = this.#framesMap.get(request.id)
+    this.#framesMap.delete(request.id)
+
+    invariant(
+      frame != null,
+      'Failed to handle a worker response for request "%s %s": request frame is missing',
+      request.method,
+      request.url,
+    )
+
+    const fetchRequest = deserializeRequest(request)
+
+    /**
+     * CORS requests with `mode: "no-cors"` result in "opaque" responses.
+     * That kind of responses cannot be manipulated in JavaScript due
+     * to the security considerations.
+     * @see https://fetch.spec.whatwg.org/#concept-filtered-response-opaque
+     * @see https://github.com/mswjs/msw/issues/529
+     */
+    if (response.type?.includes('opaque')) {
+      return
+    }
+
+    const fetchResponse =
+      response.status === 0
+        ? Response.error()
+        : new FetchResponse(response.body, response)
+
+    frame.events.emit(
+      isMockedResponse ? 'response:mocked' : 'response:bypass',
+      {
+        request: fetchRequest,
+        requestId: request.id,
+        response: fetchResponse,
+      },
+    )
+  }
+
+  #defaultFindWorker: FindWorker = (scriptUrl, mockServiceWorkerUrl) => {
+    return scriptUrl === mockServiceWorkerUrl
   }
 
   async #checkWorkerIntegrity(): Promise<void> {
@@ -298,8 +312,57 @@ You can also automate this process and make the worker script update automatical
 
     console.groupEnd()
   }
+}
 
-  async #respondWith(event: RequestEvent, response: Response): Promise<void> {
+class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
+  #event: RequestEvent
+
+  constructor(args: { request: Request; event: RequestEvent }) {
+    super({ request: args.request })
+    this.#event = args.event
+  }
+
+  public respondWith(response?: Response): void {
+    if (response) {
+      this.#respondWith(response)
+    }
+  }
+
+  public errorWith(reason?: unknown): void {
+    if (reason instanceof Response) {
+      return this.respondWith(reason)
+    }
+
+    if (reason instanceof Error) {
+      devUtils.error(
+        `Uncaught exception in the request handler for "%s %s":
+
+%s
+
+This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
+        this.data.request.method,
+        this.data.request.url,
+        reason.stack ?? reason,
+      )
+
+      // Treat exceptions during the request handling as 500 responses.
+      // This should alert the developer that there's a problem.
+      this.#event.postMessage(
+        'MOCK_RESPONSE',
+        HttpResponse.json({
+          name: reason.name,
+          message: reason.message,
+          stack: reason.stack,
+        }),
+      )
+    }
+  }
+
+  public passthrough(): void {
+    this.#event.postMessage('PASSTHROUGH')
+  }
+
+  async #respondWith(response: Response): Promise<void> {
     let responseBody: ReadableStream<any> | ArrayBuffer | null
     let transfer: [ReadableStream<Uint8Array>] | undefined
 
@@ -316,7 +379,7 @@ You can also automate this process and make the worker script update automatical
         response.body == null ? null : await response.clone().arrayBuffer()
     }
 
-    event.postMessage(
+    this.#event.postMessage(
       'MOCK_RESPONSE',
       {
         ...responseInit,

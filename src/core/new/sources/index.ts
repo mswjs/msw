@@ -1,26 +1,8 @@
 import { type DefaultEventMap, Emitter, TypedEvent } from 'rettime'
+import type { HttpNetworkFrame } from '../frames/http-frame'
+import type { WebSocketFrame } from '../frames/websocket-frame'
 
 export type NetworkFrame = HttpNetworkFrame | WebSocketFrame
-
-interface BaseNetworkFrame {
-  protocol: string
-  data: unknown
-}
-
-export interface HttpNetworkFrame extends BaseNetworkFrame {
-  protocol: 'http'
-  data: {
-    request: Request
-  }
-  respondWith: (response?: Response) => void
-  errorWith: (reason?: unknown) => void
-  passthrough: () => void
-}
-
-export interface WebSocketFrame extends BaseNetworkFrame {
-  protocol: 'ws'
-  TODO: 'TODO' /** @todo */
-}
 
 interface NetworkSourceEventMap extends DefaultEventMap {
   frame: TypedEvent<NetworkFrame>
@@ -60,13 +42,4 @@ export abstract class NetworkSource {
   public async disable(): Promise<void> {
     this.#emitter.removeAllListeners()
   }
-}
-
-/**
- * Defines a new network frame.
- * @param frame Network frame definition
- * @returns A new network frame
- */
-export function defineNetworkFrame(frame: NetworkFrame): NetworkFrame {
-  return frame
 }

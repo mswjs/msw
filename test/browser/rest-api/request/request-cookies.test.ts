@@ -32,8 +32,8 @@ test('returns empty object for request with "credentials: omit"', async ({
   await bakeCookies(page, ['documentCookie=value'])
   const response = await fetch('/cookies', { credentials: 'omit' })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({})
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({})
 })
 
 test('returns empty object for cross-origin request with "credentials: same-origin"', async ({
@@ -47,8 +47,8 @@ test('returns empty object for cross-origin request with "credentials: same-orig
     credentials: 'same-origin',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({})
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({})
 })
 
 test('returns cookies for same-origin request with "credentials: same-origin"', async ({
@@ -62,8 +62,8 @@ test('returns cookies for same-origin request with "credentials: same-origin"', 
     credentials: 'same-origin',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
   })
 })
@@ -79,8 +79,8 @@ test('returns cookies for same-origin request with "credentials: include"', asyn
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     firstCookie: 'value',
     secondCookie: 'anotherValue',
   })
@@ -97,8 +97,8 @@ test('returns cookies for cross-origin request with "credentials: include"', asy
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
   })
 })
@@ -116,8 +116,8 @@ test('inherits mocked cookies', async ({ loadExample, fetch, page }) => {
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -142,8 +142,8 @@ test('inherits mocked cookies after page reload', async ({
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -167,8 +167,8 @@ test('inherits mocked "HttpOnly" cookies', async ({
     credentials: 'include',
   })
 
-  expect(response.status()).toBe(200)
-  await expect(response.json()).resolves.toEqual({
+  expect.soft(response.status()).toBe(200)
+  await expect.soft(response.json()).resolves.toEqual({
     documentCookie: 'value',
     mockedCookie: 'mockedValue',
   })
@@ -227,5 +227,7 @@ test('deletes a cookie when sending "max-age=0" in a mocked response', async ({
   })
 
   // Must NOT have any cookies on the matching request.
-  await expect(fetch('/cookies').then((res) => res.json())).resolves.toEqual({})
+  await expect(
+    fetch('/cookies').then((response) => response.json()),
+  ).resolves.toEqual({})
 })

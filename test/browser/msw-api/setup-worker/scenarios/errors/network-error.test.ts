@@ -1,4 +1,4 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 import { test, expect } from '../../../../playwright.extend'
 
 test('propagates a mocked network error', async ({

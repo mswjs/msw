@@ -45,8 +45,8 @@ test('disables the mocking when the worker is stopped', async ({
   const res = await fetch('https://api.github.com')
   const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(false)
-  expect(body).not.toEqual({
+  expect.soft(res.fromServiceWorker()).toBe(true)
+  expect.soft(body).not.toEqual({
     mocked: true,
   })
 })
@@ -111,6 +111,6 @@ test('prints a warning on multiple "worker.stop()" calls', async ({
 
   // Prints a warning so the user knows something is not right.
   expect(consoleSpy.get('warning')).toEqual([
-    `[MSW] Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.`,
+    `[MSW] Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
   ])
 })

@@ -1,8 +1,4 @@
-const REDUNDANT_CHARACTERS_EXP = /[\?|#].*$/g
-
-export function getSearchParams(path: string) {
-  return new URL(`/${path}`, 'http://localhost').searchParams
-}
+const REDUNDANT_CHARACTERS_EXP = /[?|#].*$/g
 
 /**
  * Removes search parameters and the fragment

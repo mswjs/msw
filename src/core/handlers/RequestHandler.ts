@@ -179,7 +179,7 @@ export abstract class RequestHandler<
     request: Request
     parsedResult: ParsedResult
     resolutionContext?: ResponseResolutionContext
-  }): boolean
+  }): boolean | Promise<boolean>
 
   /**
    * Print out the successfully handled request.
@@ -273,7 +273,7 @@ export abstract class RequestHandler<
       request: args.request,
       resolutionContext: args.resolutionContext,
     })
-    const shouldInterceptRequest = this.predicate({
+    const shouldInterceptRequest = await this.predicate({
       request: args.request,
       parsedResult,
       resolutionContext: args.resolutionContext,

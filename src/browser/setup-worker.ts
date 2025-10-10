@@ -72,7 +72,7 @@ export function setupWorker(
            * Service Workers do not intercept WebSocket connections.
            */
           new InterceptorSource({
-            interceptors: [new WebSocketInterceptor()],
+            interceptors: [new WebSocketInterceptor() as any],
           }),
         ],
         handlers,

@@ -31,14 +31,14 @@ export class SetupServerCommonApi implements SetupServerCommon {
       handlersController,
     })
 
-    this.events = this.network.events
+    this.events = this.network.use
     this.use = this.network.use.bind(this.network)
     this.resetHandlers = this.network.resetHandlers.bind(this.network)
     this.restoreHandlers = this.network.restoreHandlers.bind(this.network)
     this.listHandlers = this.network.listHandlers.bind(this.network)
   }
 
-  public listen(): void {
+  public listen(...args: Array<any>): void {
     this.network.enable()
   }
 

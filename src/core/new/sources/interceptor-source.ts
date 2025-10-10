@@ -53,27 +53,21 @@ export class InterceptorSource extends NetworkSource {
     this.#interceptor.dispose()
   }
 
-  #onRequest({ request, controller }: HttpRequestEventMap['request'][0]): void {
+  async #onRequest({ request, controller }: HttpRequestEventMap['request'][0]) {
     const httpFrame = new InterceptorHttpNetworkFrame({
       request,
       controller,
     })
 
-    /**
-     * @todo Check if this will be okay with the async-based nature
-     * of the interceptor's `emitAsPromise()`. Since we emit frames
-     * into the air, interceptors won't know that a certain handler
-     * now should be awaited before proceeding to the next handler.
-     */
-    this.push(httpFrame)
+    await this.push(httpFrame)
   }
 
-  #onWebSocketConnection(connection: WebSocketEventMap['connection'][0]) {
+  async #onWebSocketConnection(connection: WebSocketEventMap['connection'][0]) {
     const webSocketFrame = new InterceptorWebSocketNetworkFrame({
       connection,
     })
 
-    this.push(webSocketFrame)
+    await this.push(webSocketFrame)
   }
 }
 

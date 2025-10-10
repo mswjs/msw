@@ -27,15 +27,22 @@ export abstract class NetworkSource {
   }
 
   /**
-   * Enables this network source.
-   * Once enabled, it will start emitting network frame events.
+   * Enable this source and start the network interception.
    */
   public abstract enable(): Promise<unknown>
 
-  public push(frame: NetworkFrame): void {
-    this.#emitter.emit(new TypedEvent('frame', { data: frame }))
+  /**
+   * Push a new network frame to the underlying handlers.
+   * @returns {Promise<void>} A Promise that resolves when the handlers
+   * are done handling this frame.
+   */
+  public async push(frame: NetworkFrame): Promise<void> {
+    await this.#emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))
   }
 
+  /**
+   * Disable this source and stop the network interception.
+   */
   public async disable(): Promise<void> {
     this.#emitter.removeAllListeners()
   }
@@ -56,10 +63,8 @@ class BatchNetworkSource extends NetworkSource {
     await Promise.all(this.sources.map((source) => source.enable()))
   }
 
-  public push(frame: NetworkFrame): void {
-    for (const source of this.sources) {
-      source.push(frame)
-    }
+  public async push(frame: NetworkFrame): Promise<void> {
+    await Promise.all(this.sources.map((source) => source.push(frame)))
   }
 
   public async disable(): Promise<void> {

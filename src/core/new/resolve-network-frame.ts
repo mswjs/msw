@@ -47,9 +47,9 @@ async function resolveHttpNetworkFrame(
   frame: HttpNetworkFrame,
   handlers: Array<AnyHandler>,
 ): Promise<boolean> {
-  const { request } = frame.data
-  const requestId = createRequestId()
+  const request = frame.data.request.clone()
   const requestCloneForLogs = request.clone()
+  const requestId = createRequestId()
 
   frame.events.emit('request:start', { request, requestId })
 
@@ -117,6 +117,11 @@ async function resolveHttpNetworkFrame(
 
   frame.events.emit('request:end', { request, requestId })
 
+  /**
+   * @fixme This doesn't belong here. Different network APIs might choose
+   * to handle logging differently (e.g. `setupServer` doesn't log at all).
+   * This likely belongs in an abstract method on `defineNetwork()` or something.
+   */
   // Log mocked responses. Use the Network tab to observe the original network.
   handler.log({
     request: requestCloneForLogs,

@@ -31,14 +31,17 @@ export class SetupServerCommonApi implements SetupServerCommon {
       handlersController,
     })
 
-    this.events = this.network.use
+    this.events = this.network.use as any
     this.use = this.network.use.bind(this.network)
     this.resetHandlers = this.network.resetHandlers.bind(this.network)
     this.restoreHandlers = this.network.restoreHandlers.bind(this.network)
     this.listHandlers = this.network.listHandlers.bind(this.network)
   }
 
-  public listen(...args: Array<any>): void {
+  public listen(
+    // eslint-disable-next-line
+    ...args: Array<any>
+  ): void {
     this.network.enable()
   }
 

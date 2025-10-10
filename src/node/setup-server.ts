@@ -49,10 +49,10 @@ export class SetupServerApi
     this.handlersController = handlersController
   }
 
-  public listen(options: Partial<ListenOptions>): void {
+  public listen(options?: Partial<ListenOptions>): void {
     super.listen()
 
-    if (options.remote?.enabled) {
+    if (options?.remote?.enabled) {
       const remoteRequestHandler = new RemoteRequestHandler({
         port: options.remote.port,
       })

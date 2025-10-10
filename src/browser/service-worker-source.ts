@@ -177,7 +177,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     return registartion
   }
 
-  #onRequest(event: RequestEvent): void {
+  async #onRequest(event: RequestEvent): Promise<void> {
     // Passthrough any requests performed after the interception was stopped.
     if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
       return event.postMessage('PASSTHROUGH')
@@ -197,7 +197,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     })
     this.#framesMap.set(event.data.id, frame)
 
-    this.push(frame)
+    await this.push(frame)
   }
 
   async #onResponse(event: ResponseEvent) {

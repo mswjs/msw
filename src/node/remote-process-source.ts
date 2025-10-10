@@ -1,7 +1,7 @@
 import * as http from 'node:http'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { Socket, Server as WebSocketServer } from 'socket.io'
-import { NetworkSource } from '~/core/new/sources'
+import { NetworkSource } from '~/core/new/sources/index'
 import { HttpNetworkFrame } from '~/core/new/frames/http-frame'
 import {
   deserializeHttpRequest,
@@ -22,14 +22,14 @@ export class RemoteProcessSource extends NetworkSource {
     this.#server.attach(this.#httpServer)
 
     this.#server.on('connection', (client) => {
-      client.on('request', (serializedRequest) => {
+      client.on('request', async (serializedRequest) => {
         const request = deserializeHttpRequest(serializedRequest, client)
         const httpFrame = new RemoteProcessHttpNetworkFrame({
           request,
           socket: client,
         })
 
-        this.push(httpFrame)
+        await this.push(httpFrame)
       })
 
       client.on('websocket', () => {

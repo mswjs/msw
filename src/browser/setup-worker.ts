@@ -10,7 +10,7 @@ import {
   UnhandledFrameStrategy,
 } from '~/core/new/on-unhandled-frame'
 import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
-import { NetworkSource } from '~/core/new/sources'
+import { NetworkSource } from '~/core/new/sources/index'
 import { ServiceWorkerSource } from './service-worker-source'
 import { SetupWorkerFallbackSource } from './setup-worker-fallback-source'
 import { supportsServiceWorker } from './utils/supports'

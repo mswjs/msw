@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -30,7 +28,7 @@ it('supports throwing a plain Response in a response resolver', async () => {
   const response = await fetch('https://example.com')
 
   expect(response.status).toBe(200)
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 it('supports throwing an HttpResponse instance in a response resolver', async () => {
@@ -44,7 +42,7 @@ it('supports throwing an HttpResponse instance in a response resolver', async ()
 
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 it('supports throwing an error response in a response resolver', async () => {
@@ -58,7 +56,7 @@ it('supports throwing an error response in a response resolver', async () => {
 
   expect(response.status).toBe(400)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('not found')
+  await expect(response.text()).resolves.toBe('not found')
 })
 
 it('supports throwing a network error in a response resolver', async () => {
@@ -87,15 +85,15 @@ it('supports middleware-style responses', async () => {
   const response = await fetch('https://example.com/?id=1')
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('ok')
+  await expect(response.text()).resolves.toBe('ok')
 
   const errorResponse = await fetch('https://example.com/')
   expect(errorResponse.status).toBe(400)
   expect(errorResponse.headers.get('Content-Type')).toBe('text/plain')
-  expect(await errorResponse.text()).toBe('must have id')
+  await expect(errorResponse.text()).resolves.toBe('must have id')
 })
 
-it('handles non-response errors as 500 error responses', async () => {
+it('coerces non-response errors into 500 error responses', async () => {
   server.use(
     http.get('https://example.com/', () => {
       throw new Error('Custom error')
@@ -106,7 +104,7 @@ it('handles non-response errors as 500 error responses', async () => {
 
   expect(response.status).toBe(500)
   expect(response.statusText).toBe('Unhandled Exception')
-  expect(await response.json()).toEqual({
+  await expect(response.json()).resolves.toEqual({
     name: 'Error',
     message: 'Custom error',
     stack: expect.any(String),

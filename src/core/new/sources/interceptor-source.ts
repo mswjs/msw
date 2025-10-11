@@ -12,6 +12,7 @@ import { NetworkSource } from './index'
 import { HttpNetworkFrame } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
 import { deleteRequestPassthroughHeader } from '../../utils/internal/requestUtils'
+import { InternalError } from '../../utils/internal/devUtils'
 
 interface InterceptorSourceOptions {
   interceptors: Array<Interceptor<HttpRequestEventMap | WebSocketEventMap>>
@@ -60,6 +61,14 @@ export class InterceptorSource extends NetworkSource {
       controller,
     })
 
+    httpFrame.events.on('unhandledException', ({ error }) => {
+      // Throw the errors intended for the developer as-is.
+      // Those must not be coerced into 500 responses.
+      if (error instanceof InternalError) {
+        throw error
+      }
+    })
+
     await this.push(httpFrame)
   }
 
@@ -94,7 +103,11 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
       return this.respondWith(reason)
     }
 
-    this.#controller.errorWith(reason as any)
+    /**
+     * @note We do not currently support the `.errorWith()` flow.
+     * Instead, exceptions are expected to throw as-is to be coerced into 500 responses.
+     */
+    throw reason
   }
 
   public passthrough(): void {

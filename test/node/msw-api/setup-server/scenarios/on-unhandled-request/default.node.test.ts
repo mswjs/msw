@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -40,5 +38,3 @@ it('warns on unhandled requests by default', async () => {
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/http/intercepting-requests`)
 })
-
-it.todo('does not warn on unhandled "file://" requests')

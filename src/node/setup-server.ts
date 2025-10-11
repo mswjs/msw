@@ -60,7 +60,7 @@ export class SetupServerApi implements SetupServer {
       handlers,
       handlersController: this.#handlersController,
       onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
-        return this.#listenOptions?.onUnhandledRequest
+        return this.#listenOptions?.onUnhandledRequest || 'warn'
       }),
     })
 

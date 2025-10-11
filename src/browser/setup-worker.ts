@@ -18,8 +18,7 @@ import { InterceptorSource } from '~/core/new/sources/interceptor-source'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
-export interface SetupWorkerApi
-  extends NetworkHandlersApi<HttpHandler | WebSocketHandler> {
+export interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>
   stop: () => void
 }
@@ -48,7 +47,7 @@ export type FindWorker = (
 export function setupWorker(
   ...handlers: Array<HttpHandler | WebSocketHandler>
 ): SetupWorkerApi {
-  let network: NetworkApi<HttpHandler | WebSocketHandler>
+  let network: NetworkApi
 
   return {
     async start(options) {

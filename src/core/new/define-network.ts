@@ -14,7 +14,7 @@ import {
 } from './on-unhandled-frame'
 import { pipeEvents } from '../utils/internal/pipeEvents'
 
-export interface DefineNetworkOptions<Handler extends AnyHandler> {
+export interface DefineNetworkOptions {
   /**
    * A list of network sources.
    */
@@ -23,7 +23,7 @@ export interface DefineNetworkOptions<Handler extends AnyHandler> {
   /**
    * A list of the initial handlers.
    */
-  handlers: Array<Handler>
+  handlers: Array<AnyHandler>
 
   /**
    * A custom handlers controller to use.
@@ -39,8 +39,7 @@ export interface DefineNetworkOptions<Handler extends AnyHandler> {
   quiet?: boolean
 }
 
-export interface NetworkApi<Handler extends AnyHandler>
-  extends NetworkHandlersApi<Handler> {
+export interface NetworkApi extends NetworkHandlersApi {
   /**
    * Enables the network interception.
    */
@@ -57,16 +56,14 @@ export interface NetworkApi<Handler extends AnyHandler>
   events: Emitter<any>
 }
 
-export interface NetworkHandlersApi<Handler extends AnyHandler> {
-  use(...handlers: Array<Handler>): void
-  resetHandlers(...nextHandlers: Array<Handler>): void
+export interface NetworkHandlersApi {
+  use(...handlers: Array<AnyHandler>): void
+  resetHandlers(...nextHandlers: Array<AnyHandler>): void
   restoreHandlers(): void
-  listHandlers(): ReadonlyArray<Handler>
+  listHandlers(): ReadonlyArray<AnyHandler>
 }
 
-export function defineNetwork<Handler extends AnyHandler>(
-  options: DefineNetworkOptions<Handler>,
-): NetworkApi<Handler> {
+export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
   const source = NetworkSource.from(...options.sources)
   const events = new Emitter()
 

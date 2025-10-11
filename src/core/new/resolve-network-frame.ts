@@ -126,14 +126,9 @@ async function resolveHttpNetworkFrame(
   frame.events.emit('request:end', { request, requestId })
 
   if (!flow.quiet) {
-    /**
-     * @fixme This doesn't belong here. Different network APIs might choose
-     * to handle logging differently (e.g. `setupServer` doesn't log at all).
-     * This likely belongs in an abstract method on `defineNetwork()` or something.
-     */
     // Log mocked responses. Use the Network tab to observe the original network.
     handler.log({
-      request: requestCloneForLogs,
+      request: requestCloneForLogs!,
       response,
       parsedResult,
     })
@@ -148,7 +143,7 @@ async function resolveHttpNetworkFrame(
 async function resolveWebSocketNetworkFrame(
   frame: WebSocketNetworkFrame,
   handlers: Array<AnyHandler>,
-  _flow: ResolveNetworkFlow,
+  flow: ResolveNetworkFlow,
 ): Promise<void> {
   const { connection } = frame.data
   const eventHandlers = handlers.filter(isHandlerKind('EventHandler'))
@@ -159,21 +154,32 @@ async function resolveWebSocketNetworkFrame(
   })
 
   if (eventHandlers.length > 0) {
-    await Promise.all(
-      eventHandlers.map((handler) => {
+    const matches = await Promise.all<boolean>(
+      eventHandlers.map(async (handler) => {
         // Foward the connection data to every WebSocket handler.
         // This is equivalent to dispatching the connection event
         // onto multiple listeners.
-        return handler.run(connection)
+        return handler.run(connection).then((matches) => {
+          if (matches) {
+            flow?.handled?.({ frame, handler })
+
+            if (!flow?.quiet) {
+              handler.log(connection)
+            }
+          }
+
+          return matches
+        })
       }),
     )
+
+    if (matches.every((match) => !match)) {
+      flow?.unhandled?.()
+    }
 
     return
   }
 
-  /**
-   * @todo Support WebSocket logging, somehow.
-   */
-
   frame.passthrough()
+  flow.unhandled?.()
 }

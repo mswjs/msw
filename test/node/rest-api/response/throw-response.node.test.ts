@@ -18,14 +18,14 @@ afterAll(() => {
 
 it('supports throwing a plain Response in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       // You can throw a Response instance in a response resolver
       // to short-circuit its execution and respond "early".
       throw new Response('hello world')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(200)
   await expect(response.text()).resolves.toBe('hello world')
@@ -33,12 +33,12 @@ it('supports throwing a plain Response in a response resolver', async () => {
 
 it('supports throwing an HttpResponse instance in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.text('hello world')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
@@ -47,12 +47,12 @@ it('supports throwing an HttpResponse instance in a response resolver', async ()
 
 it('supports throwing an error response in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.text('not found', { status: 400 })
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(400)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
@@ -61,17 +61,19 @@ it('supports throwing an error response in a response resolver', async () => {
 
 it('supports throwing a network error in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.error()
     }),
   )
 
-  await expect(fetch('https://example.com')).rejects.toThrow('Failed to fetch')
+  await expect(fetch('http://localhost/resource')).rejects.toThrow(
+    'Failed to fetch',
+  )
 })
 
 it('supports middleware-style responses', async () => {
   server.use(
-    http.get('https://example.com/', ({ request }) => {
+    http.get('http://localhost/resource', ({ request }) => {
       const url = new URL(request.url)
 
       if (!url.searchParams.has('id')) {
@@ -82,12 +84,12 @@ it('supports middleware-style responses', async () => {
     }),
   )
 
-  const response = await fetch('https://example.com/?id=1')
+  const response = await fetch('http://localhost/resource?id=1')
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
   await expect(response.text()).resolves.toBe('ok')
 
-  const errorResponse = await fetch('https://example.com/')
+  const errorResponse = await fetch('http://localhost/resource')
   expect(errorResponse.status).toBe(400)
   expect(errorResponse.headers.get('Content-Type')).toBe('text/plain')
   await expect(errorResponse.text()).resolves.toBe('must have id')
@@ -95,12 +97,12 @@ it('supports middleware-style responses', async () => {
 
 it('coerces non-response errors into 500 error responses', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw new Error('Custom error')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(500)
   expect(response.statusText).toBe('Unhandled Exception')

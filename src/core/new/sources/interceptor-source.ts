@@ -144,10 +144,10 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
     }
 
     if (reason instanceof InternalError) {
-      throw reason
+      this.#controller.errorWith(reason as any)
     }
 
-    this.#controller.errorWith(reason as any)
+    throw reason
   }
 
   public passthrough(): void {

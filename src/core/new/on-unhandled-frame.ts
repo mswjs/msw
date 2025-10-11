@@ -36,7 +36,7 @@ export async function onUnhandledFrame(
         devUtils.error('Error: %s', message)
 
         return Promise.reject(
-          new Error(
+          new InternalError(
             devUtils.formatMessage(
               'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
             ),

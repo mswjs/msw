@@ -9,13 +9,15 @@ import {
   ReversibleProxy,
   reversibleProxy,
 } from '~/core/utils/internal/reversibleProxy'
-import { SetupServerCommonApi } from './setup-server-common'
 import {
   type AsyncHandlersController,
   asyncHandlersController,
 } from './async-handler-controller'
-import type { ListenOptions, SetupServer } from './glossary'
+import type { ListenOptions, SetupServer, SetupServerCommon } from './glossary'
 import { HandlersController } from '~/core/SetupApi'
+import { defineNetwork, NetworkApi } from '~/core/new/define-network'
+import { InterceptorSource } from '~/core/new/sources/interceptor-source'
+import { fromLegacyOnUnhandledRequest } from '~/core/new/on-unhandled-frame'
 
 /**
  * Enables request interception in Node.js with the given request handlers.
@@ -23,34 +25,58 @@ import { HandlersController } from '~/core/SetupApi'
  * @see {@link https://mswjs.io/docs/api/setup-server `setupServer()` API reference}
  */
 export function setupServer(...handlers: Array<AnyHandler>): SetupServerApi {
-  return new SetupServerApi(handlers)
+  return new SetupServerApi(handlers, [
+    new ClientRequestInterceptor(),
+    new XMLHttpRequestInterceptor(),
+    new FetchInterceptor(),
+    new WebSocketInterceptor() as any,
+  ])
 }
 
-export class SetupServerApi
-  extends SetupServerCommonApi
-  implements SetupServer
-{
-  #currentHandlersProxy?: ReversibleProxy<HandlersController['currentHandlers']>
+export class SetupServerApi implements SetupServer {
+  public events: SetupServerCommon['events']
+  public use: SetupServerCommon['use']
+  public resetHandlers: SetupServerCommon['resetHandlers']
+  public restoreHandlers: SetupServerCommon['restoreHandlers']
+  public listHandlers: SetupServerCommon['listHandlers']
 
-  protected handlersController: AsyncHandlersController<AnyHandler>
+  #network: NetworkApi<AnyHandler>
+  #handlersController: AsyncHandlersController<AnyHandler>
+  #currentHandlersProxy?: ReversibleProxy<HandlersController['currentHandlers']>
+  #listenOptions?: Partial<ListenOptions>
 
   constructor(
     handlers: Array<AnyHandler>,
-    interceptors: Array<Interceptor<any>> = [
-      new ClientRequestInterceptor(),
-      new XMLHttpRequestInterceptor(),
-      new FetchInterceptor(),
-      new WebSocketInterceptor() as any,
-    ],
+    interceptors: Array<Interceptor<any>> = [],
   ) {
-    const handlersController = asyncHandlersController(handlers)
-    super(interceptors, handlers, handlersController)
+    this.#handlersController = asyncHandlersController(handlers)
 
-    this.handlersController = handlersController
+    this.#network = defineNetwork({
+      sources: [
+        new InterceptorSource({
+          interceptors,
+        }),
+      ],
+      handlers,
+      handlersController: this.#handlersController,
+      onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
+        return this.#listenOptions?.onUnhandledRequest
+      }),
+    })
+
+    /**
+     * @fixme This expects a readonly emitter (subset of methods).
+     */
+    this.events = this.#network.events as any
+    this.use = this.#network.use.bind(this.#network)
+    this.resetHandlers = this.#network.resetHandlers.bind(this.#network)
+    this.restoreHandlers = this.#network.restoreHandlers.bind(this.#network)
+    this.listHandlers = this.#network.listHandlers.bind(this.#network)
   }
 
   public listen(options?: Partial<ListenOptions>): void {
-    super.listen()
+    this.#listenOptions = options
+    this.#network.enable()
 
     if (options?.remote?.enabled) {
       const remoteRequestHandler = new RemoteRequestHandler({
@@ -58,7 +84,7 @@ export class SetupServerApi
       })
 
       this.#currentHandlersProxy = reversibleProxy(
-        this.handlersController.currentHandlers,
+        this.#handlersController.currentHandlers,
         {
           apply(target, thisArg, argArray) {
             return [
@@ -69,7 +95,8 @@ export class SetupServerApi
         },
       )
 
-      this.handlersController.currentHandlers = this.#currentHandlersProxy.proxy
+      this.#handlersController.currentHandlers =
+        this.#currentHandlersProxy.proxy
     }
   }
 
@@ -77,9 +104,9 @@ export class SetupServerApi
     callback: (...args: Args) => R,
   ): (...args: Args) => R {
     return (...args: Args): R => {
-      return this.handlersController.context.run<any, any>(
+      return this.#handlersController.context.run<any, any>(
         {
-          initialHandlers: this.handlersController.currentHandlers(),
+          initialHandlers: this.#handlersController.currentHandlers(),
           handlers: [],
         },
         callback,
@@ -89,7 +116,7 @@ export class SetupServerApi
   }
 
   public close(): void {
-    super.close()
+    this.#network.disable()
     this.#currentHandlersProxy?.reverse()
   }
 }

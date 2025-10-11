@@ -1,5 +1,6 @@
 import { isCommonAssetRequest } from '../isCommonAssetRequest'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
+import { UnhandledRequestStrategy } from '../utils/request/onUnhandledRequest'
 import type { NetworkFrame } from './sources/index'
 
 export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
@@ -12,7 +13,7 @@ export type UnhandledFrameDefaults = {
 export type UnhandledFrameCallback = (args: {
   frame: NetworkFrame
   defaults: UnhandledFrameDefaults
-}) => void
+}) => Promise<void> | void
 
 export async function onUnhandledFrame(
   frame: NetworkFrame,
@@ -25,31 +26,43 @@ export async function onUnhandledFrame(
 
     const message = await frame.getUnhandledFrameMessage()
 
-    if (strategy === 'warn') {
-      return devUtils.warn('Warning: %s', message)
-    }
+    switch (strategy) {
+      case 'warn': {
+        return devUtils.warn('Warning: %s', message)
+      }
 
-    if (strategy === 'error') {
-      return devUtils.error('Error: %s', message)
-    }
+      case 'error': {
+        // Print a developer-friendly error.
+        devUtils.error('Error: %s', message)
 
-    throw new InternalError(
-      devUtils.formatMessage(
-        'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
-        strategy,
-      ),
-    )
+        return Promise.reject(
+          new Error(
+            devUtils.formatMessage(
+              'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+            ),
+          ),
+        )
+      }
+
+      default: {
+        throw new InternalError(
+          devUtils.formatMessage(
+            'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+            strategy satisfies never,
+          ),
+        )
+      }
+    }
   }
 
   if (typeof strategyOrCallback === 'function') {
-    strategyOrCallback({
+    return strategyOrCallback({
       frame,
       defaults: {
         warn: applyStrategy.bind(null, 'warn'),
         error: applyStrategy.bind(null, 'warn'),
       },
     })
-    return
   }
 
   // Ignore static assets, framework/bundler requests, modules served via HTTP.
@@ -58,4 +71,29 @@ export async function onUnhandledFrame(
   }
 
   await applyStrategy(strategyOrCallback)
+}
+
+export function fromLegacyOnUnhandledRequest(
+  getLegacyValue: () => UnhandledRequestStrategy | undefined,
+): UnhandledFrameCallback {
+  return ({ frame, defaults }) => {
+    if (frame.protocol !== 'http') {
+      return
+    }
+
+    const legacyOnUnhandledRequestStrategy = getLegacyValue()
+
+    if (legacyOnUnhandledRequestStrategy === undefined) {
+      return
+    }
+
+    if (typeof legacyOnUnhandledRequestStrategy === 'function') {
+      return legacyOnUnhandledRequestStrategy(frame.data.request, {
+        warning: defaults.warn,
+        error: defaults.error,
+      })
+    }
+
+    return onUnhandledFrame(frame, legacyOnUnhandledRequestStrategy)
+  }
 }

@@ -23,7 +23,7 @@ export interface DefineNetworkOptions<Handler extends AnyHandler> {
   /**
    * A list of the initial handlers.
    */
-  handlers?: Array<Handler>
+  handlers: Array<Handler>
 
   /**
    * A custom handlers controller to use.
@@ -69,8 +69,7 @@ export function defineNetwork<Handler extends AnyHandler>(
   const events = new Emitter()
 
   const handlersController =
-    options.handlersController ||
-    inMemoryHandlersController(options.handlers || [])
+    options.handlersController || inMemoryHandlersController(options.handlers)
 
   return {
     async enable() {
@@ -85,7 +84,18 @@ export function defineNetwork<Handler extends AnyHandler>(
         )
 
         if (!wasFrameHandled) {
-          await onUnhandledFrame(frame, options.onUnhandledFrame || 'bypass')
+          await onUnhandledFrame(
+            frame,
+            options.onUnhandledFrame || 'bypass',
+          ).catch((error) => {
+            /**
+             * @fixme `.errorWith()` should exist on WebSocket frames too
+             * since you can error the connection by dispatching the "error" event.
+             */
+            if (frame.protocol === 'http') {
+              frame.errorWith(error)
+            }
+          })
         }
       })
 

@@ -143,11 +143,11 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
       return this.respondWith(reason)
     }
 
-    /**
-     * @note We do not currently support the `.errorWith()` flow.
-     * Instead, exceptions are expected to throw as-is to be coerced into 500 responses.
-     */
-    throw reason
+    if (reason instanceof InternalError) {
+      throw reason
+    }
+
+    this.#controller.errorWith(reason as any)
   }
 
   public passthrough(): void {

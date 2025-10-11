@@ -14,7 +14,7 @@ export abstract class NetworkSource {
    * @param sources A list of network sources.
    */
   static from(...sources: Array<NetworkSource>): NetworkSource {
-    return new BatchNetworkSource(sources)
+    return sources.length > 1 ? new BatchNetworkSource(sources) : sources[0]
   }
 
   protected emitter: Emitter<NetworkSourceEventMap>

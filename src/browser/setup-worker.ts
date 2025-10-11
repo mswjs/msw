@@ -6,7 +6,7 @@ import {
   type NetworkApi,
 } from '~/core/new/define-network'
 import {
-  onUnhandledFrame,
+  fromLegacyOnUnhandledRequest,
   UnhandledFrameStrategy,
 } from '~/core/new/on-unhandled-frame'
 import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
@@ -76,44 +76,27 @@ export function setupWorker(
           }),
         ],
         handlers,
-        async onUnhandledFrame({ frame, defaults }) {
-          /**
-           * @note `setupWorker` does not handle unhandled WebSocket events.
-           * This will be a new API in 3.0, most likely. We can remove this
-           * mapping then.
-           */
-          if (
-            frame.protocol === 'http' &&
-            options?.onUnhandledRequest !== undefined
-          ) {
-            if (typeof options.onUnhandledRequest === 'function') {
-              options.onUnhandledRequest(frame.data.request, {
-                warning: defaults.warn,
-                error: defaults.error,
-              })
-            } else {
-              await onUnhandledFrame(frame, 'warn')
-            }
-          }
-        },
+        onUnhandledFrame: fromLegacyOnUnhandledRequest(
+          () => options?.onUnhandledRequest,
+        ),
       })
 
       await network.enable()
     },
-    listHandlers() {
-      return network.listHandlers()
-    },
-    use(...handlers) {
-      return network.use(...handlers)
-    },
-    resetHandlers(...handlers) {
-      return network.resetHandlers(...handlers)
-    },
-    restoreHandlers() {
-      return network.restoreHandlers()
-    },
     stop() {
       network.disable()
+    },
+    get listHandlers() {
+      return network.listHandlers.bind(network)
+    },
+    get use() {
+      return network.use.bind(network)
+    },
+    get resetHandlers() {
+      return network.resetHandlers.bind(network)
+    },
+    get restoreHandlers() {
+      return network.restoreHandlers.bind(network)
     },
   }
 }

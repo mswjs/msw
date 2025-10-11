@@ -74,8 +74,6 @@ export function defineNetwork<Handler extends AnyHandler>(
 
   return {
     async enable() {
-      await source.enable()
-
       source.on('frame', async (event) => {
         const frame = event.data
 
@@ -90,9 +88,10 @@ export function defineNetwork<Handler extends AnyHandler>(
           await onUnhandledFrame(frame, options.onUnhandledFrame || 'bypass')
         }
       })
+
+      await source.enable()
     },
     async disable() {
-      this.resetHandlers()
       await source.disable()
     },
     use(...handlers) {

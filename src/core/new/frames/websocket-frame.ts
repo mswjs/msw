@@ -30,7 +30,7 @@ export abstract class WebSocketNetworkFrame extends BaseNetworkFrame<
 
   public async getUnhandledFrameMessage(): Promise<string> {
     const { connection } = this.data
-    const details = `\n\n \u2022 ${connection.client.url}\n\n`
+    const details = `\n\n  \u2022 ${connection.client.url}\n\n`
 
     return `intercepted a WebSocket connection without a matching event handler:${details}If you still wish to intercept this unhandled connection, please create an event handler for it.\nRead more: https://mswjs.io/docs/websocket`
   }

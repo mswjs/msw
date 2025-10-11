@@ -77,10 +77,6 @@ export function fromLegacyOnUnhandledRequest(
   getLegacyValue: () => UnhandledRequestStrategy | undefined,
 ): UnhandledFrameCallback {
   return ({ frame, defaults }) => {
-    if (frame.protocol !== 'http') {
-      return
-    }
-
     const legacyOnUnhandledRequestStrategy = getLegacyValue()
 
     if (legacyOnUnhandledRequestStrategy === undefined) {
@@ -88,7 +84,17 @@ export function fromLegacyOnUnhandledRequest(
     }
 
     if (typeof legacyOnUnhandledRequestStrategy === 'function') {
-      return legacyOnUnhandledRequestStrategy(frame.data.request, {
+      const request =
+        frame.protocol === 'http'
+          ? frame.data.request
+          : new Request(frame.data.connection.client.url, {
+              headers: {
+                connection: 'upgrade',
+                upgrade: 'websocket',
+              },
+            })
+
+      return legacyOnUnhandledRequestStrategy(request, {
         warning: defaults.warn,
         error: defaults.error,
       })

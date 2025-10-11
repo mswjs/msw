@@ -68,6 +68,12 @@ export class SetupServerApi implements SetupServer {
      * @fixme This expects a readonly emitter (subset of methods).
      */
     this.events = this.#network.events as any
+
+    /**
+     * @fixme Remove this method drilling in the future.
+     * Drop the `SetupServerApi` class altogether and implement `setupServer`
+     * as a simple function that can reference the network methods directly.
+     */
     this.use = this.#network.use.bind(this.#network)
     this.resetHandlers = this.#network.resetHandlers.bind(this.#network)
     this.restoreHandlers = this.#network.restoreHandlers.bind(this.#network)

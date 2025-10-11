@@ -41,7 +41,7 @@ export class SetupServerApi implements SetupServer {
   public listHandlers: SetupServerCommon['listHandlers']
 
   #network: NetworkApi<AnyHandler>
-  #handlersController: AsyncHandlersController<AnyHandler>
+  #handlersController: AsyncHandlersController
   #currentHandlersProxy?: ReversibleProxy<HandlersController['currentHandlers']>
   #listenOptions?: Partial<ListenOptions>
 

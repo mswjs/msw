@@ -134,6 +134,6 @@ test('throws if provided the invalid handlers array', async () => {
       [http.get('*', () => new Response())],
     ),
   ).toThrow(
-    '[MSW] Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?',
+    '[MSW] Failed to prepend runtime handlers: invalid handlers. Did you forget to spread the handlers array?',
   )
 })

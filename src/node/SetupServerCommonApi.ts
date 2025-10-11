@@ -21,6 +21,7 @@ import type { ListenOptions, SetupServerCommon } from './glossary'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
+import { deleteRequestPassthroughHeader } from '~/core/utils/internal/requestUtils'
 
 export const DEFAULT_LISTEN_OPTIONS: RequiredDeep<SharedOptions> = {
   onUnhandledRequest: 'warn',
@@ -79,25 +80,7 @@ export class SetupServerCommonApi
           this.emitter,
           {
             onPassthroughResponse(request) {
-              const acceptHeader = request.headers.get('accept')
-
-              /**
-               * @note Remove the internal bypass request header.
-               * In the browser, this is done by the worker script.
-               * In Node.js, it has to be done here.
-               */
-              if (acceptHeader) {
-                const nextAcceptHeader = acceptHeader.replace(
-                  /(,\s+)?msw\/passthrough/,
-                  '',
-                )
-
-                if (nextAcceptHeader) {
-                  request.headers.set('accept', nextAcceptHeader)
-                } else {
-                  request.headers.delete('accept')
-                }
-              }
+              deleteRequestPassthroughHeader(request)
             },
           },
         )

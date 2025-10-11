@@ -11,6 +11,7 @@ import type {
 import { NetworkSource } from './index'
 import { HttpNetworkFrame } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
+import { deleteRequestPassthroughHeader } from '../../utils/internal/requestUtils'
 
 interface InterceptorSourceOptions {
   interceptors: Array<Interceptor<HttpRequestEventMap | WebSocketEventMap>>
@@ -97,6 +98,7 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
   }
 
   public passthrough(): void {
+    deleteRequestPassthroughHeader(this.data.request)
     return
   }
 }

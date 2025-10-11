@@ -30,7 +30,7 @@ export function asyncHandlersController<Handler extends AnyHandler>(
     context,
     currentHandlers() {
       const { initialHandlers, handlers } = getContext()
-      return [...initialHandlers, ...handlers]
+      return [...handlers, ...initialHandlers]
     },
     use(nextHandlers) {
       getContext().handlers.unshift(...nextHandlers)

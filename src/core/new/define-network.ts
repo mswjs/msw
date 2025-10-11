@@ -83,13 +83,7 @@ export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
               frame,
               options.onUnhandledFrame || 'bypass',
             ).catch((error) => {
-              /**
-               * @fixme `.errorWith()` should exist on WebSocket frames too
-               * since you can error the connection by dispatching the "error" event.
-               */
-              if (frame.protocol === 'http') {
-                frame.errorWith(error)
-              }
+              frame.errorWith(error)
             })
           },
         })

@@ -14,6 +14,8 @@ export abstract class BaseNetworkFrame<
     this.events = new Emitter<Events>()
   }
 
+  public abstract errorWith(reason?: unknown): unknown
+
   /**
    * Returns a message to be used when this frame goes unhandled.
    */

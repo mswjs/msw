@@ -12,7 +12,7 @@ export interface SetupRemoteServerListenOptions extends SharedOptions {
   port: number
 }
 
-interface SetupRemoteServer extends NetworkHandlersApi<AnyHandler> {
+interface SetupRemoteServer extends NetworkHandlersApi {
   listen(options: SetupRemoteServerListenOptions): Promise<void>
   close(): Promise<void>
   boundary<Args extends Array<any>, R>(

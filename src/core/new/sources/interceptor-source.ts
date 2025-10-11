@@ -45,8 +45,9 @@ export class InterceptorSource extends NetworkSource {
      * @fixme Incorrect disciminated union when merging multiple
      * events map in `BatchInterceptor` (results in `Listener<unknown>`).
      */
-    this.#interceptor.on('request', this.#onRequest.bind(this) as any)
-    this.#interceptor.on('response', this.#onResponse.bind(this) as any)
+    this.#interceptor
+      .on('request', this.#onRequest.bind(this) as any)
+      .on('response', this.#onResponse.bind(this) as any)
 
     this.#interceptor.on(
       'connection',
@@ -161,6 +162,29 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
     super({
       connection: args.connection,
     })
+  }
+
+  public errorWith(reason?: unknown): void {
+    if (reason instanceof Error) {
+      const { client } = this.data.connection
+
+      /**
+       * Use `client.errorWith(reason)` in the future.
+       * @see https://github.com/mswjs/interceptors/issues/747
+       */
+      const errorEvent = new Event('error')
+      Object.defineProperty(errorEvent, 'cause', {
+        enumerable: true,
+        configurable: false,
+        value: reason,
+      })
+
+      /**
+       * @fixme So this all is fine but it doesn't fire at the right time.
+       * WS interceptor does NOT await listeners.
+       */
+      client.socket.dispatchEvent(errorEvent)
+    }
   }
 
   public passthrough() {

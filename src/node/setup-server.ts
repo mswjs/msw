@@ -40,7 +40,7 @@ export class SetupServerApi implements SetupServer {
   public restoreHandlers: SetupServerCommon['restoreHandlers']
   public listHandlers: SetupServerCommon['listHandlers']
 
-  #network: NetworkApi<AnyHandler>
+  #network: NetworkApi
   #handlersController: AsyncHandlersController
   #currentHandlersProxy?: ReversibleProxy<HandlersController['currentHandlers']>
   #listenOptions?: Partial<ListenOptions>
@@ -63,10 +63,6 @@ export class SetupServerApi implements SetupServer {
       onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
         return this.#listenOptions?.onUnhandledRequest || 'warn'
       }),
-    })
-
-    this.#network.events.on('log', (event) => {
-      event.preventDefault()
     })
 
     /**

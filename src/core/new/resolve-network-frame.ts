@@ -154,32 +154,26 @@ async function resolveWebSocketNetworkFrame(
   })
 
   if (eventHandlers.length > 0) {
-    const matches = await Promise.all<boolean>(
+    await Promise.all(
       eventHandlers.map(async (handler) => {
         // Foward the connection data to every WebSocket handler.
         // This is equivalent to dispatching the connection event
         // onto multiple listeners.
-        return handler.run(connection).then((matches) => {
-          if (matches) {
-            flow?.handled?.({ frame, handler })
+        const matches = await handler.run(connection)
 
-            if (!flow?.quiet) {
-              handler.log(connection)
-            }
+        if (matches) {
+          flow?.handled?.({ frame, handler })
+
+          if (!flow?.quiet) {
+            handler.log(connection)
           }
-
-          return matches
-        })
+        }
       }),
     )
-
-    if (matches.every((match) => !match)) {
-      flow?.unhandled?.()
-    }
 
     return
   }
 
+  flow?.unhandled?.()
   frame.passthrough()
-  flow.unhandled?.()
 }

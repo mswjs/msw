@@ -101,6 +101,7 @@ export class ServiceWorkerSource extends NetworkSource {
   public async disable() {
     await super.disable()
 
+    this.#framesMap.clear()
     this.#stoppedAt = Date.now()
     this.#channel.removeAllListeners()
   }

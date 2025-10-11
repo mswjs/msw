@@ -56,6 +56,7 @@ export class InterceptorSource extends NetworkSource {
 
   public async disable(): Promise<void> {
     await super.disable()
+    this.#httpFrames.clear()
     this.#interceptor.dispose()
   }
 

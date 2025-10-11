@@ -11,6 +11,13 @@ import { storeResponseCookies } from '../utils/request/storeResponseCookies'
 import { HttpNetworkFrame } from './frames/http-frame'
 import { WebSocketNetworkFrame } from './frames/websocket-frame'
 
+export interface ResolveNetworkFlow {
+  quiet?: boolean
+  skip?(): void
+  handled?(args: { frame: NetworkFrame; handler: AnyHandler }): void
+  unhandled?(): void
+}
+
 /**
  * Resolve a network frame against the given list of handlers.
  * @param frame A network frame.
@@ -20,17 +27,18 @@ import { WebSocketNetworkFrame } from './frames/websocket-frame'
 export async function resolveNetworkFrame(
   frame: NetworkFrame,
   handlers: Array<AnyHandler>,
-): Promise<boolean> {
+  flow: ResolveNetworkFlow,
+): Promise<void> {
   switch (frame.protocol) {
     case 'http': {
-      return resolveHttpNetworkFrame(frame, handlers)
+      return resolveHttpNetworkFrame(frame, handlers, flow)
     }
 
     /**
      * WebSocket.
      */
     case 'ws': {
-      return resolveWebSocketNetworkFrame(frame, handlers)
+      return resolveWebSocketNetworkFrame(frame, handlers, flow)
     }
 
     default: {
@@ -45,17 +53,18 @@ export async function resolveNetworkFrame(
 async function resolveHttpNetworkFrame(
   frame: HttpNetworkFrame,
   handlers: Array<AnyHandler>,
-): Promise<boolean> {
+  flow: ResolveNetworkFlow,
+): Promise<void> {
   const requestId = frame.id
-  const request = frame.data.request.clone()
-  const requestCloneForLogs = request.clone()
+  const request = frame.data.request
+  const requestCloneForLogs = flow.quiet ? null : request.clone()
 
   frame.events.emit('request:start', { request, requestId })
 
   // Perform requests wrapped in "bypass()" as-is.
   if (shouldBypassRequest(request)) {
     frame.passthrough()
-    return true
+    return flow.skip?.()
   }
 
   const requestHandlers = handlers.filter(isHandlerKind('RequestHandler'))
@@ -77,7 +86,7 @@ async function resolveHttpNetworkFrame(
       requestId,
     })
     frame.errorWith(lookupError)
-    return false
+    return flow.skip?.()
   }
 
   // If the handler lookup returned nothing, no request handler was found
@@ -86,7 +95,7 @@ async function resolveHttpNetworkFrame(
     frame.events.emit('request:unhandled', { request, requestId })
     frame.events.emit('request:end', { request, requestId })
     frame.passthrough()
-    return false
+    return flow.unhandled?.()
   }
 
   const { response, handler, parsedResult } = lookupResult
@@ -96,7 +105,7 @@ async function resolveHttpNetworkFrame(
   if (!response) {
     frame.events.emit('request:end', { request, requestId })
     frame.passthrough()
-    return true
+    return flow.skip?.()
   }
 
   // Perform the request as-is when the developer explicitly returned `passthrough()`.
@@ -104,7 +113,7 @@ async function resolveHttpNetworkFrame(
   if (isPassthroughResponse(response)) {
     frame.events.emit('request:end', { request, requestId })
     frame.passthrough()
-    return true
+    return flow.skip?.()
   }
 
   // Store all the received response cookies in the cookie jar.
@@ -116,25 +125,31 @@ async function resolveHttpNetworkFrame(
 
   frame.events.emit('request:end', { request, requestId })
 
-  /**
-   * @fixme This doesn't belong here. Different network APIs might choose
-   * to handle logging differently (e.g. `setupServer` doesn't log at all).
-   * This likely belongs in an abstract method on `defineNetwork()` or something.
-   */
-  // Log mocked responses. Use the Network tab to observe the original network.
-  handler.log({
-    request: requestCloneForLogs,
-    response,
-    parsedResult,
-  })
+  if (!flow.quiet) {
+    /**
+     * @fixme This doesn't belong here. Different network APIs might choose
+     * to handle logging differently (e.g. `setupServer` doesn't log at all).
+     * This likely belongs in an abstract method on `defineNetwork()` or something.
+     */
+    // Log mocked responses. Use the Network tab to observe the original network.
+    handler.log({
+      request: requestCloneForLogs,
+      response,
+      parsedResult,
+    })
+  }
 
-  return true
+  return flow.handled?.({
+    frame,
+    handler,
+  })
 }
 
 async function resolveWebSocketNetworkFrame(
   frame: WebSocketNetworkFrame,
   handlers: Array<AnyHandler>,
-): Promise<boolean> {
+  _flow: ResolveNetworkFlow,
+): Promise<void> {
   const { connection } = frame.data
   const eventHandlers = handlers.filter(isHandlerKind('EventHandler'))
 
@@ -153,7 +168,7 @@ async function resolveWebSocketNetworkFrame(
       }),
     )
 
-    return true
+    return
   }
 
   /**
@@ -161,5 +176,4 @@ async function resolveWebSocketNetworkFrame(
    */
 
   frame.passthrough()
-  return false
 }

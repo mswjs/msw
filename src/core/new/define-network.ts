@@ -29,12 +29,14 @@ export interface DefineNetworkOptions<Handler extends AnyHandler> {
    * A custom handlers controller to use.
    * Use this to customize how handlers are storeded (e.g. in memory, `AsyncLocalStorage`, etc).
    */
-  handlersController?: HandlersController<Handler>
+  handlersController?: HandlersController
 
   /**
    * A fixed strategy or a custom callback for dealing with unhandled frames.
    */
   onUnhandledFrame?: UnhandledFrameStrategy | UnhandledFrameCallback
+
+  quiet?: boolean
 }
 
 export interface NetworkApi<Handler extends AnyHandler>
@@ -75,28 +77,25 @@ export function defineNetwork<Handler extends AnyHandler>(
     async enable() {
       source.on('frame', async (event) => {
         const frame = event.data
-
         pipeEvents<any>(frame.events, events)
 
-        const wasFrameHandled = await resolveNetworkFrame(
-          frame,
-          handlersController.currentHandlers(),
-        )
-
-        if (!wasFrameHandled) {
-          await onUnhandledFrame(
-            frame,
-            options.onUnhandledFrame || 'bypass',
-          ).catch((error) => {
-            /**
-             * @fixme `.errorWith()` should exist on WebSocket frames too
-             * since you can error the connection by dispatching the "error" event.
-             */
-            if (frame.protocol === 'http') {
-              frame.errorWith(error)
-            }
-          })
-        }
+        await resolveNetworkFrame(frame, handlersController.currentHandlers(), {
+          quiet: options?.quiet,
+          async unhandled() {
+            await onUnhandledFrame(
+              frame,
+              options.onUnhandledFrame || 'bypass',
+            ).catch((error) => {
+              /**
+               * @fixme `.errorWith()` should exist on WebSocket frames too
+               * since you can error the connection by dispatching the "error" event.
+               */
+              if (frame.protocol === 'http') {
+                frame.errorWith(error)
+              }
+            })
+          },
+        })
       })
 
       await source.enable()

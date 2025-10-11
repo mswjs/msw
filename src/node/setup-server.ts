@@ -52,6 +52,7 @@ export class SetupServerApi implements SetupServer {
     this.#handlersController = asyncHandlersController(handlers)
 
     this.#network = defineNetwork({
+      quiet: true,
       sources: [
         new InterceptorSource({
           interceptors,
@@ -62,6 +63,10 @@ export class SetupServerApi implements SetupServer {
       onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
         return this.#listenOptions?.onUnhandledRequest || 'warn'
       }),
+    })
+
+    this.#network.events.on('log', (event) => {
+      event.preventDefault()
     })
 
     /**

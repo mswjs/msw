@@ -17,13 +17,13 @@ export abstract class NetworkSource {
     return new BatchNetworkSource(sources)
   }
 
-  #emitter: Emitter<NetworkSourceEventMap>
+  protected emitter: Emitter<NetworkSourceEventMap>
 
   public on: Emitter<NetworkSourceEventMap>['on']
 
   constructor() {
-    this.#emitter = new Emitter()
-    this.on = this.#emitter.on.bind(this.#emitter)
+    this.emitter = new Emitter()
+    this.on = this.emitter.on.bind(this.emitter)
   }
 
   /**
@@ -37,14 +37,14 @@ export abstract class NetworkSource {
    * are done handling this frame.
    */
   public async push(frame: NetworkFrame): Promise<void> {
-    await this.#emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))
+    await this.emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))
   }
 
   /**
    * Disable this source and stop the network interception.
    */
   public async disable(): Promise<void> {
-    this.#emitter.removeAllListeners()
+    this.emitter.removeAllListeners()
   }
 }
 
@@ -68,7 +68,7 @@ class BatchNetworkSource extends NetworkSource {
   }
 
   public async disable(): Promise<void> {
-    await super.disable()
     await Promise.all(this.sources.map((source) => source.disable()))
+    await super.disable()
   }
 }

@@ -31,7 +31,10 @@ export class SetupServerCommonApi implements SetupServerCommon {
       handlersController,
     })
 
-    this.events = this.network.use as any
+    /**
+     * @fixme This expects a readonly emitter (subset of methods).
+     */
+    this.events = this.network.events as any
     this.use = this.network.use.bind(this.network)
     this.resetHandlers = this.network.resetHandlers.bind(this.network)
     this.restoreHandlers = this.network.restoreHandlers.bind(this.network)

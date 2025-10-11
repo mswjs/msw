@@ -1,3 +1,4 @@
+import { createRequestId } from '@mswjs/interceptors'
 import { BaseNetworkFrame } from './base-frame'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
 
@@ -52,12 +53,16 @@ type HttpNetworkFrameEventMap = {
 export abstract class HttpNetworkFrame extends BaseNetworkFrame<
   'http',
   {
+    id?: string
     request: Request
   },
   HttpNetworkFrameEventMap
 > {
-  constructor(args: { request: Request }) {
+  public id: string
+
+  constructor(args: { id?: string; request: Request }) {
     super('http', { request: args.request })
+    this.id = args.id || createRequestId()
   }
 
   public abstract respondWith(response?: Response): void

@@ -1,5 +1,4 @@
 import { until } from 'until-async'
-import { createRequestId } from '@mswjs/interceptors'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
 import type { AnyHandler } from './handlers-controller'
 import { NetworkFrame } from './sources/index'
@@ -47,9 +46,9 @@ async function resolveHttpNetworkFrame(
   frame: HttpNetworkFrame,
   handlers: Array<AnyHandler>,
 ): Promise<boolean> {
+  const requestId = frame.id
   const request = frame.data.request.clone()
   const requestCloneForLogs = request.clone()
-  const requestId = createRequestId()
 
   frame.events.emit('request:start', { request, requestId })
 

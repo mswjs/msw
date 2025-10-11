@@ -26,6 +26,7 @@ export class InterceptorSource extends NetworkSource {
     Array<Interceptor<HttpRequestEventMap | WebSocketEventMap>>,
     HttpRequestEventMap | WebSocketEventMap
   >
+  #httpFrames: Map<string, HttpNetworkFrame>
 
   constructor(options: InterceptorSourceOptions) {
     super()
@@ -34,6 +35,7 @@ export class InterceptorSource extends NetworkSource {
       name: 'interceptor-source',
       interceptors: options.interceptors,
     })
+    this.#httpFrames = new Map()
   }
 
   public async enable(): Promise<void> {
@@ -44,6 +46,8 @@ export class InterceptorSource extends NetworkSource {
      * events map in `BatchInterceptor` (results in `Listener<unknown>`).
      */
     this.#interceptor.on('request', this.#onRequest.bind(this) as any)
+    this.#interceptor.on('response', this.#onResponse.bind(this) as any)
+
     this.#interceptor.on(
       'connection',
       this.#onWebSocketConnection.bind(this) as any,
@@ -55,11 +59,18 @@ export class InterceptorSource extends NetworkSource {
     this.#interceptor.dispose()
   }
 
-  async #onRequest({ request, controller }: HttpRequestEventMap['request'][0]) {
+  async #onRequest({
+    requestId,
+    request,
+    controller,
+  }: HttpRequestEventMap['request'][0]) {
     const httpFrame = new InterceptorHttpNetworkFrame({
+      id: requestId,
       request,
       controller,
     })
+
+    this.#httpFrames.set(requestId, httpFrame)
 
     httpFrame.events.on('unhandledException', ({ error }) => {
       // Throw the errors intended for the developer as-is.
@@ -70,6 +81,29 @@ export class InterceptorSource extends NetworkSource {
     })
 
     await this.push(httpFrame)
+  }
+
+  #onResponse({
+    requestId,
+    request,
+    response,
+    isMockedResponse,
+  }: HttpRequestEventMap['response'][0]): void {
+    const httpFrame = this.#httpFrames.get(requestId)
+    this.#httpFrames.delete(requestId)
+
+    if (!httpFrame) {
+      return
+    }
+
+    httpFrame.events.emit(
+      isMockedResponse ? 'response:mocked' : 'response:bypass',
+      {
+        requestId,
+        request,
+        response,
+      },
+    )
   }
 
   async #onWebSocketConnection(connection: WebSocketEventMap['connection'][0]) {
@@ -84,8 +118,13 @@ export class InterceptorSource extends NetworkSource {
 class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
   #controller: RequestController
 
-  constructor(args: { request: Request; controller: RequestController }) {
+  constructor(args: {
+    id: string
+    request: Request
+    controller: RequestController
+  }) {
     super({
+      id: args.id,
       request: args.request,
     })
 

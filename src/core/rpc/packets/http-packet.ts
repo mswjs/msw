@@ -54,6 +54,10 @@ export function serializeHttpRequest(request: Request): SerializedRequest {
   }
 }
 
+/**
+ * Creates a Fetch API `Request` out of the serialized request frame
+ * and a potential body stream emitted over the given `socket` instance.
+ */
 export function deserializeHttpRequest(
   serializedRequest: SerializedRequest,
   socket: Socket<StreamEventMap, any>,

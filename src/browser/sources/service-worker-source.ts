@@ -7,14 +7,14 @@ import { NetworkSource } from '~/core/new/sources/index'
 import {
   supportsReadableStreamTransfer,
   supportsServiceWorker,
-} from './utils/supports'
-import { WorkerChannel, WorkerChannelEventMap } from './utils/workerChannel'
-import { getWorkerInstance } from './setupWorker/start/utils/getWorkerInstance'
-import { deserializeRequest } from './utils/deserializeRequest'
+} from '../utils/supports'
+import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
+import { getWorkerInstance } from '../setupWorker/start/utils/getWorkerInstance'
+import { deserializeRequest } from '../utils/deserializeRequest'
 import { toResponseInit } from '~/core/utils/toResponseInit'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { HttpNetworkFrame } from '~/core/new/frames/http-frame'
-import type { FindWorker } from './setup-worker'
+import type { FindWorker } from '../setup-worker'
 
 interface ServiceWorkerSourceOptions {
   quiet?: boolean

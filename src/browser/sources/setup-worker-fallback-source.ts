@@ -6,7 +6,7 @@ import { devUtils } from '~/core/utils/internal/devUtils'
 export class SetupWorkerFallbackSource extends InterceptorSource {
   constructor() {
     super({
-      interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
+      interceptors: [new XMLHttpRequestInterceptor(), new FetchInterceptor()],
     })
   }
 

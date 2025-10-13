@@ -11,8 +11,8 @@ import {
 } from '~/core/new/on-unhandled-frame'
 import { UnhandledRequestCallback } from '~/core/utils/request/onUnhandledRequest'
 import { NetworkSource } from '~/core/new/sources/index'
-import { ServiceWorkerSource } from './service-worker-source'
-import { SetupWorkerFallbackSource } from './setup-worker-fallback-source'
+import { ServiceWorkerSource } from './sources/service-worker-source'
+import { SetupWorkerFallbackSource } from './sources/setup-worker-fallback-source'
 import { supportsServiceWorker } from './utils/supports'
 import { InterceptorSource } from '~/core/new/sources/interceptor-source'
 

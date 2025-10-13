@@ -179,10 +179,6 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
         value: reason,
       })
 
-      /**
-       * @fixme So this all is fine but it doesn't fire at the right time.
-       * WS interceptor does NOT await listeners.
-       */
       client.socket.dispatchEvent(errorEvent)
     }
   }

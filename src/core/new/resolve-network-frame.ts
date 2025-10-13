@@ -29,25 +29,18 @@ export async function resolveNetworkFrame(
   handlers: Array<AnyHandler>,
   flow: ResolveNetworkFlow,
 ): Promise<void> {
-  switch (frame.protocol) {
-    case 'http': {
-      return resolveHttpNetworkFrame(frame, handlers, flow)
-    }
-
-    /**
-     * WebSocket.
-     */
-    case 'ws': {
-      return resolveWebSocketNetworkFrame(frame, handlers, flow)
-    }
-
-    default: {
-      throw new Error(
-        // @ts-expect-error Runtime error.
-        `Failed to resolve a network frame: unsupported protocol "${frame.protocol}"`,
-      )
-    }
+  if (frame.protocol === 'http') {
+    return resolveHttpNetworkFrame(frame, handlers, flow)
   }
+
+  if (frame.protocol === 'ws') {
+    return resolveWebSocketNetworkFrame(frame, handlers, flow)
+  }
+
+  throw new Error(
+    // @ts-expect-error Runtime error.
+    `Failed to resolve a network frame: unsupported protocol "${frame.protocol}"`,
+  )
 }
 
 async function resolveHttpNetworkFrame(
@@ -162,6 +155,7 @@ async function resolveWebSocketNetworkFrame(
         const matches = await handler.run(connection)
 
         if (matches) {
+          // Invoke the callback for each matched event handler.
           flow?.handled?.({ frame, handler })
 
           if (!flow?.quiet) {

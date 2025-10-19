@@ -1,4 +1,5 @@
 import { Emitter } from 'strict-event-emitter'
+import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { DeferredPromise } from '@open-draft/deferred-promise'
 import {
   LifeCycleEventEmitter,
@@ -6,7 +7,6 @@ import {
   SharedOptions,
 } from '~/core/sharedOptions'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type { WorkerChannel } from '../utils/workerChannel'

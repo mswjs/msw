@@ -20,6 +20,24 @@ const mswCore = /\/core(\/.+)?$/
 
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
+/**
+ * A designated configuration for CJS shims.
+ * This bundles the shims so CJS modules could be used
+ * in the browser.
+ */
+const shimConfig: Options = {
+  name: 'shims',
+  platform: 'neutral',
+  entry: glob.sync('./src/shims/**/*.ts'),
+  format: ['esm', 'cjs'],
+  noExternal: Object.keys(packageJson.dependencies),
+  outDir: './lib/shims',
+  bundle: true,
+  splitting: false,
+  sourcemap: false,
+  dts: true,
+}
+
 const coreConfig: Options = {
   name: 'core',
   platform: 'neutral',
@@ -27,6 +45,7 @@ const coreConfig: Options = {
     ignore: ['**/__*/**/*', '**/*.test.ts'],
   }),
   external: [ecosystemDependencies],
+  noExternal: ['cookie'],
   format: ['esm', 'cjs'],
   outDir: './lib/core',
   bundle: false,
@@ -67,7 +86,7 @@ const browserConfig: Options = {
   noExternal: Object.keys(packageJson.dependencies).filter((packageName) => {
     /**
      * @note Never bundle MSW core so all builds reference the *same*
-     * JavaScript and TypeScript care files. This way types across
+     * JavaScript and TypeScript core files. This way types across
      * export paths remain compatible:
      * import { http } from 'msw' // <- core
      * import { setupWorker } from 'msw/browser' // <- /browser
@@ -131,6 +150,7 @@ const iifeConfig: Options = {
 }
 
 export default defineConfig([
+  shimConfig,
   coreConfig,
   nodeConfig,
   reactNativeConfig,

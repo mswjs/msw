@@ -20,6 +20,11 @@ export {
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'
+export {
+  onUnhandledRequest,
+  type UnhandledRequestStrategy,
+  type UnhandledRequestCallback,
+} from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
 export { cleanUrl } from './utils/url/cleanUrl'
 

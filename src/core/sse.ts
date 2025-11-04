@@ -53,14 +53,14 @@ export type ServerSentEventMessage<
     }
 
 /**
- * Request handler for Server-Sent Events (SSE).
+ * Intercept Server-Sent Events (SSE).
  *
  * @example
  * sse('http://localhost:4321', ({ client }) => {
  *   client.send({ data: 'hello world' })
  * })
  *
- * @see {@link https://mswjs.io/docs/sse Mocking Server-Sent Events}
+ * @see {@link https://mswjs.io/docs/sse/ Mocking Server-Sent Events}
  * @see {@link https://mswjs.io/docs/api/sse `sse()` API reference}
  */
 export const sse: ServerSentEventRequestHandler = (path, resolver) => {

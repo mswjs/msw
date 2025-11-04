@@ -811,7 +811,9 @@ class EventSourceParsingStream extends WritableStream {
 
           case ControlCharacters.CarriageReturn: {
             this.discardTrailingNewline = true
+            break
           }
+
           case ControlCharacters.NewLine: {
             lineEnd = this.position
             break

@@ -71,6 +71,20 @@ it('supports null as the request body type argument', () => {
   })
 })
 
+it('returns the same request type when cloning', () => {
+  http.post<never, { id: string }>('/user', async ({ request }) => {
+    const data = await request.clone().json()
+
+    expectTypeOf(data).toEqualTypeOf<{ id: string }>()
+  })
+
+  http.post<never, null>('/user', async ({ request }) => {
+    const data = await request.clone().json()
+
+    expectTypeOf(data).toEqualTypeOf<null>()
+  })
+})
+
 it('returns plain Response without explicit response body type argument', () => {
   http.get('/user', () => {
     return new Response('hello')

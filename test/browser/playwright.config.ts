@@ -8,7 +8,7 @@ export default {
     },
   ],
   timeout: 10_000,
-  retries: process.env.PWDEBUG ? 0 : 1,
+  retries: process.env.CI ? 1 : undefined,
   use: {
     trace: 'on-first-retry',
     launchOptions: {

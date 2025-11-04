@@ -113,7 +113,6 @@ export function attachWebSocketLogger(
 export function logConnectionOpen(client: WebSocketClientConnection) {
   const publicUrl = toPublicUrl(client.url)
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(`${getTimestamp()} %c▶%c ${publicUrl}`),
     `color:${colors.system}`,
@@ -121,7 +120,6 @@ export function logConnectionOpen(client: WebSocketClientConnection) {
   )
   // eslint-disable-next-line no-console
   console.log('Client:', client.socket)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -129,7 +127,6 @@ function logConnectionClose(event: CloseEvent) {
   const target = event.target as WebSocket
   const publicUrl = toPublicUrl(target.url)
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c■%c ${publicUrl}`,
@@ -139,7 +136,6 @@ function logConnectionClose(event: CloseEvent) {
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -147,7 +143,6 @@ function logClientError(event: Event) {
   const socket = event.target as WebSocket
   const publicUrl = toPublicUrl(socket.url)
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c\u00D7%c ${publicUrl}`,
@@ -157,7 +152,6 @@ function logClientError(event: Event) {
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -169,7 +163,6 @@ async function logOutgoingClientMessage(event: MessageEvent<WebSocketData>) {
   const publicData = await getPublicData(event.data)
   const arrow = event.defaultPrevented ? '⇡' : '⬆'
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c${arrow}%c ${publicData} %c${byteLength}%c`,
@@ -181,7 +174,6 @@ async function logOutgoingClientMessage(event: MessageEvent<WebSocketData>) {
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -195,7 +187,6 @@ async function logOutgoingMockedClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⬆%c ${publicData} %c${byteLength}%c`,
@@ -207,7 +198,6 @@ async function logOutgoingMockedClientMessage(
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -221,7 +211,6 @@ async function logIncomingMockedClientMessage(
   const byteLength = getMessageLength(event.data)
   const publicData = await getPublicData(event.data)
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c⬇%c ${publicData} %c${byteLength}%c`,
@@ -233,7 +222,6 @@ async function logIncomingMockedClientMessage(
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }
 
@@ -242,7 +230,6 @@ async function logIncomingServerMessage(event: MessageEvent<WebSocketData>) {
   const publicData = await getPublicData(event.data)
   const arrow = event.defaultPrevented ? '⇣' : '⬇'
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     devUtils.formatMessage(
       `${getTimestamp({ milliseconds: true })} %c${arrow}%c ${publicData} %c${byteLength}%c`,
@@ -254,6 +241,5 @@ async function logIncomingServerMessage(event: MessageEvent<WebSocketData>) {
   )
   // eslint-disable-next-line no-console
   console.log(event)
-  // eslint-disable-next-line no-console
   console.groupEnd()
 }

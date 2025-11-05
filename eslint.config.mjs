@@ -16,7 +16,7 @@ export default tseslint.config(
         sourceType: 'module',
       },
     },
-    ignores: ['/lib', '/node', '/native', '/config', 'test'],
+    ignores: ['/lib', '/node', '/native', '/config', '/test'],
     rules: {
       'no-console': [
         'error',
@@ -60,6 +60,7 @@ export default tseslint.config(
     ],
     rules: {
       'no-console': 'off',
+      '@typescript-eslint/prefer-ts-expect-error': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },

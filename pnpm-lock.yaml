@@ -69,6 +69,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^18.4.4
         version: 18.6.3
+      '@epic-web/test-server':
+        specifier: ^0.1.6
+        version: 0.1.6
       '@eslint/eslintrc':
         specifier: ^3.3.1
         version: 3.3.1
@@ -88,8 +91,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.0
       '@playwright/test':
-        specifier: ^1.48.0
-        version: 1.49.0
+        specifier: ^1.50.1
+        version: 1.56.1
       '@swc/core':
         specifier: ^1.13.5
         version: 1.13.5
@@ -418,6 +421,10 @@ packages:
   '@commitlint/types@19.0.3':
     resolution: {integrity: sha512-tpyc+7i6bPG9mvaBbtKUeghfyZSDgWquIDfMgqYtTbmZ9Y9VzEm2je9EYcQ0aoz5o7NvGS+rcDec93yO08MHYA==}
     engines: {node: '>=v18'}
+
+  '@epic-web/test-server@0.1.6':
+    resolution: {integrity: sha512-n6+dZKI2I3J8f3vjIFAYh5trgAJl0crji76+K1aoiRJqEYjdsCX/nVgBrkBCwPpBqhv9NZ1XlMqzfOafkqY5EQ==}
+    engines: {node: '>=20'}
 
   '@esbuild/aix-ppc64@0.20.2':
     resolution: {integrity: sha512-D+EBOJHXdNZcLJRBkhENNG8Wji2kgc9AZ9KiPr1JuZjsNtyHzrsfLRrY0tk2H2aoFu6RANO1y1iPPUCDYWkb5g==}
@@ -917,6 +924,19 @@ packages:
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
+  '@hono/node-server@1.19.6':
+    resolution: {integrity: sha512-Shz/KjlIeAhfiuE93NDKVdZ7HdBVLQAfdbaXEaoAVO3ic9ibRSLGIQGkcBbFyuLr+7/1D5ZCINM8B+6IvXeMtw==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+
+  '@hono/node-ws@1.2.0':
+    resolution: {integrity: sha512-OBPQ8OSHBw29mj00wT/xGYtB6HY54j0fNSdVZ7gZM3TUeq0So11GXaWtFf1xWxQNfumKIsj0wRuLKWfVsO5GgQ==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@hono/node-server': ^1.11.1
+      hono: ^4.6.0
+
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -1086,8 +1106,8 @@ packages:
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@playwright/test@1.49.0':
-    resolution: {integrity: sha512-DMulbwQURa8rNIQrf94+jPJQ4FmOVdpE5ZppRNvWVjvhC+6sOeo28r8MgIpQRYouXRtt/FCCXU7zn20jnHR4Qw==}
+  '@playwright/test@1.56.1':
+    resolution: {integrity: sha512-vSMYtL/zOcFpvJCW71Q/OEGQb7KYBPAdKh35WNSkaZA75JlAO8ED8UN6GUNTm3drWomcbcqRPFqQbLae8yBTdg==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1444,6 +1464,9 @@ packages:
 
   '@types/ws@7.4.7':
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -3063,6 +3086,10 @@ packages:
     resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
     engines: {node: '>=0.10.0'}
 
+  hono@4.10.4:
+    resolution: {integrity: sha512-YG/fo7zlU3KwrBL5vDpWKisLYiM+nVstBQqfr7gCPbSYURnNEP9BDxEMz8KfsDR9JX0lJWDRNc6nXX31v7ZEyg==}
+    engines: {node: '>=16.9.0'}
+
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
 
@@ -4069,8 +4096,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  playwright-core@1.49.0:
-    resolution: {integrity: sha512-R+3KKTQF3npy5GTiKH/T+kdhoJfJojjHESR1YEWhYuEKRVfVaxH3+4+GvXE5xyCngCxhxnykk0Vlah9v8fs3jA==}
+  playwright-core@1.56.1:
+    resolution: {integrity: sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4079,8 +4106,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  playwright@1.49.0:
-    resolution: {integrity: sha512-eKpmys0UFDnfNb3vfsf8Vx2LEOtflgRebl0Im2eQQnYMA4Aqd+Zw8bEOB+7ZKvN76901mRnqdsiOGKxzVTbi7A==}
+  playwright@1.56.1:
+    resolution: {integrity: sha512-aFi5B0WovBHTEvpM3DzXTUaeN6eN0qWnTkKx4NQaH4Wvcmc153PdaY2UBdSYKaGYw+UyWXSVyxDUg5DoPEttjw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -5227,6 +5254,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
@@ -5594,6 +5633,18 @@ snapshots:
       chalk: 5.3.0
     optional: true
 
+  '@epic-web/test-server@0.1.6':
+    dependencies:
+      '@hono/node-server': 1.19.6(hono@4.10.4)
+      '@hono/node-ws': 1.2.0(@hono/node-server@1.19.6(hono@4.10.4))(hono@4.10.4)
+      '@open-draft/deferred-promise': 2.2.0
+      '@types/ws': 8.18.1
+      hono: 4.10.4
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@esbuild/aix-ppc64@0.20.2':
     optional: true
 
@@ -5888,6 +5939,19 @@ snapshots:
     dependencies:
       graphql: 16.8.2
 
+  '@hono/node-server@1.19.6(hono@4.10.4)':
+    dependencies:
+      hono: 4.10.4
+
+  '@hono/node-ws@1.2.0(@hono/node-server@1.19.6(hono@4.10.4))(hono@4.10.4)':
+    dependencies:
+      '@hono/node-server': 1.19.6(hono@4.10.4)
+      hono: 4.10.4
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -6142,9 +6206,9 @@ snapshots:
 
   '@pkgr/core@0.2.9': {}
 
-  '@playwright/test@1.49.0':
+  '@playwright/test@1.56.1':
     dependencies:
-      playwright: 1.49.0
+      playwright: 1.56.1
 
   '@pnpm/config.env-replace@1.1.0': {}
 
@@ -6457,6 +6521,10 @@ snapshots:
   '@types/uuid@8.3.4': {}
 
   '@types/ws@7.4.7':
+    dependencies:
+      '@types/node': 18.19.28
+
+  '@types/ws@8.18.1':
     dependencies:
       '@types/node': 18.19.28
 
@@ -8454,6 +8522,8 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
+  hono@4.10.4: {}
+
   hosted-git-info@2.8.9: {}
 
   hosted-git-info@4.1.0:
@@ -9461,7 +9531,7 @@ snapshots:
 
   playwright-core@1.42.1: {}
 
-  playwright-core@1.49.0: {}
+  playwright-core@1.56.1: {}
 
   playwright@1.42.1:
     dependencies:
@@ -9469,9 +9539,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  playwright@1.49.0:
+  playwright@1.56.1:
     dependencies:
-      playwright-core: 1.49.0
+      playwright-core: 1.56.1
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -10700,6 +10770,8 @@ snapshots:
   ws@8.11.0: {}
 
   ws@8.18.0: {}
+
+  ws@8.18.3: {}
 
   xml-name-validator@5.0.0: {}
 

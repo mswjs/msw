@@ -1,4 +1,5 @@
-import { WebSocketData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketData } from '@mswjs/interceptors/WebSocket'
+import { isObject } from '../../utils/internal/isObject'
 import { truncateMessage } from './truncateMessage'
 
 export async function getPublicData(data: WebSocketData): Promise<string> {
@@ -8,7 +9,7 @@ export async function getPublicData(data: WebSocketData): Promise<string> {
   }
 
   // Handle all ArrayBuffer-like objects.
-  if (typeof data === 'object' && 'byteLength' in data) {
+  if (isObject(data)) {
     const text = new TextDecoder().decode(data as ArrayBuffer)
     return `ArrayBuffer(${truncateMessage(text)})`
   }

@@ -59,9 +59,6 @@ export function defineHandlersController<
   }
 }
 
-/**
- * A simple handler controller that keeps the list of handlers in memory.
- */
 export const inMemoryHandlersController = defineHandlersController(
   (initialHandlers) => {
     let handlers = [...initialHandlers]

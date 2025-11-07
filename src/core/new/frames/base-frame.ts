@@ -14,10 +14,13 @@ export abstract class BaseNetworkFrame<
     this.events = new Emitter<Events>()
   }
 
+  /**
+   * Error the underlying network message.
+   */
   public abstract errorWith(reason?: unknown): unknown
 
   /**
-   * Returns a message to be used when this frame goes unhandled.
+   * Get a message to be used when this frame goes unhandled.
    */
   public abstract getUnhandledFrameMessage(): Promise<string>
 }

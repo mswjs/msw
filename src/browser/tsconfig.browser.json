@@ -4,12 +4,7 @@
     "composite": true,
     // Expose browser-specific libraries only for the
     // source code under the "src/browser" directory.
-    "lib": ["DOM", "dom.iterable", "WebWorker"],
-    "baseUrl": "./",
-    "paths": {
-      "~/core": ["../core"],
-      "~/core/*": ["../core/*"]
-    }
+    "lib": ["DOM", "WebWorker", "DOM.Iterable"]
   },
   "include": ["./global.browser.d.ts", "./**/*.ts"]
 }

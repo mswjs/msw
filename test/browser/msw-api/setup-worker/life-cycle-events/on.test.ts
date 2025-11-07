@@ -16,6 +16,7 @@ const server = new HttpServer((app) => {
     res.send('original-response')
   })
   app.get('/unknown-route', (_req, res) => {
+    res.status(404)
     res.send('majestic-unknown')
   })
   app.get('/passthrough', (_req, res) => {
@@ -64,7 +65,7 @@ test('emits events for a handled request and mocked response', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:match] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:mocked] ${url} response-body GET ${url} ${requestId}`,
+    `[response:mocked] 400 ${url} response-body GET ${url} ${requestId}`,
   ])
 })
 
@@ -90,7 +91,7 @@ test('emits events for a handled request with no response', async ({
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
     `[request:end] POST ${url} ${requestId}`,
-    `[response:bypass] ${url} original-response POST ${url} ${requestId}`,
+    `[response:bypass] 200 ${url} original-response POST ${url} ${requestId}`,
   ])
 })
 
@@ -117,7 +118,7 @@ test('emits events for an unhandled request', async ({
     `[request:start] GET ${url} ${requestId}`,
     `[request:unhandled] GET ${url} ${requestId}`,
     `[request:end] GET ${url} ${requestId}`,
-    `[response:bypass] ${url} majestic-unknown GET ${url} ${requestId}`,
+    `[response:bypass] 404 ${url} majestic-unknown GET ${url} ${requestId}`,
   ])
 })
 
@@ -141,7 +142,7 @@ test('emits events for a passthrough request', async ({
     expect(consoleSpy.get('warning')).toEqual([
       `[request:start] GET ${url} ${requestId}`,
       `[request:end] GET ${url} ${requestId}`,
-      `[response:bypass] ${url} passthrough-response GET ${url} ${requestId}`,
+      `[response:bypass] 200 ${url} passthrough-response GET ${url} ${requestId}`,
     ])
   })
 })
@@ -169,7 +170,7 @@ test('emits events for a bypassed request', async ({
         expect.stringContaining(`[request:start] GET ${url}`),
         expect.stringContaining(`[request:end] GET ${url}`),
         expect.stringContaining(
-          `[response:mocked] ${url} bypassed-response GET ${url}`,
+          `[response:mocked] 200 ${url} bypassed-response GET ${url}`,
         ),
       ]),
     )
@@ -180,7 +181,7 @@ test('emits events for a bypassed request', async ({
         expect.stringContaining(`[request:start] POST ${url}`),
         expect.stringContaining(`[request:end] POST ${url}`),
         expect.stringContaining(
-          `[response:bypass] ${url} bypassed-response POST ${url}`,
+          `[response:bypass] 200 ${url} bypassed-response POST ${url}`,
         ),
       ]),
     )

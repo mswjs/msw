@@ -17,6 +17,15 @@ export {
   type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'
 
+/* Server-Sent Events */
+export {
+  sse,
+  type ServerSentEventRequestHandler,
+  type ServerSentEventResolver,
+  type ServerSentEventResolverExtras,
+  type ServerSentEventMessage,
+} from './sse'
+
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'

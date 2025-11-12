@@ -36,6 +36,11 @@ class CookieStore {
   }
 
   private getCookieStoreIndex(): MemoryCookieStoreIndex {
+    if (isNodeProcess()) {
+      // In Node.js 25, localStorage is available but throws an error when accessed without argv.
+      return {}
+    }
+
     if (typeof localStorage === 'undefined') {
       return {}
     }

@@ -61,8 +61,6 @@
       }
     },
     "./node": {
-      "browser": null,
-      "react-native": null,
       "module-sync": {
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
@@ -79,6 +77,8 @@
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
       },
+      "browser": null,
+      "react-native": null,
       "default": {
         "types": "./lib/node/index.d.ts",
         "default": "./lib/node/index.js"

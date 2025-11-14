@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -20,60 +18,62 @@ afterAll(() => {
 
 it('supports throwing a plain Response in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       // You can throw a Response instance in a response resolver
       // to short-circuit its execution and respond "early".
       throw new Response('hello world')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(200)
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 it('supports throwing an HttpResponse instance in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.text('hello world')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 it('supports throwing an error response in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.text('not found', { status: 400 })
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(400)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('not found')
+  await expect(response.text()).resolves.toBe('not found')
 })
 
 it('supports throwing a network error in a response resolver', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw HttpResponse.error()
     }),
   )
 
-  await expect(fetch('https://example.com')).rejects.toThrow('Failed to fetch')
+  await expect(fetch('http://localhost/resource')).rejects.toThrow(
+    'Failed to fetch',
+  )
 })
 
 it('supports middleware-style responses', async () => {
   server.use(
-    http.get('https://example.com/', ({ request }) => {
+    http.get('http://localhost/resource', ({ request }) => {
       const url = new URL(request.url)
 
       if (!url.searchParams.has('id')) {
@@ -84,29 +84,29 @@ it('supports middleware-style responses', async () => {
     }),
   )
 
-  const response = await fetch('https://example.com/?id=1')
+  const response = await fetch('http://localhost/resource?id=1')
   expect(response.status).toBe(200)
   expect(response.headers.get('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('ok')
+  await expect(response.text()).resolves.toBe('ok')
 
-  const errorResponse = await fetch('https://example.com/')
+  const errorResponse = await fetch('http://localhost/resource')
   expect(errorResponse.status).toBe(400)
   expect(errorResponse.headers.get('Content-Type')).toBe('text/plain')
-  expect(await errorResponse.text()).toBe('must have id')
+  await expect(errorResponse.text()).resolves.toBe('must have id')
 })
 
-it('handles non-response errors as 500 error responses', async () => {
+it('coerces non-response errors into 500 error responses', async () => {
   server.use(
-    http.get('https://example.com/', () => {
+    http.get('http://localhost/resource', () => {
       throw new Error('Custom error')
     }),
   )
 
-  const response = await fetch('https://example.com')
+  const response = await fetch('http://localhost/resource')
 
   expect(response.status).toBe(500)
   expect(response.statusText).toBe('Unhandled Exception')
-  expect(await response.json()).toEqual({
+  await expect(response.json()).resolves.toEqual({
     name: 'Error',
     message: 'Custom error',
     stack: expect.any(String),

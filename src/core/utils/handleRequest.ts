@@ -6,6 +6,10 @@ import type { RequestHandler } from '../handlers/RequestHandler'
 import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { storeResponseCookies } from './request/storeResponseCookies'
+import {
+  shouldBypassRequest,
+  isPassthroughResponse,
+} from './internal/requestUtils'
 
 export interface HandleRequestOptions {
   /**
@@ -46,8 +50,8 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
-  // Perform requests wrapped in "bypass()" as-is.
-  if (request.headers.get('accept')?.includes('msw/passthrough')) {
+  // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
+  if (shouldBypassRequest(request)) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
@@ -93,12 +97,9 @@ export async function handleRequest(
     return
   }
 
-  // Perform the request as-is when the developer explicitly returned "req.passthrough()".
+  // Perform the request as-is when the developer explicitly returned `passthrough()`.
   // This produces no warning as the request was handled.
-  if (
-    response.status === 302 &&
-    response.headers.get('x-msw-intention') === 'passthrough'
-  ) {
+  if (isPassthroughResponse(response)) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return

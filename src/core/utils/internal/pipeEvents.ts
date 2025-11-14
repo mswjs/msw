@@ -6,6 +6,10 @@ import { Emitter, EventMap } from 'strict-event-emitter'
 export function pipeEvents<Events extends EventMap>(
   source: Emitter<Events>,
   destination: Emitter<Events>,
+  filterEvent: <E extends keyof Events>(
+    event: E,
+    ...data: Events[E]
+  ) => boolean = () => true,
 ): void {
   const rawEmit: typeof source.emit & { _isPiped?: boolean } = source.emit
 
@@ -15,7 +19,10 @@ export function pipeEvents<Events extends EventMap>(
 
   const sourceEmit: typeof source.emit & { _isPiped?: boolean } =
     function sourceEmit(this: typeof source, event, ...data) {
-      destination.emit(event, ...data)
+      if (filterEvent(event, ...data)) {
+        destination.emit(event, ...data)
+      }
+
       return rawEmit.call(this, event, ...data)
     }
 

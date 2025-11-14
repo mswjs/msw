@@ -2,6 +2,7 @@ import { invariant } from 'outvariant'
 import { EventMap, Emitter } from 'strict-event-emitter'
 import { RequestHandler } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
+import { isObject } from './utils/internal/isObject'
 import { devUtils } from './utils/internal/devUtils'
 import { pipeEvents } from './utils/internal/pipeEvents'
 import { toReadonlyArray } from './utils/internal/toReadonlyArray'
@@ -51,7 +52,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
 
   public readonly events: LifeCycleEventEmitter<EventsMap>
 
-  constructor(...initialHandlers: Array<RequestHandler | WebSocketHandler>) {
+  constructor(initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     super()
 
     invariant(
@@ -65,7 +66,22 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
 
     this.emitter = new Emitter<EventsMap>()
     this.publicEmitter = new Emitter<EventsMap>()
-    pipeEvents(this.emitter, this.publicEmitter)
+    pipeEvents(this.emitter, this.publicEmitter, (_, ...data) => {
+      /**
+       * @note Prevent forwarding of internal HTTP requests to the public emitter.
+       * Those requests, such as the one for remote interception handshake, must never
+       * surface to the developer.
+       *
+       * @fixme This isn't nice. It leaks specific event types into this generic API.
+       * Find a better way for this, and for life-cycle events in general.
+       */
+      return !(
+        isObject(data[0]) &&
+        'request' in data[0] &&
+        data[0].request instanceof Request &&
+        data[0].request?.headers.get('accept')?.includes('msw/internal')
+      )
+    })
 
     this.events = this.createLifeCycleEvents()
 

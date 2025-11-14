@@ -13,6 +13,7 @@ import {
 } from '../utils/matching/matchRequestUrl'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import type { HandlerKind } from './common'
+import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
 
 type WebSocketHandlerParsedResult = {
   match: Match
@@ -137,6 +138,10 @@ export class WebSocketHandler {
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
     return this[kEmitter].emit('connection', connection)
+  }
+
+  public log(connection: WebSocketConnectionData): void {
+    attachWebSocketLogger(connection)
   }
 }
 

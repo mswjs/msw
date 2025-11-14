@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -10,18 +8,13 @@ const server = setupServer(
   }),
 )
 
-beforeAll(() =>
+beforeAll(() => {
   server.listen({
     onUnhandledRequest(request) {
-      /**
-       * @fixme @todo For some reason, the exception from the "onUnhandledRequest"
-       * callback doesn't propagate to the intercepted request but instead is thrown
-       * in this test's context.
-       */
       throw new Error(`Custom error for ${request.method} ${request.url}`)
     },
-  }),
-)
+  })
+})
 
 afterAll(() => {
   server.close()
@@ -30,9 +23,9 @@ afterAll(() => {
 test('handles exceptions in "onUnhandledRequest" callback as 500 responses', async () => {
   const response = await fetch('https://example.com')
 
-  expect(response.status).toBe(500)
-  expect(response.statusText).toBe('Unhandled Exception')
-  expect(await response.json()).toEqual({
+  expect.soft(response.status).toBe(500)
+  expect.soft(response.statusText).toBe('Unhandled Exception')
+  await expect.soft(response.json()).resolves.toEqual({
     name: 'Error',
     message: 'Custom error for GET https://example.com/',
     stack: expect.any(String),

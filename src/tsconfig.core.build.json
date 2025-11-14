@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.src.json",
+  "extends": "./tsconfig.core.json",
   "compilerOptions": {
     "composite": false
   }

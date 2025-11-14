@@ -12,6 +12,6 @@ test('throws an error given an Array of request handlers to "setupServer"', () =
   }
 
   expect(createServer).toThrow(
-    `[MSW] Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?`,
+    `[MSW] Failed to create a handlers controller: invalid handlers. Did you forget to spread the handlers array?`,
   )
 })

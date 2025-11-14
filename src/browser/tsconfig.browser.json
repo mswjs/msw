@@ -1,9 +1,10 @@
 {
-  "extends": "../tsconfig.src.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
     // Expose browser-specific libraries only for the
     // source code under the "src/browser" directory.
     "lib": ["DOM", "WebWorker", "DOM.Iterable"]
   },
-  "include": ["../../global.d.ts", "./global.browser.d.ts", "./**/*.ts"]
+  "include": ["./global.browser.d.ts", "./**/*.ts"]
 }

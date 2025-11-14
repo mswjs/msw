@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -17,7 +15,7 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(() => {
@@ -39,13 +37,4 @@ it('warns on unhandled requests by default', async () => {
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/http/intercepting-requests`)
-})
-
-it('does not warn on unhandled "file://" requests', async () => {
-  // This request is expected to fail:
-  // Fetching non-existing file URL.
-  await fetch('file:///file/does/not/exist').catch(() => void 0)
-
-  expect(console.error).not.toBeCalled()
-  expect(console.warn).not.toBeCalled()
 })

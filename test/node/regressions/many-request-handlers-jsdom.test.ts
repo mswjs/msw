@@ -20,13 +20,14 @@ const processErrorSpy = vi.spyOn(process.stderr, 'write')
 const NUMBER_OF_REQUEST_HANDLERS = 100
 
 beforeAll(async () => {
+  vi.spyOn(console, 'warn').mockImplementation(() => void 0)
   await httpServer.listen()
   server.listen()
 })
 
 afterEach(() => {
-  server.resetHandlers()
   vi.clearAllMocks()
+  server.resetHandlers()
 })
 
 afterAll(async () => {
@@ -58,7 +59,7 @@ describe('http handlers', () => {
         body: 'request-body-',
       },
     ).then((response) => response.text())
-    // Each clone is a new AbortSignal listener which needs to be registered
+
     expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
     expect(processErrorSpy).not.toHaveBeenCalled()

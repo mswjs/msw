@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { passthrough } from './passthrough'
 
-it('creates a 302 response with the intention header', () => {
+it('creates a 302 response with the correct request intention header', () => {
   const response = passthrough()
 
   expect(response).toBeInstanceOf(Response)

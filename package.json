@@ -281,6 +281,7 @@
     "cross-fetch": "^4.1.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "^0.27.0",
+    "esbuild-loader": "^4.4.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",

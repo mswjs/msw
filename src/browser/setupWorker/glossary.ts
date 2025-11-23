@@ -1,141 +1,30 @@
 import { Emitter } from 'strict-event-emitter'
+import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
+import type { DeferredPromise } from '@open-draft/deferred-promise'
 import {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
   SharedOptions,
 } from '~/core/sharedOptions'
-import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
-import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-
-type RequestWithoutMethods = Omit<
-  Request,
-  | 'text'
-  | 'body'
-  | 'json'
-  | 'blob'
-  | 'arrayBuffer'
-  | 'formData'
-  | 'clone'
-  | 'signal'
-  | 'isHistoryNavigation'
-  | 'isReloadNavigation'
->
-
-/**
- * Request representation received from the worker message event.
- */
-export interface ServiceWorkerIncomingRequest extends RequestWithoutMethods {
-  /**
-   * Unique ID of the request generated once the request is
-   * intercepted by the "fetch" event in the Service Worker.
-   */
-  id: string
-  body?: ArrayBuffer | null
-}
-
-type ServiceWorkerIncomingResponse = {
-  isMockedResponse: boolean
-  request: ServiceWorkerIncomingRequest
-  response: Pick<
-    Response,
-    'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
-  >
-}
-
-/**
- * Map of the events that can be received from the Service Worker.
- */
-export interface ServiceWorkerIncomingEventsMap {
-  MOCKING_ENABLED: {
-    client: {
-      id: string
-      frameType: string
-    }
-  }
-  INTEGRITY_CHECK_RESPONSE: {
-    packageVersion: string
-    checksum: string
-  }
-  KEEPALIVE_RESPONSE: never
-  REQUEST: ServiceWorkerIncomingRequest
-  RESPONSE: ServiceWorkerIncomingResponse
-}
-
-/**
- * Map of the events that can be sent to the Service Worker
- * from any execution context.
- */
-type ServiceWorkerOutgoingEventTypes =
-  | 'MOCK_ACTIVATE'
-  | 'MOCK_DEACTIVATE'
-  | 'INTEGRITY_CHECK_REQUEST'
-  | 'KEEPALIVE_REQUEST'
-  | 'CLIENT_CLOSED'
+import type { WorkerChannel } from '../utils/workerChannel'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
 }
 
-interface StrictEventListener<EventType extends Event> {
-  (event: EventType): void
-}
-
-export interface SetupWorkerInternalContext {
+export type SetupWorkerInternalContext = {
   isMockingEnabled: boolean
+  workerStoppedAt?: number
   startOptions: RequiredDeep<StartOptions>
-  worker: ServiceWorker | null
-  registration: ServiceWorkerRegistration | null
+  workerPromise: DeferredPromise<ServiceWorker>
+  registration: ServiceWorkerRegistration | undefined
   getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
-  workerChannel: {
-    /**
-     * Adds a Service Worker event listener.
-     */
-    on<EventType extends keyof ServiceWorkerIncomingEventsMap>(
-      eventType: EventType,
-      callback: (
-        event: MessageEvent,
-        message: ServiceWorkerMessage<
-          EventType,
-          ServiceWorkerIncomingEventsMap[EventType]
-        >,
-      ) => void,
-    ): void
-    send<EventType extends ServiceWorkerOutgoingEventTypes>(
-      eventType: EventType,
-    ): void
-  }
-  events: {
-    /**
-     * Adds an event listener on the given target.
-     * Returns a clean-up function that removes that listener.
-     */
-    addListener<EventType extends Event>(
-      target: EventTarget,
-      eventType: string,
-      callback: StrictEventListener<EventType>,
-    ): () => void
-    /**
-     * Removes all currently attached listeners.
-     */
-    removeAllListeners(): void
-    /**
-     * Awaits a given message type from the Service Worker.
-     */
-    once<EventType extends keyof ServiceWorkerIncomingEventsMap>(
-      eventType: EventType,
-    ): Promise<
-      ServiceWorkerMessage<EventType, ServiceWorkerIncomingEventsMap[EventType]>
-    >
-  }
-  supports: {
-    serviceWorkerApi: boolean
-    readableStreamTransfer: boolean
-  }
+  workerChannel: WorkerChannel
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 
@@ -184,10 +73,12 @@ export interface StartOptions extends SharedOptions {
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
+
 export type StartHandler = (
   options: RequiredDeep<StartOptions>,
   initialOptions: StartOptions,
 ) => StartReturnType
+
 export type StopHandler = () => void
 
 export interface SetupWorker {

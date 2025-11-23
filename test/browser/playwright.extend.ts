@@ -20,6 +20,7 @@ import {
 import { waitFor } from '../support/waitFor'
 import { WorkerConsole } from './setup/workerConsole'
 import { getWebpackServer } from './setup/webpackHttpServer'
+import { WebSocketServer } from '../support/WebSocketServer'
 
 export interface TestFixtures {
   /**
@@ -47,9 +48,10 @@ export interface TestFixtures {
   ): Promise<Response>
   query(uri: string, options: GraphQLQueryOptions): Promise<Response>
   makeUrl(path: string): string
-  spyOnConsole(): ConsoleMessages
+  spyOnConsole(page?: Page): ConsoleMessages
   waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
+  defineWebSocketServer(): Promise<WebSocketServer>
 }
 
 interface FetchOptions {
@@ -115,7 +117,7 @@ export const test = base.extend<TestFixtures>({
       page.goto(compilation.previewUrl)
       await Promise.all(oncePageReady)
 
-      // All examlpes await the MSW activation message by default.
+      // All examples await the MSW activation message by default.
       // Support opting-out from this behavior for tests where activation
       // is not expected (e.g. when testing activation errors).
       if (!options.skipActivation) {
@@ -196,7 +198,7 @@ export const test = base.extend<TestFixtures>({
   },
   async query({ page }, use) {
     await use(async (uri, options) => {
-      const requestId = crypto.createHash('md5').digest('hex')
+      const requestId = crypto.randomUUID()
       const method = options.method || 'POST'
       const requestUrl = new URL(uri, 'http://localhost:8080')
       const headers: FlatHeadersObject = {
@@ -312,12 +314,20 @@ export const test = base.extend<TestFixtures>({
   async spyOnConsole({ page }, use) {
     let messages: ConsoleMessages | undefined
 
-    await use(() => {
-      messages = spyOnConsole(page as any)
+    await use((customPage) => {
+      messages = spyOnConsole(customPage || (page as any))
       return messages
     })
 
     messages?.clear()
+  },
+  async defineWebSocketServer({}, use) {
+    const server = new WebSocketServer()
+    await use(async () => {
+      await server.listen()
+      return server
+    })
+    await server.close()
   },
 })
 

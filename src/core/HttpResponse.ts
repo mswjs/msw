@@ -17,6 +17,7 @@ export type DefaultUnsafeFetchResponse = Response & {
 
 export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
   json(): Promise<BodyType>
+  clone(): StrictRequest<BodyType>
 }
 
 /**
@@ -161,10 +162,10 @@ export class HttpResponse<
    *
    * HttpResponse.arrayBuffer(buffer)
    */
-  static arrayBuffer(
-    body?: ArrayBuffer | SharedArrayBuffer,
+  static arrayBuffer<BodyType extends ArrayBuffer | SharedArrayBuffer>(
+    body?: BodyType,
     init?: HttpResponseInit,
-  ): HttpResponse<ArrayBuffer | SharedArrayBuffer> {
+  ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
 
     if (!responseInit.headers.has('Content-Type')) {

@@ -7,6 +7,6 @@ const worker = setupWorker(
   }),
 )
 
-// By default any unhandled requests are preformed as-is
+// By default any unhandled requests are performed as-is
 // but produce warnings.
 worker.start()

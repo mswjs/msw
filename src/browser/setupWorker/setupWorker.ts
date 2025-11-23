@@ -1,45 +1,34 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
-import {
+import { DeferredPromise } from '@open-draft/deferred-promise'
+import type {
   SetupWorkerInternalContext,
-  ServiceWorkerIncomingEventsMap,
   StartReturnType,
-  StopHandler,
-  StartHandler,
   StartOptions,
+  SetupWorker,
 } from './glossary'
-import { createStartHandler } from './start/createStartHandler'
-import { createStop } from './stop/createStop'
-import { ServiceWorkerMessage } from './start/utils/createMessageChannel'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import { DEFAULT_START_OPTIONS } from './start/utils/prepareStartHandler'
-import { createFallbackStart } from './start/createFallbackStart'
-import { createFallbackStop } from './stop/createFallbackStop'
+import { createStartHandler } from './start/createStartHandler'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
 import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { SetupWorker } from './glossary'
-import { supportsReadableStreamTransfer } from '../utils/supportsReadableStreamTransfer'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
 import { attachWebSocketLogger } from '~/core/ws/utils/attachWebSocketLogger'
-
-interface Listener {
-  target: EventTarget
-  eventType: string
-  callback: EventListenerOrEventListenerObject
-}
+import { WorkerChannel } from '../utils/workerChannel'
+import { createFallbackRequestListener } from './start/createFallbackRequestListener'
+import { printStartMessage } from './start/utils/printStartMessage'
+import { printStopMessage } from './stop/utils/printStopMessage'
+import { supportsServiceWorker } from '../utils/supports'
 
 export class SetupWorkerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupWorker
 {
   private context: SetupWorkerInternalContext
-  private startHandler: StartHandler = null as any
-  private stopHandler: StopHandler = null as any
-  private listeners: Array<Listener>
 
   constructor(...handlers: Array<RequestHandler | WebSocketHandler>) {
     super(...handlers)
@@ -51,128 +40,47 @@ export class SetupWorkerApi
       ),
     )
 
-    this.listeners = []
     this.context = this.createWorkerContext()
   }
 
   private createWorkerContext(): SetupWorkerInternalContext {
-    const context: SetupWorkerInternalContext = {
+    const workerPromise = new DeferredPromise<ServiceWorker>()
+
+    return {
       // Mocking is not considered enabled until the worker
       // signals back the successful activation event.
       isMockingEnabled: false,
       startOptions: null as any,
-      worker: null,
+      workerPromise,
+      registration: undefined,
       getRequestHandlers: () => {
         return this.handlersController.currentHandlers()
       },
-      registration: null,
       emitter: this.emitter,
-      workerChannel: {
-        on: (eventType, callback) => {
-          this.context.events.addListener<
-            MessageEvent<ServiceWorkerMessage<typeof eventType, any>>
-          >(navigator.serviceWorker, 'message', (event) => {
-            // Avoid messages broadcasted from unrelated workers.
-            if (event.source !== this.context.worker) {
-              return
-            }
-
-            const message = event.data
-
-            if (!message) {
-              return
-            }
-
-            if (message.type === eventType) {
-              callback(event, message)
-            }
-          })
-        },
-        send: (type) => {
-          this.context.worker?.postMessage(type)
-        },
-      },
-      events: {
-        addListener: (target, eventType, callback) => {
-          target.addEventListener(eventType, callback as EventListener)
-          this.listeners.push({
-            eventType,
-            target,
-            callback: callback as EventListener,
-          })
-
-          return () => {
-            target.removeEventListener(eventType, callback as EventListener)
-          }
-        },
-        removeAllListeners: () => {
-          for (const { target, eventType, callback } of this.listeners) {
-            target.removeEventListener(eventType, callback)
-          }
-          this.listeners = []
-        },
-        once: (eventType) => {
-          const bindings: Array<() => void> = []
-
-          return new Promise<
-            ServiceWorkerMessage<
-              typeof eventType,
-              ServiceWorkerIncomingEventsMap[typeof eventType]
-            >
-          >((resolve, reject) => {
-            const handleIncomingMessage = (event: MessageEvent) => {
-              try {
-                const message = event.data
-
-                if (message.type === eventType) {
-                  resolve(message)
-                }
-              } catch (error) {
-                reject(error)
-              }
-            }
-
-            bindings.push(
-              this.context.events.addListener(
-                navigator.serviceWorker,
-                'message',
-                handleIncomingMessage,
-              ),
-              this.context.events.addListener(
-                navigator.serviceWorker,
-                'messageerror',
-                reject,
-              ),
-            )
-          }).finally(() => {
-            bindings.forEach((unbind) => unbind())
-          })
-        },
-      },
-      supports: {
-        serviceWorkerApi:
-          !('serviceWorker' in navigator) || location.protocol === 'file:',
-        readableStreamTransfer: supportsReadableStreamTransfer(),
-      },
+      workerChannel: new WorkerChannel({
+        worker: workerPromise,
+      }),
     }
-
-    this.startHandler = context.supports.serviceWorkerApi
-      ? createFallbackStart(context)
-      : createStartHandler(context)
-
-    this.stopHandler = context.supports.serviceWorkerApi
-      ? createFallbackStop(context)
-      : createStop(context)
-
-    return context
   }
 
   public async start(options: StartOptions = {}): StartReturnType {
-    if (options.waitUntilReady === true) {
+    if ('waitUntilReady' in options) {
       devUtils.warn(
         'The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.',
       )
     }
+
+    // Warn the developer on multiple "worker.start()" calls.
+    // While this will not affect the worker in any way,
+    // it likely indicates an issue with the developer's code.
+    if (this.context.isMockingEnabled) {
+      devUtils.warn(
+        `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+      )
+      return this.context.registration
+    }
+
+    this.context.workerStoppedAt = undefined
 
     this.context.startOptions = mergeRight(
       DEFAULT_START_OPTIONS,
@@ -202,14 +110,64 @@ export class SetupWorkerApi
       webSocketInterceptor.dispose()
     })
 
-    return await this.startHandler(this.context.startOptions, options)
+    // Use a fallback interception algorithm in the environments
+    // where the Service Worker API isn't supported.
+    if (!supportsServiceWorker()) {
+      const fallbackInterceptor = createFallbackRequestListener(
+        this.context,
+        this.context.startOptions,
+      )
+
+      this.subscriptions.push(() => {
+        fallbackInterceptor.dispose()
+      })
+
+      this.context.isMockingEnabled = true
+
+      printStartMessage({
+        message: 'Mocking enabled (fallback mode).',
+        quiet: this.context.startOptions.quiet,
+      })
+
+      return undefined
+    }
+
+    const startHandler = createStartHandler(this.context)
+    const registration = await startHandler(this.context.startOptions, options)
+
+    this.context.isMockingEnabled = true
+
+    return registration
   }
 
   public stop(): void {
     super.dispose()
-    this.context.events.removeAllListeners()
+
+    if (!this.context.isMockingEnabled) {
+      devUtils.warn(
+        'Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.',
+      )
+      return
+    }
+
+    this.context.isMockingEnabled = false
+    this.context.workerStoppedAt = Date.now()
     this.context.emitter.removeAllListeners()
-    this.stopHandler()
+
+    if (supportsServiceWorker()) {
+      this.context.workerChannel.removeAllListeners('RESPONSE')
+      window.clearInterval(this.context.keepAliveInterval)
+    }
+
+    // Post the internal stop message on the window
+    // to let any logic know when the worker has stopped.
+    // E.g. the WebSocket client manager needs this to know
+    // when to clear its in-memory clients list.
+    window.postMessage({ type: 'msw/worker:stop' })
+
+    printStopMessage({
+      quiet: this.context.startOptions?.quiet,
+    })
   }
 }
 

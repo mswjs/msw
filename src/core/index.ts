@@ -17,9 +17,23 @@ export {
   type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'
 
+/* Server-Sent Events */
+export {
+  sse,
+  type ServerSentEventRequestHandler,
+  type ServerSentEventResolver,
+  type ServerSentEventResolverExtras,
+  type ServerSentEventMessage,
+} from './sse'
+
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'
+export {
+  onUnhandledRequest,
+  type UnhandledRequestStrategy,
+  type UnhandledRequestCallback,
+} from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
 export { cleanUrl } from './utils/url/cleanUrl'
 
@@ -46,6 +60,7 @@ export type {
   HttpHandlerInfo,
   HttpRequestResolverExtras,
   HttpHandlerMethod,
+  HttpCustomPredicate,
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
 
@@ -53,7 +68,10 @@ export type {
   GraphQLQuery,
   GraphQLVariables,
   GraphQLRequestBody,
+  GraphQLResponseBody,
   GraphQLJsonRequestBody,
+  GraphQLOperationType,
+  GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'
 export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
 

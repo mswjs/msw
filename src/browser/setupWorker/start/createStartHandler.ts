@@ -1,11 +1,12 @@
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { getWorkerInstance } from './utils/getWorkerInstance'
 import { enableMocking } from './utils/enableMocking'
-import { SetupWorkerInternalContext, StartHandler } from '../glossary'
+import type { SetupWorkerInternalContext, StartHandler } from '../glossary'
 import { createRequestListener } from './createRequestListener'
 import { checkWorkerIntegrity } from '../../utils/checkWorkerIntegrity'
 import { createResponseListener } from './createResponseListener'
 import { validateWorkerScope } from './utils/validateWorkerScope'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 
 export const createStartHandler = (
   context: SetupWorkerInternalContext,
@@ -15,7 +16,7 @@ export const createStartHandler = (
       // Remove all previously existing event listeners.
       // This way none of the listeners persists between Fast refresh
       // of the application's code.
-      context.events.removeAllListeners()
+      context.workerChannel.removeAllListeners()
 
       // Handle requests signaled by the worker.
       context.workerChannel.on(
@@ -57,17 +58,18 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         throw new Error(missingWorkerMessage)
       }
 
-      context.worker = worker
+      context.workerPromise.resolve(worker)
       context.registration = registration
 
-      context.events.addListener(window, 'beforeunload', () => {
+      window.addEventListener('beforeunload', () => {
         if (worker.state !== 'redundant') {
           // Notify the Service Worker that this client has closed.
           // Internally, it's similar to disabling the mocking, only
           // client close event has a handler that self-terminates
           // the Service Worker when there are no open clients.
-          context.workerChannel.send('CLIENT_CLOSED')
+          context.workerChannel.postMessage('CLIENT_CLOSED')
         }
+
         // Make sure we're always clearing the interval - there are reports that not doing this can
         // cause memory leaks in headless browser environments.
         window.clearInterval(context.keepAliveInterval)
@@ -82,14 +84,13 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       // by the currently installed version of MSW.
       await checkWorkerIntegrity(context).catch((error) => {
         devUtils.error(
-          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below.',
+          'Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues) and include the original error below.',
         )
-        // eslint-disable-next-line no-console
         console.error(error)
       })
 
       context.keepAliveInterval = window.setInterval(
-        () => context.workerChannel.send('KEEPALIVE_REQUEST'),
+        () => context.workerChannel.postMessage('KEEPALIVE_REQUEST'),
         5000,
       )
 
@@ -104,22 +105,27 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       async (registration) => {
         const pendingInstance = registration.installing || registration.waiting
 
-        // Wait until the worker is activated.
-        // Assume the worker is already activated if there's no pending registration
-        // (i.e. when reloading the page after a successful activation).
         if (pendingInstance) {
-          await new Promise<void>((resolve) => {
-            pendingInstance.addEventListener('statechange', () => {
-              if (pendingInstance.state === 'activated') {
-                return resolve()
-              }
-            })
+          const activationPromise = new DeferredPromise<void>()
+
+          pendingInstance.addEventListener('statechange', () => {
+            if (pendingInstance.state === 'activated') {
+              activationPromise.resolve()
+            }
           })
+
+          // Wait until the worker is activated.
+          // Assume the worker is already activated if there's no pending registration
+          // (i.e. when reloading the page after a successful activation).
+          await activationPromise
         }
 
         // Print the activation message only after the worker has been activated.
         await enableMocking(context, options).catch((error) => {
-          throw new Error(`Failed to enable mocking: ${error?.message}`)
+          devUtils.error(
+            'Failed to enable mocking. Please report this on GitHub (https://github.com/mswjs/msw/issues) and include the original error below.',
+          )
+          throw error
         })
 
         return registration

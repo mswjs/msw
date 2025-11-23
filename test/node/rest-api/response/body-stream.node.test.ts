@@ -1,9 +1,40 @@
-/**
- * @vitest-environment node
- */
-import https from 'https'
+// @vitest-environment node
+import https from 'node:https'
 import { HttpResponse, http, delay } from 'msw'
 import { setupServer } from 'msw/node'
+
+interface CustomMatchers<R = unknown> {
+  toRoughlyEqual: (actual: number, deviation: number) => R
+}
+
+declare module 'vitest' {
+  interface Matchers<T = any> extends CustomMatchers<T> {}
+}
+
+expect.extend({
+  /**
+   * Asserts a given actual number to roughly equal to the expected number,
+   * taking the maximum allowed delta `deviation` into account.
+   */
+  toRoughlyEqual(actual, expected, deviation) {
+    const diff = Math.abs(actual - expected)
+    const passes = diff <= deviation
+
+    if (passes) {
+      return {
+        pass: true,
+        message: () =>
+          `expected ${actual} not to be roughly equal to ${expected} (deviation: ${deviation})`,
+      }
+    }
+
+    return {
+      pass: false,
+      message: () =>
+        `expected ${actual} to be roughly equal to ${expected} (deviation: ${deviation})`,
+    }
+  },
+})
 
 const encoder = new TextEncoder()
 const server = setupServer()
@@ -55,13 +86,13 @@ test('supports delays when enqueuing chunks', async () => {
       const stream = new ReadableStream({
         async start(controller) {
           controller.enqueue(encoder.encode('first'))
-          await delay(500)
+          await delay(250)
 
           controller.enqueue(encoder.encode('second'))
-          await delay(500)
+          await delay(250)
 
           controller.enqueue(encoder.encode('third'))
-          await delay(500)
+          await delay(250)
           controller.close()
         },
       })
@@ -92,8 +123,8 @@ test('supports delays when enqueuing chunks', async () => {
         // Ensure that the chunks were sent over time,
         // respecting the delay set in the mocked stream.
         const chunkTimings = chunks.map((chunk) => chunk.timestamp)
-        expect(chunkTimings[1] - chunkTimings[0]).toBeGreaterThanOrEqual(490)
-        expect(chunkTimings[2] - chunkTimings[1]).toBeGreaterThanOrEqual(490)
+        expect(chunkTimings[1] - chunkTimings[0]).toRoughlyEqual(250, 50)
+        expect(chunkTimings[2] - chunkTimings[1]).toRoughlyEqual(250, 50)
 
         resolve()
       })

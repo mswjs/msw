@@ -28,12 +28,16 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/http/intercepting-requests`,
 }
 
-beforeEach(() => {
+beforeAll(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => void 0)
   vi.spyOn(console, 'error').mockImplementation(() => void 0)
 })
 
 afterEach(() => {
+  vi.clearAllMocks()
+})
+
+afterAll(() => {
   vi.restoreAllMocks()
 })
 

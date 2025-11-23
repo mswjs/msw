@@ -262,7 +262,7 @@
     "@epic-web/test-server": "^0.1.6",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.39.1",
-    "@fastify/websocket": "^8.3.1",
+    "@fastify/websocket": "^11.2.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
     "@ossjs/release": "^0.10.0",

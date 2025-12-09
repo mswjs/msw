@@ -108,7 +108,7 @@ jobs:
         run: pnpm install
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install
+        run: pnpm exec playwright install chromium --with-deps --only-shell
 
       - name: Unit tests
         run: pnpm test:unit
@@ -235,7 +235,7 @@ jobs:
         run: pnpm install
 
       - name: Playwright install
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium --with-deps --only-shell
 
       - name: Browser tests
         run: pnpm test:browser

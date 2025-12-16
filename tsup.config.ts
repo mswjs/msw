@@ -125,6 +125,21 @@ const reactNativeConfig: Options = {
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
+const workerdConfig: Options = {
+  name: 'workerd',
+  platform: 'node',
+  entry: ['./src/workerd/index.ts'],
+  external: ['picocolors', 'util', 'events', mswCore, ecosystemDependencies],
+  format: ['esm', 'cjs'],
+  outDir: './lib/workerd',
+  bundle: true,
+  splitting: false,
+  sourcemap: true,
+  dts: true,
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
+}
+
 const iifeConfig: Options = {
   name: 'iife',
   platform: 'browser',
@@ -154,6 +169,7 @@ export default defineConfig([
   coreConfig,
   nodeConfig,
   reactNativeConfig,
+  workerdConfig,
   browserConfig,
   iifeConfig,
 ])

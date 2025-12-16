@@ -105,6 +105,20 @@
         "default": "./lib/native/index.js"
       }
     },
+    "./workerd": {
+      "workerd": {
+        "types": "./lib/workerd/index.d.mts",
+        "default": "./lib/workerd/index.mjs"
+      },
+      "import": {
+        "types": "./lib/workerd/index.d.mts",
+        "default": "./lib/workerd/index.mjs"
+      },
+      "default": {
+        "types": "./lib/workerd/index.d.ts",
+        "default": "./lib/workerd/index.js"
+      }
+    },
     "./core/http": {
       "module-sync": {
         "types": "./lib/core/http.d.mts",

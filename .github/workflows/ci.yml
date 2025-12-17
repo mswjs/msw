@@ -9,7 +9,7 @@ on:
 jobs:
   build-20:
     name: build (20)
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
 
   build-22:
     name: build (22)
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,7 +80,7 @@ jobs:
   test-unit:
     name: test (unit)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +116,7 @@ jobs:
   test-node-20:
     name: test (node.js) (20)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -149,7 +149,7 @@ jobs:
   test-node-22:
     name: test (node.js) (22)
     needs: build-22
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -182,7 +182,7 @@ jobs:
   test-e2e:
     name: test (e2e) (20)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -207,7 +207,7 @@ jobs:
   test-browser:
     name: test (browser)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -250,7 +250,7 @@ jobs:
   test-native:
     name: test (react-native)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -46,6 +46,9 @@ export const createRequestListener = (
         options,
         context.emitter,
         {
+          resolutionContext: {
+            quiet: options.quiet,
+          },
           onPassthroughResponse() {
             event.postMessage('PASSTHROUGH')
           },

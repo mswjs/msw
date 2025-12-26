@@ -6,6 +6,7 @@ import {
   type HttpRequestResolverExtras,
   type HttpRequestParsedResult,
 } from './handlers/HttpHandler'
+import type { ResponseResolutionContext } from '~/core/utils/executeHandlers'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 import { delay } from './delay'
 import { getTimestamp } from './utils/logging/getTimestamp'
@@ -67,9 +68,19 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
   return new ServerSentEventHandler(path, resolver)
 }
 
+const SSE_RESPONSE_INIT: ResponseInit = {
+  headers: {
+    'content-type': 'text/event-stream',
+    'cache-control': 'no-cache',
+    connection: 'keep-alive',
+  },
+}
+
 class ServerSentEventHandler<
   EventMap extends EventMapConstraint,
 > extends HttpHandler {
+  #emitter: Emitter<ServerSentEventClientEventMap>
+
   constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
       typeof EventSource !== 'undefined',
@@ -77,37 +88,12 @@ class ServerSentEventHandler<
       path,
     )
 
-    const clientEmitter = new Emitter<ServerSentEventClientEventMap>()
-
     super('GET', path, async (info) => {
-      const responseInit: ResponseInit = {
-        headers: {
-          'content-type': 'text/event-stream',
-          'cache-control': 'no-cache',
-          connection: 'keep-alive',
-        },
-      }
-
-      /**
-       * @note Log the intercepted request early.
-       * Normally, the `this.log()` method is called when the handler returns a response.
-       * For SSE, call that method earlier so the logs are in correct order.
-       */
-      await super.log({
-        request: info.request,
-        /**
-         * @note Construct a placeholder response since SSE response
-         * is being streamed and cannot be cloned/consumed for logging.
-         */
-        response: new Response('[streaming]', responseInit),
-      })
-      this.#attachClientLogger(info.request, clientEmitter)
-
       const stream = new ReadableStream({
-        async start(controller) {
+        start: async (controller) => {
           const client = new ServerSentEventClient<EventMap>({
             controller,
-            emitter: clientEmitter,
+            emitter: this.#emitter,
           })
           const server = new ServerSentEventServer({
             request: info.request,
@@ -122,19 +108,42 @@ class ServerSentEventHandler<
         },
       })
 
-      return new Response(stream, responseInit)
+      return new Response(stream, SSE_RESPONSE_INIT)
     })
+
+    this.#emitter = new Emitter<ServerSentEventClientEventMap>()
   }
 
   async predicate(args: {
     request: Request
     parsedResult: HttpRequestParsedResult
+    resolutionContext?: ResponseResolutionContext
   }) {
     if (args.request.headers.get('accept') !== 'text/event-stream') {
       return false
     }
 
-    return super.predicate(args)
+    const matches = await super.predicate(args)
+
+    if (matches && !args.resolutionContext?.quiet) {
+      /**
+       * @note Log the intercepted request early.
+       * Normally, the `this.log()` method is called when the handler returns a response.
+       * For SSE, call that method earlier so the logs are in correct order.
+       */
+      await super.log({
+        request: args.request,
+        /**
+         * @note Construct a placeholder response since SSE response
+         * is being streamed and cannot be cloned/consumed for logging.
+         */
+        response: new Response('[streaming]', SSE_RESPONSE_INIT),
+      })
+
+      this.#attachClientLogger(args.request, this.#emitter)
+    }
+
+    return matches
   }
 
   async log(_args: { request: Request; response: Response }): Promise<void> {

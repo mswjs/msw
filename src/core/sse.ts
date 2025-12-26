@@ -327,7 +327,17 @@ class ServerSentEventClient<
       frames.push(`event:${message.event?.toString()}`)
     }
 
-    frames.push(`data:${message.data}`)
+    if (message.data != null) {
+      /**
+       * Split data on line terminators (LF, CR, or CRLF) and translate them to individual frames.
+       * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
+       * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
+       */
+      for (const line of message.data.toString().split(/\r\n|\r|\n/)) {
+        frames.push(`data:${line}`)
+      }
+    }
+
     frames.push('', '')
 
     this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))

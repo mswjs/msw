@@ -11,6 +11,7 @@ export interface HandlersExecutionResult {
 
 export interface ResponseResolutionContext {
   baseUrl?: string
+  quiet?: boolean
 }
 
 /**

@@ -20,6 +20,8 @@ export interface HandleRequestOptions {
      * to resolve relative urls in the context of the running server
      */
     baseUrl?: string
+
+    quiet?: boolean
   }
 
   /**

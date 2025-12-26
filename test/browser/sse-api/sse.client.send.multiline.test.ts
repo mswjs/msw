@@ -21,9 +21,7 @@ test('sends data with LF newline', async ({ loadExample, page }) => {
 
     const worker = setupWorker(
       sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          data: 'line1\nline2',
-        })
+        client.send({ data: 'line1\nline2' })
       }),
     )
     await worker.start()
@@ -56,9 +54,7 @@ test('sends data with double LF (blank line in middle)', async ({
 
     const worker = setupWorker(
       sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          data: 'before\n\nafter',
-        })
+        client.send({ data: 'before\n\nafter' })
       }),
     )
     await worker.start()
@@ -88,9 +84,7 @@ test('sends data with CR newline', async ({ loadExample, page }) => {
 
     const worker = setupWorker(
       sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          data: 'line1\rline2',
-        })
+        client.send({ data: 'line1\rline2' })
       }),
     )
     await worker.start()
@@ -107,8 +101,9 @@ test('sends data with CR newline', async ({ loadExample, page }) => {
     })
   })
 
-  // CR is normalized to LF by the EventSource parser
-  expect(message).toBe('line1\nline2')
+  expect(message, 'Normalizes CR to LF (via EventSource parser)').toBe(
+    'line1\nline2',
+  )
 })
 
 test('sends data with CRLF newline', async ({ loadExample, page }) => {
@@ -121,9 +116,7 @@ test('sends data with CRLF newline', async ({ loadExample, page }) => {
 
     const worker = setupWorker(
       sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          data: 'line1\r\nline2',
-        })
+        client.send({ data: 'line1\r\nline2' })
       }),
     )
     await worker.start()
@@ -140,8 +133,9 @@ test('sends data with CRLF newline', async ({ loadExample, page }) => {
     })
   })
 
-  // CRLF is normalized to LF by the EventSource parser
-  expect(message).toBe('line1\nline2')
+  expect(message, 'Normalizes CRLF to LF (via EventSource parser)').toBe(
+    'line1\nline2',
+  )
 })
 
 test('sends data with mixed line endings', async ({ loadExample, page }) => {
@@ -174,8 +168,7 @@ test('sends data with mixed line endings', async ({ loadExample, page }) => {
     })
   })
 
-  // All line endings normalized to LF
-  expect(message).toBe('a\nb\nc\nd')
+  expect(message, 'Normalizes line endings to LF').toBe('a\nb\nc\nd')
 })
 
 test('sends data with multiple consecutive newlines', async ({
@@ -213,7 +206,7 @@ test('sends data with multiple consecutive newlines', async ({
   expect(message).toBe('a\n\n\nb')
 })
 
-test('sends empty string data', async ({ loadExample, page }) => {
+test('sends an empty string data', async ({ loadExample, page }) => {
   await loadExample(EXAMPLE_URL, {
     skipActivation: true,
   })
@@ -223,9 +216,7 @@ test('sends empty string data', async ({ loadExample, page }) => {
 
     const worker = setupWorker(
       sse('http://localhost/stream', ({ client }) => {
-        client.send({
-          data: '',
-        })
+        client.send({ data: '' })
       }),
     )
     await worker.start()

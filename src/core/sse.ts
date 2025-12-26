@@ -327,11 +327,12 @@ class ServerSentEventClient<
       frames.push(`event:${message.event?.toString()}`)
     }
 
-    // Split data on line terminators (LF, CR, or CRLF) per SSE spec
-    // and send each as a separate data: line.
-    const dataStr = message.data?.toString() ?? ''
-    for (const line of dataStr.split(/\r\n|\r|\n/)) {
-      frames.push(`data:${line}`)
+    if (message.data != null) {
+      // Split data on line terminators (LF, CR, or CRLF) per SSE spec
+      // and send each as a separate data: line.
+      for (const line of message.data.toString().split(/\r\n|\r|\n/)) {
+        frames.push(`data:${line}`)
+      }
     }
 
     frames.push('', '')

@@ -328,8 +328,11 @@ class ServerSentEventClient<
     }
 
     if (message.data != null) {
-      // Split data on line terminators (LF, CR, or CRLF) per SSE spec
-      // and send each as a separate data: line.
+      /**
+       * Split data on line terminators (LF, CR, or CRLF) and translate them to individual frames.
+       * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
+       * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
+       */
       for (const line of message.data.toString().split(/\r\n|\r|\n/)) {
         frames.push(`data:${line}`)
       }

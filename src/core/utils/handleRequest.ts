@@ -3,7 +3,11 @@ import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import type { RequestHandler } from '../handlers/RequestHandler'
-import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
+import {
+  type HandlersExecutionResult,
+  type ResponseResolutionContext,
+  executeHandlers,
+} from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { storeResponseCookies } from './request/storeResponseCookies'
 
@@ -13,16 +17,7 @@ export interface HandleRequestOptions {
    * but is exposed to aid in creating extensions like
    * `@mswjs/http-middleware`.
    */
-  resolutionContext?: {
-    /**
-     * A base url to use when resolving relative urls.
-     * @note This is primarily used by the `@mswjs/http-middleware`
-     * to resolve relative urls in the context of the running server
-     */
-    baseUrl?: string
-
-    quiet?: boolean
-  }
+  resolutionContext?: ResponseResolutionContext
 
   /**
    * Invoked whenever a request is performed as-is.

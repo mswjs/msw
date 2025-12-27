@@ -10,34 +10,36 @@ const GetUserQuery = {} as TypedDocumentNode<
   { userId: string }
 >
 
-graphql.query(GetUserQuery, ({ variables }) => {
-  variables.userId.toUpperCase()
+it('infers the result type', () => {
+  graphql.query(GetUserQuery, () => {
+    if (Math.random()) {
+      return HttpResponse.json({
+        data: {
+          user: {
+            // @ts-expect-error Invalid result type.
+            name: 123,
+          },
+        },
+      })
+    }
 
-  return HttpResponse.json({
-    data: {
-      user: { name: 'John' },
-    },
-  })
-})
-
-graphql.query(GetUserQuery, ({ variables }) => {
-  // @ts-expect-error Unknown variable
-  variables.unknownVariable
-
-  return HttpResponse.json({
-    data: {
-      user: { name: 'John' },
-    },
-  })
-})
-
-graphql.query(GetUserQuery, () => {
-  return HttpResponse.json({
-    data: {
-      user: {
-        // @ts-expect-error Invalid response type.
-        name: 123,
+    return HttpResponse.json({
+      data: {
+        user: { name: 'John' },
       },
-    },
+    })
+  })
+})
+
+it('infers the query variables type', () => {
+  graphql.query(GetUserQuery, ({ query, variables }) => {
+    expectTypeOf(query).toBeString()
+    expectTypeOf(variables).toEqualTypeOf<{ userId: string }>()
+
+    return HttpResponse.json({
+      data: {
+        user: { name: 'John' },
+      },
+    })
   })
 })

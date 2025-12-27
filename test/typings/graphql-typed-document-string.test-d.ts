@@ -5,11 +5,21 @@ declare function createTypedDocumentString<TResult = any, TVariables = any>(
   query: string,
 ): DocumentTypeDecoration<TResult, TVariables>
 
-it('infers the query type', () => {
+it('infers the result type', () => {
   graphql.query(
     createTypedDocumentString<{ user: { id: string; name: string } }>(''),
-    ({ query }) => {
-      expectTypeOf(query).toBeString()
+    () => {
+      if (Math.random()) {
+        return HttpResponse.json({
+          data: {
+            user: {
+              // @ts-expect-error Invalid result type.
+              id: 123,
+              name: 'John Doe',
+            },
+          },
+        })
+      }
 
       return HttpResponse.json({
         data: { user: { id: '1', name: 'John Doe' } },

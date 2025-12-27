@@ -17,6 +17,7 @@ interface GraphQLClientOPtions {
 interface GraphQLOperationInput {
   query: TemplateStringsArray | string
   variables?: Record<string, any>
+  headers?: Record<string, string>
 }
 
 /**
@@ -26,12 +27,13 @@ interface GraphQLOperationInput {
 export function createGraphQLClient(options: GraphQLClientOPtions) {
   return async <Data extends Record<string, unknown>>(
     input: GraphQLOperationInput,
-  ): Promise<ExecutionResult<Data>> => {
+  ): Promise<ExecutionResult<Data> & { response: Response }> => {
     const response = await fetch(options.uri, {
       method: 'POST',
       headers: {
         accept: '*/*',
         'content-type': 'application/json',
+        ...(input.headers || {}),
       },
       body: JSON.stringify(input),
     })
@@ -39,7 +41,14 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
     // No need to transform the JSON into `ExecutionResult`,
     // because that's the responsibility of an actual server
     // or an MSW request handler.
-    return response.json()
+    const { data, errors, extensions } = await response.json()
+
+    return {
+      data,
+      errors,
+      extensions,
+      response,
+    }
   }
 }
 

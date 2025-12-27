@@ -56,15 +56,15 @@ it('fetches the data from a GraphQL schema', async () => {
     `,
   })
 
-  expect(result.data).toEqual({
+  expect.soft(result.data).toEqual({
     user: {
       firstName: 'John',
     },
   })
-  expect(result.errors).toBeUndefined()
+  expect.soft(result.errors).toBeUndefined()
 })
 
-it('propagates the GraphQL execution errors', async () => {
+it('propagates execution errors', async () => {
   const result = await client({
     query: gql`
       query GetUser {
@@ -78,10 +78,11 @@ it('propagates the GraphQL execution errors', async () => {
     `,
   })
 
-  expect(result.data).toBeUndefined()
-  expect(result.errors).toHaveLength(1)
-  expect(result.errors?.[0]).toHaveProperty(
-    'message',
-    'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
-  )
+  expect.soft(result.data).toBeUndefined()
+  expect.soft(result.errors).toEqual([
+    expect.objectContaining({
+      message:
+        'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
+    }),
+  ])
 })

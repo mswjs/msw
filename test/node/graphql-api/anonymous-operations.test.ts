@@ -2,6 +2,7 @@
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, graphql } from 'msw'
 import { setupServer } from 'msw/node'
+import { createGraphQLClient } from '../../support/graphql'
 
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', (req, res) => {
@@ -23,7 +24,7 @@ beforeAll(async () => {
 
 afterEach(() => {
   server.resetHandlers()
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(async () => {
@@ -34,30 +35,24 @@ afterAll(async () => {
 
 it('warns on unhandled anonymous GraphQL operations', async () => {
   const endpointUrl = httpServer.http.url('/graphql')
-  const response = await fetch(endpointUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `
-        query {
-          user {
-            id
-          }
+  const client = createGraphQLClient({ uri: endpointUrl })
+
+  const result = await client({
+    query: `
+      query {
+        user {
+          id
         }
-      `,
-    }),
-  })
-  const json = await response.json()
-
-  // Must receive the original server response.
-  expect(json).toEqual({
-    data: { user: { id: 'abc-123' } },
+      }
+    `,
   })
 
-  // Must print a warning about the anonymous GraphQL operation.
-  expect(console.warn).toHaveBeenCalledWith(`\
+  expect.soft(result.data).toEqual({
+    user: { id: 'abc-123' },
+  })
+
+  expect(console.warn, 'Warns about an anonymous operation')
+    .toHaveBeenCalledWith(`\
 [MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
@@ -75,31 +70,20 @@ it('does not print a warning when using anonymous operation with "graphql.operat
   )
 
   const endpointUrl = httpServer.http.url('/graphql')
-  const response = await fetch(endpointUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `
-        query {
-          pets {
-            name
-          }
+  const client = createGraphQLClient({ uri: endpointUrl })
+
+  const result = await client({
+    query: `
+      query {
+        pets {
+          name
         }
-      `,
-    }),
-  })
-  const json = await response.json()
-
-  // Must get the mocked response.
-  expect(json).toEqual({
-    data: {
-      pets: [{ name: 'Tom' }, { name: 'Jerry' }],
-    },
+      }
+    `,
   })
 
-  // Must print no warnings: operation is handled and doesn't
-  // have to be named since we're using "graphql.operation()".
-  expect(console.warn).not.toHaveBeenCalled()
+  expect.soft(result.data).toEqual({
+    pets: [{ name: 'Tom' }, { name: 'Jerry' }],
+  })
+  expect(console.warn, 'Must not print any warnings').not.toHaveBeenCalled()
 })

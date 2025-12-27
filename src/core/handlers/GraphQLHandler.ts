@@ -1,4 +1,9 @@
-import type { DocumentNode, GraphQLError, OperationTypeNode } from 'graphql'
+import {
+  parse,
+  type DocumentNode,
+  type GraphQLError,
+  type OperationTypeNode,
+} from 'graphql'
 import {
   DefaultBodyType,
   RequestHandler,
@@ -16,10 +21,21 @@ import {
   GraphQLMultipartRequestBody,
   parseGraphQLRequest,
   parseDocumentNode,
+  ParsedGraphQLQuery,
 } from '../utils/internal/parseGraphQLRequest'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { invariant } from 'outvariant'
+
+export interface DocumentTypeDecoration<
+  Result = { [key: string]: any },
+  Variables = { [key: string]: any },
+> {
+  __apiType?: (variables: Variables) => Result
+  __resultType?: Result
+  __variablesType?: Variables
+}
 
 export type GraphQLOperationType = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
@@ -88,8 +104,9 @@ export type GraphQLCustomPredicate = (args: {
 
 export type GraphQLCustomPredicateResult = boolean | { matches: boolean }
 
-export type GraphQLPredicate =
+export type GraphQLPredicate<Query = any, Variables = any> =
   | GraphQLHandlerNameSelector
+  | DocumentTypeDecoration<Query, Variables>
   | GraphQLCustomPredicate
 
 export function isDocumentNode(
@@ -100,6 +117,12 @@ export function isDocumentNode(
   }
 
   return typeof value === 'object' && 'kind' in value && 'definitions' in value
+}
+
+function isDocumentTypeDecoration(
+  value: any,
+): value is DocumentTypeDecoration<any, any> {
+  return value instanceof String
 }
 
 export class GraphQLHandler extends RequestHandler<
@@ -114,6 +137,45 @@ export class GraphQLHandler extends RequestHandler<
     ParsedGraphQLRequest<GraphQLVariables>
   >()
 
+  static #parseOperationName(
+    predicate: GraphQLPredicate,
+    operationType: GraphQLOperationType,
+  ): GraphQLHandlerInfo['operationName'] {
+    const getOperationName = (node: ParsedGraphQLQuery): string => {
+      invariant(
+        node.operationType === operationType,
+        'Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "%s" but got "%s").',
+        operationType,
+        node.operationType,
+      )
+
+      invariant(
+        node.operationName,
+        'Failed to create a GraphQL handler: provided a DocumentNode without operation name',
+      )
+
+      return node.operationName
+    }
+
+    if (isDocumentNode(predicate)) {
+      return getOperationName(parseDocumentNode(predicate))
+    }
+
+    if (isDocumentTypeDecoration(predicate)) {
+      const documentNode = parse(predicate.toString())
+
+      invariant(
+        isDocumentNode(documentNode),
+        'Failed to create a GraphQL handler: given TypedDocumentString (%s) does not produce a valid DocumentNode',
+        predicate,
+      )
+
+      return getOperationName(parseDocumentNode(documentNode))
+    }
+
+    return predicate
+  }
+
   constructor(
     operationType: GraphQLOperationType,
     predicate: GraphQLPredicate,
@@ -121,30 +183,13 @@ export class GraphQLHandler extends RequestHandler<
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
-    let resolvedOperationName = predicate
-
-    if (isDocumentNode(resolvedOperationName)) {
-      const parsedNode = parseDocumentNode(resolvedOperationName)
-
-      if (parsedNode.operationType !== operationType) {
-        throw new Error(
-          `Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "${operationType}", but got "${parsedNode.operationType}").`,
-        )
-      }
-
-      if (!parsedNode.operationName) {
-        throw new Error(
-          `Failed to create a GraphQL handler: provided a DocumentNode with no operation name.`,
-        )
-      }
-
-      resolvedOperationName = parsedNode.operationName
-    }
+    const operationName = GraphQLHandler.#parseOperationName(
+      predicate,
+      operationType,
+    )
 
     const displayOperationName =
-      typeof resolvedOperationName === 'function'
-        ? '[custom predicate]'
-        : resolvedOperationName
+      typeof operationName === 'function' ? '[custom predicate]' : operationName
 
     const header =
       operationType === 'all'
@@ -155,7 +200,10 @@ export class GraphQLHandler extends RequestHandler<
       info: {
         header,
         operationType,
-        operationName: resolvedOperationName,
+        operationName: GraphQLHandler.#parseOperationName(
+          predicate,
+          operationType,
+        ),
       },
       resolver,
       options,

@@ -1,4 +1,4 @@
-import type { DocumentNode, OperationTypeNode } from 'graphql'
+import type { OperationTypeNode } from 'graphql'
 import {
   ResponseResolver,
   RequestHandlerOptions,
@@ -7,31 +7,18 @@ import {
   GraphQLHandler,
   GraphQLVariables,
   GraphQLOperationType,
-  GraphQLHandlerNameSelector,
   GraphQLResolverExtras,
   GraphQLResponseBody,
   GraphQLQuery,
-  GraphQLCustomPredicate,
+  GraphQLPredicate,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
-
-export interface TypedDocumentNode<
-  Result = { [key: string]: any },
-  Variables = { [key: string]: any },
-> extends DocumentNode {
-  __apiType?: (variables: Variables) => Result
-  __resultType?: Result
-  __variablesType?: Variables
-}
 
 export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
   Variables extends GraphQLVariables = GraphQLVariables,
 >(
-  predicate:
-    | GraphQLHandlerNameSelector
-    | TypedDocumentNode<Query, Variables>
-    | GraphQLCustomPredicate,
+  predicate: GraphQLPredicate<Query, Variables>,
   resolver: GraphQLResponseResolver<
     [Query] extends [never] ? GraphQLQuery : Query,
     Variables

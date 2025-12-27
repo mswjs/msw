@@ -1,4 +1,5 @@
-import type { ExecutionResult } from 'graphql'
+import { parse, type ExecutionResult } from 'graphql'
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 
 /**
  * Identity function that returns a given template string array.
@@ -16,6 +17,7 @@ interface GraphQLClientOPtions {
 interface GraphQLOperationInput {
   query: TemplateStringsArray | string
   variables?: Record<string, any>
+  headers?: Record<string, string>
 }
 
 /**
@@ -23,16 +25,15 @@ interface GraphQLOperationInput {
  * specification-compliant GraphQL request.
  */
 export function createGraphQLClient(options: GraphQLClientOPtions) {
-  const fetchFn = options.fetch || fetch
-
   return async <Data extends Record<string, unknown>>(
     input: GraphQLOperationInput,
-  ): Promise<ExecutionResult<Data>> => {
-    const response = await fetchFn(options.uri, {
+  ): Promise<ExecutionResult<Data> & { response: Response }> => {
+    const response = await fetch(options.uri, {
       method: 'POST',
       headers: {
         accept: '*/*',
         'content-type': 'application/json',
+        ...(input.headers || {}),
       },
       body: JSON.stringify(input),
     })
@@ -40,6 +41,20 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
     // No need to transform the JSON into `ExecutionResult`,
     // because that's the responsibility of an actual server
     // or an MSW request handler.
-    return response.json()
+    const { data, errors, extensions } = await response.json()
+
+    return {
+      data,
+      errors,
+      extensions,
+      response,
+    }
   }
+}
+
+export function createTypedGraphQlNode<TResult = any, TVariables = any>(
+  source: string,
+): TypedDocumentNode<TResult, TVariables> {
+  const doc = typeof source === 'string' ? parse(source) : source
+  return doc as TypedDocumentNode<TResult, TVariables>
 }

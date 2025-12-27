@@ -30,7 +30,6 @@ export type GraphQLRequestHandler = <
 >(
   predicate:
     | GraphQLHandlerNameSelector
-    | DocumentNode
     | TypedDocumentNode<Query, Variables>
     | GraphQLCustomPredicate,
   resolver: GraphQLResponseResolver<

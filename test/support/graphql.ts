@@ -1,4 +1,5 @@
-import type { ExecutionResult } from 'graphql'
+import { parse, type ExecutionResult } from 'graphql'
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 
 /**
  * Identity function that returns a given template string array.
@@ -42,4 +43,11 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
     // or an MSW request handler.
     return response.json()
   }
+}
+
+export function createTypedGraphQlNode<TResult = any, TVariables = any>(
+  source: string,
+): TypedDocumentNode<TResult, TVariables> {
+  const doc = typeof source === 'string' ? parse(source) : source
+  return doc as TypedDocumentNode<TResult, TVariables>
 }

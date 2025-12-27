@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, graphql } from 'msw'
 import { setupServer } from 'msw/node'
@@ -34,7 +32,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('warns on unhandled anonymous GraphQL operations', async () => {
+it('warns on unhandled anonymous GraphQL operations', async () => {
   const endpointUrl = httpServer.http.url('/graphql')
   const response = await fetch(endpointUrl, {
     method: 'POST',
@@ -65,9 +63,9 @@ test('warns on unhandled anonymous GraphQL operations', async () => {
 Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
 })
 
-test('does not print a warning when using anonymous operation with "graphql.operation()"', async () => {
+it('does not print a warning when using anonymous operation with "graphql.operation()"', async () => {
   server.use(
-    graphql.operation(async ({ query, variables }) => {
+    graphql.operation(async () => {
       return HttpResponse.json({
         data: {
           pets: [{ name: 'Tom' }, { name: 'Jerry' }],

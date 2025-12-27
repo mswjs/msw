@@ -25,23 +25,23 @@ const httpServer = new HttpServer((app) => {
 })
 
 const schema = buildSchema(`
-type User {
-  id: ID!
-}
+  type User {
+    id: ID!
+  }
 
-type Product {
-  name: String!
-}
+  type Product {
+    name: String!
+  }
 
-type Server {
-  url: String!
-}
+  type Server {
+    url: String!
+  }
 
-type Query {
-  user: User
-  product: Product
-  server: Server
-}
+  type Query {
+    user: User
+    product: Product
+    server: Server
+  }
 `)
 
 const server = setupServer()

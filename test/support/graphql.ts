@@ -24,12 +24,10 @@ interface GraphQLOperationInput {
  * specification-compliant GraphQL request.
  */
 export function createGraphQLClient(options: GraphQLClientOPtions) {
-  const fetchFn = options.fetch || fetch
-
   return async <Data extends Record<string, unknown>>(
     input: GraphQLOperationInput,
   ): Promise<ExecutionResult<Data>> => {
-    const response = await fetchFn(options.uri, {
+    const response = await fetch(options.uri, {
       method: 'POST',
       headers: {
         accept: '*/*',

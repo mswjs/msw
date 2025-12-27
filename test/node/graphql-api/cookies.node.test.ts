@@ -49,7 +49,7 @@ afterAll(() => {
   server.close()
 })
 
-test('sets cookie on the mocked response', async () => {
+it('sets cookie on the mocked response', async () => {
   const res = await fetch('https://api.mswjs.io', {
     method: 'POST',
     headers: {

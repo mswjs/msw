@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql as executeGraphql } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
@@ -49,7 +47,7 @@ afterAll(() => {
   server.close()
 })
 
-test('adds extensions to the original response data', async () => {
+it('adds extensions to the original response data', async () => {
   const res = await fetch('https://api.mswjs.io', {
     method: 'POST',
     headers: {

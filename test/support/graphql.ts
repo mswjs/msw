@@ -1,5 +1,8 @@
 import { parse, type ExecutionResult } from 'graphql'
-import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import {
+  DocumentTypeDecoration,
+  TypedDocumentNode,
+} from '@graphql-typed-document-node/core'
 
 /**
  * Identity function that returns a given template string array.
@@ -52,7 +55,31 @@ export function createGraphQLClient(options: GraphQLClientOPtions) {
   }
 }
 
-export function createTypedGraphQlNode<TResult = any, TVariables = any>(
+export class TypedDocumentString<TResult, TVariables>
+  extends String
+  implements DocumentTypeDecoration<TResult, TVariables>
+{
+  __apiType?: DocumentTypeDecoration<TResult, TVariables>['__apiType']
+
+  constructor(
+    private value: string,
+    public __meta__?: { hash: string },
+  ) {
+    super(value)
+  }
+
+  toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+    return this.value
+  }
+}
+
+export function createTypedDocumentString<TResult = any, TVariables = any>(
+  source: string,
+) {
+  return new TypedDocumentString<TResult, TVariables>(source)
+}
+
+export function createTypedDocumentNode<TResult = any, TVariables = any>(
   source: string,
 ): TypedDocumentNode<TResult, TVariables> {
   const doc = typeof source === 'string' ? parse(source) : source

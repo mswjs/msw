@@ -3,8 +3,8 @@ import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import {
   gql,
-  createTypedDocumentNode,
   createGraphQLClient,
+  createTypedDocumentString,
 } from '../../support/graphql'
 
 const server = setupServer()
@@ -21,7 +21,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports TypedDocumentNode as request predicate', async () => {
+it('supports TypedDocumentString as request predicate', async () => {
   const GET_USER = gql`
     query GetUser($id: ID!) {
       user(id: $id) {
@@ -31,13 +31,13 @@ it('supports TypedDocumentNode as request predicate', async () => {
     }
   `
 
-  const documentNode = createTypedDocumentNode<
+  const documentString = createTypedDocumentString<
     { user: { id: string; name: string } },
     { id: string }
   >(GET_USER)
 
   server.use(
-    graphql.query(documentNode, ({ variables }) => {
+    graphql.query(documentString, ({ variables }) => {
       return HttpResponse.json({
         data: {
           user: {
@@ -55,13 +55,14 @@ it('supports TypedDocumentNode as request predicate', async () => {
 
   const result = await client({
     query: GET_USER,
-    variables: {
-      id: 'abc-123',
-    },
+    variables: { id: 'abc-123' },
   })
 
-  expect
-    .soft(result.data)
-    .toEqual({ user: { id: 'abc-123', name: 'John Doe' } })
+  expect.soft(result.data).toEqual({
+    user: {
+      id: 'abc-123',
+      name: 'John Doe',
+    },
+  })
   expect.soft(result.errors).toBeUndefined()
 })

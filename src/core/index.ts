@@ -73,7 +73,12 @@ export type {
   GraphQLOperationType,
   GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'
-export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
+export type {
+  GraphQLRequestHandler,
+  GraphQLOperationHandler,
+  GraphQLResponseResolver,
+  GraphQLLinkHandlers,
+} from './graphql'
 
 export type { WebSocketData, WebSocketEventListener } from './ws'
 

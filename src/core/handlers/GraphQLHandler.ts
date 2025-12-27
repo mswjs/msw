@@ -144,7 +144,7 @@ export class GraphQLHandler extends RequestHandler<
     const getOperationName = (node: ParsedGraphQLQuery): string => {
       invariant(
         node.operationType === operationType,
-        'Failed to create a GraphQL handler: expected a DocumentNode with operation type "%s" but got "%s"',
+        'Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "%s" but got "%s").',
         operationType,
         node.operationType,
       )

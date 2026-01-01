@@ -23,7 +23,7 @@ function postInstall() {
      * @note Call the "init" command directly. It will now copy the worker script
      * to all saved paths in "msw.workerDirectory"
      */
-    execFileSync('node', [cliExecutable, 'init'], {
+    execFileSync(process.execPath, [cliExecutable, 'init'], {
       cwd: parentPackageCwd,
     })
   } catch (error) {

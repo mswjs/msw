@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 
 // When executing the "postinstall" script, the "process.cwd" equals
 // the package directory, not the parent project where the package is installed.
@@ -23,7 +23,7 @@ function postInstall() {
      * @note Call the "init" command directly. It will now copy the worker script
      * to all saved paths in "msw.workerDirectory"
      */
-    execSync(`node ${cliExecutable} init`, {
+    execFileSync('node', [cliExecutable, 'init'], {
       cwd: parentPackageCwd,
     })
   } catch (error) {

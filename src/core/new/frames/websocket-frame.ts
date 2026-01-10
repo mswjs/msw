@@ -1,7 +1,10 @@
 import { TypedEvent } from 'rettime'
 import { type WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
 import { type WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import { NetworkFrame, NetworkFrameResolutionContext } from './network-frame'
+import {
+  NetworkFrame,
+  type NetworkFrameResolutionContext,
+} from './network-frame'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -30,7 +33,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
   public async resolve(
     handlers: Array<WebSocketHandler>,
     resolutionContext?: NetworkFrameResolutionContext,
-  ): Promise<void> {
+  ): Promise<boolean | null> {
     const { connection } = this.data
 
     this.events.emit(
@@ -43,20 +46,33 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     )
 
     if (handlers.length === 0) {
-      return
+      return false
     }
 
-    await Promise.all(
+    const matchingHandlers = await Promise.all(
       handlers.map(async (handler) => {
         const matches = await handler.run(connection, {
           baseUrl: resolutionContext?.baseUrl?.toString(),
         })
 
-        if (matches) {
-          //
+        if (!matches) {
+          return null
         }
+
+        if (!resolutionContext?.quiet) {
+          handler.log(connection)
+        }
+
+        return handler
       }),
     )
+
+    if (matchingHandlers.every((handler) => handler == null)) {
+      this.passthrough()
+      return null
+    }
+
+    return true
   }
 
   public async getUnhandledFrameMessage(): Promise<string> {

@@ -1,5 +1,5 @@
 import type { PartialDeep } from 'type-fest'
-import { AnyHandler } from '~/core'
+import { type AnyHandler } from '~/core/new/handlers-controller'
 import type {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,

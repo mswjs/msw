@@ -1,3 +1,3 @@
 export type { SetupServer } from './glossary'
-export { SetupServerApi } from './SetupServerApi'
-export { setupServer } from './setupServer'
+export { setupServer, SetupServerApi } from './setup-server'
+export { SetupServerCommonApi } from './setup-server-common'

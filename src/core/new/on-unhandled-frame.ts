@@ -1,4 +1,3 @@
-import { UnhandledRequestStrategy } from 'src/iife'
 import { isCommonAssetRequest } from '../isCommonAssetRequest'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
 import { type NetworkFrame } from './sources/network-source'
@@ -75,35 +74,4 @@ export async function onUnhandledFrame(
   }
 
   return applyStrategy(handle)
-}
-
-export function fromLegacyOnUnhandledRequest(
-  getLegacyValue: () => UnhandledRequestStrategy | undefined,
-): UnhandledFrameCallback {
-  return ({ frame, defaults }) => {
-    const legacyOnUnhandledRequestStrategy = getLegacyValue()
-
-    if (legacyOnUnhandledRequestStrategy === undefined) {
-      return
-    }
-
-    if (typeof legacyOnUnhandledRequestStrategy === 'function') {
-      const request =
-        frame.protocol === 'http'
-          ? frame.data.request
-          : new Request(frame.data.connection.client.url, {
-              headers: {
-                connection: 'upgrade',
-                upgrade: 'websocket',
-              },
-            })
-
-      return legacyOnUnhandledRequestStrategy(request, {
-        warning: defaults.warn,
-        error: defaults.error,
-      })
-    }
-
-    return onUnhandledFrame(frame, legacyOnUnhandledRequestStrategy)
-  }
 }

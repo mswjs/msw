@@ -42,8 +42,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       rettime:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.9.0
+        version: 0.9.0
       statuses:
         specifier: ^2.0.2
         version: 2.0.2
@@ -4315,8 +4315,8 @@ packages:
     resolution: {integrity: sha512-I1XxrZSQ+oErkRR4jYbAyEEu2I0avBvvMM5JN+6EBprOGRCs63ENqZ3vjavq8fBw2+62G5LF5XelKwuJpcvcxw==}
     engines: {node: '>=10'}
 
-  rettime@0.7.0:
-    resolution: {integrity: sha512-LPRKoHnLKd/r3dVxcwO7vhCW+orkOGj9ViueosEBK6ie89CijnfRlhaDhHq/3Hxu4CkWQtxwlBG0mzTQY6uQjw==}
+  rettime@0.9.0:
+    resolution: {integrity: sha512-mj6hOrwD8UA+jFqyCiSBxm8MI+qhYeSqS0aNcGfPkVmmCyHNFRr3hoQUTTZ3iBgk1x4ZNXnvSzluFZM4kcx/gA==}
 
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
@@ -9711,7 +9711,7 @@ snapshots:
 
   ret@0.5.0: {}
 
-  rettime@0.7.0: {}
+  rettime@0.9.0: {}
 
   reusify@1.0.4: {}
 

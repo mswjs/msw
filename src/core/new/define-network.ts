@@ -1,7 +1,5 @@
 import { Emitter } from 'rettime'
 import { type NetworkSource } from './sources/network-source'
-
-import { pipeEvents } from '../utils/internal/pipeEvents'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { onUnhandledFrame, UnhandledFrameHandle } from './on-unhandled-frame'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
@@ -23,13 +21,14 @@ export interface DefineNetworkOptions {
 export interface NetworkApi extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
+  events: Emitter<any>
 }
 
 export interface NetworkHandlersApi {
   use: (...handlers: Array<AnyHandler>) => void
   resetHandlers: (...handlers: Array<AnyHandler>) => void
   restoreHandlers: () => void
-  listHandlers: () => void
+  listHandlers: () => ReadonlyArray<AnyHandler>
 }
 
 export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
@@ -38,11 +37,17 @@ export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
     options.controller || new InMemoryHandlersController(options.handlers || [])
 
   return {
+    events,
     async enable() {
       await Promise.all(
         options.sources.map(async (source) => {
           source.on('frame', async ({ data: frame }) => {
-            pipeEvents(frame.events, events)
+            /**
+             * @fixme Rettime has trouble typing `.on` when the emitter
+             * has a union of eventmap types. Add a type test and a runtime test
+             * for this use case (piping events).
+             */
+            frame.events.on((event) => events.emit(event))
 
             const handlerPredicate =
               frame.protocol === 'http'

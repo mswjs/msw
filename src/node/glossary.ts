@@ -1,11 +1,12 @@
 import type { PartialDeep } from 'type-fest'
-import type { RequestHandler } from '~/core/handlers/RequestHandler'
-import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
+import { AnyHandler } from '~/core'
 import type {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
   SharedOptions,
 } from '~/core/sharedOptions'
+
+export interface ListenOptions extends SharedOptions {}
 
 export interface SetupServerCommon {
   /**
@@ -13,7 +14,7 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()` API reference}
    */
-  listen(options?: PartialDeep<SharedOptions>): void
+  listen(options?: PartialDeep<ListenOptions>): void
 
   /**
    * Stops requests interception by restoring all augmented modules.
@@ -27,7 +28,7 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/use `server.use()` API reference}
    */
-  use(...handlers: Array<RequestHandler | WebSocketHandler>): void
+  use(...handlers: Array<AnyHandler>): void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -41,14 +42,14 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/reset-handlers `server.reset-handlers()` API reference}
    */
-  resetHandlers(...nextHandlers: Array<RequestHandler | WebSocketHandler>): void
+  resetHandlers(...nextHandlers: Array<AnyHandler>): void
 
   /**
    * Returns a readonly list of currently active request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/list-handlers `server.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
+  listHandlers(): ReadonlyArray<AnyHandler>
 
   /**
    * Life-cycle events.

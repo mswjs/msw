@@ -8,7 +8,7 @@ import {
 import type {
   WebSocketConnectionData,
   WebSocketEventMap,
-} from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+} from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
 import { InternalError } from '~/core/utils/internal/devUtils'
 import { HttpNetworkFrame } from '../frames/http-frame'

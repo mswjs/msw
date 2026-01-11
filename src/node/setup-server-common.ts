@@ -1,12 +1,9 @@
 import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
 import { ListenOptions, SetupServerCommon } from './glossary'
-import {
-  AnyHandler,
-  defineNetwork,
-  LifeCycleEventsMap,
-  NetworkApi,
-} from '~/core'
+import { type LifeCycleEventsMap } from '~/core'
+import { type NetworkApi, defineNetwork } from '~/core/new/define-network'
+import { type AnyHandler } from '~/core/new/handlers-controller'
 import { HandlersController } from '~/core/new/handlers-controller'
 import { InterceptorSource } from '~/core/new/sources/interceptor-source'
 import {

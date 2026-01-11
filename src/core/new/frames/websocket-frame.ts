@@ -1,5 +1,5 @@
 import { TypedEvent } from 'rettime'
-import { type WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import { type WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import {
   NetworkFrame,

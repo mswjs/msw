@@ -15,7 +15,7 @@ export abstract class NetworkSource<Frame extends NetworkFrame = NetworkFrame> {
     this.emitter = new Emitter()
   }
 
-  public abstract enable(): Promise<void>
+  public abstract enable(): Promise<unknown>
 
   public async queue(frame: Frame): Promise<void> {
     await this.emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))

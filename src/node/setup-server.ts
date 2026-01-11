@@ -17,7 +17,13 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServerApi {
     new ClientRequestInterceptor(),
     new XMLHttpRequestInterceptor(),
     new FetchInterceptor(),
-    new WebSocketInterceptor(),
+    /**
+     * @fixme WebSocketInterceptor is in a browser-only export of Interceptors
+     * while the Interceptor class imported from the root module points to `lib/node`.
+     * An absolute madness to solve as it requires to duplicate the build config we have
+     * in MSW: shared core, CJS/ESM patching, .d.ts patching...
+     */
+    new WebSocketInterceptor() as any,
   ])
 }
 

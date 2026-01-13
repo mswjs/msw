@@ -2,6 +2,7 @@
  * Collection of helpers for briding the compatibility between the old and the new APIs.
  */
 import { Emitter } from 'rettime'
+import { invariant } from 'outvariant'
 import {
   Emitter as LegacyEmitter,
   EventMap as LegacyEventMap,
@@ -11,6 +12,8 @@ import {
   onUnhandledFrame,
   type UnhandledFrameCallback,
 } from './on-unhandled-frame'
+import { HttpNetworkFrame } from './frames/http-frame'
+import { WebSocketNetworkFrame } from './frames/websocket-frame'
 
 export function toLegacyEmitter<EventMap extends LegacyEventMap>(
   emitter: Emitter<any>,
@@ -19,7 +22,7 @@ export function toLegacyEmitter<EventMap extends LegacyEventMap>(
 
   legacy
     .addListener('newListener', (type, listener) => {
-      emitter.on(type as any, (event) => listener(event.data))
+      emitter.on(type as string, (event) => listener(event.data))
     })
     .addListener('removeListener', (type, listener) => {
       emitter.removeListener(type as any, listener)
@@ -40,14 +43,22 @@ export function fromLegacyOnUnhandledRequest(
 
     if (typeof legacyOnUnhandledRequestStrategy === 'function') {
       const request =
-        frame.protocol === 'http'
+        frame instanceof HttpNetworkFrame
           ? frame.data.request
-          : new Request(frame.data.connection.client.url, {
-              headers: {
-                connection: 'upgrade',
-                upgrade: 'websocket',
-              },
-            })
+          : frame instanceof WebSocketNetworkFrame
+            ? new Request(frame.data.connection.client.url, {
+                headers: {
+                  connection: 'upgrade',
+                  upgrade: 'websocket',
+                },
+              })
+            : null
+
+      invariant(
+        request != null,
+        'Failed to coerce a network frame to a legacy `onUnhandledRequest` strategy: unknown frame protocol "%s"',
+        frame.protocol,
+      )
 
       return legacyOnUnhandledRequestStrategy(request, {
         warning: defaults.warn,

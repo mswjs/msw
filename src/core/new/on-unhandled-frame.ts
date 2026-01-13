@@ -1,6 +1,7 @@
 import { isCommonAssetRequest } from '../isCommonAssetRequest'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
-import { type NetworkFrame } from './sources/network-source'
+import { HttpNetworkFrame } from './frames/http-frame'
+import { type AnyNetworkFrame } from './sources/network-source'
 
 export type UnhandledFrameHandle =
   | UnhandledFrameStrategy
@@ -9,7 +10,7 @@ export type UnhandledFrameHandle =
 export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
 
 export type UnhandledFrameCallback = (args: {
-  frame: NetworkFrame
+  frame: AnyNetworkFrame
   defaults: UnhandledFrameDefaults
 }) => Promise<void> | void
 
@@ -19,11 +20,14 @@ export type UnhandledFrameDefaults = {
 }
 
 export async function onUnhandledFrame(
-  frame: NetworkFrame,
+  frame: AnyNetworkFrame,
   handle: UnhandledFrameHandle,
 ): Promise<void> {
   // Ignore unhandled common HTTP assets.
-  if (frame.protocol === 'http' && isCommonAssetRequest(frame.data.request)) {
+  if (
+    frame instanceof HttpNetworkFrame &&
+    isCommonAssetRequest(frame.data.request)
+  ) {
     return
   }
 

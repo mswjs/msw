@@ -1,7 +1,7 @@
 import { Emitter, TypedEvent } from 'rettime'
 import { type NetworkFrame } from '../frames/network-frame'
 
-type AnyNetworkFrame = NetworkFrame<string, unknown, any>
+export type AnyNetworkFrame = NetworkFrame<string, unknown, any>
 
 type NetworkSourceEventMap = {
   frame: TypedEvent<AnyNetworkFrame>

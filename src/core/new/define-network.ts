@@ -21,7 +21,7 @@ export interface DefineNetworkOptions {
 export interface NetworkApi extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
-  events: Emitter<any>
+  events: Emitter<any> /** @fixme Infer event maps from sources */
 }
 
 export interface NetworkHandlersApi {

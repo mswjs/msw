@@ -1,6 +1,9 @@
 import { Emitter, type DefaultEventMap } from 'rettime'
 import { type AnyHandler } from '../handlers-controller'
 
+export type ExtractFrameEvents<Frame> =
+  Frame extends NetworkFrame<any, any, infer Events> ? Events : never
+
 export interface NetworkFrameResolutionContext {
   baseUrl?: string | URL
   quiet?: boolean

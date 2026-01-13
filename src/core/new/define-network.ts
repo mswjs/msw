@@ -1,5 +1,9 @@
-import { Emitter } from 'rettime'
-import { type NetworkSource } from './sources/network-source'
+import { Emitter, type DefaultEventMap } from 'rettime'
+import {
+  type NetworkSource,
+  type ExtractSourceEvents,
+  type AnyNetworkFrame,
+} from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { onUnhandledFrame, UnhandledFrameHandle } from './on-unhandled-frame'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
@@ -10,18 +14,34 @@ import {
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 
-export interface DefineNetworkOptions {
-  sources: Array<NetworkSource>
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I,
+) => void
+  ? I
+  : never
+
+type MergeEventMaps<Sources extends ReadonlyArray<NetworkSource<any>>> =
+  UnionToIntersection<ExtractSourceEvents<Sources[number]>> extends infer R
+    ? R extends Record<string, any>
+      ? R
+      : DefaultEventMap
+    : DefaultEventMap
+
+export interface DefineNetworkOptions<
+  Sources extends ReadonlyArray<NetworkSource<any>>,
+> {
+  sources: Sources
   handlers?: Array<AnyHandler>
   context?: NetworkFrameResolutionContext
   controller?: HandlersController
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi extends NetworkHandlersApi {
+export interface NetworkApi<EventMap extends DefaultEventMap>
+  extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
-  events: Emitter<any> /** @fixme Infer event maps from sources */
+  events: Emitter<EventMap>
 }
 
 export interface NetworkHandlersApi {
@@ -31,8 +51,10 @@ export interface NetworkHandlersApi {
   listHandlers: () => ReadonlyArray<AnyHandler>
 }
 
-export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
-  const events = new Emitter()
+export function defineNetwork<
+  Sources extends ReadonlyArray<NetworkSource<any>>,
+>(options: DefineNetworkOptions<Sources>): NetworkApi<MergeEventMaps<Sources>> {
+  const events = new Emitter<MergeEventMaps<Sources>>()
   const handlersController =
     options.controller || new InMemoryHandlersController(options.handlers || [])
 
@@ -41,37 +63,43 @@ export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
     async enable() {
       await Promise.all(
         options.sources.map(async (source) => {
-          source.on('frame', async ({ data: frame }) => {
-            frame.events.on((event) => events.emit(event))
-
-            /**
-             * @fixme Handler filtering on each frame is expensive.
-             * Refactor the way we store handlers into a Map<HandlerKind, Array<Handler>>.
-             */
-            const handlerPredicate =
-              frame.protocol === 'http'
-                ? isHandlerKind('RequestHandler')
-                : frame.protocol === 'ws'
-                  ? isHandlerKind('EventHandler')
-                  : () => false
-
-            const handlers =
-              handlersController.currentHandlers.filter(handlerPredicate) || []
-
-            const isHandledFrame = await frame.resolve(
-              handlers,
-              options.context,
-            )
-
-            if (isHandledFrame === false) {
-              await onUnhandledFrame(
-                frame,
-                options.onUnhandledFrame || 'warn',
-              ).catch((error) => {
-                frame.errorWith(error)
+          source.on(
+            'frame',
+            async ({ data: frame }: { data: AnyNetworkFrame }) => {
+              frame.events.on((event) => {
+                events.emit(event as any)
               })
-            }
-          })
+
+              /**
+               * @fixme Handler filtering on each frame is expensive.
+               * Refactor the way we store handlers into a Map<HandlerKind, Array<Handler>>.
+               */
+              const handlerPredicate =
+                frame.protocol === 'http'
+                  ? isHandlerKind('RequestHandler')
+                  : frame.protocol === 'ws'
+                    ? isHandlerKind('EventHandler')
+                    : () => false
+
+              const handlers =
+                handlersController.currentHandlers.filter(handlerPredicate) ||
+                []
+
+              const isHandledFrame = await frame.resolve(
+                handlers,
+                options.context,
+              )
+
+              if (isHandledFrame === false) {
+                await onUnhandledFrame(
+                  frame,
+                  options.onUnhandledFrame || 'warn',
+                ).catch((error) => {
+                  frame.errorWith(error)
+                })
+              }
+            },
+          )
 
           await source.enable()
         }),

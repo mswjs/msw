@@ -1,11 +1,6 @@
-import { Emitter } from 'strict-event-emitter'
 import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
 import type { DeferredPromise } from '@open-draft/deferred-promise'
-import {
-  LifeCycleEventEmitter,
-  LifeCycleEventsMap,
-  SharedOptions,
-} from '~/core/sharedOptions'
+import { LifeCycleEventEmitter, SharedOptions } from '~/core/sharedOptions'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
@@ -22,7 +17,7 @@ export type SetupWorkerInternalContext = {
   workerPromise: DeferredPromise<ServiceWorker>
   registration: ServiceWorkerRegistration | undefined
   getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
-  emitter: Emitter<LifeCycleEventsMap>
+  emitter: LifeCycleEventEmitter
   keepAliveInterval?: number
   workerChannel: WorkerChannel
   fallbackInterceptor?: Interceptor<HttpRequestEventMap>

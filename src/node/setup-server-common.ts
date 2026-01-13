@@ -10,7 +10,7 @@ import { fromLegacyOnUnhandledRequest } from '~/core/new/compat'
 export class SetupServerCommonApi implements SetupServerCommon {
   #listenOptions?: PartialDeep<ListenOptions>
 
-  protected network: NetworkApi
+  protected network: NetworkApi<any>
 
   constructor(
     interceptors: Array<Interceptor<any>>,
@@ -31,7 +31,7 @@ export class SetupServerCommonApi implements SetupServerCommon {
   }
 
   get events() {
-    return this.network.events
+    return this.network.events as any
   }
 
   public listen(options?: PartialDeep<ListenOptions>): void {

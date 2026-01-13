@@ -4,7 +4,7 @@ import { LifeCycleEventEmitter, SharedOptions } from '~/core/sharedOptions'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import type { WorkerChannel } from '../utils/workerChannel'
+import type { WorkerChannel } from './utils/workerChannel'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null

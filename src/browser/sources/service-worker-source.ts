@@ -9,7 +9,7 @@ import {
 import { getWorkerInstance } from '../setupWorker/start/utils/getWorkerInstance'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
-import { FindWorker } from '../setupWorker/glossary'
+import { FindWorker } from '../glossary'
 import { Emitter, TypedEvent } from 'rettime'
 import { deserializeRequest } from '../utils/deserializeRequest'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
@@ -38,7 +38,7 @@ type ResponseEvent = Emitter.EventType<
   WorkerChannelEventMap
 >
 
-export class ServiceWorkerSource extends NetworkSource {
+export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
   #workerPromise: DeferredPromise<ServiceWorker>
@@ -225,7 +225,7 @@ export class ServiceWorkerSource extends NetworkSource {
         : new FetchResponse(response.body, response)
 
     frame.events.emit(
-      new TypedEvent('response', {
+      new TypedEvent(isMockedResponse ? 'response:mocked' : 'response:bypass', {
         data: {
           requestId: request.id,
           request: fetchRequest,

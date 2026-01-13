@@ -10,7 +10,7 @@ import { fromLegacyOnUnhandledRequest } from '~/core/new/compat'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
-import { type FindWorker } from './setupWorker/glossary'
+import { type FindWorker } from './glossary'
 import { type UnhandledRequestStrategy } from '~/core/utils/request/onUnhandledRequest'
 
 interface SetupWorkerApi extends NetworkHandlersApi {
@@ -37,7 +37,7 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
 export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
-  let network: NetworkApi
+  let network: NetworkApi<[ServiceWorkerSource]>
 
   return {
     async start(options) {
@@ -54,7 +54,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
         sources: [
           httpSource,
           new InterceptorSource({
-            interceptors: [new WebSocketInterceptor()],
+            interceptors: [new WebSocketInterceptor() as any],
           }),
         ],
         handlers,

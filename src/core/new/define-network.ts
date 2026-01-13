@@ -20,7 +20,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never
 
-type MergeEventMaps<Sources extends ReadonlyArray<NetworkSource<any>>> =
+type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
   UnionToIntersection<ExtractSourceEvents<Sources[number]>> extends infer R
     ? R extends Record<string, any>
       ? R
@@ -28,7 +28,7 @@ type MergeEventMaps<Sources extends ReadonlyArray<NetworkSource<any>>> =
     : DefaultEventMap
 
 export interface DefineNetworkOptions<
-  Sources extends ReadonlyArray<NetworkSource<any>>,
+  Sources extends Array<NetworkSource<any>>,
 > {
   sources: Sources
   handlers?: Array<AnyHandler>
@@ -37,11 +37,11 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<EventMap extends DefaultEventMap>
+export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
   extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
-  events: Emitter<EventMap>
+  events: Emitter<MergeEventMaps<Sources>>
 }
 
 export interface NetworkHandlersApi {
@@ -51,9 +51,9 @@ export interface NetworkHandlersApi {
   listHandlers: () => ReadonlyArray<AnyHandler>
 }
 
-export function defineNetwork<
-  Sources extends ReadonlyArray<NetworkSource<any>>,
->(options: DefineNetworkOptions<Sources>): NetworkApi<MergeEventMaps<Sources>> {
+export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
+  options: DefineNetworkOptions<Sources>,
+): NetworkApi<Sources> {
   const events = new Emitter<MergeEventMaps<Sources>>()
   const handlersController =
     options.controller || new InMemoryHandlersController(options.handlers || [])

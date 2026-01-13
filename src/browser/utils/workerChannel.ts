@@ -1,7 +1,7 @@
 import { invariant } from 'outvariant'
 import { Emitter, TypedEvent } from 'rettime'
 import { isObject } from '~/core/utils/internal/isObject'
-import type { StringifiedResponse } from '../setupWorker/glossary'
+import type { StringifiedResponse } from '../glossary'
 import { supportsServiceWorker } from '../utils/supports'
 
 export interface WorkerChannelOptions {

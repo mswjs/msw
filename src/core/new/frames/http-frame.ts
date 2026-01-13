@@ -13,7 +13,7 @@ interface HttpNetworkFrameOptions {
   request: Request
 }
 
-type HttpNetworkFrameEventMap = {
+export type HttpNetworkFrameEventMap = {
   'request:start': TypedEvent<{
     requestId: string
     request: Request

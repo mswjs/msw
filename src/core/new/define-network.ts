@@ -42,13 +42,12 @@ export function defineNetwork(options: DefineNetworkOptions): NetworkApi {
       await Promise.all(
         options.sources.map(async (source) => {
           source.on('frame', async ({ data: frame }) => {
-            /**
-             * @fixme Rettime has trouble typing `.on` when the emitter
-             * has a union of eventmap types. Add a type test and a runtime test
-             * for this use case (piping events).
-             */
             frame.events.on((event) => events.emit(event))
 
+            /**
+             * @fixme Handler filtering on each frame is expensive.
+             * Refactor the way we store handlers into a Map<HandlerKind, Array<Handler>>.
+             */
             const handlerPredicate =
               frame.protocol === 'http'
                 ? isHandlerKind('RequestHandler')

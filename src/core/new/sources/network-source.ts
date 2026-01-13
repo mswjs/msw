@@ -1,15 +1,14 @@
 import { Emitter, TypedEvent } from 'rettime'
-import { type HttpNetworkFrame } from '../frames/http-frame'
-import { type WebSocketNetworkFrame } from '../frames/websocket-frame'
+import { type NetworkFrame } from '../frames/network-frame'
 
-export type NetworkFrame = HttpNetworkFrame | WebSocketNetworkFrame
+type AnyNetworkFrame = NetworkFrame<string, unknown, any>
 
-type NetworkSourceEventMap<Frame extends NetworkFrame> = {
-  frame: TypedEvent<Frame>
+type NetworkSourceEventMap = {
+  frame: TypedEvent<AnyNetworkFrame>
 }
 
-export abstract class NetworkSource<Frame extends NetworkFrame = NetworkFrame> {
-  protected emitter: Emitter<NetworkSourceEventMap<Frame>>
+export abstract class NetworkSource {
+  protected emitter: Emitter<NetworkSourceEventMap>
 
   constructor() {
     this.emitter = new Emitter()
@@ -17,11 +16,11 @@ export abstract class NetworkSource<Frame extends NetworkFrame = NetworkFrame> {
 
   public abstract enable(): Promise<unknown>
 
-  public async queue(frame: Frame): Promise<void> {
+  public async queue(frame: AnyNetworkFrame): Promise<void> {
     await this.emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))
   }
 
-  public on<Type extends keyof NetworkSourceEventMap<Frame>>(
+  public on<Type extends keyof NetworkSourceEventMap>(
     type: Type,
     listener: Emitter.ListenerType<typeof this.emitter, Type>,
   ): void {

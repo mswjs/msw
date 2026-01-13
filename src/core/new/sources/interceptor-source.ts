@@ -22,9 +22,7 @@ export interface InterceptorSourceOptions {
 /**
  * Create a network source from the given list of interceptors.
  */
-export class InterceptorSource extends NetworkSource<
-  HttpNetworkFrame | WebSocketNetworkFrame
-> {
+export class InterceptorSource extends NetworkSource {
   #interceptor: BatchInterceptor<
     InterceptorSourceOptions['interceptors'],
     HttpRequestEventMap | WebSocketEventMap

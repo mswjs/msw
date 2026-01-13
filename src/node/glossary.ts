@@ -1,10 +1,8 @@
 import type { PartialDeep } from 'type-fest'
+import { type HttpNetworkFrameEventMap } from '~/core/new/frames/http-frame'
+import { type WebSocketNetworkFrameEventMap } from '~/core/new/frames/websocket-frame'
 import { type AnyHandler } from '~/core/new/handlers-controller'
-import type {
-  LifeCycleEventEmitter,
-  LifeCycleEventsMap,
-  SharedOptions,
-} from '~/core/sharedOptions'
+import type { LifeCycleEventEmitter, SharedOptions } from '~/core/sharedOptions'
 
 export interface ListenOptions extends SharedOptions {}
 
@@ -57,7 +55,9 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
    */
-  events: LifeCycleEventEmitter<LifeCycleEventsMap>
+  events: LifeCycleEventEmitter<
+    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+  >
 }
 
 export interface SetupServer extends SetupServerCommon {

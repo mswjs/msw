@@ -1,9 +1,9 @@
 import { TypedEvent } from 'rettime'
+import { until } from 'until-async'
 import { createRequestId } from '@mswjs/interceptors'
 import { NetworkFrame, NetworkFrameResolutionContext } from './network-frame'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { type HttpHandler } from '../../handlers/HttpHandler'
-import { until } from 'until-async'
 import { executeHandlers } from '../../utils/executeHandlers'
 import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
@@ -13,34 +13,82 @@ interface HttpNetworkFrameOptions {
   request: Request
 }
 
-export type HttpNetworkFrameEventMap = {
-  'request:start': TypedEvent<{
+export class RequestEvent<
+  DataType extends { requestId: string; request: Request } = {
     requestId: string
     request: Request
-  }>
-  'request:match': TypedEvent<{
-    requestId: string
-    request: Request
-  }>
-  'request:unhandled': TypedEvent<{
-    requestId: string
-    request: Request
-  }>
-  'request:end': TypedEvent<{
-    requestId: string
-    request: Request
-  }>
-  response: TypedEvent<{
+  },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly requestId: string
+  public readonly request: Request
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type] as any))
+    this.requestId = data.requestId
+    this.request = data.request
+  }
+}
+
+export class ResponseEvent<
+  DataType extends {
     requestId: string
     request: Request
     response: Response
-    isMockedResponse: boolean
-  }>
-  unhandledException: TypedEvent<{
+  } = {
+    requestId: string
+    request: Request
+    response: Response
+  },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly requestId: string
+  public readonly request: Request
+  public readonly response: Response
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type] as any))
+    this.requestId = data.requestId
+    this.request = data.request
+    this.response = data.response
+  }
+}
+
+export class UnhandledExceptionEvent<
+  DataType extends {
     error: Error
     requestId: string
     request: Request
-  }>
+  } = {
+    error: Error
+    requestId: string
+    request: Request
+  },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly error: Error
+  public readonly requestId: string
+  public readonly request: Request
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type] as any))
+    this.error = data.error
+    this.requestId = data.requestId
+    this.request = data.request
+  }
+}
+
+export type HttpNetworkFrameEventMap = {
+  'request:start': RequestEvent
+  'request:match': RequestEvent
+  'request:unhandled': RequestEvent
+  'request:end': RequestEvent
+  'response:mocked': ResponseEvent
+  'response:bypass': ResponseEvent
+  unhandledException: UnhandledExceptionEvent
 }
 
 export abstract class HttpNetworkFrame extends NetworkFrame<
@@ -81,9 +129,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
       ? null
       : request.clone()
 
-    this.events.emit(
-      new TypedEvent('request:start', { data: { requestId, request } }),
-    )
+    this.events.emit(new RequestEvent('request:start', { requestId, request }))
 
     // Requests wrapped in explicit `bypass(request)`.
     if (shouldBypassRequest(request)) {
@@ -104,12 +150,10 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
     if (lookupError != null) {
       this.events.emit(
-        new TypedEvent('unhandledException', {
-          data: {
-            error: lookupError,
-            requestId,
-            request,
-          },
+        new UnhandledExceptionEvent('unhandledException', {
+          error: lookupError,
+          requestId,
+          request,
         }),
       )
 
@@ -120,14 +164,16 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     // No matching handlers.
     if (lookupResult == null) {
       this.events.emit(
-        new TypedEvent('request:unhandled', {
-          data: { requestId, request },
+        new RequestEvent('request:unhandled', {
+          requestId,
+          request,
         }),
       )
 
       this.events.emit(
-        new TypedEvent('request:end', {
-          data: { requestId, request },
+        new RequestEvent('request:end', {
+          requestId,
+          request,
         }),
       )
 
@@ -140,8 +186,9 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     // Handlers that returned no mocked response.
     if (response == null) {
       this.events.emit(
-        new TypedEvent('request:end', {
-          data: { requestId, request },
+        new RequestEvent('request:end', {
+          requestId,
+          request,
         }),
       )
 
@@ -152,8 +199,9 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     // Handlers that returned explicit `passthrough()`.
     if (isPassthroughResponse(response)) {
       this.events.emit(
-        new TypedEvent('request:end', {
-          data: { requestId, request },
+        new RequestEvent('request:end', {
+          requestId,
+          request,
         }),
       )
 
@@ -172,8 +220,9 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     this.respondWith(response.clone())
 
     this.events.emit(
-      new TypedEvent('request:end', {
-        data: { requestId, request },
+      new RequestEvent('request:end', {
+        requestId,
+        request,
       }),
     )
 

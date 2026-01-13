@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { EventMap, Emitter } from 'strict-event-emitter'
+import { Emitter, type DefaultEventMap } from 'rettime'
 import { RequestHandler } from './handlers/RequestHandler'
 import { LifeCycleEventEmitter } from './sharedOptions'
 import { devUtils } from './utils/internal/devUtils'
@@ -44,12 +44,14 @@ export class InMemoryHandlersController implements HandlersController {
 /**
  * Generic class for the mock API setup.
  */
-export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
+export abstract class SetupApi<
+  EventMap extends DefaultEventMap,
+> extends Disposable {
   protected handlersController: HandlersController
-  protected readonly emitter: Emitter<EventsMap>
-  protected readonly publicEmitter: Emitter<EventsMap>
+  protected readonly emitter: Emitter<EventMap>
+  protected readonly publicEmitter: Emitter<EventMap>
 
-  public readonly events: LifeCycleEventEmitter<EventsMap>
+  public readonly events: LifeCycleEventEmitter<EventMap>
 
   constructor(...initialHandlers: Array<RequestHandler | WebSocketHandler>) {
     super()
@@ -63,8 +65,8 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
 
     this.handlersController = new InMemoryHandlersController(initialHandlers)
 
-    this.emitter = new Emitter<EventsMap>()
-    this.publicEmitter = new Emitter<EventsMap>()
+    this.emitter = new Emitter<EventMap>()
+    this.publicEmitter = new Emitter<EventMap>()
     pipeEvents(this.emitter, this.publicEmitter)
 
     this.events = this.createLifeCycleEvents()
@@ -111,7 +113,7 @@ export abstract class SetupApi<EventsMap extends EventMap> extends Disposable {
     return toReadonlyArray(this.handlersController.currentHandlers())
   }
 
-  private createLifeCycleEvents(): LifeCycleEventEmitter<EventsMap> {
+  private createLifeCycleEvents(): LifeCycleEventEmitter<EventMap> {
     return {
       on: (...args: any[]) => {
         return (this.publicEmitter.on as any)(...args)

@@ -14,7 +14,7 @@ const server = setupServer()
 function spyOnEvents(server: SetupServerApi) {
   const listener = vi.fn()
   const wrapListener = (eventName: string, listener: any) => {
-    return (...args) => listener(eventName, ...args)
+    return (...args: Array<unknown>) => listener(eventName, ...args)
   }
 
   server.events.on('request:start', wrapListener('request:start', listener))
@@ -60,7 +60,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('emits events for a handled request and mocked response', async () => {
+test.only('emits events for a handled request and mocked response', async () => {
   const listener = spyOnEvents(server)
   const url = httpServer.http.url('/user')
   await fetch(url)

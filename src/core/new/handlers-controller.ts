@@ -14,7 +14,7 @@ export abstract class HandlersController {
     invariant(
       validateHandlers(initialHandlers),
       devUtils.formatMessage(
-        'Failed to create a handlers controller: invalid handlers. Did you forget to spread the handlers array?',
+        '[MSW] Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
       ),
     )
   }
@@ -25,7 +25,7 @@ export abstract class HandlersController {
     invariant(
       validateHandlers(nextHandlers),
       devUtils.formatMessage(
-        'Failed to prepend runtime handlers: invalid handlers. Did you forget to spread the handlers array?',
+        '[MSW] Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?',
       ),
     )
   }

@@ -13,7 +13,6 @@ import { createStartHandler } from './start/createStartHandler'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { SetupApi } from '~/core/SetupApi'
 import { mergeRight } from '~/core/utils/internal/mergeRight'
-import type { LifeCycleEventsMap } from '~/core/sharedOptions'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import { webSocketInterceptor } from '~/core/ws/webSocketInterceptor'
 import { handleWebSocketEvent } from '~/core/ws/handleWebSocketEvent'
@@ -23,9 +22,11 @@ import { createFallbackRequestListener } from './start/createFallbackRequestList
 import { printStartMessage } from './start/utils/printStartMessage'
 import { printStopMessage } from './stop/utils/printStopMessage'
 import { supportsServiceWorker } from '../utils/supports'
+import type { HttpNetworkFrameEventMap } from '~/core/new/frames/http-frame'
+import type { WebSocketNetworkFrameEventMap } from '~/core/new/frames/websocket-frame'
 
 export class SetupWorkerApi
-  extends SetupApi<LifeCycleEventsMap>
+  extends SetupApi<HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap>
   implements SetupWorker
 {
   private context: SetupWorkerInternalContext

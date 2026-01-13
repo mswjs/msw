@@ -1,15 +1,11 @@
 import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
-import { ListenOptions, SetupServerCommon } from './glossary'
-import { type LifeCycleEventsMap } from '~/core'
+import type { ListenOptions, SetupServerCommon } from './glossary'
 import { type NetworkApi, defineNetwork } from '~/core/new/define-network'
 import { type AnyHandler } from '~/core/new/handlers-controller'
 import { HandlersController } from '~/core/new/handlers-controller'
 import { InterceptorSource } from '~/core/new/sources/interceptor-source'
-import {
-  fromLegacyOnUnhandledRequest,
-  toLegacyEmitter,
-} from '~/core/new/compat'
+import { fromLegacyOnUnhandledRequest } from '~/core/new/compat'
 
 export class SetupServerCommonApi implements SetupServerCommon {
   #listenOptions?: PartialDeep<ListenOptions>
@@ -28,11 +24,14 @@ export class SetupServerCommonApi implements SetupServerCommon {
       onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
         return this.#listenOptions?.onUnhandledRequest || 'warn'
       }),
+      context: {
+        quiet: true,
+      },
     })
   }
 
   get events() {
-    return toLegacyEmitter<LifeCycleEventsMap>(this.network.events)
+    return this.network.events
   }
 
   public listen(options?: PartialDeep<ListenOptions>): void {

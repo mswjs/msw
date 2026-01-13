@@ -36,7 +36,7 @@ export async function onUnhandledFrame(
       return
     }
 
-    const message = frame.getUnhandledFrameMessage()
+    const message = await frame.getUnhandledFrameMessage()
 
     switch (strategy) {
       case 'warn': {

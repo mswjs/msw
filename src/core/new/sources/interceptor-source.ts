@@ -1,4 +1,3 @@
-import { TypedEvent } from 'rettime'
 import {
   BatchInterceptor,
   Interceptor,
@@ -11,7 +10,7 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
 import { InternalError } from '../../utils/internal/devUtils'
-import { HttpNetworkFrame } from '../frames/http-frame'
+import { HttpNetworkFrame, ResponseEvent } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
 import { deleteRequestPassthroughHeader } from '../request-utils'
 
@@ -91,16 +90,18 @@ export class InterceptorSource extends NetworkSource {
       return
     }
 
-    httpFrame.events.emit(
-      new TypedEvent('response', {
-        data: {
-          requestId,
-          request,
-          response,
-          isMockedResponse,
-        },
-      }),
-    )
+    queueMicrotask(() => {
+      httpFrame.events.emit(
+        new ResponseEvent(
+          isMockedResponse ? 'response:mocked' : 'response:bypass',
+          {
+            requestId,
+            request,
+            response,
+          },
+        ),
+      )
+    })
   }
 
   async #handleWebSocketConnection(

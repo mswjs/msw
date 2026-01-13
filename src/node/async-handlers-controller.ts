@@ -1,5 +1,8 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { type AnyHandler, HandlersController } from '~/core/index'
+import {
+  type AnyHandler,
+  HandlersController,
+} from '~/core/new/handlers-controller'
 
 export interface AsyncHandlersControllerContext {
   initialHandlers: Array<AnyHandler>
@@ -23,7 +26,7 @@ export class AsyncHandlersController extends HandlersController {
 
   get currentHandlers() {
     const { initialHandlers, handlers } = this.#getContext()
-    return [...initialHandlers, ...handlers]
+    return [...handlers, ...initialHandlers]
   }
 
   public use(nextHandlers: Array<AnyHandler>): void {

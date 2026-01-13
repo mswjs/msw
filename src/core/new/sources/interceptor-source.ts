@@ -43,10 +43,13 @@ export class InterceptorSource extends NetworkSource {
   public async enable(): Promise<void> {
     this.#interceptor.apply()
 
+    /**
+     * @todo @fixme BatchInterceptor infers event types but not listener types.
+     */
     this.#interceptor
-      .on('request', this.#handleRequest.bind(this))
-      .on('response', this.#handleResponse.bind(this))
-      .on('connection', this.#handleWebSocketConnection.bind(this))
+      .on('request', this.#handleRequest.bind(this) as any)
+      .on('response', this.#handleResponse.bind(this) as any)
+      .on('connection', this.#handleWebSocketConnection.bind(this) as any)
   }
 
   public async disable(): Promise<void> {

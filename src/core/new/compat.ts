@@ -7,7 +7,7 @@ import {
   Emitter as LegacyEmitter,
   EventMap as LegacyEventMap,
 } from 'strict-event-emitter'
-import { type UnhandledRequestStrategy } from '~/core/utils/request/onUnhandledRequest'
+import { type UnhandledRequestStrategy } from '../utils/request/onUnhandledRequest'
 import {
   onUnhandledFrame,
   type UnhandledFrameCallback,

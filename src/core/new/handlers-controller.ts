@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
-import { type HttpHandler } from '~/core/handlers/HttpHandler'
-import { type WebSocketHandler } from '~/core/handlers/WebSocketHandler'
+import { type HttpHandler } from '../handlers/HttpHandler'
+import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
 
 export type AnyHandler = HttpHandler | WebSocketHandler

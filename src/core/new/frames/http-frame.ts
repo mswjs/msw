@@ -1,11 +1,11 @@
 import { TypedEvent } from 'rettime'
 import { createRequestId } from '@mswjs/interceptors'
 import { NetworkFrame, NetworkFrameResolutionContext } from './network-frame'
-import { toPublicUrl } from '~/core/utils/request/toPublicUrl'
-import { type HttpHandler } from '~/core/handlers/HttpHandler'
+import { toPublicUrl } from '../../utils/request/toPublicUrl'
+import { type HttpHandler } from '../../handlers/HttpHandler'
 import { until } from 'until-async'
-import { executeHandlers } from '~/core/utils/executeHandlers'
-import { storeResponseCookies } from '~/core/utils/request/storeResponseCookies'
+import { executeHandlers } from '../../utils/executeHandlers'
+import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
 
 interface HttpNetworkFrameOptions {

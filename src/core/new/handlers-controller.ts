@@ -1,9 +1,10 @@
 import { invariant } from 'outvariant'
 import { type HttpHandler } from '../handlers/HttpHandler'
+import { type GraphQLHandler } from '../handlers/GraphQLHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
 
-export type AnyHandler = HttpHandler | WebSocketHandler
+export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
 
 function validateHandlers(handlers: Array<AnyHandler>): boolean {
   return handlers.every((handler) => !Array.isArray(handler))

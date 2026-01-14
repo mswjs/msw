@@ -10,7 +10,7 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "rootDir": "../..",
-    "lib": ["dom"]
+    "lib": ["dom", "es2015", "DOM.Iterable"]
   },
   "include": ["../../global.d.ts", "**/*.test-d.ts"],
   "exclude": ["node_modules"]

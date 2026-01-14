@@ -8,6 +8,6 @@
     }
   ],
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["@types/node"]
   }
 }

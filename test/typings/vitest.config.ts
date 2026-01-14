@@ -3,7 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { invariant } from 'outvariant'
-import tsPackageJson from 'typescript/package.json' assert { type: 'json' }
+import tsPackageJson from 'typescript/package.json' with { type: 'json' }
 import { mswExports } from '../support/alias'
 
 const TEST_ROOT = url.fileURLToPath(new URL('./', import.meta.url))

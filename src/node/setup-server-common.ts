@@ -14,13 +14,11 @@ export class SetupServerCommonApi implements SetupServerCommon {
 
   constructor(
     interceptors: Array<Interceptor<any>>,
-    handlers: Array<AnyHandler>,
-    handlersController?: HandlersController,
+    handlers: Array<AnyHandler> | HandlersController,
   ) {
     this.network = defineNetwork({
       sources: [new InterceptorSource({ interceptors })],
       handlers,
-      controller: handlersController,
       onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
         return this.#listenOptions?.onUnhandledRequest || 'warn'
       }),

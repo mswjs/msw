@@ -38,7 +38,7 @@ export class SetupServerApi
     interceptors: Array<Interceptor<any>>,
   ) {
     const controller = new AsyncHandlersController(handlers)
-    super(interceptors, handlers, controller)
+    super(interceptors, controller)
 
     this.#handlersController = controller
   }

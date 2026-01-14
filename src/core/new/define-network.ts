@@ -9,7 +9,7 @@ import { onUnhandledFrame, UnhandledFrameHandle } from './on-unhandled-frame'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
 import {
   AnyHandler,
-  type HandlersController,
+  HandlersController,
   InMemoryHandlersController,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
@@ -31,9 +31,8 @@ export interface DefineNetworkOptions<
   Sources extends Array<NetworkSource<any>>,
 > {
   sources: Sources
-  handlers?: Array<AnyHandler>
+  handlers?: Array<AnyHandler> | HandlersController
   context?: NetworkFrameResolutionContext
-  controller?: HandlersController
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
@@ -55,8 +54,11 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
   options: DefineNetworkOptions<Sources>,
 ): NetworkApi<Sources> {
   const events = new Emitter<MergeEventMaps<Sources>>()
+
   const handlersController =
-    options.controller || new InMemoryHandlersController(options.handlers || [])
+    options.handlers instanceof HandlersController
+      ? options.handlers
+      : new InMemoryHandlersController(options.handlers || [])
 
   return {
     events,

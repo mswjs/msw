@@ -110,6 +110,8 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#frames.clear()
     this.#stoppedAt = Date.now()
     this.#channel.removeAllListeners()
+
+    this.#printStopMessage()
   }
 
   async #startWorker(): Promise<ServiceWorkerRegistration> {
@@ -307,6 +309,18 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     }
 
     console.groupEnd()
+  }
+
+  #printStopMessage(): void {
+    if (this.options.quiet) {
+      return
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `%c${devUtils.formatMessage('Mocking disabled.')}`,
+      'color:orangered;font-weight:bold;',
+    )
   }
 }
 

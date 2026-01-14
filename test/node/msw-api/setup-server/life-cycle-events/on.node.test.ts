@@ -60,7 +60,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test.only('emits events for a handled request and mocked response', async () => {
+test('emits events for a handled request and mocked response', async () => {
   const listener = spyOnEvents(server)
   const url = httpServer.http.url('/user')
   await fetch(url)

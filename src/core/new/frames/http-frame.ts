@@ -212,8 +212,9 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     await storeResponseCookies(request, response)
 
     this.events.emit(
-      new TypedEvent('request:match', {
-        data: { requestId, request },
+      new RequestEvent('request:match', {
+        requestId,
+        request,
       }),
     )
 

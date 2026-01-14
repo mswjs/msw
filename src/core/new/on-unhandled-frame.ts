@@ -23,14 +23,6 @@ export async function onUnhandledFrame(
   frame: AnyNetworkFrame,
   handle: UnhandledFrameHandle,
 ): Promise<void> {
-  // Ignore unhandled common HTTP assets.
-  if (
-    frame instanceof HttpNetworkFrame &&
-    isCommonAssetRequest(frame.data.request)
-  ) {
-    return
-  }
-
   const applyStrategy = async (strategy: UnhandledFrameStrategy) => {
     if (strategy === 'bypass') {
       return
@@ -75,6 +67,19 @@ export async function onUnhandledFrame(
         error: applyStrategy.bind(null, 'error'),
       },
     })
+  }
+
+  /**
+   * Ignore unhandled common HTTP assets.
+   * @note Calling this here applies the common assets check
+   * only to the scenarios when `onUnhandledFrame` was set to a predefined strategy.
+   * When using a custom function, you need to check for common assets manually.
+   */
+  if (
+    frame instanceof HttpNetworkFrame &&
+    isCommonAssetRequest(frame.data.request)
+  ) {
+    return
   }
 
   return applyStrategy(handle)

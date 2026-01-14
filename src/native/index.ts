@@ -1,7 +1,7 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { SetupServerCommonApi } from '../node/setup-server-common'
 import { type AnyHandler } from '#core/new/handlers-controller'
+import { SetupServerCommonApi } from '../node/setup-server-common'
 
 /**
  * Sets up a requests interception in React Native with the given request handlers.

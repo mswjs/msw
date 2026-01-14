@@ -25,7 +25,7 @@ export class RequestEvent<
   public readonly request: Request
 
   constructor(type: EventType, data: DataType) {
-    super(...([type] as any))
+    super(...([type, {}] as any))
     this.requestId = data.requestId
     this.request = data.request
   }
@@ -49,7 +49,7 @@ export class ResponseEvent<
   public readonly response: Response
 
   constructor(type: EventType, data: DataType) {
-    super(...([type] as any))
+    super(...([type, {}] as any))
     this.requestId = data.requestId
     this.request = data.request
     this.response = data.response
@@ -74,7 +74,7 @@ export class UnhandledExceptionEvent<
   public readonly request: Request
 
   constructor(type: EventType, data: DataType) {
-    super(...([type] as any))
+    super(...([type, {}] as any))
     this.error = data.error
     this.requestId = data.requestId
     this.request = data.request

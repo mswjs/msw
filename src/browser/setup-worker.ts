@@ -12,6 +12,9 @@ import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
 import { type FindWorker } from './glossary'
+import { invariant } from 'outvariant'
+import { isNodeProcess } from 'is-node-process'
+import { devUtils } from '#core/utils/internal/devUtils'
 
 interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>
@@ -38,6 +41,13 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
  */
 export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
   let network: NetworkApi<[ServiceWorkerSource]>
+
+  invariant(
+    !isNodeProcess(),
+    devUtils.formatMessage(
+      'Failed to execute `setupWorker` in a non-browser environment',
+    ),
+  )
 
   return {
     async start(options) {

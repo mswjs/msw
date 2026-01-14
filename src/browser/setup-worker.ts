@@ -1,3 +1,5 @@
+import { invariant } from 'outvariant'
+import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import {
   defineNetwork,
@@ -8,13 +10,11 @@ import { type AnyHandler } from '#core/new/handlers-controller'
 import { InterceptorSource } from '#core/new/sources/interceptor-source'
 import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
 import { fromLegacyOnUnhandledRequest } from '#core/new/compat'
+import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
 import { type FindWorker } from './glossary'
-import { invariant } from 'outvariant'
-import { isNodeProcess } from 'is-node-process'
-import { devUtils } from '#core/utils/internal/devUtils'
 
 interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>

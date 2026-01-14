@@ -54,9 +54,11 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       const httpSource = supportsServiceWorker()
         ? new ServiceWorkerSource({
             serviceWorker: {
-              url: DEFAULT_WORKER_URL,
+              url:
+                options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
+              options: options?.serviceWorker?.options,
             },
-            findWorker: undefined,
+            findWorker: options?.findWorker,
           })
         : new FallbackHttpSource()
 
@@ -71,6 +73,9 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
         onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
           return options?.onUnhandledRequest || 'warn'
         }),
+        context: {
+          quiet: options?.quiet,
+        },
       })
 
       await network.enable()

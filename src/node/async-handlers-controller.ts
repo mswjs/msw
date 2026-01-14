@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import {
   type AnyHandler,
   HandlersController,
-} from '~/core/new/handlers-controller'
+} from '#core/new/handlers-controller'
 
 export interface AsyncHandlersControllerContext {
   initialHandlers: Array<AnyHandler>

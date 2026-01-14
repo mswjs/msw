@@ -1,26 +1,11 @@
-import type { HttpRequestEventMap, Interceptor } from '@mswjs/interceptors'
-import type { DeferredPromise } from '@open-draft/deferred-promise'
-import { LifeCycleEventEmitter, SharedOptions } from '~/core/sharedOptions'
-import { RequestHandler } from '~/core/handlers/RequestHandler'
-import type { RequiredDeep } from '~/core/typeUtils'
-import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
-import type { WorkerChannel } from './utils/workerChannel'
+import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
+import type { RequiredDeep } from '#core/typeUtils'
+import type { HttpNetworkFrameEventMap } from '#core/new/frames/http-frame'
+import type { WebSocketNetworkFrameEventMap } from '#core/new/frames/websocket-frame'
+import { AnyHandler } from '#core/new/handlers-controller'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
-}
-
-export type SetupWorkerInternalContext = {
-  isMockingEnabled: boolean
-  workerStoppedAt?: number
-  startOptions: RequiredDeep<StartOptions>
-  workerPromise: DeferredPromise<ServiceWorker>
-  registration: ServiceWorkerRegistration | undefined
-  getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
-  emitter: LifeCycleEventEmitter
-  keepAliveInterval?: number
-  workerChannel: WorkerChannel
-  fallbackInterceptor?: Interceptor<HttpRequestEventMap>
 }
 
 export type ServiceWorkerInstanceTuple = [
@@ -57,6 +42,7 @@ export interface StartOptions extends SharedOptions {
    * Defers any network requests until the Service Worker
    * instance is activated.
    * @default true
+   * @deprecated
    */
   waitUntilReady?: boolean
 
@@ -93,11 +79,11 @@ export interface SetupWorker {
 
   /**
    * Prepends given request handlers to the list of existing handlers.
-   * @param {RequestHandler[]} handlers List of runtime request handlers.
+   * @param {Array<AnyHandler>} handlers List of runtime request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()` API reference}
    */
-  use: (...handlers: Array<RequestHandler | WebSocketHandler>) => void
+  use: (...handlers: Array<AnyHandler>) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -108,20 +94,18 @@ export interface SetupWorker {
 
   /**
    * Resets request handlers to the initial list given to the `setupWorker` call, or to the explicit next request handlers list, if given.
-   * @param {RequestHandler[]} nextHandlers List of the new initial request handlers.
+   * @param {Array<AnyHandler>} nextHandlers List of the new initial request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/reset-handlers `worker.resetHandlers()` API reference}
    */
-  resetHandlers: (
-    ...nextHandlers: Array<RequestHandler | WebSocketHandler>
-  ) => void
+  resetHandlers: (...nextHandlers: Array<AnyHandler>) => void
 
   /**
    * Returns a readonly list of currently active request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/list-handlers `worker.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
+  listHandlers: () => ReadonlyArray<AnyHandler>
 
   /**
    * Life-cycle events.
@@ -129,5 +113,7 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
    */
-  events: LifeCycleEventEmitter<LifeCycleEventsMap>
+  events: LifeCycleEventEmitter<
+    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+  >
 }

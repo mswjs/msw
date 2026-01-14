@@ -1,7 +1,7 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { InterceptorSource } from '~/core/new/sources/interceptor-source'
-import { devUtils } from '~/core/utils/internal/devUtils'
+import { InterceptorSource } from '#core/new/sources/interceptor-source'
+import { devUtils } from '#core/utils/internal/devUtils'
 
 export class FallbackHttpSource extends InterceptorSource {
   constructor() {

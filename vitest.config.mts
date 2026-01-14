@@ -14,7 +14,7 @@ export default defineConfig({
     alias: {
       ...mswExports,
       ...customViteEnvironments,
-      '~/core': fromRoot('src/core'),
+      '#core': fromRoot('src/core'),
     },
     typecheck: {
       // Load the TypeScript configuration to the unit tests.

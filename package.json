@@ -162,11 +162,11 @@
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },
+  "imports": {
+    "#core": "./src/core"
+  },
   "bin": {
     "msw": "cli/index.js"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "scripts": {
     "start": "tsup --watch",

@@ -4,7 +4,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import { SetupServer } from './glossary'
-import { type AnyHandler } from '~/core/new/handlers-controller'
+import { type AnyHandler } from '#core/new/handlers-controller'
 import { AsyncHandlersController } from './async-handlers-controller'
 import { SetupServerCommonApi } from './setup-server-common'
 

@@ -1,5 +1,5 @@
-const CORE_ESM_IMPORT_PATTERN = /from ["'](~\/core(.*))["'](;)?/gm
-const CORE_CJS_IMPORT_PATTERN = /require\(["'](~\/core(.*))["']\)(;)?/gm
+const CORE_ESM_IMPORT_PATTERN = /from ["'](#core(.*))["'](;)?/gm
+const CORE_CJS_IMPORT_PATTERN = /require\(["'](#core(.*))["']\)(;)?/gm
 
 function getCoreImportPattern(isEsm) {
   return isEsm ? CORE_ESM_IMPORT_PATTERN : CORE_CJS_IMPORT_PATTERN

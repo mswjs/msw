@@ -13,6 +13,57 @@ export interface SharedOptions {
   onUnhandledRequest?: UnhandledRequestStrategy
 }
 
+/**
+ * @deprecated
+ */
+export type LifeCycleEventsMap = {
+  'request:start': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:match': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:unhandled': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'request:end': [
+    args: {
+      request: Request
+      requestId: string
+    },
+  ]
+  'response:mocked': [
+    args: {
+      response: Response
+      request: Request
+      requestId: string
+    },
+  ]
+  'response:bypass': [
+    args: {
+      response: Response
+      request: Request
+      requestId: string
+    },
+  ]
+  unhandledException: [
+    args: {
+      error: Error
+      request: Request
+      requestId: string
+    },
+  ]
+}
+
 export type LifeCycleEventEmitter<EventMap extends DefaultEventMap> = Pick<
   Emitter<EventMap>,
   'on' | 'removeListener' | 'removeAllListeners'

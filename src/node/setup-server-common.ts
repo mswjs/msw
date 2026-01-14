@@ -1,11 +1,11 @@
 import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
 import type { ListenOptions, SetupServerCommon } from './glossary'
-import { type NetworkApi, defineNetwork } from '~/core/new/define-network'
-import { type AnyHandler } from '~/core/new/handlers-controller'
-import { HandlersController } from '~/core/new/handlers-controller'
-import { InterceptorSource } from '~/core/new/sources/interceptor-source'
-import { fromLegacyOnUnhandledRequest } from '~/core/new/compat'
+import { type NetworkApi, defineNetwork } from '#core/new/define-network'
+import { type AnyHandler } from '#core/new/handlers-controller'
+import { HandlersController } from '#core/new/handlers-controller'
+import { InterceptorSource } from '#core/new/sources/interceptor-source'
+import { fromLegacyOnUnhandledRequest } from '#core/new/compat'
 
 export class SetupServerCommonApi implements SetupServerCommon {
   #listenOptions?: PartialDeep<ListenOptions>

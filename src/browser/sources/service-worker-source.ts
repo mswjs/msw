@@ -1,21 +1,21 @@
 import { invariant } from 'outvariant'
+import { Emitter, TypedEvent } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
-import { NetworkSource } from '~/core/new/sources/network-source'
+import { NetworkSource } from '#core/new/sources/network-source'
+import { RequestHandler } from '#core/handlers/RequestHandler'
+import { HttpNetworkFrame } from '#core/new/frames/http-frame'
+import { HttpResponse } from '#core/HttpResponse'
+import { toResponseInit } from '#core/utils/toResponseInit'
+import { devUtils } from '#core/utils/internal/devUtils'
 import {
   supportsReadableStreamTransfer,
   supportsServiceWorker,
 } from '../utils/supports'
-import { getWorkerInstance } from '../setupWorker/start/utils/getWorkerInstance'
-import { devUtils } from '~/core/utils/internal/devUtils'
+import { getWorkerInstance } from '../utils/get-worker-instance'
 import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
 import { FindWorker } from '../glossary'
-import { Emitter, TypedEvent } from 'rettime'
 import { deserializeRequest } from '../utils/deserializeRequest'
-import { RequestHandler } from '~/core/handlers/RequestHandler'
-import { HttpNetworkFrame } from '~/core/new/frames/http-frame'
-import { HttpResponse } from '~/core/HttpResponse'
-import { toResponseInit } from '~/core/utils/toResponseInit'
 
 export interface ServiceWorkerSourceOptions {
   quiet?: boolean

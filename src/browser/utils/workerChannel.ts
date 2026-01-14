@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
 import { Emitter, TypedEvent } from 'rettime'
-import { isObject } from '~/core/utils/internal/isObject'
+import { isObject } from '#core/utils/internal/isObject'
 import type { StringifiedResponse } from '../glossary'
 import { supportsServiceWorker } from '../utils/supports'
 

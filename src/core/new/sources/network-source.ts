@@ -25,7 +25,13 @@ export abstract class NetworkSource<
   public abstract enable(): Promise<unknown>
 
   public async queue(frame: Frame): Promise<void> {
-    await this.emitter.emitAsPromise(new TypedEvent('frame', { data: frame }))
+    await this.emitter.emitAsPromise(
+      new TypedEvent(
+        // @ts-expect-error Trouble handling a conditional type parameter.
+        'frame',
+        { data: frame },
+      ),
+    )
   }
 
   public on<Type extends keyof NetworkSourceEventMap<Frame>>(

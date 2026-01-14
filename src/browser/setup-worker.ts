@@ -3,15 +3,15 @@ import {
   defineNetwork,
   NetworkApi,
   NetworkHandlersApi,
-} from '~/core/new/define-network'
-import { type AnyHandler } from '~/core/new/handlers-controller'
-import { InterceptorSource } from '~/core/new/sources/interceptor-source'
-import { fromLegacyOnUnhandledRequest } from '~/core/new/compat'
+} from '#core/new/define-network'
+import { type AnyHandler } from '#core/new/handlers-controller'
+import { InterceptorSource } from '#core/new/sources/interceptor-source'
+import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
+import { fromLegacyOnUnhandledRequest } from '#core/new/compat'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
 import { type FindWorker } from './glossary'
-import { type UnhandledRequestStrategy } from '~/core/utils/request/onUnhandledRequest'
 
 interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>

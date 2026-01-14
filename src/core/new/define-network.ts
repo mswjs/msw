@@ -66,8 +66,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
           source.on(
             'frame',
             async ({ data: frame }: { data: AnyNetworkFrame }) => {
+              /**
+               * @fixme This typeless listener makes it so all emits are treated as
+               * having a listener. That makes it hard for the library to know whether
+               * the user has actually defined any listeners.
+               */
               frame.events.on((event) => {
-                events.emit(event as any)
+                events.emit(event)
               })
 
               /**

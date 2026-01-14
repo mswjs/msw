@@ -7,6 +7,7 @@ import { type HttpHandler } from '../../handlers/HttpHandler'
 import { executeHandlers } from '../../utils/executeHandlers'
 import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
+import { devUtils } from '../../utils/internal/devUtils'
 
 interface HttpNetworkFrameOptions {
   id?: string
@@ -149,13 +150,18 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     })
 
     if (lookupError != null) {
-      this.events.emit(
-        new UnhandledExceptionEvent('unhandledException', {
-          error: lookupError,
-          requestId,
-          request,
-        }),
-      )
+      if (
+        !this.events.emit(
+          new UnhandledExceptionEvent('unhandledException', {
+            error: lookupError,
+            requestId,
+            request,
+          }),
+        )
+      ) {
+        // Surface the error to the developer since they haven't handled it.
+        devUtils.error('HAH!')
+      }
 
       this.errorWith(lookupError)
       return null

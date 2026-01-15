@@ -1,127 +1,49 @@
 import fs from 'node:fs'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { invariant } from 'outvariant'
+import { fileURLToPath } from 'node:url'
+import path from 'path'
 import * as glob from 'glob'
 import { hasCoreImports, replaceCoreImports } from '../replaceCoreImports.js'
 
 const execAsync = promisify(exec)
 
 const BUILD_DIR = new URL('../../lib/', import.meta.url)
-const TYPESCRIPT_FILE_MATCHER = '**/*.d.{ts,mts}'
-const DEFINITION_TYPESCRIPT_FILE_MATCHER = '**/*.d.ts'
-const IS_WINDOWS = process.platform === 'win32'
 
-async function findUnresolvedImportsLinux() {
-  const result = await execAsync(
-    `grep "~/core" ./${TYPESCRIPT_FILE_MATCHER} -R -l || exit 0`,
-    {
-      cwd: BUILD_DIR,
-      shell: '/bin/bash',
-    },
-  )
-
-  invariant(
-    result.stderr === '',
-    'Failed to validate the .d.ts modules for the presence of the "~/core" import. See the original error below.',
-    result.stderr,
-  )
-
-  if (result.stdout !== '') {
-    return result.stdout.split('\n').filter(Boolean)
-  }
-
-  return []
-}
-
-async function findUnresolvedImportsWindows() {
-  const filePaths = glob.sync(TYPESCRIPT_FILE_MATCHER, {
+function searchFilesForPattern(filePattern, searchPattern, errorMessage) {
+  const filePaths = glob.sync(filePattern, {
     cwd: BUILD_DIR,
     absolute: true,
     posix: true,
     dotRelative: true,
   })
 
-  let unresolvedImports = []
+  let matchingFiles = []
 
   try {
-    unresolvedImports = filePaths.filter((modulePath) => {
-      const fileContents = fs.readFileSync(modulePath, 'utf8')
-      return fileContents.includes('~/core')
+    matchingFiles = filePaths.filter((path) => {
+      const fileContents = fs.readFileSync(path, 'utf8')
+      return fileContents.includes(searchPattern)
     })
   } catch (error) {
-    console.log(
-      'Failed to validate the .d.ts modules for the presence of the "~/core" import. See the original error below.',
-    )
-    throw error
+    console.error(errorMessage, error)
+    process.exit(1)
   }
 
-  return unresolvedImports
+  return matchingFiles
 }
 
-async function findUnresolvedImports() {
-  if (IS_WINDOWS) {
-    return await findUnresolvedImportsWindows()
-  }
-  return await findUnresolvedImportsLinux()
-}
-
-async function findInvalidMJSReferencesLinux() {
-  const mjsInCjsResult = await execAsync(
-    `grep ".mjs" ./*${DEFINITION_TYPESCRIPT_FILE_MATCHER} -R -l || exit 0`,
-    {
-      cwd: BUILD_DIR,
-      shell: '/bin/bash',
-    },
-  )
-
-  invariant(
-    mjsInCjsResult.stderr === '',
-    'Failed to validate the .d.ts modules not referencing ".mjs" files. See the original error below.',
-    mjsInCjsResult.stderr,
-  )
-
-  if (mjsInCjsResult.stdout !== '') {
-    return mjsInCjsResult.stdout.split('\n').filter(Boolean)
-  }
-
-  return []
-}
-
-async function findInvalidMJSReferencesWindows() {
-  const cjsDtsPaths = glob.sync(DEFINITION_TYPESCRIPT_FILE_MATCHER, {
-    cwd: BUILD_DIR,
-    absolute: true,
-    posix: true,
-    dotRelative: true,
+function getRelativePaths(paths) {
+  return paths.map((p) => {
+    const normalisedFilePath = p
+      .replace(/^\/\/\?\//, '')
+      .replace(/\\/g, path.sep)
+    return path.relative(fileURLToPath(BUILD_DIR), normalisedFilePath)
   })
-
-  let invalidMJSReferences = []
-
-  try {
-    invalidMJSReferences = cjsDtsPaths.filter((modulePath) => {
-      const fileContents = fs.readFileSync(modulePath, 'utf8')
-      return fileContents.includes('.mjs')
-    })
-  } catch (error) {
-    console.error(
-      'Failed to validate the .d.ts modules not referencing ".mjs" files. See the original error below.',
-    )
-    throw error
-  }
-
-  return invalidMJSReferences
-}
-
-async function findInvalidMJSReferences() {
-  if (IS_WINDOWS) {
-    return await findInvalidMJSReferencesWindows()
-  }
-  return await findInvalidMJSReferencesLinux()
 }
 
 async function patchTypeDefs() {
-  const typeDefsPaths = glob.sync(TYPESCRIPT_FILE_MATCHER, {
+  const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {
     cwd: BUILD_DIR,
     absolute: true,
     posix: true,
@@ -170,13 +92,19 @@ async function patchTypeDefs() {
   )
 
   // Next, validate that we left no "~/core" imports unresolved.
-  const modulesWithUnresolvedImports = await findUnresolvedImports()
+  const modulesWithUnresolvedImports = searchFilesForPattern(
+    '**/*.d.{ts,mts}',
+    '~/core',
+    'Failed to validate the .d.ts modules for the presence of the "~/core" import. See the original error below.',
+  )
 
   if (modulesWithUnresolvedImports.length > 0) {
     console.error(
       `Found .d.ts modules containing unresolved "~/core" import after the patching:
 
-${modulesWithUnresolvedImports.map((path) => `  - ${new URL(path, BUILD_DIR).pathname}`).join('\n')}
+${getRelativePaths(modulesWithUnresolvedImports)
+  .map((p) => `  - ${p}`)
+  .join('\n')}
         `,
     )
 
@@ -202,13 +130,19 @@ ${modulesWithUnresolvedImports.map((path) => `  - ${new URL(path, BUILD_DIR).pat
   }
 
   // Ensure that CJS .d.ts file never reference .mjs files.
-  const mjsInCjsResults = await findInvalidMJSReferences()
+  const mjsInCjsResults = searchFilesForPattern(
+    '**/*.d.ts',
+    '.mjs',
+    'Failed to validate the .d.ts modules not referencing ".mjs" files. See the original error below.',
+  )
 
   if (mjsInCjsResults.length > 0) {
     console.error(
       `Found .d.ts modules referencing ".mjs" files after patching:
 
-${mjsInCjsResults.map((path) => `  - ${new URL(path, BUILD_DIR).pathname}`).join('\n')}
+${getRelativePaths(mjsInCjsResults)
+  .map((p) => `  - ${p}`)
+  .join('\n')}
         `,
     )
 

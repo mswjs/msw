@@ -16,7 +16,7 @@ import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
 import { type FindWorker } from './glossary'
 
-interface SetupWorkerApi extends NetworkHandlersApi {
+export interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>
   stop: () => void
 }

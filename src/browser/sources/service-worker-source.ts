@@ -67,18 +67,17 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       this.#workerPromise = new DeferredPromise()
     }
 
-    const registration = await this.#startWorker()
-    const pendingInstance = registration.installing || registration.waiting
+    const [worker, registration] = await this.#startWorker()
 
-    if (pendingInstance) {
+    if (worker.state !== 'activated') {
       const controller = new AbortController()
       const activationPromise = new DeferredPromise<void>()
       activationPromise.then(() => controller.abort())
 
-      pendingInstance.addEventListener(
+      worker.addEventListener(
         'statechange',
         () => {
-          if (pendingInstance.state === 'activated') {
+          if (worker.state === 'activated') {
             activationPromise.resolve()
           }
         },
@@ -114,7 +113,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#printStopMessage()
   }
 
-  async #startWorker(): Promise<ServiceWorkerRegistration> {
+  async #startWorker() {
     if (this.#keepAliveInterval) {
       clearInterval(this.#keepAliveInterval)
     }
@@ -151,6 +150,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     }
 
     this.#workerPromise.resolve(worker)
+
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
 
@@ -175,7 +175,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       this.#channel.postMessage('KEEPALIVE_REQUEST')
     }, 5000)
 
-    return registration
+    return [worker, registration] as const
   }
 
   async #handleRequest(event: RequestEvent): Promise<void> {
@@ -273,16 +273,16 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     return integrityCheckPromise
   }
 
-  #printStartMessage(args: {
+  async #printStartMessage(args: {
     registration: ServiceWorkerRegistration
     client: WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
-  }): void {
+  }) {
     if (this.options.quiet) {
       return
     }
 
     const { registration, client } = args
-    const serviceWorkerUrl = this.options.serviceWorker.url
+    const worker = await this.#workerPromise
 
     console.groupCollapsed(
       `%c${devUtils.formatMessage('Mocking enabled.')}`,
@@ -298,7 +298,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     console.log('Found an issue? https://github.com/mswjs/msw/issues')
 
     // eslint-disable-next-line no-console
-    console.log('Worker script URL:', serviceWorkerUrl)
+    console.log('Worker script URL:', worker.scriptURL)
 
     // eslint-disable-next-line no-console
     console.log('Worker scope:', registration.scope)

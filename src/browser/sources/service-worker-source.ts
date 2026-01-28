@@ -41,7 +41,7 @@ type ResponseEvent = Emitter.EventType<
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
-  #workerPromise: DeferredPromise<ServiceWorker>
+  #workerPromise: DeferredPromise<[ServiceWorker, ServiceWorkerRegistration]>
   #keepAliveInterval?: number
   #stoppedAt?: number
 
@@ -56,7 +56,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#frames = new Map()
     this.#workerPromise = new DeferredPromise()
     this.#channel = new WorkerChannel({
-      worker: this.#workerPromise,
+      worker: this.#workerPromise.then(([worker]) => worker),
     })
   }
 
@@ -64,7 +64,11 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#stoppedAt = undefined
 
     if (this.#workerPromise.state !== 'pending') {
-      this.#workerPromise = new DeferredPromise()
+      devUtils.warn(
+        'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
+      )
+
+      return this.#workerPromise.then(([, registration]) => registration)
     }
 
     const [worker, registration] = await this.#startWorker()
@@ -94,7 +98,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       confirmationPromise.resolve()
 
       this.#printStartMessage({
-        registration,
         client: event.data.client,
       })
     })
@@ -106,9 +109,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   public async disable(): Promise<void> {
     await super.disable()
 
-    this.#frames.clear()
     this.#stoppedAt = Date.now()
+    this.#frames.clear()
     this.#channel.removeAllListeners()
+    this.#workerPromise = new DeferredPromise()
 
     this.#printStopMessage()
   }
@@ -131,17 +135,17 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
         ? devUtils.formatMessage(
             `Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
-     Please ensure that the custom predicate properly locates the Service Worker registration at "%s".
-     More details: https://mswjs.io/docs/api/setup-worker/start#findworker
+Please ensure that the custom predicate properly locates the Service Worker registration at "%s".
+More details: https://mswjs.io/docs/api/setup-worker/start#findworker
      `,
             workerUrl,
           )
         : devUtils.formatMessage(
             `Failed to locate the Service Worker registration.
 
-     This most likely means that the worker script URL "%s" cannot resolve against the actual public hostname (%s). This may happen if your application runs behind a proxy, or has a dynamic hostname.
+This most likely means that the worker script URL "%s" cannot resolve against the actual public hostname (%s). This may happen if your application runs behind a proxy, or has a dynamic hostname.
 
-     Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`,
+Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`,
             workerUrl,
             location.host,
           )
@@ -149,7 +153,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       throw new Error(missingWorkerMessage)
     }
 
-    this.#workerPromise.resolve(worker)
+    this.#workerPromise.resolve([worker, registration])
 
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
@@ -274,15 +278,14 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   async #printStartMessage(args: {
-    registration: ServiceWorkerRegistration
     client: WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
   }) {
-    if (this.options.quiet) {
+    if (this.options.quiet || this.#workerPromise.state === 'rejected') {
       return
     }
 
-    const { registration, client } = args
-    const worker = await this.#workerPromise
+    const { client } = args
+    const [worker, registration] = await this.#workerPromise
 
     console.groupCollapsed(
       `%c${devUtils.formatMessage('Mocking enabled.')}`,

@@ -160,7 +160,12 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
         )
       ) {
         // Surface the error to the developer since they haven't handled it.
-        devUtils.error('HAH!')
+        console.error(lookupError)
+        devUtils.error(
+          'Encountered an unhandled exception during the handler lookup for "%s %s". Please see the original error above.',
+          request.method,
+          request.url,
+        )
       }
 
       this.errorWith(lookupError)

@@ -1,11 +1,7 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import {
-  defineNetwork,
-  NetworkApi,
-  NetworkHandlersApi,
-} from '#core/new/define-network'
+import { defineNetwork, NetworkHandlersApi } from '#core/new/define-network'
 import { type AnyHandler } from '#core/new/handlers-controller'
 import { InterceptorSource } from '#core/new/sources/interceptor-source'
 import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
@@ -40,14 +36,19 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
 export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
-  let network: NetworkApi<[ServiceWorkerSource]>
-
   invariant(
     !isNodeProcess(),
     devUtils.formatMessage(
       'Failed to execute `setupWorker` in a non-browser environment',
     ),
   )
+
+  const network = defineNetwork<
+    Array<ServiceWorkerSource | FallbackHttpSource | InterceptorSource>
+  >({
+    sources: [],
+    handlers,
+  })
 
   return {
     async start(options) {
@@ -62,14 +63,13 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
           })
         : new FallbackHttpSource()
 
-      network = defineNetwork({
+      network.configure({
         sources: [
           httpSource,
           new InterceptorSource({
             interceptors: [new WebSocketInterceptor() as any],
           }),
         ],
-        handlers,
         onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
           return options?.onUnhandledRequest || 'warn'
         }),

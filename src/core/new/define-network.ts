@@ -36,10 +36,12 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
-  extends NetworkHandlersApi {
+export interface NetworkApi<
+  Sources extends Array<NetworkSource<any>>,
+> extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
+  configure: (options: Partial<DefineNetworkOptions<Sources>>) => void
   events: Emitter<MergeEventMaps<Sources>>
 }
 
@@ -55,27 +57,37 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 ): NetworkApi<Sources> {
   const events = new Emitter<MergeEventMaps<Sources>>()
 
-  const handlersController =
-    options.handlers instanceof HandlersController
-      ? options.handlers
-      : new InMemoryHandlersController(options.handlers || [])
+  let handlersController: HandlersController
+
+  const deriveHandlersController = (
+    handlers: DefineNetworkOptions<Sources>['handlers'],
+  ) => {
+    return handlers instanceof HandlersController
+      ? handlers
+      : new InMemoryHandlersController(handlers || [])
+  }
+
+  let resolvedOptions: DefineNetworkOptions<Sources> = {
+    ...options,
+  }
 
   return {
     events,
+    configure(options) {
+      resolvedOptions = {
+        ...resolvedOptions,
+        ...options,
+      }
+    },
     async enable() {
+      handlersController = deriveHandlersController(resolvedOptions.handlers)
+
       await Promise.all(
-        options.sources.map(async (source) => {
+        resolvedOptions.sources.map(async (source) => {
           source.on(
             'frame',
             async ({ data: frame }: { data: AnyNetworkFrame }) => {
-              /**
-               * @fixme This typeless listener makes it so all emits are treated as
-               * having a listener. That makes it hard for the library to know whether
-               * the user has actually defined any listeners.
-               */
-              frame.events.on((event) => {
-                events.emit(event)
-              })
+              frame.events.on('*', (event) => events.emit(event))
 
               /**
                * @fixme Handler filtering on each frame is expensive.
@@ -94,13 +106,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 
               const isHandledFrame = await frame.resolve(
                 handlers,
-                options.context,
+                resolvedOptions.context,
               )
 
               if (isHandledFrame === false) {
                 await onUnhandledFrame(
                   frame,
-                  options.onUnhandledFrame || 'warn',
+                  resolvedOptions.onUnhandledFrame || 'warn',
                 ).catch((error) => {
                   frame.errorWith(error)
                 })
@@ -114,7 +126,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     },
     async disable() {
       await Promise.all(
-        options.sources.map(async (source) => {
+        resolvedOptions.sources.map(async (source) => {
           await source.disable()
         }),
       )

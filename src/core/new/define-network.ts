@@ -57,8 +57,6 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 ): NetworkApi<Sources> {
   const events = new Emitter<MergeEventMaps<Sources>>()
 
-  let handlersController: HandlersController
-
   const deriveHandlersController = (
     handlers: DefineNetworkOptions<Sources>['handlers'],
   ) => {
@@ -71,17 +69,28 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     ...options,
   }
 
+  /**
+   * @note Create the handlers controller immediately because
+   * certain setup API, like `setupServer`, don't await `.enable` (`.listen`).
+   */
+  let handlersController = deriveHandlersController(resolvedOptions.handlers)
+
   return {
     events,
     configure(options) {
+      if (
+        options.handlers &&
+        !Object.is(options.handlers, resolvedOptions.handlers)
+      ) {
+        handlersController = deriveHandlersController(options.handlers)
+      }
+
       resolvedOptions = {
         ...resolvedOptions,
         ...options,
       }
     },
     async enable() {
-      handlersController = deriveHandlersController(resolvedOptions.handlers)
-
       await Promise.all(
         resolvedOptions.sources.map(async (source) => {
           source.on(

@@ -20,7 +20,7 @@ it('infers event map type from a single source', () => {
 
   defineNetwork({
     sources: [new HttpSource()],
-  }).events.on((event) => {
+  }).events.on('*', (event) => {
     expectTypeOf(event.type).toExtend<'hello'>()
     expectTypeOf(event.data).toExtend<'world'>()
     expectTypeOf(event.data).not.toBeAny()
@@ -40,7 +40,7 @@ it('combines event maps from different sources', () => {
 
   defineNetwork({
     sources: [new HttpSource(), new SmtpSource()],
-  }).events.on((event) => {
+  }).events.on('*', (event) => {
     expectTypeOf(event.type).toExtend<'hello' | 'goodbye'>()
     expectTypeOf(event.data).toExtend<'world' | 'cosmos'>()
     expectTypeOf(event.data).not.toBeAny()

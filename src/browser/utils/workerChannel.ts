@@ -27,20 +27,19 @@ export type WorkerChannelEventMap = {
 /**
  * Request representation received from the worker message event.
  */
-export interface IncomingWorkerRequest
-  extends Omit<
-    Request,
-    | 'text'
-    | 'body'
-    | 'json'
-    | 'blob'
-    | 'arrayBuffer'
-    | 'formData'
-    | 'clone'
-    | 'signal'
-    | 'isHistoryNavigation'
-    | 'isReloadNavigation'
-  > {
+export interface IncomingWorkerRequest extends Omit<
+  Request,
+  | 'text'
+  | 'body'
+  | 'json'
+  | 'blob'
+  | 'arrayBuffer'
+  | 'formData'
+  | 'clone'
+  | 'signal'
+  | 'isHistoryNavigation'
+  | 'isReloadNavigation'
+> {
   /**
    * Unique ID of the request generated once the request is
    * intercepted by the "fetch" event in the Service Worker.

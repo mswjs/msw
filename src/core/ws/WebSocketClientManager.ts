@@ -183,9 +183,7 @@ export class WebSocketClientManager {
  * on the given `BroadcastChannel` to communicate instructions
  * with the client connections from other runtimes.
  */
-export class WebSocketRemoteClientConnection
-  implements WebSocketClientConnectionProtocol
-{
+export class WebSocketRemoteClientConnection implements WebSocketClientConnectionProtocol {
   constructor(
     public readonly id: string,
     public readonly url: URL,

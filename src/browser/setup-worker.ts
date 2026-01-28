@@ -43,6 +43,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     ),
   )
 
+  let hasStarted = false
   const network = defineNetwork<
     Array<ServiceWorkerSource | FallbackHttpSource | InterceptorSource>
   >({
@@ -52,6 +53,17 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
 
   return {
     async start(options) {
+      /**
+       * @todo @fixme
+       * This is kept for backward-compatibility reasons. We don't really need this check anymore.
+       */
+      if (hasStarted) {
+        devUtils.warn(
+          'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
+        )
+        return
+      }
+
       const httpSource = supportsServiceWorker()
         ? new ServiceWorkerSource({
             serviceWorker: {
@@ -79,6 +91,8 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       })
 
       await network.enable()
+      await httpSource.printStartMessage()
+      hasStarted = true
     },
     stop() {
       network.disable()

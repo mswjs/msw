@@ -38,10 +38,14 @@ type ResponseEvent = Emitter.EventType<
   WorkerChannelEventMap
 >
 
+type WorkerChannelClient =
+  WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
+
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
   #workerPromise: DeferredPromise<[ServiceWorker, ServiceWorkerRegistration]>
+  #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
   #stoppedAt?: number
 
@@ -93,15 +97,13 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#channel.postMessage('MOCK_ACTIVATE')
 
-    const confirmationPromise = new DeferredPromise<void>()
-    this.#channel.once('MOCKING_ENABLED', async (event) => {
-      confirmationPromise.resolve()
+    const clientConfirmationPromise = new DeferredPromise<WorkerChannelClient>()
+    this.#clientPromise = clientConfirmationPromise
 
-      this.#printStartMessage({
-        client: event.data.client,
-      })
+    this.#channel.once('MOCKING_ENABLED', (event) => {
+      clientConfirmationPromise.resolve(event.data.client)
     })
-    await confirmationPromise
+    await clientConfirmationPromise
 
     return registration
   }
@@ -277,14 +279,17 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     return integrityCheckPromise
   }
 
-  async #printStartMessage(args: {
-    client: WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
-  }) {
+  public async printStartMessage() {
     if (this.options.quiet || this.#workerPromise.state === 'rejected') {
       return
     }
 
-    const { client } = args
+    invariant(
+      this.#clientPromise != null,
+      '[ServiceWorkerSource] Failed to print a start message: client confirmation not received',
+    )
+
+    const client = await this.#clientPromise
     const [worker, registration] = await this.#workerPromise
 
     console.groupCollapsed(

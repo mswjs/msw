@@ -10,12 +10,7 @@ export class FallbackHttpSource extends InterceptorSource {
     })
   }
 
-  public async enable(): Promise<void> {
-    await super.enable()
-    this.#printStartMessage()
-  }
-
-  #printStartMessage(): void {
+  public printStartMessage(): void {
     console.groupCollapsed(
       `%c${devUtils.formatMessage('Mocking enabled (fallback mode).')}`,
       'color:orangered;font-weight:bold;',

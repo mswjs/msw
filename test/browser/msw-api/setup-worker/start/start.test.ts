@@ -93,7 +93,7 @@ test('prints the start message when the worker has been registered', async ({
   )
 })
 
-test.only('prints a warning if "worker.start()" is called multiple times', async ({
+test('prints a warning if "worker.start()" is called multiple times', async ({
   loadExample,
   spyOnConsole,
   page,

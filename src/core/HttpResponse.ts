@@ -8,6 +8,7 @@ import {
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
+  once?: boolean
 }
 
 export const bodyType: unique symbol = Symbol('bodyType')

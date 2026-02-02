@@ -11,6 +11,7 @@ import {
   HttpResponse,
   DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
+import { kResponseOnce } from '../utils/HttpResponse/decorators'
 import type { HandlerKind } from './common'
 import type { GraphQLRequestBody } from './GraphQLHandler'
 
@@ -141,6 +142,7 @@ export abstract class RequestHandler<
    * (its resolver has successfully executed).
    */
   public isUsed: boolean
+  private shouldSkip: boolean
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverIterator?:
@@ -169,6 +171,7 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
+    this.shouldSkip = false
     this.__kind = 'RequestHandler'
   }
 
@@ -258,7 +261,7 @@ export abstract class RequestHandler<
     requestId: string
     resolutionContext?: ResponseResolutionContext
   }): Promise<RequestHandlerExecutionResult<ParsedResult> | null> {
-    if (this.isUsed && this.options?.once) {
+    if (this.isUsed && (this.options?.once || this.shouldSkip)) {
       return null
     }
 
@@ -285,7 +288,7 @@ export abstract class RequestHandler<
 
     // Re-check isUsed, in case another request hit this handler while we were
     // asynchronously parsing the request.
-    if (this.isUsed && this.options?.once) {
+    if (this.isUsed && (this.options?.once || this.shouldSkip)) {
       return null
     }
 
@@ -320,6 +323,12 @@ export abstract class RequestHandler<
     })
 
     const mockedResponse = await mockedResponsePromise
+
+    // @ts-ignore
+    if (mockedResponse && mockedResponse[kResponseOnce]) {
+      this.isUsed = true
+      this.shouldSkip = true
+    }
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging

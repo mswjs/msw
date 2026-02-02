@@ -5,6 +5,7 @@ import type { HttpResponseInit } from '../../HttpResponse'
 const { message } = statuses
 
 export const kSetCookie = Symbol('kSetCookie')
+export const kResponseOnce = Symbol('kResponseOnce')
 
 export interface HttpResponseDecoratedInit extends HttpResponseInit {
   status: number
@@ -36,6 +37,14 @@ export function decorateResponse(
     Object.defineProperty(response, 'type', {
       value: init.type,
       enumerable: true,
+      writable: false,
+    })
+  }
+
+  if (init.once) {
+    Object.defineProperty(response, kResponseOnce, {
+      value: true,
+      enumerable: false,
       writable: false,
     })
   }

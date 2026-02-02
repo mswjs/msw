@@ -23,14 +23,26 @@ export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
     if (handlers.length > 0) {
       options?.onMockedConnection(connection)
 
-      await Promise.all(
-        handlers.map((handler) => {
-          // Iterate over the handlers and forward the connection
-          // event to WebSocket event handlers. This is equivalent
-          // to dispatching that event onto multiple listeners.
-          return handler.run(connection)
-        }),
-      )
+      try {
+        await Promise.all(
+          handlers.map((handler) => {
+            // Iterate over the handlers and forward the connection
+            // event to WebSocket event handlers. This is equivalent
+            // to dispatching that event onto multiple listeners.
+            return handler.run(connection)
+          }),
+        )
+      } catch (error) {
+        // Translate unhandled errors in connection handlers
+        // to WebSocket error events on the client.
+        const errorEvent = new Event('error')
+        Object.defineProperty(errorEvent, 'cause', {
+          enumerable: true,
+          configurable: false,
+          value: error,
+        })
+        connection.client.socket.dispatchEvent(errorEvent)
+      }
 
       return
     }

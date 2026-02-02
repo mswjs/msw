@@ -91,8 +91,11 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       })
 
       await network.enable()
-      await httpSource.printStartMessage()
       hasStarted = true
+
+      if (!options?.quiet) {
+        await httpSource.printStartMessage()
+      }
     },
     stop() {
       network.disable()

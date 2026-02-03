@@ -265,7 +265,7 @@
     "@fastify/websocket": "^11.2.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
-    "@ossjs/release": "^0.10.0",
+    "@ossjs/release": "^0.10.1",
     "@playwright/test": "^1.50.1",
     "@types/express": "^5.0.5",
     "@types/json-bigint": "^1.0.4",

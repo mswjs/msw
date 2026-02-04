@@ -11,7 +11,6 @@ import {
   HttpResponse,
   DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
-import type { HandlerKind } from './common'
 import type { GraphQLRequestBody } from './GraphQLHandler'
 
 export type DefaultRequestMultipartBody = Record<
@@ -133,14 +132,7 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
-  private readonly __kind: HandlerKind
-
-  public info: HandlerInfo & RequestHandlerInternalInfo
-  /**
-   * Indicates whether this request handler has been used
-   * (its resolver has successfully executed).
-   */
-  public isUsed: boolean
+  public kind = 'request' as const
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverIterator?:
@@ -157,6 +149,14 @@ export abstract class RequestHandler<
   private resolverIteratorResult?: Response | HttpResponse<any>
   private options?: HandlerOptions
 
+  public info: HandlerInfo & RequestHandlerInternalInfo
+
+  /**
+   * Indicates whether this request handler has been used
+   * (its resolver has successfully executed).
+   */
+  public isUsed: boolean
+
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
     this.resolver = args.resolver
     this.options = args.options
@@ -169,7 +169,6 @@ export abstract class RequestHandler<
     }
 
     this.isUsed = false
-    this.__kind = 'RequestHandler'
   }
 
   /**

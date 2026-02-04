@@ -5,14 +5,12 @@ import { WebSocketHandler } from '../../handlers/WebSocketHandler'
 import { isHandlerKind } from './isHandlerKind'
 
 it('returns true if expected a request handler and given a request handler', () => {
-  expect(
-    isHandlerKind('RequestHandler')(new HttpHandler('*', '*', () => {})),
-  ).toBe(true)
+  expect(isHandlerKind('request')(new HttpHandler('*', '*', () => {}))).toBe(
+    true,
+  )
 
   expect(
-    isHandlerKind('RequestHandler')(
-      new GraphQLHandler('all', '*', '*', () => {}),
-    ),
+    isHandlerKind('request')(new GraphQLHandler('all', '*', '*', () => {})),
   ).toBe(true)
 })
 
@@ -25,24 +23,24 @@ it('returns true if expected a request handler and given a custom request handle
     log() {}
   }
 
-  expect(isHandlerKind('RequestHandler')(new MyHandler())).toBe(true)
+  expect(isHandlerKind('request')(new MyHandler())).toBe(true)
 })
 
 it('returns false if expected a request handler but given event handler', () => {
-  expect(isHandlerKind('RequestHandler')(new WebSocketHandler('*'))).toBe(false)
+  expect(isHandlerKind('request')(new WebSocketHandler('*'))).toBe(false)
 })
 
 it('returns false if expected a request handler but given arbitrary object', () => {
-  expect(isHandlerKind('RequestHandler')(undefined)).toBe(false)
-  expect(isHandlerKind('RequestHandler')(null)).toBe(false)
-  expect(isHandlerKind('RequestHandler')({})).toBe(false)
-  expect(isHandlerKind('RequestHandler')([])).toBe(false)
-  expect(isHandlerKind('RequestHandler')(123)).toBe(false)
-  expect(isHandlerKind('RequestHandler')('hello')).toBe(false)
+  expect(isHandlerKind('request')(undefined)).toBe(false)
+  expect(isHandlerKind('request')(null)).toBe(false)
+  expect(isHandlerKind('request')({})).toBe(false)
+  expect(isHandlerKind('request')([])).toBe(false)
+  expect(isHandlerKind('request')(123)).toBe(false)
+  expect(isHandlerKind('request')('hello')).toBe(false)
 })
 
 it('returns true if expected an event handler and given an event handler', () => {
-  expect(isHandlerKind('EventHandler')(new WebSocketHandler('*'))).toBe(true)
+  expect(isHandlerKind('websocket')(new WebSocketHandler('*'))).toBe(true)
 })
 
 it('returns true if expected an event handler and given a custom event handler', () => {
@@ -51,14 +49,14 @@ it('returns true if expected an event handler and given a custom event handler',
       super('*')
     }
   }
-  expect(isHandlerKind('EventHandler')(new MyEventHandler())).toBe(true)
+  expect(isHandlerKind('websocket')(new MyEventHandler())).toBe(true)
 })
 
 it('returns false if expected an event handler but given arbitrary object', () => {
-  expect(isHandlerKind('EventHandler')(undefined)).toBe(false)
-  expect(isHandlerKind('EventHandler')(null)).toBe(false)
-  expect(isHandlerKind('EventHandler')({})).toBe(false)
-  expect(isHandlerKind('EventHandler')([])).toBe(false)
-  expect(isHandlerKind('EventHandler')(123)).toBe(false)
-  expect(isHandlerKind('EventHandler')('hello')).toBe(false)
+  expect(isHandlerKind('websocket')(undefined)).toBe(false)
+  expect(isHandlerKind('websocket')(null)).toBe(false)
+  expect(isHandlerKind('websocket')({})).toBe(false)
+  expect(isHandlerKind('websocket')([])).toBe(false)
+  expect(isHandlerKind('websocket')(123)).toBe(false)
+  expect(isHandlerKind('websocket')('hello')).toBe(false)
 })

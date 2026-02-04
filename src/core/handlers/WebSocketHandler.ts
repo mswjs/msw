@@ -12,7 +12,6 @@ import {
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import type { HandlerKind } from './common'
 import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
 
 type WebSocketHandlerParsedResult = {
@@ -40,10 +39,9 @@ const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
 export class WebSocketHandler {
-  private readonly __kind: HandlerKind
-
   public id: string
   public callFrame?: string
+  public kind = 'websocket' as const
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
@@ -52,7 +50,6 @@ export class WebSocketHandler {
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
-    this.__kind = 'EventHandler'
   }
 
   public parse(args: {

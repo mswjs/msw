@@ -3,10 +3,10 @@ import {
   type NetworkSource,
   type ExtractSourceEvents,
   type AnyNetworkFrame,
+  getHandlerKindByFrame,
 } from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { onUnhandledFrame, UnhandledFrameHandle } from './on-unhandled-frame'
-import { isHandlerKind } from '../utils/internal/isHandlerKind'
 import {
   AnyHandler,
   HandlersController,
@@ -36,9 +36,8 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<
-  Sources extends Array<NetworkSource<any>>,
-> extends NetworkHandlersApi {
+export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
+  extends NetworkHandlersApi {
   enable: () => Promise<void>
   disable: () => Promise<void>
   configure: (options: Partial<DefineNetworkOptions<Sources>>) => void
@@ -98,23 +97,12 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
             async ({ data: frame }: { data: AnyNetworkFrame }) => {
               frame.events.on('*', (event) => events.emit(event))
 
-              /**
-               * @fixme Handler filtering on each frame is expensive.
-               * Refactor the way we store handlers into a Map<HandlerKind, Array<Handler>>.
-               */
-              const handlerPredicate =
-                frame.protocol === 'http'
-                  ? isHandlerKind('RequestHandler')
-                  : frame.protocol === 'ws'
-                    ? isHandlerKind('EventHandler')
-                    : () => false
-
-              const handlers =
-                handlersController.currentHandlers.filter(handlerPredicate) ||
-                []
+              const matchingHandlers = handlersController.getHandlersByKind(
+                getHandlerKindByFrame(frame),
+              )
 
               const isHandledFrame = await frame.resolve(
-                handlers,
+                matchingHandlers,
                 resolvedOptions.context,
               )
 
@@ -135,9 +123,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     },
     async disable() {
       await Promise.all(
-        resolvedOptions.sources.map(async (source) => {
-          await source.disable()
-        }),
+        resolvedOptions.sources.map((source) => source.disable()),
       )
     },
     use(...handlers) {

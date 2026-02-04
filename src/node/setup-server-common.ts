@@ -1,16 +1,38 @@
 import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
-import type { ListenOptions, SetupServerCommon } from './glossary'
 import { type NetworkApi, defineNetwork } from '#core/new/define-network'
 import { type AnyHandler } from '#core/new/handlers-controller'
 import { HandlersController } from '#core/new/handlers-controller'
 import { InterceptorSource } from '#core/new/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/new/compat'
+import type { ListenOptions, SetupServerCommon } from './glossary'
+
+export function createSetupServerCommonApi(
+  network: NetworkApi<any>,
+): SetupServerCommon {
+  return {
+    events: network.events,
+    listen(options) {
+      network.configure({
+        onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
+          return options?.onUnhandledRequest || 'warn'
+        }),
+      })
+
+      network.enable()
+    },
+    use: network.use.bind(network),
+    resetHandlers: network.resetHandlers.bind(network),
+    restoreHandlers: network.restoreHandlers.bind(network),
+    listHandlers: network.listHandlers.bind(network),
+    close() {
+      network.disable()
+    },
+  }
+}
 
 export class SetupServerCommonApi implements SetupServerCommon {
-  #listenOptions?: PartialDeep<ListenOptions>
-
-  protected network: NetworkApi<any>
+  protected network: NetworkApi<[InterceptorSource]>
 
   constructor(
     interceptors: Array<Interceptor<any>>,
@@ -19,12 +41,6 @@ export class SetupServerCommonApi implements SetupServerCommon {
     this.network = defineNetwork({
       sources: [new InterceptorSource({ interceptors })],
       handlers,
-      onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
-        return this.#listenOptions?.onUnhandledRequest || 'warn'
-      }),
-      context: {
-        quiet: true,
-      },
     })
   }
 
@@ -33,7 +49,12 @@ export class SetupServerCommonApi implements SetupServerCommon {
   }
 
   public listen(options?: PartialDeep<ListenOptions>): void {
-    this.#listenOptions = options
+    this.network.configure({
+      onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
+        return options?.onUnhandledRequest || 'warn'
+      }),
+    })
+
     this.network.enable()
   }
 

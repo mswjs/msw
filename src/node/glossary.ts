@@ -12,42 +12,42 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()` API reference}
    */
-  listen(options?: PartialDeep<ListenOptions>): void
+  listen: (options?: PartialDeep<ListenOptions>) => void
 
   /**
    * Stops requests interception by restoring all augmented modules.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/close `server.close()` API reference}
    */
-  close(): void
+  close: () => void
 
   /**
    * Prepends given request handlers to the list of existing handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/use `server.use()` API reference}
    */
-  use(...handlers: Array<AnyHandler>): void
+  use: (...handlers: Array<AnyHandler>) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/restore-handlers `server.restore-handlers()` API reference}
    */
-  restoreHandlers(): void
+  restoreHandlers: () => void
 
   /**
    * Resets request handlers to the initial list given to the `setupServer` call, or to the explicit next request handlers list, if given.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/reset-handlers `server.reset-handlers()` API reference}
    */
-  resetHandlers(...nextHandlers: Array<AnyHandler>): void
+  resetHandlers: (...nextHandlers: Array<AnyHandler>) => void
 
   /**
    * Returns a readonly list of currently active request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/list-handlers `server.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<AnyHandler>
+  listHandlers: () => ReadonlyArray<AnyHandler>
 
   /**
    * Life-cycle events.
@@ -69,7 +69,7 @@ export interface SetupServer extends SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/boundary `server.boundary()` API reference}
    */
-  boundary<Args extends Array<any>, R>(
+  boundary: <Args extends Array<any>, R>(
     callback: (...args: Args) => R,
-  ): (...args: Args) => R
+  ) => (...args: Args) => R
 }

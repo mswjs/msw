@@ -159,6 +159,16 @@
         "default": "./lib/core/ws.js"
       }
     },
+    "./future": {
+      "import": {
+        "types": "./lib/core/future.d.mts",
+        "default": "./lib/core/future.mjs"
+      },
+      "default": {
+        "types": "./lib/core/future.d.ts",
+        "default": "./lib/core/future.js"
+      }
+    },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"
   },

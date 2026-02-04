@@ -161,12 +161,12 @@
     },
     "./future": {
       "import": {
-        "types": "./lib/core/future.d.mts",
-        "default": "./lib/core/future.mjs"
+        "types": "./lib/core/future/index.d.mts",
+        "default": "./lib/core/future/index.mjs"
       },
       "default": {
-        "types": "./lib/core/future.d.ts",
-        "default": "./lib/core/future.js"
+        "types": "./lib/core/future/index.d.ts",
+        "default": "./lib/core/future/index.js"
       }
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",

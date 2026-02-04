@@ -6,12 +6,12 @@ import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import {
   defineNetwork,
   type DefineNetworkOptions,
-} from '#core/new/define-network'
+} from '#core/future/define-network'
 import {
   type AnyHandler,
   groupHandlersByKind,
-} from '#core/new/handlers-controller'
-import { InterceptorSource } from '#core/new/sources/interceptor-source'
+} from '#core/future/handlers-controller'
+import { InterceptorSource } from '#core/future/sources/interceptor-source'
 import { SetupServer } from './glossary'
 import { AsyncHandlersController } from './async-handlers-controller'
 import {

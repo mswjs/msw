@@ -1,4 +1,4 @@
-import type { AnyHandler } from '../../new/handlers-controller'
+import type { AnyHandler } from '../../future/handlers-controller'
 import type { RequestHandler } from '../../handlers/RequestHandler'
 import type { WebSocketHandler } from '../../handlers/WebSocketHandler'
 import { isObject } from './isObject'

@@ -1,9 +1,12 @@
 import type { Interceptor } from '@mswjs/interceptors'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { type AnyHandler } from '#core/new/handlers-controller'
-import { defineNetwork, DefineNetworkOptions } from '#core/new/define-network'
-import { InterceptorSource } from '#core/new/sources/interceptor-source'
+import { type AnyHandler } from '#core/future/handlers-controller'
+import {
+  defineNetwork,
+  DefineNetworkOptions,
+} from '#core/future/define-network'
+import { InterceptorSource } from '#core/future/sources/interceptor-source'
 import { type SetupServerCommon } from '../node/glossary'
 import { createSetupServerCommonApi } from '../node/setup-server-common'
 

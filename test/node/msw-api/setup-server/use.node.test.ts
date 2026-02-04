@@ -44,8 +44,6 @@ test('returns a mocked response from a runtime request handler upon match', asyn
     }),
   )
 
-  console.log('AFTER USE:', server.listHandlers())
-
   // Request handlers added on runtime affect network communication as usual.
   const loginResponse = await fetch(httpServer.http.url('/login'), {
     method: 'POST',

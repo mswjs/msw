@@ -4,7 +4,7 @@ import {
   type HandlersMap,
   HandlersController,
   HandlersControllerState,
-} from '#core/new/handlers-controller'
+} from '#core/future/handlers-controller'
 
 export interface AsyncHandlersControllerContext {
   initialHandlers: HandlersMap
@@ -49,26 +49,6 @@ export class AsyncHandlersController extends HandlersController {
       context.handlers = nextState.handlers
     }
   }
-
-  // public get currentHandlers() {
-  //   const { initialHandlers, handlers } = this.getState()
-
-  // This looks terribly incorrect.
-  //   return [...Object.values(handlers), ...Object.values(initialHandlers)]
-  //     .flat()
-  //     .filter((handler) => handler != null)
-  // }
-
-  // public reset(nextHandlers: Array<AnyHandler>): void {
-  //   super.reset(nextHandlers)
-
-  //   const context = this.#getContext()
-  //   context.handlers = [...initialHandlers]
-
-  //   if (nextHandlers.length > 0) {
-  //     context.initialHandlers = [...nextHandlers]
-  //   }
-  // }
 
   #getContext() {
     return this.context.getStore() || this.#fallbackContext

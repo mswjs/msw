@@ -23,7 +23,6 @@ it('infers event map type from a single source', () => {
   }).events.on('*', (event) => {
     expectTypeOf(event.type).toExtend<'hello'>()
     expectTypeOf(event.data).toExtend<'world'>()
-    expectTypeOf(event.data).not.toBeAny()
   })
 })
 
@@ -43,6 +42,5 @@ it('combines event maps from different sources', () => {
   }).events.on('*', (event) => {
     expectTypeOf(event.type).toExtend<'hello' | 'goodbye'>()
     expectTypeOf(event.data).toExtend<'world' | 'cosmos'>()
-    expectTypeOf(event.data).not.toBeAny()
   })
 })

@@ -4,6 +4,7 @@ import {
   Cookie,
   CookieJar,
   MemoryCookieStore,
+  SerializedCookie,
   type MemoryCookieStoreIndex,
 } from 'tough-cookie'
 import { jsonParse } from './internal/jsonParse'
@@ -76,7 +77,7 @@ class CookieStore {
       return
     }
 
-    const data = []
+    const data: Array<SerializedCookie> = []
     const { idx } = this.#memoryStore
 
     for (const domain in idx) {

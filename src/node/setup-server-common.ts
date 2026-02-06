@@ -2,7 +2,7 @@ import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
 import { type NetworkApi, defineNetwork } from '#core/future/define-network'
 import { type AnyHandler } from '#core/future/handlers-controller'
-import { HandlersController } from '#core/future/handlers-controller'
+import { type HandlersController } from '#core/future/handlers-controller'
 import { InterceptorSource } from '#core/future/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/future/compat'
 import type { ListenOptions, SetupServerCommon } from './glossary'
@@ -45,7 +45,7 @@ export class SetupServerCommonApi implements SetupServerCommon {
   }
 
   get events() {
-    return this.network.events as any
+    return this.network.events
   }
 
   public listen(options?: PartialDeep<ListenOptions>): void {

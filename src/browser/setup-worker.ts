@@ -6,6 +6,9 @@ import { type AnyHandler } from '#core/future/handlers-controller'
 import { InterceptorSource } from '#core/future/sources/interceptor-source'
 import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
 import { fromLegacyOnUnhandledRequest } from '#core/future/compat'
+import type { LifeCycleEventEmitter } from '#core/sharedOptions'
+import type { HttpNetworkFrameEventMap } from '#core/future/frames/http-frame'
+import type { WebSocketNetworkFrameEventMap } from '#core/future/frames/websocket-frame'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
@@ -15,6 +18,9 @@ import { type FindWorker } from './glossary'
 export interface SetupWorkerApi extends NetworkHandlersApi {
   start: (options?: SetupWorkerStartOptions) => Promise<void>
   stop: () => void
+  events: LifeCycleEventEmitter<
+    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+  >
 }
 
 interface SetupWorkerStartOptions {
@@ -43,7 +49,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     ),
   )
 
-  let hasStarted = false
+  let isStarted = false
   const network = defineNetwork<
     Array<ServiceWorkerSource | FallbackHttpSource | InterceptorSource>
   >({
@@ -57,7 +63,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
        * @todo @fixme
        * This is kept for backward-compatibility reasons. We don't really need this check anymore.
        */
-      if (hasStarted) {
+      if (isStarted) {
         devUtils.warn(
           'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
         )
@@ -91,7 +97,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       })
 
       await network.enable()
-      hasStarted = true
+      isStarted = true
 
       if (!options?.quiet) {
         await httpSource.printStartMessage()
@@ -100,17 +106,10 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     stop() {
       network.disable()
     },
-    use(...handlers) {
-      return network.use(...handlers)
-    },
-    resetHandlers(...handlers) {
-      return network.resetHandlers(...handlers)
-    },
-    restoreHandlers() {
-      return network.restoreHandlers()
-    },
-    listHandlers() {
-      return network.listHandlers()
-    },
+    events: network.events,
+    use: network.use.bind(network),
+    resetHandlers: network.resetHandlers.bind(network),
+    restoreHandlers: network.restoreHandlers.bind(network),
+    listHandlers: network.listHandlers.bind(network),
   }
 }

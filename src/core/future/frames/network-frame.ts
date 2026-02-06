@@ -27,6 +27,9 @@ export abstract class NetworkFrame<
    * Resolve the current frame against the given list of handlers.
    * Optionally, use a custom resolution context to control behaviors
    * like `baseUrl`.
+   *
+   * Returns `true` if the frame was handled, `false` if it wasn't, and `null`
+   * if its handling was skipped (e.g. the frame was bypassed).
    */
   public abstract resolve(
     handlers: Array<AnyHandler>,

@@ -1,10 +1,10 @@
 import { invariant } from 'outvariant'
-import { Emitter, TypedEvent } from 'rettime'
+import { Emitter } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/future/sources/network-source'
 import { RequestHandler } from '#core/handlers/RequestHandler'
-import { HttpNetworkFrame } from '#core/future/frames/http-frame'
+import { HttpNetworkFrame, ResponseEvent } from '#core/future/frames/http-frame'
 import { HttpResponse } from '#core/HttpResponse'
 import { toResponseInit } from '#core/utils/toResponseInit'
 import { devUtils } from '#core/utils/internal/devUtils'
@@ -26,13 +26,13 @@ export interface ServiceWorkerSourceOptions {
   findWorker?: FindWorker
 }
 
-type RequestEvent = Emitter.EventType<
+type WorkerChannelRequestEvent = Emitter.EventType<
   WorkerChannel,
   'REQUEST',
   WorkerChannelEventMap
 >
 
-type ResponseEvent = Emitter.EventType<
+type WorkerChannelResponseEvent = Emitter.EventType<
   WorkerChannel,
   'RESPONSE',
   WorkerChannelEventMap
@@ -184,7 +184,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     return [worker, registration] as const
   }
 
-  async #handleRequest(event: RequestEvent): Promise<void> {
+  async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
     // Passthrough any requests performed after the interception was stopped.
     if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
       return event.postMessage('PASSTHROUGH')
@@ -202,7 +202,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     await this.queue(frame)
   }
 
-  async #handleResponse(event: ResponseEvent): Promise<void> {
+  async #handleResponse(event: WorkerChannelResponseEvent): Promise<void> {
     const { request, response, isMockedResponse } = event.data
 
     /**
@@ -233,14 +233,15 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         : new FetchResponse(response.body, response)
 
     frame.events.emit(
-      new TypedEvent(isMockedResponse ? 'response:mocked' : 'response:bypass', {
-        data: {
+      new ResponseEvent(
+        isMockedResponse ? 'response:mocked' : 'response:bypass',
+        {
           requestId: request.id,
           request: fetchRequest,
           response: fetchResponse,
           isMockedResponse,
         },
-      }),
+      ),
     )
   }
 
@@ -333,9 +334,9 @@ You can also automate this process and make the worker script update automatical
 }
 
 class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
-  #event: RequestEvent
+  #event: WorkerChannelRequestEvent
 
-  constructor(options: { event: RequestEvent; request: Request }) {
+  constructor(options: { event: WorkerChannelRequestEvent; request: Request }) {
     super({ request: options.request })
     this.#event = options.event
   }

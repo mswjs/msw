@@ -36,7 +36,7 @@ test('does not throw on connecting to a non-existing host', async ({
 
     return new Promise<void>((resolve, reject) => {
       socket.onclose = () => resolve()
-      socket.onerror = reject
+      socket.onerror = () => reject('WebSocket connection errored')
     })
   })
 
@@ -159,6 +159,8 @@ test('resolves relative link URL against the page origin', async ({
 
     const worker = setupWorker(
       service.addEventListener('connection', ({ client }) => {
+        console.log('HANDLER!')
+
         client.send('hello world')
       }),
     )

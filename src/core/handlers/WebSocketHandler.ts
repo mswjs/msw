@@ -1,5 +1,5 @@
 import { Emitter } from 'strict-event-emitter'
-import { createRequestId } from '@mswjs/interceptors'
+import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
   WebSocketConnectionData,
@@ -44,10 +44,20 @@ export class WebSocketHandler {
   public id: string
   public callFrame?: string
 
+  protected readonly url: Path
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
-  constructor(private readonly url: Path) {
+  constructor(url: Path) {
     this.id = createRequestId()
+
+    // Resolve the WebSocket handler path:
+    // - Plain string URLs resolved as per the specification (via Interceptors).
+    // - String URLs starting with a wildcard are preserved (prepending a scheme there will break them).
+    // - RegExp paths are preserved.
+    this.url =
+      url instanceof RegExp || url.startsWith('*')
+        ? url
+        : resolveWebSocketUrl(url)
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())

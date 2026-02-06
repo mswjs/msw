@@ -238,7 +238,7 @@
   "sideEffects": false,
   "dependencies": {
     "@inquirer/confirm": "^5.0.0",
-    "@mswjs/interceptors": "^0.41.0",
+    "@mswjs/interceptors": "^0.41.2",
     "@open-draft/deferred-promise": "^2.2.0",
     "@types/statuses": "^2.0.6",
     "cookie": "^1.0.2",

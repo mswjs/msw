@@ -44,10 +44,13 @@ type WorkerChannelClient =
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
-  #workerPromise: DeferredPromise<[ServiceWorker, ServiceWorkerRegistration]>
   #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
   #stoppedAt?: number
+
+  public workerPromise: DeferredPromise<
+    [ServiceWorker, ServiceWorkerRegistration]
+  >
 
   constructor(private readonly options: ServiceWorkerSourceOptions) {
     super()
@@ -58,21 +61,21 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     )
 
     this.#frames = new Map()
-    this.#workerPromise = new DeferredPromise()
+    this.workerPromise = new DeferredPromise()
     this.#channel = new WorkerChannel({
-      worker: this.#workerPromise.then(([worker]) => worker),
+      worker: this.workerPromise.then(([worker]) => worker),
     })
   }
 
   public async enable(): Promise<ServiceWorkerRegistration> {
     this.#stoppedAt = undefined
 
-    if (this.#workerPromise.state !== 'pending') {
+    if (this.workerPromise.state !== 'pending') {
       devUtils.warn(
         'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
       )
 
-      return this.#workerPromise.then(([, registration]) => registration)
+      return this.workerPromise.then(([, registration]) => registration)
     }
 
     const [worker, registration] = await this.#startWorker()
@@ -114,7 +117,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#stoppedAt = Date.now()
     this.#frames.clear()
     this.#channel.removeAllListeners()
-    this.#workerPromise = new DeferredPromise()
+    this.workerPromise = new DeferredPromise()
 
     this.#printStopMessage()
   }
@@ -155,7 +158,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       throw new Error(missingWorkerMessage)
     }
 
-    this.#workerPromise.resolve([worker, registration])
+    this.workerPromise.resolve([worker, registration])
 
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
@@ -281,7 +284,7 @@ You can also automate this process and make the worker script update automatical
   }
 
   public async printStartMessage() {
-    if (this.options.quiet || this.#workerPromise.state === 'rejected') {
+    if (this.options.quiet || this.workerPromise.state === 'rejected') {
       return
     }
 
@@ -291,7 +294,7 @@ You can also automate this process and make the worker script update automatical
     )
 
     const client = await this.#clientPromise
-    const [worker, registration] = await this.#workerPromise
+    const [worker, registration] = await this.workerPromise
 
     console.groupCollapsed(
       `%c${devUtils.formatMessage('Mocking enabled.')}`,

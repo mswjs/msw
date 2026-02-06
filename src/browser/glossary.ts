@@ -62,6 +62,9 @@ export type StartHandler = (
 
 export type StopHandler = () => void
 
+/**
+ * @deprecated Use the `SetupWorkerApi` type instead.
+ */
 export interface SetupWorker {
   /**
    * Registers and activates the mock Service Worker.

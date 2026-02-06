@@ -13,10 +13,10 @@ import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
-import { type FindWorker } from './glossary'
+import type { FindWorker, StartReturnType } from './glossary'
 
 export interface SetupWorkerApi extends NetworkHandlersApi {
-  start: (options?: SetupWorkerStartOptions) => Promise<void>
+  start: (options?: SetupWorkerStartOptions) => StartReturnType
   stop: () => void
   events: LifeCycleEventEmitter<
     HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
@@ -49,13 +49,14 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     ),
   )
 
-  let isStarted = false
   const network = defineNetwork<
     Array<ServiceWorkerSource | FallbackHttpSource | InterceptorSource>
   >({
     sources: [],
     handlers,
   })
+
+  let isStarted = false
 
   return {
     async start(options) {
@@ -101,6 +102,11 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
 
       if (!options?.quiet) {
         await httpSource.printStartMessage()
+      }
+
+      if (httpSource instanceof ServiceWorkerSource) {
+        const [, registration] = await httpSource.workerPromise
+        return registration
       }
     },
     stop() {

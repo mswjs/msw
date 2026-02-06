@@ -207,7 +207,7 @@ test('clears the list of clients when the worker is stopped', async ({
   // Must purge the local storage on reload.
   // The worker has been started as a part of the test, not runtime,
   // so it will start with empty clients.
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
 })
 
 test('clears the list of clients when the page is reloaded', async ({

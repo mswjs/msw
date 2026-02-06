@@ -110,6 +110,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       }
     },
     stop() {
+      window.postMessage({ type: 'msw/worker:stop' })
       network.disable()
     },
     events: network.events,

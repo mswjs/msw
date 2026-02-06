@@ -145,6 +145,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
         handlers,
         resolutionContext: {
           baseUrl: resolutionContext?.baseUrl?.toString(),
+          quiet: resolutionContext?.quiet,
         },
       })
     })

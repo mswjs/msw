@@ -79,6 +79,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
               options: options?.serviceWorker?.options,
             },
             findWorker: options?.findWorker,
+            quiet: options?.quiet,
           })
         : new FallbackHttpSource()
 

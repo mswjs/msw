@@ -11,10 +11,25 @@ export interface WebSocketNetworkFrameOptions {
 }
 
 export type WebSocketNetworkFrameEventMap = {
-  connection: TypedEvent<{
+  connection: WebSocketConnectionEvent
+}
+
+class WebSocketConnectionEvent<
+  DataType extends {
     url: URL
     protocols: string | Array<string> | undefined
-  }>
+  } = { url: URL; protocols: string | Array<string> | undefined },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly url: URL
+  public readonly protocols: string | Array<string> | undefined
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type, {}] as any))
+    this.url = data.url
+    this.protocols = data.protocols
+  }
 }
 
 export abstract class WebSocketNetworkFrame extends NetworkFrame<
@@ -37,11 +52,9 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     const { connection } = this.data
 
     this.events.emit(
-      new TypedEvent('connection', {
-        data: {
-          url: connection.client.url,
-          protocols: connection.info.protocols,
-        },
+      new WebSocketConnectionEvent('connection', {
+        url: connection.client.url,
+        protocols: connection.info.protocols,
       }),
     )
 

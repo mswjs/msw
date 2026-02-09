@@ -134,6 +134,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
     // Requests wrapped in explicit `bypass(request)`.
     if (shouldBypassRequest(request)) {
+      this.events.emit(new RequestEvent('request:end', { requestId, request }))
       this.passthrough()
       return null
     }

@@ -109,8 +109,8 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       }
     },
     stop() {
-      window.postMessage({ type: 'msw/worker:stop' })
       network.disable()
+      window.postMessage({ type: 'msw/worker:stop' })
     },
     events: network.events,
     use: network.use.bind(network),

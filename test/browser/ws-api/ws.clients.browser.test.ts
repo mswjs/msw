@@ -231,7 +231,7 @@ test('clears the list of clients when the page is reloaded', async ({
 
   await enableMocking()
 
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
 
   await page.evaluate(async () => {
     const ws = new WebSocket('wss://example.com')
@@ -239,7 +239,7 @@ test('clears the list of clients when the page is reloaded', async ({
   })
 
   // Must return the number of joined clients.
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(1)
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(1)
 
   await page.reload()
   await enableMocking()
@@ -247,5 +247,5 @@ test('clears the list of clients when the page is reloaded', async ({
   // Must purge the local storage on reload.
   // The worker has been started as a part of the test, not runtime,
   // so it will start with empty clients.
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
 })

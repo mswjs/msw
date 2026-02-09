@@ -237,13 +237,32 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     const fetchResponse =
       response.status === 0
         ? Response.error()
-        : new FetchResponse(response.body, response)
+        : new FetchResponse(
+            /**
+             * Responses may be streams here, but when we create a response object
+             * with null-body status codes, like 204, 205, 304 Response will
+             * throw when passed a non-null body, so ensure it's null here
+             * for those codes
+             */
+            FetchResponse.isResponseWithBody(response.status)
+              ? response.body
+              : null,
+            {
+              ...response,
+              /**
+               * Set response URL if it's not set already.
+               * @see https://github.com/mswjs/msw/issues/2030
+               * @see https://developer.mozilla.org/en-US/docs/Web/API/Response/url
+               */
+              url: request.url,
+            },
+          )
 
     frame.events.emit(
       new ResponseEvent(
         isMockedResponse ? 'response:mocked' : 'response:bypass',
         {
-          requestId: request.id,
+          requestId: frame.data.id,
           request: fetchRequest,
           response: fetchResponse,
           isMockedResponse,

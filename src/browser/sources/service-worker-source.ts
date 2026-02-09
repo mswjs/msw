@@ -108,6 +108,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     })
     await clientConfirmationPromise
 
+    if (!this.options.quiet) {
+      this.#printStartMessage()
+    }
+
     return registration
   }
 
@@ -283,7 +287,7 @@ You can also automate this process and make the worker script update automatical
     return integrityCheckPromise
   }
 
-  public async printStartMessage() {
+  async #printStartMessage() {
     if (this.options.quiet || this.workerPromise.state === 'rejected') {
       return
     }

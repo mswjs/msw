@@ -81,7 +81,9 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
             findWorker: options?.findWorker,
             quiet: options?.quiet,
           })
-        : new FallbackHttpSource()
+        : new FallbackHttpSource({
+            quiet: options?.quiet,
+          })
 
       network.configure({
         sources: [
@@ -100,10 +102,6 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
 
       await network.enable()
       isStarted = true
-
-      if (!options?.quiet) {
-        await httpSource.printStartMessage()
-      }
 
       if (httpSource instanceof ServiceWorkerSource) {
         const [, registration] = await httpSource.workerPromise

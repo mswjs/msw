@@ -382,15 +382,10 @@ class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
     }
 
     if (reason instanceof Error) {
-      devUtils.error(
-        `Uncaught exception in the request handler for "%s %s":
-
-     %s
-
-     This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
+      devUtils.warn(
+        `Uncaught exception in the request handler for "%s %s". This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
         this.data.request.method,
         this.data.request.url,
-        reason.stack ?? reason,
       )
 
       // Treat exceptions during the request handling as 500 responses.

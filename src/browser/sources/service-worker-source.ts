@@ -119,6 +119,14 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   public async disable(): Promise<void> {
     await super.disable()
 
+    if (typeof this.#stoppedAt !== 'undefined') {
+      devUtils.warn(
+        `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
+      )
+
+      return
+    }
+
     this.#stoppedAt = Date.now()
     this.#frames.clear()
     this.workerPromise = new DeferredPromise()

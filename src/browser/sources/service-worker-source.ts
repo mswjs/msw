@@ -78,6 +78,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       return this.workerPromise.then(([, registration]) => registration)
     }
 
+    this.#channel.removeAllListeners()
     const [worker, registration] = await this.#startWorker()
 
     if (worker.state !== 'activated') {
@@ -120,10 +121,11 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#stoppedAt = Date.now()
     this.#frames.clear()
-    this.#channel.removeAllListeners()
     this.workerPromise = new DeferredPromise()
 
-    this.#printStopMessage()
+    if (!this.options.quiet) {
+      this.#printStopMessage()
+    }
   }
 
   async #startWorker() {
@@ -226,12 +228,13 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     const frame = this.#frames.get(request.id)
     this.#frames.delete(request.id)
 
-    invariant(
-      frame != null,
-      'Failed to handle a worker response for request "%s %s": request frame is missing',
-      request.method,
-      request.url,
-    )
+    /**
+     * @note A request frame will be missing in case of passthrough after the worker is stopped.
+     * Creating a frame is costly so it's better to handle it as an edge case here.
+     */
+    if (frame == null) {
+      return
+    }
 
     const fetchRequest = deserializeRequest(request)
     const fetchResponse =
@@ -307,7 +310,7 @@ You can also automate this process and make the worker script update automatical
   }
 
   async #printStartMessage() {
-    if (this.options.quiet || this.workerPromise.state === 'rejected') {
+    if (this.workerPromise.state === 'rejected') {
       return
     }
 
@@ -347,10 +350,6 @@ You can also automate this process and make the worker script update automatical
   }
 
   #printStopMessage(): void {
-    if (this.options.quiet) {
-      return
-    }
-
     // eslint-disable-next-line no-console
     console.log(
       `%c${devUtils.formatMessage('Mocking disabled.')}`,

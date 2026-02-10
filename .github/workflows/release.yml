@@ -6,34 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  build:
     runs-on: macos-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.GH_ADMIN_TOKEN }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          always-auth: true
-          registry-url: https://registry.npmjs.org
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.14.0
+          version: 9.15.0
 
-      - name: Setup Git
-        run: |
-          git config --local user.name "Artem Zakharchenko"
-          git config --local user.email "kettanaito@gmail.com"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
@@ -50,8 +40,52 @@ jobs:
       - name: Tests
         run: pnpm test
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./lib
+
+  release:
+    needs: [build]
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_ADMIN_TOKEN }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Trusted Publishing only works on Node.js v24.
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Setup Git
+        run: |
+          git config --local user.name "Artem Zakharchenko"
+          git config --local user.email "kettanaito@gmail.com"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./lib
+
       - name: Release
         run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

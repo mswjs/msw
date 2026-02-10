@@ -12,8 +12,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.2(@types/node@20.19.25)
       '@mswjs/interceptors':
-        specifier: ^0.40.0
-        version: 0.40.0
+        specifier: ^0.41.2
+        version: 0.41.2
       '@open-draft/deferred-promise':
         specifier: ^2.2.0
         version: 2.2.0
@@ -42,8 +42,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       rettime:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.10.1
+        version: 0.10.1
       statuses:
         specifier: ^2.0.2
         version: 2.0.2
@@ -88,8 +88,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2
       '@ossjs/release':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: ^0.10.1
+        version: 0.10.1
       '@playwright/test':
         specifier: ^1.50.1
         version: 1.56.1
@@ -955,8 +955,8 @@ packages:
     resolution: {integrity: sha512-stTxvLdJ2IcGOs76AnvGYAzGvx8JvQPRxC5DW0P5zdAAnhL33noqb5LKdPt3P37BKp9FzBKZHuihQI9oVqwm0g==}
     engines: {node: '>=16.13'}
 
-  '@mswjs/interceptors@0.40.0':
-    resolution: {integrity: sha512-EFd6cVbHsgLa6wa4RljGj6Wk75qoHxUSyc5asLyyPSyuhIcdS2Q3Phw6ImS1q+CkALthJRShiYfKANcQMuMqsQ==}
+  '@mswjs/interceptors@0.41.2':
+    resolution: {integrity: sha512-7G0Uf0yK3f2bjElBLGHIQzgRgMESczOMyYVasq1XK8P5HaXtlW4eQhz9MBL+TQILZLaruq+ClGId+hH0w4jvWw==}
     engines: {node: '>=18'}
 
   '@napi-rs/wasm-runtime@1.0.7':
@@ -986,8 +986,8 @@ packages:
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
-  '@ossjs/release@0.10.0':
-    resolution: {integrity: sha512-Cj8pV7aY9xDOCunv4B8mXTfwK/sDxy6NeYxcrFXs/dedazmqCsyeM97IEGB+pMBZrcUJbjSY+/Ed7H/Cowdovw==}
+  '@ossjs/release@0.10.1':
+    resolution: {integrity: sha512-Djr1DXVTeR476ZdNC0RYPQQuX7Hx+CnEex1AyBBnsizQ7KqsidW99iooDFxT36jy8ReXwdTgIsjP2OSdyjfbLQ==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -1457,6 +1457,9 @@ packages:
   '@types/conventional-commits-parser@5.0.1':
     resolution: {integrity: sha512-7uz5EHdzz2TqoMfV7ee61Egf5y6NkcO4FB/1iCCQnbeiI1F3xzv3vK5dBCXUCLQgGYS+mUeigK1iKQzvED+QnQ==}
 
+  '@types/conventional-commits-parser@5.0.2':
+    resolution: {integrity: sha512-BgT2szDXnVypgpNxOK8aL5SGjUdaQbC++WZNjF1Qge3Og2+zhHj+RWhmehLhYyvQwqAmvezruVfOf8+3m74W+g==}
+
   '@types/cookie@0.4.1':
     resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
 
@@ -1542,8 +1545,8 @@ packages:
   '@types/node@20.19.25':
     resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
 
-  '@types/node@24.5.2':
-    resolution: {integrity: sha512-FYxk1I7wPv3K2XBaoyH2cTnocQEu8AOZ60hPbsyukMPLv5/5qr7V1i8PLHdl6Zf87I+xZXFvPCXYjiTFq+YSDQ==}
+  '@types/node@24.10.10':
+    resolution: {integrity: sha512-+0/4J266CBGPUq/ELg7QUHhN25WYjE0wYTPSQJn1xeu8DOlIOPxXxrNGiLmfAWl7HMMgWFWXpt9IDjMWrF5Iow==}
 
   '@types/parse5@6.0.3':
     resolution: {integrity: sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==}
@@ -1584,8 +1587,8 @@ packages:
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
 
-  '@types/yargs@17.0.32':
-    resolution: {integrity: sha512-xQ67Yc/laOG5uMfX/093MRlGGCIBzZMarVa+gfNKJxWAIgykYpVGkBdbqEzGDDfCrVUj6Hiff4mTZ5BA6TmAog==}
+  '@types/yargs@17.0.35':
+    resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
 
   '@typescript-eslint/eslint-plugin@8.47.0':
     resolution: {integrity: sha512-fe0rz9WJQ5t2iaLfdbDc9T80GJy0AeO453q8C3YCilnGozvOyCG5t+EZtg7j7D88+c3FipfP/x+wzGnh1xp8ZA==}
@@ -2268,8 +2271,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  conventional-commits-parser@6.2.0:
-    resolution: {integrity: sha512-uLnoLeIW4XaoFtH37qEcg/SXMJmKF4vi7V0H2rnPueg+VEtFGA/asSCNTcq4M/GQ6QmlzchAEtOoDTtKqWeHag==}
+  conventional-commits-parser@6.2.1:
+    resolution: {integrity: sha512-20pyHgnO40rvfI0NGF/xiEoFMkXDtkF8FwHvk5BokoFoCuTQRI8vrNCNFWUOfuolKJMm1tPCHc8GgYEtr1XRNA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4315,8 +4318,8 @@ packages:
     resolution: {integrity: sha512-I1XxrZSQ+oErkRR4jYbAyEEu2I0avBvvMM5JN+6EBprOGRCs63ENqZ3vjavq8fBw2+62G5LF5XelKwuJpcvcxw==}
     engines: {node: '>=10'}
 
-  rettime@0.7.0:
-    resolution: {integrity: sha512-LPRKoHnLKd/r3dVxcwO7vhCW+orkOGj9ViueosEBK6ie89CijnfRlhaDhHq/3Hxu4CkWQtxwlBG0mzTQY6uQjw==}
+  rettime@0.10.1:
+    resolution: {integrity: sha512-uyDrIlUEH37cinabq0AX4QbgV4HbFZ/gqoiunWQ1UqBtRvTTytwhNYjE++pO/MjPTZL5KQCf2bEoJ/BJNVQ5Kw==}
 
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
@@ -4405,6 +4408,11 @@ packages:
 
   semver@7.6.0:
     resolution: {integrity: sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.7.3:
+    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -4918,8 +4926,8 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici-types@7.12.0:
-    resolution: {integrity: sha512-goOacqME2GYyOZZfb5Lgtu+1IDmAlAEu5xnD3+xTzS10hT0vzpf0SPjkXwAw9Jm+4n/mQGDP3LO8CPbYROeBfQ==}
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
@@ -6066,7 +6074,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@mswjs/interceptors@0.40.0':
+  '@mswjs/interceptors@0.41.2':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
@@ -6117,16 +6125,16 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
-  '@ossjs/release@0.10.0':
+  '@ossjs/release@0.10.1':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
-      '@types/conventional-commits-parser': 5.0.1
+      '@types/conventional-commits-parser': 5.0.2
       '@types/issue-parser': 3.0.5
-      '@types/node': 24.5.2
+      '@types/node': 24.10.10
       '@types/semver': 7.5.8
-      '@types/yargs': 17.0.32
+      '@types/yargs': 17.0.35
       ajv: 8.17.1
-      conventional-commits-parser: 6.2.0
+      conventional-commits-parser: 6.2.1
       get-stream: 6.0.1
       git-log-parser: 1.2.0
       issue-parser: 7.0.1
@@ -6136,7 +6144,7 @@ snapshots:
       publint: 0.3.15
       rc: 1.2.8
       registry-auth-token: 5.1.0
-      semver: 7.6.0
+      semver: 7.7.3
       until-async: 3.0.2
       yargs: 18.0.0
 
@@ -6466,6 +6474,10 @@ snapshots:
     dependencies:
       '@types/node': 18.19.28
 
+  '@types/conventional-commits-parser@5.0.2':
+    dependencies:
+      '@types/node': 20.19.25
+
   '@types/cookie@0.4.1': {}
 
   '@types/cookies@0.9.0':
@@ -6573,9 +6585,9 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@24.5.2':
+  '@types/node@24.10.10':
     dependencies:
-      undici-types: 7.12.0
+      undici-types: 7.16.0
 
   '@types/parse5@6.0.3': {}
 
@@ -6614,7 +6626,7 @@ snapshots:
 
   '@types/yargs-parser@21.0.3': {}
 
-  '@types/yargs@17.0.32':
+  '@types/yargs@17.0.35':
     dependencies:
       '@types/yargs-parser': 21.0.3
 
@@ -7473,7 +7485,7 @@ snapshots:
       meow: 12.1.1
       split2: 4.2.0
 
-  conventional-commits-parser@6.2.0:
+  conventional-commits-parser@6.2.1:
     dependencies:
       meow: 13.2.0
 
@@ -9711,7 +9723,7 @@ snapshots:
 
   ret@0.5.0: {}
 
-  rettime@0.7.0: {}
+  rettime@0.10.1: {}
 
   reusify@1.0.4: {}
 
@@ -9846,6 +9858,8 @@ snapshots:
   semver@7.6.0:
     dependencies:
       lru-cache: 6.0.0
+
+  semver@7.7.3: {}
 
   send@0.18.0:
     dependencies:
@@ -10429,7 +10443,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.12.0: {}
+  undici-types@7.16.0: {}
 
   undici@5.28.4:
     dependencies:

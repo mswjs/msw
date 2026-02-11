@@ -26,6 +26,12 @@ export {
   type ServerSentEventMessage,
 } from './sse'
 
+import type { HttpHandler } from './handlers/HttpHandler'
+import type { GraphQLHandler } from './handlers/GraphQLHandler'
+import type { WebSocketHandler } from './handlers/WebSocketHandler'
+
+export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
+
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'

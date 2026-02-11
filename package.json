@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.12.9",
+  "version": "2.12.10",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "type": "commonjs",
   "main": "./lib/core/index.js",
@@ -284,7 +284,7 @@
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
     "@web/dev-server": "^0.4.6",
-    "axios": "^1.13.2",
+    "axios": "^1.13.5",
     "babel-minify": "^0.5.1",
     "commitizen": "^4.3.1",
     "cross-env": "^10.1.0",

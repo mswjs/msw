@@ -1,4 +1,4 @@
-import type { OperationTypeNode } from 'graphql'
+import { OperationTypeNode } from 'graphql'
 import {
   ResponseResolver,
   RequestHandlerOptions,
@@ -13,6 +13,11 @@ import {
   GraphQLPredicate,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
+import {
+  GraphQLInternalPubSub,
+  createGraphQLSubscriptionHandler,
+  GraphQLSubscriptionHandlerFactory,
+} from './handlers/GraphQLSubscriptionHandler'
 
 export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
@@ -65,53 +70,22 @@ export interface GraphQLLinkHandlers {
   query: GraphQLRequestHandler
   mutation: GraphQLRequestHandler
   operation: GraphQLOperationHandler
+  /**
+   * Intercepts a GraphQL subscription by its name.
+   *
+   * @example
+   * graphql.subscription('OnPostAdded', ({ subscription }) => {
+   *   subscription.publish({
+   *    data: { postAdded: { id: 'abc-123' } },
+   *   })
+   * })
+   */
+  subscription: GraphQLSubscriptionHandlerFactory
 }
 
-/**
- * A namespace to intercept and mock GraphQL operations
- *
- * @example
- * graphql.query('GetUser', resolver)
- * graphql.mutation('DeletePost', resolver)
- *
- * @see {@link https://mswjs.io/docs/api/graphql `graphql` API reference}
- */
 export const graphql = {
-  /**
-   * Intercepts a GraphQL query by a given name.
-   *
-   * @example
-   * graphql.query('GetUser', () => {
-   *   return HttpResponse.json({ data: { user: { name: 'John' } } })
-   * })
-   *
-   * @see {@link https://mswjs.io/docs/api/graphql#graphqlqueryqueryname-resolver `graphql.query()` API reference}
-   */
-  query: createScopedGraphQLHandler('query' as OperationTypeNode, '*'),
-
-  /**
-   * Intercepts a GraphQL mutation by its name.
-   *
-   * @example
-   * graphql.mutation('SavePost', () => {
-   *   return HttpResponse.json({ data: { post: { id: 'abc-123 } } })
-   * })
-   *
-   * @see {@link https://mswjs.io/docs/api/graphql#graphqlmutationmutationname-resolver `graphql.query()` API reference}
-   *
-   */
-  mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, '*'),
-
-  /**
-   * Intercepts any GraphQL operation, regardless of its type or name.
-   *
-   * @example
-   * graphql.operation(() => {
-   *   return HttpResponse.json({ data: { name: 'John' } })
-   * })
-   *
-   * @see {@link https://mswjs.io/docs/api/graphql#graphqloperationresolver `graphql.operation()` API reference}
-   */
+  query: createScopedGraphQLHandler(OperationTypeNode.QUERY, '*'),
+  mutation: createScopedGraphQLHandler(OperationTypeNode.MUTATION, '*'),
   operation: createGraphQLOperationHandler('*'),
 
   /**
@@ -124,6 +98,8 @@ export const graphql = {
    * @see {@link https://mswjs.io/docs/api/graphql#graphqllinkurl `graphql.link()` API reference}
    */
   link(url: Path): GraphQLLinkHandlers {
+    const internalPubSub = new GraphQLInternalPubSub(url)
+
     return {
       operation: createGraphQLOperationHandler(url),
       query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
@@ -131,6 +107,7 @@ export const graphql = {
         'mutation' as OperationTypeNode,
         url,
       ),
+      subscription: createGraphQLSubscriptionHandler(internalPubSub),
     }
   },
 }

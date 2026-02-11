@@ -1,10 +1,14 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 import { Emitter } from 'strict-event-emitter'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
 import type { RequestHandler } from '../handlers/RequestHandler'
 import type { BatchHandler } from '../handlers/BatchHandler'
-import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
+import {
+  type HandlersExecutionResult,
+  type ResponseResolutionContext,
+  executeHandlers,
+} from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
 import { storeResponseCookies } from './request/storeResponseCookies'
 
@@ -14,14 +18,7 @@ export interface HandleRequestOptions {
    * but is exposed to aid in creating extensions like
    * `@mswjs/http-middleware`.
    */
-  resolutionContext?: {
-    /**
-     * A base url to use when resolving relative urls.
-     * @note This is primarily used by the `@mswjs/http-middleware`
-     * to resolve relative urls in the context of the running server
-     */
-    baseUrl?: string
-  }
+  resolutionContext?: ResponseResolutionContext
 
   /**
    * Invoked whenever a request is performed as-is.
@@ -55,7 +52,7 @@ export async function handleRequest(
   }
 
   // Resolve a mocked response from the list of request handlers.
-  const lookupResult = await until(() => {
+  const [lookupError, lookupResult] = await until(() => {
     return executeHandlers({
       request,
       requestId,
@@ -64,19 +61,19 @@ export async function handleRequest(
     })
   })
 
-  if (lookupResult.error) {
+  if (lookupError) {
     // Allow developers to react to unhandled exceptions in request handlers.
     emitter.emit('unhandledException', {
-      error: lookupResult.error,
+      error: lookupError,
       request,
       requestId,
     })
-    throw lookupResult.error
+    throw lookupError
   }
 
   // If the handler lookup returned nothing, no request handler was found
   // matching this request. Report the request as unhandled.
-  if (!lookupResult.data) {
+  if (!lookupResult) {
     await onUnhandledRequest(request, options.onUnhandledRequest)
     emitter.emit('request:unhandled', { request, requestId })
     emitter.emit('request:end', { request, requestId })
@@ -84,7 +81,7 @@ export async function handleRequest(
     return
   }
 
-  const { response } = lookupResult.data
+  const { response } = lookupResult
 
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
@@ -111,7 +108,7 @@ export async function handleRequest(
   emitter.emit('request:match', { request, requestId })
 
   const requiredLookupResult =
-    lookupResult.data as RequiredDeep<HandlersExecutionResult>
+    lookupResult as RequiredDeep<HandlersExecutionResult>
 
   handleRequestOptions?.onMockedResponse?.(response, requiredLookupResult)
 

@@ -386,8 +386,7 @@ it('stops immediate propagation for server "error" event', async () => {
 
   await vi.waitFor(() => {
     /**
-     * @note Ideally, await the "CLOSED" ready state,
-     * but Node.js doesn't dispatch it correctly.
+     * @note Ideally, await the "CLOSED" ready state, but Node.js doesn't dispatch it correctly.
      * @see https://github.com/nodejs/undici/issues/3697
      */
     return new Promise<void>((resolve) => {

@@ -168,6 +168,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
           variables,
         }
       }
+      return null
     }
 
     default:

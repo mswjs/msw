@@ -1,5 +1,5 @@
 import { Emitter } from 'strict-event-emitter'
-import { createRequestId } from '@mswjs/interceptors'
+import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
   WebSocketConnectionData,
@@ -55,10 +55,7 @@ export class WebSocketHandler {
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
-  constructor(
-    protected readonly url: Path,
-    public options: WebSocketHandlerOptions = {},
-  ) {
+  constructor(protected readonly url: Path) {
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()
@@ -72,6 +69,15 @@ export class WebSocketHandler {
   }): WebSocketHandlerParsedResult {
     const clientUrl = new URL(args.url)
 
+    // Resolve the WebSocket handler path:
+    // - Plain string URLs resolved as per the specification (via Interceptors).
+    // - String URLs starting with a wildcard are preserved (prepending a scheme there will break them).
+    // - RegExp paths are preserved.
+    const resolvedHandlerUrl =
+      this.url instanceof RegExp || this.url.startsWith('*')
+        ? this.url
+        : this.#resolveWebSocketUrl(this.url, args.resolutionContext?.baseUrl)
+
     /**
      * @note Remove the Socket.IO path prefix from the WebSocket
      * client URL. This is an exception to keep the users from
@@ -81,7 +87,7 @@ export class WebSocketHandler {
 
     const match = matchRequestUrl(
       clientUrl,
-      this.url,
+      resolvedHandlerUrl,
       args.resolutionContext?.baseUrl,
     )
 
@@ -149,6 +155,26 @@ export class WebSocketHandler {
     // Emit the connection event on the handler.
     // This is what the developer adds listeners for.
     return this[kEmitter].emit('connection', connection)
+  }
+
+  #resolveWebSocketUrl(url: string, baseUrl?: string): string {
+    const resolvedUrl = resolveWebSocketUrl(
+      baseUrl
+        ? /**
+           * @note Resolve against the base URL preemtively because `resolveWebSocketUrl` only
+           * resolves against `location.href`, which is missing in Node.js. Base URL allows
+           * the handler to accept a relative URL in Node.js.
+           */
+          new URL(url, baseUrl)
+        : url,
+    )
+
+    /**
+     * @note Omit the trailing slash.
+     * While the browser always produces a trailing slash at the end of a WebSocket URL,
+     * having it in as the handler's predicate would mean it is *required* in the actual URL.
+     */
+    return resolvedUrl.replace(/\/$/, '')
   }
 }
 

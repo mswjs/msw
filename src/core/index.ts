@@ -22,9 +22,29 @@ export {
   type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'
 
+/* Server-Sent Events */
+export {
+  sse,
+  type ServerSentEventRequestHandler,
+  type ServerSentEventResolver,
+  type ServerSentEventResolverExtras,
+  type ServerSentEventMessage,
+} from './sse'
+
+import type { HttpHandler } from './handlers/HttpHandler'
+import type { GraphQLHandler } from './handlers/GraphQLHandler'
+import type { WebSocketHandler } from './handlers/WebSocketHandler'
+
+export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
+
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export * from './utils/handleRequest'
+export {
+  onUnhandledRequest,
+  type UnhandledRequestStrategy,
+  type UnhandledRequestCallback,
+} from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
 export { cleanUrl } from './utils/url/cleanUrl'
 
@@ -42,11 +62,15 @@ export type {
   DefaultBodyType,
   DefaultRequestMultipartBody,
   JsonBodyType,
+  ResponseResolverInfo,
 } from './handlers/RequestHandler'
 
 export type {
   RequestQuery,
   HttpRequestParsedResult,
+  HttpHandlerInfo,
+  HttpRequestResolverExtras,
+  HttpHandlerMethod,
   HttpCustomPredicate,
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
@@ -60,12 +84,18 @@ export type {
   GraphQLOperationType,
   GraphQLCustomPredicate,
 } from './handlers/GraphQLHandler'
-export type { GraphQLRequestHandler, GraphQLResponseResolver } from './graphql'
+export type {
+  GraphQLRequestHandler,
+  GraphQLOperationHandler,
+  GraphQLResponseResolver,
+  GraphQLLinkHandlers,
+} from './graphql'
 
 export type { WebSocketData, WebSocketEventListener } from './ws'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
+export type { ResponseResolutionContext } from './utils/executeHandlers'
 
 export * from './HttpResponse'
 export * from './delay'

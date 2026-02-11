@@ -8,7 +8,8 @@ export default {
     },
   ],
   timeout: 10_000,
-  retries: 1,
+  retries: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : undefined,
   use: {
     trace: 'on-first-retry',
     launchOptions: {

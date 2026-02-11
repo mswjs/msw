@@ -1,5 +1,5 @@
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 import {
   type SerializedWebSocketClient,
   WebSocketClientStore,
@@ -34,7 +34,6 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve()
     }
     request.onerror = () => {
-      // eslint-disable-next-line no-console
       console.error(request.error)
       promise.reject(
         new Error(
@@ -81,7 +80,6 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve()
     }
     store.transaction.onerror = () => {
-      // eslint-disable-next-line no-console
       console.error(store.transaction.error)
       promise.reject(
         new Error(
@@ -116,7 +114,6 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
         promise.resolve(db)
       }
       store.transaction.onerror = () => {
-        // eslint-disable-next-line no-console
         console.error(store.transaction.error)
         promise.reject(
           new Error(
@@ -126,7 +123,6 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       }
     }
     request.onerror = () => {
-      // eslint-disable-next-line no-console
       console.error(request.error)
       promise.reject(
         new Error(

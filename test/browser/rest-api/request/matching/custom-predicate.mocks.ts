@@ -5,7 +5,7 @@ const worker = setupWorker()
 worker.start()
 
 window.msw = {
-  // @ts-ignore
+  // @ts-expect-error
   worker,
   http,
 }

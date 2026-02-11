@@ -29,6 +29,9 @@ export function createFallbackRequestListener(
       options,
       context.emitter,
       {
+        resolutionContext: {
+          quiet: options.quiet,
+        },
         onMockedResponse(_, { handler, parsedResult }) {
           if (!options.quiet) {
             context.emitter.once('response:mocked', ({ response }) => {

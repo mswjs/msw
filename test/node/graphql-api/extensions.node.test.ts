@@ -1,16 +1,14 @@
-/**
- * @vitest-environment node
- */
-import type { ExecutionResult } from 'graphql'
+// @vitest-environment node
 import { buildSchema, graphql as executeGraphql } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 const schema = gql`
   type User {
     firstName: String!
   }
+
   type Query {
     user: User!
   }
@@ -49,33 +47,28 @@ afterAll(() => {
   server.close()
 })
 
-test('adds extensions to the original response data', async () => {
-  const res = await fetch('https://api.mswjs.io', {
-    method: 'POST',
-    headers: {
-      accept: '*/*',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: gql`
-        query GetUser {
-          user {
-            firstName
-          }
-        }
-      `,
-    }),
+it('adds extensions to the original response data', async () => {
+  const client = createGraphQLClient({
+    uri: 'http://localhost:3000/graphql',
   })
-  const body: ExecutionResult = await res.json()
 
-  expect(res.status).toBe(200)
-  expect(body.data).toEqual({
+  const result = await client({
+    query: gql`
+      query GetUser {
+        user {
+          firstName
+        }
+      }
+    `,
+  })
+
+  expect.soft(result.data).toEqual({
     user: {
       firstName: 'John',
     },
   })
-  expect(body.errors).toBeUndefined()
-  expect(body.extensions).toEqual({
+  expect.soft(result.errors).toBeUndefined()
+  expect.soft(result.extensions).toEqual({
     tracking: {
       version: 1,
       page: '/test',

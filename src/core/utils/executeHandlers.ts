@@ -11,7 +11,13 @@ export interface HandlersExecutionResult {
 }
 
 export interface ResponseResolutionContext {
+  /**
+   * A base url to use when resolving relative urls.
+   * @note This is primarily used by the `@mswjs/http-middleware`
+   * to resolve relative urls in the context of the running server
+   */
   baseUrl?: string
+  quiet?: boolean
 }
 
 /**

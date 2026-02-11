@@ -274,7 +274,7 @@
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
     "@web/dev-server": "^0.4.6",
-    "axios": "^1.13.2",
+    "axios": "^1.13.5",
     "babel-minify": "^0.5.1",
     "commitizen": "^4.3.1",
     "cross-env": "^10.1.0",

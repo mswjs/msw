@@ -4,7 +4,7 @@
 import { invariant } from 'outvariant'
 import { type UnhandledRequestStrategy } from '../utils/request/onUnhandledRequest'
 import {
-  onUnhandledFrame,
+  executeUnhandledFrameHandle,
   type UnhandledFrameCallback,
 } from './on-unhandled-frame'
 import { HttpNetworkFrame } from './frames/http-frame'
@@ -16,7 +16,7 @@ export function fromLegacyOnUnhandledRequest(
   return ({ frame, defaults }) => {
     const legacyOnUnhandledRequestStrategy = getLegacyValue()
 
-    if (legacyOnUnhandledRequestStrategy === undefined) {
+    if (legacyOnUnhandledRequestStrategy == null) {
       return
     }
 
@@ -45,6 +45,6 @@ export function fromLegacyOnUnhandledRequest(
       })
     }
 
-    return onUnhandledFrame(frame, legacyOnUnhandledRequestStrategy)
+    return executeUnhandledFrameHandle(frame, legacyOnUnhandledRequestStrategy)
   }
 }

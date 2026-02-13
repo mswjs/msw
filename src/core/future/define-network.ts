@@ -6,7 +6,7 @@ import {
   getHandlerKindByFrame,
 } from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
-import { onUnhandledFrame, UnhandledFrameHandle } from './on-unhandled-frame'
+import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   AnyHandler,
   HandlersController,
@@ -101,19 +101,11 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
                 getHandlerKindByFrame(frame),
               )
 
-              const isHandledFrame = await frame.resolve(
+              await frame.resolve(
                 matchingHandlers,
+                resolvedOptions.onUnhandledFrame || 'warn',
                 resolvedOptions.context,
               )
-
-              if (isHandledFrame === false) {
-                await onUnhandledFrame(
-                  frame,
-                  resolvedOptions.onUnhandledFrame || 'warn',
-                ).catch((error) => {
-                  frame.errorWith(error)
-                })
-              }
             },
           )
 

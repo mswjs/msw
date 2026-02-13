@@ -8,6 +8,10 @@ import { executeHandlers } from '../../utils/executeHandlers'
 import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
 import { devUtils } from '../../utils/internal/devUtils'
+import {
+  executeUnhandledFrameHandle,
+  type UnhandledFrameHandle,
+} from '../on-unhandled-frame'
 
 interface HttpNetworkFrameOptions {
   id?: string
@@ -123,6 +127,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
   public async resolve(
     handlers: Array<HttpHandler>,
+    onUnhandledFrame: UnhandledFrameHandle,
     resolutionContext?: NetworkFrameResolutionContext,
   ): Promise<boolean | null> {
     const { id: requestId, request } = this.data
@@ -183,6 +188,15 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
         }),
       )
 
+      /**
+       * @note The unhandled frame handle must be executed during the request resolution
+       * since it can influence it (e.g. error the request if the "error" startegy was used).
+       */
+      await executeUnhandledFrameHandle(this, onUnhandledFrame).then(
+        () => this.passthrough(),
+        (error) => this.errorWith(error),
+      )
+
       this.events.emit(
         new RequestEvent('request:end', {
           requestId,
@@ -190,7 +204,6 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
         }),
       )
 
-      this.passthrough()
       return false
     }
 

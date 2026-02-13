@@ -1,5 +1,6 @@
 import { Emitter, type DefaultEventMap } from 'rettime'
 import type { AnyHandler } from '../handlers-controller'
+import type { UnhandledFrameHandle } from '../on-unhandled-frame'
 
 export type ExtractFrameEvents<Frame> =
   Frame extends NetworkFrame<any, any, infer Events> ? Events : never
@@ -33,6 +34,7 @@ export abstract class NetworkFrame<
    */
   public abstract resolve(
     handlers: Array<AnyHandler>,
+    onUnhandledFrame: UnhandledFrameHandle,
     resolutionContext?: NetworkFrameResolutionContext,
   ): Promise<boolean | null>
 

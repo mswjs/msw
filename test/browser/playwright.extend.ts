@@ -42,7 +42,7 @@ export interface TestFixtures {
     workerConsole: WorkerConsole
   }>
   fetch(
-    url: string,
+    url: string | URL,
     init?: RequestInit,
     options?: FetchOptions,
   ): Promise<Response>
@@ -179,18 +179,18 @@ export const test = base.extend<TestFixtures>({
       // perform multiple requests in parallel.
       target.evaluate<unknown, [string, RequestInit]>(
         ([url, init]) => fetch(url, init as RequestInit),
-        [url, resolvedInit],
+        [url.toString(), resolvedInit],
       )
 
-      return target.waitForResponse(async (res) => {
+      return target.waitForResponse(async (response) => {
         if (typeof options.waitForResponse !== 'undefined') {
-          return options.waitForResponse(res)
+          return options.waitForResponse(response)
         }
 
         const {
           [identityHeaderName]: actualRequestId,
           ['x-msw-bypass']: isBypassRequest,
-        } = res.request().headers()
+        } = response.request().headers()
 
         return isBypassRequest !== 'true' && actualRequestId === requestId
       })

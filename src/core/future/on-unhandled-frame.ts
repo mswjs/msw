@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import { isCommonAssetRequest } from '../isCommonAssetRequest'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
 import { HttpNetworkFrame } from './frames/http-frame'
@@ -19,11 +20,13 @@ export type UnhandledFrameDefaults = {
   error: () => void
 }
 
-export async function onUnhandledFrame(
+export async function executeUnhandledFrameHandle(
   frame: AnyNetworkFrame,
   handle: UnhandledFrameHandle,
 ): Promise<void> {
-  const applyStrategy = async (strategy: UnhandledFrameStrategy) => {
+  const printStrategyMessage = async (
+    strategy: UnhandledFrameStrategy,
+  ): Promise<void> => {
     if (strategy === 'bypass') {
       return
     }
@@ -36,26 +39,37 @@ export async function onUnhandledFrame(
       }
 
       case 'error': {
-        // Print a developer-friendly error.
-        devUtils.error('Error: %s', message)
-
-        return Promise.reject(
-          new InternalError(
-            devUtils.formatMessage(
-              'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-            ),
-          ),
-        )
+        return devUtils.error('Error: %s', message)
       }
+    }
+  }
 
-      default: {
-        throw new InternalError(
+  const applyStrategy = async (
+    strategy: UnhandledFrameStrategy,
+  ): Promise<void> => {
+    invariant.as(
+      InternalError,
+      strategy === 'bypass' || strategy === 'warn' || strategy === 'error',
+      devUtils.formatMessage(
+        'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+        strategy,
+      ),
+    )
+
+    if (strategy === 'bypass') {
+      return
+    }
+
+    await printStrategyMessage(strategy)
+
+    if (strategy === 'error') {
+      return Promise.reject(
+        new InternalError(
           devUtils.formatMessage(
-            'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
-            strategy satisfies never,
+            'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
           ),
-        )
-      }
+        ),
+      )
     }
   }
 
@@ -63,8 +77,14 @@ export async function onUnhandledFrame(
     return handle({
       frame,
       defaults: {
-        warn: applyStrategy.bind(null, 'warn'),
-        error: applyStrategy.bind(null, 'error'),
+        warn: printStrategyMessage.bind(null, 'warn'),
+        /**
+         * @note The defaults only print the corresponding messages now.
+         * They do not affect the frame resolution (e.g. do not error the frame).
+         * That is only for backward compatibility reasons. In the future, these should
+         * be an alias to `applyStrategy.bind(null, 'error')` instead.
+         */
+        error: printStrategyMessage.bind(null, 'error'),
       },
     })
   }

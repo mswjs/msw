@@ -9,6 +9,10 @@ import {
   NetworkFrame,
   type NetworkFrameResolutionContext,
 } from './network-frame'
+import {
+  executeUnhandledFrameHandle,
+  UnhandledFrameHandle,
+} from '../on-unhandled-frame'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -51,6 +55,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
 
   public async resolve(
     handlers: Array<WebSocketHandler>,
+    onUnhandledFrame: UnhandledFrameHandle,
     resolutionContext?: NetworkFrameResolutionContext,
   ): Promise<boolean | null> {
     const { connection } = this.data
@@ -64,6 +69,11 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
 
     // No WebSocket handlers defined.
     if (handlers.length === 0) {
+      await executeUnhandledFrameHandle(this, onUnhandledFrame).then(
+        () => this.passthrough(),
+        (error) => this.errorWith(error),
+      )
+
       return false
     }
 
@@ -102,8 +112,12 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
 
     // No matching WebSocket handlers found.
     if (matchingHandlers.length === 0) {
-      this.passthrough()
-      return null
+      await executeUnhandledFrameHandle(this, onUnhandledFrame).then(
+        () => this.passthrough(),
+        (error) => this.errorWith(error),
+      )
+
+      return false
     }
 
     return true

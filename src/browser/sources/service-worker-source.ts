@@ -16,6 +16,7 @@ import { getWorkerInstance } from '../utils/get-worker-instance'
 import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
 import { FindWorker } from '../glossary'
 import { deserializeRequest } from '../utils/deserializeRequest'
+import { validateWorkerScope } from '../utils/validate-worker-scope'
 
 export interface ServiceWorkerSourceOptions {
   quiet?: boolean
@@ -197,6 +198,10 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     this.#keepAliveInterval = window.setInterval(() => {
       this.#channel.postMessage('KEEPALIVE_REQUEST')
     }, 5000)
+
+    if (!this.options.quiet) {
+      validateWorkerScope(registration)
+    }
 
     return [worker, registration] as const
   }

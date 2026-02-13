@@ -118,7 +118,12 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   public async disable(): Promise<void> {
-    await super.disable()
+    /**
+     * @note Do NOT call `super.disable()` because it removes any "frame" listeners
+     * from this network source, effectively turning it off. The Service Worker source
+     * is a bit special since it might process in-flight requests that have been performed
+     * after it's been disabled.
+     */
 
     if (typeof this.#stoppedAt !== 'undefined') {
       devUtils.warn(

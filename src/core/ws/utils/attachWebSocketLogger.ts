@@ -18,8 +18,9 @@ export const colors = {
 
 export function attachWebSocketLogger(
   connection: WebSocketConnectionData,
-): void {
+): () => void {
   const { client, server } = connection
+  const controller = new AbortController()
 
   logConnectionOpen(client)
 
@@ -30,19 +31,32 @@ export function attachWebSocketLogger(
    * @todo Provide the reference to the exact event handler
    * that called this `client.send()`.
    */
-  client.addEventListener('message', (event) => {
-    logOutgoingClientMessage(event)
-  })
+  client.addEventListener(
+    'message',
+    (event) => {
+      logOutgoingClientMessage(event)
+    },
+    { signal: controller.signal },
+  )
 
-  client.addEventListener('close', (event) => {
-    logConnectionClose(event)
-  })
+  client.addEventListener(
+    'close',
+    (event) => {
+      logConnectionClose(event)
+    },
+    { signal: controller.signal },
+  )
 
   // Log client errors (connection closures due to errors).
-  client.socket.addEventListener('error', (event) => {
-    logClientError(event)
-  })
+  client.socket.addEventListener(
+    'error',
+    (event) => {
+      logClientError(event)
+    },
+    { signal: controller.signal },
+  )
 
+  const { send: originalClientSend } = client
   client.send = new Proxy(client.send, {
     apply(target, thisArg, args) {
       const [data] = args
@@ -75,11 +89,15 @@ export function attachWebSocketLogger(
         logIncomingServerMessage(event)
       })
     },
-    { once: true },
+    {
+      once: true,
+      signal: controller.signal,
+    },
   )
 
   // Log outgoing client events initiated by the event handler.
   // The actual client never sent these but the handler did.
+  const { send: originalServerSend } = server
   server.send = new Proxy(server.send, {
     apply(target, thisArg, args) {
       const [data] = args
@@ -102,6 +120,20 @@ export function attachWebSocketLogger(
       return Reflect.apply(target, thisArg, args)
     },
   })
+
+  // Undo method proxies.
+  controller.signal.addEventListener(
+    'abort',
+    () => {
+      client.send = originalClientSend
+      server.send = originalServerSend
+    },
+    { once: true },
+  )
+
+  return () => {
+    controller.abort()
+  }
 }
 
 /**

@@ -1,6 +1,10 @@
 import { TypedEvent } from 'rettime'
 import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
-import { type WebSocketHandler } from '../../handlers/WebSocketHandler'
+import {
+  kConnect,
+  kAutoConnect,
+  type WebSocketHandler,
+} from '../../handlers/WebSocketHandler'
 import {
   NetworkFrame,
   type NetworkFrameResolutionContext,
@@ -58,29 +62,46 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       }),
     )
 
+    // No WebSocket handlers defined.
     if (handlers.length === 0) {
       return false
     }
 
     const matchingHandlers = await Promise.all(
-      handlers.map(async (handler) => {
-        const matches = await handler.run(connection, {
+      handlers.filter(async (handler) => {
+        const handlerConnection = await handler.run(connection, {
           baseUrl: resolutionContext?.baseUrl?.toString(),
+          /**
+           * @note Do not emit the "connection" event when running the handler.
+           * Use the run only to get the resolved connection object.
+           */
+          [kAutoConnect]: false,
         })
 
-        if (!matches) {
-          return null
+        if (!handlerConnection) {
+          return false
         }
 
-        if (!resolutionContext?.quiet) {
-          handler.log(connection)
+        /**
+         * @note Attach the WebSocket logger *before* emitting the "connection" event.
+         * Connection event listeners may perform actions that should be reflected in the logs
+         * (e.g. closing the connection immediately). If the logger is attached after the connection,
+         * those actions cannot be properly logged.
+         */
+        const removeLogger = !resolutionContext?.quiet
+          ? handler.log(connection)
+          : undefined
+
+        if (!handler[kConnect](handlerConnection)) {
+          removeLogger?.()
         }
 
-        return handler
+        return true
       }),
     )
 
-    if (matchingHandlers.every((handler) => handler == null)) {
+    // No matching WebSocket handlers found.
+    if (matchingHandlers.length === 0) {
       this.passthrough()
       return null
     }

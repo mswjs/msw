@@ -212,8 +212,12 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
   }
 
   async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
-    // Passthrough any requests performed after the interception was stopped.
-    if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
+    /**
+     * Passthrough any requests performed after the interception was stopped.
+     * @note Subtract a short delay from the interceptor timestamp to account
+     * for the time it takes for the request to dispatch the "fetch" event in the worker.
+     */
+    if (this.#stoppedAt && event.data.interceptedAt - 50 > this.#stoppedAt) {
       return event.postMessage('PASSTHROUGH')
     }
 

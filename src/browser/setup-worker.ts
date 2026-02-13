@@ -1,14 +1,17 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import { defineNetwork, NetworkHandlersApi } from '#core/future/define-network'
-import { type AnyHandler } from '#core/future/handlers-controller'
-import { InterceptorSource } from '#core/future/sources/interceptor-source'
+import {
+  defineNetwork,
+  NetworkHandlersApi,
+} from '#core/experimental/define-network'
+import { type AnyHandler } from '#core/experimental/handlers-controller'
+import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
-import { fromLegacyOnUnhandledRequest } from '#core/future/compat'
+import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { LifeCycleEventEmitter } from '#core/sharedOptions'
-import type { HttpNetworkFrameEventMap } from '#core/future/frames/http-frame'
-import type { WebSocketNetworkFrameEventMap } from '#core/future/frames/websocket-frame'
+import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
+import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'

@@ -2,9 +2,12 @@ import { invariant } from 'outvariant'
 import { Emitter } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
-import { NetworkSource } from '#core/future/sources/network-source'
+import { NetworkSource } from '#core/experimental/sources/network-source'
 import { RequestHandler } from '#core/handlers/RequestHandler'
-import { HttpNetworkFrame, ResponseEvent } from '#core/future/frames/http-frame'
+import {
+  HttpNetworkFrame,
+  ResponseEvent,
+} from '#core/experimental/frames/http-frame'
 import { HttpResponse } from '#core/HttpResponse'
 import { toResponseInit } from '#core/utils/toResponseInit'
 import { devUtils } from '#core/utils/internal/devUtils'

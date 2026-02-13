@@ -4,7 +4,7 @@ import {
   type HandlersMap,
   HandlersController,
   HandlersControllerState,
-} from '#core/future/handlers-controller'
+} from '#core/experimental/handlers-controller'
 
 export interface AsyncHandlersControllerContext {
   initialHandlers: HandlersMap

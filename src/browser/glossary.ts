@@ -1,8 +1,8 @@
 import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
 import type { RequiredDeep } from '#core/typeUtils'
-import type { HttpNetworkFrameEventMap } from '#core/future/frames/http-frame'
-import type { WebSocketNetworkFrameEventMap } from '#core/future/frames/websocket-frame'
-import { AnyHandler } from '#core/future/handlers-controller'
+import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
+import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
+import { AnyHandler } from '#core/experimental/handlers-controller'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null

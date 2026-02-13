@@ -1,6 +1,6 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { InterceptorSource } from '#core/future/sources/interceptor-source'
+import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { devUtils } from '#core/utils/internal/devUtils'
 
 interface FallbackHttpSourceOptions {

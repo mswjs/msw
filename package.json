@@ -159,14 +159,14 @@
         "default": "./lib/core/ws.js"
       }
     },
-    "./future": {
+    "./experimental": {
       "import": {
-        "types": "./lib/core/future/index.d.mts",
-        "default": "./lib/core/future/index.mjs"
+        "types": "./lib/core/experimental/index.d.mts",
+        "default": "./lib/core/experimental/index.mjs"
       },
       "default": {
-        "types": "./lib/core/future/index.d.ts",
-        "default": "./lib/core/future/index.js"
+        "types": "./lib/core/experimental/index.d.ts",
+        "default": "./lib/core/experimental/index.js"
       }
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",

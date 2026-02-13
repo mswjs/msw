@@ -1,5 +1,5 @@
 import { DefaultEventMap, Emitter, TypedEvent } from 'rettime'
-import { defineNetwork, NetworkSource, NetworkFrame } from 'msw/future'
+import { defineNetwork, NetworkSource, NetworkFrame } from 'msw/experimental'
 
 it('uses an empty event map when no sources were provided', () => {
   expectTypeOf(

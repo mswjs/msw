@@ -31,6 +31,13 @@ interface SetupWorkerStartOptions {
   }
   findWorker?: FindWorker
   onUnhandledRequest?: UnhandledRequestStrategy
+
+  /**
+   * @deprecated
+   * Please use a proper browser integration instead.
+   * @see https://mswjs.io/docs/integrations/browser
+   */
+  waitUntilReady?: boolean
 }
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
@@ -60,6 +67,12 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
 
   return {
     async start(options) {
+      if (options?.waitUntilReady != null) {
+        devUtils.warn(
+          `The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.`,
+        )
+      }
+
       /**
        * @todo @fixme
        * This is kept for backward-compatibility reasons. We don't really need this check anymore.

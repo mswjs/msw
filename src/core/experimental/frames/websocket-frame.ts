@@ -77,41 +77,41 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       return false
     }
 
-    const matchingHandlers = await Promise.all(
-      handlers.filter(async (handler) => {
-        const handlerConnection = await handler.run(connection, {
-          baseUrl: resolutionContext?.baseUrl?.toString(),
-          /**
-           * @note Do not emit the "connection" event when running the handler.
-           * Use the run only to get the resolved connection object.
-           */
-          [kAutoConnect]: false,
-        })
+    let hasMatchingHandlers = false
 
-        if (!handlerConnection) {
-          return false
-        }
-
+    for (const handler of handlers) {
+      const handlerConnection = await handler.run(connection, {
+        baseUrl: resolutionContext?.baseUrl?.toString(),
         /**
-         * @note Attach the WebSocket logger *before* emitting the "connection" event.
-         * Connection event listeners may perform actions that should be reflected in the logs
-         * (e.g. closing the connection immediately). If the logger is attached after the connection,
-         * those actions cannot be properly logged.
+         * @note Do not emit the "connection" event when running the handler.
+         * Use the run only to get the resolved connection object.
          */
-        const removeLogger = !resolutionContext?.quiet
-          ? handler.log(connection)
-          : undefined
+        [kAutoConnect]: false,
+      })
 
-        if (!handler[kConnect](handlerConnection)) {
-          removeLogger?.()
-        }
+      if (!handlerConnection) {
+        continue
+      }
 
-        return true
-      }),
-    )
+      hasMatchingHandlers = true
+
+      /**
+       * @note Attach the WebSocket logger *before* emitting the "connection" event.
+       * Connection event listeners may perform actions that should be reflected in the logs
+       * (e.g. closing the connection immediately). If the logger is attached after the connection,
+       * those actions cannot be properly logged.
+       */
+      const removeLogger = !resolutionContext?.quiet
+        ? handler.log(connection)
+        : undefined
+
+      if (!handler[kConnect](handlerConnection)) {
+        removeLogger?.()
+      }
+    }
 
     // No matching WebSocket handlers found.
-    if (matchingHandlers.length === 0) {
+    if (!hasMatchingHandlers) {
       await executeUnhandledFrameHandle(this, onUnhandledFrame).then(
         () => this.passthrough(),
         (error) => this.errorWith(error),

@@ -17,8 +17,9 @@ test('resolves in-flight requests before the worker was stopped', async ({
 }) => {
   await loadExample(new URL('./in-flight-request.mocks.ts', import.meta.url))
 
-  const dataPromise: Promise<string> = page.evaluate(() => {
-    return fetch('/resource').then((response) => response.text())
+  const dataPromise = page.evaluate(async () => {
+    const response = await fetch('/resource')
+    return response.text()
   })
 
   await page.evaluate(() => {
@@ -52,9 +53,10 @@ test('bypasses requests made after the worker was stopped', async ({
     window.msw.worker.stop()
   })
 
-  const data = await page.evaluate((url) => {
-    return fetch(url).then((response) => response.text())
+  const dataPromise = page.evaluate(async (url) => {
+    const response = await fetch(url)
+    return response.text()
   }, resourceUrl.href)
 
-  expect(data).toBe('original response')
+  await expect(dataPromise).resolves.toBe('original response')
 })

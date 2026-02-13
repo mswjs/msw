@@ -1,25 +1,25 @@
 <script>
-  const { worker, http } = window.parent.msw
-
-  function isolatedResolver(resolver) {
-    return (info) => {
-      if (info.request.referrer !== location.href) {
-        return
-      }
-      return resolver(info)
-    }
-  }
-
-  worker.use(
-    http.get(
-      './resource',
-      isolatedResolver(({ request }) => {
-        return new Response('one')
-      }),
-    ),
-  )
-
   window.request = () => {
+    const { worker, http } = window.parent.msw
+
+    function isolatedResolver(resolver) {
+      return (info) => {
+        if (info.request.referrer !== location.href) {
+          return
+        }
+        return resolver(info)
+      }
+    }
+
+    worker.use(
+      http.get(
+        './resource',
+        isolatedResolver(({ request }) => {
+          return new Response('one')
+        }),
+      ),
+    )
+
     return fetch('./resource')
       .then((response) => response.text())
       .then((data) => {

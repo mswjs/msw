@@ -36,6 +36,9 @@ test('responds with different responses for the same request based on request re
   const frameOne = getFrameById('frame-one', page)!
   const frameTwo = getFrameById('frame-two', page)!
 
+  await frameOne.waitForFunction(() => window.request != null)
+  await frameTwo.waitForFunction(() => window.request != null)
+
   await Promise.all([
     frameOne.evaluate(() => window.request()),
     frameTwo.evaluate(() => window.request()),

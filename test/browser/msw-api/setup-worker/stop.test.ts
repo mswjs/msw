@@ -1,5 +1,6 @@
-import { SetupWorkerApi } from 'msw/browser'
-import { Page } from '@playwright/test'
+import { type Page } from '@playwright/test'
+import { createTestHttpServer } from '@epic-web/test-server/http'
+import { type SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {
@@ -10,7 +11,7 @@ declare namespace window {
 
 const stopWorkerOn = async (page: Page) => {
   page.evaluate(() => {
-    return window.msw.worker.stop()
+    window.msw.worker.stop()
   })
 
   await new Promise<void>((resolve, reject) => {
@@ -39,16 +40,30 @@ test('disables the mocking when the worker is stopped', async ({
   fetch,
   page,
 }) => {
+  await using server = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return Response.json(
+          { original: true },
+          {
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+              'Access-Control-Allow-Headers': 'Content-Type',
+            },
+          },
+        )
+      })
+    },
+  })
+
   await loadExample(new URL('./stop.mocks.ts', import.meta.url))
   await stopWorkerOn(page)
 
-  const res = await fetch('https://api.github.com')
-  const body = await res.json()
+  const response = await fetch(server.http.url('/resource'))
 
-  expect.soft(res.fromServiceWorker()).toBe(true)
-  expect.soft(body).not.toEqual({
-    mocked: true,
-  })
+  expect.soft(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({ original: true })
 })
 
 test('keeps the mocking enabled in one tab when stopping the worker in another tab', async ({
@@ -75,15 +90,12 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   // Switch to another page.
   await secondPage.bringToFront()
 
-  const res = await fetch('https://api.github.com', undefined, {
+  const response = await fetch('/resource', undefined, {
     page: secondPage,
   })
-  const body = await res.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(body).toEqual({
-    mocked: true,
-  })
+  expect(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({ mocked: true })
 })
 
 test('prints a warning on multiple "worker.stop()" calls', async ({
@@ -94,13 +106,12 @@ test('prints a warning on multiple "worker.stop()" calls', async ({
   const consoleSpy = spyOnConsole()
   await loadExample(new URL('./stop.mocks.ts', import.meta.url))
 
-  function byStopMessage(text: string): boolean {
+  const byStopMessage = (text: string): boolean => {
     return text === '[MSW] Mocking disabled.'
   }
 
   await stopWorkerOn(page)
 
-  // Prints the stop message and no warnings.
   expect(consoleSpy.get('log')!.filter(byStopMessage)).toHaveLength(1)
   expect(consoleSpy.get('warning')).toBeUndefined()
 

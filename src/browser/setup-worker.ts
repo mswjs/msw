@@ -125,6 +125,10 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       }
     },
     stop() {
+      if (!isStarted) {
+        return
+      }
+
       network.disable().then(() => {
         window.postMessage({ type: 'msw/worker:stop' })
       })

@@ -1,3 +1,7 @@
 export type { SetupServer } from './glossary'
-export { SetupServerApi } from './SetupServerApi'
-export { setupServer } from './setupServer'
+export {
+  setupServer,
+  SetupServerApi,
+  defaultNetworkOptions,
+} from './setup-server'
+export { SetupServerCommonApi } from './setup-server-common'

@@ -16,7 +16,7 @@ const ecosystemDependencies = /^@mswjs\/(.+)$/
 
 // Externalize the core functionality (reused across environments)
 // so that it can be shared between the environments.
-const mswCore = /\/core(\/.+)?$/
+const mswCore = /#core(\/.+)?$/
 
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 

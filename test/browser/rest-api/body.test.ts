@@ -67,12 +67,11 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
 
 test('handles a POST request with a multipart body and "Content-Type: multipart/form-data" header', async ({
   loadExample,
-  fetch,
   page,
 }) => {
   await loadExample(EXAMPLE_PATH)
 
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     const data = new FormData()
     data.set('file', new File(['file content'], 'file1.txt'))
     data.set('text', 'text content')
@@ -85,10 +84,9 @@ test('handles a POST request with a multipart body and "Content-Type: multipart/
     })
   })
 
-  const res = await page.waitForResponse(/\/upload/)
-  const body = await res.json()
+  const response = await page.waitForResponse(/\/upload/)
 
-  expect(body).toEqual({
+  await expect(response.json()).resolves.toEqual({
     file: 'file content',
     text: 'text content',
     text2: ['another text content', 'another text content 2'],

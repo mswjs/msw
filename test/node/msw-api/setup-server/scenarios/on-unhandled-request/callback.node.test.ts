@@ -19,7 +19,7 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
 afterAll(() => {

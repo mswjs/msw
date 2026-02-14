@@ -1,6 +1,6 @@
 import { checkGlobals } from './utils/internal/checkGlobals'
 
-export { SetupApi } from './SetupApi'
+export { SetupApi } from './experimental/setup-api'
 
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'

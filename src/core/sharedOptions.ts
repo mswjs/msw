@@ -15,6 +15,7 @@ export interface SharedOptions {
 
 /**
  * @deprecated
+ * Please use `HttpNetworkFrameEventMap` or `WebSocketNetworkFrameEventMap` instead.
  */
 export type LifeCycleEventsMap = {
   'request:start': [

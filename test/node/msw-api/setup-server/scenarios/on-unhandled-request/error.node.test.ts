@@ -59,7 +59,7 @@ test('errors on unhandled request when using the "error" strategy', async () => 
   const makeRequest = () => {
     return fetch(endpointUrl)
       .then(() => {
-        throw new Error('Must not resolve')
+        expect.fail('Request must not succeed')
       })
       .catch<Error>((error) => {
         return error

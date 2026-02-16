@@ -178,6 +178,9 @@
   "bin": {
     "msw": "cli/index.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "tsup --watch",
     "clean": "rimraf ./lib",

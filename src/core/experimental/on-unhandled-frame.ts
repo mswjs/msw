@@ -50,6 +50,10 @@ export async function executeUnhandledFrameHandle(
     invariant.as(
       InternalError,
       strategy === 'bypass' || strategy === 'warn' || strategy === 'error',
+      /**
+       * @fixme Rename "onUnhandledRequest" to "onUnhandledFrame" in the error message
+       * with the next major release.
+       */
       devUtils.formatMessage(
         'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
         strategy,

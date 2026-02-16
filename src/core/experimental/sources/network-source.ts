@@ -8,8 +8,21 @@ import { AnyHandler } from '../handlers-controller'
 
 export type AnyNetworkFrame = NetworkFrame<string, unknown, any>
 
+class NetworkFrameEvent<
+  DataType = void,
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public frame: AnyNetworkFrame
+
+  constructor(type: string, frame: AnyNetworkFrame) {
+    super(...([type, {}] as any))
+    this.frame = frame
+  }
+}
+
 type NetworkSourceEventMap<Frame extends AnyNetworkFrame> = {
-  frame: TypedEvent<Frame>
+  frame: NetworkFrameEvent<Frame>
 }
 
 export type ExtractSourceEvents<Source> =
@@ -28,11 +41,8 @@ export abstract class NetworkSource<
 
   public async queue(frame: Frame): Promise<void> {
     await this.emitter.emitAsPromise(
-      new TypedEvent(
-        // @ts-expect-error Trouble handling a conditional type parameter.
-        'frame',
-        { data: frame },
-      ),
+      // @ts-expect-error Trouble handling a conditional type parameter.
+      new NetworkFrameEvent('frame', frame),
     )
   }
 

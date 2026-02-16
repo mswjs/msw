@@ -15,7 +15,7 @@ import { InterceptorSource } from '#core/experimental/sources/interceptor-source
 import { SetupServer } from './glossary'
 import { AsyncHandlersController } from './async-handlers-controller'
 import {
-  createSetupServerCommonApi,
+  defineSetupServerApi,
   SetupServerCommonApi,
 } from './setup-server-common'
 
@@ -56,7 +56,7 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServer {
     handlers: handlersController,
   })
 
-  const commonApi = createSetupServerCommonApi(network)
+  const commonApi = defineSetupServerApi(network)
 
   return {
     ...commonApi,

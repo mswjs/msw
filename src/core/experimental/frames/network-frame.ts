@@ -10,6 +10,10 @@ export interface NetworkFrameResolutionContext {
   quiet?: boolean
 }
 
+/**
+ * The base for the network frames. Extend this abstract class
+ * to implement custom network frames.
+ */
 export abstract class NetworkFrame<
   Protocol extends string,
   Data,
@@ -52,5 +56,5 @@ export abstract class NetworkFrame<
   /**
    * Get a message to be used when this frame is unhandled.
    */
-  public abstract getUnhandledFrameMessage(): Promise<string>
+  public abstract getUnhandledMessage(): Promise<string>
 }

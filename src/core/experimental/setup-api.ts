@@ -1,4 +1,4 @@
-import { DefaultEventMap, Emitter } from 'rettime'
+import { type DefaultEventMap, Emitter } from 'rettime'
 import { LifeCycleEventEmitter } from '../sharedOptions'
 import {
   AnyHandler,

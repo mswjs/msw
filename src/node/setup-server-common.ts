@@ -10,7 +10,12 @@ import { InterceptorSource } from '#core/experimental/sources/interceptor-source
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { ListenOptions, SetupServerCommon } from './glossary'
 
-export function createSetupServerCommonApi(
+/**
+ * Define the common `setupServer` API around the given network.
+ * This is used by both `msw/node` and `msw/native` to implement the same
+ * baseline setup methods, like `.use()`, `.resetHandlers()`, `.close()`, etc.
+ */
+export function defineSetupServerApi(
   network: NetworkApi<any>,
 ): SetupServerCommon {
   return {
@@ -34,6 +39,10 @@ export function createSetupServerCommonApi(
   }
 }
 
+/**
+ * @deprecated
+ * Please use the `defineNetwork` API instead.
+ */
 export class SetupServerCommonApi implements SetupServerCommon {
   protected network: NetworkApi<[InterceptorSource]>
 

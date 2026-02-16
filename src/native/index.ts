@@ -8,7 +8,7 @@ import {
 } from '#core/experimental/define-network'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { type SetupServerCommon } from '../node/glossary'
-import { createSetupServerCommonApi } from '../node/setup-server-common'
+import { defineSetupServerApi } from '../node/setup-server-common'
 
 const defaultInterceptors: Array<Interceptor<any>> = [
   new FetchInterceptor(),
@@ -40,5 +40,5 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServerCommon {
     handlers,
   })
 
-  return createSetupServerCommonApi(network)
+  return defineSetupServerApi(network)
 }

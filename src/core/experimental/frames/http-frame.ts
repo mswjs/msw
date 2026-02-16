@@ -111,7 +111,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
   public abstract respondWith(response?: Response): void
 
-  public async getUnhandledFrameMessage(): Promise<string> {
+  public async getUnhandledMessage(): Promise<string> {
     const { request } = this.data
 
     const url = new URL(request.url)

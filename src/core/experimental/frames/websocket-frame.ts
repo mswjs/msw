@@ -123,7 +123,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     return true
   }
 
-  public async getUnhandledFrameMessage(): Promise<string> {
+  public async getUnhandledMessage(): Promise<string> {
     const { connection } = this.data
     const details = `\n\n  \u2022 ${connection.client.url}\n\n`
 

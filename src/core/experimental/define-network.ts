@@ -2,7 +2,6 @@ import { Emitter, type DefaultEventMap } from 'rettime'
 import {
   type NetworkSource,
   type ExtractSourceEvents,
-  type AnyNetworkFrame,
   getHandlerKindByFrame,
 } from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
@@ -30,7 +29,16 @@ type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
 export interface DefineNetworkOptions<
   Sources extends Array<NetworkSource<any>>,
 > {
+  /**
+   * List of the network sources.
+   * Every network source emits frames, and every frame describes how
+   * to handle the various network scenarios, like mocking a response,
+   * erroring the request, or performing it as-is.
+   */
   sources: Sources
+  /**
+   * List of handlers to describe the network.
+   */
   handlers?: Array<AnyHandler> | HandlersController
   context?: NetworkFrameResolutionContext
   onUnhandledFrame?: UnhandledFrameHandle
@@ -38,8 +46,19 @@ export interface DefineNetworkOptions<
 
 export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
   extends NetworkHandlersApi {
+  /**
+   * Enable the network interception and handling.
+   */
   enable: () => Promise<void>
+  /**
+   * Disable the network interception and handling.
+   */
   disable: () => Promise<void>
+  /**
+   * Configure the network instance with additional options.
+   * The options provided in the `.configure()` call will override the same
+   * options in the `defineNetwork()` call.
+   */
   configure: (options: Partial<DefineNetworkOptions<Sources>>) => void
   events: Emitter<MergeEventMaps<Sources>>
 }
@@ -92,22 +111,19 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     async enable() {
       await Promise.all(
         resolvedOptions.sources.map(async (source) => {
-          source.on(
-            'frame',
-            async ({ data: frame }: { data: AnyNetworkFrame }) => {
-              frame.events.on('*', (event) => events.emit(event))
+          source.on('frame', async ({ frame }) => {
+            frame.events.on('*', (event) => events.emit(event))
 
-              const matchingHandlers = handlersController.getHandlersByKind(
-                getHandlerKindByFrame(frame),
-              )
+            const matchingHandlers = handlersController.getHandlersByKind(
+              getHandlerKindByFrame(frame),
+            )
 
-              await frame.resolve(
-                matchingHandlers,
-                resolvedOptions.onUnhandledFrame || 'warn',
-                resolvedOptions.context,
-              )
-            },
-          )
+            await frame.resolve(
+              matchingHandlers,
+              resolvedOptions.onUnhandledFrame || 'warn',
+              resolvedOptions.context,
+            )
+          })
 
           await source.enable()
         }),

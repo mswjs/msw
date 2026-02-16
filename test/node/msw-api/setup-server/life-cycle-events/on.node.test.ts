@@ -14,7 +14,7 @@ const server = setupServer()
 function spyOnEvents(server: SetupServerApi) {
   const listener = vi.fn()
   const wrapListener = (eventName: string, listener: any) => {
-    return (...args) => listener(eventName, ...args)
+    return (...args: Array<unknown>) => listener(eventName, ...args)
   }
 
   server.events.on('request:start', wrapListener('request:start', listener))

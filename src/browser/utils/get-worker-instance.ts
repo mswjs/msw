@@ -1,8 +1,8 @@
 import { until } from 'until-async'
-import { devUtils } from '~/core/utils/internal/devUtils'
-import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerUrl'
-import { getWorkerByRegistration } from './getWorkerByRegistration'
-import { ServiceWorkerInstanceTuple, FindWorker } from '../../glossary'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { getAbsoluteWorkerUrl } from './getAbsoluteWorkerUrl'
+import { getWorkerByRegistration } from './get-worker-by-registration'
+import type { ServiceWorkerInstanceTuple, FindWorker } from '../glossary'
 
 /**
  * Returns an active Service Worker instance.

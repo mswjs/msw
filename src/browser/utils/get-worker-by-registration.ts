@@ -1,4 +1,4 @@
-import { FindWorker } from '../../glossary'
+import type { FindWorker } from '../glossary'
 
 /**
  * Attempts to resolve a Service Worker instance from a given registration,
@@ -14,9 +14,11 @@ export function getWorkerByRegistration(
     registration.installing,
     registration.waiting,
   ]
+
   const relevantStates = allStates.filter((state): state is ServiceWorker => {
     return state != null
   })
+
   const worker = relevantStates.find((worker) => {
     return findWorker(worker.scriptURL, absoluteWorkerUrl)
   })

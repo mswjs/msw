@@ -12,7 +12,7 @@ import {
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import type { HandlerKind } from './common'
+import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
 
 type WebSocketHandlerParsedResult = {
   match: Match
@@ -31,18 +31,21 @@ export interface WebSocketHandlerConnection {
 
 export interface WebSocketResolutionContext {
   baseUrl?: string
+  [kAutoConnect]?: boolean
 }
 
 export const kEmitter = Symbol('kEmitter')
 export const kSender = Symbol('kSender')
+export const kConnect = Symbol('kConnect')
+export const kAutoConnect = Symbol('kAutoConnect')
+
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
 export class WebSocketHandler {
-  private readonly __kind: HandlerKind
-
   public id: string
   public callFrame?: string
+  public kind = 'websocket' as const
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
@@ -51,7 +54,6 @@ export class WebSocketHandler {
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
-    this.__kind = 'EventHandler'
   }
 
   public parse(args: {
@@ -95,16 +97,16 @@ export class WebSocketHandler {
   }
 
   public async run(
-    connection: Omit<WebSocketHandlerConnection, 'params'>,
+    connection: WebSocketConnectionData,
     resolutionContext?: WebSocketResolutionContext,
-  ): Promise<boolean> {
+  ): Promise<WebSocketHandlerConnection | null> {
     const parsedResult = this.parse({
       url: connection.client.url,
       resolutionContext,
     })
 
     if (!this.predicate({ url: connection.client.url, parsedResult })) {
-      return false
+      return null
     }
 
     const resolvedConnection: WebSocketHandlerConnection = {
@@ -112,10 +114,18 @@ export class WebSocketHandler {
       params: parsedResult.match.params || {},
     }
 
-    return this.connect(resolvedConnection)
+    if (resolutionContext?.[kAutoConnect]) {
+      if (this[kConnect](resolvedConnection)) {
+        return resolvedConnection
+      }
+
+      return null
+    }
+
+    return resolvedConnection
   }
 
-  protected connect(connection: WebSocketHandlerConnection): boolean {
+  protected [kConnect](connection: WebSocketHandlerConnection): boolean {
     // Support `event.stopPropagation()` for various client/server events.
     connection.client.addEventListener(
       'message',
@@ -143,9 +153,11 @@ export class WebSocketHandler {
       createStopPropagationListener(this),
     )
 
-    // Emit the connection event on the handler.
-    // This is what the developer adds listeners for.
     return this[kEmitter].emit('connection', connection)
+  }
+
+  public log(connection: WebSocketConnectionData): () => void {
+    return attachWebSocketLogger(connection)
   }
 
   #resolveWebSocketUrl(url: string, baseUrl?: string): string {

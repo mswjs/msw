@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { TextEncoder } from 'util'
 import { pruneGetRequestBody } from './pruneGetRequestBody'
 

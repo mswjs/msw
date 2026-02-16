@@ -3,14 +3,13 @@
     "strict": true,
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strictNullChecks": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": false,
-    "baseUrl": "./",
     "paths": {
-      "~/core": ["src/core"],
-      "~/core/*": ["src/core/*"]
+      "#core": ["./src/core"],
+      "#core/*": ["./src/core/*"]
     }
   },
   "include": ["./global.d.ts"],

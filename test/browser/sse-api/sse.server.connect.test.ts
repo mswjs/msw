@@ -29,8 +29,8 @@ test('makes the actual request when called "server.connect()"', async ({
   })
 
   await using server = await createTestHttpServer({
-    defineRoutes(routes) {
-      routes.get('/stream', () => {
+    defineRoutes(router) {
+      router.get('/stream', () => {
         const stream = new ReadableStream({
           start(controller) {
             controller.enqueue(
@@ -85,8 +85,8 @@ test('forwards message event from the server to the client automatically', async
   })
 
   await using server = await createTestHttpServer({
-    defineRoutes(routes) {
-      routes.get('/stream', () => {
+    defineRoutes(router) {
+      router.get('/stream', () => {
         const stream = new ReadableStream({
           start(controller) {
             controller.enqueue(
@@ -141,8 +141,8 @@ test('forwards custom event from the server to the client automatically', async 
   })
 
   await using server = await createTestHttpServer({
-    defineRoutes(routes) {
-      routes.get('/stream', () => {
+    defineRoutes(router) {
+      router.get('/stream', () => {
         const stream = new ReadableStream({
           start(controller) {
             controller.enqueue(
@@ -199,8 +199,8 @@ test('forwards error event from the server to the client automatically', async (
   })
 
   await using server = await createTestHttpServer({
-    defineRoutes(routes) {
-      routes.get('/stream', () => {
+    defineRoutes(router) {
+      router.get('/stream', () => {
         const stream = new ReadableStream({
           start(controller) {
             controller.error()
@@ -251,8 +251,8 @@ test('forward custom stream errors from the original server to the client automa
   })
 
   await using server = await createTestHttpServer({
-    defineRoutes(routes) {
-      routes.get('/stream', () => {
+    defineRoutes(router) {
+      router.get('/stream', () => {
         const stream = new ReadableStream({
           start(controller) {
             controller.error(new Error('Custom stream error'))

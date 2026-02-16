@@ -3,8 +3,8 @@ import { InternalError, devUtils } from '../internal/devUtils'
 import { isCommonAssetRequest } from '../../isCommonAssetRequest'
 
 export interface UnhandledRequestPrint {
-  warning(): void
-  error(): void
+  warning: () => void
+  error: () => void
 }
 
 export type UnhandledRequestCallback = (

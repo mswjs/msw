@@ -1,12 +1,8 @@
-import { InvariantError } from 'outvariant'
 import { Emitter, TypedEvent } from 'rettime'
 import {
-  type NetworkFrame,
+  type AnyNetworkFrame,
   type ExtractFrameEvents,
 } from '../frames/network-frame'
-import { AnyHandler } from '../handlers-controller'
-
-export type AnyNetworkFrame = NetworkFrame<string, unknown, any>
 
 class NetworkFrameEvent<
   DataType = void,
@@ -55,33 +51,5 @@ export abstract class NetworkSource<
 
   public async disable(): Promise<void> {
     this.emitter.removeAllListeners()
-  }
-}
-
-/**
- * Return the kind of handler appropriate for the given network frame.
- * Useful to narrow down the list of handlers based on a frame.
- * @example
- * getHandlerKindByFrame(new HttpFrame(...)) // "http"
- * getHandlerKindByFrame(new WebSocketFrame(...)) // "ws"
- */
-export function getHandlerKindByFrame(
-  frame: AnyNetworkFrame,
-): AnyHandler['kind'] {
-  switch (frame.protocol) {
-    case 'http': {
-      return 'request'
-    }
-
-    case 'ws': {
-      return 'websocket'
-    }
-
-    default: {
-      throw new InvariantError(
-        'Failed to get handler kind by frame: unknown frame protocol "%s"',
-        frame.protocol,
-      )
-    }
   }
 }

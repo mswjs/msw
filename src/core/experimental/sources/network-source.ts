@@ -58,6 +58,13 @@ export abstract class NetworkSource<
   }
 }
 
+/**
+ * Return the kind of handler appropriate for the given network frame.
+ * Useful to narrow down the list of handlers based on a frame.
+ * @example
+ * getHandlerKindByFrame(new HttpFrame(...)) // "http"
+ * getHandlerKindByFrame(new WebSocketFrame(...)) // "ws"
+ */
 export function getHandlerKindByFrame(
   frame: AnyNetworkFrame,
 ): AnyHandler['kind'] {

@@ -70,6 +70,18 @@ export interface NetworkHandlersApi {
   listHandlers: () => ReadonlyArray<AnyHandler>
 }
 
+/**
+ * Define a network instance with the given configuration.
+ * @example
+ * import { InterceptorSource } from 'msw/experimental'
+ * import { handlers } from './handlers'
+ *
+ * const network = defineNetwork({
+ *   sources: [new InterceptorSource({ interceptors })],
+ *   handlers,
+ * })
+ * await network.enable()
+ */
 export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
   options: DefineNetworkOptions<Sources>,
 ): NetworkApi<Sources> {
@@ -89,7 +101,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 
   /**
    * @note Create the handlers controller immediately because
-   * certain setup API, like `setupServer`, don't await `.enable` (`.listen`).
+   * certain setup APIs, like `setupServer`, don't await `.enable` (`.listen`).
    */
   let handlersController = deriveHandlersController(resolvedOptions.handlers)
 
@@ -114,12 +126,12 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
           source.on('frame', async ({ frame }) => {
             frame.events.on('*', (event) => events.emit(event))
 
-            const matchingHandlers = handlersController.getHandlersByKind(
+            const handlers = handlersController.getHandlersByKind(
               getHandlerKindByFrame(frame),
             )
 
             await frame.resolve(
-              matchingHandlers,
+              handlers,
               resolvedOptions.onUnhandledFrame || 'warn',
               resolvedOptions.context,
             )

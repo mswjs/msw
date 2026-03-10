@@ -1,3 +1,10 @@
+export { defineNetwork, DefineNetworkOptions } from './define-network'
+
+/* Network sources */
+export { NetworkSource } from './sources/network-source'
+export { InterceptorSource } from './sources/interceptor-source'
+
+/* Frames */
 export { NetworkFrame } from './frames/network-frame'
 export {
   HttpNetworkFrame,
@@ -7,6 +14,3 @@ export {
   WebSocketNetworkFrame,
   type WebSocketNetworkFrameEventMap,
 } from './frames/websocket-frame'
-export { NetworkSource } from './sources/network-source'
-export { InterceptorSource } from './sources/interceptor-source'
-export { defineNetwork, DefineNetworkOptions } from './define-network'

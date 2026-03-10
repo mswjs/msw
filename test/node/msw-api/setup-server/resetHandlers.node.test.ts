@@ -13,6 +13,11 @@ beforeAll(() => {
   server.listen()
 })
 
+afterEach(() => {
+  vi.clearAllMocks()
+  server.resetHandlers()
+})
+
 afterAll(() => {
   vi.restoreAllMocks()
   server.close()
@@ -25,27 +30,36 @@ test('removes all runtime request handlers when resetting without explicit next 
     }),
   )
 
-  // Request handlers added on runtime affect the network communication.
-  const loginResponse = await fetch('http://localhost/resource', {
-    method: 'POST',
-  })
-  const loginBody = await loginResponse.json()
-  expect(loginResponse.status).toBe(200)
-  expect(loginBody).toEqual({ accepted: true })
+  {
+    // Request handlers added on runtime affect the network communication.
+    const response = await fetch('http://localhost/resource', {
+      method: 'POST',
+    })
+    expect.soft(response.status).toBe(200)
+    await expect.soft(response.json()).resolves.toEqual({ accepted: true })
+  }
 
   // Once reset, all the runtime request handlers are removed.
   server.resetHandlers()
 
-  const secondLoginResponse = await fetch('http://localhost/resource', {
-    method: 'POST',
-  })
-  expect(secondLoginResponse.status).toBe(404)
+  {
+    const hadError = await fetch('http://localhost/resource', {
+      method: 'POST',
+    }).then(
+      () => expect.fail('Request must not succeed'),
+      () => true,
+    )
+    expect(hadError).toBe(true)
+  }
 
-  // Initial request handlers (given to `setupServer`) are not affected.
-  const booksResponse = await fetch('http://localhost/books')
-  const booksBody = await booksResponse.json()
-  expect(booksResponse.status).toBe(200)
-  expect(booksBody).toEqual({ title: 'Original title' })
+  {
+    // Initial request handlers (given to `setupServer`) are not affected.
+    const response = await fetch('http://localhost/books')
+    expect.soft(response.status).toBe(200)
+    await expect
+      .soft(response.json())
+      .resolves.toEqual({ title: 'Original title' })
+  }
 })
 
 test('replaces all handlers with the explicit next runtime handlers upon reset', async () => {
@@ -63,14 +77,29 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     }),
   )
 
-  const loginResponse = await fetch('http://localhost/resource')
-  expect(loginResponse.status).toBe(404)
+  {
+    const hadError = await fetch('http://localhost/resource', {
+      method: 'POST',
+    }).then(
+      () => expect.fail('Request must not succeed'),
+      () => true,
+    )
+    expect(hadError).toBe(true)
+  }
 
-  const booksResponse = await fetch('http://localhost/books')
-  expect(booksResponse.status).toBe(404)
+  {
+    const hadError = await fetch('http://localhost/books', {
+      method: 'POST',
+    }).then(
+      () => expect.fail('Request must not succeed'),
+      () => true,
+    )
+    expect(hadError).toBe(true)
+  }
 
-  const productsResponse = await fetch('http://localhost/numbers')
-  const productsBody = await productsResponse.json()
-  expect(productsResponse.status).toBe(200)
-  expect(productsBody).toEqual([1, 2, 3])
+  {
+    const response = await fetch('http://localhost/numbers')
+    expect.soft(response.status).toBe(200)
+    await expect.soft(response.json()).resolves.toEqual([1, 2, 3])
+  }
 })

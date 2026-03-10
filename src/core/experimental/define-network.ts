@@ -2,9 +2,11 @@ import { Emitter, type DefaultEventMap } from 'rettime'
 import {
   type NetworkSource,
   type ExtractSourceEvents,
-  getHandlerKindByFrame,
 } from './sources/network-source'
-import { type NetworkFrameResolutionContext } from './frames/network-frame'
+import {
+  getHandlerKindByFrame,
+  type NetworkFrameResolutionContext,
+} from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   AnyHandler,

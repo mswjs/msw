@@ -13,7 +13,7 @@ import {
   executeUnhandledFrameHandle,
   UnhandledFrameHandle,
 } from '../on-unhandled-frame'
-import { devUtils } from '#core/utils/internal/devUtils'
+import { devUtils } from '../../utils/internal/devUtils'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData

@@ -166,7 +166,7 @@ it('resolves a non-matching connection', async () => {
   ])
 })
 
-it('errors the connection on unhandled exception', async () => {
+it('returns null and prints the error on unhandled exception', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -180,18 +180,21 @@ it('errors the connection on unhandled exception', async () => {
 
   const api = ws.link('ws://localhost/api')
   const exception = new Error('Unhandled exceptin')
-  const matches = await frame.resolve(
-    [
-      api.addEventListener('connection', () => {
-        throw exception
-      }),
-    ],
-    unhandledFrameCallback,
-    { quiet: true },
-  )
 
-  expect.soft(matches).toBeNull()
-  expect.soft(frame.errorWith).toHaveBeenCalledExactlyOnceWith(exception)
+  await expect
+    .soft(
+      frame.resolve(
+        [
+          api.addEventListener('connection', () => {
+            throw exception
+          }),
+        ],
+        unhandledFrameCallback,
+        { quiet: true },
+      ),
+    )
+    .rejects.toThrow(exception)
+  expect.soft(frame.errorWith).not.toHaveBeenCalled()
   expect.soft(frame.passthrough).not.toHaveBeenCalled()
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
@@ -234,19 +237,22 @@ it('does not print an unhandled exception if the "unhandledException" listener i
   const unhandledFrameCallback = vi.fn()
 
   const api = ws.link('ws://localhost/api')
-  const exception = new Error('Unhandled exceptin')
-  const matches = await frame.resolve(
-    [
-      api.addEventListener('connection', () => {
-        throw exception
-      }),
-    ],
-    unhandledFrameCallback,
-    { quiet: true },
-  )
+  const exception = new Error('Unhandled exception')
 
-  expect.soft(matches).toBeNull()
-  expect.soft(frame.errorWith).toHaveBeenCalledExactlyOnceWith(exception)
+  await expect
+    .soft(
+      frame.resolve(
+        [
+          api.addEventListener('connection', () => {
+            throw exception
+          }),
+        ],
+        unhandledFrameCallback,
+        { quiet: true },
+      ),
+    )
+    .rejects.toThrow(exception)
+  expect.soft(frame.errorWith).not.toHaveBeenCalled()
   expect.soft(frame.passthrough).not.toHaveBeenCalled()
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([

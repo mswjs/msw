@@ -158,8 +158,11 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
           )
         }
 
-        this.errorWith(error)
-        return null
+        /**
+         * @note Throw the caught error so it gets picked up by WebSocketInterceptor.
+         * It's the interceptor who translates handler errors to WebSocket closures.
+         */
+        throw error
       }
     }
 

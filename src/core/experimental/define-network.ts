@@ -3,10 +3,7 @@ import {
   type NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
-import {
-  getHandlerKindByFrame,
-  type NetworkFrameResolutionContext,
-} from './frames/network-frame'
+import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   AnyHandler,
@@ -128,9 +125,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
           source.on('frame', async ({ frame }) => {
             frame.events.on('*', (event) => events.emit(event))
 
-            const handlers = handlersController.getHandlersByKind(
-              getHandlerKindByFrame(frame),
-            )
+            const handlers = frame.getHandlers(handlersController)
 
             await frame.resolve(
               handlers,

@@ -12,6 +12,7 @@ import {
   executeUnhandledFrameHandle,
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
+import { HandlersController, AnyHandler } from '../handlers-controller'
 
 interface HttpNetworkFrameOptions {
   id?: string
@@ -107,6 +108,10 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
   constructor(options: HttpNetworkFrameOptions) {
     const id = options.id || createRequestId()
     super('http', { id, request: options.request })
+  }
+
+  public getHandlers(controller: HandlersController): Array<AnyHandler> {
+    return controller.getHandlersByKind('request')
   }
 
   public abstract respondWith(response?: Response): void

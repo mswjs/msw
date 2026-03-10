@@ -14,6 +14,7 @@ import {
   UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import { devUtils } from '../../utils/internal/devUtils'
+import { HandlersController, AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -78,6 +79,10 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     super('ws', {
       connection: options.connection,
     })
+  }
+
+  public getHandlers(controller: HandlersController): Array<AnyHandler> {
+    return controller.getHandlersByKind('websocket')
   }
 
   public async resolve(

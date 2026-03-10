@@ -1,6 +1,9 @@
 import { http } from '../../http'
+import { graphql } from '../../graphql'
+import { ws } from '../../ws'
 import { bypass } from '../../bypass'
 import { HttpNetworkFrame, HttpNetworkFrameEventMap } from './http-frame'
+import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -25,6 +28,36 @@ function spyOnNetworkFrame(frame: HttpNetworkFrame) {
     events,
   }
 }
+
+it('filters only request type handlers', async () => {
+  class HttpFrame extends HttpNetworkFrame {
+    respondWith = vi.fn()
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const frame = new HttpFrame({
+    request: new Request('http://localhost/api'),
+  })
+
+  const httpHandlers = [http.post('http://localhost/api/user', () => {})]
+  const graphqlHandlers = [graphql.query('GetUser', () => {})]
+  const webSocketHandlers = [
+    ws.link('ws://localhost').addEventListener('connection', () => {}),
+  ]
+
+  const controller = new InMemoryHandlersController([
+    ...httpHandlers,
+    ...webSocketHandlers,
+    ...graphqlHandlers,
+  ])
+
+  expect(frame.getHandlers(controller)).toEqual([
+    ...httpHandlers,
+    ...graphqlHandlers,
+  ])
+  expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])
+})
 
 it('resolves a matching request', async () => {
   class HttpFrame extends HttpNetworkFrame {

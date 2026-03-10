@@ -1,9 +1,12 @@
+import { http } from '../../http'
+import { graphql } from '../../graphql'
 import { ws } from '../../ws'
 import {
   WebSocketNetworkFrame,
   WebSocketNetworkFrameEventMap,
 } from './websocket-frame'
 import { createTestWebSocketConnection } from '../../../../test/support/ws-test-utils'
+import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -28,6 +31,31 @@ function spyOnWebSocketFrame(frame: WebSocketNetworkFrame) {
     events,
   }
 }
+
+it('filters only websocket type handlers', async () => {
+  class WebSocketFrame extends WebSocketNetworkFrame {
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const connection = createTestWebSocketConnection('ws://localhost/api')
+  const frame = new WebSocketFrame({ connection })
+
+  const httpHandlers = [http.post('http://localhost/api/user', () => {})]
+  const graphqlHandlers = [graphql.query('GetUser', () => {})]
+  const webSocketHandlers = [
+    ws.link('ws://localhost').addEventListener('connection', () => {}),
+  ]
+
+  const controller = new InMemoryHandlersController([
+    ...httpHandlers,
+    ...webSocketHandlers,
+    ...graphqlHandlers,
+  ])
+
+  expect(frame.getHandlers(controller)).toEqual(webSocketHandlers)
+  expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])
+})
 
 it('resolves a matching connection', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {

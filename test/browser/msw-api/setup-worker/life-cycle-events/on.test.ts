@@ -1,11 +1,11 @@
-import type { SetupWorker } from 'msw/browser'
+import type { SetupWorkerApi } from 'msw/browser'
 import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import type { ConsoleMessages } from 'page-with'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
-    worker: SetupWorker
+    worker: SetupWorkerApi
   }
 }
 
@@ -46,7 +46,6 @@ test('emits events for a handled request and mocked response', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -55,11 +54,9 @@ test('emits events for a handled request and mocked response', async ({
   await fetch(url)
   const requestId = getRequestId(consoleSpy)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:mocked]'))
 
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${url} ${requestId}`,
@@ -73,7 +70,6 @@ test('emits events for a handled request with no response', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -82,11 +78,9 @@ test('emits events for a handled request with no response', async ({
   await fetch(url, { method: 'POST' })
   const requestId = getRequestId(consoleSpy)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:bypass]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:bypass]'))
 
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
@@ -99,7 +93,6 @@ test('emits events for an unhandled request', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -108,11 +101,9 @@ test('emits events for an unhandled request', async ({
   await fetch(url)
   const requestId = getRequestId(consoleSpy)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:bypass]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:bypass]'))
 
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] GET ${url} ${requestId}`,
@@ -126,7 +117,6 @@ test('emits events for a passthrough request', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -138,20 +128,19 @@ test('emits events for a passthrough request', async ({
   await fetch(url)
   const requestId = getRequestId(consoleSpy)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toEqual([
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual([
       `[request:start] GET ${url} ${requestId}`,
       `[request:end] GET ${url} ${requestId}`,
       `[response:bypass] 200 ${url} passthrough-response GET ${url} ${requestId}`,
     ])
-  })
 })
 
 test('emits events for a bypassed request', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
   page,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -163,9 +152,10 @@ test('emits events for a bypassed request', async ({
   const url = server.http.url('/bypass')
   await fetch(url)
 
-  await waitFor(() => {
-    // First, must print the events for the original (mocked) request.
-    expect(consoleSpy.get('warning')).toEqual(
+  // First, must print the events for the original (mocked) request.
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringContaining(`[request:start] GET ${url}`),
         expect.stringContaining(`[request:end] GET ${url}`),
@@ -175,19 +165,18 @@ test('emits events for a bypassed request', async ({
       ]),
     )
 
-    // Then, must also print events for the bypassed request.
-    expect(consoleSpy.get('warning')).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining(`[request:start] POST ${url}`),
-        expect.stringContaining(`[request:end] POST ${url}`),
-        expect.stringContaining(
-          `[response:bypass] 200 ${url} bypassed-response POST ${url}`,
-        ),
-      ]),
-    )
+  // Then, must also print events for the bypassed request.
+  expect(consoleSpy.get('warning')).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining(`[request:start] POST ${url}`),
+      expect.stringContaining(`[request:end] POST ${url}`),
+      expect.stringContaining(
+        `[response:bypass] 200 ${url} bypassed-response POST ${url}`,
+      ),
+    ]),
+  )
 
-    expect(pageErrors).toEqual([])
-  })
+  expect(pageErrors).toEqual([])
 })
 
 test('emits unhandled exceptions in the request handler', async ({
@@ -210,7 +199,6 @@ test('emits unhandled exceptions in the request handler', async ({
 test('stops emitting events once the worker is stopped', async ({
   loadExample,
   spyOnConsole,
-  fetch,
   page,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -219,7 +207,9 @@ test('stops emitting events once the worker is stopped', async ({
   await page.evaluate(() => {
     return window.msw.worker.stop()
   })
-  await fetch('/unknown-route')
+
+  const url = server.http.url('/passthrough')
+  await page.evaluate((url) => fetch(url), url)
 
   expect(consoleSpy.get('warning')).toBeUndefined()
 })

@@ -1,14 +1,11 @@
 // @vitest-environment node-websocket
 import { setMaxListeners } from 'node:events'
-import {
-  WebSocketClientConnection,
-  WebSocketData,
-  WebSocketTransport,
-} from '@mswjs/interceptors/WebSocket'
+import { WebSocketClientConnection } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketClientManager,
   WebSocketBroadcastChannelMessage,
 } from './WebSocketClientManager'
+import { TestWebSocketTransport } from '../../../test/support/ws-test-utils'
 
 const channel = new BroadcastChannel('test:channel')
 
@@ -22,11 +19,6 @@ setMaxListeners(Number.MAX_SAFE_INTEGER, channel)
 vi.spyOn(channel, 'postMessage')
 
 const socket = new WebSocket('ws://localhost')
-
-class TestWebSocketTransport extends EventTarget implements WebSocketTransport {
-  send(_data: WebSocketData): void {}
-  close(_code?: number | undefined, _reason?: string | undefined): void {}
-}
 
 afterEach(() => {
   vi.resetAllMocks()

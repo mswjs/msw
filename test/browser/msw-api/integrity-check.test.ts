@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { test, expect } from '../playwright.extend'
 import copyServiceWorker from '../../../config/copyServiceWorker'
-import packageJson from '../../../package.json' assert { type: 'json' }
+import packageJson from '../../../package.json' with { type: 'json' }
 // @ts-expect-error Importing a Javascript module.
 import { SERVICE_WORKER_SOURCE_PATH } from '../../../config/constants.js'
 

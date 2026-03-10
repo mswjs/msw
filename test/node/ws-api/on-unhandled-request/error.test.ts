@@ -39,12 +39,12 @@ it(
 
     expect(console.error).toHaveBeenCalledWith(
       `\
-[MSW] Error: intercepted a request without a matching request handler:
+[MSW] Error: intercepted a WebSocket connection without a matching event handler:
 
-  • GET wss://localhost:4321/
+  • wss://localhost:4321/
 
-If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/http/intercepting-requests`,
+If you still wish to intercept this unhandled connection, please create an event handler for it.
+Read more: https://mswjs.io/docs/websocket`,
     )
 
     expect(errorListener).toHaveBeenCalledOnce()

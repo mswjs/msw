@@ -153,6 +153,10 @@ export class WebSocketHandler {
       createStopPropagationListener(this),
     )
 
+    /**
+     * @fixme Use "rettime" and await these events to have
+     * exceptions propagate properly.
+     */
     return this[kEmitter].emit('connection', connection)
   }
 

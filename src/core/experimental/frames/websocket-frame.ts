@@ -13,6 +13,7 @@ import {
   executeUnhandledFrameHandle,
   UnhandledFrameHandle,
 } from '../on-unhandled-frame'
+import { devUtils } from '#core/utils/internal/devUtils'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -20,6 +21,7 @@ export interface WebSocketNetworkFrameOptions {
 
 export type WebSocketNetworkFrameEventMap = {
   connection: WebSocketConnectionEvent
+  unhandledException: UnhandledWebSocketExceptionEvent
 }
 
 class WebSocketConnectionEvent<
@@ -37,6 +39,31 @@ class WebSocketConnectionEvent<
     super(...([type, {}] as any))
     this.url = data.url
     this.protocols = data.protocols
+  }
+}
+
+class UnhandledWebSocketExceptionEvent<
+  DataType extends {
+    url: URL
+    protocols: string | Array<string> | undefined
+    error: unknown
+  } = {
+    url: URL
+    protocols: string | Array<string> | undefined
+    error: unknown
+  },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly url: URL
+  public readonly protocols: string | Array<string> | undefined
+  public readonly error: unknown
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type, {}] as any))
+    this.url = data.url
+    this.protocols = data.protocols
+    this.error = data.error
   }
 }
 
@@ -105,8 +132,29 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
         ? handler.log(connection)
         : undefined
 
-      if (!handler[kConnect](handlerConnection)) {
-        removeLogger?.()
+      try {
+        if (!handler[kConnect](handlerConnection)) {
+          removeLogger?.()
+        }
+      } catch (error) {
+        if (
+          !this.events.emit(
+            new UnhandledWebSocketExceptionEvent('unhandledException', {
+              error,
+              url: connection.client.url,
+              protocols: connection.info.protocols,
+            }),
+          )
+        ) {
+          console.error(error)
+          devUtils.error(
+            'Encountered an unhandled exception during the handler lookup for "%s". Please see the original error above.',
+            connection.client.url,
+          )
+        }
+
+        this.errorWith(error)
+        return null
       }
     }
 

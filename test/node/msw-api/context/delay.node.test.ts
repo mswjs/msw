@@ -1,11 +1,8 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { spawnSync } from 'node:child_process'
 import { delay, HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { performance } from 'perf_hooks'
-import { fromRoot } from '../../../support/alias'
 
 const server = setupServer()
 
@@ -41,7 +38,7 @@ test('uses explicit server response time', async () => {
   const { res, responseTime } = await makeRequest('http://localhost/user')
 
   expect(responseTime).toBeGreaterThanOrEqual(500)
-  expect(await res.text()).toBe('john')
+  await expect(res.text()).resolves.toBe('john')
 })
 
 test('uses realistic server response time when no duration is provided', async () => {
@@ -56,7 +53,7 @@ test('uses realistic server response time when no duration is provided', async (
 
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
-  expect(await res.text()).toBe('john')
+  await expect(res.text()).resolves.toBe('john')
 })
 
 test('uses realistic server response time when "real" mode is provided', async () => {
@@ -71,20 +68,19 @@ test('uses realistic server response time when "real" mode is provided', async (
 
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
-  expect(await res.text()).toBe('john')
+  await expect(res.text()).resolves.toBe('john')
 })
 
-test('does not keep the Node.js process alive when using "infinite" delay', () => {
+test('does not keep the process alive when using "infinite" delay', () => {
   const result = spawnSync(
     process.execPath,
-    [fromRoot('./test/node/msw-api/context/delay-infinite.fixture.js')],
+    [new URL('./delay-infinite.fixture.js', import.meta.url).pathname],
     {
-      cwd: fromRoot('.'),
-      encoding: 'utf8',
+      stdio: 'inherit',
       timeout: 1000,
     },
   )
 
-  expect(result.error).toBeUndefined()
-  expect(result.status).toBe(0)
+  expect.soft(result.status).toBe(0)
+  expect.soft(result.error).toBeUndefined()
 })

@@ -1,17 +1,15 @@
-// @ts-check
-
-import { delay, HttpResponse, http } from '../../../../lib/core/index.mjs'
-import { setupServer } from '../../../../lib/node/index.mjs'
+import { delay, HttpResponse, http } from 'msw'
+import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  http.get('http://localhost/user', async () => {
+  http.get('http://any.host.here/irrelevant', async () => {
     await delay('infinite')
-    return HttpResponse.text('john')
   }),
 )
 
 server.listen()
-fetch('http://localhost/user').catch(() => undefined)
+
+fetch('http://any.host.here/irrelevant')
 
 setTimeout(() => {
   server.close()

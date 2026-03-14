@@ -1,9 +1,11 @@
 /**
  * @vitest-environment node
  */
+import { spawnSync } from 'node:child_process'
 import { delay, HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { performance } from 'perf_hooks'
+import { fromRoot } from '../../../support/alias'
 
 const server = setupServer()
 
@@ -70,4 +72,39 @@ test('uses realistic server response time when "real" mode is provided', async (
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
   expect(await res.text()).toBe('john')
+})
+
+test('does not keep the Node.js process alive when using "infinite" delay', () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      '-e',
+      `
+        const { delay, HttpResponse, http } = require('./lib/core/index.js')
+        const { setupServer } = require('./lib/node/index.js')
+
+        const server = setupServer(
+          http.get('http://localhost/user', async () => {
+            await delay('infinite')
+            return HttpResponse.text('john')
+          }),
+        )
+
+        server.listen()
+        fetch('http://localhost/user').catch(() => undefined)
+
+        setTimeout(() => {
+          server.close()
+        }, 20)
+      `,
+    ],
+    {
+      cwd: fromRoot('.'),
+      encoding: 'utf8',
+      timeout: 1000,
+    },
+  )
+
+  expect(result.error).toBeUndefined()
+  expect(result.status).toBe(0)
 })

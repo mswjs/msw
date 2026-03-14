@@ -75,6 +75,7 @@ export async function delay(
       isNodeProcess() &&
       hasRefCounted(timeoutId)
     ) {
+      // Prevent the process from hanging if this is the only active ref.
       timeoutId.unref()
     }
   })

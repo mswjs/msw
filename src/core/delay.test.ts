@@ -7,10 +7,12 @@ describe('delay', () => {
   })
 
   it('unrefs infinite delays in Node.js', () => {
+    const ref = vi.fn()
     const unref = vi.fn()
 
     vi.spyOn(globalThis, 'setTimeout').mockImplementation(((callback, ms) => {
       return {
+        ref,
         unref,
       } as ReturnType<typeof setTimeout>
     }) as typeof setTimeout)
@@ -25,10 +27,12 @@ describe('delay', () => {
   })
 
   it('does not unref finite delays', () => {
+    const ref = vi.fn()
     const unref = vi.fn()
 
     vi.spyOn(globalThis, 'setTimeout').mockImplementation(((callback, ms) => {
       return {
+        ref,
         unref,
       } as ReturnType<typeof setTimeout>
     }) as typeof setTimeout)

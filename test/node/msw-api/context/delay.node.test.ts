@@ -77,27 +77,7 @@ test('uses realistic server response time when "real" mode is provided', async (
 test('does not keep the Node.js process alive when using "infinite" delay', () => {
   const result = spawnSync(
     process.execPath,
-    [
-      '-e',
-      `
-        const { delay, HttpResponse, http } = require('./lib/core/index.js')
-        const { setupServer } = require('./lib/node/index.js')
-
-        const server = setupServer(
-          http.get('http://localhost/user', async () => {
-            await delay('infinite')
-            return HttpResponse.text('john')
-          }),
-        )
-
-        server.listen()
-        fetch('http://localhost/user').catch(() => undefined)
-
-        setTimeout(() => {
-          server.close()
-        }, 20)
-      `,
-    ],
+    [fromRoot('./test/node/msw-api/context/delay-infinite.fixture.js')],
     {
       cwd: fromRoot('.'),
       encoding: 'utf8',

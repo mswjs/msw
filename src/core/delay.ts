@@ -1,13 +1,10 @@
 import { isNodeProcess } from 'is-node-process'
+import { hasRefCounted } from './utils/internal/hasRefCounted'
 
 export const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
 export const MIN_SERVER_RESPONSE_TIME = 100
 export const MAX_SERVER_RESPONSE_TIME = 400
 export const NODE_SERVER_RESPONSE_TIME = 5
-
-type TimeoutWithUnref = ReturnType<typeof setTimeout> & {
-  unref(): void
-}
 
 function getRealisticResponseTime(): number {
   if (isNodeProcess()) {
@@ -18,12 +15,6 @@ function getRealisticResponseTime(): number {
     Math.random() * (MAX_SERVER_RESPONSE_TIME - MIN_SERVER_RESPONSE_TIME) +
       MIN_SERVER_RESPONSE_TIME,
   )
-}
-
-function isTimeoutWithUnref(
-  timeoutId: ReturnType<typeof setTimeout>,
-): timeoutId is TimeoutWithUnref {
-  return typeof Reflect.get(timeoutId, 'unref') === 'function'
 }
 
 export type DelayMode = 'real' | 'infinite'
@@ -82,7 +73,7 @@ export async function delay(
     if (
       delayTime === SET_TIMEOUT_MAX_ALLOWED_INT &&
       isNodeProcess() &&
-      isTimeoutWithUnref(timeoutId)
+      hasRefCounted(timeoutId)
     ) {
       timeoutId.unref()
     }

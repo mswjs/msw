@@ -1,4 +1,5 @@
 import { isNodeProcess } from 'is-node-process'
+import { hasRefCounted } from './utils/internal/hasRefCounted'
 
 export const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
 export const MIN_SERVER_RESPONSE_TIME = 100
@@ -66,5 +67,16 @@ export async function delay(
     delayTime = durationOrMode
   }
 
-  return new Promise((resolve) => setTimeout(resolve, delayTime))
+  return new Promise((resolve) => {
+    const timeoutId = setTimeout(resolve, delayTime)
+
+    if (
+      delayTime === SET_TIMEOUT_MAX_ALLOWED_INT &&
+      isNodeProcess() &&
+      hasRefCounted(timeoutId)
+    ) {
+      // Prevent the process from hanging if this is the only active ref.
+      timeoutId.unref()
+    }
+  })
 }

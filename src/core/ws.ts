@@ -8,18 +8,13 @@ import {
   kEmitter,
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
+import { hasRefCounted } from './utils/internal/hasRefCounted'
 import { type Path, isPath } from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
 
-function isBroadcastChannelWithUnref(
-  channel: BroadcastChannel,
-): channel is BroadcastChannel & NodeJS.RefCounted {
-  return typeof Reflect.get(channel, 'unref') !== 'undefined'
-}
-
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
-if (isBroadcastChannelWithUnref(webSocketChannel)) {
+if (hasRefCounted(webSocketChannel)) {
   // Allows the Node.js thread to exit if it is the only active handle in the event system.
   // https://nodejs.org/api/worker_threads.html#broadcastchannelunref
   webSocketChannel.unref()

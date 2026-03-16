@@ -34,7 +34,7 @@ export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export * from './utils/handleRequest'
+export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
 export {
   onUnhandledRequest,
   type UnhandledRequestStrategy,
@@ -92,8 +92,13 @@ export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
 
-export * from './HttpResponse'
-export * from './delay'
+export {
+  HttpResponse,
+  type HttpResponseInit,
+  type StrictRequest,
+  type StrictResponse,
+} from './HttpResponse'
+export { delay, type DelayMode } from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'
 export { isCommonAssetRequest } from './isCommonAssetRequest'

@@ -93,7 +93,7 @@ export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
 
 export * from './HttpResponse'
-export * from './delay'
+export { delay, type DelayMode } from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'
 export { isCommonAssetRequest } from './isCommonAssetRequest'

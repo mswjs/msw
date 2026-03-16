@@ -34,7 +34,7 @@ export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export * from './utils/handleRequest'
+export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
 export {
   onUnhandledRequest,
   type UnhandledRequestStrategy,

@@ -120,7 +120,7 @@ export function isDocumentNode(
 }
 
 function isDocumentTypeDecoration(
-  value: any,
+  value: unknown,
 ): value is DocumentTypeDecoration<any, any> {
   return value instanceof String
 }

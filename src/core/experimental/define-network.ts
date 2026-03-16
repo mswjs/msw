@@ -103,6 +103,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
    * certain setup APIs, like `setupServer`, don't await `.enable` (`.listen`).
    */
   let handlersController = deriveHandlersController(resolvedOptions.handlers)
+  let listenersController: AbortController
 
   return {
     events,
@@ -120,10 +121,14 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       }
     },
     async enable() {
+      listenersController = new AbortController()
+
       await Promise.all(
         resolvedOptions.sources.map(async (source) => {
           source.on('frame', async ({ frame }) => {
-            frame.events.on('*', (event) => events.emit(event))
+            frame.events.on('*', (event) => events.emit(event), {
+              signal: listenersController.signal,
+            })
 
             const handlers = frame.getHandlers(handlersController)
 
@@ -139,6 +144,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       )
     },
     async disable() {
+      listenersController.abort()
       await Promise.all(
         resolvedOptions.sources.map((source) => source.disable()),
       )

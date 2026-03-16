@@ -333,7 +333,7 @@ class ServerSentEventClient<
     }
 
     if (message.event) {
-      frames.push(`event:${message.event?.toString()}`)
+      frames.push(`event:${message.event.toString()}`)
     }
 
     if (message.data != null) {

@@ -79,6 +79,8 @@ export abstract class HandlersController {
         ? [handler, ...handlers[handler.kind]!]
         : [handler]
     }
+
+    this.setState({ handlers })
   }
 
   public reset(nextHandlers: Array<AnyHandler>): void {

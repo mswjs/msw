@@ -104,8 +104,7 @@ export abstract class HandlersController {
     const normalizedNextHandlers = groupHandlersByKind(nextHandlers)
 
     this.setState({
-      initialHandlers:
-        nextHandlers.length > 0 ? normalizedNextHandlers : undefined,
+      initialHandlers: normalizedNextHandlers,
       handlers: { ...normalizedNextHandlers },
     })
   }

@@ -92,7 +92,12 @@ export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
 
-export * from './HttpResponse'
+export {
+  HttpResponse,
+  type HttpResponseInit,
+  type StrictRequest,
+  type StrictResponse,
+} from './HttpResponse'
 export { delay, type DelayMode } from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'

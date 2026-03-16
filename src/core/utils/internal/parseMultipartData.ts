@@ -62,7 +62,9 @@ export function parseMultipartData<T extends DefaultRequestMultipartBody>(
     return undefined
   }
 
-  const boundaryRegExp = new RegExp(`--+${boundary}`)
+  const boundaryRegExp = new RegExp(
+    `--+${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+  )
   const fields = data
     .split(boundaryRegExp)
     .filter((chunk) => chunk.startsWith('\r\n') && chunk.endsWith('\r\n'))

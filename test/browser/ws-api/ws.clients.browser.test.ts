@@ -44,11 +44,9 @@ test('returns the number of active clients in the same runtime', async ({
   })
 
   // Must return 1 after a single client joined.
-  expect(
-    await page.evaluate(() => {
-      return window.link.clients.size
-    }),
-  ).toBe(1)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
 
   await page.evaluate(async () => {
     const ws = new WebSocket('wss://example.com')
@@ -56,11 +54,9 @@ test('returns the number of active clients in the same runtime', async ({
   })
 
   // Must return 2 now that another client has joined.
-  expect(
-    await page.evaluate(() => {
-      return window.link.clients.size
-    }),
-  ).toBe(2)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
 })
 
 test('returns the number of active clients across different runtimes', async ({
@@ -94,8 +90,12 @@ test('returns the number of active clients across different runtimes', async ({
     await new Promise((done) => (ws.onopen = done))
   })
 
-  expect(await pageOne.evaluate(() => window.link.clients.size)).toBe(1)
-  expect(await pageTwo.evaluate(() => window.link.clients.size)).toBe(1)
+  await expect(
+    pageOne.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+  await expect(
+    pageTwo.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
 
   await pageTwo.bringToFront()
   await pageTwo.evaluate(async () => {
@@ -103,8 +103,12 @@ test('returns the number of active clients across different runtimes', async ({
     await new Promise((done) => (ws.onopen = done))
   })
 
-  expect(await pageTwo.evaluate(() => window.link.clients.size)).toBe(2)
-  expect(await pageOne.evaluate(() => window.link.clients.size)).toBe(2)
+  await expect(
+    pageTwo.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
+  await expect(
+    pageOne.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
 })
 
 test('broadcasts messages across runtimes', async ({
@@ -198,7 +202,9 @@ test('clears the list of clients when the worker is stopped', async ({
   })
 
   // Must return the number of joined clients.
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(1)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
 
   await page.evaluate(() => {
     window.worker.stop()
@@ -239,7 +245,9 @@ test('clears the list of clients when the page is reloaded', async ({
   })
 
   // Must return the number of joined clients.
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(1)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
 
   await page.reload()
   await enableMocking()

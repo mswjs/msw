@@ -42,7 +42,7 @@ export abstract class SetupApi<
   }
 
   public restoreHandlers(): void {
-    this.handlersController.currentHandlers.forEach((handler) => {
+    this.handlersController.currentHandlers().forEach((handler) => {
       if ('isUsed' in handler) {
         handler.isUsed = false
       }
@@ -54,6 +54,6 @@ export abstract class SetupApi<
   }
 
   public listHandlers(): ReadonlyArray<AnyHandler> {
-    return toReadonlyArray(this.handlersController.currentHandlers)
+    return toReadonlyArray(this.handlersController.currentHandlers())
   }
 }

@@ -9,7 +9,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     const httpHandler = http.get('/', () => {})
     controller.use([httpHandler])
 
-    expect(controller.currentHandlers).toEqual([httpHandler])
+    expect(controller.currentHandlers()).toEqual([httpHandler])
     expect(controller.getHandlersByKind('request')).toEqual([httpHandler])
   })
 
@@ -20,7 +20,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     const controller = new InMemoryHandlersController([httpOne])
     controller.use([httpTwo])
 
-    expect(controller.currentHandlers).toEqual([httpTwo, httpOne])
+    expect(controller.currentHandlers()).toEqual([httpTwo, httpOne])
     expect(controller.getHandlersByKind('request')).toEqual([httpTwo, httpOne])
   })
 
@@ -33,7 +33,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
 
     controller.use([httpTwo, httpThree])
 
-    expect(controller.currentHandlers).toEqual([httpTwo, httpThree, httpOne])
+    expect(controller.currentHandlers()).toEqual([httpTwo, httpThree, httpOne])
     expect(controller.getHandlersByKind('request')).toEqual([
       httpTwo,
       httpThree,
@@ -49,7 +49,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     const controller = new InMemoryHandlersController([httpOne])
     controller.use([graphqlOne, httpTwo])
 
-    expect(controller.currentHandlers).toEqual([graphqlOne, httpTwo, httpOne])
+    expect(controller.currentHandlers()).toEqual([graphqlOne, httpTwo, httpOne])
   })
 })
 
@@ -58,14 +58,14 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     {
       const controller = new InMemoryHandlersController([])
       controller.reset([])
-      expect(controller.currentHandlers).toEqual([])
+      expect(controller.currentHandlers()).toEqual([])
     }
 
     {
       const httpHandler = http.get('/', () => {})
       const controller = new InMemoryHandlersController([httpHandler])
       controller.reset([])
-      expect(controller.currentHandlers).toEqual([httpHandler])
+      expect(controller.currentHandlers()).toEqual([httpHandler])
     }
   })
 
@@ -74,7 +74,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     const httpTwo = http.get('/', () => {})
     const controller = new InMemoryHandlersController([httpOne])
     controller.reset([httpTwo])
-    expect(controller.currentHandlers).toEqual([httpTwo])
+    expect(controller.currentHandlers()).toEqual([httpTwo])
   })
 })
 

@@ -63,7 +63,7 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServer {
     boundary(callback) {
       return (...args) => {
         const normalizedInitialHandlers = groupHandlersByKind(
-          handlersController.currentHandlers,
+          handlersController.currentHandlers(),
         )
 
         return handlersController.context.run<any, any>(
@@ -107,7 +107,7 @@ export class SetupServerApi
   ): (...args: Args) => ReturnType {
     return (...args: Args): ReturnType => {
       const normalizedInitialHandlers = groupHandlersByKind(
-        this.#handlersController.currentHandlers,
+        this.#handlersController.currentHandlers(),
       )
 
       return this.#handlersController.context.run<any, any>(

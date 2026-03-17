@@ -47,7 +47,7 @@ export abstract class HandlersController {
   protected abstract getState(): HandlersControllerState
   protected abstract setState(nextState: Partial<HandlersControllerState>): void
 
-  public get currentHandlers(): Array<AnyHandler> {
+  public currentHandlers(): Array<AnyHandler> {
     return Object.values(this.getState().handlers)
       .flat()
       .filter((handler) => handler != null)

@@ -156,14 +156,14 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       handlersController.reset(handlers)
     },
     restoreHandlers() {
-      for (const handler of handlersController.currentHandlers) {
+      for (const handler of handlersController.currentHandlers()) {
         if ('isUsed' in handler) {
           handler.isUsed = false
         }
       }
     },
     listHandlers() {
-      return toReadonlyArray(handlersController.currentHandlers)
+      return toReadonlyArray(handlersController.currentHandlers())
     },
   }
 }

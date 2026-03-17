@@ -1,4 +1,5 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import { BatchHandler } from '../handlers/BatchHandler'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'
@@ -10,14 +11,24 @@ import { isHandlerKind } from '../utils/internal/isHandlerKind'
 
 interface HandleWebSocketEventOptions {
   getUnhandledRequestStrategy: () => UnhandledRequestStrategy
-  getHandlers: () => Array<RequestHandler | WebSocketHandler>
+  getHandlers: () => Array<RequestHandler | WebSocketHandler | BatchHandler>
   onMockedConnection: (connection: WebSocketConnectionData) => void
   onPassthroughConnection: (onnection: WebSocketConnectionData) => void
+  onAttachLogger?: (connection: WebSocketConnectionData) => void
 }
 
 export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
   webSocketInterceptor.on('connection', async (connection) => {
-    const handlers = options.getHandlers().filter(isHandlerKind('EventHandler'))
+    const handlers = options
+      .getHandlers()
+      .flatMap((handler) => {
+        if (handler instanceof BatchHandler) {
+          return handler.unwrapHandlers('EventHandler')
+        }
+
+        return handler
+      })
+      .filter(isHandlerKind('EventHandler'))
 
     // Ignore this connection if the user hasn't defined any handlers.
     if (handlers.length > 0) {

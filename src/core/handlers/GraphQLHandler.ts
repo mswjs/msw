@@ -4,6 +4,7 @@ import {
   type GraphQLError,
   type OperationTypeNode,
 } from 'graphql'
+import { invariant } from 'outvariant'
 import {
   DefaultBodyType,
   RequestHandler,
@@ -26,7 +27,6 @@ import {
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { invariant } from 'outvariant'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },
@@ -130,8 +130,6 @@ export class GraphQLHandler extends RequestHandler<
   GraphQLRequestParsedResult,
   GraphQLResolverExtras<any>
 > {
-  private endpoint: Path
-
   static parsedRequestCache = new WeakMap<
     Request,
     ParsedGraphQLRequest<GraphQLVariables>
@@ -175,7 +173,6 @@ export class GraphQLHandler extends RequestHandler<
 
     return predicate
   }
-
   constructor(
     operationType: GraphQLOperationType,
     predicate: GraphQLPredicate,
@@ -238,7 +235,7 @@ export class GraphQLHandler extends RequestHandler<
      * If the request doesn't match a specified endpoint, there's no
      * need to parse it since there's no case where we would handle this
      */
-    const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
+    const match = matchRequestUrl(new URL(args.request.url), this.url)
     const cookies = getAllRequestCookies(args.request)
 
     if (!match.matches) {

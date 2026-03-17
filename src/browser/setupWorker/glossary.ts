@@ -7,6 +7,7 @@ import {
   SharedOptions,
 } from '~/core/sharedOptions'
 import { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { BatchHandler } from '~/core/handlers/BatchHandler'
 import type { RequiredDeep } from '~/core/typeUtils'
 import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type { WorkerChannel } from '../utils/workerChannel'
@@ -21,7 +22,9 @@ export type SetupWorkerInternalContext = {
   startOptions: RequiredDeep<StartOptions>
   workerPromise: DeferredPromise<ServiceWorker>
   registration: ServiceWorkerRegistration | undefined
-  getRequestHandlers: () => Array<RequestHandler | WebSocketHandler>
+  getRequestHandlers: () => Array<
+    RequestHandler | WebSocketHandler | BatchHandler
+  >
   emitter: Emitter<LifeCycleEventsMap>
   keepAliveInterval?: number
   workerChannel: WorkerChannel
@@ -102,7 +105,9 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/use `worker.use()` API reference}
    */
-  use: (...handlers: Array<RequestHandler | WebSocketHandler>) => void
+  use: (
+    ...handlers: Array<RequestHandler | WebSocketHandler | BatchHandler>
+  ) => void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.

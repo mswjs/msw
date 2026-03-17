@@ -6,11 +6,10 @@ import {
   type OperationTypeNode,
 } from 'graphql'
 import {
-  AsyncResponseResolverReturnType,
   DefaultBodyType,
-  MaybeAsyncResponseResolverReturnType,
   RequestHandler,
   RequestHandlerDefaultInfo,
+  RequestHandlerExecutionResult,
   RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
@@ -28,11 +27,10 @@ import {
 } from '../utils/internal/parseGraphQLRequest'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
-import {
-  getAllAcceptedMimeTypes,
-  getAllRequestCookies,
-} from '../utils/request/getRequestCookies'
-import { isIterable } from '../utils/internal/isIterable'
+import { getAllRequestCookies } from '../utils/request/getRequestCookies'
+import { ResponseResolutionContext } from 'src/iife'
+import { StrictRequest } from '../HttpResponse'
+import { getAllAcceptedMimeTypes } from '../utils/request/getAllAcceptedMimeTypes'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },
@@ -53,11 +51,6 @@ export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
   operationType: GraphQLOperationType
   operationName: GraphQLHandlerNameSelector | GraphQLCustomPredicate
 }
-
-export type GraphQLMimeType =
-  | 'application/graphql-response+json'
-  | 'application/json'
-  | (string & {})
 
 export type GraphQLRequestParsedResult = {
   match: Match
@@ -130,10 +123,6 @@ export function isDocumentNode(
   return typeof value === 'object' && 'kind' in value && 'definitions' in value
 }
 
-export interface GraphQLHandlerOptions extends RequestHandlerOptions {
-  supportedMimeTypes?: GraphQLMimeType[]
-}
-
 function isDocumentTypeDecoration(
   value: unknown,
 ): value is DocumentTypeDecoration<any, any> {
@@ -196,7 +185,7 @@ export class GraphQLHandler extends RequestHandler<
     predicate: GraphQLPredicate,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
-    options?: GraphQLHandlerOptions,
+    options?: RequestHandlerOptions,
   ) {
     const operationName = GraphQLHandler.#parseOperationName(
       predicate,
@@ -211,58 +200,6 @@ export class GraphQLHandler extends RequestHandler<
         ? `${operationType} (origin: ${endpoint.toString()})`
         : `${operationType}${displayOperationName ? ` ${displayOperationName}` : ''} (origin: ${endpoint.toString()})`
 
-    const supportedMimeTypes = options?.supportedMimeTypes || [
-      'application/graphql-response+json',
-      'application/json',
-    ]
-
-    const wrappedResolver: typeof resolver = (info) => {
-      function handleSingleResult(
-        singleResult: MaybeAsyncResponseResolverReturnType<any>,
-      ): MaybeAsyncResponseResolverReturnType<any> {
-        if (!singleResult) return
-        if ('then' in singleResult) {
-          return singleResult.then(handleSingleResult)
-        }
-        if (!singleResult) return singleResult
-        const acceptedMimeTypes = getAllAcceptedMimeTypes(
-          info.request,
-          'application/json',
-        )
-        const mimeType = acceptedMimeTypes.find((type) =>
-          supportedMimeTypes.includes(type),
-        )
-        if (!mimeType) return singleResult
-        const clone = singleResult.clone()
-        clone.headers.set('Content-Type', mimeType)
-        return clone
-      }
-      function* handleGeneratorResult(
-        generatorResult: Extract<
-          AsyncResponseResolverReturnType<any>,
-          Generator
-        >,
-      ): Extract<AsyncResponseResolverReturnType<any>, Generator> {
-        for (const result of generatorResult) {
-          yield handleSingleResult(result)
-        }
-      }
-      function handleResult(
-        originalResult: AsyncResponseResolverReturnType<any>,
-      ): AsyncResponseResolverReturnType<any> {
-        if (!originalResult) return originalResult
-        if ('then' in originalResult) {
-          return originalResult.then(handleResult)
-        }
-        if (isIterable(originalResult)) {
-          return handleGeneratorResult(originalResult)
-        }
-        return handleSingleResult(originalResult)
-      }
-
-      return handleResult(resolver(info))
-    }
-
     super({
       info: {
         header,
@@ -272,7 +209,7 @@ export class GraphQLHandler extends RequestHandler<
           operationType,
         ),
       },
-      resolver: wrappedResolver,
+      resolver,
       options,
     })
 
@@ -374,6 +311,50 @@ Consider naming this operation or using "graphql.operation()" request handler to
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
+  }
+
+  public async run(args: {
+    request: StrictRequest<any>
+    requestId: string
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<RequestHandlerExecutionResult<GraphQLRequestParsedResult> | null> {
+    const result = await super.run(args)
+
+    if (result?.response == null) {
+      return result
+    }
+
+    const acceptedMimeTypes = getAllAcceptedMimeTypes(
+      args.request.headers.get('accept'),
+    )
+
+    if (acceptedMimeTypes.length === 0) {
+      return result
+    }
+
+    const graphqlResponseIndex = acceptedMimeTypes.indexOf(
+      'application/graphql-response+json',
+    )
+    const jsonIndex = acceptedMimeTypes.indexOf('application/json')
+
+    /**
+     * Use the "application/graphql-response+json" response content type
+     * only when the client accepts it AND prefers it over "application/json"
+     * (i.e. it appears earlier in the precedence-sorted list, or "application/json"
+     * is not listed at all).
+     * @see https://github.com/graphql/graphql-over-http/blob/4d1df1fb829ec2dd3ecbf3c6aa4025bd356c270d/spec/GraphQLOverHTTP.md#accept
+     */
+    if (
+      graphqlResponseIndex !== -1 &&
+      (jsonIndex === -1 || graphqlResponseIndex <= jsonIndex)
+    ) {
+      result.response.headers.set(
+        'content-type',
+        'application/graphql-response+json',
+      )
+    }
+
+    return result
   }
 
   private async matchOperationName(args: {

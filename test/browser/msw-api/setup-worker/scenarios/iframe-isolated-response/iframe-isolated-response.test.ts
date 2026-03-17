@@ -33,8 +33,33 @@ test('responds with different responses for the same request based on request re
     },
   )
 
-  const frameOne = getFrameById('frame-one', page)!
-  const frameTwo = getFrameById('frame-two', page)!
+  // Add iframes dynamically after `window.msw` is set on the parent
+  // to prevent the iframe scripts from racing with the mocks setup.
+  await page.evaluate(() => {
+    for (const [id, src] of [
+      ['frame-one', './one.html'],
+      ['frame-two', './two.html'],
+    ]) {
+      const iframe = document.createElement('iframe')
+      iframe.id = id
+      iframe.name = id
+      iframe.src = src
+      document.body.appendChild(iframe)
+    }
+  })
+
+  // Wait for child frames to be attached and navigated.
+  await page.waitForFunction(() => {
+    return document.querySelectorAll('iframe').length === 2
+  })
+  const frameOne = getFrameById('frame-one', page)
+  const frameTwo = getFrameById('frame-two', page)
+
+  // Wait for the iframe scripts to load and define `window.request`.
+  await Promise.all([
+    frameOne.waitForFunction(() => typeof window.request === 'function'),
+    frameTwo.waitForFunction(() => typeof window.request === 'function'),
+  ])
 
   await frameOne.waitForFunction(() => window.request != null)
   await frameTwo.waitForFunction(() => window.request != null)

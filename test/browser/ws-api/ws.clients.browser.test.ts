@@ -160,21 +160,36 @@ test('broadcasts messages across runtimes', async ({
   await pageOne.evaluate(() => {
     window.ws.send('hi from one')
   })
-  expect(await pageOne.evaluate(() => window.messages)).toEqual(['hi from one'])
-  expect(await pageTwo.evaluate(() => window.messages)).toEqual(['hi from one'])
+
+  {
+    await pageOne.waitForFunction(() => window.messages.length === 1)
+    await expect(pageOne.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+    ])
+
+    await pageTwo.waitForFunction(() => window.messages.length === 1)
+    await expect(pageTwo.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+    ])
+  }
 
   await pageTwo.evaluate(() => {
     window.ws.send('hi from two')
   })
 
-  expect(await pageTwo.evaluate(() => window.messages)).toEqual([
-    'hi from one',
-    'hi from two',
-  ])
-  expect(await pageOne.evaluate(() => window.messages)).toEqual([
-    'hi from one',
-    'hi from two',
-  ])
+  {
+    await pageTwo.waitForFunction(() => window.messages.length === 2)
+    await expect(pageTwo.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+      'hi from two',
+    ])
+
+    await pageOne.waitForFunction(() => window.messages.length === 2)
+    await expect(pageOne.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+      'hi from two',
+    ])
+  }
 })
 
 test('clears the list of clients when the worker is stopped', async ({
@@ -194,7 +209,7 @@ test('clears the list of clients when the worker is stopped', async ({
     await worker.start()
   })
 
-  expect(await page.evaluate(() => window.link.clients.size)).toBe(0)
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
 
   await page.evaluate(async () => {
     const ws = new WebSocket('wss://example.com')

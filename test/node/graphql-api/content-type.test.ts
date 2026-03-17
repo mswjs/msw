@@ -176,3 +176,44 @@ it('responds with the "application/graphql-response+json" in generator responses
   expect.soft(result.data).toEqual({ forecast: { degrees: 25 } })
   expect.soft(result.errors).toBeUndefined()
 })
+
+it('ignores request "Accept" preferences if an explicit "content-type" is set on the mocked response', async () => {
+  server.use(
+    graphql.query('GetUser', () => {
+      return HttpResponse.json(
+        {
+          data: { user: { name: 'John Maverick' } },
+        },
+        {
+          headers: {
+            // Simulating an old server that doesn't support the modern mime type.
+            'content-type': 'application/json',
+          },
+        },
+      )
+    }),
+  )
+
+  const client = createGraphQLClient({
+    uri: 'http://any.host.here/irrelevant',
+  })
+
+  const result = await client({
+    query: `
+      query GetUser {
+        user {
+          name
+        }
+      }
+    `,
+    headers: {
+      accept: 'application/graphql-response+json',
+    },
+  })
+
+  expect
+    .soft(result.response.headers.get('content-type'))
+    .toBe('application/json')
+  expect.soft(result.data).toEqual({ user: { name: 'John Maverick' } })
+  expect.soft(result.errors).toBeUndefined()
+})

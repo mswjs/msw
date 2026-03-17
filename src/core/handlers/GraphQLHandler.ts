@@ -29,7 +29,7 @@ import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { ResponseResolutionContext } from 'src/iife'
-import { StrictRequest } from '../HttpResponse'
+import { kDefaultContentType, StrictRequest } from '../HttpResponse'
 import { getAllAcceptedMimeTypes } from '../utils/request/getAllAcceptedMimeTypes'
 
 export interface DocumentTypeDecoration<
@@ -321,6 +321,10 @@ Consider naming this operation or using "graphql.operation()" request handler to
     const result = await super.run(args)
 
     if (result?.response == null) {
+      return result
+    }
+
+    if (!(kDefaultContentType in result.response)) {
       return result
     }
 

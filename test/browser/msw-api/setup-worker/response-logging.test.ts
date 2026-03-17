@@ -12,7 +12,7 @@ test('prints the response info to the console', async ({
   fetch,
   waitFor,
 }) => {
-  await loadExample(require.resolve('../../rest-api/basic.mocks.ts'))
+  await loadExample(new URL('../../rest-api/basic.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const waitForResponseLog = async (exp: RegExp) => {

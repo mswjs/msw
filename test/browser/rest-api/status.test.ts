@@ -1,6 +1,6 @@
 import { test, expect } from '../playwright.extend'
 
-const EXAMPLE_PATH = require.resolve('./status.mocks.ts')
+const EXAMPLE_PATH = new URL('./status.mocks.ts', import.meta.url)
 
 test('sets given status code on the mocked response', async ({
   loadExample,

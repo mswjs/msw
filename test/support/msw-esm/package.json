@@ -1,0 +1,157 @@
+{
+  "type": "module",
+  "exports": {
+    ".": {
+      "module-sync": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
+      },
+      "module": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
+      },
+      "react-native": {
+        "import": {
+          "types": "./lib/core/index.d.mts",
+          "default": "./lib/core/index.mjs"
+        },
+        "default": {
+          "types": "./lib/core/index.d.ts",
+          "default": "./lib/core/index.js"
+        }
+      },
+      "import": {
+        "types": "./lib/core/index.d.mts",
+        "default": "./lib/core/index.mjs"
+      },
+      "default": {
+        "types": "./lib/core/index.d.ts",
+        "default": "./lib/core/index.js"
+      }
+    },
+    "./browser": {
+      "module-sync": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "module": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "browser": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "import": {
+        "types": "./lib/browser/index.d.mts",
+        "default": "./lib/browser/index.mjs"
+      },
+      "node": null,
+      "react-native": null,
+      "default": {
+        "types": "./lib/browser/index.d.ts",
+        "default": "./lib/browser/index.js"
+      }
+    },
+    "./node": {
+      "module-sync": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
+      },
+      "module": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
+      },
+      "node": {
+        "require": "./lib/node/index.js",
+        "import": "./lib/node/index.mjs"
+      },
+      "import": {
+        "types": "./lib/node/index.d.mts",
+        "default": "./lib/node/index.mjs"
+      },
+      "browser": null,
+      "react-native": null,
+      "default": {
+        "types": "./lib/node/index.d.ts",
+        "default": "./lib/node/index.js"
+      }
+    },
+    "./native": {
+      "react-native": {
+        "import": {
+          "types": "./lib/native/index.d.mts",
+          "default": "./lib/native/index.mjs"
+        },
+        "default": {
+          "types": "./lib/native/index.d.ts",
+          "default": "./lib/native/index.js"
+        }
+      },
+      "browser": null,
+      "import": {
+        "types": "./lib/native/index.d.mts",
+        "default": "./lib/native/index.mjs"
+      },
+      "default": {
+        "types": "./lib/native/index.d.ts",
+        "default": "./lib/native/index.js"
+      }
+    },
+    "./core/http": {
+      "module-sync": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "module": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "import": {
+        "types": "./lib/core/http.d.mts",
+        "default": "./lib/core/http.mjs"
+      },
+      "default": {
+        "types": "./lib/core/http.d.ts",
+        "default": "./lib/core/http.js"
+      }
+    },
+    "./core/graphql": {
+      "module-sync": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "module": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "import": {
+        "types": "./lib/core/graphql.d.mts",
+        "default": "./lib/core/graphql.mjs"
+      },
+      "default": {
+        "types": "./lib/core/graphql.d.ts",
+        "default": "./lib/core/graphql.js"
+      }
+    },
+    "./core/ws": {
+      "module-sync": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "module": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "import": {
+        "types": "./lib/core/ws.d.mts",
+        "default": "./lib/core/ws.mjs"
+      },
+      "default": {
+        "types": "./lib/core/ws.d.ts",
+        "default": "./lib/core/ws.js"
+      }
+    },
+    "./package.json": "./package.json"
+  }
+}

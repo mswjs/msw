@@ -1,7 +1,6 @@
-import { PlaywrightTestConfig, devices } from '@playwright/test'
+import { type PlaywrightTestConfig, devices } from '@playwright/test'
 
-const config: PlaywrightTestConfig = {
-  testDir: __dirname,
+export default {
   projects: [
     {
       name: 'chromium',
@@ -9,7 +8,8 @@ const config: PlaywrightTestConfig = {
     },
   ],
   timeout: 10_000,
-  retries: 1,
+  retries: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : undefined,
   use: {
     trace: 'on-first-retry',
     launchOptions: {
@@ -26,6 +26,4 @@ const config: PlaywrightTestConfig = {
   // and there's no shared state leaking from the shared compilation
   // server or the preview server.
   fullyParallel: true,
-}
-
-export default config
+} satisfies PlaywrightTestConfig

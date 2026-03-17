@@ -20,7 +20,7 @@ test('handles a stream response without throwing a timeout error', async ({
   })
 
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./handle-stream.mocks.ts'))
+  await loadExample(new URL('./handle-stream.mocks.ts', import.meta.url))
 
   const getStreamResponse = () => {
     return page.evaluate(

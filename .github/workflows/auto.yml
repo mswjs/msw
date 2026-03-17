@@ -1,5 +1,7 @@
 name: auto
+
 on: [push]
+
 jobs:
   cancel-previous-workflows:
     runs-on: macos-latest

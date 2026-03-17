@@ -13,6 +13,10 @@ it('creates a plain response', async () => {
   expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
+it('supports non-configurable status codes', () => {
+  expect(new HttpResponse(null, { status: 101 })).toHaveProperty('status', 101)
+})
+
 describe('HttpResponse.text()', () => {
   it('creates a text response', async () => {
     const response = HttpResponse.text('hello world', { status: 201 })
@@ -223,18 +227,119 @@ describe('HttpResponse.xml()', () => {
   })
 })
 
-it('creates an array buffer response', async () => {
-  const buffer = new TextEncoder().encode('hello world')
-  const response = HttpResponse.arrayBuffer(buffer)
+describe('HttpResponse.html()', () => {
+  it('creates an html response', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>')
 
-  expect(response.status).toBe(200)
-  expect(response.statusText).toBe('OK')
-  expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html',
+    })
+  })
 
-  const responseData = await response.arrayBuffer()
-  expect(responseData).toEqual(buffer.buffer)
-  expect(Object.fromEntries(response.headers.entries())).toEqual({
-    'content-length': '11',
+  it('allows overriding the "Content-Type" response header', async () => {
+    const response = HttpResponse.html('<p class="author">Jane Doe</p>', {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-type': 'text/html; charset=utf-8',
+    })
+  })
+})
+
+describe('HttpResponse.arrayBuffer()', () => {
+  it('creates an array buffer response', async () => {
+    const buffer = new TextEncoder().encode('hello world')
+    const response = HttpResponse.arrayBuffer(buffer)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+
+    const responseData = await response.arrayBuffer()
+    expect(responseData).toEqual(buffer.buffer)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
+      'content-type': 'application/octet-stream',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header', async () => {
+    const buffer = new TextEncoder().encode('hello world')
+    const response = HttpResponse.arrayBuffer(buffer, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+
+    const responseData = await response.arrayBuffer()
+    expect(responseData).toEqual(buffer.buffer)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
+      'content-type': 'text/plain; charset=utf-8',
+    })
+  })
+
+  it('creates an array buffer response from a shared array buffer', async () => {
+    const arrayBuffer = new TextEncoder().encode('hello world')
+
+    // Copy the data from the array buffer to a shared array buffer
+    const sharedBuffer = new SharedArrayBuffer(11)
+    const sharedView = new Uint8Array(sharedBuffer)
+    sharedView.set(arrayBuffer)
+
+    const response = HttpResponse.arrayBuffer(sharedBuffer)
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+
+    const responseData = await response.arrayBuffer()
+    expect(responseData).toEqual(arrayBuffer.buffer)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
+      'content-type': 'application/octet-stream',
+    })
+  })
+
+  it('allows overriding the "Content-Type" response header for shared array buffers', async () => {
+    const arrayBuffer = new TextEncoder().encode('hello world')
+
+    // Copy the data from the array buffer to a shared array buffer
+    const sharedBuffer = new SharedArrayBuffer(11)
+    const sharedView = new Uint8Array(sharedBuffer)
+    sharedView.set(arrayBuffer)
+
+    const response = HttpResponse.arrayBuffer(sharedBuffer, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.statusText).toBe('OK')
+    expect(response.body).toBeInstanceOf(ReadableStream)
+
+    const responseData = await response.arrayBuffer()
+    expect(responseData).toEqual(arrayBuffer.buffer)
+    expect(Object.fromEntries(response.headers.entries())).toEqual({
+      'content-length': '11',
+      'content-type': 'text/plain; charset=utf-8',
+    })
   })
 })
 

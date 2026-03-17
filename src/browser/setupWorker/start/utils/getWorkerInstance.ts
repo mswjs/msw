@@ -1,4 +1,4 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 import { devUtils } from '~/core/utils/internal/devUtils'
 import { getAbsoluteWorkerUrl } from '../../../utils/getAbsoluteWorkerUrl'
 import { getWorkerByRegistration } from './getWorkerByRegistration'
@@ -36,35 +36,38 @@ export const getWorkerInstance = async (
   const [existingRegistration] = mockRegistrations
 
   if (existingRegistration) {
-    // When the Service Worker is registered, update it and return the reference.
-    return existingRegistration.update().then(() => {
-      return [
-        getWorkerByRegistration(
-          existingRegistration,
-          absoluteWorkerUrl,
-          findWorker,
-        ),
+    // Schedule the worker update in the background.
+    // Update ensures the existing worker is up-to-date.
+    existingRegistration.update()
+
+    // Return the worker reference immediately.
+    return [
+      getWorkerByRegistration(
         existingRegistration,
-      ]
-    })
+        absoluteWorkerUrl,
+        findWorker,
+      ),
+      existingRegistration,
+    ]
   }
 
   // When the Service Worker wasn't found, register it anew and return the reference.
-  const registrationResult = await until<Error, ServiceWorkerInstanceTuple>(
-    async () => {
-      const registration = await navigator.serviceWorker.register(url, options)
-      return [
-        // Compare existing worker registration by its worker URL,
-        // to prevent irrelevant workers to resolve here (such as Codesandbox worker).
-        getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker),
-        registration,
-      ]
-    },
-  )
+  const [registrationError, registrationResult] = await until<
+    Error,
+    ServiceWorkerInstanceTuple
+  >(async () => {
+    const registration = await navigator.serviceWorker.register(url, options)
+    return [
+      // Compare existing worker registration by its worker URL,
+      // to prevent irrelevant workers to resolve here (such as Codesandbox worker).
+      getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker),
+      registration,
+    ]
+  })
 
   // Handle Service Worker registration errors.
-  if (registrationResult.error) {
-    const isWorkerMissing = registrationResult.error.message.includes('(404)')
+  if (registrationError) {
+    const isWorkerMissing = registrationError.message.includes('(404)')
 
     // Produce a custom error message when given a non-existing Service Worker url.
     // Suggest developers to check their setup.
@@ -85,10 +88,10 @@ Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/i
     throw new Error(
       devUtils.formatMessage(
         'Failed to register the Service Worker:\n\n%s',
-        registrationResult.error.message,
+        registrationError.message,
       ),
     )
   }
 
-  return registrationResult.data
+  return registrationResult
 }

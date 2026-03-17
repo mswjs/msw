@@ -8,7 +8,7 @@ test('propagates the exception originating from a handled request', async ({
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./internal-error.mocks.ts'))
+  await loadExample(new URL('./internal-error.mocks.ts', import.meta.url))
 
   const endpointUrl = makeUrl('/user')
   const res = await fetch(endpointUrl)

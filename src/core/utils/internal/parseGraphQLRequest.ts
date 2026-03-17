@@ -3,7 +3,6 @@ import type {
   OperationDefinitionNode,
   OperationTypeNode,
 } from 'graphql'
-import { parse } from 'graphql'
 import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
 import { toPublicUrl } from '../request/toPublicUrl'
 import { devUtils } from './devUtils'
@@ -40,7 +39,16 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
   }
 }
 
-function parseQuery(query: string): ParsedGraphQLQuery | Error {
+async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
+  /**
+   * @note Use `require` to get the "graphql" module here.
+   * It has to be scoped to this function because this module leaks to the
+   * root export. It has to be `require` because tools like Jest have trouble
+   * handling dynamic imports. It gets replaced with a dynamic import on build time.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { parse } = require('graphql')
+
   try {
     const ast = parse(query)
     return parseDocumentNode(ast)
@@ -76,7 +84,7 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
 
       for (const path of paths) {
         if (!(path in target)) {
-          throw new Error(`Property '${paths}' is not in operations.`)
+          throw new Error(`Property '${path}' is not in operations.`)
         }
 
         target = target[path]
@@ -160,6 +168,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
           variables,
         }
       }
+      return null
     }
 
     default:
@@ -181,7 +190,7 @@ export async function parseGraphQLRequest(
   }
 
   const { query, variables } = input
-  const parsedResult = parseQuery(query)
+  const parsedResult = await parseQuery(query)
 
   if (parsedResult instanceof Error) {
     const requestPublicUrl = toPublicUrl(request.url)

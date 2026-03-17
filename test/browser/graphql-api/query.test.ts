@@ -1,8 +1,8 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
-const EXAMPLE_PATH = require.resolve('./query.mocks.ts')
+const EXAMPLE_PATH = new URL('./query.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.use('*', (_, res) => res.status(405).end())

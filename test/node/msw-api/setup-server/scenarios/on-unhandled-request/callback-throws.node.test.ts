@@ -27,20 +27,14 @@ afterAll(() => {
   server.close()
 })
 
-test('prevents a request when a custom callback throws an exception', async () => {
-  const makeRequest = () => {
-    return fetch('https://example.com')
-      .then(() => {
-        throw new Error('Must not resolve')
-      })
-      .catch<Error>((error) => error)
-  }
+test('handles exceptions in "onUnhandledRequest" callback as 500 responses', async () => {
+  const response = await fetch('https://example.com')
 
-  const requestError = await makeRequest()
-
-  // Request should be cancelled with a fetch error, since the callback threw.
-  expect(requestError.message).toBe('Failed to fetch')
-  expect(requestError.cause).toEqual(
-    new Error('Custom error for GET https://example.com/'),
-  )
+  expect(response.status).toBe(500)
+  expect(response.statusText).toBe('Unhandled Exception')
+  expect(await response.json()).toEqual({
+    name: 'Error',
+    message: 'Custom error for GET https://example.com/',
+    stack: expect.any(String),
+  })
 })

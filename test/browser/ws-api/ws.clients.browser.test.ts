@@ -1,0 +1,274 @@
+import type { WebSocketLink, ws } from 'msw'
+import type { SetupWorker, setupWorker } from 'msw/browser'
+import { test, expect } from '../playwright.extend'
+
+declare global {
+  interface Window {
+    msw: {
+      ws: typeof ws
+      setupWorker: typeof setupWorker
+    }
+    worker: SetupWorker
+    link: WebSocketLink
+    ws: WebSocket
+    messages: string[]
+  }
+}
+
+test('returns the number of active clients in the same runtime', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com')
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
+    window.link = api
+    await worker.start()
+  })
+
+  // Must return 0 when no clients are present.
+  expect(
+    await page.evaluate(() => {
+      return window.link.clients.size
+    }),
+  ).toBe(0)
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return 1 after a single client joined.
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return 2 now that another client has joined.
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
+})
+
+test('returns the number of active clients across different runtimes', async ({
+  loadExample,
+  context,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./ws.runtime.js', import.meta.url),
+    {
+      skipActivation: true,
+    },
+  )
+
+  const pageOne = await context.newPage()
+  const pageTwo = await context.newPage()
+
+  for (const page of [pageOne, pageTwo]) {
+    await page.goto(compilation.previewUrl)
+    await page.evaluate(async () => {
+      const { setupWorker, ws } = window.msw
+      const api = ws.link('wss://example.com')
+      const worker = setupWorker(api.addEventListener('connection', () => {}))
+      window.link = api
+      await worker.start()
+    })
+  }
+
+  await pageOne.bringToFront()
+  await pageOne.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  await expect(
+    pageOne.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+  await expect(
+    pageTwo.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+
+  await pageTwo.bringToFront()
+  await pageTwo.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  await expect(
+    pageTwo.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
+  await expect(
+    pageOne.waitForFunction(() => window.link.clients.size === 2),
+  ).resolves.toBeTruthy()
+})
+
+test('broadcasts messages across runtimes', async ({
+  loadExample,
+  context,
+  page,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./ws.runtime.js', import.meta.url),
+    {
+      skipActivation: true,
+    },
+  )
+
+  const pageOne = await context.newPage()
+  const pageTwo = await context.newPage()
+
+  for (const page of [pageOne, pageTwo]) {
+    await page.goto(compilation.previewUrl)
+    await page.evaluate(async () => {
+      const { setupWorker, ws } = window.msw
+      const api = ws.link('wss://example.com')
+
+      // @ts-expect-error
+      window.api = api
+
+      const worker = setupWorker(
+        api.addEventListener('connection', ({ client }) => {
+          client.addEventListener('message', (event) => {
+            api.broadcast(event.data)
+          })
+        }),
+      )
+      await worker.start()
+
+      window.worker = worker
+    })
+
+    await page.evaluate(() => {
+      window.messages = []
+      const ws = new WebSocket('wss://example.com')
+      window.ws = ws
+      ws.onmessage = (event) => {
+        window.messages.push(event.data)
+      }
+    })
+  }
+
+  await pageOne.evaluate(() => {
+    window.ws.send('hi from one')
+  })
+
+  {
+    await pageOne.waitForFunction(() => window.messages.length === 1)
+    await expect(pageOne.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+    ])
+
+    await pageTwo.waitForFunction(() => window.messages.length === 1)
+    await expect(pageTwo.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+    ])
+  }
+
+  await pageTwo.evaluate(() => {
+    window.ws.send('hi from two')
+  })
+
+  {
+    await pageTwo.waitForFunction(() => window.messages.length === 2)
+    await expect(pageTwo.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+      'hi from two',
+    ])
+
+    await pageOne.waitForFunction(() => window.messages.length === 2)
+    await expect(pageOne.evaluate(() => window.messages)).resolves.toEqual([
+      'hi from one',
+      'hi from two',
+    ])
+  }
+})
+
+test('clears the list of clients when the worker is stopped', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const api = ws.link('wss://example.com')
+    const worker = setupWorker(api.addEventListener('connection', () => {}))
+    window.link = api
+    window.worker = worker
+    await worker.start()
+  })
+
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return the number of joined clients.
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+
+  await page.evaluate(() => {
+    window.worker.stop()
+  })
+
+  // Must purge the local storage on reload.
+  // The worker has been started as a part of the test, not runtime,
+  // so it will start with empty clients.
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+})
+
+test('clears the list of clients when the page is reloaded', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
+    skipActivation: true,
+  })
+
+  const enableMocking = async () => {
+    await page.evaluate(async () => {
+      const { setupWorker, ws } = window.msw
+      const api = ws.link('wss://example.com')
+      const worker = setupWorker(api.addEventListener('connection', () => {}))
+      window.link = api
+      window.worker = worker
+      await worker.start()
+    })
+  }
+
+  await enableMocking()
+
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+
+  await page.evaluate(async () => {
+    const ws = new WebSocket('wss://example.com')
+    await new Promise((done) => (ws.onopen = done))
+  })
+
+  // Must return the number of joined clients.
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 1),
+  ).resolves.toBeTruthy()
+
+  await page.reload()
+  await enableMocking()
+
+  // Must purge the local storage on reload.
+  // The worker has been started as a part of the test, not runtime,
+  // so it will start with empty clients.
+  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+})

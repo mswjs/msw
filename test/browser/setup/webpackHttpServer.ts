@@ -1,12 +1,9 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import fs from 'node:fs'
 import { WebpackHttpServer } from 'webpack-http-server'
-import { getWorkerScriptPatch } from './workerConsole'
-
-const { SERVICE_WORKER_BUILD_PATH } = require('../../../config/constants.js')
+// @ts-expect-error Importing a JavaScript module.
+import { SERVICE_WORKER_BUILD_PATH } from '../../../config/constants.js'
 
 declare global {
-  // eslint-disable-next-line
   var webpackServerPromise: Promise<WebpackHttpServer> | null
 }
 
@@ -22,9 +19,7 @@ export async function getWebpackServer(): Promise<WebpackHttpServer> {
   return globalThis.webpackServerPromise
 }
 
-export async function startWebpackServer(): Promise<WebpackHttpServer> {
-  const workerScriptPatch = getWorkerScriptPatch()
-
+async function startWebpackServer(): Promise<WebpackHttpServer> {
   const server = new WebpackHttpServer({
     before(app) {
       // Prevent Express from responding with cached 304 responses.
@@ -37,7 +32,7 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
         const readable = fs.createReadStream(SERVICE_WORKER_BUILD_PATH)
         // Apply the worker script patch to forward console messages
         // from the worker to all its clients.
-        readable.push(workerScriptPatch, 'utf8')
+        // readable.push(workerScriptPatch, 'utf8')
         readable.pipe(res)
       })
     },
@@ -51,7 +46,9 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
                 loader: 'esbuild-loader',
                 options: {
                   loader: 'ts',
-                  tsconfigRaw: require('../../tsconfig.json'),
+                  tsconfigRaw: fs.readFileSync(
+                    new URL('../../tsconfig.json', import.meta.url),
+                  ),
                 },
               },
             ],
@@ -60,9 +57,13 @@ export async function startWebpackServer(): Promise<WebpackHttpServer> {
       },
       resolve: {
         alias: {
-          msw: path.resolve(__dirname, '../../..'),
+          'msw/browser': new URL(
+            '../../../lib/browser/index.mjs',
+            import.meta.url,
+          ).pathname,
+          msw: new URL('../../../lib/core/index.mjs', import.meta.url).pathname,
         },
-        extensions: ['.ts', '.js', '.mjs'],
+        extensions: ['.ts', '.js', '.mjs', '.cjs'],
       },
     },
   })

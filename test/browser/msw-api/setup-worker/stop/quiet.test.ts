@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-const QUIET_EXAMPLE = require.resolve('./quiet.mocks.ts')
+const QUIET_EXAMPLE = new URL('./quiet.mocks.ts', import.meta.url)
 
 test('prints out the console stop message', async ({
   loadExample,

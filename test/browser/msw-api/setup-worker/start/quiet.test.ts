@@ -14,7 +14,7 @@ test('does not log the intercepted request when the "quiet" option is set to "tr
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./quiet.mocks.ts'), {
+  await loadExample(new URL('./quiet.mocks.ts', import.meta.url), {
     // Using the "quiet" option to suppress the activation message.
     skipActivation: true,
   })

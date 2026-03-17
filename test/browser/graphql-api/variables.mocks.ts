@@ -68,7 +68,6 @@ const worker = setupWorker(
     'GetActiveUser',
     ({ variables }) => {
       // Intentionally unused variable
-      // eslint-disable-next-line
       const { userId } = variables
 
       return HttpResponse.json({

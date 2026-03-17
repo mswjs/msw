@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { bypass, graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
@@ -83,7 +81,6 @@ afterAll(async () => {
 test('patches a GraphQL response', async () => {
   const client = createGraphQLClient({
     uri: httpServer.http.url('/graphql'),
-    fetch,
   })
 
   const res = await client<{
@@ -112,7 +109,7 @@ test('patches a GraphQL response', async () => {
     firstName: 'Christian',
     lastName: 'Maverick',
   })
-  expect(res.data?.requestHeaders).toHaveProperty('x-msw-intention', 'bypass')
+  expect(res.data?.requestHeaders).toHaveProperty('accept', '*/*')
   expect(res.data?.requestHeaders).not.toHaveProperty('_headers')
   expect(res.data?.requestHeaders).not.toHaveProperty('_names')
 })

@@ -9,7 +9,7 @@ import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(
   http.get('*/user', () => {
-    return HttpResponse.text('response-body')
+    return HttpResponse.text('response-body', { status: 400 })
   }),
   http.post('*/no-response', () => {
     return
@@ -52,7 +52,7 @@ worker.events.on(
   async ({ response, request, requestId }) => {
     const body = await response.clone().text()
     console.warn(
-      `[response:mocked] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
+      `[response:mocked] ${response.status} ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
     )
   },
 )
@@ -62,7 +62,7 @@ worker.events.on(
   async ({ response, request, requestId }) => {
     const body = await response.clone().text()
     console.warn(
-      `[response:bypass] ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
+      `[response:bypass] ${response.status} ${response.url} ${body} ${request.method} ${request.url} ${requestId}`,
     )
   },
 )

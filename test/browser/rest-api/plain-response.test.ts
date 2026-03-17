@@ -5,7 +5,7 @@ test('returns a plain Response as a mocked response', async ({
   fetch,
   spyOnConsole,
 }) => {
-  await loadExample(require.resolve('./plain-response.mocks.ts'))
+  await loadExample(new URL('./plain-response.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const response = await fetch('/greeting')

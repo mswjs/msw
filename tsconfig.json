@@ -8,6 +8,9 @@
     {
       "path": "./src/tsconfig.node.json"
     },
+    {
+      "path": "./src/tsconfig.worker.json"
+    },
 
     // Tests.
     {

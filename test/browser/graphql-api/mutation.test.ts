@@ -1,8 +1,8 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
-const MUTATION_EXAMPLE = require.resolve('./mutation.mocks.ts')
+const MUTATION_EXAMPLE = new URL('./mutation.mocks.ts', import.meta.url)
 
 const server = new HttpServer((app) => {
   app.use('*', (req, res) => res.status(405).end())

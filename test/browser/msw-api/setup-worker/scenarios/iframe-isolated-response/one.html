@@ -1,0 +1,34 @@
+<script>
+  const { worker, http } = window.parent.msw
+
+  function isolatedResolver(resolver) {
+    return (info) => {
+      if (info.request.referrer !== location.href) {
+        return
+      }
+      return resolver(info)
+    }
+  }
+
+  worker.use(
+    http.get(
+      './resource',
+      isolatedResolver(({ request }) => {
+        return new Response('one')
+      }),
+    ),
+  )
+
+  window.request = () => {
+    return fetch('./resource')
+      .then((response) => response.text())
+      .then((data) => {
+        const node = document.createElement('p')
+        node.innerText = data
+        document.body.appendChild(node)
+      })
+      .catch((error) => console.error(error))
+  }
+
+  document.addEventListener('click', window.request)
+</script>

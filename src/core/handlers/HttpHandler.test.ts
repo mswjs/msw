@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { createRequestId } from '@mswjs/interceptors'
 import { HttpHandler, HttpRequestResolverExtras } from './HttpHandler'
 import { HttpResponse } from '..'
@@ -13,7 +11,7 @@ const resolver: ResponseResolver<
 }
 
 describe('info', () => {
-  test('exposes request handler information', () => {
+  it('exposes request handler information', () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
 
     expect(handler.info.header).toEqual('GET /user/:userId')
@@ -24,7 +22,7 @@ describe('info', () => {
 })
 
 describe('parse', () => {
-  test('parses a URL given a matching request', async () => {
+  it('parses a URL given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
@@ -39,7 +37,7 @@ describe('parse', () => {
     })
   })
 
-  test('parses a URL and ignores the request method', async () => {
+  it('parses a URL and ignores the request method', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/def-456', location.href), {
       method: 'POST',
@@ -56,7 +54,7 @@ describe('parse', () => {
     })
   })
 
-  test('returns negative match result given a non-matching request', async () => {
+  it('returns negative match result given a non-matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/login', location.href))
 
@@ -71,21 +69,21 @@ describe('parse', () => {
 })
 
 describe('predicate', () => {
-  test('returns true given a matching request', async () => {
+  it('returns true given a matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/login', location.href), {
       method: 'POST',
     })
 
-    expect(
+    await expect(
       handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
-    ).toBe(true)
+    ).resolves.toBe(true)
   })
 
-  test('respects RegExp as the request method', async () => {
+  it('supports RegExp as the request method', async () => {
     const handler = new HttpHandler(/.+/, '/login', resolver)
     const requests = [
       new Request(new URL('/login', location.href)),
@@ -94,30 +92,60 @@ describe('predicate', () => {
     ]
 
     for (const request of requests) {
-      expect(
+      await expect(
         handler.predicate({
           request,
           parsedResult: await handler.parse({ request }),
         }),
-      ).toBe(true)
+      ).resolves.toBe(true)
     }
   })
 
-  test('returns false given a non-matching request', async () => {
+  it('returns false given a non-matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
-    expect(
+    await expect(
       handler.predicate({
         request,
         parsedResult: await handler.parse({ request }),
       }),
-    ).toBe(false)
+    ).resolves.toBe(false)
+  })
+
+  it('supports custom predicate function', async () => {
+    const handler = new HttpHandler(
+      'GET',
+      ({ request }) => {
+        return new URL(request.url).searchParams.get('a') === '1'
+      },
+      resolver,
+    )
+
+    {
+      const request = new Request(new URL('/login?a=1', location.href))
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(true)
+    }
+
+    {
+      const request = new Request(new URL('/login', location.href))
+      await expect(
+        handler.predicate({
+          request,
+          parsedResult: await handler.parse({ request }),
+        }),
+      ).resolves.toBe(false)
+    }
   })
 })
 
 describe('test', () => {
-  test('returns true given a matching request', async () => {
+  it('returns true given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test({
       request: new Request(new URL('/user/abc-123', location.href)),
@@ -130,7 +158,7 @@ describe('test', () => {
     expect(secondTest).toBe(true)
   })
 
-  test('returns false given a non-matching request', async () => {
+  it('returns false given a non-matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test({
       request: new Request(new URL('/login', location.href)),
@@ -149,7 +177,7 @@ describe('test', () => {
 })
 
 describe('run', () => {
-  test('returns a mocked response given a matching request', async () => {
+  it('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
     const requestId = createRequestId()
@@ -169,10 +197,12 @@ describe('run', () => {
     expect(result!.request.url).toBe('http://localhost/user/abc-123')
     expect(result!.response?.status).toBe(200)
     expect(result!.response?.statusText).toBe('OK')
-    expect(await result?.response?.json()).toEqual({ userId: 'abc-123' })
+    await expect(result?.response?.json()).resolves.toEqual({
+      userId: 'abc-123',
+    })
   })
 
-  test('returns null given a non-matching request', async () => {
+  it('returns null given a non-matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
@@ -182,7 +212,7 @@ describe('run', () => {
     expect(result).toBeNull()
   })
 
-  test('returns an empty "params" object given request with no URL parameters', async () => {
+  it('returns an empty "params" object given request with no URL parameters', async () => {
     const handler = new HttpHandler('GET', '/users', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
@@ -192,7 +222,7 @@ describe('run', () => {
     expect(result?.parsedResult?.match?.params).toEqual({})
   })
 
-  test('exhausts resolver until its generator completes', async () => {
+  it('exhausts resolver until its generator completes', async () => {
     const handler = new HttpHandler('GET', '/users', function* () {
       let count = 0
 
@@ -212,12 +242,12 @@ describe('run', () => {
       return result?.response?.text()
     }
 
-    expect(await run()).toBe('pending')
-    expect(await run()).toBe('pending')
-    expect(await run()).toBe('pending')
-    expect(await run()).toBe('pending')
-    expect(await run()).toBe('pending')
-    expect(await run()).toBe('complete')
-    expect(await run()).toBe('complete')
+    await expect(run()).resolves.toBe('pending')
+    await expect(run()).resolves.toBe('pending')
+    await expect(run()).resolves.toBe('pending')
+    await expect(run()).resolves.toBe('pending')
+    await expect(run()).resolves.toBe('pending')
+    await expect(run()).resolves.toBe('complete')
+    await expect(run()).resolves.toBe('complete')
   })
 })

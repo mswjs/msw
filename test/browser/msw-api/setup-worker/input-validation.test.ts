@@ -5,7 +5,7 @@ test('throws an error given an Array of request handlers to "setupWorker"', asyn
   page,
   waitFor,
 }) => {
-  await loadExample(require.resolve('./input-validation.mocks.ts'), {
+  await loadExample(new URL('./input-validation.mocks.ts', import.meta.url), {
     skipActivation: true,
   })
 

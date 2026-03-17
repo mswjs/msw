@@ -7,6 +7,7 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
+import { graphqlImportPlugin } from './config/plugins/esbuild/graphQLImportPlugin'
 import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
@@ -19,6 +20,24 @@ const mswCore = /\/core(\/.+)?$/
 
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
+/**
+ * A designated configuration for CJS shims.
+ * This bundles the shims so CJS modules could be used
+ * in the browser.
+ */
+const shimConfig: Options = {
+  name: 'shims',
+  platform: 'neutral',
+  entry: glob.sync('./src/shims/**/*.ts'),
+  format: ['esm', 'cjs'],
+  noExternal: Object.keys(packageJson.dependencies),
+  outDir: './lib/shims',
+  bundle: true,
+  splitting: false,
+  sourcemap: false,
+  dts: true,
+}
+
 const coreConfig: Options = {
   name: 'core',
   platform: 'neutral',
@@ -26,6 +45,7 @@ const coreConfig: Options = {
     ignore: '**/*.test.ts',
   }),
   external: [ecosystemDependencies],
+  noExternal: ['cookie'],
   format: ['esm', 'cjs'],
   outDir: './lib/core',
   bundle: false,
@@ -33,7 +53,7 @@ const coreConfig: Options = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [forceEsmExtensionsPlugin()],
+  esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
 }
 
 const nodeConfig: Options = {
@@ -66,7 +86,7 @@ const browserConfig: Options = {
   noExternal: Object.keys(packageJson.dependencies).filter((packageName) => {
     /**
      * @note Never bundle MSW core so all builds reference the *same*
-     * JavaScript and TypeScript care files. This way types across
+     * JavaScript and TypeScript core files. This way types across
      * export paths remain compatible:
      * import { http } from 'msw' // <- core
      * import { setupWorker } from 'msw/browser' // <- /browser
@@ -94,7 +114,7 @@ const reactNativeConfig: Options = {
   name: 'react-native',
   platform: 'node',
   entry: ['./src/native/index.ts'],
-  external: ['chalk', 'util', 'events', mswCore, ecosystemDependencies],
+  external: ['picocolors', 'util', 'events', mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/native',
   bundle: true,
@@ -130,6 +150,7 @@ const iifeConfig: Options = {
 }
 
 export default defineConfig([
+  shimConfig,
   coreConfig,
   nodeConfig,
   reactNativeConfig,

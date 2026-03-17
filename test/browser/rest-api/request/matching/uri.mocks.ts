@@ -23,6 +23,14 @@ const worker = setupWorker(
   http.get(`/resource\\('id'\\)`, () => {
     return HttpResponse.json({ mocked: true })
   }),
+
+  http.get('./', ({ request }) => {
+    const url = new URL(request.url)
+
+    if (url.searchParams.has('resourceId')) {
+      return HttpResponse.json({ mocked: true })
+    }
+  }),
 )
 
 worker.start()

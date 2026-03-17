@@ -1,4 +1,5 @@
-import * as path from 'path'
+import url from 'node:url'
+import path from 'node:path'
 import { ClientRequest, IncomingMessage } from 'http'
 
 export function sleep(duration: number) {
@@ -8,15 +9,9 @@ export function sleep(duration: number) {
 }
 
 export function fromTemp(...segments: string[]) {
-  return path.join(__dirname, '../..', 'tmp', ...segments)
-}
-
-export function clearCookies(): void {
-  document.cookie.split(';').forEach((cookie) => {
-    document.cookie = cookie
-      .replace(/^ +/, '')
-      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`)
-  })
+  return url.fileURLToPath(
+    new URL(path.join('../..', 'tmp', ...segments), import.meta.url),
+  )
 }
 
 export async function waitForClientRequest(request: ClientRequest): Promise<{
@@ -24,7 +19,15 @@ export async function waitForClientRequest(request: ClientRequest): Promise<{
   responseText: string
 }> {
   return new Promise((resolve, reject) => {
-    request.once('error', reject)
+    request.once('error', (error) => {
+      /**
+       * @note Since Node.js v20, Node.js may throw an AggregateError
+       * that doesn't have the `message` property and thus won't be handled
+       * here correctly. Instead, use the error's `code` as the rejection reason.
+       * The code stays consistent across Node.js versions.
+       */
+      reject('code' in error ? error.code : error)
+    })
     request.once('abort', () => reject(new Error('Request was aborted')))
 
     request.on('response', (response) => {

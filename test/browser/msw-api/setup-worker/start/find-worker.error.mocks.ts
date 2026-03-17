@@ -11,7 +11,6 @@ Object.assign(window, {
   msw: {
     registration: worker
       .start({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         findWorker: (scriptURL, _mockServiceWorkerUrl) => {
           return scriptURL.includes('some-bad-filename-that-does-not-exist.js')
         },

@@ -1,11 +1,15 @@
-import { until } from '@open-draft/until'
+import { until } from 'until-async'
 import { Emitter } from 'strict-event-emitter'
-import { RequestHandler } from '../handlers/RequestHandler'
 import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
 import { RequiredDeep } from '../typeUtils'
-import { HandlersExecutionResult, executeHandlers } from './executeHandlers'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import {
+  type HandlersExecutionResult,
+  type ResponseResolutionContext,
+  executeHandlers,
+} from './executeHandlers'
 import { onUnhandledRequest } from './request/onUnhandledRequest'
-import { readResponseCookies } from './request/readResponseCookies'
+import { storeResponseCookies } from './request/storeResponseCookies'
 
 export interface HandleRequestOptions {
   /**
@@ -13,20 +17,7 @@ export interface HandleRequestOptions {
    * but is exposed to aid in creating extensions like
    * `@mswjs/http-middleware`.
    */
-  resolutionContext?: {
-    /**
-     * A base url to use when resolving relative urls.
-     * @note This is primarily used by the `@mswjs/http-middleware`
-     * to resolve relative urls in the context of the running server
-     */
-    baseUrl?: string
-  }
-
-  /**
-   * Transforms a `MockedResponse` instance returned from a handler
-   * to a response instance supported by the lower tooling (i.e. interceptors).
-   */
-  transformResponse?(response: Response): Response
+  resolutionContext?: ResponseResolutionContext
 
   /**
    * Invoked whenever a request is performed as-is.
@@ -52,15 +43,15 @@ export async function handleRequest(
 ): Promise<Response | undefined> {
   emitter.emit('request:start', { request, requestId })
 
-  // Perform bypassed requests (i.e. wrapped in "bypass()") as-is.
-  if (request.headers.get('x-msw-intention') === 'bypass') {
+  // Perform requests wrapped in "bypass()" as-is.
+  if (request.headers.get('accept')?.includes('msw/passthrough')) {
     emitter.emit('request:end', { request, requestId })
     handleRequestOptions?.onPassthroughResponse?.(request)
     return
   }
 
   // Resolve a mocked response from the list of request handlers.
-  const lookupResult = await until(() => {
+  const [lookupError, lookupResult] = await until(() => {
     return executeHandlers({
       request,
       requestId,
@@ -69,19 +60,19 @@ export async function handleRequest(
     })
   })
 
-  if (lookupResult.error) {
+  if (lookupError) {
     // Allow developers to react to unhandled exceptions in request handlers.
     emitter.emit('unhandledException', {
-      error: lookupResult.error,
+      error: lookupError,
       request,
       requestId,
     })
-    throw lookupResult.error
+    throw lookupError
   }
 
   // If the handler lookup returned nothing, no request handler was found
   // matching this request. Report the request as unhandled.
-  if (!lookupResult.data) {
+  if (!lookupResult) {
     await onUnhandledRequest(request, options.onUnhandledRequest)
     emitter.emit('request:unhandled', { request, requestId })
     emitter.emit('request:end', { request, requestId })
@@ -89,7 +80,7 @@ export async function handleRequest(
     return
   }
 
-  const { response } = lookupResult.data
+  const { response } = lookupResult
 
   // When the handled request returned no mocked response, warn the developer,
   // as it may be an oversight on their part. Perform the request as-is.
@@ -110,24 +101,17 @@ export async function handleRequest(
     return
   }
 
-  // Store all the received response cookies in the virtual cookie store.
-  readResponseCookies(request, response)
+  // Store all the received response cookies in the cookie jar.
+  await storeResponseCookies(request, response)
 
   emitter.emit('request:match', { request, requestId })
 
   const requiredLookupResult =
-    lookupResult.data as RequiredDeep<HandlersExecutionResult>
+    lookupResult as RequiredDeep<HandlersExecutionResult>
 
-  const transformedResponse =
-    handleRequestOptions?.transformResponse?.(response) ||
-    (response as any as Response)
-
-  handleRequestOptions?.onMockedResponse?.(
-    transformedResponse,
-    requiredLookupResult,
-  )
+  handleRequestOptions?.onMockedResponse?.(response, requiredLookupResult)
 
   emitter.emit('request:end', { request, requestId })
 
-  return transformedResponse
+  return response
 }

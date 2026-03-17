@@ -1,12 +1,17 @@
+interface GetTimestampOptions {
+  milliseconds?: boolean
+}
+
 /**
  * Returns a timestamp string in a "HH:MM:SS" format.
  */
-export function getTimestamp(): string {
+export function getTimestamp(options?: GetTimestampOptions): string {
   const now = new Date()
+  const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
 
-  return [now.getHours(), now.getMinutes(), now.getSeconds()]
-    .map(String)
-    .map((chunk) => chunk.slice(0, 2))
-    .map((chunk) => chunk.padStart(2, '0'))
-    .join(':')
+  if (options?.milliseconds) {
+    return `${timestamp}.${now.getMilliseconds().toString().padStart(3, '0')}`
+  }
+
+  return timestamp
 }

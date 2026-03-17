@@ -8,6 +8,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { SetupWorkerInternalContext, StartOptions } from '../glossary'
 import type { RequiredDeep } from '~/core/typeUtils'
 import { handleRequest } from '~/core/utils/handleRequest'
+import { isHandlerKind } from '~/core/utils/internal/isHandlerKind'
 
 export function createFallbackRequestListener(
   context: SetupWorkerInternalContext,
@@ -18,16 +19,19 @@ export function createFallbackRequestListener(
     interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
   })
 
-  interceptor.on('request', async ({ request, requestId }) => {
+  interceptor.on('request', async ({ request, requestId, controller }) => {
     const requestCloneForLogs = request.clone()
 
     const response = await handleRequest(
       request,
       requestId,
-      context.getRequestHandlers(),
+      context.getRequestHandlers().filter(isHandlerKind('RequestHandler')),
       options,
       context.emitter,
       {
+        resolutionContext: {
+          quiet: options.quiet,
+        },
         onMockedResponse(_, { handler, parsedResult }) {
           if (!options.quiet) {
             context.emitter.once('response:mocked', ({ response }) => {
@@ -43,7 +47,7 @@ export function createFallbackRequestListener(
     )
 
     if (response) {
-      request.respondWith(response)
+      controller.respondWith(response)
     }
   })
 

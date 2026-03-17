@@ -1,7 +1,7 @@
 import { SetupWorkerApi } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
 import { Page } from '@playwright/test'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { fromTemp } from '../../../../support/utils'
 import { test, expect } from '../../../playwright.extend'
 
@@ -63,7 +63,7 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ webpackServer }, testInfo) => {
   const compilation = await webpackServer.compile([
-    require.resolve('./fallback-mode.mocks.ts'),
+    new URL('./fallback-mode.mocks.ts', import.meta.url).pathname,
   ])
   const bundleUrl = new URL('./main.js', compilation.previewUrl)
   await fsMock.create({
@@ -149,7 +149,7 @@ test('warns on the unhandled request by default', async ({
   • GET ${server.http.url('/unknown-resource')}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`),
+Read more: https://mswjs.io/docs/http/intercepting-requests`),
     ]),
   )
 })
@@ -166,10 +166,8 @@ test('stops the fallback interceptor when called "worker.stop()"', async ({
     window.worker.stop()
   })
 
-  // Must print the stop message to the console.
   expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 
-  // Must not intercept requests anymore.
   const response = await fetch(server.http.url('/user'))
 
   expect(response.status).toBe(200)

@@ -1,4 +1,4 @@
-import * as cookieUtils from 'cookie'
+import { parse as parseCookie } from '../../../src/shims/cookie'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
@@ -7,7 +7,7 @@ test('sets cookie on the mocked GraphQL response', async ({
   query,
   page,
 }) => {
-  await loadExample(require.resolve('./cookies.mocks.ts'))
+  await loadExample(new URL('./cookies.mocks.ts', import.meta.url))
 
   const res = await query('/graphql', {
     query: gql`
@@ -32,6 +32,6 @@ test('sets cookie on the mocked GraphQL response', async ({
   const cookieString = await page.evaluate(() => {
     return document.cookie
   })
-  const allCookies = cookieUtils.parse(cookieString)
+  const allCookies = parseCookie(cookieString)
   expect(allCookies).toHaveProperty('test-cookie', 'value')
 })

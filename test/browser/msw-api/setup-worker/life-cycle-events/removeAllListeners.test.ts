@@ -7,7 +7,7 @@ declare namespace window {
   }
 }
 
-const ON_EXAMPLE = require.resolve('./on.mocks.ts')
+const ON_EXAMPLE = new URL('./on.mocks.ts', import.meta.url)
 
 test('removes all listeners attached to the worker instance', async ({
   loadExample,

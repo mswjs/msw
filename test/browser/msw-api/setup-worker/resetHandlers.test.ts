@@ -11,7 +11,7 @@ declare namespace window {
   }
 }
 
-const USE_EXAMPLE = require.resolve('./use.mocks.ts')
+const USE_EXAMPLE = new URL('./use.mocks.ts', import.meta.url)
 
 test('removes all runtime request handlers when resetting without explicit next handlers', async ({
   loadExample,

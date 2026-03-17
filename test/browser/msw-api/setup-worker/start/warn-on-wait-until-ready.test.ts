@@ -6,7 +6,9 @@ test('warns on the "waitUntilReady" option in "worker.start()"', async ({
   spyOnConsole,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./warn-on-wait-until-ready.mocks.ts'))
+  await loadExample(
+    new URL('./warn-on-wait-until-ready.mocks.ts', import.meta.url),
+  )
 
   await waitFor(() => {
     expect(consoleSpy.get('warning')).toEqual([

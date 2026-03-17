@@ -1,7 +1,7 @@
 import { test, expect } from '../../../playwright.extend'
 
 test('responds with a JSON response body', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body-json.mocks.ts'))
+  await loadExample(new URL('./body-json.mocks.ts', import.meta.url))
 
   const res = await fetch('/json')
   const headers = await res.allHeaders()
@@ -15,7 +15,7 @@ test('responds with a single number JSON response body', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./body-json.mocks.ts'))
+  await loadExample(new URL('./body-json.mocks.ts', import.meta.url))
 
   const res = await fetch('/number')
   const headers = await res.allHeaders()

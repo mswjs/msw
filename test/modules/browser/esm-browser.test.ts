@@ -1,8 +1,8 @@
-import * as path from 'path'
+import url from 'node:url'
 import { invariant } from 'outvariant'
 import { createTeardown } from 'fs-teardown'
 import * as express from 'express'
-import { HttpServer } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '@playwright/test'
 import { spyOnConsole } from 'page-with'
 import { startDevServer } from '@web/dev-server'
@@ -11,7 +11,7 @@ import { installLibrary } from '../module-utils'
 type DevServer = Awaited<ReturnType<typeof startDevServer>>
 
 const fsMock = createTeardown({
-  rootDir: path.resolve(__dirname, 'esm-browser-tests'),
+  rootDir: url.fileURLToPath(new URL('esm-browser-tests', import.meta.url)),
   paths: {
     'package.json': JSON.stringify({ type: 'module' }),
   },
@@ -20,7 +20,7 @@ const fsMock = createTeardown({
 let devServer: DevServer
 
 function getDevServerUrl(): string {
-  const address = devServer.server.address()
+  const address = devServer.server?.address()
 
   invariant(address, 'Failed to retrieve dev server url: null')
 

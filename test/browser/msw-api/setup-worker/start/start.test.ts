@@ -1,4 +1,3 @@
-import * as path from 'path'
 import { SetupWorkerApi } from 'msw/browser'
 import { TestFixtures, test, expect } from '../../../playwright.extend'
 
@@ -9,13 +8,13 @@ declare namespace window {
 }
 
 const exampleOptions: Parameters<TestFixtures['loadExample']> = [
-  require.resolve('./start.mocks.ts'),
+  new URL('./start.mocks.ts', import.meta.url),
   {
     skipActivation: true,
     beforeNavigation(compilation) {
       compilation.use((router) => {
         router.get('/worker.js', (_, res) => {
-          res.sendFile(path.resolve(__dirname, 'worker.delayed.js'))
+          res.sendFile(new URL('worker.delayed.js', import.meta.url).pathname)
         })
       })
     },
@@ -86,8 +85,6 @@ test('prints the start message when the worker has been registered', async ({
     return window.msw.startWorker()
   })
 
-  await page.pause()
-
   expect(consoleSpy.get('log')).toContain(
     `Worker scope: ${expectedWorkerScope}`,
   )
@@ -108,8 +105,9 @@ test('prints a warning if "worker.start()" is called multiple times', async ({
     return typeof window.msw !== 'undefined'
   })
 
-  await page.evaluate(() => {
-    return Promise.all([window.msw.startWorker(), window.msw.startWorker()])
+  await page.evaluate(async () => {
+    await window.msw.startWorker()
+    await window.msw.startWorker()
   })
 
   // The activation message ise printed only once.

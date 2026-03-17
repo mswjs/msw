@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { HttpResponse, http, graphql } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import * as express from 'express'
 import { HttpServer } from '@open-draft/test-server/http'

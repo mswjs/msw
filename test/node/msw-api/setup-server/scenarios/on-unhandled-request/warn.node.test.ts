@@ -1,18 +1,15 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupServer } from 'msw/node'
-import { HttpResponse, http } from 'msw'
 
-const server = setupServer(
-  http.get('https://test.mswjs.io/user', () => {
-    return HttpResponse.json({ firstName: 'John' })
-  }),
-)
+const server = setupServer()
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'warn' })
   vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
+})
+
+afterEach(() => {
+  vi.clearAllMocks()
 })
 
 afterAll(() => {
@@ -20,15 +17,24 @@ afterAll(() => {
   vi.restoreAllMocks()
 })
 
-test('warns on unhandled request when using the "warn" value', async () => {
-  const res = await fetch('https://test.mswjs.io')
+test('warns on unhandled request when using the "warn" strategy', async () => {
+  await fetch('http://localhost:3000/user').catch(() => void 0)
 
-  expect(res).toHaveProperty('status', 404)
   expect(console.warn).toBeCalledWith(`\
 [MSW] Warning: intercepted a request without a matching request handler:
 
-  • GET https://test.mswjs.io/
+  • GET http://localhost:3000/user
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`)
+Read more: https://mswjs.io/docs/http/intercepting-requests`)
 })
+
+test(
+  'ignores common static assets when using the "warn" strategy',
+  { timeout: 10_000 },
+  async () => {
+    await fetch('http://localhost:3000/styles/main.css').catch(() => void 0)
+
+    expect(console.warn).not.toHaveBeenCalled()
+  },
+)

@@ -2,7 +2,7 @@ import { test, expect } from '../../playwright.extend'
 
 test('throws a network error', async ({ spyOnConsole, loadExample, page }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./network-error.mocks.ts'))
+  await loadExample(new URL('./network-error.mocks.ts', import.meta.url))
 
   // Do not use `runtime.request()`, because it always awaits a response.
   // In this case we await a network error, performing a request manually.

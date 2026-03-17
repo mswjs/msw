@@ -1,7 +1,4 @@
-/**
- * @vitest-environment node
- */
-import fetch from 'cross-fetch'
+// @vitest-environment node
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -37,8 +34,7 @@ const server = setupServer(
 )
 
 const client = createGraphQLClient({
-  uri: 'https://api.mswjs.io',
-  fetch,
+  uri: 'http://localhost:3000/graphql',
 })
 
 beforeAll(() => {
@@ -49,8 +45,8 @@ afterAll(() => {
   server.close()
 })
 
-test('fetches the data from a GraphQL schema', async () => {
-  const res = await client({
+it('fetches the data from a GraphQL schema', async () => {
+  const result = await client({
     query: gql`
       query GetUser {
         user {
@@ -60,16 +56,16 @@ test('fetches the data from a GraphQL schema', async () => {
     `,
   })
 
-  expect(res.data).toEqual({
+  expect.soft(result.data).toEqual({
     user: {
       firstName: 'John',
     },
   })
-  expect(res.errors).toBeUndefined()
+  expect.soft(result.errors).toBeUndefined()
 })
 
-test('propagates the GraphQL execution errors', async () => {
-  const res = await client({
+it('propagates execution errors', async () => {
+  const result = await client({
     query: gql`
       query GetUser {
         user {
@@ -82,10 +78,11 @@ test('propagates the GraphQL execution errors', async () => {
     `,
   })
 
-  expect(res.data).toBeUndefined()
-  expect(res.errors).toHaveLength(1)
-  expect(res.errors?.[0]).toHaveProperty(
-    'message',
-    'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
-  )
+  expect.soft(result.data).toBeUndefined()
+  expect.soft(result.errors).toEqual([
+    expect.objectContaining({
+      message:
+        'Cannot query field "lastName" on type "User". Did you mean "firstName"?',
+    }),
+  ])
 })

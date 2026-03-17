@@ -7,7 +7,7 @@ export function jsonParse<ValueType extends Record<string, any>>(
 ): ValueType | undefined {
   try {
     return JSON.parse(value)
-  } catch (error) {
+  } catch {
     return undefined
   }
 }

@@ -1,7 +1,7 @@
 import { test, expect } from '../playwright.extend'
 
 test('parses request URL parameters', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./params.mocks.ts'))
+  await loadExample(new URL('./params.mocks.ts', import.meta.url))
 
   const res = await fetch(
     'https://api.github.com/users/octocat/messages/abc-123',

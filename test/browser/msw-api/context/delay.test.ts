@@ -1,6 +1,6 @@
 import { test, expect } from '../../playwright.extend'
 
-const DELAY_EXAMPLE = require.resolve('./delay.mocks.ts')
+const DELAY_EXAMPLE = new URL('./delay.mocks.ts', import.meta.url)
 
 declare global {
   namespace PlaywrightTest {

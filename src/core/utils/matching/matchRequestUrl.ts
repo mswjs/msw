@@ -4,7 +4,7 @@ import { normalizePath } from './normalizePath'
 
 export type Path = string | RegExp
 export type PathParams<KeyType extends keyof any = string> = {
-  [ParamName in KeyType]: string | ReadonlyArray<string>
+  [ParamName in KeyType]?: string | ReadonlyArray<string>
 }
 
 export interface Match {
@@ -42,13 +42,13 @@ export function coercePath(path: string): string {
        * Escape the port so that "path-to-regexp" can match
        * absolute URLs including port numbers.
        */
-      .replace(/([^\/])(:)(?=\d+)/, '$1\\$2')
+      .replace(/([^/])(:)(?=\d+)/, '$1\\$2')
       /**
        * Escape the protocol so that "path-to-regexp" could match
        * absolute URL.
        * @see https://github.com/pillarjs/path-to-regexp/issues/259
        */
-      .replace(/^([^\/]+)(:)(?=\/\/)/, '$1\\$2')
+      .replace(/^([^/]+)(:)(?=\/\/)/, '$1\\$2')
   )
 }
 
@@ -70,4 +70,8 @@ export function matchRequestUrl(url: URL, path: Path, baseUrl?: string): Match {
     matches: result !== false,
     params,
   }
+}
+
+export function isPath(value: unknown): value is Path {
+  return typeof value === 'string' || value instanceof RegExp
 }

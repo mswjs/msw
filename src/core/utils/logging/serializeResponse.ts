@@ -1,4 +1,4 @@
-import statuses from '@bundled-es-modules/statuses'
+import statuses from '../../../shims/statuses'
 
 const { message } = statuses
 

@@ -1,7 +1,8 @@
 import { test, expect } from '../playwright.extend'
 
-const OPERATION_REFERENCE_EXAMPLE = require.resolve(
+const OPERATION_REFERENCE_EXAMPLE = new URL(
   './operation-reference.mocks.ts',
+  import.meta.url,
 )
 
 test('allows referencing the request body in the GraphQL query handler', async ({

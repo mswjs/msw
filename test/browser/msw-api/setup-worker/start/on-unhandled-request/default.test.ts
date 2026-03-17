@@ -6,7 +6,7 @@ test('warns on unhandled requests by default', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./default.mocks.ts'))
+  await loadExample(new URL('./default.mocks.ts', import.meta.url))
 
   const res = await fetch('https://mswjs.io/non-existing-page')
   const status = res.status()

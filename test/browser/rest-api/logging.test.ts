@@ -8,7 +8,7 @@ test('prints the intercepted request info into browser console', async ({
   fetch,
 }) => {
   const consoleSpy = spyOnConsole()
-  await loadExample(require.resolve('./basic.mocks.ts'))
+  await loadExample(new URL('./basic.mocks.ts', import.meta.url))
 
   await fetch('https://example.com/users/octocat')
 

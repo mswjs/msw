@@ -1,4 +1,10 @@
-import type { DocumentNode, GraphQLError, OperationTypeNode } from 'graphql'
+import { invariant } from 'outvariant'
+import {
+  parse,
+  type DocumentNode,
+  type GraphQLError,
+  type OperationTypeNode,
+} from 'graphql'
 import {
   AsyncResponseResolverReturnType,
   DefaultBodyType,
@@ -18,6 +24,7 @@ import {
   GraphQLMultipartRequestBody,
   parseGraphQLRequest,
   parseDocumentNode,
+  ParsedGraphQLQuery,
 } from '../utils/internal/parseGraphQLRequest'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
@@ -27,21 +34,29 @@ import {
 } from '../utils/request/getRequestCookies'
 import { isIterable } from '../utils/internal/isIterable'
 
-export type ExpectedOperationTypeNode = OperationTypeNode | 'all'
+export interface DocumentTypeDecoration<
+  Result = { [key: string]: any },
+  Variables = { [key: string]: any },
+> {
+  __apiType?: (variables: Variables) => Result
+  __resultType?: Result
+  __variablesType?: Variables
+}
+
+export type GraphQLOperationType = OperationTypeNode | 'all'
 export type GraphQLHandlerNameSelector = DocumentNode | RegExp | string
 
-export type GraphQLQuery = Record<string, any>
+export type GraphQLQuery = Record<string, any> | null
 export type GraphQLVariables = Record<string, any>
 
 export interface GraphQLHandlerInfo extends RequestHandlerDefaultInfo {
-  operationType: ExpectedOperationTypeNode
-  operationName: GraphQLHandlerNameSelector
+  operationType: GraphQLOperationType
+  operationName: GraphQLHandlerNameSelector | GraphQLCustomPredicate
 }
 
 export type GraphQLMimeType =
   | 'application/graphql-response+json'
   | 'application/json'
-  // eslint-disable-next-line @typescript-eslint/ban-types
   | (string & {})
 
 export type GraphQLRequestParsedResult = {
@@ -84,9 +99,26 @@ export type GraphQLResponseBody<BodyType extends DefaultBodyType> =
   | {
       data?: BodyType | null
       errors?: readonly Partial<GraphQLError>[] | null
+      extensions?: Record<string, any>
     }
   | null
   | undefined
+
+export type GraphQLCustomPredicate = (args: {
+  request: Request
+  query: string
+  operationType: GraphQLOperationType
+  operationName: string
+  variables: GraphQLVariables
+  cookies: Record<string, string>
+}) => GraphQLCustomPredicateResult | Promise<GraphQLCustomPredicateResult>
+
+export type GraphQLCustomPredicateResult = boolean | { matches: boolean }
+
+export type GraphQLPredicate<Query = any, Variables = any> =
+  | GraphQLHandlerNameSelector
+  | DocumentTypeDecoration<Query, Variables>
+  | GraphQLCustomPredicate
 
 export function isDocumentNode(
   value: DocumentNode | any,
@@ -102,6 +134,12 @@ export interface GraphQLHandlerOptions extends RequestHandlerOptions {
   supportedMimeTypes?: GraphQLMimeType[]
 }
 
+function isDocumentTypeDecoration(
+  value: unknown,
+): value is DocumentTypeDecoration<any, any> {
+  return value instanceof String
+}
+
 export class GraphQLHandler extends RequestHandler<
   GraphQLHandlerInfo,
   GraphQLRequestParsedResult,
@@ -114,37 +152,64 @@ export class GraphQLHandler extends RequestHandler<
     ParsedGraphQLRequest<GraphQLVariables>
   >()
 
+  static #parseOperationName(
+    predicate: GraphQLPredicate,
+    operationType: GraphQLOperationType,
+  ): GraphQLHandlerInfo['operationName'] {
+    const getOperationName = (node: ParsedGraphQLQuery): string => {
+      invariant(
+        node.operationType === operationType,
+        'Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "%s" but got "%s").',
+        operationType,
+        node.operationType,
+      )
+
+      invariant(
+        node.operationName,
+        'Failed to create a GraphQL handler: provided a DocumentNode without operation name',
+      )
+
+      return node.operationName
+    }
+
+    if (isDocumentNode(predicate)) {
+      return getOperationName(parseDocumentNode(predicate))
+    }
+
+    if (isDocumentTypeDecoration(predicate)) {
+      const documentNode = parse(predicate.toString())
+
+      invariant(
+        isDocumentNode(documentNode),
+        'Failed to create a GraphQL handler: given TypedDocumentString (%s) does not produce a valid DocumentNode',
+        predicate,
+      )
+
+      return getOperationName(parseDocumentNode(documentNode))
+    }
+
+    return predicate
+  }
+
   constructor(
-    operationType: ExpectedOperationTypeNode,
-    operationName: GraphQLHandlerNameSelector,
+    operationType: GraphQLOperationType,
+    predicate: GraphQLPredicate,
     endpoint: Path,
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
     options?: GraphQLHandlerOptions,
   ) {
-    let resolvedOperationName = operationName
+    const operationName = GraphQLHandler.#parseOperationName(
+      predicate,
+      operationType,
+    )
 
-    if (isDocumentNode(operationName)) {
-      const parsedNode = parseDocumentNode(operationName)
-
-      if (parsedNode.operationType !== operationType) {
-        throw new Error(
-          `Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "${operationType}", but got "${parsedNode.operationType}").`,
-        )
-      }
-
-      if (!parsedNode.operationName) {
-        throw new Error(
-          `Failed to create a GraphQL handler: provided a DocumentNode with no operation name.`,
-        )
-      }
-
-      resolvedOperationName = parsedNode.operationName
-    }
+    const displayOperationName =
+      typeof operationName === 'function' ? '[custom predicate]' : operationName
 
     const header =
       operationType === 'all'
         ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType} ${resolvedOperationName} (origin: ${endpoint.toString()})`
+        : `${operationType}${displayOperationName ? ` ${displayOperationName}` : ''} (origin: ${endpoint.toString()})`
 
     const supportedMimeTypes = options?.supportedMimeTypes || [
       'application/graphql-response+json',
@@ -202,7 +267,10 @@ export class GraphQLHandler extends RequestHandler<
       info: {
         header,
         operationType,
-        operationName: resolvedOperationName,
+        operationName: GraphQLHandler.#parseOperationName(
+          predicate,
+          operationType,
+        ),
       },
       resolver: wrappedResolver,
       options,
@@ -241,7 +309,10 @@ export class GraphQLHandler extends RequestHandler<
     const cookies = getAllRequestCookies(args.request)
 
     if (!match.matches) {
-      return { match, cookies }
+      return {
+        match,
+        cookies,
+      }
     }
 
     const parsedResult = await this.parseGraphQLRequestOrGetFromCache(
@@ -249,7 +320,10 @@ export class GraphQLHandler extends RequestHandler<
     )
 
     if (typeof parsedResult === 'undefined') {
-      return { match, cookies }
+      return {
+        match,
+        cookies,
+      }
     }
 
     return {
@@ -262,10 +336,10 @@ export class GraphQLHandler extends RequestHandler<
     }
   }
 
-  predicate(args: {
+  async predicate(args: {
     request: Request
     parsedResult: GraphQLRequestParsedResult
-  }) {
+  }): Promise<boolean> {
     if (args.parsedResult.operationType === undefined) {
       return false
     }
@@ -284,10 +358,16 @@ Consider naming this operation or using "graphql.operation()" request handler to
       this.info.operationType === 'all' ||
       args.parsedResult.operationType === this.info.operationType
 
-    const hasMatchingOperationName =
-      this.info.operationName instanceof RegExp
-        ? this.info.operationName.test(args.parsedResult.operationName || '')
-        : args.parsedResult.operationName === this.info.operationName
+    /**
+     * Check if the operation name matches the outgoing GraphQL request.
+     * @note Unlike the HTTP handler, the custom predicate functions are invoked
+     * during predicate, not parsing, because GraphQL request parsing happens first,
+     * and non-GraphQL requests are filtered out automatically.
+     */
+    const hasMatchingOperationName = await this.matchOperationName({
+      request: args.request,
+      parsedResult: args.parsedResult,
+    })
 
     return (
       args.parsedResult.match.matches &&
@@ -296,12 +376,44 @@ Consider naming this operation or using "graphql.operation()" request handler to
     )
   }
 
+  private async matchOperationName(args: {
+    request: Request
+    parsedResult: GraphQLRequestParsedResult
+  }): Promise<boolean> {
+    if (typeof this.info.operationName === 'function') {
+      const customPredicateResult = await this.info.operationName({
+        request: args.request,
+        ...this.extendResolverArgs({
+          request: args.request,
+          parsedResult: args.parsedResult,
+        }),
+      })
+
+      /**
+       * @note Keep the { matches } signature in case we decide to support path parameters
+       * in GraphQL handlers. If that happens, the custom predicate would have to be moved
+       * to the parsing phase, the same as we have for the HttpHandler, and the user will
+       * have a possibility to return parsed path parameters from the custom predicate.
+       */
+      return typeof customPredicateResult === 'boolean'
+        ? customPredicateResult
+        : customPredicateResult.matches
+    }
+
+    if (this.info.operationName instanceof RegExp) {
+      return this.info.operationName.test(args.parsedResult.operationName || '')
+    }
+
+    return args.parsedResult.operationName === this.info.operationName
+  }
+
   protected extendResolverArgs(args: {
     request: Request
     parsedResult: GraphQLRequestParsedResult
   }) {
     return {
       query: args.parsedResult.query || '',
+      operationType: args.parsedResult.operationType!,
       operationName: args.parsedResult.operationName || '',
       variables: args.parsedResult.variables || {},
       cookies: args.parsedResult.cookies,
@@ -329,8 +441,11 @@ Consider naming this operation or using "graphql.operation()" request handler to
       `color:${statusColor}`,
       'color:inherit',
     )
+    // eslint-disable-next-line no-console
     console.log('Request:', loggedRequest)
+    // eslint-disable-next-line no-console
     console.log('Handler:', this)
+    // eslint-disable-next-line no-console
     console.log('Response:', loggedResponse)
     console.groupEnd()
   }

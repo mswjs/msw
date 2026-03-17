@@ -1,40 +1,38 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { http } from './http'
 import { getResponse } from './getResponse'
 
 it('returns undefined given empty headers array', async () => {
-  expect(
-    await getResponse([], new Request('http://localhost/')),
-  ).toBeUndefined()
+  await expect(
+    getResponse([], new Request('http://localhost/')),
+  ).resolves.toBeUndefined()
 })
 
 it('returns undefined given no matching handlers', async () => {
-  expect(
-    await getResponse(
+  await expect(
+    getResponse(
       [http.get('/product', () => void 0)],
       new Request('http://localhost/user'),
     ),
-  ).toBeUndefined()
+  ).resolves.toBeUndefined()
 })
 
 it('returns undefined given a matching handler that returned no response', async () => {
-  expect(
-    await getResponse(
+  await expect(
+    getResponse(
       [http.get('*/user', () => void 0)],
       new Request('http://localhost/user'),
     ),
-  ).toBeUndefined()
+  ).resolves.toBeUndefined()
 })
 
 it('returns undefined given a matching handler that returned explicit undefined', async () => {
-  expect(
-    await getResponse(
+  await expect(
+    getResponse(
       [http.get('*/user', () => undefined)],
       new Request('http://localhost/user'),
     ),
-  ).toBeUndefined()
+  ).resolves.toBeUndefined()
 })
 
 it('returns the response returned from a matching handler', async () => {
@@ -45,7 +43,7 @@ it('returns the response returned from a matching handler', async () => {
 
   expect(response?.status).toBe(200)
   expect(response?.headers.get('Content-Type')).toBe('application/json')
-  expect(await response?.json()).toEqual({ name: 'John' })
+  await expect(response?.json()).resolves.toEqual({ name: 'John' })
 })
 
 it('returns the response from the first matching handler if multiple match', async () => {
@@ -59,5 +57,18 @@ it('returns the response from the first matching handler if multiple match', asy
 
   expect(response?.status).toBe(200)
   expect(response?.headers.get('Content-Type')).toBe('application/json')
-  expect(await response?.json()).toEqual({ name: 'John' })
+  await expect(response?.json()).resolves.toEqual({ name: 'John' })
+})
+
+it('supports custom base url', async () => {
+  const response = await getResponse(
+    [http.get('/resource', () => new Response('hello world'))],
+    new Request('https://localhost:3000/resource'),
+    {
+      baseUrl: 'https://localhost:3000/',
+    },
+  )
+
+  expect(response?.status).toBe(200)
+  await expect(response?.text()).resolves.toBe('hello world')
 })

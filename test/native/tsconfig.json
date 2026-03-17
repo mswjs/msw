@@ -1,15 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "baseUrl": ".",
-    "paths": {
-      "msw": ["../.."],
-      "msw/*": ["../../*"]
-    },
-    "noEmit": true,
-    "declaration": false,
     "resolveJsonModule": true,
     // Support default imports for modules that have no default exports.
     // This way "http" imports stay "import http from 'http'".

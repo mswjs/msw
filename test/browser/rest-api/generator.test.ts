@@ -13,7 +13,7 @@ test('supports a generator function as the response resolver', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./generator.mocks.ts'))
+  await loadExample(new URL('./generator.mocks.ts', import.meta.url))
 
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
     const res = await fetch('/polling/3')
@@ -35,7 +35,7 @@ test('supports one-time handlers with the generator as the response resolver', a
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./generator.mocks.ts'))
+  await loadExample(new URL('./generator.mocks.ts', import.meta.url))
 
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
     const res = await fetch('/polling/once/3')

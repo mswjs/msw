@@ -28,12 +28,11 @@ afterAll(() => server.close())
 
 test('returns given buffer in the mocked response', async () => {
   const response = await fetch('http://test.mswjs.io/image')
-  const { status, headers } = response
   const actualImageBuffer = await response.arrayBuffer()
   const expectedImageBuffer = getImageBuffer()
 
-  expect(status).toBe(200)
-  expect(headers.get('content-length')).toBe(
+  expect(response.status).toBe(200)
+  expect(response.headers.get('content-length')).toBe(
     actualImageBuffer.byteLength.toString(),
   )
   expect(
@@ -43,13 +42,12 @@ test('returns given buffer in the mocked response', async () => {
 
 test('returns given blob in the mocked response', async () => {
   const response = await fetch('http://test.mswjs.io/image')
-  const { status, headers } = response
   const blob = await response.blob()
   const expectedImageBuffer = getImageBuffer()
 
-  expect(status).toBe(200)
+  expect(response.status).toBe(200)
   expect(blob.type).toBe('image/jpeg')
-  expect(blob.size).toBe(Number(headers.get('content-length')))
+  expect(blob.size).toBe(Number(response.headers.get('content-length')))
   expect(
     Buffer.compare(Buffer.from(await blob.arrayBuffer()), expectedImageBuffer),
   ).toBe(0)

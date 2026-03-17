@@ -3,7 +3,7 @@
  */
 import { HttpResponse, http } from 'msw'
 import { setupServer, SetupServer } from 'msw/node'
-import { HttpServer, httpsAgent } from '@open-draft/test-server/http'
+import { HttpServer } from '@open-draft/test-server/http'
 import { RequestHandler as ExpressRequestHandler } from 'express'
 
 let server: SetupServer
@@ -56,7 +56,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('inherits cookies set from a preceeding request', async () => {
+test('inherits cookies set from a preceding request', async () => {
   const res = await fetch(httpServer.https.url('/login'), {
     method: 'POST',
   }).then(() => {

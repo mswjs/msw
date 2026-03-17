@@ -4,7 +4,7 @@ test('reads plain text request body as text', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const res = await fetch('/text', {
     method: 'POST',
@@ -20,7 +20,7 @@ test('reads plain text request body as text', async ({
 })
 
 test('reads json request body as text', async ({ loadExample, fetch }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const res = await fetch('/text', {
     method: 'POST',
@@ -40,7 +40,7 @@ test('reads buffer request body as text', async ({
   page,
   makeUrl,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   page.evaluate(() => {
     return fetch('/text', {
@@ -56,7 +56,7 @@ test('reads buffer request body as text', async ({
 })
 
 test('reads null request body as empty text', async ({ loadExample, page }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const [body, status] = await page.evaluate(() => {
     return fetch('/text', {
@@ -73,7 +73,7 @@ test('reads undefined request body as empty text', async ({
   loadExample,
   page,
 }) => {
-  await loadExample(require.resolve('./body.mocks.ts'))
+  await loadExample(new URL('./body.mocks.ts', import.meta.url))
 
   const [body, status] = await page.evaluate(() => {
     return fetch('/text', {

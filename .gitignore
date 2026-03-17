@@ -8,13 +8,15 @@ tmp
 /yarn.lock
 stats.html
 .vscode
+.idea
 msw-*.tgz
 .husky/_
 .env
 **/test-results
+/test/modules/node/node-esm-tests
 
 # Smoke test temporary files.
 /package.json.copy
 /examples
-
-tsconfig.vitest-temp.json
+/test/modules/node/node-esm-tests
+*.vitest-temp.json

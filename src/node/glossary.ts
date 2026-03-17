@@ -1,8 +1,6 @@
 import type { PartialDeep } from 'type-fest'
-import type {
-  RequestHandler,
-  RequestHandlerDefaultInfo,
-} from '~/core/handlers/RequestHandler'
+import type { RequestHandler } from '~/core/handlers/RequestHandler'
+import type { WebSocketHandler } from '~/core/handlers/WebSocketHandler'
 import type {
   LifeCycleEventEmitter,
   LifeCycleEventsMap,
@@ -29,7 +27,7 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/use `server.use()` API reference}
    */
-  use(...handlers: Array<RequestHandler>): void
+  use(...handlers: Array<RequestHandler | WebSocketHandler>): void
 
   /**
    * Marks all request handlers that respond using `res.once()` as unused.
@@ -43,14 +41,14 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/reset-handlers `server.reset-handlers()` API reference}
    */
-  resetHandlers(...nextHandlers: Array<RequestHandler>): void
+  resetHandlers(...nextHandlers: Array<RequestHandler | WebSocketHandler>): void
 
   /**
    * Returns a readonly list of currently active request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/list-handlers `server.listHandlers()` API reference}
    */
-  listHandlers(): ReadonlyArray<RequestHandler<RequestHandlerDefaultInfo, any>>
+  listHandlers(): ReadonlyArray<RequestHandler | WebSocketHandler>
 
   /**
    * Life-cycle events.

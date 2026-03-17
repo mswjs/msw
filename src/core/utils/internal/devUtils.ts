@@ -29,3 +29,16 @@ export const devUtils = {
   warn,
   error,
 }
+
+/**
+ * Internal error instance.
+ * Used to differentiate the library errors that must be forwarded
+ * to the user from the unhandled exceptions. Use this if you don't
+ * wish for the error to be coerced to a 500 fallback response.
+ */
+export class InternalError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InternalError'
+  }
+}

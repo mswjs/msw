@@ -1,0 +1,19 @@
+name: locked-closed-issues
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  issues: write
+
+jobs:
+  action:
+    runs-on: macos-latest
+    steps:
+      - uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-inactive-days: '14'
+          issue-lock-reason: ''
+          process-only: 'issues'

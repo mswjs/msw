@@ -1,9 +1,7 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import https from 'https'
 import { http, HttpResponse } from 'msw'
-import { setupServer, SetupServerApi } from 'msw/node'
+import { setupServer } from 'msw/node'
 import { httpsAgent, HttpServer } from '@open-draft/test-server/http'
 import { waitForClientRequest } from '../../../../support/utils'
 
@@ -25,7 +23,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-test('has access to request cookies', async () => {
+test('exposes request cookies', async () => {
   const endpointUrl = httpServer.https.url('/user')
 
   server.use(

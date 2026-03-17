@@ -18,7 +18,7 @@ test('respects custom path when matching requests', async ({
   loadExample,
   fetch,
 }) => {
-  await loadExample(require.resolve('./all.mocks.ts'))
+  await loadExample(new URL('./all.mocks.ts', import.meta.url))
 
   // Root request.
   const rootResponses = await forEachMethod((method) => {

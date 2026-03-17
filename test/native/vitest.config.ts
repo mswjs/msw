@@ -1,7 +1,5 @@
-import * as path from 'node:path'
 import { defineConfig } from 'vitest/config'
-
-const LIB_DIR = path.resolve(__dirname, '../../lib')
+import { mswExports } from '../support/alias.js'
 
 export default defineConfig({
   test: {
@@ -19,10 +17,7 @@ export default defineConfig({
        * Vitest won't pick up the ESM targets because
        * the root-level "package.json" is not "module".
        */
-      'msw/node': path.resolve(LIB_DIR, 'node/index.mjs'),
-      'msw/native': path.resolve(LIB_DIR, 'native/index.mjs'),
-      'msw/browser': path.resolve(LIB_DIR, 'browser/index.mjs'),
-      msw: path.resolve(LIB_DIR, 'core/index.mjs'),
+      ...mswExports,
     },
   },
 })

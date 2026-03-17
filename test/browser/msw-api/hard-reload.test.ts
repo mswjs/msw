@@ -6,7 +6,7 @@ test('keeps the mocking enabled after hard-reload of the page', async ({
   fetch,
   waitForMswActivation,
 }) => {
-  await loadExample(require.resolve('./hard-reload.mocks.ts'))
+  await loadExample(new URL('./hard-reload.mocks.ts', import.meta.url))
 
   page.evaluate(() => {
     /**

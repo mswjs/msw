@@ -5,7 +5,7 @@ test('mocks a GraphQL response with both data and extensions', async ({
   loadExample,
   query,
 }) => {
-  await loadExample(require.resolve('./extensions.mocks.ts'))
+  await loadExample(new URL('./extensions.mocks.ts', import.meta.url))
 
   const res = await query('/graphql', {
     query: gql`

@@ -2,14 +2,14 @@
  * @vitest-environment node
  */
 import { TextEncoder } from 'util'
-import { HttpResponse } from './HttpResponse'
+import { HttpResponse, kDefaultContentType } from './HttpResponse'
 
 it('creates a plain response', async () => {
   const response = new HttpResponse(null, { status: 301 })
   expect(response.status).toBe(301)
   expect(response.statusText).toBe('Moved Permanently')
   expect(response.body).toBe(null)
-  expect(await response.text()).toBe('')
+  await expect(response.text()).resolves.toBe('')
   expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
@@ -24,11 +24,12 @@ describe('HttpResponse.text()', () => {
     expect(response.status).toBe(201)
     expect(response.statusText).toBe('Created')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('hello world')
+    await expect(response.text()).resolves.toBe('hello world')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-length': '11',
       'content-type': 'text/plain',
     })
+    expect(kDefaultContentType in response).toBe(true)
   })
 
   it('creates a text response with special characters', async () => {
@@ -37,7 +38,7 @@ describe('HttpResponse.text()', () => {
     expect(response.status).toBe(201)
     expect(response.statusText).toBe('Created')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('안녕 세상')
+    await expect(response.text()).resolves.toBe('안녕 세상')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-length': '13',
       'content-type': 'text/plain',
@@ -52,11 +53,12 @@ describe('HttpResponse.text()', () => {
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('hello world')
+    await expect(response.text()).resolves.toBe('hello world')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-length': '11',
       'content-type': 'text/plain; charset=utf-8',
     })
+    expect(kDefaultContentType in response).toBe(false)
   })
 
   it('allows overriding the "Content-Length" response header', async () => {
@@ -83,6 +85,7 @@ describe('HttpResponse.json()', () => {
       'content-length': '20',
       'content-type': 'application/json',
     })
+    expect(kDefaultContentType in response).toBe(true)
   })
 
   it('creates a json response given an object with special characters', async () => {
@@ -172,6 +175,7 @@ describe('HttpResponse.json()', () => {
       },
     )
 
+    expect(kDefaultContentType in response).toBe(false)
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
@@ -201,13 +205,15 @@ describe('HttpResponse.xml()', () => {
   it('creates an xml response', async () => {
     const response = HttpResponse.xml('<user name="John" />')
 
+    expect(kDefaultContentType in response).toBe(true)
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('<user name="John" />')
+    await expect(response.text()).resolves.toBe('<user name="John" />')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'text/xml',
     })
+    expect(kDefaultContentType in response).toBe(true)
   })
 
   it('allows overriding the "Content-Type" response header', async () => {
@@ -220,10 +226,11 @@ describe('HttpResponse.xml()', () => {
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('<user name="John" />')
+    await expect(response.text()).resolves.toBe('<user name="John" />')
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'text/xml; charset=utf-8',
     })
+    expect(kDefaultContentType in response).toBe(false)
   })
 })
 
@@ -234,10 +241,13 @@ describe('HttpResponse.html()', () => {
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    await expect(response.text()).resolves.toBe(
+      '<p class="author">Jane Doe</p>',
+    )
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'text/html',
     })
+    expect(kDefaultContentType in response).toBe(true)
   })
 
   it('allows overriding the "Content-Type" response header', async () => {
@@ -250,10 +260,13 @@ describe('HttpResponse.html()', () => {
     expect(response.status).toBe(200)
     expect(response.statusText).toBe('OK')
     expect(response.body).toBeInstanceOf(ReadableStream)
-    expect(await response.text()).toBe('<p class="author">Jane Doe</p>')
+    await expect(response.text()).resolves.toBe(
+      '<p class="author">Jane Doe</p>',
+    )
     expect(Object.fromEntries(response.headers.entries())).toEqual({
       'content-type': 'text/html; charset=utf-8',
     })
+    expect(kDefaultContentType in response).toBe(false)
   })
 })
 
@@ -272,6 +285,7 @@ describe('HttpResponse.arrayBuffer()', () => {
       'content-length': '11',
       'content-type': 'application/octet-stream',
     })
+    expect(kDefaultContentType in response).toBe(true)
   })
 
   it('allows overriding the "Content-Type" response header', async () => {
@@ -292,6 +306,7 @@ describe('HttpResponse.arrayBuffer()', () => {
       'content-length': '11',
       'content-type': 'text/plain; charset=utf-8',
     })
+    expect(kDefaultContentType in response).toBe(false)
   })
 
   it('creates an array buffer response from a shared array buffer', async () => {
@@ -340,6 +355,7 @@ describe('HttpResponse.arrayBuffer()', () => {
       'content-length': '11',
       'content-type': 'text/plain; charset=utf-8',
     })
+    expect(kDefaultContentType in response).toBe(false)
   })
 })
 

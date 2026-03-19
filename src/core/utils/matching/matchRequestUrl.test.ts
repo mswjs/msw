@@ -130,6 +130,42 @@ describe('matchRequestUrl', () => {
       },
     })
   })
+
+  test('returns true when matching URLs with wildcard ports', () => {
+    expect(
+      matchRequestUrl(new URL('http://localhost:3000'), 'http://localhost:*'),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': '3000/',
+      },
+    })
+  })
+
+  test('returns true when matching URLs with wildcard ports and pathnames', () => {
+    expect(
+      matchRequestUrl(
+        new URL('http://localhost:3000/resource'),
+        'http://localhost:*/resource',
+      ),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': '3000',
+      },
+    })
+  })
+
+  test('returns true for matching WebSocket URLs with wildcard ports', () => {
+    expect(
+      matchRequestUrl(new URL('ws://localhost:3000'), 'ws://localhost:*'),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': '3000/',
+      },
+    })
+  })
 })
 
 describe('coercePath', () => {
@@ -156,6 +192,10 @@ describe('coercePath', () => {
     expect(coercePath('https://example.com:8080/:5678')).toEqual(
       'https\\://example.com\\:8080/:5678',
     )
+    expect(coercePath('http://localhost:*')).toEqual(
+      'http\\://localhost\\:(.*)',
+    )
+    expect(coercePath('ws://localhost:*')).toEqual('ws\\://localhost\\:(.*)')
   })
 
   test('replaces wildcard with an unnnamed capturing group', () => {

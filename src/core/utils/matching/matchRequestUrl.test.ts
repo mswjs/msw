@@ -1,9 +1,7 @@
-/**
- * @vitest-environment jsdom
- */
-import { coercePath, matchRequestUrl } from './matchRequestUrl'
+// @vitest-environment jsdom
+import { matchRequestUrl } from './matchRequestUrl'
 
-describe('matchRequestUrl', () => {
+describe(matchRequestUrl, () => {
   test('returns true when matches against an exact URL', () => {
     expect(
       matchRequestUrl(
@@ -129,55 +127,5 @@ describe('matchRequestUrl', () => {
         service: 'test',
       },
     })
-  })
-})
-
-describe('coercePath', () => {
-  test('escapes the colon in protocol', () => {
-    expect(coercePath('https://example.com')).toEqual('https\\://example.com')
-    expect(coercePath('https://example.com/:userId')).toEqual(
-      'https\\://example.com/:userId',
-    )
-    expect(coercePath('http://localhost:3000')).toEqual(
-      'http\\://localhost\\:3000',
-    )
-  })
-
-  test('escapes the colon before the port number', () => {
-    expect(coercePath('localhost:8080')).toEqual('localhost\\:8080')
-    expect(coercePath('http://127.0.0.1:8080')).toEqual(
-      'http\\://127.0.0.1\\:8080',
-    )
-    expect(coercePath('https://example.com:1234')).toEqual(
-      'https\\://example.com\\:1234',
-    )
-
-    expect(coercePath('localhost:8080/:5678')).toEqual('localhost\\:8080/:5678')
-    expect(coercePath('https://example.com:8080/:5678')).toEqual(
-      'https\\://example.com\\:8080/:5678',
-    )
-  })
-
-  test('replaces wildcard with an unnnamed capturing group', () => {
-    expect(coercePath('*')).toEqual('(.*)')
-    expect(coercePath('**')).toEqual('(.*)')
-    expect(coercePath('/us*')).toEqual('/us(.*)')
-    expect(coercePath('/user/*')).toEqual('/user/(.*)')
-    expect(coercePath('https://example.com/user/*')).toEqual(
-      'https\\://example.com/user/(.*)',
-    )
-    expect(coercePath('https://example.com/us*')).toEqual(
-      'https\\://example.com/us(.*)',
-    )
-  })
-
-  test('preserves path parameter modifiers', () => {
-    expect(coercePath(':name*')).toEqual(':name*')
-    expect(coercePath('/foo/:name*')).toEqual('/foo/:name*')
-    expect(coercePath('/foo/**:name*')).toEqual('/foo/(.*):name*')
-    expect(coercePath('**/foo/*/:name*')).toEqual('(.*)/foo/(.*)/:name*')
-    expect(coercePath('/foo/:first/bar/:second*/*')).toEqual(
-      '/foo/:first/bar/:second*/(.*)',
-    )
   })
 })

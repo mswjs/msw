@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { coercePath, matchRequestUrl } from './matchRequestUrl'
 
 describe('matchRequestUrl', () => {
@@ -87,6 +85,77 @@ describe('matchRequestUrl', () => {
     })
   })
 
+  test('returns true when matching URLs with wildcard ports', () => {
+    expect
+      .soft(
+        matchRequestUrl(new URL('http://localhost:3000'), 'http://localhost:*'),
+      )
+      .toEqual({
+        matches: true,
+        params: {
+          '0': '3000',
+        },
+      })
+
+    expect
+      .soft(
+        matchRequestUrl(
+          new URL('http://localhost:3000'),
+          'http://localhost:*/',
+        ),
+      )
+      .toEqual({
+        matches: true,
+        params: {
+          '0': '3000',
+        },
+      })
+  })
+
+  test('returns true when matching URLs with wildcard ports and pathnames', () => {
+    expect(
+      matchRequestUrl(
+        new URL('http://localhost:3000/resource'),
+        'http://localhost:*/resource',
+      ),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': '3000',
+      },
+    })
+  })
+
+  test('matches wildcard ports with other wildcard parameters', () => {
+    expect(
+      matchRequestUrl(
+        new URL('http://subdomain.localhost:3000/user/settings'),
+        'http://*.localhost:*/user/*',
+      ),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': 'subdomain',
+        '1': '3000',
+        '2': 'settings',
+      },
+    })
+  })
+
+  test('matches wildcard ports that also match a part of the pathname', () => {
+    expect(
+      matchRequestUrl(
+        new URL('http://localhost:3000/user/settings'),
+        'http://localhost:*/settings',
+      ),
+    ).toEqual({
+      matches: true,
+      params: {
+        '0': '3000/user',
+      },
+    })
+  })
+
   test('returns true for matching WebSocket URL', () => {
     expect(
       matchRequestUrl(new URL('ws://test.mswjs.io'), 'ws://test.mswjs.io'),
@@ -127,31 +196,6 @@ describe('matchRequestUrl', () => {
       matches: true,
       params: {
         service: 'test',
-      },
-    })
-  })
-
-  test('returns true when matching URLs with wildcard ports', () => {
-    expect(
-      matchRequestUrl(new URL('http://localhost:3000'), 'http://localhost:*'),
-    ).toEqual({
-      matches: true,
-      params: {
-        '0': '3000/',
-      },
-    })
-  })
-
-  test('returns true when matching URLs with wildcard ports and pathnames', () => {
-    expect(
-      matchRequestUrl(
-        new URL('http://localhost:3000/resource'),
-        'http://localhost:*/resource',
-      ),
-    ).toEqual({
-      matches: true,
-      params: {
-        '0': '3000',
       },
     })
   })

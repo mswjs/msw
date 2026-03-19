@@ -26,11 +26,6 @@ export {
   type ServerSentEventMessage,
 } from './sse'
 
-import type { RequestHandler } from './handlers/RequestHandler'
-import type { WebSocketHandler } from './handlers/WebSocketHandler'
-
-export type AnyHandler = RequestHandler | WebSocketHandler
-
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
@@ -45,6 +40,8 @@ export { cleanUrl } from './utils/url/cleanUrl'
 /**
  * Type definitions.
  */
+
+export type { AnyHandler } from './experimental/handlers-controller'
 
 export type { SharedOptions, LifeCycleEventsMap } from './sharedOptions'
 

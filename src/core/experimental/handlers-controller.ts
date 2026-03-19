@@ -1,11 +1,10 @@
 import { invariant } from 'outvariant'
-import { type HttpHandler } from '../handlers/HttpHandler'
-import { type GraphQLHandler } from '../handlers/GraphQLHandler'
+import { type RequestHandler } from '../handlers/RequestHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
 
-export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
-export type HandlersMap = Partial<Record<string, Array<AnyHandler>>>
+export type AnyHandler = RequestHandler | WebSocketHandler
+export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
 
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
   const groups: HandlersMap = {}

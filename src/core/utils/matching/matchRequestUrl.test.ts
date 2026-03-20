@@ -93,7 +93,7 @@ describe('matchRequestUrl', () => {
       .toEqual({
         matches: true,
         params: {
-          '0': '3000',
+          '0': '3000/',
         },
       })
 

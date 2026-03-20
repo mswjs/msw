@@ -228,7 +228,9 @@ test('clears the list of clients when the worker is stopped', async ({
   // Must purge the local storage on reload.
   // The worker has been started as a part of the test, not runtime,
   // so it will start with empty clients.
-  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 0),
+  ).resolves.toBeTruthy()
 })
 
 test('clears the list of clients when the page is reloaded', async ({
@@ -252,7 +254,9 @@ test('clears the list of clients when the page is reloaded', async ({
 
   await enableMocking()
 
-  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 0),
+  ).resolves.toBeTruthy()
 
   await page.evaluate(async () => {
     const ws = new WebSocket('wss://example.com')
@@ -270,5 +274,7 @@ test('clears the list of clients when the page is reloaded', async ({
   // Must purge the local storage on reload.
   // The worker has been started as a part of the test, not runtime,
   // so it will start with empty clients.
-  await expect(page.evaluate(() => window.link.clients.size)).resolves.toBe(0)
+  await expect(
+    page.waitForFunction(() => window.link.clients.size === 0),
+  ).resolves.toBeTruthy()
 })

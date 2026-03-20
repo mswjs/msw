@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import {
   parse,
   type DocumentNode,
@@ -8,6 +9,7 @@ import {
   DefaultBodyType,
   RequestHandler,
   RequestHandlerDefaultInfo,
+  RequestHandlerExecutionResult,
   RequestHandlerOptions,
   ResponseResolver,
 } from './RequestHandler'
@@ -26,7 +28,9 @@ import {
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { invariant } from 'outvariant'
+import { ResponseResolutionContext } from 'src/iife'
+import { kDefaultContentType, StrictRequest } from '../HttpResponse'
+import { getAllAcceptedMimeTypes } from '../utils/request/getAllAcceptedMimeTypes'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },
@@ -307,6 +311,54 @@ Consider naming this operation or using "graphql.operation()" request handler to
       hasMatchingOperationType &&
       hasMatchingOperationName
     )
+  }
+
+  public async run(args: {
+    request: StrictRequest<any>
+    requestId: string
+    resolutionContext?: ResponseResolutionContext
+  }): Promise<RequestHandlerExecutionResult<GraphQLRequestParsedResult> | null> {
+    const result = await super.run(args)
+
+    if (result?.response == null) {
+      return result
+    }
+
+    if (!(kDefaultContentType in result.response)) {
+      return result
+    }
+
+    const acceptedMimeTypes = getAllAcceptedMimeTypes(
+      args.request.headers.get('accept'),
+    )
+
+    if (acceptedMimeTypes.length === 0) {
+      return result
+    }
+
+    const graphqlResponseIndex = acceptedMimeTypes.indexOf(
+      'application/graphql-response+json',
+    )
+    const jsonIndex = acceptedMimeTypes.indexOf('application/json')
+
+    /**
+     * Use the "application/graphql-response+json" response content type
+     * only when the client accepts it AND prefers it over "application/json"
+     * (i.e. it appears earlier in the precedence-sorted list, or "application/json"
+     * is not listed at all).
+     * @see https://github.com/graphql/graphql-over-http/blob/4d1df1fb829ec2dd3ecbf3c6aa4025bd356c270d/spec/GraphQLOverHTTP.md#accept
+     */
+    if (
+      graphqlResponseIndex !== -1 &&
+      (jsonIndex === -1 || graphqlResponseIndex <= jsonIndex)
+    ) {
+      result.response.headers.set(
+        'content-type',
+        'application/graphql-response+json',
+      )
+    }
+
+    return result
   }
 
   private async matchOperationName(args: {

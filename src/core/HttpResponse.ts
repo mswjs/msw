@@ -28,6 +28,8 @@ export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
 export type StrictResponse<BodyType extends DefaultBodyType> =
   HttpResponse<BodyType>
 
+export const kDefaultContentType = Symbol.for('kDefaultContentType')
+
 /**
  * A drop-in replacement for the standard `Response` class
  * to allow additional features, like mocking the response `Set-Cookie` header.
@@ -65,8 +67,9 @@ export class HttpResponse<
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
+    const hasExplicitContentType = responseInit.headers.has('Content-Type')
 
-    if (!responseInit.headers.has('Content-Type')) {
+    if (!hasExplicitContentType) {
       responseInit.headers.set('Content-Type', 'text/plain')
     }
 
@@ -80,7 +83,16 @@ export class HttpResponse<
       )
     }
 
-    return new HttpResponse(body, responseInit)
+    const response = new HttpResponse(body, responseInit)
+
+    if (!hasExplicitContentType) {
+      Object.defineProperty(response, kDefaultContentType, {
+        value: true,
+        enumerable: false,
+      })
+    }
+
+    return response
   }
 
   /**
@@ -94,8 +106,9 @@ export class HttpResponse<
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
+    const hasExplicitContentType = responseInit.headers.has('Content-Type')
 
-    if (!responseInit.headers.has('Content-Type')) {
+    if (!hasExplicitContentType) {
       responseInit.headers.set('Content-Type', 'application/json')
     }
 
@@ -112,7 +125,16 @@ export class HttpResponse<
       )
     }
 
-    return new HttpResponse(responseText as BodyType, responseInit)
+    const response = new HttpResponse(responseText, responseInit)
+
+    if (!hasExplicitContentType) {
+      Object.defineProperty(response, kDefaultContentType, {
+        value: true,
+        enumerable: false,
+      })
+    }
+
+    return response as HttpResponse<BodyType>
   }
 
   /**
@@ -126,12 +148,22 @@ export class HttpResponse<
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
+    const hasExplicitContentType = responseInit.headers.has('Content-Type')
 
-    if (!responseInit.headers.has('Content-Type')) {
+    if (!hasExplicitContentType) {
       responseInit.headers.set('Content-Type', 'text/xml')
     }
 
-    return new HttpResponse(body, responseInit)
+    const response = new HttpResponse(body, responseInit)
+
+    if (!hasExplicitContentType) {
+      Object.defineProperty(response, kDefaultContentType, {
+        value: true,
+        enumerable: false,
+      })
+    }
+
+    return response as HttpResponse<BodyType>
   }
 
   /**
@@ -145,12 +177,22 @@ export class HttpResponse<
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
+    const hasExplicitContentType = responseInit.headers.has('Content-Type')
 
-    if (!responseInit.headers.has('Content-Type')) {
+    if (!hasExplicitContentType) {
       responseInit.headers.set('Content-Type', 'text/html')
     }
 
-    return new HttpResponse(body, responseInit)
+    const response = new HttpResponse(body, responseInit)
+
+    if (!hasExplicitContentType) {
+      Object.defineProperty(response, kDefaultContentType, {
+        value: true,
+        enumerable: false,
+      })
+    }
+
+    return response as HttpResponse<BodyType>
   }
 
   /**
@@ -167,8 +209,9 @@ export class HttpResponse<
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
+    const hasExplicitContentType = responseInit.headers.has('Content-Type')
 
-    if (!responseInit.headers.has('Content-Type')) {
+    if (!hasExplicitContentType) {
       responseInit.headers.set('Content-Type', 'application/octet-stream')
     }
 
@@ -176,7 +219,16 @@ export class HttpResponse<
       responseInit.headers.set('Content-Length', body.byteLength.toString())
     }
 
-    return new HttpResponse(body, responseInit)
+    const response = new HttpResponse(body, responseInit)
+
+    if (!hasExplicitContentType) {
+      Object.defineProperty(response, kDefaultContentType, {
+        value: true,
+        enumerable: false,
+      })
+    }
+
+    return response as HttpResponse<BodyType>
   }
 
   /**

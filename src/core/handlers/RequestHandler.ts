@@ -112,7 +112,7 @@ export interface RequestHandlerOptions {
 }
 
 export interface RequestHandlerExecutionResult<
-  ParsedResult extends Record<string, unknown> | undefined,
+  ParsedResult extends object | undefined,
 > {
   handler: RequestHandler
   parsedResult?: ParsedResult

@@ -7,10 +7,7 @@ import {
   defineNetwork,
   type DefineNetworkOptions,
 } from '#core/experimental/define-network'
-import {
-  type AnyHandler,
-  groupHandlersByKind,
-} from '#core/experimental/handlers-controller'
+import { type AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { SetupServer } from './glossary'
 import { AsyncHandlersController } from './async-handlers-controller'
@@ -60,22 +57,7 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServer {
 
   return {
     ...commonApi,
-    boundary(callback) {
-      return (...args) => {
-        const normalizedInitialHandlers = groupHandlersByKind(
-          handlersController.currentHandlers(),
-        )
-
-        return handlersController.context.run<any, any>(
-          {
-            initialHandlers: normalizedInitialHandlers,
-            handlers: { ...normalizedInitialHandlers },
-          },
-          callback,
-          ...args,
-        )
-      }
-    },
+    boundary: handlersController.boundary.bind(handlersController),
   }
 }
 
@@ -89,6 +71,8 @@ export class SetupServerApi
 {
   #handlersController: AsyncHandlersController
 
+  public boundary: AsyncHandlersController['boundary']
+
   constructor(
     handlers: Array<AnyHandler>,
     interceptors: Array<Interceptor<any>>,
@@ -100,24 +84,8 @@ export class SetupServerApi
     this.network.configure(networkOptions)
 
     this.#handlersController = controller
-  }
-
-  public boundary<Args extends Array<any>, ReturnType>(
-    callback: (...args: Args) => ReturnType,
-  ): (...args: Args) => ReturnType {
-    return (...args: Args): ReturnType => {
-      const normalizedInitialHandlers = groupHandlersByKind(
-        this.#handlersController.currentHandlers(),
-      )
-
-      return this.#handlersController.context.run<any, any>(
-        {
-          initialHandlers: normalizedInitialHandlers,
-          handlers: { ...normalizedInitialHandlers },
-        },
-        callback,
-        ...args,
-      )
-    }
+    this.boundary = this.#handlersController.boundary.bind(
+      this.#handlersController,
+    )
   }
 }

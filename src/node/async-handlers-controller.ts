@@ -12,17 +12,15 @@ export interface AsyncHandlersControllerContext {
 }
 
 export class AsyncHandlersController extends HandlersController {
+  #asyncContext: AsyncLocalStorage<AsyncHandlersControllerContext>
   #fallbackContext: AsyncHandlersControllerContext
-
-  public context: AsyncLocalStorage<AsyncHandlersControllerContext>
 
   constructor(initialHandlers: Array<AnyHandler>) {
     super()
 
     const initialState = this.getInitialState(initialHandlers)
 
-    this.context = new AsyncLocalStorage()
-
+    this.#asyncContext = new AsyncLocalStorage()
     this.#fallbackContext = {
       initialHandlers: initialState.initialHandlers,
       handlers: initialState.handlers,
@@ -30,11 +28,11 @@ export class AsyncHandlersController extends HandlersController {
   }
 
   protected getState() {
-    const context = this.#getContext()
+    const { initialHandlers, handlers } = this.#getContext()
 
     return {
-      initialHandlers: context.initialHandlers,
-      handlers: context.handlers,
+      initialHandlers,
+      handlers,
     }
   }
 
@@ -50,7 +48,22 @@ export class AsyncHandlersController extends HandlersController {
     }
   }
 
+  public boundary<Args extends Array<any>, R>(callback: (...args: Args) => R) {
+    return (...args: Args) => {
+      const initialHandlers = { ...this.getState().handlers }
+
+      return this.#asyncContext.run(
+        {
+          initialHandlers,
+          handlers: { ...initialHandlers },
+        },
+        callback,
+        ...args,
+      )
+    }
+  }
+
   #getContext() {
-    return this.context.getStore() || this.#fallbackContext
+    return this.#asyncContext.getStore() || this.#fallbackContext
   }
 }

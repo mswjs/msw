@@ -36,7 +36,7 @@ test('does not throw on connecting to a non-existing host', async ({
 
     return new Promise<void>((resolve, reject) => {
       socket.onclose = () => resolve()
-      socket.onerror = reject
+      socket.onerror = () => reject('WebSocket connection errored')
     })
   })
 
@@ -74,7 +74,7 @@ test('intercepts outgoing client text message', async ({
     socket.onopen = () => socket.send('hello world')
   })
 
-  expect(await clientMessagePromise).toBe('hello world')
+  await expect(clientMessagePromise).resolves.toBe('hello world')
 })
 
 test('intercepts outgoing client Blob message', async ({
@@ -108,7 +108,7 @@ test('intercepts outgoing client Blob message', async ({
     socket.onopen = () => socket.send(new Blob(['hello world']))
   })
 
-  expect(await clientMessagePromise).toBe('hello world')
+  await expect(clientMessagePromise).resolves.toBe('hello world')
 })
 
 test('intercepts outgoing client ArrayBuffer message', async ({
@@ -142,5 +142,40 @@ test('intercepts outgoing client ArrayBuffer message', async ({
     socket.onopen = () => socket.send(new TextEncoder().encode('hello world'))
   })
 
-  expect(await clientMessagePromise).toBe('hello world')
+  await expect(clientMessagePromise).resolves.toBe('hello world')
+})
+
+test('resolves relative link URL against the page origin', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./ws.runtime.js', import.meta.url), {
+    skipActivation: true,
+  })
+
+  await page.evaluate(async () => {
+    const { setupWorker, ws } = window.msw
+    const service = ws.link('/api')
+
+    const worker = setupWorker(
+      service.addEventListener('connection', ({ client }) => {
+        console.log('HANDLER!')
+
+        client.send('hello world')
+      }),
+    )
+    await worker.start()
+  })
+
+  const messagePromise = page.evaluate(() => {
+    const pendingMessage = Promise.withResolvers<string>()
+    const socket = new WebSocket('/api')
+    socket.onmessage = (event) => pendingMessage.resolve(event.data)
+    socket.onerror = () =>
+      pendingMessage.reject('Did not match the WebSocket connection')
+
+    return pendingMessage.promise
+  })
+
+  await expect(messagePromise).resolves.toBe('hello world')
 })

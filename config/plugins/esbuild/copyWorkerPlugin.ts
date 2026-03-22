@@ -57,6 +57,7 @@ export function copyWorkerPlugin(checksum: string): Plugin {
       })
 
       build.onEnd(() => {
+        // eslint-disable-next-line no-console
         console.log('worker script checksum:', checksum)
 
         // Copy the worker script on the next tick.

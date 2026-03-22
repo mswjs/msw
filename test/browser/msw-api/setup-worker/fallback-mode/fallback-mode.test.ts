@@ -1,4 +1,5 @@
-import { SetupWorkerApi } from 'msw/browser'
+import type { http, HttpResponse } from 'msw'
+import type { setupWorker } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
 import { Page } from '@playwright/test'
 import { HttpServer } from '@open-draft/test-server/lib/http.js'
@@ -6,7 +7,11 @@ import { fromTemp } from '../../../../support/utils'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
-  export const worker: SetupWorkerApi
+  export const msw: {
+    setupWorker: typeof setupWorker
+    http: typeof http
+    HttpResponse: typeof HttpResponse
+  }
 }
 
 const fsMock = createTeardown({
@@ -94,6 +99,13 @@ test('prints a fallback start message in the console', async ({
 }, testInfo) => {
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
+
+  await page.evaluate(async () => {
+    const { setupWorker } = window.msw
+    const worker = setupWorker()
+    await worker.start()
+  })
+
   const consoleGroups = consoleSpy.get('startGroupCollapsed')
 
   await waitFor(() => {
@@ -109,6 +121,17 @@ test('responds with a mocked response to a handled request', async ({
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
+
+  await page.evaluate(async () => {
+    const { setupWorker, http, HttpResponse } = window.msw
+
+    const worker = setupWorker(
+      http.get('*/user', () => {
+        return HttpResponse.json({ name: 'John Maverick' })
+      }),
+    )
+    await worker.start()
+  })
 
   const response = await fetch(server.https.url('/user'))
 
@@ -139,6 +162,12 @@ test('warns on the unhandled request by default', async ({
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
 
+  await page.evaluate(async () => {
+    const { setupWorker } = window.msw
+    const worker = setupWorker()
+    await worker.start()
+  })
+
   await fetch(server.http.url('/unknown-resource'))
 
   expect(consoleSpy.get('warning')).toEqual(
@@ -162,8 +191,12 @@ test('stops the fallback interceptor when called "worker.stop()"', async ({
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
 
-  await page.evaluate(() => {
-    window.worker.stop()
+  await page.evaluate(async () => {
+    const { setupWorker } = window.msw
+    const worker = setupWorker()
+    await worker.start()
+
+    worker.stop()
   })
 
   expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')

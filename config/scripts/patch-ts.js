@@ -32,8 +32,8 @@ function searchFilesForPattern(filePattern, searchPattern, errorMessage) {
 }
 
 function getRelativePaths(paths) {
-  const base = fileURLToPath(BUILD_DIR)
-  return paths.map((absolutePath) => path.relative(base, absolutePath))
+  const basePath = fileURLToPath(BUILD_DIR)
+  return paths.map((absolutePath) => path.relative(basePath, absolutePath))
 }
 
 async function patchTypeDefs() {
@@ -106,9 +106,9 @@ ${getRelativePaths(modulesWithUnresolvedImports)
   // Ensure that the .d.ts files compile without errors after resolving the "~/core" imports.
   console.log('Compiling the .d.ts modules with tsc...')
   const tscCompilation = await execAsync(
-    `tsc --noEmit --skipLibCheck ${typeDefsPaths.join(' ')}`,
+    `tsc --noEmit --skipLibCheck ${typeDefsPaths.map((filePath) => `"${filePath}"`).join(' ')}`,
     {
-      cwd: BUILD_DIR,
+      cwd: fileURLToPath(BUILD_DIR),
     },
   )
 

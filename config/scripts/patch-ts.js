@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
-import path from 'path'
+import path from 'node:path'
 import * as glob from 'glob'
 import { hasCoreImports, replaceCoreImports } from '../replaceCoreImports.js'
 
@@ -14,8 +14,6 @@ function searchFilesForPattern(filePattern, searchPattern, errorMessage) {
   const filePaths = glob.sync(filePattern, {
     cwd: BUILD_DIR,
     absolute: true,
-    posix: true,
-    dotRelative: true,
   })
 
   let matchingFiles = []
@@ -34,20 +32,14 @@ function searchFilesForPattern(filePattern, searchPattern, errorMessage) {
 }
 
 function getRelativePaths(paths) {
-  return paths.map((p) => {
-    const normalisedFilePath = p
-      .replace(/^\/\/\?\//, '')
-      .replace(/\\/g, path.sep)
-    return path.relative(fileURLToPath(BUILD_DIR), normalisedFilePath)
-  })
+  const base = fileURLToPath(BUILD_DIR)
+  return paths.map((absolutePath) => path.relative(base, absolutePath))
 }
 
 async function patchTypeDefs() {
   const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {
     cwd: BUILD_DIR,
     absolute: true,
-    posix: true,
-    dotRelative: true,
   })
   const typeDefsWithCoreImports = typeDefsPaths
     .map((modulePath) => {

@@ -12,8 +12,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.2(@types/node@20.19.25)
       '@msw/url':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.1.0
+        version: 0.1.0
       '@mswjs/interceptors':
         specifier: ^0.41.2
         version: 0.41.2
@@ -955,8 +955,8 @@ packages:
     resolution: {integrity: sha512-stTxvLdJ2IcGOs76AnvGYAzGvx8JvQPRxC5DW0P5zdAAnhL33noqb5LKdPt3P37BKp9FzBKZHuihQI9oVqwm0g==}
     engines: {node: '>=16.13'}
 
-  '@msw/url@0.0.2':
-    resolution: {integrity: sha512-INra0REan1xMRZGbrpgbGeCoBLQTcc23bPf+uRUwzQNoMogAo/tMKDuRlt+xUTQ/7H20DHgLs9t9Q1GEntrdbQ==}
+  '@msw/url@0.1.0':
+    resolution: {integrity: sha512-UPCjI5lITlbAerHQiTJT4F/Fqqeai/vLyUhnRLKDSXbLSoYcR2JEvJfnngSw8G7+0BI2488fDrfVDuv4pTqC6g==}
 
   '@mswjs/interceptors@0.41.2':
     resolution: {integrity: sha512-7G0Uf0yK3f2bjElBLGHIQzgRgMESczOMyYVasq1XK8P5HaXtlW4eQhz9MBL+TQILZLaruq+ClGId+hH0w4jvWw==}
@@ -6055,7 +6055,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@msw/url@0.0.2': {}
+  '@msw/url@0.1.0': {}
 
   '@mswjs/interceptors@0.41.2':
     dependencies:

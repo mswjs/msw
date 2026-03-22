@@ -35,5 +35,5 @@ export function matchRequestUrl(
 
   // Resolve potentially realive patterns against the baseUrl.
   const normalizedPath = normalizePath(pattern, baseUrl)
-  return matchPattern(cleanUrl, normalizedPath)
+  return matchPattern(normalizedPath, cleanUrl)
 }

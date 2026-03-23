@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { toPublicUrl } from './toPublicUrl'
 
 test('returns an absolute request URL without search params', () => {

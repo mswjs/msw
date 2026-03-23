@@ -3,12 +3,7 @@
   // living in the "src" directory.
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "baseUrl": "./",
-    "paths": {
-      "~/core": ["core"],
-      "~/core/*": ["core/*"]
-    }
+    "composite": true
   },
   "include": ["../global.d.ts", "./**/*.ts"],
   "exclude": ["./**/*.test.ts"]

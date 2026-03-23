@@ -84,7 +84,7 @@ function extractMultipartVariables<VariablesType extends GraphQLVariables>(
 
       for (const path of paths) {
         if (!(path in target)) {
-          throw new Error(`Property '${paths}' is not in operations.`)
+          throw new Error(`Property '${path}' is not in operations.`)
         }
 
         target = target[path]

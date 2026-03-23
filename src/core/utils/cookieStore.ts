@@ -36,7 +36,10 @@ class CookieStore {
   }
 
   private getCookieStoreIndex(): MemoryCookieStoreIndex {
-    if (typeof localStorage === 'undefined') {
+    if (
+      typeof localStorage === 'undefined' ||
+      typeof localStorage.getItem !== 'function'
+    ) {
       return {}
     }
 
@@ -66,7 +69,10 @@ class CookieStore {
   }
 
   private persist(): void {
-    if (typeof localStorage === 'undefined') {
+    if (
+      typeof localStorage === 'undefined' ||
+      typeof localStorage.setItem !== 'function'
+    ) {
       return
     }
 

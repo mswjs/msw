@@ -1,14 +1,10 @@
-/**
- * @vitest-environment node
- */
-import fetch from 'cross-fetch'
+// @vitest-environment node
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../../../support/graphql'
 
 const apolloClient = createGraphQLClient({
   uri: 'http://localhost:3000',
-  fetch,
 })
 
 const GET_USER_DETAIL = gql`
@@ -66,11 +62,15 @@ beforeAll(() => {
   server.listen()
 })
 
+afterEach(() => {
+  server.resetHandlers()
+})
+
 afterAll(() => {
   server.close()
 })
 
-test('returns the mocked response for a GraphQL query', async () => {
+it('returns the mocked response for a GraphQL query', async () => {
   const res = await apolloClient({
     query: GET_USER_DETAIL,
     variables: {
@@ -88,7 +88,7 @@ test('returns the mocked response for a GraphQL query', async () => {
   })
 })
 
-test('returns the mocked response for a GraphQL mutation', async () => {
+it('returns the mocked response for a GraphQL mutation', async () => {
   const res = await apolloClient({
     query: LOGIN,
     variables: {

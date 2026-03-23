@@ -1,4 +1,4 @@
-import statuses from '@bundled-es-modules/statuses'
+import statuses from '../../../shims/statuses'
 import { Headers as HeadersPolyfill } from 'headers-polyfill'
 import type { HttpResponseInit } from '../../HttpResponse'
 

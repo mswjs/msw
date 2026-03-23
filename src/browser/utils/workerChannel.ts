@@ -1,6 +1,8 @@
+import { invariant } from 'outvariant'
 import { Emitter, TypedEvent } from 'rettime'
 import { isObject } from '~/core/utils/internal/isObject'
 import type { StringifiedResponse } from '../setupWorker/glossary'
+import { supportsServiceWorker } from '../utils/supports'
 
 export interface WorkerChannelOptions {
   worker: Promise<ServiceWorker>
@@ -65,6 +67,8 @@ export type WorkerEventResponse = {
   PASSTHROUGH: []
 }
 
+const SUPPORTS_SERVICE_WORKER = supportsServiceWorker()
+
 export class WorkerEvent<
   DataType,
   ReturnType = any,
@@ -121,6 +125,10 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
   constructor(protected readonly options: WorkerChannelOptions) {
     super()
 
+    if (!SUPPORTS_SERVICE_WORKER) {
+      return
+    }
+
     navigator.serviceWorker.addEventListener('message', async (event) => {
       const worker = await this.options.worker
 
@@ -139,6 +147,11 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
    * This triggers the `message` event listener on ServiceWorkerGlobalScope.
    */
   public postMessage(type: OutgoingWorkerEvents): void {
+    invariant(
+      SUPPORTS_SERVICE_WORKER,
+      'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this context. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+    )
+
     this.options.worker.then((worker) => {
       worker.postMessage(type)
     })

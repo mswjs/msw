@@ -1,4 +1,4 @@
-import type { DocumentNode, OperationTypeNode } from 'graphql'
+import type { OperationTypeNode } from 'graphql'
 import {
   ResponseResolver,
   RequestHandlerOptions,
@@ -7,32 +7,29 @@ import {
   GraphQLHandler,
   GraphQLVariables,
   GraphQLOperationType,
-  GraphQLHandlerNameSelector,
   GraphQLResolverExtras,
   GraphQLResponseBody,
   GraphQLQuery,
-  GraphQLCustomPredicate,
+  GraphQLPredicate,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
-
-export interface TypedDocumentNode<
-  Result = { [key: string]: any },
-  Variables = { [key: string]: any },
-> extends DocumentNode {
-  __apiType?: (variables: Variables) => Result
-  __resultType?: Result
-  __variablesType?: Variables
-}
 
 export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
   Variables extends GraphQLVariables = GraphQLVariables,
 >(
-  predicate:
-    | GraphQLHandlerNameSelector
-    | DocumentNode
-    | TypedDocumentNode<Query, Variables>
-    | GraphQLCustomPredicate,
+  predicate: GraphQLPredicate<Query, Variables>,
+  resolver: GraphQLResponseResolver<
+    [Query] extends [never] ? GraphQLQuery : Query,
+    Variables
+  >,
+  options?: RequestHandlerOptions,
+) => GraphQLHandler
+
+export type GraphQLOperationHandler = <
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+>(
   resolver: GraphQLResponseResolver<
     [Query] extends [never] ? GraphQLQuery : Query,
     Variables
@@ -58,22 +55,28 @@ function createScopedGraphQLHandler(
   }
 }
 
-function createGraphQLOperationHandler(url: Path) {
-  return <
-    Query extends GraphQLQuery = GraphQLQuery,
-    Variables extends GraphQLVariables = GraphQLVariables,
-  >(
-    resolver: ResponseResolver<
-      GraphQLResolverExtras<Variables>,
-      null,
-      GraphQLResponseBody<Query>
-    >,
-  ) => {
-    return new GraphQLHandler('all', new RegExp('.*'), url, resolver)
+function createGraphQLOperationHandler(url: Path): GraphQLOperationHandler {
+  return (resolver, options) => {
+    return new GraphQLHandler('all', new RegExp('.*'), url, resolver, options)
   }
 }
 
-const standardGraphQLHandlers = {
+export interface GraphQLLinkHandlers {
+  query: GraphQLRequestHandler
+  mutation: GraphQLRequestHandler
+  operation: GraphQLOperationHandler
+}
+
+/**
+ * A namespace to intercept and mock GraphQL operations
+ *
+ * @example
+ * graphql.query('GetUser', resolver)
+ * graphql.mutation('DeletePost', resolver)
+ *
+ * @see {@link https://mswjs.io/docs/api/graphql `graphql` API reference}
+ */
+export const graphql = {
   /**
    * Intercepts a GraphQL query by a given name.
    *
@@ -110,27 +113,6 @@ const standardGraphQLHandlers = {
    * @see {@link https://mswjs.io/docs/api/graphql#graphqloperationresolver `graphql.operation()` API reference}
    */
   operation: createGraphQLOperationHandler('*'),
-}
-
-function createGraphQLLink(url: Path): typeof standardGraphQLHandlers {
-  return {
-    operation: createGraphQLOperationHandler(url),
-    query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
-    mutation: createScopedGraphQLHandler('mutation' as OperationTypeNode, url),
-  }
-}
-
-/**
- * A namespace to intercept and mock GraphQL operations
- *
- * @example
- * graphql.query('GetUser', resolver)
- * graphql.mutation('DeletePost', resolver)
- *
- * @see {@link https://mswjs.io/docs/api/graphql `graphql` API reference}
- */
-export const graphql = {
-  ...standardGraphQLHandlers,
 
   /**
    * Intercepts GraphQL operations scoped by the given URL.
@@ -141,5 +123,14 @@ export const graphql = {
    *
    * @see {@link https://mswjs.io/docs/api/graphql#graphqllinkurl `graphql.link()` API reference}
    */
-  link: createGraphQLLink,
+  link(url: Path): GraphQLLinkHandlers {
+    return {
+      operation: createGraphQLOperationHandler(url),
+      query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
+      mutation: createScopedGraphQLHandler(
+        'mutation' as OperationTypeNode,
+        url,
+      ),
+    }
+  },
 }

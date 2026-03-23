@@ -1,5 +1,5 @@
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 import {
   type SerializedWebSocketClient,
   WebSocketClientStore,
@@ -56,8 +56,7 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       promise.resolve(request.result)
     }
     request.onerror = () => {
-      // eslint-disable-next-line no-console
-      console.log(request.error)
+      console.error(request.error)
       promise.reject(
         new Error(
           `Failed to get all WebSocket clients. There is likely an additional output above.`,

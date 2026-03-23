@@ -1,4 +1,4 @@
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 import {
   SerializedWebSocketClient,
   WebSocketClientStore,

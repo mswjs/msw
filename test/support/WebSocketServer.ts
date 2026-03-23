@@ -1,9 +1,9 @@
 import { invariant } from 'outvariant'
 import { Emitter } from 'strict-event-emitter'
 import fastify, { FastifyInstance } from 'fastify'
-import fastifyWebSocket, { SocketStream } from '@fastify/websocket'
-
-type FastifySocket = SocketStream['socket']
+import fastifyWebSocket, {
+  type WebSocket as FastifySocket,
+} from '@fastify/websocket'
 
 type WebSocketEventMap = {
   connection: [client: FastifySocket]
@@ -21,7 +21,7 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
     this.app = fastify()
     this.app.register(fastifyWebSocket)
     this.app.register(async (fastify) => {
-      fastify.get('/', { websocket: true }, ({ socket }) => {
+      fastify.get('/', { websocket: true }, (socket) => {
         this.clients.add(socket)
         socket.once('close', () => this.clients.delete(socket))
 

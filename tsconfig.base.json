@@ -6,7 +6,12 @@
     "moduleResolution": "node",
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": false
+    "allowSyntheticDefaultImports": false,
+    "baseUrl": "./",
+    "paths": {
+      "~/core": ["src/core"],
+      "~/core/*": ["src/core/*"]
+    }
   },
   "include": ["./global.d.ts"],
   "exclude": ["node_modules", "lib"]

@@ -2,8 +2,8 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
-    "module": "preserve",
-    "target": "ES2015",
+    "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     // Support default imports for modules that have no default exports.

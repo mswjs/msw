@@ -1,12 +1,14 @@
 // @vitest-environment node
 import { graphql, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { gql } from '../../support/graphql'
+import { createGraphQLClient, gql } from '../../support/graphql'
 
 const server = setupServer()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'bypass' })
+  server.listen({
+    onUnhandledRequest: 'bypass',
+  })
 })
 
 afterEach(() => {
@@ -29,22 +31,22 @@ it('matches requests when the predicate function returns true', async () => {
     ),
   )
 
-  const response = await fetch('http://localhost/irrelevant', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: gql`
-        query GetUser {
-          user {
-            firstName
-          }
-        }
-      `,
-    }),
+  const client = createGraphQLClient({
+    uri: 'http://localhost:3000/graphql',
   })
 
-  expect.soft(response.status).toBe(200)
-  await expect.soft(response.json()).resolves.toEqual({ data: { user: 1 } })
+  const result = await client({
+    query: gql`
+      query GetUser {
+        user {
+          firstName
+        }
+      }
+    `,
+  })
+
+  expect.soft(result.data).toEqual({ user: 1 })
+  expect.soft(result.errors).toBeUndefined()
 })
 
 it('does not match requests when the predicate function returns false', async () => {
@@ -59,19 +61,20 @@ it('does not match requests when the predicate function returns false', async ()
     ),
   )
 
-  await expect(
-    fetch('http://localhost/irrelevant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: gql`
-          query GetCart {
-            cart {
-              id
-            }
-          }
-        `,
-      }),
-    }),
-  ).rejects.toThrow('fetch failed')
+  const client = createGraphQLClient({
+    uri: 'http://localhost:3000/graphql',
+  })
+
+  const requestError = await client({
+    query: gql`
+      query GetCart {
+        cart {
+          id
+        }
+      }
+    `,
+  }).catch((error) => error)
+
+  expect.soft(requestError).toBeInstanceOf(Error)
+  expect.soft(requestError.message).toEqual('fetch failed')
 })

@@ -81,7 +81,6 @@ afterAll(async () => {
 test('patches a GraphQL response', async () => {
   const client = createGraphQLClient({
     uri: httpServer.http.url('/graphql'),
-    fetch,
   })
 
   const res = await client<{

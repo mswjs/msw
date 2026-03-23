@@ -139,7 +139,7 @@ describe('info', () => {
     expect(
       () => new GraphQLHandler(OperationTypeNode.QUERY, node, '*', resolver),
     ).toThrow(
-      'Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "query", but got "mutation").',
+      'Failed to create a GraphQL handler: provided a DocumentNode with a mismatched operation type (expected "query" but got "mutation").',
     )
   })
 })

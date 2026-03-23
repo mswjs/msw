@@ -1,4 +1,4 @@
-import type { WebSocketConnectionData } from '@mswjs/interceptors/lib/browser/interceptors/WebSocket'
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import { RequestHandler } from '../handlers/RequestHandler'
 import { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'

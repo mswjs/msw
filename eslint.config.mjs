@@ -16,7 +16,7 @@ export default tseslint.config(
         sourceType: 'module',
       },
     },
-    ignores: ['/lib', '/node', '/native', '/config', 'test'],
+    ignores: ['/lib', '/node', '/native', '/config', '/test'],
     rules: {
       'no-console': [
         'error',
@@ -28,6 +28,7 @@ export default tseslint.config(
       'require-yield': 'off',
       'no-empty-pattern': 'off',
       'no-control-regex': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/prefer-ts-expect-error': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -59,6 +60,7 @@ export default tseslint.config(
     ],
     rules: {
       'no-console': 'off',
+      '@typescript-eslint/prefer-ts-expect-error': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },

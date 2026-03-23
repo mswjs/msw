@@ -13,6 +13,7 @@ import {
 import { http, HttpResponse, GraphQLVariables, bypass } from 'msw'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
+import { createGraphQLClient } from '../../support/graphql'
 
 const httpServer = new HttpServer((app) => {
   app.post('/graphql', (req, res) => {
@@ -25,29 +26,30 @@ const httpServer = new HttpServer((app) => {
 })
 
 const schema = buildSchema(`
-type User {
-  id: ID!
-}
+  type User {
+    id: ID!
+  }
 
-type Product {
-  name: String!
-}
+  type Product {
+    name: String!
+  }
 
-type Server {
-  url: String!
-}
+  type Server {
+    url: String!
+  }
 
-type Query {
-  user: User
-  product: Product
-  server: Server
-}
+  type Query {
+    user: User
+    product: Product
+    server: Server
+  }
 `)
 
 const server = setupServer()
 
 beforeAll(async () => {
   await httpServer.listen()
+
   server.listen()
   server.use(
     http.post<never, { query: string; variables?: GraphQLVariables }>(
@@ -101,64 +103,56 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await httpServer.close()
   server.close()
+  await httpServer.close()
 })
 
 it('sends a mocked response to a batched GraphQL query', async () => {
-  const response = await fetch(httpServer.http.url('/graphql'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `
-        query {
-          user_0: user {
-            id
-          }
-          product_0: product {
-            name
-          }
-        }
-      `,
-    }),
+  const client = createGraphQLClient({
+    uri: httpServer.http.url('/graphql'),
   })
 
-  const { errors, data } = await response.json()
+  const result = await client({
+    query: `
+      query {
+        user_0: user {
+          id
+        }
+        product_0: product {
+          name
+        }
+      }
+    `,
+  })
 
-  expect(errors).toBeUndefined()
-  expect(data).toEqual({
+  expect.soft(result.data).toEqual({
     user_0: { id: 'abc-123' },
     product_0: { name: 'Hoover 2000' },
   })
+  expect.soft(result.errors).toBeUndefined()
 })
 
 it('combines mocked and original responses in a single batched query', async () => {
-  const response = await fetch(httpServer.http.url('/graphql'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: `
-        query {
-          user_0: user {
-            id
-          }
-          server_0: server {
-            url
-          }
-        }
-      `,
-    }),
+  const client = createGraphQLClient({
+    uri: httpServer.http.url('/graphql'),
   })
 
-  const { errors, data } = await response.json()
+  const result = await client({
+    query: `
+      query {
+        user_0: user {
+          id
+        }
+        server_0: server {
+          url
+        }
+      }
+    `,
+  })
 
-  expect(errors).toEqual(undefined)
-  expect(data).toEqual({
+  expect.soft(result.data).toEqual({
     user_0: { id: 'abc-123' },
     server_0: { url: httpServer.http.address.href },
   })
+  expect.soft(result.errors).toEqual(undefined)
 })

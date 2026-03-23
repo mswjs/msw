@@ -35,7 +35,7 @@ export function createResponseListener(
               ? responseMessage.response.body
               : null,
             {
-              ...responseMessage,
+              ...responseMessage.response,
               /**
                * Set response URL if it's not set already.
                * @see https://github.com/mswjs/msw/issues/2030

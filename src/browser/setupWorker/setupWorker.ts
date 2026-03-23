@@ -24,6 +24,8 @@ import { printStartMessage } from './start/utils/printStartMessage'
 import { printStopMessage } from './stop/utils/printStopMessage'
 import { supportsServiceWorker } from '../utils/supports'
 
+const SETUP_WORKER_APPLIED = Symbol.for('msw.setupWorker')
+
 export class SetupWorkerApi
   extends SetupApi<LifeCycleEventsMap>
   implements SetupWorker
@@ -180,5 +182,15 @@ export class SetupWorkerApi
 export function setupWorker(
   ...handlers: Array<RequestHandler | WebSocketHandler>
 ): SetupWorker {
-  return new SetupWorkerApi(...handlers)
+  invariant(
+    Reflect.get(globalThis, SETUP_WORKER_APPLIED) == null,
+    devUtils.formatMessage(
+      'Failed to execute `setupWorker()` more than once in the same page. Create the worker once and reuse it for the lifetime of the page. If you wish to apply a different set of request handlers, use `worker.use()` or `worker.resetHandlers()` instead.',
+    ),
+  )
+
+  const worker = new SetupWorkerApi(...handlers)
+  Reflect.set(globalThis, SETUP_WORKER_APPLIED, true)
+
+  return worker
 }

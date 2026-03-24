@@ -1,4 +1,4 @@
-import { Emitter, TypedEvent } from 'rettime'
+import { Emitter, TypedEvent, type TypedListenerOptions } from 'rettime'
 import {
   type AnyNetworkFrame,
   type ExtractFrameEvents,
@@ -45,8 +45,9 @@ export abstract class NetworkSource<
   public on<Type extends keyof NetworkSourceEventMap<Frame>>(
     type: Type,
     listener: Emitter.ListenerType<typeof this.emitter, Type>,
+    options?: TypedListenerOptions,
   ): void {
-    this.emitter.on(type, listener)
+    this.emitter.on(type, listener, options)
   }
 
   public async disable(): Promise<void> {

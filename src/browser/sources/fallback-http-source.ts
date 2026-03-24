@@ -8,10 +8,14 @@ interface FallbackHttpSourceOptions {
 }
 
 export class FallbackHttpSource extends InterceptorSource {
-  constructor(private readonly options: FallbackHttpSourceOptions) {
+  constructor(private options: FallbackHttpSourceOptions) {
     super({
       interceptors: [new XMLHttpRequestInterceptor(), new FetchInterceptor()],
     })
+  }
+
+  public configure(options: FallbackHttpSourceOptions): void {
+    this.options = options
   }
 
   public async enable(): Promise<void> {

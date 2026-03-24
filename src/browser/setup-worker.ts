@@ -66,7 +66,50 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     handlers,
   })
 
+  const webSocketSource = new InterceptorSource({
+    interceptors: [new WebSocketInterceptor() as any],
+  })
+
   let isStarted = false
+  let currentRegistration: ServiceWorkerRegistration | undefined
+  let currentStart: Promise<ServiceWorkerRegistration | undefined> | undefined
+  let currentStop: Promise<void> | undefined
+  let httpSource: ServiceWorkerSource | FallbackHttpSource | undefined
+
+  const getHttpSource = (
+    options?: SetupWorkerStartOptions,
+  ): ServiceWorkerSource | FallbackHttpSource => {
+    if (supportsServiceWorker()) {
+      const nextOptions = {
+        serviceWorker: {
+          url: options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
+          options: options?.serviceWorker?.options,
+        },
+        findWorker: options?.findWorker,
+        quiet: options?.quiet,
+      }
+
+      if (!(httpSource instanceof ServiceWorkerSource)) {
+        httpSource = new ServiceWorkerSource(nextOptions)
+      } else {
+        httpSource.configure(nextOptions)
+      }
+
+      return httpSource
+    }
+
+    const nextOptions = {
+      quiet: options?.quiet,
+    }
+
+    if (!(httpSource instanceof FallbackHttpSource)) {
+      httpSource = new FallbackHttpSource(nextOptions)
+    } else {
+      httpSource.configure(nextOptions)
+    }
+
+    return httpSource
+  }
 
   return {
     async start(options) {
@@ -84,30 +127,17 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
         devUtils.warn(
           'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
         )
-        return
+        return currentStart || currentRegistration
       }
 
-      const httpSource = supportsServiceWorker()
-        ? new ServiceWorkerSource({
-            serviceWorker: {
-              url:
-                options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
-              options: options?.serviceWorker?.options,
-            },
-            findWorker: options?.findWorker,
-            quiet: options?.quiet,
-          })
-        : new FallbackHttpSource({
-            quiet: options?.quiet,
-          })
+      if (currentStop) {
+        await currentStop
+      }
+
+      const nextHttpSource = getHttpSource(options)
 
       network.configure({
-        sources: [
-          httpSource,
-          new InterceptorSource({
-            interceptors: [new WebSocketInterceptor() as any],
-          }),
-        ],
+        sources: [nextHttpSource, webSocketSource],
         onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
           return options?.onUnhandledRequest || 'warn'
         }),
@@ -116,22 +146,65 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
         },
       })
 
-      await network.enable()
       isStarted = true
+      const startPromise = (async () => {
+        await network.enable()
 
-      if (httpSource instanceof ServiceWorkerSource) {
-        const [, registration] = await httpSource.workerPromise
-        return registration
+        if (!isStarted) {
+          return undefined
+        }
+
+        if (nextHttpSource instanceof ServiceWorkerSource) {
+          const [, registration] = await nextHttpSource.workerPromise
+
+          if (!isStarted) {
+            return undefined
+          }
+
+          currentRegistration = registration
+          return registration
+        }
+
+        currentRegistration = undefined
+        return undefined
+      })()
+
+      currentStart = startPromise
+
+      try {
+        return await startPromise
+      } catch (error) {
+        isStarted = false
+        currentRegistration = undefined
+        throw error
+      } finally {
+        if (currentStart === startPromise) {
+          currentStart = undefined
+        }
       }
     },
     stop() {
       if (!isStarted) {
+        devUtils.warn(
+          'Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.',
+        )
         return
       }
 
-      network.disable().then(() => {
+      isStarted = false
+      currentRegistration = undefined
+
+      const stopPromise = network.disable().then(() => {
         window.postMessage({ type: 'msw/worker:stop' })
       })
+
+      const stopTask = stopPromise.finally(() => {
+        if (currentStop === stopTask) {
+          currentStop = undefined
+        }
+      })
+
+      currentStop = stopTask
     },
     events: network.events,
     use: network.use.bind(network),

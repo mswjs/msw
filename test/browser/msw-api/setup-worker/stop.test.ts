@@ -98,6 +98,41 @@ test('keeps the mocking enabled in one tab when stopping the worker in another t
   await expect(response.json()).resolves.toEqual({ mocked: true })
 })
 
+test('re-enables mocking after the worker is stopped', async ({
+  loadExample,
+  fetch,
+  page,
+}) => {
+  await using server = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return Response.json(
+          { original: true },
+          {
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+              'Access-Control-Allow-Headers': 'Content-Type',
+            },
+          },
+        )
+      })
+    },
+  })
+
+  await loadExample(new URL('./stop.mocks.ts', import.meta.url))
+  await stopWorkerOn(page)
+
+  await page.evaluate(() => {
+    return window.msw.worker.start()
+  })
+
+  const response = await fetch(server.http.url('/resource'))
+
+  expect.soft(response.fromServiceWorker()).toBe(true)
+  await expect(response.json()).resolves.toEqual({ mocked: true })
+})
+
 test('prints a warning on multiple "worker.stop()" calls', async ({
   loadExample,
   spyOnConsole,

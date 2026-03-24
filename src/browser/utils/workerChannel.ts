@@ -5,7 +5,7 @@ import type { StringifiedResponse } from '../glossary'
 import { supportsServiceWorker } from '../utils/supports'
 
 export interface WorkerChannelOptions {
-  worker: Promise<ServiceWorker>
+  worker(): Promise<ServiceWorker>
 }
 
 export type WorkerChannelEventMap = {
@@ -130,7 +130,7 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
     }
 
     navigator.serviceWorker.addEventListener('message', async (event) => {
-      const worker = await this.options.worker
+      const worker = await this.options.worker()
 
       if (event.source != null && event.source !== worker) {
         return
@@ -152,7 +152,7 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
       'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this context. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
     )
 
-    this.options.worker.then((worker) => {
+    this.options.worker().then((worker) => {
       worker.postMessage(type)
     })
   }

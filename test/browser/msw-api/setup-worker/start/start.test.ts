@@ -120,3 +120,24 @@ test('prints a warning if "worker.start()" is called multiple times', async ({
     `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
   ])
 })
+
+test('returns the active registration on a redundant "worker.start()" call', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(...exampleOptions)
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  const [firstScope, secondScope] = await page.evaluate(async () => {
+    const firstRegistration = await window.msw.startWorker()
+    const secondRegistration = await window.msw.startWorker()
+
+    return [firstRegistration?.scope || null, secondRegistration?.scope || null]
+  })
+
+  expect(firstScope).not.toBeNull()
+  expect(secondScope).toEqual(firstScope)
+})

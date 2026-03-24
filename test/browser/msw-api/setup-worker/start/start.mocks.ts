@@ -9,8 +9,8 @@ const worker = setupWorker(
 
 Object.assign(window, {
   msw: {
-    async startWorker() {
-      await worker.start({
+    startWorker() {
+      return worker.start({
         serviceWorker: {
           // Use a custom Service Worker for this test that intentionally
           // delays the worker installation time. This allows us to test

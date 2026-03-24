@@ -56,7 +56,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     [ServiceWorker, ServiceWorkerRegistration]
   >
 
-  constructor(private readonly options: ServiceWorkerSourceOptions) {
+  constructor(private options: ServiceWorkerSourceOptions) {
     super()
 
     invariant(
@@ -67,19 +67,31 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#frames = new Map()
     this.workerPromise = new DeferredPromise()
     this.#channel = new WorkerChannel({
-      worker: this.workerPromise.then(([worker]) => worker),
+      worker: () => this.workerPromise.then(([worker]) => worker),
     })
   }
 
+  public configure(options: ServiceWorkerSourceOptions): void {
+    this.options = options
+  }
+
   public async enable(): Promise<ServiceWorkerRegistration> {
+    const isRedundantStart =
+      typeof this.#stoppedAt === 'undefined' &&
+      this.workerPromise.state !== 'pending'
+
     this.#stoppedAt = undefined
 
-    if (this.workerPromise.state !== 'pending') {
+    if (isRedundantStart) {
       devUtils.warn(
         'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
       )
 
       return this.workerPromise.then(([, registration]) => registration)
+    }
+
+    if (this.workerPromise.state !== 'pending') {
+      this.workerPromise = new DeferredPromise()
     }
 
     this.#channel.removeAllListeners()
@@ -138,7 +150,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#stoppedAt = Date.now()
     this.#frames.clear()
-    this.workerPromise = new DeferredPromise()
+    this.#clearKeepAliveInterval()
 
     if (!this.options.quiet) {
       this.#printStopMessage()
@@ -146,9 +158,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   async #startWorker() {
-    if (this.#keepAliveInterval) {
-      clearInterval(this.#keepAliveInterval)
-    }
+    this.#clearKeepAliveInterval()
 
     const workerUrl = this.options.serviceWorker.url
 
@@ -191,7 +201,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         this.#channel.postMessage('CLIENT_CLOSED')
       }
 
-      clearInterval(this.#keepAliveInterval)
+      this.#clearKeepAliveInterval()
 
       window.postMessage({ type: 'msw/worker:stop' })
     })
@@ -212,6 +222,15 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     }
 
     return [worker, registration] as const
+  }
+
+  #clearKeepAliveInterval(): void {
+    if (typeof this.#keepAliveInterval === 'undefined') {
+      return
+    }
+
+    clearInterval(this.#keepAliveInterval)
+    this.#keepAliveInterval = undefined
   }
 
   async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {

@@ -1,7 +1,13 @@
 import { invariant } from 'outvariant'
 import { Emitter } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { FetchResponse } from '@mswjs/interceptors'
+import {
+  BatchInterceptor,
+  FetchResponse,
+  type HttpRequestEventMap,
+} from '@mswjs/interceptors'
+import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { NetworkSource } from '#core/experimental/sources/network-source'
 import { RequestHandler } from '#core/handlers/RequestHandler'
 import {
@@ -46,6 +52,10 @@ type WorkerChannelClient =
   WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
 
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
+  #bypassInterceptor?: BatchInterceptor<
+    [FetchInterceptor, XMLHttpRequestInterceptor],
+    HttpRequestEventMap
+  >
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
   #clientPromise?: Promise<WorkerChannelClient>
@@ -73,6 +83,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
   public async enable(): Promise<ServiceWorkerRegistration> {
     this.#stoppedAt = undefined
+    this.#disposeBypassInterceptor()
 
     if (this.workerPromise.state !== 'pending') {
       devUtils.warn(
@@ -137,8 +148,13 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     }
 
     this.#stoppedAt = Date.now()
+    this.#applyBypassInterceptor()
     this.#frames.clear()
     this.workerPromise = new DeferredPromise()
+
+    if (this.#keepAliveInterval) {
+      clearInterval(this.#keepAliveInterval)
+    }
 
     if (!this.options.quiet) {
       this.#printStopMessage()
@@ -214,11 +230,30 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     return [worker, registration] as const
   }
 
-  async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
-    if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
-      return event.postMessage('PASSTHROUGH')
+  #applyBypassInterceptor(): void {
+    if (this.#bypassInterceptor) {
+      return
     }
 
+    const interceptor = new BatchInterceptor({
+      name: 'service-worker-bypass',
+      interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
+    })
+
+    interceptor.on('request', ({ request }) => {
+      request.headers.append('accept', 'msw/passthrough')
+    })
+
+    interceptor.apply()
+    this.#bypassInterceptor = interceptor
+  }
+
+  #disposeBypassInterceptor(): void {
+    this.#bypassInterceptor?.dispose()
+    this.#bypassInterceptor = undefined
+  }
+
+  async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
     const request = deserializeRequest(event.data)
     RequestHandler.cache.set(request, request.clone())
 

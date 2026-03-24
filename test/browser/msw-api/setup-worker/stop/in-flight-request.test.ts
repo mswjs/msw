@@ -60,3 +60,18 @@ test('bypasses requests made after the worker was stopped', async ({
 
   await expect(dataPromise).resolves.toBe('original response')
 })
+
+test('bypasses requests immediately made after the worker was stopped', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./in-flight-request.mocks.ts', import.meta.url))
+
+  const data = await page.evaluate(async () => {
+    window.msw.worker.stop()
+
+    return fetch('/resource').then((response) => response.text())
+  })
+
+  expect(data).toContain('Cannot GET /resource')
+})

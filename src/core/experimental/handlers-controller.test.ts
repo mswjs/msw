@@ -64,6 +64,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     {
       const httpHandler = http.get('/', () => {})
       const controller = new InMemoryHandlersController([httpHandler])
+
       controller.reset([])
       expect(controller.currentHandlers()).toEqual([httpHandler])
     }
@@ -73,7 +74,26 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
     const controller = new InMemoryHandlersController([httpOne])
+
     controller.reset([httpTwo])
+    expect(controller.currentHandlers()).toEqual([httpTwo])
+  })
+
+  it('resets the initial handlers after runtime handlers are applied', () => {
+    const httpOne = http.get('/', () => {})
+    const httpTwo = http.get('/', () => {})
+    const controller = new InMemoryHandlersController([])
+    controller.use([httpOne])
+
+    controller.reset([httpTwo])
+    expect(controller.currentHandlers()).toEqual([httpTwo])
+
+    controller.reset([])
+    /**
+     * @note There's no way to "clear" the initial state via ".reset()".
+     * You can only provide the next initial state. The public-facing ".resetHandlers()"
+     * spread the arguments so there's no distinction between () and ([]).
+     */
     expect(controller.currentHandlers()).toEqual([httpTwo])
   })
 })

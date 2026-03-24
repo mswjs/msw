@@ -224,9 +224,9 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
     const acceptHeader = headers.get('accept')
     if (acceptHeader) {
       const values = acceptHeader.split(',').map((value) => value.trim())
-      const filteredValues = values.filter(
-        (value) => value !== 'msw/passthrough',
-      )
+      const filteredValues = values.filter((value) => {
+        return value !== 'msw/passthrough' && value !== 'msw/stop-passthrough'
+      })
 
       if (filteredValues.length > 0) {
         headers.set('accept', filteredValues.join(', '))

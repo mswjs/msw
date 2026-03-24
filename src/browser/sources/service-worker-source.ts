@@ -51,6 +51,8 @@ type WorkerChannelResponseEvent = Emitter.EventType<
 type WorkerChannelClient =
   WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
 
+const STOP_BYPASS_TOKEN = 'msw/stop-passthrough'
+
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
   #bypassInterceptor?: BatchInterceptor<
     [FetchInterceptor, XMLHttpRequestInterceptor],
@@ -242,6 +244,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
     interceptor.on('request', ({ request }) => {
       request.headers.append('accept', 'msw/passthrough')
+      request.headers.append('accept', STOP_BYPASS_TOKEN)
     })
 
     interceptor.apply()
@@ -255,6 +258,11 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
   async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
     const request = deserializeRequest(event.data)
+
+    if (request.headers.get('accept')?.includes(STOP_BYPASS_TOKEN)) {
+      return event.postMessage('PASSTHROUGH')
+    }
+
     RequestHandler.cache.set(request, request.clone())
 
     const frame = new ServiceWorkerHttpNetworkFrame({

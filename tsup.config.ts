@@ -28,7 +28,10 @@ const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 const shimConfig: Options = {
   name: 'shims',
   platform: 'neutral',
-  entry: glob.sync('./src/shims/**/*.ts'),
+  entry: glob.sync('./src/shims/**/*.ts', {
+    posix: true,
+    dotRelative: true,
+  }),
   format: ['esm', 'cjs'],
   noExternal: Object.keys(packageJson.dependencies),
   outDir: './lib/shims',
@@ -43,6 +46,8 @@ const coreConfig: Options = {
   platform: 'neutral',
   entry: glob.sync('./src/core/**/*.ts', {
     ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
   }),
   external: [ecosystemDependencies],
   noExternal: ['cookie'],

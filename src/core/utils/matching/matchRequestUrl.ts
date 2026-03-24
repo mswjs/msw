@@ -40,9 +40,9 @@ export function coercePath(path: string): string {
       )
       /**
        * Escape the port so that "path-to-regexp" can match
-       * absolute URLs including port numbers.
+       * absolute URLs with numeric or wildcard ports.
        */
-      .replace(/([^/])(:)(?=\d+)/, '$1\\$2')
+      .replace(/([^/])(:)(?=(?:\d+|\(\.\*\))(?=\/|$))/, '$1\\$2')
       /**
        * Escape the protocol so that "path-to-regexp" could match
        * absolute URL.

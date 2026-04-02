@@ -19,8 +19,8 @@ it('infers event map type from a single source', () => {
   defineNetwork({
     sources: [new HttpSource()],
   }).events.on('*', (event) => {
-    expectTypeOf(event.type).toExtend<'hello'>()
-    expectTypeOf(event.data).toExtend<'world'>()
+    expectTypeOf(event.type).toEqualTypeOf<'hello'>()
+    expectTypeOf(event.data).toEqualTypeOf<'world'>()
   })
 })
 
@@ -38,7 +38,60 @@ it('combines event maps from different sources', () => {
   defineNetwork({
     sources: [new HttpSource(), new SmtpSource()],
   }).events.on('*', (event) => {
-    expectTypeOf(event.type).toExtend<'hello' | 'goodbye'>()
-    expectTypeOf(event.data).toExtend<'world' | 'cosmos'>()
+    expectTypeOf(event.type).toEqualTypeOf<'hello' | 'goodbye'>()
+    expectTypeOf(event.data).toEqualTypeOf<'world' | 'cosmos'>()
   })
+})
+
+it('infers return type of "enable" based on the sources return type', () => {
+  type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
+  class AsyncHttpSource extends NetworkSource<HttpFrame> {
+    public async enable() {}
+  }
+  class SyncHttpSource extends NetworkSource<HttpFrame> {
+    public enable() {}
+  }
+
+  {
+    const network = defineNetwork({ sources: [new AsyncHttpSource()] })
+    expectTypeOf(network.enable).returns.toEqualTypeOf<Promise<void>>()
+  }
+  {
+    const network = defineNetwork({ sources: [new SyncHttpSource()] })
+    expectTypeOf(network.enable).returns.toEqualTypeOf<void>()
+  }
+  {
+    const network = defineNetwork({
+      sources: [new AsyncHttpSource(), new SyncHttpSource()],
+    })
+    expectTypeOf(network.enable).returns.toEqualTypeOf<Promise<void>>()
+  }
+})
+
+it('infers return type of "disable" based on the sources return type', () => {
+  type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
+
+  class AsyncHttpSource extends NetworkSource<HttpFrame> {
+    public async enable() {}
+    public async disable() {}
+  }
+  class SyncHttpSource extends NetworkSource<HttpFrame> {
+    public enable() {}
+    public disable() {}
+  }
+
+  {
+    const network = defineNetwork({ sources: [new AsyncHttpSource()] })
+    expectTypeOf(network.disable).returns.toEqualTypeOf<Promise<void>>()
+  }
+  {
+    const network = defineNetwork({ sources: [new SyncHttpSource()] })
+    expectTypeOf(network.disable).returns.toEqualTypeOf<void>()
+  }
+  {
+    const network = defineNetwork({
+      sources: [new AsyncHttpSource(), new SyncHttpSource()],
+    })
+    expectTypeOf(network.disable).returns.toEqualTypeOf<Promise<void>>()
+  }
 })

@@ -25,6 +25,9 @@ type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
       : DefaultEventMap
     : DefaultEventMap
 
+type MaybePromise<T> =
+  Extract<T, Promise<unknown>> extends never ? void : Promise<void>
+
 export interface DefineNetworkOptions<
   Sources extends Array<NetworkSource<any>>,
 > {
@@ -48,11 +51,11 @@ export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
   /**
    * Enable the network interception and handling.
    */
-  enable: () => Promise<void>
+  enable: () => MaybePromise<ReturnType<Sources[number]['enable']>>
   /**
    * Disable the network interception and handling.
    */
-  disable: () => Promise<void>
+  disable: () => MaybePromise<ReturnType<Sources[number]['disable']>>
   /**
    * Configure the network instance with additional options.
    * The options provided in the `.configure()` call will override the same
@@ -67,6 +70,21 @@ export interface NetworkHandlersApi {
   resetHandlers: (...handlers: Array<AnyHandler>) => void
   restoreHandlers: () => void
   listHandlers: () => ReadonlyArray<AnyHandler>
+}
+
+function colorlessPromiseAll<T>(values: Array<T>): MaybePromise<T>
+function colorlessPromiseAll(values: Array<unknown>): Promise<void> | void {
+  const promises: Array<Promise<void>> = []
+
+  for (const value of values) {
+    if (value instanceof Promise) {
+      promises.push(value)
+    }
+  }
+
+  if (promises.length > 0) {
+    return Promise.all(promises).then(() => {})
+  }
 }
 
 /**
@@ -120,34 +138,37 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         ...options,
       }
     },
-    async enable() {
+    enable() {
       listenersController = new AbortController()
 
-      await Promise.all(
-        resolvedOptions.sources.map(async (source) => {
-          source.on('frame', async ({ frame }) => {
-            frame.events.on('*', (event) => events.emit(event), {
-              signal: listenersController.signal,
-            })
-
-            const handlers = frame.getHandlers(handlersController)
-
-            await frame.resolve(
-              handlers,
-              resolvedOptions.onUnhandledFrame || 'warn',
-              resolvedOptions.context,
-            )
+      const result = resolvedOptions.sources.map((source) => {
+        source.on('frame', async ({ frame }) => {
+          frame.events.on('*', (event) => events.emit(event), {
+            signal: listenersController.signal,
           })
 
-          await source.enable()
-        }),
-      )
+          const handlers = frame.getHandlers(handlersController)
+
+          await frame.resolve(
+            handlers,
+            resolvedOptions.onUnhandledFrame || 'warn',
+            resolvedOptions.context,
+          )
+        })
+
+        return source.enable()
+      })
+
+      return colorlessPromiseAll(result) as MaybePromise<
+        ReturnType<Sources[number]['enable']>
+      >
     },
-    async disable() {
+    disable() {
       listenersController.abort()
-      await Promise.all(
+
+      return colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),
-      )
+      ) as MaybePromise<ReturnType<Sources[number]['disable']>>
     },
     use(...handlers) {
       handlersController.use(handlers)

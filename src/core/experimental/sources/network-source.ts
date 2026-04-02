@@ -33,7 +33,7 @@ export abstract class NetworkSource<
     this.emitter = new Emitter()
   }
 
-  public abstract enable(): Promise<unknown>
+  public abstract enable(): unknown | Promise<unknown>
 
   public async queue(frame: Frame): Promise<void> {
     await this.emitter.emitAsPromise(
@@ -50,7 +50,7 @@ export abstract class NetworkSource<
     this.emitter.on(type, listener, options)
   }
 
-  public async disable(): Promise<void> {
+  public disable(): void | Promise<void> {
     this.emitter.removeAllListeners()
   }
 }

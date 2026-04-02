@@ -43,7 +43,7 @@ it('removes all listeners when "disable" is called', async () => {
   const frameListener = vi.fn()
   source.on('frame', frameListener)
 
-  await expect(source.disable()).resolves.toBeUndefined()
+  expect(source.disable()).toBeUndefined()
   await expect(source.queue(new TestFrame())).resolves.toBeUndefined()
 
   expect.soft(frameListener).not.toHaveBeenCalled()

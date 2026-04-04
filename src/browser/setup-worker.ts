@@ -130,9 +130,14 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
       }
 
       isStarted = false
-      network.disable().then(() => {
-        window.postMessage({ type: 'msw/worker:stop' })
-      })
+      network
+        .disable()
+        .then(() => {
+          window.postMessage({ type: 'msw/worker:stop' })
+        })
+        .catch((error) => {
+          devUtils.error('Failed to call "stop" on setupWorker: %s', error)
+        })
     },
     events: network.events,
     use: network.use.bind(network),

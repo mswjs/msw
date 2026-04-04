@@ -129,6 +129,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
         return
       }
 
+      isStarted = false
       network.disable().then(() => {
         window.postMessage({ type: 'msw/worker:stop' })
       })

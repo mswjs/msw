@@ -20,5 +20,6 @@ Object.assign(window, {
         },
       })
     },
+    stopWorker: worker.stop.bind(worker),
   },
 })

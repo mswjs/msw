@@ -214,6 +214,13 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
     const { response, handler, parsedResult } = lookupResult
 
+    this.events.emit(
+      new RequestEvent('request:match', {
+        requestId,
+        request,
+      }),
+    )
+
     // Handlers that returned no mocked response.
     if (response == null) {
       this.events.emit(
@@ -241,13 +248,6 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     }
 
     await storeResponseCookies(request, response)
-
-    this.events.emit(
-      new RequestEvent('request:match', {
-        requestId,
-        request,
-      }),
-    )
 
     this.respondWith(response.clone())
 

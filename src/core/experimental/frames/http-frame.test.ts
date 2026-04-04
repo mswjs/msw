@@ -161,6 +161,53 @@ it('resolves a non-matching request', async () => {
   ])
 })
 
+it('resolves a matched passthrough', async () => {
+  class HttpFrame extends HttpNetworkFrame {
+    respondWith = vi.fn()
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const frame = new HttpFrame({
+    request: new Request('http://localhost/api'),
+  })
+  const { events } = spyOnNetworkFrame(frame)
+  const unhandledFrameCallback = vi.fn()
+
+  const matches = await frame.resolve(
+    [
+      http.get('http://localhost/api', () => {
+        // Intentionally do nothing to passthrough.
+      }),
+    ],
+    unhandledFrameCallback,
+    { quiet: true },
+  )
+
+  expect.soft(matches).toBeNull()
+  expect.soft(frame.passthrough).toHaveBeenCalledOnce()
+  expect.soft(frame.respondWith).not.toHaveBeenCalled()
+  expect.soft(frame.errorWith).not.toHaveBeenCalled()
+  expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
+  expect.soft(events).toEqual([
+    expect.objectContaining({
+      type: 'request:start',
+      requestId: frame.data.id,
+      request: frame.data.request,
+    }),
+    expect.objectContaining({
+      type: 'request:match',
+      requestId: frame.data.id,
+      request: frame.data.request,
+    }),
+    expect.objectContaining({
+      type: 'request:end',
+      requestId: frame.data.id,
+      request: frame.data.request,
+    }),
+  ])
+})
+
 it('resolves a bypassed request', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()

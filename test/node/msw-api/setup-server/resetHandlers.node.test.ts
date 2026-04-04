@@ -88,9 +88,7 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
   }
 
   {
-    const hadError = await fetch('http://localhost/books', {
-      method: 'POST',
-    }).then(
+    const hadError = await fetch('http://localhost/books').then(
       () => expect.fail('Request must not succeed'),
       () => true,
     )

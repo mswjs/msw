@@ -132,7 +132,7 @@ export abstract class RequestHandler<
     StrictRequest<DefaultBodyType>
   >()
 
-  public kind = 'request' as const
+  public readonly kind = 'request' as const
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverIterator?:

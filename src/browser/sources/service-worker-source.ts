@@ -233,6 +233,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
   async #handleResponse(event: WorkerChannelResponseEvent): Promise<void> {
     const { request, response, isMockedResponse } = event.data
+    this.#frames.delete(request.id)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -246,7 +247,6 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     }
 
     const frame = this.#frames.get(request.id)
-    this.#frames.delete(request.id)
 
     /**
      * @note A request frame will be missing in case of passthrough after the worker is stopped.

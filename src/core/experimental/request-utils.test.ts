@@ -35,7 +35,7 @@ describe(isPassthroughResponse, () => {
           },
         }),
       ),
-    )
+    ).toBe(true)
   })
 
   it('returns false for a regular response', () => {

@@ -14,7 +14,7 @@
     "esModuleInterop": true,
     "declaration": false,
     "noEmit": true,
-    "types": ["@types/node", "vitest/globals"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["**/*.ts"]
 }

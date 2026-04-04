@@ -3,7 +3,6 @@ import { until } from 'until-async'
 import { createRequestId } from '@mswjs/interceptors'
 import { NetworkFrame, NetworkFrameResolutionContext } from './network-frame'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
-import { type HttpHandler } from '../../handlers/HttpHandler'
 import { executeHandlers } from '../../utils/executeHandlers'
 import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
@@ -13,6 +12,7 @@ import {
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import { HandlersController, AnyHandler } from '../handlers-controller'
+import { type RequestHandler } from '../../handlers/RequestHandler'
 
 interface HttpNetworkFrameOptions {
   id?: string
@@ -131,7 +131,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
   }
 
   public async resolve(
-    handlers: Array<HttpHandler>,
+    handlers: Array<RequestHandler>,
     onUnhandledFrame: UnhandledFrameHandle,
     resolutionContext?: NetworkFrameResolutionContext,
   ): Promise<boolean | null> {

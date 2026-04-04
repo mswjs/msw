@@ -84,6 +84,7 @@ test('emits events for a handled request with no response', async ({
 
   expect(consoleSpy.get('warning')).toEqual([
     `[request:start] POST ${url} ${requestId}`,
+    `[request:match] POST ${url} ${requestId}`,
     `[request:end] POST ${url} ${requestId}`,
     `[response:bypass] 200 ${url} original-response POST ${url} ${requestId}`,
   ])
@@ -132,6 +133,7 @@ test('emits events for a passthrough request', async ({
     .poll(() => consoleSpy.get('warning'))
     .toEqual([
       `[request:start] GET ${url} ${requestId}`,
+      `[request:match] GET ${url} ${requestId}`,
       `[request:end] GET ${url} ${requestId}`,
       `[response:bypass] 200 ${url} passthrough-response GET ${url} ${requestId}`,
     ])

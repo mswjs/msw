@@ -126,6 +126,9 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     },
     stop() {
       if (!isStarted) {
+        devUtils.warn(
+          `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
+        )
         return
       }
 

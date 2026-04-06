@@ -1,6 +1,6 @@
 import { checkGlobals } from './utils/internal/checkGlobals'
 
-export { SetupApi } from './SetupApi'
+export { SetupApi } from './experimental/setup-api'
 
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
@@ -26,12 +26,6 @@ export {
   type ServerSentEventMessage,
 } from './sse'
 
-import type { HttpHandler } from './handlers/HttpHandler'
-import type { GraphQLHandler } from './handlers/GraphQLHandler'
-import type { WebSocketHandler } from './handlers/WebSocketHandler'
-
-export type AnyHandler = HttpHandler | GraphQLHandler | WebSocketHandler
-
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
 export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
@@ -46,6 +40,8 @@ export { cleanUrl } from './utils/url/cleanUrl'
 /**
  * Type definitions.
  */
+
+export type { AnyHandler } from './experimental/handlers-controller'
 
 export type { SharedOptions, LifeCycleEventsMap } from './sharedOptions'
 

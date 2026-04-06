@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import url from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
-import packageJson from '../../package.json' assert { type: 'json' }
+import packageJson from '../../package.json' with { type: 'json' }
 
 async function getLibraryTarball(): Promise<string> {
   const ROOT_PATH = new URL('../..', import.meta.url)
@@ -25,7 +25,7 @@ async function getLibraryTarball(): Promise<string> {
 
   invariant(
     fs.existsSync(packPath),
-    'Failed to pack the library at "%s"',
+    'Failed to pack the library at "%s": packing does not produce the package file',
     packPath,
   )
 

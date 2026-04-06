@@ -47,7 +47,7 @@ it('supports FormData request body', async () => {
   })
   const json = await res.json()
 
-  expect(res.status).toBe(200)
+  expect.soft(res.status).toBe(200)
   expect(json).toEqual([
     ['username', 'john.maverick'],
     ['password', 'secret123'],
@@ -66,8 +66,8 @@ it('respects Blob size in request body', async () => {
     body: formData,
   })
 
-  expect(response.status).toBe(200)
-  expect(await response.json()).toEqual({
+  expect.soft(response.status).toBe(200)
+  await expect(response.json()).resolves.toEqual({
     name: 'data.json',
     size: blob.size,
     content: await blob.text(),

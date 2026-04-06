@@ -2,6 +2,23 @@ import { NetworkSource } from './sources/network-source'
 import { defineNetwork } from './define-network'
 
 describe('enable()', () => {
+  it('throws if called on already enabled network', () => {
+    class SyncNetworkSource extends NetworkSource {
+      enable = () => {}
+    }
+    const network = defineNetwork({
+      sources: [new SyncNetworkSource()],
+    })
+
+    expect(network.enable()).toBeUndefined()
+    expect(() => network.enable()).toThrow(
+      'Failed to call "enable" on the network: already enabled',
+    )
+
+    network.disable()
+    expect(network.enable()).toBeUndefined()
+  })
+
   it('returns a sync enable if all the sources are sync', () => {
     class SyncNetworkSource extends NetworkSource {
       enable = () => {}
@@ -42,6 +59,24 @@ describe('enable()', () => {
 })
 
 describe('disable()', () => {
+  it('throws if called on already enabled network', () => {
+    class SyncNetworkSource extends NetworkSource {
+      enable = () => {}
+    }
+    const network = defineNetwork({
+      sources: [new SyncNetworkSource()],
+    })
+
+    network.enable()
+    expect(network.disable()).toBeUndefined()
+    expect(() => network.disable()).toThrow(
+      'Failed to call "disable" on the network: already disabled',
+    )
+
+    network.enable()
+    expect(network.disable()).toBeUndefined()
+  })
+
   it('returns a sync disable if all the sources are sync', () => {
     class SyncNetworkSource extends NetworkSource {
       enable = () => {}

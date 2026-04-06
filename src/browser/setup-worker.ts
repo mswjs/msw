@@ -1,7 +1,10 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import { defineNetwork } from '#core/experimental/define-network'
+import {
+  defineNetwork,
+  NetworkReadyState,
+} from '#core/experimental/define-network'
 import { type AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
@@ -42,8 +45,6 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
     handlers,
   })
 
-  let isStarted = false
-
   return {
     async start(options) {
       if (options?.waitUntilReady != null) {
@@ -56,7 +57,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
        * @todo @fixme
        * This is kept for backward-compatibility reasons. We don't really need this check anymore.
        */
-      if (isStarted) {
+      if (network.readyState === NetworkReadyState.ENABLED) {
         devUtils.warn(
           'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
         )
@@ -93,7 +94,6 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       })
 
       await network.enable()
-      isStarted = true
 
       if (httpSource instanceof ServiceWorkerSource) {
         const [, registration] = await httpSource.workerPromise
@@ -101,14 +101,13 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       }
     },
     stop() {
-      if (!isStarted) {
+      if (network.readyState === NetworkReadyState.DISABLED) {
         devUtils.warn(
           `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
         )
         return
       }
 
-      isStarted = false
       network
         .disable()
         .then(() => {

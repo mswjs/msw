@@ -8,14 +8,14 @@ export interface ListenOptions extends SharedOptions {}
 
 export interface SetupServerCommon {
   /**
-   * Starts requests interception based on the previously provided request handlers.
+   * Starts the request interception based on the previously provided request handlers.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()` API reference}
    */
   listen: (options?: PartialDeep<ListenOptions>) => void
 
   /**
-   * Stops requests interception by restoring all augmented modules.
+   * Stops the request interception by restoring all augmented modules.
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/close `server.close()` API reference}
    */

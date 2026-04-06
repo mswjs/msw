@@ -2,6 +2,7 @@ import type { PartialDeep } from 'type-fest'
 import { Interceptor } from '@mswjs/interceptors'
 import {
   type NetworkApi,
+  NetworkReadyState,
   defineNetwork,
 } from '#core/experimental/define-network'
 import { type AnyHandler } from '#core/experimental/handlers-controller'
@@ -34,6 +35,13 @@ export function defineSetupServerApi(
     restoreHandlers: network.restoreHandlers.bind(network),
     listHandlers: network.listHandlers.bind(network),
     close() {
+      /**
+       * @note Ignore closing after closed for backwards compatibility.
+       */
+      if (network.readyState === NetworkReadyState.DISABLED) {
+        return
+      }
+
       network.disable()
     },
   }

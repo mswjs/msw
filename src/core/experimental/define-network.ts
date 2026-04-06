@@ -1,3 +1,4 @@
+import { invariant } from 'outvariant'
 import { Emitter, type DefaultEventMap } from 'rettime'
 import {
   type NetworkSource,
@@ -48,6 +49,7 @@ export interface DefineNetworkOptions<
 
 export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
   extends NetworkHandlersApi {
+  readyState: NetworkReadyState
   /**
    * Enable the network interception and handling.
    */
@@ -87,6 +89,11 @@ function colorlessPromiseAll(values: Array<unknown>): Promise<void> | void {
   }
 }
 
+export enum NetworkReadyState {
+  DISABLED,
+  ENABLED,
+}
+
 /**
  * Define a network instance with the given configuration.
  * @example
@@ -102,6 +109,7 @@ function colorlessPromiseAll(values: Array<unknown>): Promise<void> | void {
 export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
   options: DefineNetworkOptions<Sources>,
 ): NetworkApi<Sources> {
+  let readyState: NetworkReadyState = NetworkReadyState.DISABLED
   const events = new Emitter<MergeEventMaps<Sources>>()
 
   const deriveHandlersController = (
@@ -124,8 +132,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
   let listenersController: AbortController
 
   return {
+    get readyState() {
+      return readyState
+    },
     events,
     configure(options) {
+      invariant(readyState === NetworkReadyState.DISABLED, '')
+
       if (
         options.handlers &&
         !Object.is(options.handlers, resolvedOptions.handlers)
@@ -139,7 +152,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       }
     },
     enable() {
+      invariant(
+        readyState === NetworkReadyState.DISABLED,
+        'Failed to call "enable" on the network: already enabled',
+      )
+
       listenersController = new AbortController()
+      readyState = NetworkReadyState.ENABLED
 
       const result = resolvedOptions.sources.map((source) => {
         source.on('frame', async ({ frame }) => {
@@ -164,7 +183,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       >
     },
     disable() {
+      invariant(
+        readyState === NetworkReadyState.ENABLED,
+        'Failed to call "disable" on the network: already disabled',
+      )
+
       listenersController.abort()
+      readyState = NetworkReadyState.DISABLED
 
       return colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),

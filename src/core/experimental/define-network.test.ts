@@ -30,7 +30,7 @@ describe('enable()', () => {
     expect(network.enable()).toBeUndefined()
   })
 
-  it('returns an async enable if any the sources are async', () => {
+  it('returns an async enable if any of the sources are async', () => {
     class SyncNetworkSource extends NetworkSource {
       enable = () => {}
     }
@@ -90,7 +90,7 @@ describe('disable()', () => {
     expect(network.disable()).toBeUndefined()
   })
 
-  it('returns an async disable if any the sources are async', async () => {
+  it('returns an async disable if any of the sources are async', async () => {
     class SyncNetworkSource extends NetworkSource {
       enable = () => {}
       disable = () => {}

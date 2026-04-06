@@ -402,29 +402,32 @@ class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
       return this.respondWith(reason)
     }
 
-    if (reason instanceof Error) {
-      devUtils.warn(
-        `Uncaught exception in the request handler for "%s %s". This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
-        this.data.request.method,
-        this.data.request.url,
-      )
+    devUtils.warn(
+      `Uncaught exception in the request handler for "%s %s". This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/http/mocking-responses/error-responses`,
+      this.data.request.method,
+      this.data.request.url,
+    )
 
-      // Treat exceptions during the request handling as 500 responses.
-      // This should alert the developer that there's a problem.
-      this.respondWith(
-        HttpResponse.json(
-          {
-            name: reason.name,
-            message: reason.message,
-            stack: reason.stack,
-          },
-          {
-            status: 500,
-            statusText: 'Request Handler Error',
-          },
-        ),
-      )
-    }
+    const error =
+      reason instanceof Error
+        ? reason
+        : new Error(reason?.toString() || 'Request failure')
+
+    // Treat exceptions during the request handling as 500 responses.
+    // This should alert the developer that there's a problem.
+    this.respondWith(
+      HttpResponse.json(
+        {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        },
+        {
+          status: 500,
+          statusText: 'Request Handler Error',
+        },
+      ),
+    )
   }
 
   async #respondWith(response: Response): Promise<void> {

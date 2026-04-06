@@ -4,14 +4,8 @@
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
  */
-import {
-  http,
-  graphql,
-  bypass,
-  HttpResponse,
-  getResponse,
-  RequestHandler,
-} from 'msw'
+import { http, bypass, HttpResponse, getResponse, RequestHandler } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 

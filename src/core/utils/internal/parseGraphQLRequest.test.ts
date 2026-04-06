@@ -6,7 +6,7 @@ import { OperationTypeNode } from 'graphql'
 import {
   ParsedGraphQLRequest,
   parseGraphQLRequest,
-} from './parseGraphQLRequest'
+} from '../../../graphql/parse-graphql-request'
 
 test('returns true given a GraphQL-compatible request', async () => {
   const getRequest = new Request(

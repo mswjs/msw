@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { HttpServer } from '@open-draft/test-server/http'
-import { HttpResponse, graphql } from 'msw'
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient } from '../../support/graphql'
 

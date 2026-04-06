@@ -6,9 +6,9 @@ import {
   GraphQLRequestBody,
   GraphQLResolverExtras,
   isDocumentNode,
-} from './GraphQLHandler'
-import { HttpResponse } from '../HttpResponse'
-import { ResponseResolver } from './RequestHandler'
+} from './graphql-handler'
+import { HttpResponse } from '../core/HttpResponse'
+import { ResponseResolver } from '../core/handlers/RequestHandler'
 
 const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
   variables,

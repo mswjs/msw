@@ -123,22 +123,22 @@
         "default": "./lib/core/http.js"
       }
     },
-    "./core/graphql": {
+    "./graphql": {
       "module-sync": {
-        "types": "./lib/core/graphql.d.mts",
-        "default": "./lib/core/graphql.mjs"
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
       },
       "module": {
-        "types": "./lib/core/graphql.d.mts",
-        "default": "./lib/core/graphql.mjs"
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
       },
       "import": {
-        "types": "./lib/core/graphql.d.mts",
-        "default": "./lib/core/graphql.mjs"
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
       },
       "default": {
-        "types": "./lib/core/graphql.d.ts",
-        "default": "./lib/core/graphql.js"
+        "types": "./lib/graphql/index.d.ts",
+        "default": "./lib/graphql/index.js"
       }
     },
     "./core/ws": {
@@ -242,7 +242,6 @@
     "@open-draft/deferred-promise": "^2.2.0",
     "@types/statuses": "^2.0.6",
     "cookie": "^1.0.2",
-    "graphql": "^16.12.0",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.3",
@@ -289,6 +288,7 @@
     "fastify": "^5.6.2",
     "fs-teardown": "^0.3.0",
     "glob": "^13.0.0",
+    "graphql": "^16.13.2",
     "jsdom": "^25.0.1",
     "json-bigint": "^1.0.0",
     "knip": "^5.70.1",
@@ -311,9 +311,13 @@
     "webpack-http-server": "^0.5.0"
   },
   "peerDependencies": {
-    "typescript": ">= 4.8.x"
+    "graphql": ">=16",
+    "typescript": ">=4.8.x"
   },
   "peerDependenciesMeta": {
+    "graphql": {
+      "optional": true
+    },
     "typescript": {
       "optional": true
     }

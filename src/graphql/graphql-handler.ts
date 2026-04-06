@@ -12,25 +12,29 @@ import {
   RequestHandlerExecutionResult,
   RequestHandlerOptions,
   ResponseResolver,
-} from './RequestHandler'
-import { getTimestamp } from '../utils/logging/getTimestamp'
-import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
-import { serializeRequest } from '../utils/logging/serializeRequest'
-import { serializeResponse } from '../utils/logging/serializeResponse'
-import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
+} from '~/core/handlers/RequestHandler'
+import { getTimestamp } from '~/core/utils/logging/getTimestamp'
+import { getStatusCodeColor } from '~/core/utils/logging/getStatusCodeColor'
+import { serializeRequest } from '~/core/utils/logging/serializeRequest'
+import { serializeResponse } from '~/core/utils/logging/serializeResponse'
+import {
+  Match,
+  matchRequestUrl,
+  Path,
+} from '~/core/utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
   parseGraphQLRequest,
   parseDocumentNode,
   ParsedGraphQLQuery,
-} from '../utils/internal/parseGraphQLRequest'
-import { toPublicUrl } from '../utils/request/toPublicUrl'
-import { devUtils } from '../utils/internal/devUtils'
-import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { ResponseResolutionContext } from 'src/iife'
-import { kDefaultContentType, StrictRequest } from '../HttpResponse'
-import { getAllAcceptedMimeTypes } from '../utils/request/getAllAcceptedMimeTypes'
+} from './parse-graphql-request'
+import { toPublicUrl } from '~/core/utils/request/toPublicUrl'
+import { devUtils } from '~/core/utils/internal/devUtils'
+import { getAllRequestCookies } from '~/core/utils/request/getRequestCookies'
+import { kDefaultContentType, StrictRequest } from '~/core/HttpResponse'
+import { getAllAcceptedMimeTypes } from '~/core/utils/request/getAllAcceptedMimeTypes'
+import { type ResponseResolutionContext } from '~/core/utils/executeHandlers'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },

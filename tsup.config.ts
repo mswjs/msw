@@ -7,7 +7,6 @@ import {
 } from './config/plugins/esbuild/copyWorkerPlugin'
 import { resolveCoreImportsPlugin } from './config/plugins/esbuild/resolveCoreImportsPlugin'
 import { forceEsmExtensionsPlugin } from './config/plugins/esbuild/forceEsmExtensionsPlugin'
-import { graphqlImportPlugin } from './config/plugins/esbuild/graphQLImportPlugin'
 import packageJson from './package.json'
 
 // Externalize the in-house dependencies so that the user
@@ -25,7 +24,7 @@ const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
  * This bundles the shims so CJS modules could be used
  * in the browser.
  */
-const shimConfig: Options = {
+const shimConfig = defineConfig({
   name: 'shims',
   platform: 'neutral',
   entry: glob.sync('./src/shims/**/*.ts', {
@@ -39,9 +38,9 @@ const shimConfig: Options = {
   splitting: false,
   sourcemap: false,
   dts: true,
-}
+})
 
-const coreConfig: Options = {
+const coreConfig = defineConfig({
   name: 'core',
   platform: 'neutral',
   entry: glob.sync('./src/core/**/*.ts', {
@@ -58,10 +57,24 @@ const coreConfig: Options = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [graphqlImportPlugin(), forceEsmExtensionsPlugin()],
-}
+  esbuildPlugins: [forceEsmExtensionsPlugin()],
+})
 
-const nodeConfig: Options = {
+const graphqlConfig = defineConfig({
+  name: 'graphql',
+  platform: 'neutral',
+  entry: ['./src/graphql/index.ts'],
+  external: [ecosystemDependencies],
+  format: ['esm', 'cjs'],
+  outDir: './lib/graphql',
+  bundle: false,
+  sourcemap: true,
+  dts: true,
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  esbuildPlugins: [forceEsmExtensionsPlugin()],
+})
+
+const nodeConfig = defineConfig({
   name: 'node',
   platform: 'node',
   entry: ['./src/node/index.ts'],
@@ -75,9 +88,9 @@ const nodeConfig: Options = {
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
-}
+})
 
-const browserConfig: Options = {
+const browserConfig = defineConfig({
   name: 'browser',
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
@@ -113,9 +126,9 @@ const browserConfig: Options = {
     forceEsmExtensionsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
   ],
-}
+})
 
-const reactNativeConfig: Options = {
+const reactNativeConfig = defineConfig({
   name: 'react-native',
   platform: 'node',
   entry: ['./src/native/index.ts'],
@@ -128,9 +141,9 @@ const reactNativeConfig: Options = {
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
-}
+})
 
-const iifeConfig: Options = {
+const iifeConfig = defineConfig({
   name: 'iife',
   platform: 'browser',
   globalName: 'MockServiceWorker',
@@ -152,13 +165,14 @@ const iifeConfig: Options = {
     // the worker API must have the the integrity checksum defined.
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
-}
+})
 
-export default defineConfig([
+export default [
   shimConfig,
   coreConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,
   iifeConfig,
-])
+  graphqlConfig,
+]

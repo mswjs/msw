@@ -10,7 +10,8 @@ import {
   print,
   defaultFieldResolver,
 } from 'graphql'
-import { http, HttpResponse, GraphQLVariables, bypass } from 'msw'
+import { http, HttpResponse, bypass } from 'msw'
+import { type GraphQLVariables } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 import { createGraphQLClient } from '../../support/graphql'

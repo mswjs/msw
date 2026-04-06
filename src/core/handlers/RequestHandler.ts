@@ -12,7 +12,7 @@ import {
   DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
 import type { HandlerKind } from './common'
-import type { GraphQLRequestBody } from './GraphQLHandler'
+import type { GraphQLRequestBody } from '../../graphql/graphql-handler'
 
 export type DefaultRequestMultipartBody = Record<
   string,

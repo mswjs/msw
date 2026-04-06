@@ -1,5 +1,6 @@
 import { it } from 'vitest'
-import { http, HttpRequestHandler, GraphQLRequestHandler, graphql } from 'msw'
+import { http, HttpRequestHandler } from 'msw'
+import { GraphQLRequestHandler, graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 import { setupServer } from 'msw/node'
 

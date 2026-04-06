@@ -1,4 +1,4 @@
-import { GraphQLHandler } from '../../handlers/GraphQLHandler'
+import { GraphQLHandler } from '../../../graphql/graphql-handler'
 import { HttpHandler } from '../../handlers/HttpHandler'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { WebSocketHandler } from '../../handlers/WebSocketHandler'

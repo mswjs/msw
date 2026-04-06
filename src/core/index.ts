@@ -6,8 +6,6 @@ export { SetupApi } from './experimental/setup-api'
 export { RequestHandler } from './handlers/RequestHandler'
 export { http } from './http'
 export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
-export { graphql } from './graphql'
-export { GraphQLHandler } from './handlers/GraphQLHandler'
 
 /* WebSocket handler */
 export { ws, type WebSocketLink } from './ws'
@@ -66,26 +64,9 @@ export type {
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
 
-export type {
-  GraphQLQuery,
-  GraphQLVariables,
-  GraphQLRequestBody,
-  GraphQLResponseBody,
-  GraphQLJsonRequestBody,
-  GraphQLOperationType,
-  GraphQLCustomPredicate,
-} from './handlers/GraphQLHandler'
-export type {
-  GraphQLRequestHandler,
-  GraphQLOperationHandler,
-  GraphQLResponseResolver,
-  GraphQLLinkHandlers,
-} from './graphql'
-
 export type { WebSocketData, WebSocketEventListener } from './ws'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
-export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
 
 export {

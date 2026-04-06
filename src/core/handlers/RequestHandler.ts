@@ -11,7 +11,7 @@ import {
   HttpResponse,
   DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
-import type { GraphQLRequestBody } from './GraphQLHandler'
+import type { GraphQLRequestBody } from '../../graphql/graphql-handler'
 
 export type DefaultRequestMultipartBody = Record<
   string,

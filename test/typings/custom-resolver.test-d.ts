@@ -6,11 +6,13 @@ import {
   PathParams,
   DefaultBodyType,
   HttpResponse,
+} from 'msw'
+import {
   graphql,
   GraphQLQuery,
   GraphQLVariables,
   GraphQLResponseResolver,
-} from 'msw'
+} from 'msw/graphql'
 
 it('custom http resolver has correct parameters type', () => {
   /**

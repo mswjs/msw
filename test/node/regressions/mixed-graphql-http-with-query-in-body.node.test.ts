@@ -1,7 +1,6 @@
-/**
- * @vitest-environment jsdom
- */
-import { graphql, http, HttpResponse } from 'msw'
+// @vitest-environment jsdom
+import { http, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
 const mswGraphql = graphql.link('https://mswjs.com/graphql')

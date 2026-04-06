@@ -1,5 +1,5 @@
 import { http } from '../http'
-import { graphql } from '../graphql'
+import { graphql } from '../../graphql'
 import { ws } from '../ws'
 import { InMemoryHandlersController } from './handlers-controller'
 

@@ -26,9 +26,6 @@ importers:
       cookie:
         specifier: ^1.0.2
         version: 1.0.2
-      graphql:
-        specifier: ^16.12.0
-        version: 16.12.0
       headers-polyfill:
         specifier: ^4.0.2
         version: 4.0.3
@@ -83,7 +80,7 @@ importers:
         version: 11.2.0
       '@graphql-typed-document-node/core':
         specifier: ^3.2.0
-        version: 3.2.0(graphql@16.12.0)
+        version: 3.2.0(graphql@16.13.2)
       '@open-draft/test-server':
         specifier: ^0.4.2
         version: 0.4.2
@@ -159,6 +156,9 @@ importers:
       glob:
         specifier: ^13.0.0
         version: 13.0.0
+      graphql:
+        specifier: ^16.13.2
+        version: 16.13.2
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -3077,8 +3077,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  graphql@16.12.0:
-    resolution: {integrity: sha512-DKKrynuQRne0PNpEbzuEdHlYOMksHSUI8Zc9Unei5gTsMNA2/vMpoMz/yKba50pejK56qj98qM0SjYxAKi13gQ==}
+  graphql@16.13.2:
+    resolution: {integrity: sha512-5bJ+nf/UCpAjHM8i06fl7eLyVC9iuNAjm9qzkiu2ZGhM0VscSvS6WDPfAwkdkBuoXGM9FJSbKl6wylMwP9Ktig==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
   has-bigints@1.0.2:
@@ -5848,9 +5848,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@graphql-typed-document-node/core@3.2.0(graphql@16.12.0)':
+  '@graphql-typed-document-node/core@3.2.0(graphql@16.13.2)':
     dependencies:
-      graphql: 16.12.0
+      graphql: 16.13.2
 
   '@hono/node-server@1.19.6(hono@4.10.4)':
     dependencies:
@@ -8459,7 +8459,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  graphql@16.12.0: {}
+  graphql@16.13.2: {}
 
   has-bigints@1.0.2: {}
 

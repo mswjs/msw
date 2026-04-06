@@ -1,5 +1,6 @@
+// @vitest-environment node-websocket
 import { http } from '../../http'
-import { graphql } from '../../graphql'
+import { graphql } from '../../../graphql'
 import { ws } from '../../ws'
 import {
   WebSocketNetworkFrame,

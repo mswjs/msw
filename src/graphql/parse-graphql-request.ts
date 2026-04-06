@@ -1,13 +1,13 @@
-import type {
-  DocumentNode,
-  OperationDefinitionNode,
-  OperationTypeNode,
+import {
+  type DocumentNode,
+  type OperationDefinitionNode,
+  type OperationTypeNode,
 } from 'graphql'
-import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
-import { toPublicUrl } from '../request/toPublicUrl'
-import { devUtils } from './devUtils'
-import { jsonParse } from './jsonParse'
-import { parseMultipartData } from './parseMultipartData'
+import type { GraphQLVariables } from './graphql-handler'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { jsonParse } from '#core/utils/internal/jsonParse'
+import { parseMultipartData } from '#core/utils/internal/parseMultipartData'
 
 interface GraphQLInput {
   query: string | null

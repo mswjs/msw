@@ -61,6 +61,9 @@ test('responds with different responses for the same request based on request re
     frameTwo.waitForFunction(() => typeof window.request === 'function'),
   ])
 
+  await frameOne.waitForFunction(() => window.request != null)
+  await frameTwo.waitForFunction(() => window.request != null)
+
   await Promise.all([
     frameOne.evaluate(() => window.request()),
     frameTwo.evaluate(() => window.request()),

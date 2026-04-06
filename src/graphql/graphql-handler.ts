@@ -12,16 +12,16 @@ import {
   RequestHandlerExecutionResult,
   RequestHandlerOptions,
   ResponseResolver,
-} from '~/core/handlers/RequestHandler'
-import { getTimestamp } from '~/core/utils/logging/getTimestamp'
-import { getStatusCodeColor } from '~/core/utils/logging/getStatusCodeColor'
-import { serializeRequest } from '~/core/utils/logging/serializeRequest'
-import { serializeResponse } from '~/core/utils/logging/serializeResponse'
+} from '#core/handlers/RequestHandler'
+import { getTimestamp } from '#core/utils/logging/getTimestamp'
+import { getStatusCodeColor } from '#core/utils/logging/getStatusCodeColor'
+import { serializeRequest } from '#core/utils/logging/serializeRequest'
+import { serializeResponse } from '#core/utils/logging/serializeResponse'
 import {
   Match,
   matchRequestUrl,
   Path,
-} from '~/core/utils/matching/matchRequestUrl'
+} from '#core/utils/matching/matchRequestUrl'
 import {
   ParsedGraphQLRequest,
   GraphQLMultipartRequestBody,
@@ -29,12 +29,12 @@ import {
   parseDocumentNode,
   ParsedGraphQLQuery,
 } from './parse-graphql-request'
-import { toPublicUrl } from '~/core/utils/request/toPublicUrl'
-import { devUtils } from '~/core/utils/internal/devUtils'
-import { getAllRequestCookies } from '~/core/utils/request/getRequestCookies'
-import { kDefaultContentType, StrictRequest } from '~/core/HttpResponse'
-import { getAllAcceptedMimeTypes } from '~/core/utils/request/getAllAcceptedMimeTypes'
-import { type ResponseResolutionContext } from '~/core/utils/executeHandlers'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
+import { kDefaultContentType, StrictRequest } from '#core/HttpResponse'
+import { getAllAcceptedMimeTypes } from '#core/utils/request/getAllAcceptedMimeTypes'
+import { type ResponseResolutionContext } from '#core/utils/executeHandlers'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },

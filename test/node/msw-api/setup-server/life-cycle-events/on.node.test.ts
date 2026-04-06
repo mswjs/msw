@@ -14,7 +14,7 @@ const server = setupServer()
 function spyOnEvents(server: SetupServerApi) {
   const listener = vi.fn()
   const wrapListener = (eventName: string, listener: any) => {
-    return (...args) => listener(eventName, ...args)
+    return (...args: Array<unknown>) => listener(eventName, ...args)
   }
 
   server.events.on('request:start', wrapListener('request:start', listener))
@@ -117,7 +117,7 @@ test('emits events for a handled request and mocked response', async () => {
   const { response } = listener.mock.calls[3][1]
   expect(response.status).toBe(200)
   expect(response.statusText).toBe('OK')
-  expect(await response.text()).toBe('response-body')
+  await expect(response.text()).resolves.toBe('response-body')
 
   expect(listener).toHaveBeenCalledTimes(4)
 })
@@ -143,7 +143,7 @@ test('emits events for a handled request with no response', async () => {
 
   expect(listener).toHaveBeenNthCalledWith(
     2,
-    'request:end',
+    'request:match',
     expect.objectContaining({
       request: expect.objectContaining({
         method: 'POST',
@@ -154,6 +154,17 @@ test('emits events for a handled request with no response', async () => {
   )
   expect(listener).toHaveBeenNthCalledWith(
     3,
+    'request:end',
+    expect.objectContaining({
+      request: expect.objectContaining({
+        method: 'POST',
+        url,
+      }),
+      requestId,
+    }),
+  )
+  expect(listener).toHaveBeenNthCalledWith(
+    4,
     'response:bypass',
     expect.objectContaining({
       request: expect.objectContaining({
@@ -165,12 +176,12 @@ test('emits events for a handled request with no response', async () => {
     }),
   )
 
-  const { response } = listener.mock.calls[2][1]
+  const { response } = listener.mock.calls[3][1]
   expect(response.status).toBe(200)
   expect(response.statusText).toBe('OK')
-  expect(await response.text()).toBe('original-response')
+  await expect(response.text()).resolves.toBe('original-response')
 
-  expect(listener).toHaveBeenCalledTimes(3)
+  expect(listener).toHaveBeenCalledTimes(4)
 })
 
 test('emits events for an unhandled request', async () => {
@@ -228,7 +239,7 @@ test('emits events for an unhandled request', async () => {
   const { response } = listener.mock.calls[3][1]
   expect(response.status).toBe(200)
   expect(response.statusText).toBe('OK')
-  expect(await response.text()).toBe('majestic-unknown')
+  await expect(response.text()).resolves.toBe('majestic-unknown')
 
   expect(listener).toHaveBeenCalledTimes(4)
 })

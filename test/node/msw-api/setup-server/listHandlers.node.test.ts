@@ -1,10 +1,9 @@
-/**
- * @vitest-environment node
- */
-import { http, graphql } from 'msw'
+// @vitest-environment node
+import { http } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
-const resolver = () => null
+const resolver = () => {}
 const github = graphql.link('https://api.github.com')
 
 const server = setupServer(

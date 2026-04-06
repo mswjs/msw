@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node-websocket
- */
+// @vitest-environment node-websocket
 import { ws } from './ws'
 
 it('exports the "link()" method', () => {

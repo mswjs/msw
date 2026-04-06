@@ -9,7 +9,7 @@ import {
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
 import { hasRefCounted } from './utils/internal/hasRefCounted'
-import { Path, isPath } from './utils/matching/matchRequestUrl'
+import { type Path, isPath } from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
@@ -42,10 +42,10 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#onevent-listener `on()` API reference}
    */
-  addEventListener<EventType extends keyof WebSocketHandlerEventMap>(
+  addEventListener: <EventType extends keyof WebSocketHandlerEventMap>(
     event: EventType,
     listener: WebSocketEventListener<EventType>,
-  ): WebSocketHandler
+  ) => WebSocketHandler
 
   /**
    * Broadcasts the given data to all WebSocket clients.
@@ -58,7 +58,7 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#broadcastdata `broadcast()` API reference}
    */
-  broadcast(data: WebSocketData): void
+  broadcast: (data: WebSocketData) => void
 
   /**
    * Broadcasts the given data to all WebSocket clients
@@ -72,12 +72,12 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#broadcastexceptclients-data `broadcast()` API reference}
    */
-  broadcastExcept(
+  broadcastExcept: (
     clients:
       | WebSocketClientConnectionProtocol
       | Array<WebSocketClientConnectionProtocol>,
     data: WebSocketData,
-  ): void
+  ) => void
 }
 
 /**

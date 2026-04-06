@@ -4,6 +4,7 @@ node_modules
 /lib
 tmp
 *-error.log
+*.tsbuildinfo
 /package-lock.json
 /yarn.lock
 stats.html

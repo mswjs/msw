@@ -35,6 +35,25 @@ it('returns false when a RegExp does not match', () => {
       params: {},
     },
   )
+
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io'), /foo\.bar/g),
+  ).toEqual({
+    matches: false,
+    params: {},
+  })
+
+  expect(matchRequestUrl(new URL('https://test.mswjs.io'), /foo(.+)/)).toEqual({
+    matches: false,
+    params: {},
+  })
+
+  expect(matchRequestUrl(new URL('https://test.mswjs.io'), /foo(.+)/g)).toEqual(
+    {
+      matches: false,
+      params: {},
+    },
+  )
 })
 
 it('ignores query parameters when matching against a RegExp', () => {

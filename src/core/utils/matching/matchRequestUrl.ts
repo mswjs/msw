@@ -32,7 +32,7 @@ export function matchRequestUrl(
       : cleanUrl.match(pattern)
 
     return {
-      matches: match != null,
+      matches: match != null && match.length > 0,
       params: Object.fromEntries(
         (match ?? []).slice(1).map((value, index) => [index, value]),
       ),

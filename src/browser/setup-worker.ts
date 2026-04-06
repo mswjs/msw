@@ -108,14 +108,8 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
         return
       }
 
-      network
-        .disable()
-        .then(() => {
-          window.postMessage({ type: 'msw/worker:stop' })
-        })
-        .catch((error) => {
-          devUtils.error('Failed to call "stop" on setupWorker: %s', error)
-        })
+      network.disable()
+      window.postMessage({ type: 'msw/worker:stop' })
     },
     events: network.events,
     use: network.use.bind(network),

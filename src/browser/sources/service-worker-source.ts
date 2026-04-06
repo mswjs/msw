@@ -120,7 +120,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     return registration
   }
 
-  public async disable(): Promise<void> {
+  public disable(): void {
     /**
      * @note Do NOT call `super.disable()` because it removes any "frame" listeners
      * from this network source, effectively turning it off. The Service Worker source

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, http, onUnhandledRequest } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(

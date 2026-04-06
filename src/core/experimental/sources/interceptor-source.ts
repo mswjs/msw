@@ -39,7 +39,7 @@ export class InterceptorSource extends NetworkSource {
     this.#frames = new Map()
   }
 
-  public async enable(): Promise<void> {
+  public enable(): void {
     this.#interceptor.apply()
 
     /**
@@ -51,8 +51,8 @@ export class InterceptorSource extends NetworkSource {
       .on('connection', this.#handleWebSocketConnection.bind(this) as any)
   }
 
-  public async disable(): Promise<void> {
-    await super.disable()
+  public disable(): void {
+    super.disable()
     this.#interceptor.dispose()
 
     /**

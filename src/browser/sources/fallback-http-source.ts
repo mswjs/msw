@@ -14,16 +14,16 @@ export class FallbackHttpSource extends InterceptorSource {
     })
   }
 
-  public async enable(): Promise<void> {
-    await super.enable()
+  public enable(): void {
+    super.enable()
 
     if (!this.options.quiet) {
       this.#printStartMessage()
     }
   }
 
-  public async disable(): Promise<void> {
-    await super.disable()
+  public disable(): void {
+    super.disable()
 
     if (!this.options.quiet) {
       this.#printStopMessage()

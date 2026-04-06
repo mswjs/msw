@@ -160,14 +160,8 @@
       }
     },
     "./experimental": {
-      "import": {
-        "types": "./lib/core/experimental/index.d.mts",
-        "default": "./lib/core/experimental/index.mjs"
-      },
-      "default": {
-        "types": "./lib/core/experimental/index.d.ts",
-        "default": "./lib/core/experimental/index.js"
-      }
+      "import": "./lib/core/experimental/index.mjs",
+      "default": "./lib/core/experimental/index.js"
     },
     "./mockServiceWorker.js": "./lib/mockServiceWorker.js",
     "./package.json": "./package.json"

@@ -27,9 +27,15 @@ export function matchRequestUrl(
   const cleanUrl = getCleanUrl(url)
 
   if (pattern instanceof RegExp) {
+    const match = pattern.flags.includes('g')
+      ? [...cleanUrl.matchAll(pattern)].flat()
+      : cleanUrl.match(pattern)
+
     return {
-      matches: pattern.test(cleanUrl),
-      params: {},
+      matches: match != null,
+      params: Object.fromEntries(
+        (match ?? []).slice(1).map((value, index) => [index, value]),
+      ),
     }
   }
 

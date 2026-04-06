@@ -45,3 +45,27 @@ it('ignores query parameters when matching against a RegExp', () => {
     params: {},
   })
 })
+
+it('parses matching RegExp groups into index-based parameters', () => {
+  expect(
+    matchRequestUrl(new URL('https://test.mswjs.io/path'), /(.+)\.mswjs\.io/g),
+  ).toEqual({
+    matches: true,
+    params: {
+      0: 'https://test',
+    },
+  })
+
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/path'),
+      /https:\/\/(.+)\.mswjs\.io\/(.+)/g,
+    ),
+  ).toEqual({
+    matches: true,
+    params: {
+      0: 'test',
+      1: 'path',
+    },
+  })
+})

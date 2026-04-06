@@ -4,7 +4,7 @@
 import { http, graphql } from 'msw'
 import { setupServer } from 'msw/node'
 
-const resolver = () => null
+const resolver = () => {}
 const github = graphql.link('https://api.github.com')
 
 const server = setupServer(

@@ -3,7 +3,8 @@ import { TestFixtures, test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
-    startWorker(): ReturnType<SetupWorkerApi['start']>
+    startWorker: () => ReturnType<SetupWorkerApi['start']>
+    stopWorker: () => ReturnType<SetupWorkerApi['stop']>
   }
 }
 
@@ -118,5 +119,30 @@ test('prints a warning if "worker.start()" is called multiple times', async ({
   // The warning is printed about multiple calls of "worker.start()".
   expect(consoleSpy.get('warning')).toEqual([
     `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+  ])
+})
+
+test('does not warn on a redundant start call when restarting the worker', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  await loadExample(...exampleOptions)
+  const consoleSpy = spyOnConsole()
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  await page.evaluate(async () => {
+    await window.msw.startWorker()
+    window.msw.stopWorker()
+    await window.msw.startWorker()
+  })
+
+  expect(consoleSpy.get('warning')).toBeUndefined()
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+    '[MSW] Mocking enabled.',
   ])
 })

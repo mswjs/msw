@@ -56,13 +56,13 @@ async function patchTypeDefs() {
 
   if (typeDefsWithCoreImports.length === 0) {
     console.log(
-      'Found no .d.ts modules containing the "~/core" import, skipping...',
+      'Found no .d.ts modules containing the "#core" import, skipping...',
     )
     return process.exit(0)
   }
 
   console.log(
-    'Found %d module(s) with the "~/core" import, resolving...',
+    'Found %d module(s) with the "#core" import, resolving...',
     typeDefsWithCoreImports.length,
   )
 
@@ -83,16 +83,16 @@ async function patchTypeDefs() {
     typeDefsWithCoreImports.length,
   )
 
-  // Next, validate that we left no "~/core" imports unresolved.
+  // Next, validate that we left no "#core" imports unresolved.
   const modulesWithUnresolvedImports = searchFilesForPattern(
     '**/*.d.{ts,mts}',
-    '~/core',
-    'Failed to validate the .d.ts modules for the presence of the "~/core" import. See the original error below.',
+    '#core',
+    'Failed to validate the .d.ts modules for the presence of the "#core" import. See the original error below.',
   )
 
   if (modulesWithUnresolvedImports.length > 0) {
     console.error(
-      `Found .d.ts modules containing unresolved "~/core" import after the patching:
+      `Found .d.ts modules containing unresolved "#core" import after the patching:
 
 ${getRelativePaths(modulesWithUnresolvedImports)
   .map((p) => `  - ${p}`)
@@ -103,7 +103,7 @@ ${getRelativePaths(modulesWithUnresolvedImports)
     return process.exit(1)
   }
 
-  // Ensure that the .d.ts files compile without errors after resolving the "~/core" imports.
+  // Ensure that the .d.ts files compile without errors after resolving the "#core" imports.
   console.log('Compiling the .d.ts modules with tsc...')
   const tscCompilation = await execAsync(
     `tsc --noEmit --skipLibCheck ${typeDefsPaths.map((filePath) => `"${filePath}"`).join(' ')}`,
@@ -142,7 +142,7 @@ ${getRelativePaths(mjsInCjsResults)
   }
 
   console.log(
-    'The "~/core" imports resolved successfully in %d .d.ts modules! 🎉',
+    'The "#core" imports resolved successfully in %d .d.ts modules! 🎉',
     typeDefsWithCoreImports.length,
   )
 }

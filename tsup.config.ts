@@ -67,7 +67,6 @@ const graphqlConfig = defineConfig({
   external: [ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/graphql',
-  bundle: false,
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),

@@ -43,6 +43,8 @@ export interface StartOptions extends SharedOptions {
    * instance is activated.
    * @default true
    * @deprecated
+   * Please use a proper browser integration instead.
+   * @see https://mswjs.io/docs/integrations/browser
    */
   waitUntilReady?: boolean
 
@@ -62,9 +64,6 @@ export type StartHandler = (
 
 export type StopHandler = () => void
 
-/**
- * @deprecated Use the `SetupWorkerApi` type instead.
- */
 export interface SetupWorker {
   /**
    * Registers and activates the mock Service Worker.

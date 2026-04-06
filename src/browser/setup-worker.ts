@@ -1,13 +1,9 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import {
-  defineNetwork,
-  NetworkHandlersApi,
-} from '#core/experimental/define-network'
+import { defineNetwork } from '#core/experimental/define-network'
 import { type AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { type UnhandledRequestStrategy } from '#core/utils/request/onUnhandledRequest'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { LifeCycleEventEmitter } from '#core/sharedOptions'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
@@ -16,32 +12,12 @@ import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'
-import type { FindWorker, StartReturnType } from './glossary'
-
-export interface SetupWorkerApi extends NetworkHandlersApi {
-  start: (options?: SetupWorkerStartOptions) => StartReturnType
-  stop: () => void
-  events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
-  >
-}
-
-interface SetupWorkerStartOptions {
-  quiet?: boolean
-  serviceWorker?: {
-    url?: string | URL
-    options?: RegistrationOptions
-  }
-  findWorker?: FindWorker
-  onUnhandledRequest?: UnhandledRequestStrategy
-
-  /**
-   * @deprecated
-   * Please use a proper browser integration instead.
-   * @see https://mswjs.io/docs/integrations/browser
-   */
-  waitUntilReady?: boolean
-}
+import type {
+  SetupWorker,
+  StartOptions,
+  StartReturnType,
+  StopHandler,
+} from './glossary'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 
@@ -51,7 +27,7 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
  *
  * @see {@link https://mswjs.io/docs/api/setup-worker `setupWorker()` API reference}
  */
-export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
+export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
   invariant(
     !isNodeProcess(),
     devUtils.formatMessage(
@@ -147,5 +123,33 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorkerApi {
     resetHandlers: network.resetHandlers.bind(network),
     restoreHandlers: network.restoreHandlers.bind(network),
     listHandlers: network.listHandlers.bind(network),
+  }
+}
+
+/**
+ * @deprecated
+ * Please use the `defineNetwork` API instead.
+ */
+export class SetupWorkerApi implements SetupWorker {
+  start: (options?: StartOptions) => StartReturnType
+  stop: StopHandler
+  use: (...handlers: Array<AnyHandler>) => void
+  resetHandlers: (...nextHandlers: Array<AnyHandler>) => void
+  restoreHandlers: () => void
+  listHandlers: () => ReadonlyArray<AnyHandler>
+  events: LifeCycleEventEmitter<
+    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+  >
+
+  constructor() {
+    const worker = setupWorker()
+
+    this.start = worker.start.bind(worker)
+    this.stop = worker.stop.bind(worker)
+    this.use = worker.use.bind(worker)
+    this.resetHandlers = worker.resetHandlers.bind(worker)
+    this.restoreHandlers = worker.restoreHandlers.bind(worker)
+    this.listHandlers = worker.listHandlers.bind(worker)
+    this.events = worker.events
   }
 }

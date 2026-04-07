@@ -116,6 +116,6 @@ export interface SetupWorker {
    * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
    */
   events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+    HttpNetworkFrameEventMap & WebSocketNetworkFrameEventMap
   >
 }

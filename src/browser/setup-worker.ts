@@ -131,7 +131,7 @@ export class SetupWorkerApi implements SetupWorker {
   restoreHandlers: () => void
   listHandlers: () => ReadonlyArray<AnyHandler>
   events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+    HttpNetworkFrameEventMap & WebSocketNetworkFrameEventMap
   >
 
   constructor() {

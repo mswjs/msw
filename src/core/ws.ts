@@ -8,18 +8,13 @@ import {
   kEmitter,
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
-import { Path, isPath } from './utils/matching/matchRequestUrl'
+import { hasRefCounted } from './utils/internal/hasRefCounted'
+import { type Path, isPath } from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
-
-function isBroadcastChannelWithUnref(
-  channel: BroadcastChannel,
-): channel is BroadcastChannel & NodeJS.RefCounted {
-  return typeof Reflect.get(channel, 'unref') !== 'undefined'
-}
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
-if (isBroadcastChannelWithUnref(webSocketChannel)) {
+if (hasRefCounted(webSocketChannel)) {
   // Allows the Node.js thread to exit if it is the only active handle in the event system.
   // https://nodejs.org/api/worker_threads.html#broadcastchannelunref
   webSocketChannel.unref()
@@ -47,10 +42,10 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#onevent-listener `on()` API reference}
    */
-  addEventListener<EventType extends keyof WebSocketHandlerEventMap>(
+  addEventListener: <EventType extends keyof WebSocketHandlerEventMap>(
     event: EventType,
     listener: WebSocketEventListener<EventType>,
-  ): WebSocketHandler
+  ) => WebSocketHandler
 
   /**
    * Broadcasts the given data to all WebSocket clients.
@@ -63,7 +58,7 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#broadcastdata `broadcast()` API reference}
    */
-  broadcast(data: WebSocketData): void
+  broadcast: (data: WebSocketData) => void
 
   /**
    * Broadcasts the given data to all WebSocket clients
@@ -77,12 +72,12 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#broadcastexceptclients-data `broadcast()` API reference}
    */
-  broadcastExcept(
+  broadcastExcept: (
     clients:
       | WebSocketClientConnectionProtocol
       | Array<WebSocketClientConnectionProtocol>,
     data: WebSocketData,
-  ): void
+  ) => void
 }
 
 /**

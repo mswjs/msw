@@ -6,7 +6,7 @@ import {
   type HttpRequestResolverExtras,
   type HttpRequestParsedResult,
 } from './handlers/HttpHandler'
-import type { ResponseResolutionContext } from '~/core/utils/executeHandlers'
+import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 import { delay } from './delay'
 import { getTimestamp } from './utils/logging/getTimestamp'
@@ -333,7 +333,7 @@ class ServerSentEventClient<
     }
 
     if (message.event) {
-      frames.push(`event:${message.event?.toString()}`)
+      frames.push(`event:${message.event.toString()}`)
     }
 
     if (message.data != null) {

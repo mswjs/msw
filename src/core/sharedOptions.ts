@@ -1,4 +1,4 @@
-import type { Emitter } from 'strict-event-emitter'
+import type { Emitter, DefaultEventMap } from 'rettime'
 import type { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
 
 export interface SharedOptions {
@@ -13,6 +13,10 @@ export interface SharedOptions {
   onUnhandledRequest?: UnhandledRequestStrategy
 }
 
+/**
+ * @deprecated
+ * Please use `HttpNetworkFrameEventMap` or `WebSocketNetworkFrameEventMap` instead.
+ */
 export type LifeCycleEventsMap = {
   'request:start': [
     args: {
@@ -61,6 +65,7 @@ export type LifeCycleEventsMap = {
   ]
 }
 
-export type LifeCycleEventEmitter<
-  EventsMap extends Record<string | symbol, any>,
-> = Pick<Emitter<EventsMap>, 'on' | 'removeListener' | 'removeAllListeners'>
+export type LifeCycleEventEmitter<EventMap extends DefaultEventMap> = Pick<
+  Emitter<EventMap>,
+  'on' | 'removeListener' | 'removeAllListeners'
+>

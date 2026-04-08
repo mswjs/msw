@@ -17,7 +17,11 @@ interface HandleWebSocketEventOptions {
 
 export function handleWebSocketEvent(options: HandleWebSocketEventOptions) {
   webSocketInterceptor.on('connection', async (connection) => {
-    const handlers = options.getHandlers().filter(isHandlerKind('EventHandler'))
+    /**
+     * @todo @fixme Reference the handlers controller here and use `.getHandlersByKind`.
+     * That one relies on the pre-grouped handlers map and will be more performant.
+     */
+    const handlers = options.getHandlers().filter(isHandlerKind('websocket'))
 
     // Ignore this connection if the user hasn't defined any handlers.
     if (handlers.length > 0) {

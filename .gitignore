@@ -4,6 +4,7 @@ node_modules
 /lib
 tmp
 *-error.log
+*.tsbuildinfo
 /package-lock.json
 /yarn.lock
 stats.html
@@ -14,6 +15,7 @@ msw-*.tgz
 .env
 **/test-results
 /test/modules/node/node-esm-tests
+*.tsbuildinfo
 
 # Smoke test temporary files.
 /package.json.copy

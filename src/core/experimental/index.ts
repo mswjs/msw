@@ -1,4 +1,5 @@
-export { defineNetwork, DefineNetworkOptions } from './define-network'
+export { defineNetwork } from './define-network'
+export type { DefineNetworkOptions } from './define-network'
 
 /* Network sources */
 export { NetworkSource } from './sources/network-source'

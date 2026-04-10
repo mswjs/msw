@@ -4,7 +4,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { type AnyHandler } from '#core/experimental/handlers-controller'
 import {
   defineNetwork,
-  DefineNetworkOptions,
+  type DefineNetworkOptions,
 } from '#core/experimental/define-network'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { type SetupServerCommon } from '../node/glossary'

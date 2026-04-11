@@ -44,7 +44,7 @@ export abstract class NetworkSource<
 
   public on<Type extends keyof NetworkSourceEventMap<Frame>>(
     type: Type,
-    listener: Emitter.ListenerType<typeof this.emitter, Type>,
+    listener: Emitter.Listener<typeof this.emitter, Type>,
     options?: TypedListenerOptions,
   ): void {
     this.emitter.on(type, listener, options)

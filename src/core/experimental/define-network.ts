@@ -4,7 +4,10 @@ import {
   type NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
-import { type NetworkFrameResolutionContext } from './frames/network-frame'
+import {
+  type AnyNetworkFrame,
+  type NetworkFrameResolutionContext,
+} from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   AnyHandler,
@@ -161,8 +164,8 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       readyState = NetworkReadyState.ENABLED
 
       const result = resolvedOptions.sources.map((source) => {
-        source.on('frame', async ({ frame }) => {
-          frame.events.on('*', (event) => events.emit(event), {
+        source.on('frame', async ({ frame }: { frame: AnyNetworkFrame }) => {
+          frame.events.on('*', (event: any) => events.emit(event), {
             signal: listenersController.signal,
           })
 

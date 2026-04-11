@@ -27,6 +27,8 @@ describe('createStopPropagationListener', () => {
 
     // stopPropagation should be patched and still callable.
     expect(() => event.stopPropagation()).not.toThrow()
+    // Verify the patched side effect was applied.
+    expect(Reflect.get(event, 'kPropagationStoppedAt')).toBe(handler.id)
   })
 })
 

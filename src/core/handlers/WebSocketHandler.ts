@@ -195,7 +195,7 @@ export function createStopPropagationListener(handler: WebSocketHandler) {
       | undefined
 
     if (propagationStoppedAt && handler.id !== propagationStoppedAt) {
-      event.stopImmediatePropagation()
+      Reflect.get(event, 'stopImmediatePropagation')?.call(event)
       return
     }
 

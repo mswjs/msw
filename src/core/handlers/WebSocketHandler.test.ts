@@ -1,4 +1,34 @@
-import { WebSocketHandler } from './WebSocketHandler'
+import {
+  WebSocketHandler,
+  createStopPropagationListener,
+} from './WebSocketHandler'
+
+describe('createStopPropagationListener', () => {
+  it('does not crash when event.stopPropagation is undefined (Hermes polyfill)', () => {
+    const handler = new WebSocketHandler('ws://localhost')
+
+    // Simulate a Hermes-like Event where stopPropagation is not defined.
+    const event = {
+      type: 'message',
+    } as unknown as Event
+
+    expect(event.stopPropagation).toBeUndefined()
+
+    const listener = createStopPropagationListener(handler)
+    expect(() => listener(event)).not.toThrow()
+  })
+
+  it('patches stopPropagation on a standard Event', () => {
+    const handler = new WebSocketHandler('ws://localhost')
+    const event = new Event('message')
+
+    const listener = createStopPropagationListener(handler)
+    listener(event)
+
+    // stopPropagation should be patched and still callable.
+    expect(() => event.stopPropagation()).not.toThrow()
+  })
+})
 
 describe('parse', () => {
   it('matches an exact url', () => {

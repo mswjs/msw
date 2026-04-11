@@ -185,7 +185,10 @@ export class WebSocketHandler {
   }
 }
 
-function createStopPropagationListener(handler: WebSocketHandler) {
+/**
+ * @internal Exported for testing purposes only.
+ */
+export function createStopPropagationListener(handler: WebSocketHandler) {
   return function stopPropagationListener(event: Event) {
     const propagationStoppedAt = Reflect.get(event, 'kPropagationStoppedAt') as
       | string
@@ -208,12 +211,14 @@ function createStopPropagationListener(handler: WebSocketHandler) {
     // Since the same event instance is shared between all client/server objects,
     // make sure to patch its `stopPropagation` method only once.
     if (!Reflect.get(event, kStopPropagationPatched)) {
-      event.stopPropagation = new Proxy(event.stopPropagation, {
-        apply: (target, thisArg, args) => {
-          Reflect.get(event, KOnStopPropagation)?.call(handler)
-          return Reflect.apply(target, thisArg, args)
-        },
-      })
+      const originalStopPropagation = event.stopPropagation
+
+      event.stopPropagation = function (
+        ...args: Parameters<Event['stopPropagation']>
+      ) {
+        Reflect.get(event, KOnStopPropagation)?.call(handler)
+        return originalStopPropagation?.apply(this, args)
+      }
 
       Object.defineProperty(event, kStopPropagationPatched, {
         value: true,

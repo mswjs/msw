@@ -256,7 +256,7 @@
     "outvariant": "^1.4.3",
     "path-to-regexp": "^6.3.0",
     "picocolors": "^1.1.1",
-    "rettime": "^0.10.1",
+    "rettime": "^0.11.7",
     "statuses": "^2.0.2",
     "strict-event-emitter": "^0.5.1",
     "tough-cookie": "^6.0.0",

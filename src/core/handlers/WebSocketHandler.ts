@@ -22,10 +22,13 @@ export type WebSocketHandlerEventMap = {
   connection: [args: WebSocketHandlerConnection]
 }
 
-export interface WebSocketHandlerConnection {
+export interface WebSocketConnectionFoo {
   client: WebSocketClientConnectionProtocol
   server: WebSocketServerConnectionProtocol
   info: WebSocketConnectionData['info']
+}
+
+export interface WebSocketHandlerConnection extends WebSocketConnectionFoo {
   params: PathParams
 }
 
@@ -97,7 +100,7 @@ export class WebSocketHandler {
   }
 
   public async run(
-    connection: WebSocketConnectionData,
+    connection: WebSocketConnectionFoo,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
     const parsedResult = this.parse({
@@ -160,7 +163,9 @@ export class WebSocketHandler {
     return this[kEmitter].emit('connection', connection)
   }
 
-  public log(connection: WebSocketConnectionData): () => void {
+  public log(
+    connection: WebSocketConnectionData | WebSocketConnectionFoo,
+  ): () => void {
     return attachWebSocketLogger(connection)
   }
 

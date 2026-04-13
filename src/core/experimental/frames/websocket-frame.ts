@@ -1,9 +1,9 @@
 import { TypedEvent } from 'rettime'
-import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import {
   kConnect,
   kAutoConnect,
   type WebSocketHandler,
+  type WebSocketConnectionFoo,
 } from '../../handlers/WebSocketHandler'
 import {
   NetworkFrame,
@@ -16,8 +16,10 @@ import {
 import { devUtils } from '../../utils/internal/devUtils'
 import { HandlersController, AnyHandler } from '../handlers-controller'
 
-export interface WebSocketNetworkFrameOptions {
-  connection: WebSocketConnectionData
+export interface WebSocketNetworkFrameOptions<
+  Connection extends WebSocketConnectionFoo,
+> {
+  connection: Connection
 }
 
 export type WebSocketNetworkFrameEventMap = {
@@ -68,14 +70,16 @@ class UnhandledWebSocketExceptionEvent<
   }
 }
 
-export abstract class WebSocketNetworkFrame extends NetworkFrame<
+export abstract class WebSocketNetworkFrame<
+  Connection extends WebSocketConnectionFoo,
+> extends NetworkFrame<
   'ws',
   {
-    connection: WebSocketConnectionData
+    connection: Connection
   },
   WebSocketNetworkFrameEventMap
 > {
-  constructor(options: WebSocketNetworkFrameOptions) {
+  constructor(options: WebSocketNetworkFrameOptions<Connection>) {
     super('ws', {
       connection: options.connection,
     })

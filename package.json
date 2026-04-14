@@ -105,6 +105,10 @@
         "default": "./lib/native/index.js"
       }
     },
+    "./remote": {
+      "import": "./lib/remote/index.mjs",
+      "default": "./lib/remote/index.js"
+    },
     "./core/http": {
       "module-sync": {
         "types": "./lib/core/http.d.mts",
@@ -250,6 +254,7 @@
     "@open-draft/deferred-promise": "^2.2.0",
     "@types/statuses": "^2.0.6",
     "cookie": "^1.0.2",
+    "engine.io-client": "^6.6.4",
     "graphql": "^16.12.0",
     "headers-polyfill": "^4.0.2",
     "is-node-process": "^1.2.0",
@@ -257,6 +262,8 @@
     "path-to-regexp": "^6.3.0",
     "picocolors": "^1.1.1",
     "rettime": "^0.11.7",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "statuses": "^2.0.2",
     "strict-event-emitter": "^0.5.1",
     "tough-cookie": "^6.0.0",

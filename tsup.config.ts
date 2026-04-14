@@ -130,6 +130,21 @@ const reactNativeConfig: Options = {
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 
+const remoteConfig: Options = {
+  name: 'remote',
+  platform: 'node',
+  entry: ['./src/remote/index.ts'],
+  external: [mswCore, ecosystemDependencies],
+  format: ['esm', 'cjs'],
+  outDir: './lib/remote',
+  bundle: true,
+  splitting: false,
+  sourcemap: true,
+  dts: true,
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
+}
+
 const iifeConfig: Options = {
   name: 'iife',
   platform: 'browser',
@@ -159,6 +174,7 @@ export default defineConfig([
   coreConfig,
   nodeConfig,
   reactNativeConfig,
+  remoteConfig,
   browserConfig,
   iifeConfig,
 ])

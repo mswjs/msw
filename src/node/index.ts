@@ -5,3 +5,4 @@ export {
   defaultNetworkOptions,
 } from './setup-server'
 export { SetupServerCommonApi } from './setup-server-common'
+export { setupRemoteServer } from './setup-remote-server'

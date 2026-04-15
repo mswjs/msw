@@ -927,6 +927,13 @@ export interface EventStream<EventMap extends EventMapConstraint> {
 export function createEventStream<EventMap extends EventMapConstraint>(
   request: Request,
 ): EventStream<EventMap> {
+  invariant(
+    request.signal.aborted,
+    'Failed to call "createEventStream" on the "%s %s" request: request aborted',
+    request.method,
+    request.url,
+  )
+
   const { readable, writable } = new TransformStream()
 
   const client = new ServerSentEventClient<EventMap>(writable)
@@ -936,6 +943,14 @@ export function createEventStream<EventMap extends EventMapConstraint>(
   })
 
   const response = new Response(readable, SSE_RESPONSE_INIT)
+
+  request.signal.addEventListener(
+    'abort',
+    () => {
+      client.close()
+    },
+    { once: true },
+  )
 
   return {
     client,

@@ -65,7 +65,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       }
 
       const httpSource = supportsServiceWorker()
-        ? new ServiceWorkerSource({
+        ? await ServiceWorkerSource.from({
             serviceWorker: {
               url:
                 options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,

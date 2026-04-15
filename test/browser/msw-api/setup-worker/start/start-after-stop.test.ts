@@ -38,5 +38,5 @@ test('handles requests after starting a stopped worker', async ({
 
   const response = await fetch('/resource')
   expect.soft(response.status()).toBe(200)
-  await expect.soft(response.text()).resolves.toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })

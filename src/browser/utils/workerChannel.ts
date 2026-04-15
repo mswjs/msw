@@ -118,32 +118,28 @@ type OutgoingWorkerEvents =
   | 'CLIENT_CLOSED'
 
 export interface WorkerChannelOptions {
-  worker: Promise<ServiceWorker>
+  getWorker: () => Promise<ServiceWorker>
 }
 
 export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
-  #controller?: AbortController
-  #worker?: Promise<ServiceWorker>
+  #getWorker: WorkerChannelOptions['getWorker']
+  #controller: AbortController
 
-  public open(options: WorkerChannelOptions) {
+  constructor(options: WorkerChannelOptions) {
+    super()
+
     invariant(
       SUPPORTS_SERVICE_WORKER,
       'Failed to open a WorkerChannel: Service Worker is not supported in this environment.',
     )
 
-    invariant(
-      this.#worker == null,
-      'Failed to open a WorkerChannel: the channel is already open. This is likely an issue in with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
-    )
-
-    const controller = new AbortController()
-    this.#controller = controller
-    this.#worker = options.worker
+    this.#getWorker = options.getWorker
+    this.#controller = new AbortController()
 
     navigator.serviceWorker.addEventListener(
       'message',
       async (event) => {
-        const worker = await options.worker
+        const worker = await this.#getWorker()
 
         if (event.source != null && event.source !== worker) {
           return
@@ -168,20 +164,18 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
       SUPPORTS_SERVICE_WORKER,
       'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
     )
-    invariant(
-      this.#worker,
-      'Failed to post message on a WorkerChannel: the channel is not open. Did you forget to call "channel.open()"?',
-    )
 
-    this.#worker.then((worker) => {
+    this.#getWorker().then((worker) => {
       worker.postMessage(type)
     })
   }
 
-  public close(): void {
-    this.#controller?.abort()
-    this.#controller = undefined
-    this.#worker = undefined
+  /**
+   * Terminal teardown. Removes the `navigator.serviceWorker` message listener
+   * and all emitter subscriptions. The channel is not usable afterwards.
+   */
+  public terminate(): void {
+    this.#controller.abort()
     this.removeAllListeners()
   }
 }

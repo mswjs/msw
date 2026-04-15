@@ -66,9 +66,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#frames = new Map()
     this.workerPromise = new DeferredPromise()
-    this.#channel = new WorkerChannel({
-      worker: this.workerPromise.then(([worker]) => worker),
-    })
+    this.#channel = new WorkerChannel()
   }
 
   public async enable(): Promise<ServiceWorkerRegistration> {
@@ -82,7 +80,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       return this.workerPromise.then(([, registration]) => registration)
     }
 
-    this.#channel.removeAllListeners()
+    this.#channel.open({
+      worker: this.workerPromise.then(([worker]) => worker),
+    })
+
     const [worker, registration] = await this.#startWorker()
 
     if (worker.state !== 'activated') {
@@ -97,7 +98,9 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
             activationPromise.resolve()
           }
         },
-        { signal: controller.signal },
+        {
+          signal: controller.signal,
+        },
       )
 
       await activationPromise
@@ -139,6 +142,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#stoppedAt = Date.now()
     this.#frames.clear()
     this.workerPromise = new DeferredPromise()
+    this.#channel.close()
 
     if (!this.options.quiet) {
       this.#printStopMessage()

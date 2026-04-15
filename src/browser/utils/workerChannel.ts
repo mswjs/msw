@@ -4,10 +4,6 @@ import { isObject } from '#core/utils/internal/isObject'
 import type { StringifiedResponse } from '../glossary'
 import { supportsServiceWorker } from '../utils/supports'
 
-export interface WorkerChannelOptions {
-  worker: Promise<ServiceWorker>
-}
-
 export type WorkerChannelEventMap = {
   REQUEST: WorkerEvent<IncomingWorkerRequest>
   RESPONSE: WorkerEvent<IncomingWorkerResponse>
@@ -121,25 +117,46 @@ type OutgoingWorkerEvents =
   | 'KEEPALIVE_REQUEST'
   | 'CLIENT_CLOSED'
 
+export interface WorkerChannelOptions {
+  worker: Promise<ServiceWorker>
+}
+
 export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
-  constructor(protected readonly options: WorkerChannelOptions) {
-    super()
+  #controller?: AbortController
+  #worker?: Promise<ServiceWorker>
 
-    if (!SUPPORTS_SERVICE_WORKER) {
-      return
-    }
+  public open(options: WorkerChannelOptions) {
+    invariant(
+      SUPPORTS_SERVICE_WORKER,
+      'Failed to open a WorkerChannel: Service Worker is not supported in this environment.',
+    )
 
-    navigator.serviceWorker.addEventListener('message', async (event) => {
-      const worker = await this.options.worker
+    invariant(
+      this.#worker == null,
+      'Failed to open a WorkerChannel: the channel is already open. This is likely an issue in with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+    )
 
-      if (event.source != null && event.source !== worker) {
-        return
-      }
+    const controller = new AbortController()
+    this.#controller = controller
+    this.#worker = options.worker
 
-      if (event.data && isObject(event.data) && 'type' in event.data) {
-        this.emit(new WorkerEvent<any, any, any>(event))
-      }
-    })
+    navigator.serviceWorker.addEventListener(
+      'message',
+      async (event) => {
+        const worker = await options.worker
+
+        if (event.source != null && event.source !== worker) {
+          return
+        }
+
+        if (event.data && isObject(event.data) && 'type' in event.data) {
+          this.emit(new WorkerEvent<any, any, any>(event))
+        }
+      },
+      {
+        signal: this.#controller.signal,
+      },
+    )
   }
 
   /**
@@ -149,11 +166,22 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
   public postMessage(type: OutgoingWorkerEvents): void {
     invariant(
       SUPPORTS_SERVICE_WORKER,
-      'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this context. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+      'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+    )
+    invariant(
+      this.#worker,
+      'Failed to post message on a WorkerChannel: the channel is not open. Did you forget to call "channel.open()"?',
     )
 
-    this.options.worker.then((worker) => {
+    this.#worker.then((worker) => {
       worker.postMessage(type)
     })
+  }
+
+  public close(): void {
+    this.#controller?.abort()
+    this.#controller = undefined
+    this.#worker = undefined
+    this.removeAllListeners()
   }
 }

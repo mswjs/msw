@@ -20,6 +20,10 @@ export {
 /* Server-Sent Events */
 export {
   sse,
+  SSE_RESPONSE_INIT,
+  createEventStream,
+  type EventStream,
+  type EventStreamMessage,
   type ServerSentEventRequestHandler,
   type ServerSentEventResolver,
   type ServerSentEventResolverExtras,

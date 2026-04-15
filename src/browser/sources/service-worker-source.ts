@@ -176,6 +176,9 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#stoppedAt = Date.now()
     this.#frames.clear()
 
+    this.#listenerController?.abort()
+    this.#listenerController = undefined
+
     /**
      * @note Tell the Service Worker to drop this client from its active set
      * so it stops forwarding REQUEST events here. `stoppedAt` still guards

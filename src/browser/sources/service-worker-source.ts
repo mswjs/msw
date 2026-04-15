@@ -68,12 +68,13 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     return ServiceWorkerSource.#current
   }
 
+  #options: ServiceWorkerSourceOptions
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
+  #listenerController?: AbortController
   #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
   #stoppedAt?: number
-  #options: ServiceWorkerSourceOptions
 
   public workerPromise: DeferredPromise<
     [ServiceWorker, ServiceWorkerRegistration]
@@ -115,6 +116,8 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#stoppedAt = undefined
     this.#channel.removeAllListeners()
+
+    this.#listenerController = new AbortController()
     const [worker, registration] = await this.#startWorker()
 
     if (worker.state !== 'activated') {
@@ -205,6 +208,8 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#frames.clear()
     this.#channel.terminate()
+    this.#listenerController?.abort()
+    this.#listenerController = undefined
 
     if (this.workerPromise.state === 'fulfilled') {
       const [, registration] = await this.workerPromise
@@ -268,15 +273,21 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
 
-    window.addEventListener('beforeunload', () => {
-      if (worker.state !== 'redundant') {
-        this.#channel.postMessage('CLIENT_CLOSED')
-      }
+    window.addEventListener(
+      'beforeunload',
+      () => {
+        if (worker.state !== 'redundant') {
+          this.#channel.postMessage('CLIENT_CLOSED')
+        }
 
-      clearInterval(this.#keepAliveInterval)
+        clearInterval(this.#keepAliveInterval)
 
-      window.postMessage({ type: 'msw/worker:stop' })
-    })
+        window.postMessage({ type: 'msw/worker:stop' })
+      },
+      {
+        signal: this.#listenerController?.signal,
+      },
+    )
 
     await this.#checkWorkerIntegrity().catch((error) => {
       devUtils.error(

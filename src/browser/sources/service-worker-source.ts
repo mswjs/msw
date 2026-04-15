@@ -20,6 +20,7 @@ import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
 import { FindWorker } from '../glossary'
 import { deserializeRequest } from '../utils/deserializeRequest'
 import { validateWorkerScope } from '../utils/validate-worker-scope'
+import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'
 
 export interface ServiceWorkerSourceOptions {
   quiet?: boolean
@@ -28,18 +29,6 @@ export interface ServiceWorkerSourceOptions {
     options?: RegistrationOptions
   }
   findWorker?: FindWorker
-}
-
-function shouldInvalidateWorker(
-  prev: ServiceWorkerSourceOptions,
-  next: ServiceWorkerSourceOptions,
-): boolean {
-  return (
-    prev.findWorker !== next.findWorker ||
-    prev.serviceWorker.url !== next.serviceWorker.url ||
-    JSON.stringify(prev.serviceWorker.options) !==
-      JSON.stringify(next.serviceWorker.options)
-  )
 }
 
 type WorkerChannelRequestEvent = Emitter.Event<

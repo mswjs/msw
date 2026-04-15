@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import { Emitter } from 'strict-event-emitter'
 import type { ResponseResolver } from './handlers/RequestHandler'
 import {
@@ -366,6 +367,7 @@ class ServerSentEventServer {
          */
         accept: 'msw/passthrough',
       },
+      signal: this.#request.signal,
     })
 
     source[kOnAnyMessage] = (event) => {
@@ -412,6 +414,7 @@ class ServerSentEventServer {
 
 interface ObservableEventSourceInit extends EventSourceInit {
   headers?: HeadersInit
+  signal?: AbortSignal
 }
 
 type EventHandler<EventType extends Event> = (
@@ -471,6 +474,18 @@ class ObservableEventSource extends EventTarget implements EventSource {
       credentials: this.withCredentials ? 'include' : 'omit',
       signal: this[kAbortController].signal,
     })
+
+    if (init?.signal) {
+      if (init.signal.aborted) {
+        this.close()
+        return
+      }
+
+      init.signal.addEventListener('abort', () => this.close(), {
+        once: true,
+        signal: this[kAbortController].signal,
+      })
+    }
 
     this.connect()
   }
@@ -675,7 +690,20 @@ class ObservableEventSource extends EventTarget implements EventSource {
       this.dispatchEvent(new Event('error'))
     })
 
-    await delay(this[kReconnectionTime])
+    const signal = this[kAbortController].signal
+    const aborted = new DeferredPromise<void>()
+    const onAbort = () => aborted.resolve()
+    signal.addEventListener('abort', onAbort, { once: true })
+
+    await Promise.race([delay(this[kReconnectionTime]), aborted]).finally(
+      () => {
+        signal.removeEventListener('abort', onAbort)
+      },
+    )
+
+    if (signal.aborted) {
+      return
+    }
 
     queueMicrotask(async () => {
       if (this.readyState !== this.CONNECTING) {
@@ -928,7 +956,7 @@ export function createEventStream<EventMap extends EventMapConstraint>(
   request: Request,
 ): EventStream<EventMap> {
   invariant(
-    request.signal.aborted,
+    !request.signal.aborted,
     'Failed to call "createEventStream" on the "%s %s" request: request aborted',
     request.method,
     request.url,

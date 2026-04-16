@@ -116,6 +116,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#stoppedAt = undefined
     this.#channel.removeAllListeners()
+    this.#frames.clear()
 
     this.#listenerController = new AbortController()
     const [worker, registration] = await this.#startWorker()
@@ -174,7 +175,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     }
 
     this.#stoppedAt = Date.now()
-    this.#frames.clear()
 
     this.#listenerController?.abort()
     this.#listenerController = undefined

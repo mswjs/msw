@@ -5,7 +5,7 @@ import {
   defineNetwork,
   NetworkReadyState,
 } from '#core/experimental/define-network'
-import { type AnyHandler } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { LifeCycleEventEmitter } from '#core/sharedOptions'

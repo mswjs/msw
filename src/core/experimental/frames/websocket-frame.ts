@@ -11,10 +11,11 @@ import {
 } from './network-frame'
 import {
   executeUnhandledFrameHandle,
-  UnhandledFrameHandle,
+  type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import { devUtils } from '../../utils/internal/devUtils'
-import { HandlersController, AnyHandler } from '../handlers-controller'
+import type { HandlersController } from '../handlers-controller'
+import { type AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData

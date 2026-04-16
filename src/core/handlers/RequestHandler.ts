@@ -1,15 +1,15 @@
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
-  AsyncIterable,
-  Iterable,
   isIterable,
+  type AsyncIterable,
+  type Iterable,
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
+import type { HttpResponse } from '../HttpResponse'
 import {
-  StrictRequest,
-  HttpResponse,
-  DefaultUnsafeFetchResponse,
+  type StrictRequest,
+  type DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
 import type { GraphQLRequestBody } from './GraphQLHandler'
 

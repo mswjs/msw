@@ -40,6 +40,14 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+          disallowTypeAnnotations: false,
+        },
+      ],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

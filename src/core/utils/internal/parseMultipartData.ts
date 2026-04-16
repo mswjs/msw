@@ -1,5 +1,5 @@
 import { stringToHeaders } from 'headers-polyfill'
-import { DefaultRequestMultipartBody } from '../../handlers/RequestHandler'
+import { type DefaultRequestMultipartBody } from '../../handlers/RequestHandler'
 
 interface ParsedContentHeaders {
   name: string

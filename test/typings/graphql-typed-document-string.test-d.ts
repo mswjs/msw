@@ -1,5 +1,5 @@
 import { graphql, HttpResponse } from 'msw'
-import { DocumentTypeDecoration } from '@graphql-typed-document-node/core'
+import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core'
 
 declare function createTypedDocumentString<TResult = any, TVariables = any>(
   query: string,

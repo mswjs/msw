@@ -2,9 +2,9 @@
  * @vitest-environment jsdom
  */
 import { HttpResponse, http } from 'msw'
-import { setupServer, SetupServer } from 'msw/node'
+import { setupServer, type SetupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
-import { RequestHandler as ExpressRequestHandler } from 'express'
+import type { RequestHandler as ExpressRequestHandler } from 'express'
 
 let server: SetupServer
 

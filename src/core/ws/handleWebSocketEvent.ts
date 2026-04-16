@@ -1,10 +1,10 @@
 import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
-import { RequestHandler } from '../handlers/RequestHandler'
-import { WebSocketHandler } from '../handlers/WebSocketHandler'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import type { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'
 import {
   onUnhandledRequest,
-  UnhandledRequestStrategy,
+  type UnhandledRequestStrategy,
 } from '../utils/request/onUnhandledRequest'
 import { isHandlerKind } from '../utils/internal/isHandlerKind'
 

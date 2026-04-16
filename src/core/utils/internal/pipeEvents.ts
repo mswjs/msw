@@ -1,4 +1,5 @@
-import { Emitter, EventMap } from 'strict-event-emitter'
+import type { Emitter } from 'strict-event-emitter'
+import { type EventMap } from 'strict-event-emitter'
 
 /**
  * Pipes all emitted events from one emitter to another.

@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { DeferredPromise } from '@open-draft/deferred-promise'
 import { Emitter } from 'strict-event-emitter'
 import type { ResponseResolver } from './handlers/RequestHandler'
 import {
@@ -89,26 +90,19 @@ class ServerSentEventHandler<
     )
 
     super('GET', path, async (info) => {
-      const stream = new ReadableStream({
-        start: async (controller) => {
-          const client = new ServerSentEventClient<EventMap>({
-            controller,
-            emitter: this.#emitter,
-          })
-          const server = new ServerSentEventServer({
-            request: info.request,
-            client,
-          })
+      const { client, server, response } = createEventStream<EventMap>(
+        info.request,
+      )
 
-          await resolver({
-            ...info,
-            client,
-            server,
-          })
-        },
+      client[kClientEmitter] = this.#emitter
+
+      await resolver({
+        ...info,
+        client,
+        server,
       })
 
-      return new Response(stream, SSE_RESPONSE_INIT)
+      return response
     })
 
     this.#emitter = new Emitter<ServerSentEventClientEventMap>()
@@ -222,32 +216,24 @@ type ToEventDiscriminatedUnion<T> = Values<{
 }>
 
 type ServerSentEventClientEventMap = {
-  message: [
-    payload: {
-      id?: string
-      event: string
-      data?: unknown
-      frames: Array<string>
-    },
-  ]
+  message: [payload: EventStreamMessage]
   error: []
   close: []
 }
 
+const kClientEmitter = Symbol.for('kClientEmitter')
+
 class ServerSentEventClient<
   EventMap extends EventMapConstraint = { message: unknown },
 > {
-  #encoder: TextEncoder
-  #controller: ReadableStreamDefaultController
-  #emitter: Emitter<ServerSentEventClientEventMap>
+  private [kClientEmitter]?: Emitter<ServerSentEventClientEventMap>
 
-  constructor(args: {
-    controller: ReadableStreamDefaultController
-    emitter: Emitter<ServerSentEventClientEventMap>
-  }) {
+  #encoder: TextEncoder
+  #writer: WritableStreamDefaultWriter
+
+  constructor(writable: WritableStream) {
     this.#encoder = new TextEncoder()
-    this.#controller = args.controller
-    this.#emitter = args.emitter
+    this.#writer = writable.getWriter()
   }
 
   /**
@@ -303,22 +289,37 @@ class ServerSentEventClient<
    * error.
    */
   public error(): void {
-    this.#controller.error()
-    this.#emitter.emit('error')
+    this.#writer.abort().catch((error) => {
+      console.error(error)
+      devUtils.error(
+        'Failed to abort server-side EventSource. Please see the original error above.',
+      )
+    })
+    this[kClientEmitter]?.emit('error')
   }
 
   /**
    * Closes the underlying `EventSource`, closing the connection.
    */
   public close(): void {
-    this.#controller.close()
-    this.#emitter.emit('close')
+    this.#writer.close().catch((error) => {
+      console.error(error)
+      devUtils.error(
+        'Failed to close server-side EventSource. Please see the original error above.',
+      )
+    })
+    this[kClientEmitter]?.emit('close')
   }
 
   #sendRetry(retry: number): void {
-    if (typeof retry === 'number') {
-      this.#controller.enqueue(this.#encoder.encode(`retry:${retry}\n\n`))
-    }
+    this.#writer
+      .write(this.#encoder.encode(`retry:${retry}\n\n`))
+      .catch((error) => {
+        console.error(error)
+        devUtils.error(
+          'Failed to send a retry packet to server-side EventSource. Please see the original error above.',
+        )
+      })
   }
 
   #sendMessage(message: {
@@ -349,9 +350,16 @@ class ServerSentEventClient<
 
     frames.push('', '')
 
-    this.#controller.enqueue(this.#encoder.encode(frames.join('\n')))
+    this.#writer
+      .write(this.#encoder.encode(frames.join('\n')))
+      .catch((error) => {
+        console.error(error)
+        devUtils.error(
+          'Failed to send a message to server-side EventSource. Please see the original error above.',
+        )
+      })
 
-    this.#emitter.emit('message', {
+    this[kClientEmitter]?.emit('message', {
       id: message.id,
       event: message.event?.toString() || 'message',
       data: message.data,
@@ -383,6 +391,7 @@ class ServerSentEventServer {
          */
         accept: 'msw/passthrough',
       },
+      signal: this.#request.signal,
     })
 
     source[kOnAnyMessage] = (event) => {
@@ -429,6 +438,7 @@ class ServerSentEventServer {
 
 interface ObservableEventSourceInit extends EventSourceInit {
   headers?: HeadersInit
+  signal?: AbortSignal
 }
 
 type EventHandler<EventType extends Event> = (
@@ -489,6 +499,18 @@ class ObservableEventSource extends EventTarget implements EventSource {
       signal: this[kAbortController].signal,
     })
 
+    if (init?.signal) {
+      if (init.signal.aborted) {
+        this.close()
+        return
+      }
+
+      init.signal.addEventListener('abort', () => this.close(), {
+        once: true,
+        signal: this[kAbortController].signal,
+      })
+    }
+
     this.connect()
   }
 
@@ -518,7 +540,7 @@ class ObservableEventSource extends EventTarget implements EventSource {
   get onerror(): EventHandler<Event> | null {
     return this[kOnError]
   }
-  set oneerror(handler: EventHandler<Event>) {
+  set onerror(handler: EventHandler<Event>) {
     if (this[kOnError]) {
       this.removeEventListener('error', { handleEvent: this[kOnError] })
     }
@@ -642,10 +664,6 @@ class ObservableEventSource extends EventTarget implements EventSource {
           this[kLastEventId] = message.id
         }
 
-        if (message.retry) {
-          this[kReconnectionTime] = message.retry
-        }
-
         const messageEvent = new MessageEvent(
           message.event ? message.event : 'message',
           {
@@ -658,6 +676,9 @@ class ObservableEventSource extends EventTarget implements EventSource {
 
         this[kOnAnyMessage]?.(messageEvent)
         this.dispatchEvent(messageEvent)
+      },
+      retry: (reconnectionTime) => {
+        this[kReconnectionTime] = reconnectionTime
       },
       abort: () => {
         throw new Error('Stream abort is not implemented')
@@ -693,7 +714,25 @@ class ObservableEventSource extends EventTarget implements EventSource {
       this.dispatchEvent(new Event('error'))
     })
 
-    await delay(this[kReconnectionTime])
+    const signal = this[kAbortController].signal
+
+    if (signal.aborted) {
+      return
+    }
+
+    const aborted = new DeferredPromise<void>()
+    const onAbort = () => aborted.resolve()
+    signal.addEventListener('abort', onAbort, { once: true })
+
+    await Promise.race([delay(this[kReconnectionTime]), aborted]).finally(
+      () => {
+        signal.removeEventListener('abort', onAbort)
+      },
+    )
+
+    if (signal.aborted) {
+      return
+    }
 
     queueMicrotask(async () => {
       if (this.readyState !== this.CONNECTING) {
@@ -743,7 +782,6 @@ interface EventSourceMessage {
   id?: string
   event?: string
   data?: string
-  retry?: number
 }
 
 class EventSourceParsingStream extends WritableStream {
@@ -758,12 +796,12 @@ class EventSourceParsingStream extends WritableStream {
     id: undefined,
     event: undefined,
     data: undefined,
-    retry: undefined,
   }
 
   constructor(
     private underlyingSink: {
       message: (message: EventSourceMessage) => void
+      retry?: (reconnectionTime: number) => void
       abort?: (reason: any) => void
       close?: () => void
     },
@@ -789,7 +827,6 @@ class EventSourceParsingStream extends WritableStream {
       id: undefined,
       event: undefined,
       data: undefined,
-      retry: undefined,
     }
   }
 
@@ -903,14 +940,78 @@ class EventSourceParsingStream extends WritableStream {
         }
 
         case 'retry': {
-          const retry = parseInt(value, 10)
-
-          if (!isNaN(retry)) {
-            this.message.retry = retry
+          /**
+           * Apply the retry immediately. Don't buffer onto the current message.
+           * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
+           */
+          if (/^\d+$/.test(value)) {
+            this.underlyingSink.retry?.(parseInt(value, 10))
           }
           break
         }
       }
     }
+  }
+}
+
+interface EventStreamMessage {
+  id?: string
+  event: string
+  data?: unknown
+  frames: Array<string>
+}
+
+interface EventStream<EventMap extends EventMapConstraint> {
+  client: ServerSentEventClient<EventMap>
+  server: ServerSentEventServer
+  response: Response
+}
+
+/**
+ * Create an event stream out of the given Fetch API `Request`.
+ * Returns the following properties:
+ * - `client`, to operate on the intercepted request;
+ * - `server`, to establish and manage the actual server connection;
+ * - `response`, a `Response` to use as the mock response's body.
+ *
+ * @example
+ * http.post('/resource', ({ request }) => {
+ *   const { client, server, response } = createEventStream(request)
+ *   client.send({ data: 'hello world' })
+ *   return response
+ * })
+ */
+function createEventStream<EventMap extends EventMapConstraint>(
+  request: Request,
+): EventStream<EventMap> {
+  invariant(
+    !request.signal.aborted,
+    'Failed to call "createEventStream" on the "%s %s" request: request aborted',
+    request.method,
+    request.url,
+  )
+
+  const { readable, writable } = new TransformStream()
+
+  const client = new ServerSentEventClient<EventMap>(writable)
+  const server = new ServerSentEventServer({
+    request,
+    client,
+  })
+
+  const response = new Response(readable, SSE_RESPONSE_INIT)
+
+  request.signal.addEventListener(
+    'abort',
+    () => {
+      client.close()
+    },
+    { once: true },
+  )
+
+  return {
+    client,
+    server,
+    response,
   }
 }

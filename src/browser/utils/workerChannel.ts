@@ -4,10 +4,6 @@ import { isObject } from '#core/utils/internal/isObject'
 import type { StringifiedResponse } from '../glossary'
 import { supportsServiceWorker } from '../utils/supports'
 
-export interface WorkerChannelOptions {
-  worker: Promise<ServiceWorker>
-}
-
 export type WorkerChannelEventMap = {
   REQUEST: WorkerEvent<IncomingWorkerRequest>
   RESPONSE: WorkerEvent<IncomingWorkerResponse>
@@ -121,25 +117,42 @@ type OutgoingWorkerEvents =
   | 'KEEPALIVE_REQUEST'
   | 'CLIENT_CLOSED'
 
+export interface WorkerChannelOptions {
+  getWorker: () => Promise<ServiceWorker>
+}
+
 export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
-  constructor(protected readonly options: WorkerChannelOptions) {
+  #getWorker: WorkerChannelOptions['getWorker']
+  #controller: AbortController
+
+  constructor(options: WorkerChannelOptions) {
     super()
 
-    if (!SUPPORTS_SERVICE_WORKER) {
-      return
-    }
+    invariant(
+      SUPPORTS_SERVICE_WORKER,
+      'Failed to open a WorkerChannel: Service Worker is not supported in this environment.',
+    )
 
-    navigator.serviceWorker.addEventListener('message', async (event) => {
-      const worker = await this.options.worker
+    this.#getWorker = options.getWorker
+    this.#controller = new AbortController()
 
-      if (event.source != null && event.source !== worker) {
-        return
-      }
+    navigator.serviceWorker.addEventListener(
+      'message',
+      async (event) => {
+        const worker = await this.#getWorker()
 
-      if (event.data && isObject(event.data) && 'type' in event.data) {
-        this.emit(new WorkerEvent<any, any, any>(event))
-      }
-    })
+        if (event.source != null && event.source !== worker) {
+          return
+        }
+
+        if (event.data && isObject(event.data) && 'type' in event.data) {
+          this.emit(new WorkerEvent<any, any, any>(event))
+        }
+      },
+      {
+        signal: this.#controller.signal,
+      },
+    )
   }
 
   /**
@@ -149,11 +162,20 @@ export class WorkerChannel extends Emitter<WorkerChannelEventMap> {
   public postMessage(type: OutgoingWorkerEvents): void {
     invariant(
       SUPPORTS_SERVICE_WORKER,
-      'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this context. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
+      'Failed to post message on a WorkerChannel: the Service Worker API is unavailable in this environment. This is likely an issue with MSW. Please report it on GitHub: https://github.com/mswjs/msw/issues',
     )
 
-    this.options.worker.then((worker) => {
+    this.#getWorker().then((worker) => {
       worker.postMessage(type)
     })
+  }
+
+  /**
+   * Terminal teardown. Removes the `navigator.serviceWorker` message listener
+   * and all emitter subscriptions. The channel is not usable afterwards.
+   */
+  public terminate(): void {
+    this.#controller.abort()
+    this.removeAllListeners()
   }
 }

@@ -161,19 +161,25 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       readyState = NetworkReadyState.ENABLED
 
       const result = resolvedOptions.sources.map((source) => {
-        source.on('frame', async ({ frame }) => {
-          frame.events.on('*', (event) => events.emit(event), {
+        source.on(
+          'frame',
+          async ({ frame }) => {
+            frame.events.on('*', (event) => events.emit(event), {
+              signal: listenersController.signal,
+            })
+
+            const handlers = frame.getHandlers(handlersController)
+
+            await frame.resolve(
+              handlers,
+              resolvedOptions.onUnhandledFrame || 'warn',
+              resolvedOptions.context,
+            )
+          },
+          {
             signal: listenersController.signal,
-          })
-
-          const handlers = frame.getHandlers(handlersController)
-
-          await frame.resolve(
-            handlers,
-            resolvedOptions.onUnhandledFrame || 'warn',
-            resolvedOptions.context,
-          )
-        })
+          },
+        )
 
         return source.enable()
       })

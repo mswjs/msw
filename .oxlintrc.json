@@ -7,7 +7,7 @@
   "env": {
     "builtin": true
   },
-  "ignorePatterns": ["/lib", "/node", "/native", "/config", "/test"],
+  "ignorePatterns": ["/lib", "/node", "/native", "/config"],
   "rules": {
     "constructor-super": "error",
     "for-direction": "error",
@@ -125,7 +125,9 @@
         "**/*.test-d.ts",
         "**/*.mocks.ts",
         "**/*.setup.ts",
-        "**/*.config.ts"
+        "**/*.config.ts",
+        "**/*.fixture.js",
+        "**/*.fixture.ts"
       ],
       "rules": {
         "no-console": "off",

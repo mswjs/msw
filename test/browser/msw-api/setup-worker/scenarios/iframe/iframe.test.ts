@@ -1,4 +1,4 @@
-import { Frame } from '@playwright/test'
+import type { Frame } from '@playwright/test'
 import * as express from 'express'
 import { test, expect } from '../../../../playwright.extend'
 

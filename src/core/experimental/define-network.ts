@@ -7,9 +7,9 @@ import {
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
-  AnyHandler,
   HandlersController,
   InMemoryHandlersController,
+  type AnyHandler,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 

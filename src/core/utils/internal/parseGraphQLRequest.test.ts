@@ -3,10 +3,8 @@
  */
 import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode } from 'graphql'
-import {
-  ParsedGraphQLRequest,
-  parseGraphQLRequest,
-} from './parseGraphQLRequest'
+import type { ParsedGraphQLRequest } from './parseGraphQLRequest'
+import { parseGraphQLRequest } from './parseGraphQLRequest'
 
 test('returns true given a GraphQL-compatible request', async () => {
   const getRequest = new Request(

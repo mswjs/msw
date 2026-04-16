@@ -158,4 +158,4 @@ export const ws = {
   link: createWebSocketLinkHandler,
 }
 
-export { WebSocketData }
+export { type WebSocketData }

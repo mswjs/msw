@@ -1,4 +1,4 @@
-import { RequestHandler } from '../../handlers/RequestHandler'
+import type { RequestHandler } from '../../handlers/RequestHandler'
 
 export function use(
   currentHandlers: Array<RequestHandler>,

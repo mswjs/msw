@@ -540,7 +540,7 @@ class ObservableEventSource extends EventTarget implements EventSource {
   get onerror(): EventHandler<Event> | null {
     return this[kOnError]
   }
-  set oneerror(handler: EventHandler<Event>) {
+  set onerror(handler: EventHandler<Event>) {
     if (this[kOnError]) {
       this.removeEventListener('error', { handleEvent: this[kOnError] })
     }

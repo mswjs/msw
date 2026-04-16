@@ -1,15 +1,15 @@
 import { invariant } from 'outvariant'
 import { Emitter, type DefaultEventMap } from 'rettime'
 import {
-  type NetworkSource,
+  NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
-  AnyHandler,
   HandlersController,
   InMemoryHandlersController,
+  type AnyHandler,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 
@@ -161,6 +161,14 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       readyState = NetworkReadyState.ENABLED
 
       const result = resolvedOptions.sources.map((source) => {
+        /**
+         * @note Preemptively disable the network source before enabling.
+         * This intentionally calls only the prototype method that clears the
+         * event listeners and nothing else. This prevents the "frame" listeners
+         * from accumulating across enable/disable in case the source is a singleton.
+         */
+        NetworkSource.prototype.disable.call(source)
+
         source.on('frame', async ({ frame }) => {
           frame.events.on('*', (event) => events.emit(event), {
             signal: listenersController.signal,

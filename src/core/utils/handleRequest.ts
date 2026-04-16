@@ -1,7 +1,7 @@
 import { until } from 'until-async'
-import { Emitter } from 'strict-event-emitter'
-import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
-import { RequiredDeep } from '../typeUtils'
+import type { Emitter } from 'strict-event-emitter'
+import type { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
+import type { RequiredDeep } from '../typeUtils'
 import type { RequestHandler } from '../handlers/RequestHandler'
 import {
   type HandlersExecutionResult,

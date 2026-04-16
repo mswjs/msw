@@ -1,7 +1,8 @@
 /**
  * @see https://github.com/mswjs/msw/issues/2506
  */
-import { http, HttpResponse, HttpResponseResolver } from 'msw'
+import type { HttpResponseResolver } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 it('supports a union of the matching explicit and implicit response resolvers', () => {
   function handle(resolver?: HttpResponseResolver<never, never, string>) {

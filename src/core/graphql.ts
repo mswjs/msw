@@ -1,16 +1,16 @@
 import type { OperationTypeNode } from 'graphql'
 import {
-  ResponseResolver,
-  RequestHandlerOptions,
+  type ResponseResolver,
+  type RequestHandlerOptions,
 } from './handlers/RequestHandler'
 import {
   GraphQLHandler,
-  GraphQLVariables,
-  GraphQLOperationType,
-  GraphQLResolverExtras,
-  GraphQLResponseBody,
-  GraphQLQuery,
-  GraphQLPredicate,
+  type GraphQLVariables,
+  type GraphQLOperationType,
+  type GraphQLResolverExtras,
+  type GraphQLResponseBody,
+  type GraphQLQuery,
+  type GraphQLPredicate,
 } from './handlers/GraphQLHandler'
 import type { Path } from './utils/matching/matchRequestUrl'
 

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId } from '@mswjs/interceptors'
-import { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
-import { RequestHandler } from '../handlers/RequestHandler'
+import type { LifeCycleEventsMap, SharedOptions } from '../sharedOptions'
+import type { RequestHandler } from '../handlers/RequestHandler'
 import { http } from '../http'
-import { handleRequest, HandleRequestOptions } from './handleRequest'
-import { RequiredDeep } from '../typeUtils'
+import type { HandleRequestOptions } from './handleRequest'
+import { handleRequest } from './handleRequest'
+import type { RequiredDeep } from '../typeUtils'
 import { HttpResponse } from '../HttpResponse'
 import { passthrough } from '../passthrough'
 

@@ -1,10 +1,8 @@
 import { http } from '../../http'
 import { graphql } from '../../graphql'
 import { ws } from '../../ws'
-import {
-  WebSocketNetworkFrame,
-  WebSocketNetworkFrameEventMap,
-} from './websocket-frame'
+import type { WebSocketNetworkFrameEventMap } from './websocket-frame'
+import { WebSocketNetworkFrame } from './websocket-frame'
 import { createTestWebSocketConnection } from '../../../../test/support/ws-test-utils'
 import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
 

@@ -1,9 +1,5 @@
-import {
-  BatchInterceptor,
-  Interceptor,
-  RequestController,
-  type HttpRequestEventMap,
-} from '@mswjs/interceptors'
+import type { Interceptor, RequestController } from '@mswjs/interceptors'
+import { BatchInterceptor, type HttpRequestEventMap } from '@mswjs/interceptors'
 import type {
   WebSocketConnectionData,
   WebSocketEventMap,

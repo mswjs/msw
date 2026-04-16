@@ -6,30 +6,34 @@ import {
   type OperationTypeNode,
 } from 'graphql'
 import {
-  DefaultBodyType,
   RequestHandler,
-  RequestHandlerDefaultInfo,
-  RequestHandlerExecutionResult,
-  RequestHandlerOptions,
-  ResponseResolver,
+  type DefaultBodyType,
+  type RequestHandlerDefaultInfo,
+  type RequestHandlerExecutionResult,
+  type RequestHandlerOptions,
+  type ResponseResolver,
 } from './RequestHandler'
 import { getTimestamp } from '../utils/logging/getTimestamp'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
 import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
-import { Match, matchRequestUrl, Path } from '../utils/matching/matchRequestUrl'
 import {
-  ParsedGraphQLRequest,
-  GraphQLMultipartRequestBody,
+  type Match,
+  matchRequestUrl,
+  type Path,
+} from '../utils/matching/matchRequestUrl'
+import {
+  type ParsedGraphQLRequest,
+  type GraphQLMultipartRequestBody,
   parseGraphQLRequest,
   parseDocumentNode,
-  ParsedGraphQLQuery,
+  type ParsedGraphQLQuery,
 } from '../utils/internal/parseGraphQLRequest'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { devUtils } from '../utils/internal/devUtils'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { ResponseResolutionContext } from 'src/iife'
-import { kDefaultContentType, StrictRequest } from '../HttpResponse'
+import { type ResponseResolutionContext } from '../utils/executeHandlers'
+import { kDefaultContentType, type StrictRequest } from '../HttpResponse'
 import { getAllAcceptedMimeTypes } from '../utils/request/getAllAcceptedMimeTypes'
 
 export interface DocumentTypeDecoration<

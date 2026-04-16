@@ -1,9 +1,9 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import {
+  HandlersController,
   type AnyHandler,
   type HandlersMap,
-  HandlersController,
-  HandlersControllerState,
+  type HandlersControllerState,
 } from '#core/experimental/handlers-controller'
 
 export interface AsyncHandlersControllerContext {

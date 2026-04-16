@@ -4,9 +4,9 @@
 import {
   http,
   graphql,
-  HttpHandler,
   ws,
-  RequestHandler,
+  type HttpHandler,
+  type RequestHandler,
   type AnyHandler,
   type WebSocketHandler,
   type GraphQLHandler,

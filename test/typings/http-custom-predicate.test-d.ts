@@ -1,4 +1,4 @@
-import { http, HttpResponseResolver } from 'msw'
+import { http, type HttpResponseResolver } from 'msw'
 
 const resolver: HttpResponseResolver<any, any, any> = () => void 0
 

@@ -1,4 +1,5 @@
-import { http, delay, DelayMode, HttpResponse } from 'msw'
+import type { DelayMode } from 'msw'
+import { http, delay, HttpResponse } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(

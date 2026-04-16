@@ -3,7 +3,7 @@ import type {
   WebSocketClientConnectionProtocol,
   WebSocketClientEventMap,
 } from '@mswjs/interceptors/WebSocket'
-import { WebSocketClientStore } from './WebSocketClientStore'
+import type { WebSocketClientStore } from './WebSocketClientStore'
 import { WebSocketMemoryClientStore } from './WebSocketMemoryClientStore'
 import { WebSocketIndexedDBClientStore } from './WebSocketIndexedDBClientStore'
 

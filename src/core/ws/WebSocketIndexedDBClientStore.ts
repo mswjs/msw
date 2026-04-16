@@ -1,9 +1,7 @@
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
-import {
-  type SerializedWebSocketClient,
-  WebSocketClientStore,
-} from './WebSocketClientStore'
+import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientStore } from './WebSocketClientStore'
+import { type SerializedWebSocketClient } from './WebSocketClientStore'
 
 const DB_NAME = 'msw-websocket-clients'
 const DB_STORE_NAME = 'clients'

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
-import { SetupServerApi, setupServer } from 'msw/node'
+import { type SetupServerApi, setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 
 const httpServer = new HttpServer((app) => {

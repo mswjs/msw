@@ -222,5 +222,5 @@ function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
  * @returns {string}
  */
 function normalizePath(input) {
-  return input.replace(/[\\|\/]+/g, path.sep)
+  return input.replace(/[\\|/]+/g, path.sep)
 }

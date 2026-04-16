@@ -1,12 +1,12 @@
 import type { PartialDeep } from 'type-fest'
-import { Interceptor } from '@mswjs/interceptors'
+import type { Interceptor } from '@mswjs/interceptors'
 import {
-  type NetworkApi,
   NetworkReadyState,
   defineNetwork,
+  type NetworkApi,
 } from '#core/experimental/define-network'
-import { type AnyHandler } from '#core/experimental/handlers-controller'
-import { type HandlersController } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
+import type { HandlersController } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { ListenOptions, SetupServerCommon } from './glossary'

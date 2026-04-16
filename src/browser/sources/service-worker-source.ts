@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { Emitter } from 'rettime'
+import type { Emitter } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/experimental/sources/network-source'
@@ -16,8 +16,9 @@ import {
   supportsServiceWorker,
 } from '../utils/supports'
 import { getWorkerInstance } from '../utils/get-worker-instance'
-import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
-import { FindWorker } from '../glossary'
+import type { WorkerChannelEventMap } from '../utils/workerChannel'
+import { WorkerChannel } from '../utils/workerChannel'
+import type { FindWorker } from '../glossary'
 import { deserializeRequest } from '../utils/deserializeRequest'
 import { validateWorkerScope } from '../utils/validate-worker-scope'
 import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'

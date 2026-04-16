@@ -69,7 +69,7 @@ export const sse: ServerSentEventRequestHandler = (path, resolver) => {
   return new ServerSentEventHandler(path, resolver)
 }
 
-export const SSE_RESPONSE_INIT: ResponseInit = {
+const SSE_RESPONSE_INIT: ResponseInit = {
   headers: {
     'content-type': 'text/event-stream',
     'cache-control': 'no-cache',
@@ -954,14 +954,14 @@ class EventSourceParsingStream extends WritableStream {
   }
 }
 
-export interface EventStreamMessage {
+interface EventStreamMessage {
   id?: string
   event: string
   data?: unknown
   frames: Array<string>
 }
 
-export interface EventStream<EventMap extends EventMapConstraint> {
+interface EventStream<EventMap extends EventMapConstraint> {
   client: ServerSentEventClient<EventMap>
   server: ServerSentEventServer
   response: Response
@@ -981,7 +981,7 @@ export interface EventStream<EventMap extends EventMapConstraint> {
  *   return response
  * })
  */
-export function createEventStream<EventMap extends EventMapConstraint>(
+function createEventStream<EventMap extends EventMapConstraint>(
   request: Request,
 ): EventStream<EventMap> {
   invariant(

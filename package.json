@@ -179,7 +179,7 @@
   "scripts": {
     "start": "tsup --watch",
     "clean": "rimraf ./lib",
-    "lint": "eslint \"{cli,src,test}/**/*.ts\"",
+    "lint": "oxlint ./cli ./src ./test",
     "build": "pnpm clean && cross-env NODE_ENV=production tsup && pnpm patch:dts",
     "patch:dts": "node \"./config/scripts/patch-ts.js\"",
     "publint": "publint",
@@ -200,7 +200,7 @@
   },
   "lint-staged": {
     "**/*.ts": [
-      "eslint --fix"
+      "oxlint --fix"
     ],
     "**/*.{ts,json}": [
       "prettier --write"
@@ -268,8 +268,6 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@epic-web/test-server": "^0.1.6",
-    "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^9.39.1",
     "@fastify/websocket": "^11.2.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
@@ -279,8 +277,6 @@
     "@types/json-bigint": "^1.0.4",
     "@types/node": "~22.19.17",
     "@types/serviceworker": "^0.0.194",
-    "@typescript-eslint/eslint-plugin": "^8.58.2",
-    "@typescript-eslint/parser": "^8.58.2",
     "@web/dev-server": "^0.4.6",
     "axios": "^1.15.0",
     "babel-minify": "^0.5.1",
@@ -290,9 +286,7 @@
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "^0.28.0",
     "esbuild-loader": "^4.4.3",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
+    "oxlint": "^1.0.0",
     "express": "^5.2.1",
     "fastify": "^5.8.5",
     "fs-teardown": "^0.3.0",
@@ -310,7 +304,6 @@
     "simple-git-hooks": "^2.13.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.2",
     "undici": "^7.16.0",
     "url-loader": "^4.1.1",
     "vitest": "^4.1.4",

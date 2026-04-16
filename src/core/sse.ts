@@ -289,7 +289,12 @@ class ServerSentEventClient<
    * error.
    */
   public error(): void {
-    this.#writer.abort()
+    this.#writer.abort().catch((error) => {
+      console.error(error)
+      devUtils.error(
+        'Failed to abort server-side EventSource. Please see the original error above.',
+      )
+    })
     this[kClientEmitter]?.emit('error')
   }
 
@@ -297,12 +302,24 @@ class ServerSentEventClient<
    * Closes the underlying `EventSource`, closing the connection.
    */
   public close(): void {
-    this.#writer.close()
+    this.#writer.close().catch((error) => {
+      console.error(error)
+      devUtils.error(
+        'Failed to close server-side EventSource. Please see the original error above.',
+      )
+    })
     this[kClientEmitter]?.emit('close')
   }
 
   #sendRetry(retry: number): void {
-    this.#writer.write(this.#encoder.encode(`retry:${retry}\n\n`))
+    this.#writer
+      .write(this.#encoder.encode(`retry:${retry}\n\n`))
+      .catch((error) => {
+        console.error(error)
+        devUtils.error(
+          'Failed to send a retry packet to server-side EventSource. Please see the original error above.',
+        )
+      })
   }
 
   #sendMessage(message: {
@@ -333,7 +350,14 @@ class ServerSentEventClient<
 
     frames.push('', '')
 
-    this.#writer.write(this.#encoder.encode(frames.join('\n')))
+    this.#writer
+      .write(this.#encoder.encode(frames.join('\n')))
+      .catch((error) => {
+        console.error(error)
+        devUtils.error(
+          'Failed to send a message to server-side EventSource. Please see the original error above.',
+        )
+      })
 
     this[kClientEmitter]?.emit('message', {
       id: message.id,

@@ -715,6 +715,11 @@ class ObservableEventSource extends EventTarget implements EventSource {
     })
 
     const signal = this[kAbortController].signal
+
+    if (signal.aborted) {
+      return
+    }
+
     const aborted = new DeferredPromise<void>()
     const onAbort = () => aborted.resolve()
     signal.addEventListener('abort', onAbort, { once: true })

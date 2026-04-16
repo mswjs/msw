@@ -47,6 +47,10 @@ test('intercepts a request from a deeply nested iframe', async ({
     },
   })
 
+  // Wait for the nested iframe chain to fully load
+  // (main frame + 2 nested iframes).
+  await expect.poll(() => page.frames().length).toBeGreaterThanOrEqual(3)
+
   const deepFrame = page
     .mainFrame()
     .childFrames()

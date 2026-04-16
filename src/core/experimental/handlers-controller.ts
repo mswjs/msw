@@ -31,7 +31,7 @@ export abstract class HandlersController {
     invariant(
       this.#validateHandlers(initialHandlers),
       devUtils.formatMessage(
-        '[MSW] Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
+        'Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?',
       ),
     )
 

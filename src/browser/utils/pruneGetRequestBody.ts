@@ -1,13 +1,13 @@
-import type { ServiceWorkerIncomingRequest } from '../glossary'
+import type { IncomingWorkerRequest } from './workerChannel'
 
-type Input = Pick<ServiceWorkerIncomingRequest, 'method' | 'body'>
+type Input = Pick<IncomingWorkerRequest, 'method' | 'body'>
 
 /**
  * Ensures that an empty GET request body is always represented as `undefined`.
  */
 export function pruneGetRequestBody(
   request: Input,
-): ServiceWorkerIncomingRequest['body'] {
+): IncomingWorkerRequest['body'] | undefined {
   // Force HEAD/GET request body to always be empty.
   // The worker reads any request's body as ArrayBuffer,
   // and you cannot re-construct a GET/HEAD Request

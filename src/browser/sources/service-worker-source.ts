@@ -278,8 +278,12 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
 
     window.addEventListener(
-      'beforeunload',
-      () => {
+      'pagehide',
+      (event) => {
+        if (event.persisted) {
+          return
+        }
+
         if (worker.state !== 'redundant') {
           this.#channel.postMessage('CLIENT_CLOSED')
         }

@@ -27,11 +27,11 @@ addEventListener('message', async function (event) {
     return
   }
 
-  const allClients = await self.clients.matchAll({
-    type: 'window',
-  })
-
   if (event.data === 'CLIENT_CLOSED') {
+    const allClients = await self.clients.matchAll({
+      type: 'window',
+    })
+
     activeClientIds.delete(clientId)
 
     const remainingClients = allClients.filter((client) => {

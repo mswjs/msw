@@ -1,9 +1,9 @@
 import { type DefaultEventMap, Emitter } from 'rettime'
-import { LifeCycleEventEmitter } from '../sharedOptions'
+import { type LifeCycleEventEmitter } from '../sharedOptions'
+import type { HandlersController } from './handlers-controller'
 import {
-  AnyHandler,
-  HandlersController,
   InMemoryHandlersController,
+  type AnyHandler,
 } from './handlers-controller'
 import { Disposable } from '../utils/internal/Disposable'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'

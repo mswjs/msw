@@ -7,9 +7,9 @@ import {
   defineNetwork,
   type DefineNetworkOptions,
 } from '#core/experimental/define-network'
-import { type AnyHandler } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { SetupServer } from './glossary'
+import type { SetupServer } from './glossary'
 import { AsyncHandlersController } from './async-handlers-controller'
 import {
   defineSetupServerApi,

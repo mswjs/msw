@@ -1,9 +1,9 @@
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketClientConnection,
-  WebSocketConnectionData,
   WebSocketServerConnection,
 } from '@mswjs/interceptors/WebSocket'
-import {
+import type {
   WebSocketTransport,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'

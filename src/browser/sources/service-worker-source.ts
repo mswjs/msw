@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { Emitter } from 'rettime'
+import type { Emitter } from 'rettime'
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/experimental/sources/network-source'
@@ -16,10 +16,12 @@ import {
   supportsServiceWorker,
 } from '../utils/supports'
 import { getWorkerInstance } from '../utils/get-worker-instance'
-import { WorkerChannel, WorkerChannelEventMap } from '../utils/workerChannel'
-import { FindWorker } from '../glossary'
+import type { WorkerChannelEventMap } from '../utils/workerChannel'
+import { WorkerChannel } from '../utils/workerChannel'
+import type { FindWorker } from '../glossary'
 import { deserializeRequest } from '../utils/deserializeRequest'
 import { validateWorkerScope } from '../utils/validate-worker-scope'
+import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'
 
 export interface ServiceWorkerSourceOptions {
   quiet?: boolean
@@ -30,13 +32,13 @@ export interface ServiceWorkerSourceOptions {
   findWorker?: FindWorker
 }
 
-type WorkerChannelRequestEvent = Emitter.EventType<
+type WorkerChannelRequestEvent = Emitter.Event<
   WorkerChannel,
   'REQUEST',
   WorkerChannelEventMap
 >
 
-type WorkerChannelResponseEvent = Emitter.EventType<
+type WorkerChannelResponseEvent = Emitter.Event<
   WorkerChannel,
   'RESPONSE',
   WorkerChannelEventMap
@@ -46,8 +48,31 @@ type WorkerChannelClient =
   WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
 
 export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkFrame> {
+  static #current?: ServiceWorkerSource
+
+  /**
+   * Create a new Service Worker source or reuse an existing one.
+   * These sources act as a singleton and only get recreated if the options change.
+   */
+  public static async from(
+    options: ServiceWorkerSourceOptions,
+  ): Promise<ServiceWorkerSource> {
+    if (ServiceWorkerSource.#current == null) {
+      ServiceWorkerSource.#current = new ServiceWorkerSource(options)
+    } else if (
+      shouldInvalidateWorker(ServiceWorkerSource.#current.#options, options)
+    ) {
+      await ServiceWorkerSource.#current.terminate()
+      ServiceWorkerSource.#current = new ServiceWorkerSource(options)
+    }
+
+    return ServiceWorkerSource.#current
+  }
+
+  #options: ServiceWorkerSourceOptions
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
+  #listenerController?: AbortController
   #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
   #stoppedAt?: number
@@ -56,7 +81,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     [ServiceWorker, ServiceWorkerRegistration]
   >
 
-  constructor(private readonly options: ServiceWorkerSourceOptions) {
+  constructor(options: ServiceWorkerSourceOptions) {
     super()
 
     invariant(
@@ -64,17 +89,25 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       'Failed to use Service Worker as the network source: the Service Worker API is not supported in this environment',
     )
 
+    this.#options = options
     this.#frames = new Map()
     this.workerPromise = new DeferredPromise()
     this.#channel = new WorkerChannel({
-      worker: this.workerPromise.then(([worker]) => worker),
+      getWorker: () => this.workerPromise.then(([worker]) => worker),
     })
   }
 
   public async enable(): Promise<ServiceWorkerRegistration> {
-    this.#stoppedAt = undefined
-
-    if (this.workerPromise.state !== 'pending') {
+    /**
+     * @note The source is considered already running if the worker has been
+     * resolved AND `stop()` has not been called since. `workerPromise` is NOT
+     * reset on `disable()` so that the channel's `getWorker()` can keep
+     * resolving to the registered SW for post-stop passthrough replies.
+     */
+    if (
+      this.workerPromise.state === 'fulfilled' &&
+      typeof this.#stoppedAt == 'undefined'
+    ) {
       devUtils.warn(
         'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
       )
@@ -82,7 +115,11 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       return this.workerPromise.then(([, registration]) => registration)
     }
 
+    this.#stoppedAt = undefined
     this.#channel.removeAllListeners()
+    this.#frames.clear()
+
+    this.#listenerController = new AbortController()
     const [worker, registration] = await this.#startWorker()
 
     if (worker.state !== 'activated') {
@@ -97,7 +134,9 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
             activationPromise.resolve()
           }
         },
-        { signal: controller.signal },
+        {
+          signal: controller.signal,
+        },
       )
 
       await activationPromise
@@ -113,7 +152,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     })
     await clientConfirmationPromise
 
-    if (!this.options.quiet) {
+    if (!this.#options.quiet) {
       this.#printStartMessage()
     }
 
@@ -137,11 +176,52 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     }
 
     this.#stoppedAt = Date.now()
-    this.#frames.clear()
-    this.workerPromise = new DeferredPromise()
 
-    if (!this.options.quiet) {
+    this.#listenerController?.abort()
+    this.#listenerController = undefined
+
+    /**
+     * @note Tell the Service Worker to drop this client from its active set
+     * so it stops forwarding REQUEST events here. `stoppedAt` still guards
+     * any requests the SW already forwarded before this message arrived.
+     */
+    this.#channel.postMessage('CLIENT_CLOSED')
+
+    /**
+     * @note Do NOT reset `workerPromise` here. The channel must continue to
+     * resolve the currently registered SW so that any in-flight requests the
+     * worker forwards after `stop()` can be answered with `PASSTHROUGH` by
+     * `#handleRequest`. `#startWorker` swaps in a fresh deferred on re-enable.
+     */
+
+    if (!this.#options.quiet) {
       this.#printStopMessage()
+    }
+  }
+
+  /**
+   * Terminal teardown. Unregisters the Service Worker, tears down the channel,
+   * and clears timers. Called when the singleton is being replaced with one
+   * that has different options. The instance is not usable afterwards.
+   */
+  public async terminate(): Promise<void> {
+    if (this.#keepAliveInterval != null) {
+      clearInterval(this.#keepAliveInterval)
+      this.#keepAliveInterval = undefined
+    }
+
+    this.#frames.clear()
+    this.#channel.terminate()
+    this.#listenerController?.abort()
+    this.#listenerController = undefined
+
+    if (this.workerPromise.state === 'fulfilled') {
+      const [, registration] = await this.workerPromise
+      await registration.unregister()
+    }
+
+    if (ServiceWorkerSource.#current === this) {
+      ServiceWorkerSource.#current = undefined
     }
   }
 
@@ -150,16 +230,16 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
       clearInterval(this.#keepAliveInterval)
     }
 
-    const workerUrl = this.options.serviceWorker.url
+    const workerUrl = this.#options.serviceWorker.url
 
     const [worker, registration] = await getWorkerInstance(
       workerUrl,
-      this.options.serviceWorker.options,
-      this.options.findWorker || this.#defaultFindWorker,
+      this.#options.serviceWorker.options,
+      this.#options.findWorker || this.#defaultFindWorker,
     )
 
     if (worker == null) {
-      const missingWorkerMessage = this.options?.findWorker
+      const missingWorkerMessage = this.#options?.findWorker
         ? devUtils.formatMessage(
             `Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
@@ -181,20 +261,37 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       throw new Error(missingWorkerMessage)
     }
 
-    this.workerPromise.resolve([worker, registration])
+    if (this.workerPromise.state === 'pending') {
+      this.workerPromise.resolve([worker, registration])
+    } else {
+      /**
+       * @note Re-enable after `stop()`: the previous `workerPromise` is already
+       * fulfilled and cannot be resolved again. Swap in a pre-resolved one so
+       * `getWorker()` sees the new worker instance immediately.
+       */
+      this.workerPromise = new DeferredPromise((resolve) => {
+        resolve([worker, registration])
+      })
+    }
 
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
 
-    window.addEventListener('beforeunload', () => {
-      if (worker.state !== 'redundant') {
-        this.#channel.postMessage('CLIENT_CLOSED')
-      }
+    window.addEventListener(
+      'beforeunload',
+      () => {
+        if (worker.state !== 'redundant') {
+          this.#channel.postMessage('CLIENT_CLOSED')
+        }
 
-      clearInterval(this.#keepAliveInterval)
+        clearInterval(this.#keepAliveInterval)
 
-      window.postMessage({ type: 'msw/worker:stop' })
-    })
+        window.postMessage({ type: 'msw/worker:stop' })
+      },
+      {
+        signal: this.#listenerController?.signal,
+      },
+    )
 
     await this.#checkWorkerIntegrity().catch((error) => {
       devUtils.error(
@@ -207,7 +304,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       this.#channel.postMessage('KEEPALIVE_REQUEST')
     }, 5000)
 
-    if (!this.options.quiet) {
+    if (!this.#options.quiet) {
       validateWorkerScope(registration)
     }
 

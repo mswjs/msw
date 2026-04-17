@@ -2,7 +2,7 @@ import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
 import type { RequiredDeep } from '#core/typeUtils'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
-import { AnyHandler } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
@@ -116,6 +116,6 @@ export interface SetupWorker {
    * @see {@link https://mswjs.io/docs/api/life-cycle-events Life-cycle Events API reference}
    */
   events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+    HttpNetworkFrameEventMap & WebSocketNetworkFrameEventMap
   >
 }

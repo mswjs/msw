@@ -5,7 +5,7 @@ import {
   defineNetwork,
   NetworkReadyState,
 } from '#core/experimental/define-network'
-import { type AnyHandler } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { LifeCycleEventEmitter } from '#core/sharedOptions'
@@ -65,7 +65,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       }
 
       const httpSource = supportsServiceWorker()
-        ? new ServiceWorkerSource({
+        ? await ServiceWorkerSource.from({
             serviceWorker: {
               url:
                 options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
@@ -131,7 +131,7 @@ export class SetupWorkerApi implements SetupWorker {
   restoreHandlers: () => void
   listHandlers: () => ReadonlyArray<AnyHandler>
   events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+    HttpNetworkFrameEventMap & WebSocketNetworkFrameEventMap
   >
 
   constructor() {

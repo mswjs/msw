@@ -1,14 +1,13 @@
 // @vitest-environment jsdom
 import { createRequestId, encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
-import {
-  GraphQLHandler,
+import type {
   GraphQLRequestBody,
   GraphQLResolverExtras,
-  isDocumentNode,
 } from './GraphQLHandler'
+import { GraphQLHandler, isDocumentNode } from './GraphQLHandler'
 import { HttpResponse } from '../HttpResponse'
-import { ResponseResolver } from './RequestHandler'
+import type { ResponseResolver } from './RequestHandler'
 
 const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
   variables,

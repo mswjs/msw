@@ -32,18 +32,14 @@ addEventListener('message', async function (event) {
   })
 
   if (event.data === 'CLIENT_CLOSED') {
-    console.warn('CLIENT_CLOSED', clientId, Array.from(activeClientIds))
     activeClientIds.delete(clientId)
 
     const remainingClients = allClients.filter((client) => {
       return client.id !== clientId
     })
 
-    console.warn('REMAINING CLIENTS:', remainingClients.length)
-
     // Unregister itself when there are no more clients
     if (remainingClients.length === 0) {
-      console.warn('UNREGISTER ITSELF!')
       self.registration.unregister()
     }
   }

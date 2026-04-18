@@ -1,4 +1,4 @@
-import { FetchRequest } from './fetech-request'
+import { FetchRequest } from '@mswjs/interceptors'
 import type { IncomingWorkerRequest } from './workerChannel'
 
 /**

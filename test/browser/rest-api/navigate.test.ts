@@ -12,13 +12,35 @@ declare namespace window {
 
 Request shapes (the x-axis)
 
-1. page.goto(url) — address-bar-style navigation (GET, mode: "navigate")
-2. <a href> click — same shape, different initiator
 3. <form method="GET"> submit via requestSubmit() — query string encoding
 4. <form method="POST"> with application/x-www-form-urlencoded body
 5. <form method="POST" enctype="multipart/form-data"> with a file field
 6. Nested navigation — <iframe> src or form inside iframe (mode: "nested-navigate" in spec)
  */
+
+test('mocks a programmatic navigation in playwright', async ({
+  loadExample,
+  page,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+  )
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.get('*/destination', () => {
+        return HttpResponse.html(`<p>Hello world</p>`)
+      }),
+    )
+  })
+
+  await page.goto(new URL('./destination', compilation.previewUrl).href)
+
+  await expect(page).toHaveURL(/\/destination$/)
+  await expect(page.getByText('Hello world')).toBeVisible()
+})
 
 test('mocks a destination of a link navigation', async ({
   loadExample,

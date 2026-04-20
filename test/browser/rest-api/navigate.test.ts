@@ -11,13 +11,6 @@ declare namespace window {
   }
 }
 
-/**
-
-Request shapes (the x-axis)
-
-6. Nested navigation — <iframe> src or form inside iframe (mode: "nested-navigate" in spec)
- */
-
 test('mocks a programmatic navigation in playwright', async ({
   loadExample,
   page,
@@ -330,7 +323,50 @@ test('intercepts a form submission with a "GET" method', async ({
   await expect(page.getByRole('heading')).toHaveText('Hello, octocat!')
 })
 
-test('intercepts a navigation request from an iframe', async ({
+test('intercepts navigation in an iframe', async ({ loadExample, page }) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+    {
+      beforeNavigation(compilation) {
+        compilation.use((router) => {
+          router.get('/frame', (req, res) => {
+            res
+              .set('content-type', 'text/html')
+              .end(`<a href="/some-page">Goto page</a>`)
+          })
+        })
+      },
+    },
+  )
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.get('/some-page', () => {
+        return HttpResponse.html(`<h1>Welcome to some page!</h1>`)
+      }),
+    )
+  })
+
+  await page.evaluate((url) => {
+    const iframe = document.createElement('iframe')
+    iframe.setAttribute('id', 'frame')
+    iframe.setAttribute('name', 'frame')
+    iframe.setAttribute('src', url)
+    document.body.append(iframe)
+  }, new URL('./frame', compilation.previewUrl).href)
+
+  const frame = page.frameLocator('#frame')
+  await frame.getByRole('link', { name: 'Goto page' }).click()
+
+  await page
+    .frame({ name: 'frame' })!
+    .waitForURL(new URL('/some-page', compilation.previewUrl).href)
+  await expect(frame.getByRole('heading')).toHaveText('Welcome to some page!')
+})
+
+test('intercepts form submission in an iframe', async ({
   loadExample,
   page,
 }) => {

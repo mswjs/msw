@@ -6,6 +6,8 @@ declare namespace window {
     worker: import('msw/browser').SetupWorker
     http: typeof import('msw').http
     HttpResponse: typeof import('msw').HttpResponse
+    passthrough: typeof import('msw').passthrough
+    bypass: typeof import('msw').bypass
   }
 }
 
@@ -54,7 +56,7 @@ test('mocks a destination of a link navigation', async ({
 
     worker.use(
       http.get('*/destination', () => {
-        return HttpResponse.html(`<p>Hello world</p>`)
+        return HttpResponse.html(`<h1>Hello world</h1>`)
       }),
     )
   })
@@ -69,7 +71,7 @@ test('mocks a destination of a link navigation', async ({
   await page.getByRole('link', { name: 'Go to page' }).click()
 
   await expect(page).toHaveURL(/\/destination$/)
-  await expect(page.getByText('Hello world')).toBeVisible()
+  await expect(page.getByRole('heading')).toHaveText('Hello world')
 })
 
 test('bypasses an unhandled form submission request', async ({
@@ -90,13 +92,119 @@ test('bypasses an unhandled form submission request', async ({
 
   const actionUrl = server.http.url('/action').href
   await page.evaluate((actionUrl) => {
-    document.querySelector('form')?.setAttribute('action', actionUrl)
+    document.querySelector('form')!.setAttribute('action', actionUrl)
   }, actionUrl)
 
   await page.getByRole('button', { name: 'Submit' }).click()
 
   await expect(page).toHaveURL(actionUrl)
   await expect(page.getByText('Original response')).toBeVisible()
+})
+
+test('supports form submission passthrough', async ({ loadExample, page }) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+    {
+      beforeNavigation(compilation) {
+        compilation.use((router) => {
+          router.post('/action', (req, res) => {
+            res.writeHead(200).end(`<h1>Original response</h1>`)
+          })
+        })
+      },
+    },
+  )
+
+  const actionUrl = new URL('./action', compilation.previewUrl).href
+  await page.evaluate((actionUrl) => {
+    const { worker, http, passthrough } = window.msw
+
+    worker.use(
+      http.post(actionUrl, () => {
+        return passthrough()
+      }),
+    )
+
+    document.querySelector('form')!.setAttribute('action', actionUrl)
+  }, actionUrl)
+
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(actionUrl)
+  await expect(page.getByRole('heading')).toHaveText('Original response')
+})
+
+test('supports response patching of a same-origin form submission', async ({
+  loadExample,
+  page,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+    {
+      beforeNavigation(compilation) {
+        compilation.use((router) => {
+          router.post('/action', (req, res) => {
+            res.writeHead(200).end('John')
+          })
+        })
+      },
+    },
+  )
+
+  const actionUrl = new URL('./action', compilation.previewUrl).href
+  await page.evaluate((actionUrl) => {
+    const { worker, http, bypass, HttpResponse } = window.msw
+
+    worker.use(
+      http.post(actionUrl, async ({ request }) => {
+        const originalResponse = await fetch(bypass(request))
+        const username = await originalResponse.text()
+        return HttpResponse.html(`<h1>Hello, ${username}!</h1>`)
+      }),
+    )
+
+    document.querySelector('form')!.setAttribute('action', actionUrl)
+  }, actionUrl)
+
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(actionUrl)
+  await expect(page.getByRole('heading')).toHaveText('Hello, John!')
+})
+
+test('cannot intercept cross-origin form submissions', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./navigate.mocks.ts', import.meta.url))
+
+  await using server = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/action', () => {
+        return new Response('<h1>Original response</h1>', {
+          headers: { 'content-type': 'text/html' },
+        })
+      })
+    },
+  })
+
+  const actionUrl = server.http.url('/action').href
+  await page.evaluate((actionUrl) => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.post(actionUrl, () => {
+        return HttpResponse.html(`<h1>Mocked!</h1>`)
+      }),
+    )
+
+    document.querySelector('form')!.setAttribute('action', actionUrl)
+  }, actionUrl)
+
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(actionUrl)
+  await expect(page.getByRole('heading')).toHaveText('Original response')
 })
 
 test('responds to a form submission with a mocked HTML response', async ({

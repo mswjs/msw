@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough, bypass } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker()
@@ -9,6 +9,8 @@ Object.assign(window, {
   msw: {
     worker,
     http,
+    passthrough,
+    bypass,
     HttpResponse,
   },
 })

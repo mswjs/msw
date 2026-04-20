@@ -1,3 +1,4 @@
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
@@ -71,7 +72,32 @@ test('mocks a destination of a link navigation', async ({
   await expect(page.getByText('Hello world')).toBeVisible()
 })
 
-test.fixme('bypasses an unhandled form submission request', () => {})
+test('bypasses an unhandled form submission request', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./navigate.mocks.ts', import.meta.url))
+
+  await using server = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/action', () => {
+        return new Response('<p>Original response</p>', {
+          headers: { 'content-type': 'text/html' },
+        })
+      })
+    },
+  })
+
+  const actionUrl = server.http.url('/action').href
+  await page.evaluate((actionUrl) => {
+    document.querySelector('form')?.setAttribute('action', actionUrl)
+  }, actionUrl)
+
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(actionUrl)
+  await expect(page.getByText('Original response')).toBeVisible()
+})
 
 test('responds to a form submission with a mocked HTML response', async ({
   loadExample,

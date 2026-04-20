@@ -15,9 +15,6 @@ declare namespace window {
 
 Request shapes (the x-axis)
 
-3. <form method="GET"> submit via requestSubmit() — query string encoding
-4. <form method="POST"> with application/x-www-form-urlencoded body
-5. <form method="POST" enctype="multipart/form-data"> with a file field
 6. Nested navigation — <iframe> src or form inside iframe (mode: "nested-navigate" in spec)
  */
 
@@ -302,4 +299,33 @@ test('responds to a form submission with a mocked 4xx response', async ({
 
   await page.getByRole('button', { name: 'Submit' }).click()
   await expect(page.getByRole('heading')).toHaveText('Unauthorized')
+})
+
+test('intercepts a form submission with a "GET" method', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./navigate.mocks.ts', import.meta.url))
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.get('/action', ({ request }) => {
+        const url = new URL(request.url)
+        const username = url.searchParams.get('username')
+        return HttpResponse.html(`<h1>Hello, ${username}!</h1>`)
+      }),
+    )
+
+    document.querySelector('form')!.setAttribute('method', 'GET')
+  })
+
+  await page.getByLabel('Username').fill('octocat')
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(
+    new URL('/action?username=octocat', page.url()).href,
+  )
+  await expect(page.getByRole('heading')).toHaveText('Hello, octocat!')
 })

@@ -47,8 +47,9 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
-  extends NetworkHandlersApi {
+export interface NetworkApi<
+  Sources extends Array<NetworkSource<any>>,
+> extends NetworkHandlersApi {
   readyState: NetworkReadyState
   /**
    * Enable the network interception and handling.
@@ -210,11 +211,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       handlersController.reset(handlers)
     },
     restoreHandlers() {
-      for (const handler of handlersController.currentHandlers()) {
-        if ('isUsed' in handler) {
-          handler.isUsed = false
-        }
-      }
+      handlersController.restore()
     },
     listHandlers() {
       return toReadonlyArray(handlersController.currentHandlers())

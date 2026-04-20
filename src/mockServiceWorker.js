@@ -38,9 +38,36 @@ addEventListener('message', async function (event) {
     return
   }
 
-  const allClients = await self.clients.matchAll({
-    type: 'window',
-  })
+  if (event.data === 'CLIENT_CLOSE') {
+    const allClients = await self.clients.matchAll({
+      type: 'window',
+    })
+
+    activeClientIds.delete(clientId)
+
+    // Await any pending requests from the closing client.
+    // This makes sure that those requests are handled and not passthrough.
+    const pending = pendingRequests.get(clientId)
+    if (pending != null && pending.size > 0) {
+      await Promise.allSettled(pending)
+    }
+    pendingRequests.delete(clientId)
+
+    const remainingClients = allClients.filter((client) => {
+      return client.id !== clientId
+    })
+
+    // Unregister itself when there are no more clients
+    if (remainingClients.length === 0) {
+      self.registration.unregister()
+    }
+
+    sendToClient(client, {
+      type: 'CLIENT_CLOSED',
+    })
+
+    return
+  }
 
   switch (event.data) {
     case 'KEEPALIVE_REQUEST': {
@@ -73,33 +100,6 @@ addEventListener('message', async function (event) {
           },
         },
       })
-      break
-    }
-
-    case 'CLIENT_CLOSE': {
-      activeClientIds.delete(clientId)
-
-      // Await any pending requests from the closing client.
-      // This makes sure that those requests are handled and not passthrough.
-      const pending = pendingRequests.get(clientId)
-      if (pending != null && pending.size > 0) {
-        await Promise.allSettled(pending)
-      }
-      pendingRequests.delete(clientId)
-
-      const remainingClients = allClients.filter((client) => {
-        return client.id !== clientId
-      })
-
-      // Unregister itself when there are no more clients
-      if (remainingClients.length === 0) {
-        self.registration.unregister()
-      }
-
-      await sendToClient(client, {
-        type: 'CLIENT_CLOSED',
-      })
-
       break
     }
   }

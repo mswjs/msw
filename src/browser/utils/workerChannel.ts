@@ -13,6 +13,7 @@ export type WorkerChannelEventMap = {
       frameType: string
     }
   }>
+  CLIENT_CLOSED: TypedEvent<never>
   INTEGRITY_CHECK_RESPONSE: WorkerEvent<{
     packageVersion: string
     checksum: string
@@ -41,7 +42,6 @@ export interface IncomingWorkerRequest extends Omit<
    * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
-  interceptedAt: number
   body?: ArrayBuffer | null
 }
 
@@ -114,7 +114,7 @@ type OutgoingWorkerEvents =
   | 'MOCK_ACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
   | 'KEEPALIVE_REQUEST'
-  | 'CLIENT_CLOSED'
+  | 'CLIENT_CLOSE'
 
 export interface WorkerChannelOptions {
   getWorker: () => Promise<ServiceWorker>

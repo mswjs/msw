@@ -159,7 +159,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     return registration
   }
 
-  public disable(): void {
+  public async disable(): Promise<void> {
     /**
      * @note Do NOT call `super.disable()` because it removes any "frame" listeners
      * from this network source, effectively turning it off. The Service Worker source
@@ -180,12 +180,16 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#listenerController?.abort()
     this.#listenerController = undefined
 
+    const closedPromise = new DeferredPromise<void>()
+    this.#channel.once('CLIENT_CLOSED', () => closedPromise.resolve())
+
     /**
      * @note Tell the Service Worker to drop this client from its active set
      * so it stops forwarding REQUEST events here. `stoppedAt` still guards
      * any requests the SW already forwarded before this message arrived.
      */
-    this.#channel.postMessage('CLIENT_CLOSED')
+    this.#channel.postMessage('CLIENT_CLOSE')
+    await closedPromise
 
     /**
      * @note Do NOT reset `workerPromise` here. The channel must continue to
@@ -312,10 +316,6 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
   }
 
   async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
-    if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
-      return event.postMessage('PASSTHROUGH')
-    }
-
     const request = deserializeRequest(event.data)
     RequestHandler.cache.set(request, request.clone())
 

@@ -10,7 +10,12 @@
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
+
 const activeClientIds = new Set()
+/**
+ * @type {Map<string, Set<Promise<Response>>>}
+ */
+const pendingRequests = new Map()
 
 addEventListener('install', function () {
   self.skipWaiting()
@@ -71,8 +76,16 @@ addEventListener('message', async function (event) {
       break
     }
 
-    case 'CLIENT_CLOSED': {
+    case 'CLIENT_CLOSE': {
       activeClientIds.delete(clientId)
+
+      // Await any pending requests from the closing client.
+      // This makes sure that those requests are handled and not passthrough.
+      const pending = pendingRequests.get(clientId)
+      if (pending != null && pending.size > 0) {
+        await Promise.allSettled(pending)
+      }
+      pendingRequests.delete(clientId)
 
       const remainingClients = allClients.filter((client) => {
         return client.id !== clientId
@@ -83,14 +96,16 @@ addEventListener('message', async function (event) {
         self.registration.unregister()
       }
 
+      await sendToClient(client, {
+        type: 'CLIENT_CLOSED',
+      })
+
       break
     }
   }
 })
 
 addEventListener('fetch', function (event) {
-  const requestInterceptedAt = Date.now()
-
   // Bypass navigation requests.
   if (event.request.mode === 'navigate') {
     return
@@ -113,23 +128,33 @@ addEventListener('fetch', function (event) {
   }
 
   const requestId = crypto.randomUUID()
-  event.respondWith(handleRequest(event, requestId, requestInterceptedAt))
+  event.respondWith(handleRequest(event, requestId))
 })
 
 /**
  * @param {FetchEvent} event
  * @param {string} requestId
- * @param {number} requestInterceptedAt
  */
-async function handleRequest(event, requestId, requestInterceptedAt) {
+async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
-  const response = await getResponse(
-    event,
-    client,
-    requestId,
-    requestInterceptedAt,
-  )
+
+  const responsePromise = getResponse(event, client, requestId)
+
+  if (client != null) {
+    let pending = pendingRequests.get(client.id)
+
+    if (pending == null) {
+      pendingRequests.set(client.id, (pending = new Set()))
+    }
+
+    pending.add(responsePromise)
+    responsePromise
+      .finally(() => pending.delete(responsePromise))
+      .catch(() => {})
+  }
+
+  const response = await responsePromise
 
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
@@ -205,10 +230,9 @@ async function resolveMainClient(event) {
  * @param {FetchEvent} event
  * @param {Client | undefined} client
  * @param {string} requestId
- * @param {number} requestInterceptedAt
  * @returns {Promise<Response>}
  */
-async function getResponse(event, client, requestId, requestInterceptedAt) {
+async function getResponse(event, client, requestId) {
   // Clone the request because it might've been already used
   // (i.e. its body has been read and sent to the client).
   const requestClone = event.request.clone()
@@ -259,7 +283,6 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
       type: 'REQUEST',
       payload: {
         id: requestId,
-        interceptedAt: requestInterceptedAt,
         ...serializedRequest,
       },
     },

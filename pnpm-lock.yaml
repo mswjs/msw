@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.0
         version: 0.1.1
       '@mswjs/interceptors':
-        specifier: ^0.41.3
-        version: 0.41.3
+        specifier: ^0.41.4
+        version: 0.41.4
       '@open-draft/deferred-promise':
         specifier: ^3.0.0
         version: 3.0.0
@@ -1210,8 +1210,8 @@ packages:
   '@msw/url@0.1.1':
     resolution: {integrity: sha512-YfWUaTaE4Ac77HikwWiwneCiAKIkQ+0+wpOiBNEmfolW7yWgxTgkYGw5IdqeCsSWdxdZfYOFqK+cMHNZKmkg/Q==}
 
-  '@mswjs/interceptors@0.41.3':
-    resolution: {integrity: sha512-cXu86tF4VQVfwz8W1SPbhoRyHJkti6mjH/XJIxp40jhO4j2k1m4KYrEykxqWPkFF3vrK4rgQppBh//AwyGSXPA==}
+  '@mswjs/interceptors@0.41.4':
+    resolution: {integrity: sha512-3B9EinUkrdOUGYzHRzRWSXunQ4YFGboJnyLNRwEJWEde+j8fNhPUHvrN1E3g1DU/iS/s8JQrMNVe+S7AHHVs0w==}
     engines: {node: '>=18'}
 
   '@napi-rs/wasm-runtime@1.1.4':
@@ -6460,7 +6460,7 @@ snapshots:
 
   '@msw/url@0.1.1': {}
 
-  '@mswjs/interceptors@0.41.3':
+  '@mswjs/interceptors@0.41.4':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0

@@ -34,12 +34,6 @@ addEventListener('message', function (event) {
 
   event.waitUntil(
     (async () => {
-      const client = await self.clients.get(clientId)
-
-      if (!client) {
-        return
-      }
-
       if (event.data === 'CLIENT_CLOSE') {
         const allClients = await self.clients.matchAll({
           type: 'window',
@@ -64,10 +58,26 @@ addEventListener('message', function (event) {
           await self.registration.unregister()
         }
 
-        await sendToClient(client, {
-          type: 'CLIENT_CLOSED',
-        })
+        const client = await self.clients.get(clientId)
 
+        if (client != null) {
+          await sendToClient(client, {
+            type: 'CLIENT_CLOSED',
+          })
+        }
+
+        return
+      }
+
+      /**
+       * @note Check for the client AFTER handling "CLIENT_CLOSE".
+       * This prevents early return on "!client" in case the page has reloaded
+       * and disassociated itself from the worker. This ensures self-unregistration
+       * still fires for those pages.
+       */
+      const client = await self.clients.get(clientId)
+
+      if (!client) {
         return
       }
 

@@ -11,6 +11,97 @@ declare namespace window {
   }
 }
 
+test('exposes a navigation request in the resolver', async ({
+  loadExample,
+  page,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+  )
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.get('*/destination', async ({ request }) => {
+        return HttpResponse.json({
+          url: request.url,
+          method: request.method,
+          mode: request.mode,
+          body: await request.text(),
+        })
+      }),
+    )
+  })
+
+  const destinationUrl = new URL('./destination', compilation.previewUrl).href
+
+  await page.evaluate((url) => {
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.textContent = 'Go to page'
+    document.body.append(link)
+  }, destinationUrl)
+
+  await page.getByRole('link', { name: 'Go to page' }).click()
+
+  await expect(page).toHaveURL(destinationUrl)
+
+  const requestJson = await page
+    .evaluate(() => document.body.textContent)
+    .then((value) => JSON.parse(value))
+
+  expect(requestJson).toEqual({
+    url: destinationUrl,
+    method: 'GET',
+    mode: 'navigate',
+    body: '',
+  })
+})
+
+test('exposes a form submission request in the resolver', async ({
+  loadExample,
+  page,
+}) => {
+  await loadExample(new URL('./navigate.mocks.ts', import.meta.url))
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.post('/action', async ({ request }) => {
+        const body = await request.formData()
+        const json = Array.from(body.entries())
+
+        return HttpResponse.json({
+          url: request.url,
+          method: request.method,
+          mode: request.mode,
+          body: json,
+        })
+      }),
+    )
+  })
+
+  const actionUrl = new URL('/action', page.url()).href
+
+  await page.getByLabel('Username').fill('octocat')
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(actionUrl)
+
+  const requestJson = await page
+    .evaluate(() => document.body.textContent)
+    .then((value) => JSON.parse(value))
+
+  expect(requestJson).toEqual({
+    url: actionUrl,
+    method: 'POST',
+    mode: 'navigate',
+    body: [['username', 'octocat']],
+  })
+})
+
 test('mocks a programmatic navigation in playwright', async ({
   loadExample,
   page,
@@ -29,9 +120,10 @@ test('mocks a programmatic navigation in playwright', async ({
     )
   })
 
-  await page.goto(new URL('./destination', compilation.previewUrl).href)
+  const destinationUrl = new URL('./destination', compilation.previewUrl).href
+  await page.goto(destinationUrl)
 
-  await expect(page).toHaveURL(/\/destination$/)
+  await expect(page).toHaveURL(destinationUrl)
   await expect(page.getByText('Hello world')).toBeVisible()
 })
 
@@ -291,6 +383,8 @@ test('responds to a form submission with a mocked 4xx response', async ({
   })
 
   await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page).toHaveURL(new URL('/action', page.url()).href)
   await expect(page.getByRole('heading')).toHaveText('Unauthorized')
 })
 

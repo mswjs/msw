@@ -106,11 +106,6 @@ addEventListener('message', async function (event) {
 })
 
 addEventListener('fetch', function (event) {
-  // Bypass navigation requests.
-  if (event.request.mode === 'navigate') {
-    return
-  }
-
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
   if (

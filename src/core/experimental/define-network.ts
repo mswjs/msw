@@ -47,8 +47,9 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
-  extends NetworkHandlersApi {
+export interface NetworkApi<
+  Sources extends Array<NetworkSource<any>>,
+> extends NetworkHandlersApi {
   readyState: NetworkReadyState
   /**
    * Enable the network interception and handling.

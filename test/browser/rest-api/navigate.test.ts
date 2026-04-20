@@ -105,7 +105,7 @@ test('supports form submission passthrough', async ({ loadExample, page }) => {
       beforeNavigation(compilation) {
         compilation.use((router) => {
           router.post('/action', (req, res) => {
-            res.writeHead(200).end(`<h1>Original response</h1>`)
+            res.end(`<h1>Original response</h1>`)
           })
         })
       },
@@ -141,7 +141,7 @@ test('supports response patching of a same-origin form submission', async ({
       beforeNavigation(compilation) {
         compilation.use((router) => {
           router.post('/action', (req, res) => {
-            res.writeHead(200).end('John')
+            res.end('John')
           })
         })
       },
@@ -216,7 +216,7 @@ test('responds to a form submission with a mocked HTML response', async ({
     worker.use(
       http.post('/action', async ({ request }) => {
         const data = await request.formData()
-        return HttpResponse.html(`<p>Thank you, ${data.get('username')}!</p>`)
+        return HttpResponse.html(`<h1>Hello, ${data.get('username')}!</h1>`)
       }),
     )
   })
@@ -225,7 +225,7 @@ test('responds to a form submission with a mocked HTML response', async ({
   await page.getByRole('button', { name: 'Submit' }).click()
 
   await expect(page).toHaveURL(new URL('/action', page.url()).href)
-  await expect(page.getByText('Thank you, octocat!')).toBeVisible()
+  await expect(page.getByRole('heading')).toHaveText('Hello, octocat!')
 })
 
 test('responds to a form submission with a mock redirect response', async ({
@@ -328,4 +328,55 @@ test('intercepts a form submission with a "GET" method', async ({
     new URL('/action?username=octocat', page.url()).href,
   )
   await expect(page.getByRole('heading')).toHaveText('Hello, octocat!')
+})
+
+test('intercepts a navigation request from an iframe', async ({
+  loadExample,
+  page,
+}) => {
+  const { compilation } = await loadExample(
+    new URL('./navigate.mocks.ts', import.meta.url),
+    {
+      beforeNavigation(compilation) {
+        compilation.use((router) => {
+          router.get('/frame', (req, res) => {
+            res.set('content-type', 'text/html').end(`
+<form method="POST" action="/action">
+  <input name="username" aria-label="Username" />
+  <button>Submit</button>
+</form>
+              `)
+          })
+        })
+      },
+    },
+  )
+
+  await page.evaluate(() => {
+    const { worker, http, HttpResponse } = window.msw
+
+    worker.use(
+      http.post('/action', async ({ request }) => {
+        const data = await request.formData()
+        return HttpResponse.html(`<h1>Hello, ${data.get('username')}!</h1>`)
+      }),
+    )
+  })
+
+  await page.evaluate((url) => {
+    const iframe = document.createElement('iframe')
+    iframe.setAttribute('id', 'frame')
+    iframe.setAttribute('name', 'frame')
+    iframe.setAttribute('src', url)
+    document.body.append(iframe)
+  }, new URL('./frame', compilation.previewUrl).href)
+
+  const frame = page.frameLocator('#frame')
+  await frame.getByLabel('Username').fill('octocat')
+  await frame.getByRole('button', { name: 'Submit' }).click()
+
+  await page
+    .frame({ name: 'frame' })!
+    .waitForURL(new URL('/action', compilation.previewUrl).href)
+  await expect(frame.getByRole('heading')).toHaveText('Hello, octocat!')
 })

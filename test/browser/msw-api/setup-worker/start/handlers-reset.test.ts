@@ -24,7 +24,7 @@ test('does not accumulate request handlers across restarts', async ({
 
   // Stop and restart the worker.
   await page.evaluate(async () => {
-    window.msw.worker.stop()
+    await window.msw.worker.stop()
     await window.msw.worker.start({ quiet: true })
   })
 
@@ -35,7 +35,7 @@ test('does not accumulate request handlers across restarts', async ({
 
   // Stop and restart the worker again.
   await page.evaluate(async () => {
-    window.msw.worker.stop()
+    await window.msw.worker.stop()
     await window.msw.worker.start({ quiet: true })
   })
 

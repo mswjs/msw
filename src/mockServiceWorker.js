@@ -25,84 +25,88 @@ addEventListener('activate', function (event) {
   event.waitUntil(self.clients.claim())
 })
 
-addEventListener('message', async function (event) {
+addEventListener('message', function (event) {
   const clientId = Reflect.get(event.source || {}, 'id')
 
   if (!clientId || !self.clients) {
     return
   }
 
-  const client = await self.clients.get(clientId)
+  event.waitUntil(
+    (async () => {
+      const client = await self.clients.get(clientId)
 
-  if (!client) {
-    return
-  }
+      if (!client) {
+        return
+      }
 
-  if (event.data === 'CLIENT_CLOSE') {
-    const allClients = await self.clients.matchAll({
-      type: 'window',
-    })
+      if (event.data === 'CLIENT_CLOSE') {
+        const allClients = await self.clients.matchAll({
+          type: 'window',
+        })
 
-    activeClientIds.delete(clientId)
+        activeClientIds.delete(clientId)
 
-    // Await any pending requests from the closing client.
-    // This makes sure that those requests are handled and not passthrough.
-    const pending = pendingRequests.get(clientId)
-    if (pending != null && pending.size > 0) {
-      await Promise.allSettled(pending)
-    }
-    pendingRequests.delete(clientId)
+        // Await any pending requests from the closing client.
+        // This makes sure that those requests are handled and not passthrough.
+        const pending = pendingRequests.get(clientId)
+        if (pending != null && pending.size > 0) {
+          await Promise.allSettled(pending)
+        }
+        pendingRequests.delete(clientId)
 
-    const remainingClients = allClients.filter((client) => {
-      return client.id !== clientId
-    })
+        const remainingClients = allClients.filter((client) => {
+          return client.id !== clientId
+        })
 
-    // Unregister itself when there are no more clients
-    if (remainingClients.length === 0) {
-      self.registration.unregister()
-    }
+        // Unregister itself when there are no more clients
+        if (remainingClients.length === 0) {
+          await self.registration.unregister()
+        }
 
-    sendToClient(client, {
-      type: 'CLIENT_CLOSED',
-    })
+        await sendToClient(client, {
+          type: 'CLIENT_CLOSED',
+        })
 
-    return
-  }
+        return
+      }
 
-  switch (event.data) {
-    case 'KEEPALIVE_REQUEST': {
-      sendToClient(client, {
-        type: 'KEEPALIVE_RESPONSE',
-      })
-      break
-    }
+      switch (event.data) {
+        case 'KEEPALIVE_REQUEST': {
+          await sendToClient(client, {
+            type: 'KEEPALIVE_RESPONSE',
+          })
+          break
+        }
 
-    case 'INTEGRITY_CHECK_REQUEST': {
-      sendToClient(client, {
-        type: 'INTEGRITY_CHECK_RESPONSE',
-        payload: {
-          packageVersion: PACKAGE_VERSION,
-          checksum: INTEGRITY_CHECKSUM,
-        },
-      })
-      break
-    }
+        case 'INTEGRITY_CHECK_REQUEST': {
+          await sendToClient(client, {
+            type: 'INTEGRITY_CHECK_RESPONSE',
+            payload: {
+              packageVersion: PACKAGE_VERSION,
+              checksum: INTEGRITY_CHECKSUM,
+            },
+          })
+          break
+        }
 
-    case 'MOCK_ACTIVATE': {
-      activeClientIds.add(clientId)
+        case 'MOCK_ACTIVATE': {
+          activeClientIds.add(clientId)
 
-      sendToClient(client, {
-        type: 'MOCKING_ENABLED',
-        payload: {
-          client: {
-            id: client.id,
-            frameType: client.frameType,
-          },
-        },
-      })
-      break
-    }
-  }
+          await sendToClient(client, {
+            type: 'MOCKING_ENABLED',
+            payload: {
+              client: {
+                id: client.id,
+                frameType: client.frameType,
+              },
+            },
+          })
+          break
+        }
+      }
+    })(),
+  )
 })
 
 addEventListener('fetch', function (event) {

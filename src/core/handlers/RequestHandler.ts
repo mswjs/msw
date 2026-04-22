@@ -188,7 +188,10 @@ export abstract class RequestHandler<
    * resolution state.
    */
   protected restore(): void {
-    this.reset()
+    if (this.options?.once) {
+      this.reset()
+    }
+
     this.isUsed = false
   }
 

@@ -120,3 +120,48 @@ it('resets the generator state after the handlers are reset', async () => {
     await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
   })()
 })
+
+it('resets the generator state of one-time handlers after the handlers are restored', async () => {
+  server.use(
+    http.get(
+      'http://localhost/resource',
+      function* () {
+        yield HttpResponse.json('Yield')
+        return HttpResponse.json('Stable')
+      },
+      { once: true },
+    ),
+  )
+
+  await server.boundary(async () => {
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+    server.restoreHandlers()
+
+    /**
+     * @note A generator has to be exhausted before it's marked as fully used.
+     */
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+  })()
+})
+
+it('does nothing when restoring regular handlers', async () => {
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      yield HttpResponse.json('Yield')
+      return HttpResponse.json('Stable')
+    }),
+  )
+
+  await server.boundary(async () => {
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+    server.restoreHandlers()
+
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+  })()
+})

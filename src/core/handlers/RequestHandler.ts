@@ -178,8 +178,13 @@ export abstract class RequestHandler<
    * from a clean state.
    */
   protected reset(): void {
+    const iterator = this.resolverIterator
     this.resolverIterator = undefined
     this.resolverIteratorResult = undefined
+
+    if (typeof iterator?.return === 'function') {
+      void Promise.resolve(iterator.return())
+    }
   }
 
   /**

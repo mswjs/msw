@@ -172,6 +172,34 @@ export abstract class RequestHandler<
   }
 
   /**
+   * Reset the runtime state accumulated during response resolution,
+   * such as generator iterator progress. Called when this handler is
+   * removed from the active handlers list so re-adding it later starts
+   * from a clean state.
+   */
+  protected reset(): void {
+    const iterator = this.resolverIterator
+    this.resolverIterator = undefined
+    this.resolverIteratorResult = undefined
+
+    if (typeof iterator?.return === 'function') {
+      void Promise.resolve(iterator.return())
+    }
+  }
+
+  /**
+   * Restore this handler so it can match requests again after being
+   * exhausted (e.g. via `{ once: true }`). Also clears any accumulated
+   * resolution state.
+   */
+  protected restore(): void {
+    if (this.options?.once) {
+      this.reset()
+      this.isUsed = false
+    }
+  }
+
+  /**
    * Determine if the intercepted request should be mocked.
    */
   abstract predicate(args: {

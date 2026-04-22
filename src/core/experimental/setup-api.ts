@@ -42,11 +42,7 @@ export abstract class SetupApi<
   }
 
   public restoreHandlers(): void {
-    this.handlersController.currentHandlers().forEach((handler) => {
-      if ('isUsed' in handler) {
-        handler.isUsed = false
-      }
-    })
+    this.handlersController.restore()
   }
 
   public resetHandlers(...nextHandlers: Array<AnyHandler>): void {

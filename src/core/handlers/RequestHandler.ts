@@ -190,9 +190,8 @@ export abstract class RequestHandler<
   protected restore(): void {
     if (this.options?.once) {
       this.reset()
+      this.isUsed = false
     }
-
-    this.isUsed = false
   }
 
   /**

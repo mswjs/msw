@@ -57,7 +57,7 @@ export class WebSocketHandler {
   }
 
   public parse(args: {
-    url: URL
+    url: string | URL
     resolutionContext?: WebSocketResolutionContext
   }): WebSocketHandlerParsedResult {
     const clientUrl = new URL(args.url)
@@ -90,22 +90,26 @@ export class WebSocketHandler {
   }
 
   public predicate(args: {
-    url: URL
+    url: string | URL
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
     return args.parsedResult.match.matches
+  }
+
+  public test(
+    url: string | URL,
+    resolutionContext?: WebSocketResolutionContext & { strict?: boolean },
+  ): boolean {
+    return this.#match(url, resolutionContext) != null
   }
 
   public async run(
     connection: WebSocketConnectionData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
-    const parsedResult = this.parse({
-      url: connection.client.url,
-      resolutionContext,
-    })
+    const parsedResult = this.#match(connection.client.url, resolutionContext)
 
-    if (!this.predicate({ url: connection.client.url, parsedResult })) {
+    if (parsedResult == null) {
       return null
     }
 
@@ -123,6 +127,31 @@ export class WebSocketHandler {
     }
 
     return resolvedConnection
+  }
+
+  #match(
+    url: string | URL,
+    resolutionContext?: WebSocketResolutionContext & { strict?: boolean },
+  ): WebSocketHandlerParsedResult | null {
+    const resolvedUrl = this.#resolveWebSocketUrl(
+      url.toString(),
+      resolutionContext?.baseUrl,
+    )
+    const parsedResult = this.parse({
+      url: resolvedUrl,
+      resolutionContext,
+    })
+
+    if (
+      this.predicate({
+        url,
+        parsedResult,
+      })
+    ) {
+      return parsedResult
+    }
+
+    return null
   }
 
   protected [kConnect](connection: WebSocketHandlerConnection): boolean {

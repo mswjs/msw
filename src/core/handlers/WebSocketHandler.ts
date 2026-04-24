@@ -57,7 +57,7 @@ export class WebSocketHandler {
   }
 
   public parse(args: {
-    url: URL
+    url: string | URL
     resolutionContext?: WebSocketResolutionContext
   }): WebSocketHandlerParsedResult {
     const clientUrl = new URL(args.url)
@@ -90,10 +90,29 @@ export class WebSocketHandler {
   }
 
   public predicate(args: {
-    url: URL
+    url: string | URL
     parsedResult: WebSocketHandlerParsedResult
   }): boolean {
     return args.parsedResult.match.matches
+  }
+
+  public test(
+    url: string | URL,
+    resolutionContext?: WebSocketResolutionContext & { strict?: boolean },
+  ): boolean {
+    const resolvedUrl = this.#resolveWebSocketUrl(
+      url.toString(),
+      resolutionContext?.baseUrl,
+    )
+    const parsedResult = this.parse({
+      url: resolvedUrl,
+      resolutionContext,
+    })
+
+    return this.predicate({
+      url,
+      parsedResult,
+    })
   }
 
   public async run(

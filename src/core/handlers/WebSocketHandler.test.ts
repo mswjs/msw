@@ -147,7 +147,7 @@ describe('test', () => {
     ).toBe(true)
   })
 
-  it('returns false for a relative matching string', () => {
+  it('returns false for a relative non-matching string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('/other', {
         baseUrl: 'ws://localhost',

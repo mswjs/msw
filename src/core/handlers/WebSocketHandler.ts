@@ -100,31 +100,16 @@ export class WebSocketHandler {
     url: string | URL,
     resolutionContext?: WebSocketResolutionContext & { strict?: boolean },
   ): boolean {
-    const resolvedUrl = this.#resolveWebSocketUrl(
-      url.toString(),
-      resolutionContext?.baseUrl,
-    )
-    const parsedResult = this.parse({
-      url: resolvedUrl,
-      resolutionContext,
-    })
-
-    return this.predicate({
-      url,
-      parsedResult,
-    })
+    return this.#match(url, resolutionContext) != null
   }
 
   public async run(
     connection: WebSocketConnectionData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
-    const parsedResult = this.parse({
-      url: connection.client.url,
-      resolutionContext,
-    })
+    const parsedResult = this.#match(connection.client.url, resolutionContext)
 
-    if (!this.predicate({ url: connection.client.url, parsedResult })) {
+    if (parsedResult == null) {
       return null
     }
 
@@ -142,6 +127,31 @@ export class WebSocketHandler {
     }
 
     return resolvedConnection
+  }
+
+  #match(
+    url: string | URL,
+    resolutionContext?: WebSocketResolutionContext & { strict?: boolean },
+  ): WebSocketHandlerParsedResult | null {
+    const resolvedUrl = this.#resolveWebSocketUrl(
+      url.toString(),
+      resolutionContext?.baseUrl,
+    )
+    const parsedResult = this.parse({
+      url: resolvedUrl,
+      resolutionContext,
+    })
+
+    if (
+      this.predicate({
+        url,
+        parsedResult,
+      })
+    ) {
+      return parsedResult
+    }
+
+    return null
   }
 
   protected [kConnect](connection: WebSocketHandlerConnection): boolean {

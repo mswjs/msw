@@ -12,6 +12,7 @@ import {
   type DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
 import type { GraphQLRequestBody } from './GraphQLHandler'
+import { devUtils } from '../utils/internal/devUtils'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -86,9 +87,14 @@ export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
+  waitUntil: ResponseResolverWaitUntilFunction
   request: StrictRequest<RequestBodyType>
   requestId: string
 } & ResolverExtraInfo
+
+type ResponseResolverWaitUntilFunction = (
+  callback: () => MaybePromise<void>,
+) => void
 
 export type ResponseResolver<
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
@@ -330,21 +336,47 @@ export abstract class RequestHandler<
       parsedResult,
     })
 
+    const scheduledSideEffects: Array<() => MaybePromise<void>> = []
+    const waitUntil: ResponseResolverWaitUntilFunction = (callback) => {
+      scheduledSideEffects.push(callback)
+    }
+
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
+        waitUntil,
         requestId: args.requestId,
         request: args.request,
       }) as Promise<Response>
-    ).catch((errorOrResponse) => {
-      // Allow throwing a Response instance in a response resolver.
-      if (errorOrResponse instanceof Response) {
-        return errorOrResponse
-      }
+    )
+      .catch((errorOrResponse) => {
+        // Allow throwing a Response instance in a response resolver.
+        if (errorOrResponse instanceof Response) {
+          return errorOrResponse
+        }
 
-      // Otherwise, throw the error as-is.
-      throw errorOrResponse
-    })
+        // Otherwise, throw the error as-is.
+        throw errorOrResponse
+      })
+      .finally(async () => {
+        if (scheduledSideEffects.length == 0) {
+          return
+        }
+
+        const cleanupResults = await Promise.allSettled(
+          scheduledSideEffects.map((effect) => effect()),
+        )
+
+        for (const result of cleanupResults) {
+          if (result.status === 'rejected') {
+            devUtils.error(
+              'Uncaught exception while waiting for an effect after "%s":',
+              this.info.header,
+              result.reason,
+            )
+          }
+        }
+      })
 
     const mockedResponse = await mockedResponsePromise
 

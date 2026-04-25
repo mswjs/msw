@@ -246,7 +246,8 @@
   "sideEffects": false,
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
-    "@mswjs/interceptors": "^0.41.3",
+    "@msw/url": "^0.1.0",
+    "@mswjs/interceptors": "^0.41.4",
     "@open-draft/deferred-promise": "^3.0.0",
     "@types/statuses": "^2.0.6",
     "cookie": "^1.1.1",
@@ -254,7 +255,6 @@
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.3",
-    "path-to-regexp": "^6.3.0",
     "picocolors": "^1.1.1",
     "rettime": "^0.11.7",
     "statuses": "^2.0.2",

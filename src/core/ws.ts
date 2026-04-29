@@ -168,6 +168,13 @@ const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
 interface WebSocketNamespace {
   link: typeof createWebSocketLinkHandler
+  /**
+   * Request handler for the `upgrade` requests to the WebSocket protocol.
+   * This requires a WebSocket handler to be present to fire.
+   * @note This only affects Node.js as the `upgrade` request header is
+   * forbidden and cannot be read in the browser. Consider using the
+   * `WebSocket` API for establishing WebSocket connections in the browser.
+   */
   onUpgrade: (info: {
     requestId: string
     request: Request

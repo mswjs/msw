@@ -49,6 +49,18 @@ describe('constructor', () => {
       upgradeTwo,
     ])
   })
+
+  it('dedupes the shared upgrade sibling across multiple handlers from the same link', () => {
+    const chat = ws.link('*')
+    const wsOne = chat.addEventListener('connection', () => {})
+    const wsTwo = chat.addEventListener('connection', () => {})
+    const [upgradeHandler] = getSiblingHandlers(wsOne)
+
+    const controller = new InMemoryHandlersController([wsOne, wsTwo])
+
+    expect(controller.getHandlersByKind('websocket')).toEqual([wsOne, wsTwo])
+    expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
+  })
 })
 
 describe(InMemoryHandlersController.prototype.use, () => {
@@ -124,6 +136,19 @@ describe(InMemoryHandlersController.prototype.use, () => {
       existingHttp,
     ])
   })
+
+  it('dedupes the shared upgrade sibling when called with multiple handlers from the same link', () => {
+    const chat = ws.link('*')
+    const wsOne = chat.addEventListener('connection', () => {})
+    const wsTwo = chat.addEventListener('connection', () => {})
+    const [upgradeHandler] = getSiblingHandlers(wsOne)
+
+    const controller = new InMemoryHandlersController([])
+    controller.use([wsOne, wsTwo])
+
+    expect(controller.getHandlersByKind('websocket')).toEqual([wsOne, wsTwo])
+    expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
+  })
 })
 
 describe(InMemoryHandlersController.prototype.reset, () => {
@@ -190,6 +215,19 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     controller.reset([])
 
     expect(controller.getHandlersByKind('websocket')).toEqual([wsHandler])
+    expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
+  })
+
+  it('dedupes the shared upgrade sibling when reset with multiple handlers from the same link', () => {
+    const chat = ws.link('*')
+    const wsOne = chat.addEventListener('connection', () => {})
+    const wsTwo = chat.addEventListener('connection', () => {})
+    const [upgradeHandler] = getSiblingHandlers(wsOne)
+
+    const controller = new InMemoryHandlersController([])
+    controller.reset([wsOne, wsTwo])
+
+    expect(controller.getHandlersByKind('websocket')).toEqual([wsOne, wsTwo])
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 })

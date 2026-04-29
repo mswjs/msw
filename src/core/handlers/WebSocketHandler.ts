@@ -118,7 +118,7 @@ export class WebSocketHandler {
       params: parsedResult.match.params || {},
     }
 
-    if (resolutionContext?.[kAutoConnect]) {
+    if (resolutionContext?.[kAutoConnect] ?? true) {
       if (this[kConnect](resolvedConnection)) {
         return resolvedConnection
       }

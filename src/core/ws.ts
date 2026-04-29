@@ -1,16 +1,24 @@
 import { invariant } from 'outvariant'
+import { FetchResponse } from '@mswjs/interceptors'
 import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
+import type { ResponseResolver } from './handlers/RequestHandler'
 import {
   WebSocketHandler,
   kEmitter,
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
 import { hasRefCounted } from './utils/internal/hasRefCounted'
-import { type Path, isPath } from './utils/matching/matchRequestUrl'
+import {
+  type Path,
+  isPath,
+  matchRequestUrl,
+} from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
+import { http } from './http'
+import { attachSiblingHandlers } from './utils/internal/attachSiblingHandlers'
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
@@ -105,13 +113,13 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const handler = new WebSocketHandler(url)
+      const webSocketHandler = new WebSocketHandler(url)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.
       // When that happens, store that connection in the
       // set of all connections for reference.
-      handler[kEmitter].on('connection', async ({ client }) => {
+      webSocketHandler[kEmitter].on('connection', async ({ client }) => {
         await clientManager.addConnection(client)
       })
 
@@ -119,9 +127,16 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       // the "run()" method on the WebSocketHandler.
       // If the handler matches, it will emit the "connection"
       // event. Attach the user-defined listener to that event.
-      handler[kEmitter].on(event, listener)
+      webSocketHandler[kEmitter].on(event, listener)
 
-      return handler
+      const upgradeHandler = http.get(({ request }) => {
+        return (
+          request.headers.get('upgrade') === 'websocket' &&
+          matchRequestUrl(new URL(request.url), url).matches
+        )
+      }, ws.onUpgrade)
+
+      return attachSiblingHandlers(webSocketHandler, [upgradeHandler])
     },
 
     broadcast(data) {
@@ -145,6 +160,13 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   }
 }
 
+const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+
+interface WebSocketNamespace {
+  link: typeof createWebSocketLinkHandler
+  onUpgrade: ResponseResolver
+}
+
 /**
  * A namespace to intercept and mock WebSocket connections.
  *
@@ -154,8 +176,28 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
  * @see {@link https://mswjs.io/docs/api/ws `ws` API reference}
  * @see {@link https://mswjs.io/docs/basics/handling-websocket-events Handling WebSocket events}
  */
-export const ws = {
+export const ws: WebSocketNamespace = {
   link: createWebSocketLinkHandler,
+  async onUpgrade({ request }) {
+    const key = request.headers.get('sec-websocket-key')
+
+    if (!key) {
+      return
+    }
+
+    const keyBytes = new TextEncoder().encode(key + WEBSOCKET_GUID)
+    const digest = await crypto.subtle.digest('SHA-1', keyBytes)
+    const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
+
+    return new FetchResponse(null, {
+      status: 101,
+      headers: {
+        upgrade: 'websocket',
+        connection: 'upgrade',
+        'sec-websocket-accept': acceptValue,
+      },
+    })
+  },
 }
 
 export { type WebSocketData }

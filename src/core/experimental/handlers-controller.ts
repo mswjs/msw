@@ -2,6 +2,7 @@ import { invariant } from 'outvariant'
 import { type RequestHandler } from '../handlers/RequestHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
+import { getSiblingHandlers } from '../utils/internal/attachSiblingHandlers'
 
 export type AnyHandler = RequestHandler | WebSocketHandler
 export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
@@ -14,6 +15,10 @@ export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
    */
   for (const handler of handlers) {
     ;(groups[handler.kind] ||= []).push(handler)
+
+    for (const sibling of getSiblingHandlers(handler)) {
+      ;(groups[sibling.kind] ||= []).push(sibling)
+    }
   }
 
   return groups
@@ -69,14 +74,16 @@ export abstract class HandlersController {
     }
 
     const { handlers } = this.getState()
+    const overrides = groupHandlersByKind(nextHandlers)
 
-    // Iterate over next handlers and prepend them to their respective lists.
-    // Iterate in a reverse order to the keep the order of the runtime handlers as provided.
-    for (let i = nextHandlers.length - 1; i >= 0; i--) {
-      const handler = nextHandlers[i]
-      handlers[handler.kind] = handlers[handler.kind]
-        ? [handler, ...handlers[handler.kind]!]
-        : [handler]
+    // Prepend overrides to their respective kind buckets so they take
+    // priority over existing handlers while preserving input order.
+    for (const kind in overrides) {
+      const overridesForKind = overrides[kind as AnyHandler['kind']]!
+      const existingForKind = handlers[kind as AnyHandler['kind']]
+      handlers[kind as AnyHandler['kind']] = existingForKind
+        ? [...overridesForKind, ...existingForKind]
+        : overridesForKind
     }
 
     this.setState({ handlers })

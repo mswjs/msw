@@ -1,3 +1,4 @@
+import { Headers as HeadersPolyfill } from 'headers-polyfill'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
   isIterable,
@@ -12,6 +13,7 @@ import {
   type DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
 import type { GraphQLRequestBody } from './GraphQLHandler'
+import { getRawSetCookie } from '../utils/HttpResponse/decorators'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -172,6 +174,34 @@ export abstract class RequestHandler<
   }
 
   /**
+   * Reset the runtime state accumulated during response resolution,
+   * such as generator iterator progress. Called when this handler is
+   * removed from the active handlers list so re-adding it later starts
+   * from a clean state.
+   */
+  protected reset(): void {
+    const iterator = this.resolverIterator
+    this.resolverIterator = undefined
+    this.resolverIteratorResult = undefined
+
+    if (typeof iterator?.return === 'function') {
+      void Promise.resolve(iterator.return())
+    }
+  }
+
+  /**
+   * Restore this handler so it can match requests again after being
+   * exhausted (e.g. via `{ once: true }`). Also clears any accumulated
+   * resolution state.
+   */
+  protected restore(): void {
+    if (this.options?.once) {
+      this.reset()
+      this.isUsed = false
+    }
+  }
+
+  /**
    * Determine if the intercepted request should be mocked.
    */
   abstract predicate(args: {
@@ -307,7 +337,7 @@ export abstract class RequestHandler<
         ...resolverExtras,
         requestId: args.requestId,
         request: args.request,
-      }) as Promise<Response>
+      }) as Promise<Response | undefined>
     ).catch((errorOrResponse) => {
       // Allow throwing a Response instance in a response resolver.
       if (errorOrResponse instanceof Response) {
@@ -319,6 +349,10 @@ export abstract class RequestHandler<
     })
 
     const mockedResponse = await mockedResponsePromise
+
+    if (mockedResponse) {
+      forwardResponseCookies(mockedResponse)
+    }
 
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
@@ -386,5 +420,34 @@ export abstract class RequestHandler<
       response: args.response,
       parsedResult: args.parsedResult,
     }
+  }
+}
+
+/**
+ * Forwards the cookies from the given response to `document.cookie`.
+ */
+export function forwardResponseCookies(response: Response): void {
+  // Cookie forwarding is only relevant in the browser.
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  const responseCookies = getRawSetCookie(response)
+
+  if (!responseCookies) {
+    return
+  }
+
+  // Write the mocked response cookies to the document.
+  // Use `headers-polyfill` to get the Set-Cookie header value correctly.
+  // This is an alternative until TypeScript 5.2
+  // and Node.js v20 become the minimum supported versions
+  // and "Headers.prototype.getSetCookie" can be used directly.
+  const allResponseCookies = HeadersPolyfill.prototype.getSetCookie.call(
+    new Headers([['set-cookie', responseCookies]]),
+  )
+
+  for (const cookieString of allResponseCookies) {
+    document.cookie = cookieString
   }
 }

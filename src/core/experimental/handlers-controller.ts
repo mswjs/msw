@@ -90,6 +90,12 @@ export abstract class HandlersController {
       ),
     )
 
+    for (const handler of this.currentHandlers()) {
+      if ('reset' in handler) {
+        handler['reset']()
+      }
+    }
+
     const { initialHandlers } = this.getState()
 
     if (nextHandlers.length === 0) {
@@ -106,6 +112,14 @@ export abstract class HandlersController {
       initialHandlers: normalizedNextHandlers,
       handlers: { ...normalizedNextHandlers },
     })
+  }
+
+  public restore(): void {
+    for (const handler of this.currentHandlers()) {
+      if ('restore' in handler) {
+        handler['restore']()
+      }
+    }
   }
 
   #validateHandlers(handlers: Array<AnyHandler>): boolean {

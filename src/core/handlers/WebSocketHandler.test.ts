@@ -125,3 +125,61 @@ describe('parse', () => {
     })
   })
 })
+
+describe('test', () => {
+  it('returns true for a matching string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('ws://localhost/ws'),
+    ).toBe(true)
+  })
+
+  it('returns false for a non-matching string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('ws://localhost/other'),
+    ).toBe(false)
+  })
+
+  it('returns true for a relative matching string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('/ws', {
+        baseUrl: 'ws://localhost',
+      }),
+    ).toBe(true)
+  })
+
+  it('returns false for a relative non-matching string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('/other', {
+        baseUrl: 'ws://localhost',
+      }),
+    ).toBe(false)
+  })
+
+  it('returns true for a matching URL', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test(
+        new URL('ws://localhost/ws'),
+      ),
+    ).toBe(true)
+  })
+
+  it('returns false for a non-matching URL', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test(
+        new URL('ws://localhost/other'),
+      ),
+    ).toBe(false)
+  })
+
+  it('returns true for a matching HTTP url string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('http://localhost/ws'),
+    ).toBe(true)
+  })
+
+  it('returns false for a non-matching HTTP url string', () => {
+    expect(
+      new WebSocketHandler('ws://localhost/ws').test('http://localhost/other'),
+    ).toBe(false)
+  })
+})

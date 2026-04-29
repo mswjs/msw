@@ -4,7 +4,6 @@ import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
-import type { ResponseResolver } from './handlers/RequestHandler'
 import {
   WebSocketHandler,
   kEmitter,
@@ -13,6 +12,7 @@ import {
 import { hasRefCounted } from './utils/internal/hasRefCounted'
 import {
   type Path,
+  type PathParams,
   isPath,
   matchRequestUrl,
 } from './utils/matching/matchRequestUrl'
@@ -108,6 +108,17 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
 
   const clientManager = new WebSocketClientManager(webSocketChannel)
 
+  // The same upgrade handler instance is attached as a sibling to every
+  // WebSocketHandler returned by this link. `groupHandlersByKind` dedupes
+  // by reference, so it lands in the `request` bucket exactly once regardless
+  // of which subset of WS handlers the user ends up registering.
+  const upgradeHandler = http.get(({ request }) => {
+    return (
+      request.headers.get('upgrade') === 'websocket' &&
+      matchRequestUrl(new URL(request.url), url).matches
+    )
+  }, ws.onUpgrade)
+
   return {
     get clients() {
       return clientManager.clients
@@ -128,13 +139,6 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       // If the handler matches, it will emit the "connection"
       // event. Attach the user-defined listener to that event.
       webSocketHandler[kEmitter].on(event, listener)
-
-      const upgradeHandler = http.get(({ request }) => {
-        return (
-          request.headers.get('upgrade') === 'websocket' &&
-          matchRequestUrl(new URL(request.url), url).matches
-        )
-      }, ws.onUpgrade)
 
       return attachSiblingHandlers(webSocketHandler, [upgradeHandler])
     },
@@ -164,7 +168,11 @@ const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
 interface WebSocketNamespace {
   link: typeof createWebSocketLinkHandler
-  onUpgrade: ResponseResolver
+  onUpgrade: (info: {
+    requestId: string
+    request: Request
+    params: PathParams
+  }) => Promise<Response | undefined> | Response | undefined
 }
 
 /**

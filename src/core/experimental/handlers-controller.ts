@@ -10,14 +10,22 @@ export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
   const groups: HandlersMap = {}
 
+  const pushUnique = (kind: AnyHandler['kind'], handler: AnyHandler) => {
+    const bucket = (groups[kind] ||= [])
+
+    if (!bucket.includes(handler)) {
+      bucket.push(handler)
+    }
+  }
+
   /**
    * @note `Object.groupBy` is not implemented in Node.js v20.
    */
   for (const handler of handlers) {
-    ;(groups[handler.kind] ||= []).push(handler)
+    pushUnique(handler.kind, handler)
 
     for (const sibling of getSiblingHandlers(handler)) {
-      ;(groups[sibling.kind] ||= []).push(sibling)
+      pushUnique(sibling.kind, sibling)
     }
   }
 

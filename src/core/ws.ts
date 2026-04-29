@@ -114,7 +114,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   // of which subset of WS handlers the user ends up registering.
   const upgradeHandler = http.get(({ request }) => {
     return (
-      request.headers.get('upgrade') === 'websocket' &&
+      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
       matchRequestUrl(new URL(request.url), url).matches
     )
   }, ws.onUpgrade)

@@ -45,7 +45,7 @@ jobs:
   # Checks the library's compatibility with different
   # TypeScript versions to discover type regressions.
   typescript:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
     if: github.ref != 'refs/heads/main'

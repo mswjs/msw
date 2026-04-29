@@ -14,3 +14,9 @@ export {
   WebSocketNetworkFrame,
   type WebSocketNetworkFrameEventMap,
 } from './frames/websocket-frame'
+
+/* Handler controllers */
+export {
+  HandlersController,
+  InMemoryHandlersController,
+} from './handlers-controller'

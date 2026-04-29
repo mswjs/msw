@@ -251,9 +251,13 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
       return null
     }
 
+    const responseCloneForLogs = resolutionContext?.quiet
+      ? null
+      : response.clone()
+
     await storeResponseCookies(request, response)
 
-    this.respondWith(response.clone())
+    this.respondWith(response)
 
     this.events.emit(
       new RequestEvent('request:end', {
@@ -265,7 +269,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     if (!resolutionContext?.quiet) {
       handler.log({
         request: requestCloneForLogs!,
-        response,
+        response: responseCloneForLogs!,
         parsedResult,
       })
     }

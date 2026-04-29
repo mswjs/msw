@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { FetchResponse } from '@mswjs/interceptors'
+import { FetchResponse, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,
@@ -115,7 +115,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   const upgradeHandler = http.get(({ request }) => {
     return (
       request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
-      matchRequestUrl(new URL(request.url), url).matches
+      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
     )
   }, ws.onUpgrade)
 
@@ -196,6 +196,8 @@ export const ws: WebSocketNamespace = {
     const keyBytes = new TextEncoder().encode(key + WEBSOCKET_GUID)
     const digest = await crypto.subtle.digest('SHA-1', keyBytes)
     const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
+
+    new WebSocket(resolveWebSocketUrl(request.url))
 
     return new FetchResponse(null, {
       status: 101,

@@ -174,7 +174,7 @@
     "msw": "cli/index.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "start": "tsup --watch",
@@ -247,7 +247,7 @@
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
     "@msw/url": "^0.1.0",
-    "@mswjs/interceptors": "^0.41.4",
+    "@mswjs/interceptors": "^0.41.7",
     "@open-draft/deferred-promise": "^3.0.0",
     "@types/statuses": "^2.0.6",
     "cookie": "^1.1.1",

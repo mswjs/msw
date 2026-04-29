@@ -40,7 +40,7 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-22
+            ${{ runner.os }}-node-22-build-
 
   build-24:
     name: build (24)
@@ -73,9 +73,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-24-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-24
+            ${{ runner.os }}-build-24-
 
   test-unit:
     name: test (unit)

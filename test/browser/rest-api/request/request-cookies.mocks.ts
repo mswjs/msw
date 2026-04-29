@@ -6,6 +6,12 @@ const worker = setupWorker(
     return HttpResponse.json(cookies)
   }),
   http.post('/set-cookies', async ({ request }) => {
+    new HttpResponse(null, {
+      headers: {
+        'Set-Cookie': 'must-not=be-set',
+      },
+    })
+
     return new HttpResponse(null, {
       headers: {
         'Set-Cookie': await request.clone().text(),

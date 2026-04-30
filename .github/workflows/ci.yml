@@ -7,44 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-20:
-    name: build (20)
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
-
-      - name: Cache build output
-        uses: actions/cache@v4
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-20
-
   build-22:
     name: build (22)
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,12 +40,47 @@ jobs:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-22
+            ${{ runner.os }}-node-22-build-
+
+  build-24:
+    name: build (24)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Cache build output
+        uses: actions/cache@v4
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-node-24-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-24-
 
   test-unit:
     name: test (unit)
-    needs: build-20
-    runs-on: macos-latest
+    needs: build-22
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,9 +100,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-20-build-
+            ${{ runner.os }}-node-22-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -113,43 +113,10 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit
 
-  test-node-20:
-    name: test (node.js) (20)
-    needs: build-20
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - name: Restore build cache
-        uses: actions/cache@v4
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-20-build-
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Node.js tests
-        run: pnpm test:node
-
-  test-node-22:
+  test-node:
     name: test (node.js) (22)
     needs: build-22
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -179,10 +146,43 @@ jobs:
       - name: Node.js tests
         run: pnpm test:node
 
+  test-node-24:
+    name: test (node.js) (24)
+    needs: build-24
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: ./lib
+          key: ${{ runner.os }}-node-24-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node-24-build-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Node.js tests
+        run: pnpm test:node
+
   test-e2e:
-    name: test (e2e) (20)
-    needs: build-20
-    runs-on: macos-latest
+    name: test (e2e) (22)
+    needs: build-22
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -206,8 +206,8 @@ jobs:
 
   test-browser:
     name: test (browser)
-    needs: build-20
-    runs-on: macos-latest
+    needs: build-22
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -227,9 +227,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-20-build-
+            ${{ runner.os }}-node-22-build-
 
       - name: Install dependencies
         run: pnpm install
@@ -249,8 +249,8 @@ jobs:
 
   test-native:
     name: test (react-native)
-    needs: build-20
-    runs-on: macos-latest
+    needs: build-22
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -270,9 +270,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
+          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-20-build-
+            ${{ runner.os }}-node-22-build-
 
       - name: Install dependencies
         run: pnpm install

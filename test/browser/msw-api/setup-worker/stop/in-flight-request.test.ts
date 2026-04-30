@@ -1,9 +1,9 @@
-import type { SetupWorkerApi } from '../../../../../src/browser'
+import type { SetupWorker } from '../../../../../src/browser'
 import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {
-    worker: SetupWorkerApi
+    worker: SetupWorker
   }
 }
 
@@ -22,8 +22,8 @@ test('handles an in-flight request performed before the worker was stopped', asy
     return response.text()
   })
 
-  await page.evaluate(() => {
-    window.msw.worker.stop()
+  await page.evaluate(async () => {
+    await window.msw.worker.stop()
   })
 
   await expect(dataPromise).resolves.toBe('hello world')
@@ -49,8 +49,8 @@ test('bypasses requests made after the worker was stopped', async ({
 
   const resourceUrl = new URL('./resource', compilation.previewUrl)
 
-  await page.evaluate(() => {
-    window.msw.worker.stop()
+  await page.evaluate(async () => {
+    await window.msw.worker.stop()
   })
 
   const dataPromise = page.evaluate(async (url) => {

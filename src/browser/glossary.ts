@@ -62,7 +62,7 @@ export type StartHandler = (
   initialOptions: StartOptions,
 ) => StartReturnType
 
-export type StopHandler = () => void
+export type StopHandler = () => Promise<void> | void
 
 export interface SetupWorker {
   /**

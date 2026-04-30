@@ -1,4 +1,3 @@
-import { Headers as HeadersPolyfill } from 'headers-polyfill'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
   isIterable,
@@ -432,22 +431,7 @@ export function forwardResponseCookies(response: Response): void {
     return
   }
 
-  const responseCookies = getRawSetCookie(response)
-
-  if (!responseCookies) {
-    return
-  }
-
-  // Write the mocked response cookies to the document.
-  // Use `headers-polyfill` to get the Set-Cookie header value correctly.
-  // This is an alternative until TypeScript 5.2
-  // and Node.js v20 become the minimum supported versions
-  // and "Headers.prototype.getSetCookie" can be used directly.
-  const allResponseCookies = HeadersPolyfill.prototype.getSetCookie.call(
-    new Headers([['set-cookie', responseCookies]]),
-  )
-
-  for (const cookieString of allResponseCookies) {
+  for (const cookieString of getRawSetCookie(response)) {
     document.cookie = cookieString
   }
 }

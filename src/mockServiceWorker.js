@@ -10,7 +10,12 @@
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
+
 const activeClientIds = new Set()
+/**
+ * @type {Map<string, Set<Promise<Response>>>}
+ */
+const pendingRequests = new Map()
 
 addEventListener('install', function () {
   self.skipWaiting()
@@ -20,82 +25,101 @@ addEventListener('activate', function (event) {
   event.waitUntil(self.clients.claim())
 })
 
-addEventListener('message', async function (event) {
+addEventListener('message', function (event) {
   const clientId = Reflect.get(event.source || {}, 'id')
 
   if (!clientId || !self.clients) {
     return
   }
 
-  const client = await self.clients.get(clientId)
+  event.waitUntil(
+    (async () => {
+      if (event.data === 'CLIENT_CLOSE') {
+        const allClients = await self.clients.matchAll({
+          type: 'window',
+        })
 
-  if (!client) {
-    return
-  }
+        activeClientIds.delete(clientId)
 
-  const allClients = await self.clients.matchAll({
-    type: 'window',
-  })
+        // Await any pending requests from the closing client.
+        // This makes sure that those requests are handled and not passthrough.
+        const pending = pendingRequests.get(clientId)
+        if (pending != null && pending.size > 0) {
+          await Promise.allSettled(pending)
+        }
+        pendingRequests.delete(clientId)
 
-  switch (event.data) {
-    case 'KEEPALIVE_REQUEST': {
-      sendToClient(client, {
-        type: 'KEEPALIVE_RESPONSE',
-      })
-      break
-    }
+        const remainingClients = allClients.filter((client) => {
+          return client.id !== clientId
+        })
 
-    case 'INTEGRITY_CHECK_REQUEST': {
-      sendToClient(client, {
-        type: 'INTEGRITY_CHECK_RESPONSE',
-        payload: {
-          packageVersion: PACKAGE_VERSION,
-          checksum: INTEGRITY_CHECKSUM,
-        },
-      })
-      break
-    }
+        // Unregister itself when there are no more clients
+        if (remainingClients.length === 0) {
+          await self.registration.unregister()
+        }
 
-    case 'MOCK_ACTIVATE': {
-      activeClientIds.add(clientId)
+        const client = await self.clients.get(clientId)
 
-      sendToClient(client, {
-        type: 'MOCKING_ENABLED',
-        payload: {
-          client: {
-            id: client.id,
-            frameType: client.frameType,
-          },
-        },
-      })
-      break
-    }
+        if (client != null) {
+          await sendToClient(client, {
+            type: 'CLIENT_CLOSED',
+          })
+        }
 
-    case 'CLIENT_CLOSED': {
-      activeClientIds.delete(clientId)
-
-      const remainingClients = allClients.filter((client) => {
-        return client.id !== clientId
-      })
-
-      // Unregister itself when there are no more clients
-      if (remainingClients.length === 0) {
-        self.registration.unregister()
+        return
       }
 
-      break
-    }
-  }
+      /**
+       * @note Check for the client AFTER handling "CLIENT_CLOSE".
+       * This prevents early return on "!client" in case the page has reloaded
+       * and disassociated itself from the worker. This ensures self-unregistration
+       * still fires for those pages.
+       */
+      const client = await self.clients.get(clientId)
+
+      if (!client) {
+        return
+      }
+
+      switch (event.data) {
+        case 'KEEPALIVE_REQUEST': {
+          await sendToClient(client, {
+            type: 'KEEPALIVE_RESPONSE',
+          })
+          break
+        }
+
+        case 'INTEGRITY_CHECK_REQUEST': {
+          await sendToClient(client, {
+            type: 'INTEGRITY_CHECK_RESPONSE',
+            payload: {
+              packageVersion: PACKAGE_VERSION,
+              checksum: INTEGRITY_CHECKSUM,
+            },
+          })
+          break
+        }
+
+        case 'MOCK_ACTIVATE': {
+          activeClientIds.add(clientId)
+
+          await sendToClient(client, {
+            type: 'MOCKING_ENABLED',
+            payload: {
+              client: {
+                id: client.id,
+                frameType: client.frameType,
+              },
+            },
+          })
+          break
+        }
+      }
+    })(),
+  )
 })
 
 addEventListener('fetch', function (event) {
-  const requestInterceptedAt = Date.now()
-
-  // Bypass navigation requests.
-  if (event.request.mode === 'navigate') {
-    return
-  }
-
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
   if (
@@ -113,23 +137,33 @@ addEventListener('fetch', function (event) {
   }
 
   const requestId = crypto.randomUUID()
-  event.respondWith(handleRequest(event, requestId, requestInterceptedAt))
+  event.respondWith(handleRequest(event, requestId))
 })
 
 /**
  * @param {FetchEvent} event
  * @param {string} requestId
- * @param {number} requestInterceptedAt
  */
-async function handleRequest(event, requestId, requestInterceptedAt) {
+async function handleRequest(event, requestId) {
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
-  const response = await getResponse(
-    event,
-    client,
-    requestId,
-    requestInterceptedAt,
-  )
+
+  const responsePromise = getResponse(event, client, requestId)
+
+  if (client != null) {
+    let pending = pendingRequests.get(client.id)
+
+    if (pending == null) {
+      pendingRequests.set(client.id, (pending = new Set()))
+    }
+
+    pending.add(responsePromise)
+    responsePromise
+      .finally(() => pending.delete(responsePromise))
+      .catch(() => {})
+  }
+
+  const response = await responsePromise
 
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
@@ -205,10 +239,9 @@ async function resolveMainClient(event) {
  * @param {FetchEvent} event
  * @param {Client | undefined} client
  * @param {string} requestId
- * @param {number} requestInterceptedAt
  * @returns {Promise<Response>}
  */
-async function getResponse(event, client, requestId, requestInterceptedAt) {
+async function getResponse(event, client, requestId) {
   // Clone the request because it might've been already used
   // (i.e. its body has been read and sent to the client).
   const requestClone = event.request.clone()
@@ -259,7 +292,6 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
       type: 'REQUEST',
       payload: {
         id: requestId,
-        interceptedAt: requestInterceptedAt,
         ...serializedRequest,
       },
     },

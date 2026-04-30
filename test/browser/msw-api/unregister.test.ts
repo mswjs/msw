@@ -1,9 +1,9 @@
-import type { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
   export const msw: {
-    worker: SetupWorkerApi
+    worker: SetupWorker
   }
 }
 
@@ -33,8 +33,8 @@ test('unregisters itself when not prompted to be activated again', async ({
     return typeof window.msw !== 'undefined'
   })
 
-  await page.evaluate(() => {
-    return window.msw.worker.start()
+  await page.evaluate(async () => {
+    await window.msw.worker.start()
   })
   await waitForMswActivation()
 

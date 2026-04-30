@@ -39,7 +39,7 @@ export function decorateResponse(
     })
   }
 
-  const responseCookies = init.headers.get('set-cookie')
+  const responseCookies = init.headers.getSetCookie()
 
   if (responseCookies) {
     // Record the raw "Set-Cookie" response header provided
@@ -56,6 +56,6 @@ export function decorateResponse(
   return response
 }
 
-export function getRawSetCookie(response: Response): string | undefined {
-  return Reflect.get(response, kSetCookie)
+export function getRawSetCookie(response: Response): Array<string> {
+  return Reflect.get(response, kSetCookie) || []
 }

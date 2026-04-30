@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   action:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: dessant/lock-threads@v5
         with:

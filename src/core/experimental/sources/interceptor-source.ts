@@ -97,6 +97,7 @@ export class InterceptorSource extends NetworkSource {
           },
         ),
       )
+      httpFrame.events.removeAllListeners()
     })
   }
 

@@ -29,5 +29,6 @@ it('removes frame event listeners after the response event is emitted', async ()
 
   await new Promise<void>((resolve) => queueMicrotask(resolve))
 
+  expect(removeAllListenersSpy).toBeDefined()
   expect(removeAllListenersSpy!).toHaveBeenCalledOnce()
 })

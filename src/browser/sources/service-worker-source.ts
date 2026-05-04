@@ -390,6 +390,8 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
         },
       ),
     )
+
+    frame.events.removeAllListeners()
   }
 
   #defaultFindWorker: FindWorker = (workerUrl, mockServiceWorkerUrl) => {

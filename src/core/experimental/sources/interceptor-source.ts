@@ -97,6 +97,14 @@ export class InterceptorSource extends NetworkSource {
           },
         ),
       )
+
+      /**
+       * @note Remove any listeners from this frame.
+       * Past this point, it won't emit anything. The removal is crucial
+       * to prevent "rettime" from keeping the abort cleanup listeners internally.
+       * @see https://github.com/mswjs/msw/issues/2735
+       */
+      httpFrame.events.removeAllListeners()
     })
   }
 

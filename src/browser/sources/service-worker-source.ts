@@ -379,19 +379,21 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
             },
           )
 
-    frame.events.emit(
-      new ResponseEvent(
-        isMockedResponse ? 'response:mocked' : 'response:bypass',
-        {
-          requestId: frame.data.id,
-          request: fetchRequest,
-          response: fetchResponse,
-          isMockedResponse,
-        },
-      ),
-    )
-
-    frame.events.removeAllListeners()
+    try {
+      frame.events.emit(
+        new ResponseEvent(
+          isMockedResponse ? 'response:mocked' : 'response:bypass',
+          {
+            requestId: frame.data.id,
+            request: fetchRequest,
+            response: fetchResponse,
+            isMockedResponse,
+          },
+        ),
+      )
+    } finally {
+      frame.events.removeAllListeners()
+    }
   }
 
   #defaultFindWorker: FindWorker = (workerUrl, mockServiceWorkerUrl) => {

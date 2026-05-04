@@ -330,6 +330,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
   async #handleResponse(event: WorkerChannelResponseEvent): Promise<void> {
     const { request, response, isMockedResponse } = event.data
+    const frame = this.#frames.get(request.id)
 
     /**
      * CORS requests with `mode: "no-cors"` result in "opaque" responses.
@@ -340,10 +341,10 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
      */
     if (response.type?.includes('opaque')) {
       this.#frames.delete(request.id)
+      frame?.events.removeAllListeners()
       return
     }
 
-    const frame = this.#frames.get(request.id)
     this.#frames.delete(request.id)
 
     /**

@@ -6,14 +6,17 @@ import { setTimeout } from 'node:timers/promises'
 const server = setupServer()
 
 beforeAll(() => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
   server.listen()
 })
 
 afterEach(() => {
+  vi.clearAllMocks()
   server.resetHandlers()
 })
 
 afterAll(() => {
+  vi.restoreAllMocks()
   server.close()
 })
 
@@ -55,6 +58,20 @@ it('runs after a handler that throws a response', async () => {
   )
 
   await fetch('http://localhost/resource')
+  expect(cleanup).toHaveBeenCalledOnce()
+})
+
+it('runs after a handler that throws an error', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', ({ finalize }) => {
+      finalize(cleanup)
+      throw new Error('Custom reason')
+    }),
+  )
+
+  await fetch('http://localhost/resource').catch(() => {})
   expect(cleanup).toHaveBeenCalledOnce()
 })
 

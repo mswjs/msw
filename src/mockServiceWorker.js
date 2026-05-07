@@ -134,7 +134,11 @@ async function handleRequest(event, requestId, requestInterceptedAt) {
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
   // this message will pend indefinitely.
-  if (client && activeClientIds.has(client.id)) {
+  if (
+    client &&
+    activeClientIds.has(client.id) &&
+    response.headers.get('content-type') !== 'text/event-stream'
+  ) {
     const serializedRequest = await serializeRequest(requestCloneForEvents)
 
     // Clone the response so both the client and the library could consume it.

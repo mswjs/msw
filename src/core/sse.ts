@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
 import { DeferredPromise } from '@open-draft/deferred-promise'
-import { Emitter } from 'strict-event-emitter'
+import { Emitter, TypedEvent } from 'rettime'
 import type { ResponseResolver } from './handlers/RequestHandler'
 import {
   HttpHandler,
@@ -14,6 +14,7 @@ import { getTimestamp } from './utils/logging/getTimestamp'
 import { devUtils } from './utils/internal/devUtils'
 import { colors } from './ws/utils/attachWebSocketLogger'
 import { toPublicUrl } from './utils/request/toPublicUrl'
+import type { MaybePromise } from './typeUtils'
 
 type EventMapConstraint = {
   message?: unknown
@@ -140,7 +141,14 @@ class ServerSentEventHandler<
     return matches
   }
 
-  async log(_args: { request: Request; response: Response }): Promise<void> {
+  async log(args: { request: Request; response: Response }): Promise<void> {
+    /**
+     * @note Cancel the response stream because it's not needed for logging.
+     * Otherwise, this cloned response remains unconsumed and its original
+     * doesn't propagate stream cancelations at all.
+     */
+    args.response.body?.cancel()
+
     /**
      * @note Skip the default `this.log()` logic so that when this handler is logged
      * upon handling the request, nothing is printed (we log SSE requests early).
@@ -155,16 +163,14 @@ class ServerSentEventHandler<
     const publicUrl = toPublicUrl(request.url)
 
     /* eslint-disable no-console */
-    emitter.on('message', (payload) => {
+    emitter.on('message', ({ data }) => {
       console.groupCollapsed(
-        devUtils.formatMessage(
-          `${getTimestamp()} SSE %s %c⇣%c ${payload.event}`,
-        ),
+        devUtils.formatMessage(`${getTimestamp()} SSE %s %c⇣%c ${data.event}`),
         publicUrl,
         `color:${colors.mocked}`,
         'color:inherit',
       )
-      console.log(payload.frames)
+      console.log(data.frames)
       console.groupEnd()
     })
 
@@ -191,6 +197,18 @@ class ServerSentEventHandler<
     })
     /* eslint-enable no-console */
   }
+
+  protected async exhaustCleanups(
+    cleanups: Array<() => MaybePromise<void>>,
+  ): Promise<void> {
+    const onClose = () => {
+      this.#emitter.removeListener('error', onClose)
+      this.#emitter.removeListener('close', onClose)
+      void super.exhaustCleanups(cleanups)
+    }
+
+    this.#emitter.once('error', onClose).once('close', onClose)
+  }
 }
 
 type Values<T> = T[keyof T]
@@ -216,9 +234,9 @@ type ToEventDiscriminatedUnion<T> = Values<{
 }>
 
 type ServerSentEventClientEventMap = {
-  message: [payload: EventStreamMessage]
-  error: []
-  close: []
+  message: TypedEvent<EventStreamMessage>
+  error: TypedEvent
+  close: TypedEvent
 }
 
 const kClientEmitter = Symbol.for('kClientEmitter')
@@ -229,11 +247,13 @@ class ServerSentEventClient<
   private [kClientEmitter]?: Emitter<ServerSentEventClientEventMap>
 
   #encoder: TextEncoder
-  #writer: WritableStreamDefaultWriter
+  #controller: ReadableStreamDefaultController<Uint8Array>
+  #closed: DeferredPromise<void>
 
-  constructor(writable: WritableStream) {
+  constructor(controller: ReadableStreamDefaultController<Uint8Array>) {
     this.#encoder = new TextEncoder()
-    this.#writer = writable.getWriter()
+    this.#controller = controller
+    this.#closed = new DeferredPromise()
   }
 
   /**
@@ -289,37 +309,50 @@ class ServerSentEventClient<
    * error.
    */
   public error(): void {
-    this.#writer.abort().catch((error) => {
-      console.error(error)
-      devUtils.error(
-        'Failed to abort server-side EventSource. Please see the original error above.',
-      )
-    })
-    this[kClientEmitter]?.emit('error')
+    if (this.#closed.state !== 'pending') {
+      return
+    }
+
+    this.#controller.error()
+    this.#closed.resolve()
+    this[kClientEmitter]?.emit(new TypedEvent('error'))
   }
 
   /**
    * Closes the underlying `EventSource`, closing the connection.
    */
   public close(): void {
-    this.#writer.close().catch((error) => {
+    if (this.#closed.state !== 'pending') {
+      return
+    }
+
+    try {
+      this.#controller.close()
+      this.#closed.resolve()
+    } catch {
+      //
+    }
+
+    this[kClientEmitter]?.emit(new TypedEvent('close'))
+  }
+
+  #enqueue(chunk: Uint8Array): void {
+    if (this.#closed.state !== 'pending') {
+      return
+    }
+
+    try {
+      this.#controller.enqueue(chunk)
+    } catch (error) {
       console.error(error)
       devUtils.error(
-        'Failed to close server-side EventSource. Please see the original error above.',
+        'Failed to write to server-side EventSource. Please see the original error above.',
       )
-    })
-    this[kClientEmitter]?.emit('close')
+    }
   }
 
   #sendRetry(retry: number): void {
-    this.#writer
-      .write(this.#encoder.encode(`retry:${retry}\n\n`))
-      .catch((error) => {
-        console.error(error)
-        devUtils.error(
-          'Failed to send a retry packet to server-side EventSource. Please see the original error above.',
-        )
-      })
+    this.#enqueue(this.#encoder.encode(`retry:${retry}\n\n`))
   }
 
   #sendMessage(message: {
@@ -350,21 +383,18 @@ class ServerSentEventClient<
 
     frames.push('', '')
 
-    this.#writer
-      .write(this.#encoder.encode(frames.join('\n')))
-      .catch((error) => {
-        console.error(error)
-        devUtils.error(
-          'Failed to send a message to server-side EventSource. Please see the original error above.',
-        )
-      })
+    this.#enqueue(this.#encoder.encode(frames.join('\n')))
 
-    this[kClientEmitter]?.emit('message', {
-      id: message.id,
-      event: message.event?.toString() || 'message',
-      data: message.data,
-      frames,
-    })
+    this[kClientEmitter]?.emit(
+      new TypedEvent('message', {
+        data: {
+          id: message.id,
+          event: message.event?.toString() || 'message',
+          data: message.data,
+          frames,
+        },
+      }),
+    )
   }
 }
 
@@ -991,9 +1021,18 @@ function createEventStream<EventMap extends EventMapConstraint>(
     request.url,
   )
 
-  const { readable, writable } = new TransformStream()
+  let controller!: ReadableStreamDefaultController<Uint8Array>
 
-  const client = new ServerSentEventClient<EventMap>(writable)
+  const readable = new ReadableStream<Uint8Array>({
+    start(defaultController) {
+      controller = defaultController
+    },
+    cancel() {
+      client.close()
+    },
+  })
+
+  const client = new ServerSentEventClient<EventMap>(controller)
   const server = new ServerSentEventServer({
     request,
     client,

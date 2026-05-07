@@ -156,7 +156,7 @@ it('runs once the generator resolver is exhausted', async () => {
     http.get('http://localhost/resource', function* ({ finalize }) {
       finalize(cleanup)
 
-      yield new Response('yield', { status: 201 })
+      yield new Response('yield')
       return new Response('final')
     }),
   )
@@ -178,4 +178,58 @@ it('runs once the generator resolver is exhausted', async () => {
     await expect(response.text()).resolves.toBe('final')
     expect(cleanup).toHaveBeenCalledOnce()
   }
+})
+
+it('runs once the returned iterator is exhausted', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', async ({ finalize }) => {
+      finalize(cleanup)
+
+      /**
+       * @note This is an edge case, but it's, technically, allowed.
+       */
+      return (async function* () {
+        yield new Response('yield')
+        return new Response('final')
+      })()
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+    expect(cleanup).not.toHaveBeenCalled()
+  }
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    expect(cleanup).toHaveBeenCalled()
+  }
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    expect(cleanup).toHaveBeenCalledOnce()
+  }
+})
+
+it('runs cleanup for parallel requests', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', ({ finalize }) => {
+      finalize(cleanup)
+      return new Response()
+    }),
+  )
+
+  await Promise.all([
+    fetch('http://localhost/resource'),
+    fetch('http://localhost/resource'),
+  ])
+
+  expect(cleanup).toHaveBeenCalledTimes(2)
 })

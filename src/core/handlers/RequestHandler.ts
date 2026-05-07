@@ -347,12 +347,15 @@ export abstract class RequestHandler<
       parsedResult,
     })
 
+    const listenerController = new AbortController()
+
     args.request.signal.addEventListener(
       'abort',
-      async () => {
-        await this.runScheduledCleanups()
+      () => this.runScheduledCleanups(),
+      {
+        once: true,
+        signal: listenerController.signal,
       },
-      { once: true },
     )
 
     const mockedResponsePromise = (
@@ -364,15 +367,19 @@ export abstract class RequestHandler<
         requestId: args.requestId,
         request: args.request,
       }) as Promise<Response>
-    ).catch((errorOrResponse) => {
-      // Allow throwing a Response instance in a response resolver.
-      if (errorOrResponse instanceof Response) {
-        return errorOrResponse
-      }
+    )
+      .catch((errorOrResponse) => {
+        // Allow throwing a Response instance in a response resolver.
+        if (errorOrResponse instanceof Response) {
+          return errorOrResponse
+        }
 
-      // Otherwise, throw the error as-is.
-      throw errorOrResponse
-    })
+        // Otherwise, throw the error as-is.
+        throw errorOrResponse
+      })
+      .finally(() => {
+        listenerController.abort()
+      })
 
     const mockedResponse = await mockedResponsePromise
 

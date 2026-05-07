@@ -87,12 +87,21 @@ export type ResponseResolverInfo<
   ResolverExtraInfo extends Record<string, unknown>,
   RequestBodyType extends DefaultBodyType = DefaultBodyType,
 > = {
-  waitUntil: ResponseResolverWaitUntilFunction
   request: StrictRequest<RequestBodyType>
   requestId: string
+  /**
+   * Schedule a callback to run after this response resolver completes.
+   * Handy for cleaning up the side effects introduced in the resolver.
+   * @example
+   * sse('/', ({ client, finalize }) => {
+   *   const interval = setInterval(() => client.send({ data: 'ping' }))
+   *   finalize(() => clearInterval(interval))
+   * })
+   */
+  finalize: ResponseResolverFinalizeFunction
 } & ResolverExtraInfo
 
-type ResponseResolverWaitUntilFunction = (
+type ResponseResolverFinalizeFunction = (
   callback: () => MaybePromise<void>,
 ) => void
 
@@ -154,6 +163,7 @@ export abstract class RequestHandler<
       >
   private resolverIteratorResult?: Response | HttpResponse<any>
   private options?: HandlerOptions
+  private scheduledCleanups: Array<() => MaybePromise<void>> = []
 
   public info: HandlerInfo & RequestHandlerInternalInfo
 
@@ -166,6 +176,7 @@ export abstract class RequestHandler<
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
     this.resolver = args.resolver
     this.options = args.options
+    this.scheduledCleanups = []
 
     const callFrame = getCallFrame(new Error())
 
@@ -336,47 +347,32 @@ export abstract class RequestHandler<
       parsedResult,
     })
 
-    const scheduledSideEffects: Array<() => MaybePromise<void>> = []
-    const waitUntil: ResponseResolverWaitUntilFunction = (callback) => {
-      scheduledSideEffects.push(callback)
-    }
+    args.request.signal.addEventListener(
+      'abort',
+      async () => {
+        await this.runScheduledCleanups()
+      },
+      { once: true },
+    )
 
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
-        waitUntil,
+        finalize: (callback) => {
+          this.scheduledCleanups.unshift(callback)
+        },
         requestId: args.requestId,
         request: args.request,
       }) as Promise<Response>
-    )
-      .catch((errorOrResponse) => {
-        // Allow throwing a Response instance in a response resolver.
-        if (errorOrResponse instanceof Response) {
-          return errorOrResponse
-        }
+    ).catch((errorOrResponse) => {
+      // Allow throwing a Response instance in a response resolver.
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse
+      }
 
-        // Otherwise, throw the error as-is.
-        throw errorOrResponse
-      })
-      .finally(async () => {
-        if (scheduledSideEffects.length == 0) {
-          return
-        }
-
-        const cleanupResults = await Promise.allSettled(
-          scheduledSideEffects.map((effect) => effect()),
-        )
-
-        for (const result of cleanupResults) {
-          if (result.status === 'rejected') {
-            devUtils.error(
-              'Uncaught exception while waiting for an effect after "%s":',
-              this.info.header,
-              result.reason,
-            )
-          }
-        }
-      })
+      // Otherwise, throw the error as-is.
+      throw errorOrResponse
+    })
 
     const mockedResponse = await mockedResponsePromise
 
@@ -397,16 +393,20 @@ export abstract class RequestHandler<
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
       if (!this.resolverIterator) {
-        const result = await resolver(info)
+        try {
+          const result = await resolver(info)
 
-        if (!isIterable(result)) {
-          return result
+          if (!isIterable(result)) {
+            return result
+          }
+
+          this.resolverIterator =
+            Symbol.iterator in result
+              ? result[Symbol.iterator]()
+              : result[Symbol.asyncIterator]()
+        } finally {
+          await this.runScheduledCleanups()
         }
-
-        this.resolverIterator =
-          Symbol.iterator in result
-            ? result[Symbol.iterator]()
-            : result[Symbol.asyncIterator]()
       }
 
       // Opt-out from marking this handler as used.
@@ -423,6 +423,8 @@ export abstract class RequestHandler<
         // A one-time generator resolver stops affecting the network
         // only after it's been completely exhausted.
         this.isUsed = true
+
+        await this.runScheduledCleanups()
 
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
@@ -445,6 +447,37 @@ export abstract class RequestHandler<
       requestId: args.requestId,
       response: args.response,
       parsedResult: args.parsedResult,
+    }
+  }
+
+  private async runScheduledCleanups(): Promise<void> {
+    if (this.scheduledCleanups.length == 0) {
+      return
+    }
+
+    const errors: Array<Error> = []
+
+    for (const cleanup of this.scheduledCleanups) {
+      try {
+        await cleanup()
+      } catch (error) {
+        if (error instanceof Error) {
+          errors.push(error)
+        }
+      }
+    }
+
+    this.scheduledCleanups = []
+
+    if (errors.length > 0) {
+      devUtils.error(
+        'Failed to execute cleanup for request handler "%s"',
+        this.info.header,
+        new AggregateError(
+          errors,
+          `Failed to execute cleanup for request handler "${this.info.header}"`,
+        ),
+      )
     }
   }
 }

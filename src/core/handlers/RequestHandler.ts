@@ -13,6 +13,7 @@ import {
   type DefaultUnsafeFetchResponse,
 } from '../HttpResponse'
 import type { GraphQLRequestBody } from './GraphQLHandler'
+import { devUtils } from '../utils/internal/devUtils'
 import { getRawSetCookie } from '../utils/HttpResponse/decorators'
 
 export type DefaultRequestMultipartBody = Record<
@@ -90,7 +91,21 @@ export type ResponseResolverInfo<
 > = {
   request: StrictRequest<RequestBodyType>
   requestId: string
+  /**
+   * Schedule a callback to run after this response resolver completes.
+   * Handy for cleaning up the side effects introduced in the resolver.
+   * @example
+   * sse('/', ({ client, finalize }) => {
+   *   const interval = setInterval(() => client.send({ data: 'ping' }))
+   *   finalize(() => clearInterval(interval))
+   * })
+   */
+  finalize: ResponseResolverFinalizeFunction
 } & ResolverExtraInfo
+
+type ResponseResolverFinalizeFunction = (
+  callback: () => MaybePromise<void>,
+) => void
 
 export type ResponseResolver<
   ResolverExtraInfo extends Record<string, unknown> = Record<string, unknown>,
@@ -149,7 +164,9 @@ export abstract class RequestHandler<
         MaybeAsyncResponseResolverReturnType<any>
       >
   private resolverIteratorResult?: Response | HttpResponse<any>
+  private resolverIteratorCleanups?: Array<() => MaybePromise<void>>
   private options?: HandlerOptions
+  private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
 
   public info: HandlerInfo & RequestHandlerInternalInfo
 
@@ -162,6 +179,7 @@ export abstract class RequestHandler<
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
     this.resolver = args.resolver
     this.options = args.options
+    this.scheduledCleanups = new Map()
 
     const callFrame = getCallFrame(new Error())
 
@@ -180,9 +198,12 @@ export abstract class RequestHandler<
    * from a clean state.
    */
   protected reset(): void {
+    this.scheduledCleanups.clear()
+
     const iterator = this.resolverIterator
     this.resolverIterator = undefined
     this.resolverIteratorResult = undefined
+    this.resolverIteratorCleanups = undefined
 
     if (typeof iterator?.return === 'function') {
       void Promise.resolve(iterator.return())
@@ -332,21 +353,39 @@ export abstract class RequestHandler<
       parsedResult,
     })
 
+    const listenerController = new AbortController()
+
+    args.request.signal.addEventListener(
+      'abort',
+      () => this.runScheduledCleanups(args.requestId),
+      {
+        once: true,
+        signal: listenerController.signal,
+      },
+    )
+
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
+        finalize: (callback) => {
+          this.scheduleCleanup(args.requestId, callback)
+        },
         requestId: args.requestId,
         request: args.request,
-      }) as Promise<Response | undefined>
-    ).catch((errorOrResponse) => {
-      // Allow throwing a Response instance in a response resolver.
-      if (errorOrResponse instanceof Response) {
-        return errorOrResponse
-      }
+      }) as Promise<Response>
+    )
+      .catch((errorOrResponse) => {
+        // Allow throwing a Response instance in a response resolver.
+        if (errorOrResponse instanceof Response) {
+          return errorOrResponse
+        }
 
-      // Otherwise, throw the error as-is.
-      throw errorOrResponse
-    })
+        // Otherwise, throw the error as-is.
+        throw errorOrResponse
+      })
+      .finally(() => {
+        listenerController.abort()
+      })
 
     const mockedResponse = await mockedResponsePromise
 
@@ -371,10 +410,38 @@ export abstract class RequestHandler<
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
       if (!this.resolverIterator) {
-        const result = await resolver(info)
+        let result
+
+        try {
+          result = await resolver(info)
+        } catch (error) {
+          // Ensure cleanup if the resolver throws, regardless of the returned type.
+          await this.runScheduledCleanups(info.requestId)
+
+          // Re-throw the error for the "run()" method to handle (e.g. thrown responses).
+          throw error
+        }
 
         if (!isIterable(result)) {
+          // Otherwise, run the cleanup immediately if it's a plain response resolver.
+          await this.runScheduledCleanups(info.requestId)
           return result
+        }
+
+        /**
+         * @note Carry over any previously registered cleanups onto the iterator cleanups.
+         * This is only relevant if "finalize()" is called in a regular resolver that
+         * returns an iterator.
+         * @example
+         * http.get('/', async ({ finalize }) => {
+         *   finalize(cleanup)
+         *   return (async function*() {})()
+         * })
+         */
+        const existingCleanups = this.scheduledCleanups.get(info.requestId)
+        if (existingCleanups != null && existingCleanups.length > 0) {
+          this.resolverIteratorCleanups = existingCleanups
+          this.scheduledCleanups.delete(info.requestId)
         }
 
         this.resolverIterator =
@@ -398,6 +465,8 @@ export abstract class RequestHandler<
         // only after it's been completely exhausted.
         this.isUsed = true
 
+        await this.runScheduledCleanups(info.requestId)
+
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
         return this.resolverIteratorResult?.clone()
@@ -420,6 +489,71 @@ export abstract class RequestHandler<
       response: args.response,
       parsedResult: args.parsedResult,
     }
+  }
+
+  private scheduleCleanup(
+    requestId: string,
+    callback: () => MaybePromise<void>,
+  ): void {
+    if (this.resolverIterator) {
+      ;(this.resolverIteratorCleanups ||= []).unshift(callback)
+      return
+    }
+
+    const cleanups = this.scheduledCleanups.get(requestId) || []
+    cleanups.unshift(callback)
+    this.scheduledCleanups.set(requestId, cleanups)
+  }
+
+  private async exhaustCleanups(
+    cleanups: Array<() => MaybePromise<void>>,
+  ): Promise<void> {
+    const errors: Array<Error> = []
+
+    for (const cleanup of cleanups) {
+      try {
+        await cleanup()
+      } catch (error) {
+        if (error instanceof Error) {
+          errors.push(error)
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      devUtils.error(
+        'Failed to execute cleanup for request handler "%s"',
+        this.info.header,
+        new AggregateError(
+          errors,
+          `Failed to execute cleanup for request handler "${this.info.header}"`,
+        ),
+      )
+    }
+  }
+
+  private async runScheduledCleanups(requestId: string): Promise<void> {
+    if (
+      this.resolverIterator &&
+      this.resolverIteratorCleanups != null &&
+      this.resolverIteratorCleanups.length > 0
+    ) {
+      try {
+        await this.exhaustCleanups(this.resolverIteratorCleanups)
+      } finally {
+        this.resolverIteratorCleanups = undefined
+      }
+      return
+    }
+
+    const cleanups = this.scheduledCleanups.get(requestId)
+
+    if (!cleanups || cleanups.length == 0) {
+      return
+    }
+
+    await this.exhaustCleanups(cleanups)
+    this.scheduledCleanups.delete(requestId)
   }
 }
 

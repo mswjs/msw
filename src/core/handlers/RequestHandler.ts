@@ -1,3 +1,4 @@
+import { Headers as HeadersPolyfill } from 'headers-polyfill'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
   isIterable,
@@ -13,6 +14,7 @@ import {
 } from '../HttpResponse'
 import type { GraphQLRequestBody } from './GraphQLHandler'
 import { devUtils } from '../utils/internal/devUtils'
+import { getRawSetCookie } from '../utils/HttpResponse/decorators'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -383,6 +385,10 @@ export abstract class RequestHandler<
 
     const mockedResponse = await mockedResponsePromise
 
+    if (mockedResponse) {
+      forwardResponseCookies(mockedResponse)
+    }
+
     const executionResult = this.createExecutionResult({
       // Pass the cloned request to the result so that logging
       // and other consumers could read its body once more.
@@ -486,5 +492,34 @@ export abstract class RequestHandler<
         ),
       )
     }
+  }
+}
+
+/**
+ * Forwards the cookies from the given response to `document.cookie`.
+ */
+export function forwardResponseCookies(response: Response): void {
+  // Cookie forwarding is only relevant in the browser.
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  const responseCookies = getRawSetCookie(response)
+
+  if (!responseCookies) {
+    return
+  }
+
+  // Write the mocked response cookies to the document.
+  // Use `headers-polyfill` to get the Set-Cookie header value correctly.
+  // This is an alternative until TypeScript 5.2
+  // and Node.js v20 become the minimum supported versions
+  // and "Headers.prototype.getSetCookie" can be used directly.
+  const allResponseCookies = HeadersPolyfill.prototype.getSetCookie.call(
+    new Headers([['set-cookie', responseCookies]]),
+  )
+
+  for (const cookieString of allResponseCookies) {
+    document.cookie = cookieString
   }
 }

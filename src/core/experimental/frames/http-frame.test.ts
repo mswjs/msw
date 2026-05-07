@@ -4,7 +4,8 @@ import { ws } from '../../ws'
 import { bypass } from '../../bypass'
 import type { HttpNetworkFrameEventMap } from './http-frame'
 import { HttpNetworkFrame } from './http-frame'
-import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
+import { InMemoryHandlersController } from '../../experimental/handlers-controller'
+import { getSiblingHandlers } from '../../utils/internal/attachSiblingHandlers'
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -46,6 +47,9 @@ it('filters only request type handlers', async () => {
   const webSocketHandlers = [
     ws.link('ws://localhost').addEventListener('connection', () => {}),
   ]
+  const webSocketSiblingHandlers = webSocketHandlers.flatMap((handler) =>
+    getSiblingHandlers(handler),
+  )
 
   const controller = new InMemoryHandlersController([
     ...httpHandlers,
@@ -55,6 +59,7 @@ it('filters only request type handlers', async () => {
 
   expect(frame.getHandlers(controller)).toEqual([
     ...httpHandlers,
+    ...webSocketSiblingHandlers,
     ...graphqlHandlers,
   ])
   expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])

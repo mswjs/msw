@@ -146,6 +146,9 @@ jobs:
       - name: Node.js tests
         run: pnpm test:node
 
+      - name: Memory tests
+        run: pnpm test:memory
+
   test-node-22:
     name: test (node.js) (22)
     needs: build-22
@@ -178,6 +181,9 @@ jobs:
 
       - name: Node.js tests
         run: pnpm test:node
+
+      - name: Memory tests
+        run: pnpm test:memory
 
   test-e2e:
     name: test (e2e) (20)

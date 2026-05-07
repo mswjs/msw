@@ -130,7 +130,6 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
    * certain setup APIs, like `setupServer`, don't await `.enable` (`.listen`).
    */
   let handlersController = deriveHandlersController(resolvedOptions.handlers)
-  let listenersController: AbortController
 
   return {
     get readyState() {
@@ -138,7 +137,10 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     },
     events,
     configure(options) {
-      invariant(readyState === NetworkReadyState.DISABLED, '')
+      invariant(
+        readyState === NetworkReadyState.DISABLED,
+        'Failed to call "configure()" on the network: cannot configure an already enabled network.',
+      )
 
       if (
         options.handlers &&
@@ -158,7 +160,6 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         'Failed to call "enable" on the network: already enabled',
       )
 
-      listenersController = new AbortController()
       readyState = NetworkReadyState.ENABLED
 
       const result = resolvedOptions.sources.map((source) => {
@@ -171,8 +172,19 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         NetworkSource.prototype.disable.call(source)
 
         source.on('frame', async ({ frame }) => {
-          frame.events.on('*', (event) => events.emit(event), {
-            signal: listenersController.signal,
+          frame.events.on('*', (event) => {
+            /**
+             * @note Prevent event forwarding manually and not via an AbortController
+             * because certain runtimes, like Cloudflare, throw when referencing an
+             * AbortController created in a different context. Bear in mind that the frame
+             * events run in the patched request client context while the AbortController
+             * is created outside, in the "defineNetwork" closure, which is a test context.
+             */
+            if (readyState === NetworkReadyState.DISABLED) {
+              return
+            }
+
+            events.emit(event)
           })
 
           const handlers = frame.getHandlers(handlersController)
@@ -197,7 +209,6 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         'Failed to call "disable" on the network: already disabled',
       )
 
-      listenersController.abort()
       readyState = NetworkReadyState.DISABLED
 
       return colorlessPromiseAll(

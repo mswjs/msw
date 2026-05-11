@@ -180,3 +180,11 @@ it('supports sending custom retry duration', () => {
     // prettier-ignore-end
   })
 })
+
+it('supports a "finalize" function', () => {
+  sse('/ping', ({ finalize }) => {
+    expectTypeOf(finalize).toEqualTypeOf<
+      (callback: () => Promise<void> | void) => void
+    >()
+  })
+})

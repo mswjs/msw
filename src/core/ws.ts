@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { FetchResponse, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,
@@ -9,8 +10,15 @@ import {
   type WebSocketHandlerEventMap,
 } from './handlers/WebSocketHandler'
 import { hasRefCounted } from './utils/internal/hasRefCounted'
-import { type Path, isPath } from './utils/matching/matchRequestUrl'
+import {
+  type Path,
+  type PathParams,
+  isPath,
+  matchRequestUrl,
+} from './utils/matching/matchRequestUrl'
 import { WebSocketClientManager } from './ws/WebSocketClientManager'
+import { http } from './http'
+import { attachSiblingHandlers } from './utils/internal/attachSiblingHandlers'
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
@@ -100,18 +108,29 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
 
   const clientManager = new WebSocketClientManager(webSocketChannel)
 
+  // The same upgrade handler instance is attached as a sibling to every
+  // WebSocketHandler returned by this link. `groupHandlersByKind` dedupes
+  // by reference, so it lands in the `request` bucket exactly once regardless
+  // of which subset of WS handlers the user ends up registering.
+  const upgradeHandler = http.get(({ request }) => {
+    return (
+      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
+      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
+    )
+  }, ws.onUpgrade)
+
   return {
     get clients() {
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const handler = new WebSocketHandler(url)
+      const webSocketHandler = new WebSocketHandler(url)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.
       // When that happens, store that connection in the
       // set of all connections for reference.
-      handler[kEmitter].on('connection', async ({ client }) => {
+      webSocketHandler[kEmitter].on('connection', async ({ client }) => {
         await clientManager.addConnection(client)
       })
 
@@ -119,9 +138,9 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       // the "run()" method on the WebSocketHandler.
       // If the handler matches, it will emit the "connection"
       // event. Attach the user-defined listener to that event.
-      handler[kEmitter].on(event, listener)
+      webSocketHandler[kEmitter].on(event, listener)
 
-      return handler
+      return attachSiblingHandlers(webSocketHandler, [upgradeHandler])
     },
 
     broadcast(data) {
@@ -145,6 +164,24 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   }
 }
 
+const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+
+interface WebSocketNamespace {
+  link: typeof createWebSocketLinkHandler
+  /**
+   * Request handler for the `upgrade` requests to the WebSocket protocol.
+   * This requires a WebSocket handler to be present to fire.
+   * @note This only affects Node.js as the `upgrade` request header is
+   * forbidden and cannot be read in the browser. Consider using the
+   * `WebSocket` API for establishing WebSocket connections in the browser.
+   */
+  onUpgrade: (info: {
+    requestId: string
+    request: Request
+    params: PathParams
+  }) => Promise<Response | undefined> | Response | undefined
+}
+
 /**
  * A namespace to intercept and mock WebSocket connections.
  *
@@ -154,8 +191,30 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
  * @see {@link https://mswjs.io/docs/api/ws `ws` API reference}
  * @see {@link https://mswjs.io/docs/basics/handling-websocket-events Handling WebSocket events}
  */
-export const ws = {
+export const ws: WebSocketNamespace = {
   link: createWebSocketLinkHandler,
+  async onUpgrade({ request }) {
+    const key = request.headers.get('sec-websocket-key')
+
+    if (!key) {
+      return
+    }
+
+    const keyBytes = new TextEncoder().encode(key + WEBSOCKET_GUID)
+    const digest = await crypto.subtle.digest('SHA-1', keyBytes)
+    const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
+
+    new WebSocket(resolveWebSocketUrl(request.url))
+
+    return new FetchResponse(null, {
+      status: 101,
+      headers: {
+        upgrade: 'websocket',
+        connection: 'upgrade',
+        'sec-websocket-accept': acceptValue,
+      },
+    })
+  },
 }
 
 export { type WebSocketData }

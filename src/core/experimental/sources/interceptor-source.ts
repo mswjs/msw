@@ -87,16 +87,26 @@ export class InterceptorSource extends NetworkSource {
     }
 
     queueMicrotask(() => {
-      httpFrame.events.emit(
-        new ResponseEvent(
-          isMockedResponse ? 'response:mocked' : 'response:bypass',
-          {
-            requestId,
-            request,
-            response,
-          },
-        ),
-      )
+      try {
+        httpFrame.events.emit(
+          new ResponseEvent(
+            isMockedResponse ? 'response:mocked' : 'response:bypass',
+            {
+              requestId,
+              request,
+              response,
+            },
+          ),
+        )
+      } finally {
+        /**
+         * @note Remove any listeners from this frame.
+         * Past this point, it won't emit anything. The removal is crucial
+         * to prevent "rettime" from keeping the abort cleanup listeners internally.
+         * @see https://github.com/mswjs/msw/issues/2735
+         */
+        httpFrame.events.removeAllListeners()
+      }
     })
   }
 
@@ -153,6 +163,20 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
 class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
   constructor(args: { connection: WebSocketConnectionData }) {
     super({ connection: args.connection })
+
+    /**
+     * @note Provide a similar frame listener cleanup as for HTTP.
+     * When the client connection closes, the handler can no longer be used.
+     */
+    args.connection.client.addEventListener(
+      'close',
+      () => {
+        this.events.removeAllListeners()
+      },
+      {
+        once: true,
+      },
+    )
   }
 
   public errorWith(reason?: unknown): void {

@@ -29,6 +29,10 @@ export interface WebSocketHandlerConnection {
   params: PathParams
 }
 
+export type WebSocketHandlerConnectionTransformer = (
+  connection: WebSocketHandlerConnection,
+) => WebSocketHandlerConnection
+
 export interface WebSocketResolutionContext {
   baseUrl?: string
   [kAutoConnect]?: boolean
@@ -49,7 +53,10 @@ export class WebSocketHandler {
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
-  constructor(protected readonly url: Path) {
+  constructor(
+    protected readonly url: Path,
+    private readonly transform?: WebSocketHandlerConnectionTransformer,
+  ) {
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()
@@ -113,10 +120,15 @@ export class WebSocketHandler {
       return null
     }
 
-    const resolvedConnection: WebSocketHandlerConnection = {
-      ...connection,
-      params: parsedResult.match.params || {},
-    }
+    const resolvedConnection = this.transform
+      ? this.transform({
+          ...connection,
+          params: parsedResult.match.params || {},
+        })
+      : ({
+          ...connection,
+          params: parsedResult.match.params || {},
+        } as WebSocketHandlerConnection)
 
     if (resolutionContext?.[kAutoConnect] ?? true) {
       if (this[kConnect](resolvedConnection)) {

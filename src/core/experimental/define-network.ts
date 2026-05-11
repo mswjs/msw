@@ -12,6 +12,7 @@ import {
   type AnyHandler,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
+import { Disposable } from '../utils/internal/Disposable'
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
@@ -112,6 +113,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 ): NetworkApi<Sources> {
   let readyState: NetworkReadyState = NetworkReadyState.DISABLED
   const events = new Emitter<MergeEventMaps<Sources>>()
+  const disposable = new Disposable()
 
   const deriveHandlersController = (
     handlers: DefineNetworkOptions<Sources>['handlers'],
@@ -187,6 +189,10 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
             events.emit(event)
           })
 
+          disposable['subscriptions'].push(() => {
+            frame.events.removeAllListeners()
+          })
+
           const handlers = frame.getHandlers(handlersController)
 
           await frame.resolve(
@@ -210,6 +216,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       )
 
       readyState = NetworkReadyState.DISABLED
+      disposable.dispose()
 
       return colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),

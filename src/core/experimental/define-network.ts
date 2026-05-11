@@ -164,6 +164,16 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 
       readyState = NetworkReadyState.ENABLED
 
+      /**
+       * @note Use a session object scoped to the current "enable()"
+       * to prevent "frame.events" listeners from surviving across enable/disable cycles.
+       * @see The note about `AbortController` below.
+       */
+      const session = { active: true }
+      disposable['subscriptions'].push(() => {
+        session.active = false
+      })
+
       const result = resolvedOptions.sources.map((source) => {
         /**
          * @note Preemptively disable the network source before enabling.
@@ -182,15 +192,11 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
              * events run in the patched request client context while the AbortController
              * is created outside, in the "defineNetwork" closure, which is a test context.
              */
-            if (readyState === NetworkReadyState.DISABLED) {
+            if (!session.active) {
               return
             }
 
             events.emit(event)
-          })
-
-          disposable['subscriptions'].push(() => {
-            frame.events.removeAllListeners()
           })
 
           const handlers = frame.getHandlers(handlersController)

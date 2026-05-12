@@ -63,14 +63,19 @@ const coreConfig = defineConfig({
 const graphqlConfig = defineConfig({
   name: 'graphql',
   platform: 'neutral',
-  entry: ['./src/graphql/index.ts'],
+  entry: glob.sync('./src/graphql/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
   external: [ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/graphql',
+  bundle: false,
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
-  esbuildPlugins: [forceEsmExtensionsPlugin()],
+  esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 })
 
 const nodeConfig = defineConfig({

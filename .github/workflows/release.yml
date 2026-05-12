@@ -23,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
@@ -69,7 +68,6 @@ jobs:
         with:
           # Trusted Publishing only works on Node.js v24.
           node-version: 24
-          cache: 'pnpm'
 
       - name: Setup Git
         run: |

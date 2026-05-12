@@ -1,13 +1,14 @@
-import type {
-  DocumentNode,
-  OperationDefinitionNode,
-  OperationTypeNode,
+import {
+  parse,
+  type DocumentNode,
+  type OperationDefinitionNode,
+  type OperationTypeNode,
 } from 'graphql'
-import type { GraphQLVariables } from '../../handlers/GraphQLHandler'
-import { toPublicUrl } from '../request/toPublicUrl'
-import { devUtils } from './devUtils'
-import { jsonParse } from './jsonParse'
-import { parseMultipartData } from './parseMultipartData'
+import type { GraphQLVariables } from './graphql-handler'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { jsonParse } from '#core/utils/internal/jsonParse'
+import { parseMultipartData } from '#core/utils/internal/parseMultipartData'
 
 interface GraphQLInput {
   query: string | null
@@ -40,15 +41,6 @@ export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
 }
 
 async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
-  /**
-   * @note Use `require` to get the "graphql" module here.
-   * It has to be scoped to this function because this module leaks to the
-   * root export. It has to be `require` because tools like Jest have trouble
-   * handling dynamic imports. It gets replaced with a dynamic import on build time.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { parse } = require('graphql')
-
   try {
     const ast = parse(query)
     return parseDocumentNode(ast)

@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { graphql, HttpResponse } from 'msw'
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../support/graphql'
 

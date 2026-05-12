@@ -3,14 +3,13 @@
  */
 import {
   http,
-  graphql,
   ws,
   type HttpHandler,
   type RequestHandler,
   type AnyHandler,
   type WebSocketHandler,
-  type GraphQLHandler,
 } from 'msw'
+import { graphql, type GraphQLHandler } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { setupWorker } from 'msw/browser'
 

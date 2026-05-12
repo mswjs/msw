@@ -3,7 +3,7 @@ import {
   type GraphQLOperationType,
   type GraphQLVariables,
   type GraphQLResponseResolver,
-} from 'msw'
+} from 'msw/graphql'
 
 const resolver: GraphQLResponseResolver<any, any> = () => void 0
 

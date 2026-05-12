@@ -1,4 +1,5 @@
-import { http, HttpResponse, graphql } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
 it('does not produce a type error when called without arguments', () => {

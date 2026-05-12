@@ -1,16 +1,18 @@
 import { it, expectTypeOf } from 'vitest'
 import {
   http,
-  graphql,
   delay,
   HttpResponse,
   type HttpResponseResolver,
   type PathParams,
   type DefaultBodyType,
+} from 'msw'
+import {
+  graphql,
   type GraphQLQuery,
   type GraphQLVariables,
   type GraphQLResponseResolver,
-} from 'msw'
+} from 'msw/graphql'
 
 it('custom http resolver has correct parameters type', () => {
   /**

@@ -1,4 +1,5 @@
-import { graphql, HttpResponse } from 'msw'
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker()

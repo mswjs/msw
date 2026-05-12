@@ -26,9 +26,6 @@ importers:
       cookie:
         specifier: ^1.1.1
         version: 1.1.1
-      graphql:
-        specifier: ^16.13.2
-        version: 16.13.2
       headers-polyfill:
         specifier: ^5.0.1
         version: 5.0.1
@@ -138,6 +135,9 @@ importers:
       glob:
         specifier: ^13.0.6
         version: 13.0.6
+      graphql:
+        specifier: ^16.13.2
+        version: 16.13.2
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1

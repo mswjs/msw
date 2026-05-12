@@ -7,11 +7,8 @@ import {
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import type { HttpResponse } from '../HttpResponse'
-import {
-  type StrictRequest,
-  type DefaultUnsafeFetchResponse,
-} from '../HttpResponse'
-import type { GraphQLRequestBody } from './GraphQLHandler'
+import type { StrictRequest, DefaultUnsafeFetchResponse } from '../HttpResponse'
+import type { GraphQLRequestBody } from '../../graphql/graphql-handler'
 import { devUtils } from '../utils/internal/devUtils'
 import { getRawSetCookie } from '../utils/HttpResponse/decorators'
 

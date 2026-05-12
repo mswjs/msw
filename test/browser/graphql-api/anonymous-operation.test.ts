@@ -6,7 +6,7 @@ import { waitFor } from '../../support/waitFor'
 declare namespace window {
   export const msw: {
     worker: import('msw/browser').SetupWorkerApi
-    graphql: typeof import('msw').graphql
+    graphql: typeof import('msw/graphql').graphql
     HttpResponse: typeof import('msw').HttpResponse
   }
 }

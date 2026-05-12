@@ -56,13 +56,6 @@ async function startWebpackServer(): Promise<WebpackHttpServer> {
         ],
       },
       resolve: {
-        alias: {
-          'msw/browser': new URL(
-            '../../../lib/browser/index.mjs',
-            import.meta.url,
-          ).pathname,
-          msw: new URL('../../../lib/core/index.mjs', import.meta.url).pathname,
-        },
         extensions: ['.ts', '.js', '.mjs', '.cjs'],
       },
     },

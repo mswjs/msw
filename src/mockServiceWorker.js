@@ -137,7 +137,10 @@ async function handleRequest(event, requestId, requestInterceptedAt) {
   if (
     client &&
     activeClientIds.has(client.id) &&
-    response.headers.get('content-type') !== 'text/event-stream'
+    !response.headers
+      .get('content-type')
+      ?.toLowerCase()
+      .startsWith('text/event-stream')
   ) {
     const serializedRequest = await serializeRequest(requestCloneForEvents)
 

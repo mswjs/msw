@@ -100,7 +100,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
         return registration
       }
     },
-    stop() {
+    async stop() {
       if (network.readyState === NetworkReadyState.DISABLED) {
         devUtils.warn(
           `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
@@ -108,7 +108,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
         return
       }
 
-      network.disable()
+      await network.disable()
       window.postMessage({ type: 'msw/worker:stop' })
     },
     events: network.events,

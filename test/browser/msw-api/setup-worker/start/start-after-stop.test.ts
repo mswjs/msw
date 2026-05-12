@@ -20,8 +20,8 @@ test('handles requests after starting a stopped worker', async ({
   const consoleSpy = spyOnConsole()
   await loadExample(new URL('./start-after-stop.mocks.ts', import.meta.url))
 
-  await page.evaluate(() => {
-    window.msw.worker.stop()
+  await page.evaluate(async () => {
+    await window.msw.worker.stop()
   })
 
   expect(consoleSpy.get('log')).toEqual(

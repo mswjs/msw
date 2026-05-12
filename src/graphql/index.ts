@@ -17,4 +17,4 @@ export {
   type GraphQLCustomPredicate,
 } from './graphql-handler'
 
-export { type ParsedGraphQLRequest } from './parse-graphql-request'
+export type { ParsedGraphQLRequest } from './parse-graphql-request'

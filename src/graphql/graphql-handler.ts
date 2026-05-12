@@ -34,7 +34,7 @@ import { devUtils } from '#core/utils/internal/devUtils'
 import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
 import { kDefaultContentType, type StrictRequest } from '#core/HttpResponse'
 import { getAllAcceptedMimeTypes } from '#core/utils/request/getAllAcceptedMimeTypes'
-import { type ResponseResolutionContext } from '#core/utils/executeHandlers'
+import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 
 export interface DocumentTypeDecoration<
   Result = { [key: string]: any },

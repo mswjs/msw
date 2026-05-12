@@ -68,7 +68,7 @@ const graphqlConfig = defineConfig({
     posix: true,
     dotRelative: true,
   }),
-  external: [ecosystemDependencies],
+  external: [mswCore, ecosystemDependencies],
   format: ['esm', 'cjs'],
   outDir: './lib/graphql',
   bundle: false,

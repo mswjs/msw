@@ -1,8 +1,6 @@
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
-import {
-  SerializedWebSocketClient,
-  WebSocketClientStore,
-} from './WebSocketClientStore'
+import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientStore } from './WebSocketClientStore'
+import { type SerializedWebSocketClient } from './WebSocketClientStore'
 
 export class WebSocketMemoryClientStore implements WebSocketClientStore {
   private store: Map<string, SerializedWebSocketClient>

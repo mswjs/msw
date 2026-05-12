@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
 import { Emitter } from 'strict-event-emitter'
-import fastify, { FastifyInstance } from 'fastify'
+import fastify, { type FastifyInstance } from 'fastify'
 import fastifyWebSocket, {
   type WebSocket as FastifySocket,
 } from '@fastify/websocket'

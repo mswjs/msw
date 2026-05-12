@@ -5,7 +5,7 @@ import {
   defineNetwork,
   NetworkReadyState,
 } from '#core/experimental/define-network'
-import { type AnyHandler } from '#core/experimental/handlers-controller'
+import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { LifeCycleEventEmitter } from '#core/sharedOptions'
@@ -65,7 +65,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       }
 
       const httpSource = supportsServiceWorker()
-        ? new ServiceWorkerSource({
+        ? await ServiceWorkerSource.from({
             serviceWorker: {
               url:
                 options?.serviceWorker?.url?.toString() || DEFAULT_WORKER_URL,
@@ -100,7 +100,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
         return registration
       }
     },
-    stop() {
+    async stop() {
       if (network.readyState === NetworkReadyState.DISABLED) {
         devUtils.warn(
           `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
@@ -108,7 +108,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
         return
       }
 
-      network.disable()
+      await network.disable()
       window.postMessage({ type: 'msw/worker:stop' })
     },
     events: network.events,
@@ -131,7 +131,7 @@ export class SetupWorkerApi implements SetupWorker {
   restoreHandlers: () => void
   listHandlers: () => ReadonlyArray<AnyHandler>
   events: LifeCycleEventEmitter<
-    HttpNetworkFrameEventMap | WebSocketNetworkFrameEventMap
+    HttpNetworkFrameEventMap & WebSocketNetworkFrameEventMap
   >
 
   constructor() {

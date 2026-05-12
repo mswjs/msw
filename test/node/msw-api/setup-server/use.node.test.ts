@@ -2,8 +2,8 @@
  * @vitest-environment node
  */
 import { HttpResponse, http } from 'msw'
-import { SetupServer, setupServer } from 'msw/node'
-import { RequestHandler as ExpressRequestHandler } from 'express'
+import { type SetupServer, setupServer } from 'msw/node'
+import type { RequestHandler as ExpressRequestHandler } from 'express'
 import { HttpServer } from '@open-draft/test-server/http'
 
 const httpServer = new HttpServer((app) => {

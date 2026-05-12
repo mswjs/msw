@@ -1,4 +1,4 @@
-import { http, HttpResponse, ResponseResolver } from 'msw'
+import { http, HttpResponse, type ResponseResolver } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const forwardRequestBody: ResponseResolver<any> = async ({ request }) => {

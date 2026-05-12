@@ -4,7 +4,7 @@ import {
   Cookie,
   CookieJar,
   MemoryCookieStore,
-  SerializedCookie,
+  type SerializedCookie,
   type MemoryCookieStoreIndex,
 } from 'tough-cookie'
 import { jsonParse } from './internal/jsonParse'

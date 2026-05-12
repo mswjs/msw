@@ -36,7 +36,7 @@ test('removes all listeners when the worker is stopped', async ({
   await secondPage.evaluate(async () => {
     const worker = window.msw.createWorker()
     await worker.start()
-    worker.stop()
+    await worker.stop()
   })
 
   expect(firstPageConsoleSpy.get('startGroupCollapsed')).toEqual([

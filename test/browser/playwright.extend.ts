@@ -1,18 +1,23 @@
 import url from 'node:url'
 import crypto from 'node:crypto'
-import { test as base, expect, type Response, Page } from '@playwright/test'
+import {
+  test as base,
+  expect,
+  type Response,
+  type Page,
+} from '@playwright/test'
 import {
   Headers,
   headersToObject,
   flattenHeadersObject,
   type FlatHeadersObject,
 } from 'headers-polyfill'
-import { spyOnConsole, ConsoleMessages } from 'page-with'
+import { spyOnConsole, type ConsoleMessages } from 'page-with'
 import {
   HttpServer,
-  HttpServerMiddleware,
+  type HttpServerMiddleware,
 } from '@open-draft/test-server/lib/http.js'
-import {
+import type {
   Compilation,
   CompilationOptions,
   WebpackHttpServer,

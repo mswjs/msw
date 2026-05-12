@@ -1,4 +1,4 @@
-import { Frame } from '@playwright/test'
+import type { Frame } from '@playwright/test'
 import * as express from 'express'
 import { test, expect } from '../../../../playwright.extend'
 
@@ -46,6 +46,10 @@ test('intercepts a request from a deeply nested iframe', async ({
       compilation.use(staticMiddleware)
     },
   })
+
+  // Wait for the nested iframe chain to fully load
+  // (main frame + 2 nested iframes).
+  await expect.poll(() => page.frames().length).toBeGreaterThanOrEqual(3)
 
   const deepFrame = page
     .mainFrame()

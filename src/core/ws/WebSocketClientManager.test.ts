@@ -1,10 +1,8 @@
 // @vitest-environment node-websocket
 import { setMaxListeners } from 'node:events'
 import { WebSocketClientConnection } from '@mswjs/interceptors/WebSocket'
-import {
-  WebSocketClientManager,
-  WebSocketBroadcastChannelMessage,
-} from './WebSocketClientManager'
+import type { WebSocketBroadcastChannelMessage } from './WebSocketClientManager'
+import { WebSocketClientManager } from './WebSocketClientManager'
 import { TestWebSocketTransport } from '../../../test/support/ws-test-utils'
 
 const channel = new BroadcastChannel('test:channel')

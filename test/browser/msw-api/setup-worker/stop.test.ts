@@ -62,7 +62,11 @@ test('disables the mocking when the worker is stopped', async ({
 
   const response = await fetch(server.http.url('/resource'))
 
-  expect.soft(response.fromServiceWorker()).toBe(true)
+  /**
+   * @note Currently, "worker.stop()" sends "CLIENT_CLOSED".
+   * Since it's the only active client, the worker will self-destruct.
+   */
+  expect.soft(response.fromServiceWorker()).toBe(false)
   await expect(response.json()).resolves.toEqual({ original: true })
 })
 

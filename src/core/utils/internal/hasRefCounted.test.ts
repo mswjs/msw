@@ -14,3 +14,24 @@ it('returns false for a non-refcounted object', () => {
   expect(hasRefCounted({ ref() {} })).toBe(false)
   expect(hasRefCounted({ unref() {} })).toBe(false)
 })
+
+it('returns false for non-object values', () => {
+  expect(
+    hasRefCounted(
+      // @ts-expect-error Runtime value.
+      null,
+    ),
+  ).toBe(false)
+  expect(
+    hasRefCounted(
+      // @ts-expect-error Runtime value.
+      123,
+    ),
+  ).toBe(false)
+  expect(
+    hasRefCounted(
+      // @ts-expect-error Runtime value.
+      'invalid',
+    ),
+  ).toBe(false)
+})

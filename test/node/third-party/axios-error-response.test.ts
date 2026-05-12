@@ -1,5 +1,5 @@
 // @vitest-environment node
-import axios, { AxiosError } from 'axios'
+import axios, { type AxiosError } from 'axios'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 

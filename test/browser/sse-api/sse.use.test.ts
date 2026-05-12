@@ -1,5 +1,5 @@
-import { sse } from 'msw'
-import { setupWorker } from 'msw/browser'
+import type { sse } from 'msw'
+import type { setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {

@@ -1,6 +1,6 @@
 import type { ExecutionResult } from 'graphql'
 import { buildSchema, graphql } from 'graphql'
-import { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorkerApi } from 'msw/browser'
 import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'

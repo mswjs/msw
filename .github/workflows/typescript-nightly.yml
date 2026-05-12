@@ -8,7 +8,7 @@ on:
 
 jobs:
   compare:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,7 +31,7 @@ jobs:
           echo "rc_version=$rc_major_minor" >> $GITHUB_OUTPUT
 
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
     if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}

@@ -1,8 +1,8 @@
 import type { http, HttpResponse } from 'msw'
 import type { setupWorker } from 'msw/browser'
 import { createTeardown } from 'fs-teardown'
-import { Page } from '@playwright/test'
-import { HttpServer } from '@open-draft/test-server/lib/http.js'
+import type { Page } from '@playwright/test'
+import type { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { fromTemp } from '../../../../support/utils'
 import { test, expect } from '../../../playwright.extend'
 

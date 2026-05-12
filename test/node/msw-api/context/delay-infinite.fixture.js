@@ -1,4 +1,4 @@
-import { delay, HttpResponse, http } from 'msw'
+import { delay, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(

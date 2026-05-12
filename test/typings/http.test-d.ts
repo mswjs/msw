@@ -369,3 +369,11 @@ it('supports returning Response.error()', () => {
     return HttpResponse.error()
   })
 })
+
+it('supports a "finalize" function', () => {
+  http.get('/resource', ({ finalize }) => {
+    expectTypeOf(finalize).toEqualTypeOf<
+      (callback: () => Promise<void> | void) => void
+    >()
+  })
+})

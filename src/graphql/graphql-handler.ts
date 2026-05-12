@@ -6,33 +6,33 @@ import {
   type OperationTypeNode,
 } from 'graphql'
 import {
-  DefaultBodyType,
   RequestHandler,
-  RequestHandlerDefaultInfo,
-  RequestHandlerExecutionResult,
-  RequestHandlerOptions,
-  ResponseResolver,
+  type DefaultBodyType,
+  type RequestHandlerDefaultInfo,
+  type RequestHandlerExecutionResult,
+  type RequestHandlerOptions,
+  type ResponseResolver,
 } from '#core/handlers/RequestHandler'
 import { getTimestamp } from '#core/utils/logging/getTimestamp'
 import { getStatusCodeColor } from '#core/utils/logging/getStatusCodeColor'
 import { serializeRequest } from '#core/utils/logging/serializeRequest'
 import { serializeResponse } from '#core/utils/logging/serializeResponse'
 import {
-  Match,
   matchRequestUrl,
-  Path,
+  type Match,
+  type Path,
 } from '#core/utils/matching/matchRequestUrl'
 import {
-  ParsedGraphQLRequest,
-  GraphQLMultipartRequestBody,
   parseGraphQLRequest,
   parseDocumentNode,
-  ParsedGraphQLQuery,
+  type ParsedGraphQLRequest,
+  type GraphQLMultipartRequestBody,
+  type ParsedGraphQLQuery,
 } from './parse-graphql-request'
 import { toPublicUrl } from '#core/utils/request/toPublicUrl'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
-import { kDefaultContentType, StrictRequest } from '#core/HttpResponse'
+import { kDefaultContentType, type StrictRequest } from '#core/HttpResponse'
 import { getAllAcceptedMimeTypes } from '#core/utils/request/getAllAcceptedMimeTypes'
 import { type ResponseResolutionContext } from '#core/utils/executeHandlers'
 

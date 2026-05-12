@@ -1,5 +1,6 @@
-import { SetupWorkerApi } from 'msw/browser'
-import { TestFixtures, test, expect } from '../../../playwright.extend'
+import type { SetupWorkerApi } from 'msw/browser'
+import type { TestFixtures } from '../../../playwright.extend'
+import { test, expect } from '../../../playwright.extend'
 
 declare namespace window {
   export const msw: {

@@ -1,15 +1,14 @@
-import { pruneGetRequestBody } from './pruneGetRequestBody'
-import type { ServiceWorkerIncomingRequest } from '../glossary'
+import { FetchRequest } from '@mswjs/interceptors'
+import type { IncomingWorkerRequest } from './workerChannel'
 
 /**
  * Converts a given request received from the Service Worker
  * into a Fetch `Request` instance.
  */
 export function deserializeRequest(
-  serializedRequest: ServiceWorkerIncomingRequest,
+  serializedRequest: IncomingWorkerRequest,
 ): Request {
-  return new Request(serializedRequest.url, {
+  return new FetchRequest(serializedRequest.url, {
     ...serializedRequest,
-    body: pruneGetRequestBody(serializedRequest),
   })
 }

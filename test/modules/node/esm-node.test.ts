@@ -9,12 +9,12 @@ const fsMock = createTeardown({
   },
 })
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   await fsMock.prepare()
   await installLibrary(fsMock.resolve('.'))
 })
 
-afterAll(async ({ result }) => {
+test.afterAll(async ({}, { result }) => {
   if (result?.state === 'fail') {
     return
   }

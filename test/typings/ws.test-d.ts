@@ -1,11 +1,11 @@
 import { it, expectTypeOf } from 'vitest'
-import {
+import type {
   WebSocketData,
   WebSocketLink,
   WebSocketHandlerConnection,
-  ws,
 } from 'msw'
-import { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import { ws } from 'msw'
+import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 
 it('supports URL as the link argument', () => {
   expectTypeOf(ws.link('ws://localhost')).toEqualTypeOf<WebSocketLink>()

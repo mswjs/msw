@@ -1,5 +1,5 @@
 import { parse, type ExecutionResult } from 'graphql'
-import {
+import type {
   DocumentTypeDecoration,
   TypedDocumentNode,
 } from '@graphql-typed-document-node/core'

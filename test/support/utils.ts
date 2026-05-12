@@ -1,6 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
-import { ClientRequest, IncomingMessage } from 'http'
+import type { ClientRequest, IncomingMessage } from 'http'
 
 export function sleep(duration: number) {
   return new Promise((resolve) => {

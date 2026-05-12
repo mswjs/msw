@@ -2,13 +2,13 @@
 import { createRequestId, encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode, parse } from 'graphql'
 import {
-  GraphQLHandler,
-  GraphQLRequestBody,
-  GraphQLResolverExtras,
   isDocumentNode,
+  GraphQLHandler,
+  type GraphQLRequestBody,
+  type GraphQLResolverExtras,
 } from './graphql-handler'
 import { HttpResponse } from '../core/HttpResponse'
-import { ResponseResolver } from '../core/handlers/RequestHandler'
+import { type ResponseResolver } from '../core/handlers/RequestHandler'
 
 const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({
   variables,

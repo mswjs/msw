@@ -1,17 +1,18 @@
 import { invariant } from 'outvariant'
 import { Emitter, type DefaultEventMap } from 'rettime'
 import {
-  type NetworkSource,
+  NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
 import { type NetworkFrameResolutionContext } from './frames/network-frame'
 import { type UnhandledFrameHandle } from './on-unhandled-frame'
 import {
-  AnyHandler,
   HandlersController,
   InMemoryHandlersController,
+  type AnyHandler,
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
+import { Disposable } from '../utils/internal/Disposable'
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
@@ -47,8 +48,9 @@ export interface DefineNetworkOptions<
   onUnhandledFrame?: UnhandledFrameHandle
 }
 
-export interface NetworkApi<Sources extends Array<NetworkSource<any>>>
-  extends NetworkHandlersApi {
+export interface NetworkApi<
+  Sources extends Array<NetworkSource<any>>,
+> extends NetworkHandlersApi {
   readyState: NetworkReadyState
   /**
    * Enable the network interception and handling.
@@ -111,6 +113,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
 ): NetworkApi<Sources> {
   let readyState: NetworkReadyState = NetworkReadyState.DISABLED
   const events = new Emitter<MergeEventMaps<Sources>>()
+  const disposable = new Disposable()
 
   const deriveHandlersController = (
     handlers: DefineNetworkOptions<Sources>['handlers'],
@@ -129,7 +132,6 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
    * certain setup APIs, like `setupServer`, don't await `.enable` (`.listen`).
    */
   let handlersController = deriveHandlersController(resolvedOptions.handlers)
-  let listenersController: AbortController
 
   return {
     get readyState() {
@@ -137,7 +139,10 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
     },
     events,
     configure(options) {
-      invariant(readyState === NetworkReadyState.DISABLED, '')
+      invariant(
+        readyState === NetworkReadyState.DISABLED,
+        'Failed to call "configure()" on the network: cannot configure an already enabled network.',
+      )
 
       if (
         options.handlers &&
@@ -157,13 +162,41 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         'Failed to call "enable" on the network: already enabled',
       )
 
-      listenersController = new AbortController()
       readyState = NetworkReadyState.ENABLED
 
+      /**
+       * @note Use a session object scoped to the current "enable()"
+       * to prevent "frame.events" listeners from surviving across enable/disable cycles.
+       * @see The note about `AbortController` below.
+       */
+      const session = { active: true }
+      disposable['subscriptions'].push(() => {
+        session.active = false
+      })
+
       const result = resolvedOptions.sources.map((source) => {
+        /**
+         * @note Preemptively disable the network source before enabling.
+         * This intentionally calls only the prototype method that clears the
+         * event listeners and nothing else. This prevents the "frame" listeners
+         * from accumulating across enable/disable in case the source is a singleton.
+         */
+        NetworkSource.prototype.disable.call(source)
+
         source.on('frame', async ({ frame }) => {
-          frame.events.on('*', (event) => events.emit(event), {
-            signal: listenersController.signal,
+          frame.events.on('*', (event) => {
+            /**
+             * @note Prevent event forwarding manually and not via an AbortController
+             * because certain runtimes, like Cloudflare, throw when referencing an
+             * AbortController created in a different context. Bear in mind that the frame
+             * events run in the patched request client context while the AbortController
+             * is created outside, in the "defineNetwork" closure, which is a test context.
+             */
+            if (!session.active) {
+              return
+            }
+
+            events.emit(event)
           })
 
           const handlers = frame.getHandlers(handlersController)
@@ -188,8 +221,8 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         'Failed to call "disable" on the network: already disabled',
       )
 
-      listenersController.abort()
       readyState = NetworkReadyState.DISABLED
+      disposable.dispose()
 
       return colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),
@@ -202,11 +235,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       handlersController.reset(handlers)
     },
     restoreHandlers() {
-      for (const handler of handlersController.currentHandlers()) {
-        if ('isUsed' in handler) {
-          handler.isUsed = false
-        }
-      }
+      handlersController.restore()
     },
     listHandlers() {
       return toReadonlyArray(handlersController.currentHandlers())

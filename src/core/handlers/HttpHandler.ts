@@ -1,4 +1,4 @@
-import { ResponseResolutionContext } from '../utils/executeHandlers'
+import { type ResponseResolutionContext } from '../utils/executeHandlers'
 import { devUtils } from '../utils/internal/devUtils'
 import { isStringEqual } from '../utils/internal/isStringEqual'
 import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
@@ -7,18 +7,18 @@ import { serializeRequest } from '../utils/logging/serializeRequest'
 import { serializeResponse } from '../utils/logging/serializeResponse'
 import {
   matchRequestUrl,
-  Match,
-  Path,
-  PathParams,
+  type Match,
+  type Path,
+  type PathParams,
 } from '../utils/matching/matchRequestUrl'
 import { toPublicUrl } from '../utils/request/toPublicUrl'
 import { getAllRequestCookies } from '../utils/request/getRequestCookies'
 import { cleanUrl } from '../utils/url/cleanUrl'
 import {
   RequestHandler,
-  RequestHandlerDefaultInfo,
-  RequestHandlerOptions,
-  ResponseResolver,
+  type RequestHandlerDefaultInfo,
+  type RequestHandlerOptions,
+  type ResponseResolver,
 } from './RequestHandler'
 
 export type HttpHandlerMethod = string | RegExp

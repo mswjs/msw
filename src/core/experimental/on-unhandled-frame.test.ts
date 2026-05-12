@@ -5,10 +5,8 @@ import type {
 } from '@mswjs/interceptors/WebSocket'
 import { HttpNetworkFrame } from './frames/http-frame'
 import { WebSocketNetworkFrame } from './frames/websocket-frame'
-import {
-  executeUnhandledFrameHandle,
-  UnhandledFrameCallback,
-} from './on-unhandled-frame'
+import type { UnhandledFrameCallback } from './on-unhandled-frame'
+import { executeUnhandledFrameHandle } from './on-unhandled-frame'
 
 beforeAll(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => void 0)

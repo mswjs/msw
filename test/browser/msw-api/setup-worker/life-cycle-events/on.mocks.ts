@@ -1,10 +1,5 @@
-import {
-  HttpResponse,
-  http,
-  LifeCycleEventsMap,
-  passthrough,
-  bypass,
-} from 'msw'
+import type { LifeCycleEventsMap } from 'msw'
+import { HttpResponse, http, passthrough, bypass } from 'msw'
 import { setupWorker } from 'msw/browser'
 
 const worker = setupWorker(

@@ -1,5 +1,5 @@
-import { HttpResponse, http, passthrough } from 'msw'
-import { SetupWorkerApi } from 'msw/browser'
+import type { HttpResponse, http, passthrough } from 'msw'
+import type { SetupWorkerApi } from 'msw/browser'
 import { expect, test } from '../../playwright.extend'
 
 const PASSTHROUGH_EXAMPLE = new URL('./passthrough.mocks.ts', import.meta.url)

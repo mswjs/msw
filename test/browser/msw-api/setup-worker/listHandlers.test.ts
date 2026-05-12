@@ -1,5 +1,5 @@
-import { http, graphql } from 'msw'
-import { SetupWorkerApi } from 'msw/browser'
+import type { http, graphql } from 'msw'
+import type { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 
 declare namespace window {

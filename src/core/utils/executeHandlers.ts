@@ -1,7 +1,5 @@
-import {
-  RequestHandler,
-  type RequestHandlerExecutionResult,
-} from '../handlers/RequestHandler'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import { type RequestHandlerExecutionResult } from '../handlers/RequestHandler'
 
 export interface HandlersExecutionResult {
   handler: RequestHandler

@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
-import {
-  onUnhandledRequest,
-  UnhandledRequestCallback,
-} from './onUnhandledRequest'
+import type { UnhandledRequestCallback } from './onUnhandledRequest'
+import { onUnhandledRequest } from './onUnhandledRequest'
 
 const fixtures = {
   warningWithoutSuggestions: (url = `/api`) => `\

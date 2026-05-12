@@ -1,7 +1,8 @@
 /**
  * @see https://github.com/mswjs/msw/issues/1823
  */
-import { http, Path, HttpResponse, DefaultBodyType } from 'msw'
+import type { Path, DefaultBodyType } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 it('accepts custom response body generic argument', () => {
   function myHandler<CustomResponseBodyType extends DefaultBodyType>(

@@ -244,3 +244,11 @@ it('graphql query allows extensions in the response body', () => {
     })
   })
 })
+
+it('supports a "finalize" function', () => {
+  graphql.query('GetUser', ({ finalize }) => {
+    expectTypeOf(finalize).toEqualTypeOf<
+      (callback: () => Promise<void> | void) => void
+    >()
+  })
+})

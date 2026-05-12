@@ -1,7 +1,10 @@
 import { TypedEvent } from 'rettime'
 import { until } from 'until-async'
 import { createRequestId } from '@mswjs/interceptors'
-import { NetworkFrame, NetworkFrameResolutionContext } from './network-frame'
+import {
+  NetworkFrame,
+  type NetworkFrameResolutionContext,
+} from './network-frame'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { executeHandlers } from '../../utils/executeHandlers'
 import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
@@ -11,7 +14,8 @@ import {
   executeUnhandledFrameHandle,
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
-import { HandlersController, AnyHandler } from '../handlers-controller'
+import type { HandlersController } from '../handlers-controller'
+import { type AnyHandler } from '../handlers-controller'
 import { type RequestHandler } from '../../handlers/RequestHandler'
 
 interface HttpNetworkFrameOptions {
@@ -247,9 +251,13 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
       return null
     }
 
+    const responseCloneForLogs = resolutionContext?.quiet
+      ? null
+      : response.clone()
+
     await storeResponseCookies(request, response)
 
-    this.respondWith(response.clone())
+    this.respondWith(response)
 
     this.events.emit(
       new RequestEvent('request:end', {
@@ -261,7 +269,7 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     if (!resolutionContext?.quiet) {
       handler.log({
         request: requestCloneForLogs!,
-        response,
+        response: responseCloneForLogs!,
         parsedResult,
       })
     }

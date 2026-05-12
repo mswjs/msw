@@ -1,9 +1,9 @@
 import { type DefaultEventMap, Emitter } from 'rettime'
-import { LifeCycleEventEmitter } from '../sharedOptions'
+import { type LifeCycleEventEmitter } from '../sharedOptions'
+import type { HandlersController } from './handlers-controller'
 import {
-  AnyHandler,
-  HandlersController,
   InMemoryHandlersController,
+  type AnyHandler,
 } from './handlers-controller'
 import { Disposable } from '../utils/internal/Disposable'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
@@ -42,11 +42,7 @@ export abstract class SetupApi<
   }
 
   public restoreHandlers(): void {
-    this.handlersController.currentHandlers().forEach((handler) => {
-      if ('isUsed' in handler) {
-        handler.isUsed = false
-      }
-    })
+    this.handlersController.restore()
   }
 
   public resetHandlers(...nextHandlers: Array<AnyHandler>): void {

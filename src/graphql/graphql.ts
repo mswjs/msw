@@ -1,7 +1,7 @@
 import type { OperationTypeNode } from 'graphql'
-import {
-  type ResponseResolver,
-  type RequestHandlerOptions,
+import type {
+  ResponseResolver,
+  RequestHandlerOptions,
 } from '#core/handlers/RequestHandler'
 import {
   GraphQLHandler,

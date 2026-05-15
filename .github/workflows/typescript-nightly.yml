@@ -6,6 +6,9 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   compare:
     runs-on: macos-latest
@@ -32,6 +35,7 @@ jobs:
 
   test:
     runs-on: macos-latest
+    needs: [compare]
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
     if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}
@@ -45,12 +49,12 @@ jobs:
           node-version: 22
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9.15.0
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm build

@@ -35,6 +35,7 @@ jobs:
 
   test:
     runs-on: macos-latest
+    needs: [compare]
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
     if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}

@@ -1,13 +1,15 @@
 import type {
-  WebSocketClientConnection,
-  WebSocketConnectionData,
   WebSocketData,
+  WebSocketConnectionData,
+  WebSocketClientConnection,
+  WebSocketClientConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import { devUtils } from '../../utils/internal/devUtils'
 import { getTimestamp } from '../../utils/logging/getTimestamp'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
+import type { WebSocketConnectionFoo } from '../../handlers/WebSocketHandler'
 
 export const colors = {
   system: '#3b82f6',
@@ -17,7 +19,7 @@ export const colors = {
 }
 
 export function attachWebSocketLogger(
-  connection: WebSocketConnectionData,
+  connection: WebSocketConnectionData | WebSocketConnectionFoo,
 ): () => void {
   const { client, server } = connection
   const controller = new AbortController()
@@ -48,31 +50,36 @@ export function attachWebSocketLogger(
   )
 
   // Log client errors (connection closures due to errors).
-  client.socket.addEventListener(
-    'error',
-    (event) => {
-      logClientError(event)
-    },
-    { signal: controller.signal },
-  )
+  if ('socket' in client) {
+    client.socket.addEventListener(
+      'error',
+      (event) => {
+        logClientError(event)
+      },
+      { signal: controller.signal },
+    )
+  }
 
   const { send: originalClientSend } = client
   client.send = new Proxy(client.send, {
     apply(target, thisArg, args) {
       const [data] = args
       const messageEvent = new MessageEvent('message', { data })
-      Object.defineProperties(messageEvent, {
-        currentTarget: {
-          enumerable: true,
-          writable: false,
-          value: client.socket,
-        },
-        target: {
-          enumerable: true,
-          writable: false,
-          value: client.socket,
-        },
-      })
+
+      if ('socket' in client) {
+        Object.defineProperties(messageEvent, {
+          currentTarget: {
+            enumerable: true,
+            writable: false,
+            value: client.socket,
+          },
+          target: {
+            enumerable: true,
+            writable: false,
+            value: client.socket,
+          },
+        })
+      }
 
       queueMicrotask(() => {
         logIncomingMockedClientMessage(messageEvent)
@@ -102,18 +109,21 @@ export function attachWebSocketLogger(
     apply(target, thisArg, args) {
       const [data] = args
       const messageEvent = new MessageEvent('message', { data })
-      Object.defineProperties(messageEvent, {
-        currentTarget: {
-          enumerable: true,
-          writable: false,
-          value: server.socket,
-        },
-        target: {
-          enumerable: true,
-          writable: false,
-          value: server.socket,
-        },
-      })
+
+      if ('socket' in server) {
+        Object.defineProperties(messageEvent, {
+          currentTarget: {
+            enumerable: true,
+            writable: false,
+            value: server.socket,
+          },
+          target: {
+            enumerable: true,
+            writable: false,
+            value: server.socket,
+          },
+        })
+      }
 
       logOutgoingMockedClientMessage(messageEvent)
 
@@ -142,7 +152,9 @@ export function attachWebSocketLogger(
  * that intercepted this connection. This helps you see
  * what handlers observe this connection.
  */
-export function logConnectionOpen(client: WebSocketClientConnection) {
+export function logConnectionOpen(
+  client: WebSocketClientConnectionProtocol | WebSocketClientConnection,
+) {
   const publicUrl = toPublicUrl(client.url)
 
   console.groupCollapsed(
@@ -150,8 +162,10 @@ export function logConnectionOpen(client: WebSocketClientConnection) {
     `color:${colors.system}`,
     'color:inherit',
   )
-  // eslint-disable-next-line no-console
-  console.log('Client:', client.socket)
+  if ('socket' in client) {
+    // eslint-disable-next-line no-console
+    console.log('Client:', client.socket)
+  }
   console.groupEnd()
 }
 

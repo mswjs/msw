@@ -160,7 +160,7 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
   }
 }
 
-class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
+class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame<WebSocketConnectionData> {
   constructor(args: { connection: WebSocketConnectionData }) {
     super({ connection: args.connection })
 

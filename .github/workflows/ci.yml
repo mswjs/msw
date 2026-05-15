@@ -28,7 +28,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
@@ -62,7 +62,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
@@ -105,7 +105,7 @@ jobs:
             ${{ runner.os }}-node-20-build-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps --only-shell
@@ -140,7 +140,7 @@ jobs:
             ${{ runner.os }}-node-20-build-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Node.js tests
         run: pnpm test:node
@@ -175,7 +175,7 @@ jobs:
             ${{ runner.os }}-node-22-build-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Node.js tests
         run: pnpm test:node
@@ -202,7 +202,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: E2E tests
         run: pnpm test:e2e
@@ -234,7 +234,7 @@ jobs:
             ${{ runner.os }}-node-20-build-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Playwright install
         run: pnpm exec playwright install chromium --with-deps --only-shell
@@ -276,7 +276,7 @@ jobs:
             ${{ runner.os }}-node-20-build-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: React Native tests
         run: pnpm test:native

@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # Validate the package.json exports and emitted CJS/ESM bundles.
   exports:

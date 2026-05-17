@@ -505,7 +505,7 @@ export abstract class RequestHandler<
     this.scheduledCleanups.set(requestId, cleanups)
   }
 
-  private async exhaustCleanups(
+  protected async exhaustCleanups(
     cleanups: Array<() => MaybePromise<void>>,
   ): Promise<void> {
     const errors: Array<Error> = []

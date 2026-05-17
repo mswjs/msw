@@ -34,6 +34,20 @@ it('supports "connection" event listener', () => {
   })
 })
 
+it('supports "connection" transform option', () => {
+  const link = ws.link('ws://localhost', {
+    transform(connection) {
+      return {
+        ...connection,
+      }
+    },
+  })
+
+  link.addEventListener('connection', (connection) => {
+    expectTypeOf(connection).toEqualTypeOf<WebSocketHandlerConnection>()
+  })
+})
+
 it('errors on arbitrary event names passed to the link', () => {
   const link = ws.link('ws://localhost')
 

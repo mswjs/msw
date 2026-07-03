@@ -1,37 +1,22 @@
-import { type Plugin } from 'esbuild'
+import type { TsdownPlugin } from 'tsdown'
 
 export const ESM_EXTENSION = '.mjs'
 export const CJS_EXTENSION = '.js'
 
-export function forceEsmExtensionsPlugin(): Plugin {
+export function forceFileExtensionsPlugin(): TsdownPlugin {
   return {
-    name: 'forceEsmExtensionsPlugin',
-    setup(build) {
-      const isEsm = build.initialOptions.format === 'esm'
+    name: 'forceFileExtensionsPlugin',
+    renderChunk(code, chunk, outputOptions) {
+      const isEsm = outputOptions.format === 'es'
 
-      build.onEnd(async (result) => {
-        if (result.errors.length > 0) {
-          return
-        }
+      if (!(chunk.fileName.endsWith(ESM_EXTENSION) || isEsm)) {
+        return
+      }
 
-        for (const outputFile of result.outputFiles || []) {
-          // Only target CJS/ESM files.
-          // This ignores additional files emitted, like sourcemaps ("*.js.map").
-          if (
-            !(
-              outputFile.path.endsWith(ESM_EXTENSION) ||
-              outputFile.path.endsWith('.mjs')
-            )
-          ) {
-            continue
-          }
-
-          const fileContents = outputFile.text
-          const nextFileContents = modifyRelativeImports(fileContents, isEsm)
-
-          outputFile.contents = Buffer.from(nextFileContents)
-        }
-      })
+      return {
+        code: modifyRelativeImports(code, isEsm),
+        map: null,
+      }
     },
   }
 }

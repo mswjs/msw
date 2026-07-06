@@ -124,10 +124,22 @@
       }
     },
     "./graphql": {
-      "module-sync": "./lib/graphql/index.mjs",
-      "module": "./lib/graphql/index.mjs",
-      "import": "./lib/graphql/index.mjs",
-      "default": "./lib/graphql/index.js"
+      "module-sync": {
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
+      },
+      "module": {
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
+      },
+      "import": {
+        "types": "./lib/graphql/index.d.mts",
+        "default": "./lib/graphql/index.mjs"
+      },
+      "default": {
+        "types": "./lib/graphql/index.d.ts",
+        "default": "./lib/graphql/index.js"
+      }
     },
     "./core/ws": {
       "module-sync": {
@@ -216,6 +228,7 @@
     "browser",
     "node",
     "native",
+    "graphql",
     "LICENSE.md",
     "README.md"
   ],

@@ -122,7 +122,7 @@ const browserConfig: UserConfig = {
     neverBundle: [mswCore, ecosystemDependencies],
     alwaysBundle: Object.keys(packageJson.dependencies).filter(
       (packageName) => {
-        return !mswCore.test(packageName)
+        return !ecosystemDependencies.test(packageName)
       },
     ),
     onlyBundle: false,

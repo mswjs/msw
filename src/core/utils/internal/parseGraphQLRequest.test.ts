@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode } from 'graphql'
 import {

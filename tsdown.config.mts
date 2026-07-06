@@ -120,9 +120,11 @@ const browserConfig: UserConfig = {
   entry: ['./src/browser/index.ts'],
   deps: {
     neverBundle: [mswCore, ecosystemDependencies],
-    alwaysBundle: Object.keys(packageJson.dependencies).filter((packageName) => {
-      return !mswCore.test(packageName)
-    }),
+    alwaysBundle: Object.keys(packageJson.dependencies).filter(
+      (packageName) => {
+        return !mswCore.test(packageName)
+      },
+    ),
     onlyBundle: false,
   },
   format: ['esm', 'cjs'],
@@ -150,7 +152,13 @@ const reactNativeConfig: UserConfig = {
   platform: 'node',
   entry: ['./src/native/index.ts'],
   deps: {
-    neverBundle: ['picocolors', 'util', 'events', mswCore, ecosystemDependencies],
+    neverBundle: [
+      'picocolors',
+      'util',
+      'events',
+      mswCore,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm', 'cjs'],
@@ -172,7 +180,10 @@ const iifeConfig: UserConfig = {
   globalName: 'MockServiceWorker',
   entry: ['./src/iife/index.ts'],
   deps: {
-    alwaysBundle: [...Object.keys(packageJson.dependencies), ecosystemDependencies],
+    alwaysBundle: [
+      ...Object.keys(packageJson.dependencies),
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   outDir: './lib/iife',

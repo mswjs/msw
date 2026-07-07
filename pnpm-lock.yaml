@@ -12,8 +12,8 @@ importers:
         specifier: ^6.0.11
         version: 6.1.1(@types/node@22.19.21)
       '@msw/url':
-        specifier: ^0.1.0
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       '@mswjs/interceptors':
         specifier: ^0.41.7
         version: 0.41.9
@@ -833,8 +833,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@msw/url@0.1.1':
-    resolution: {integrity: sha512-YfWUaTaE4Ac77HikwWiwneCiAKIkQ+0+wpOiBNEmfolW7yWgxTgkYGw5IdqeCsSWdxdZfYOFqK+cMHNZKmkg/Q==}
+  '@msw/url@0.1.2':
+    resolution: {integrity: sha512-DdeBLQxQ+ZrtmwEmaj7GQ7lbzPCgbbbyAqOz/I4ulo68hwBpfdNvQJ5bmihJUkAAKOeCmqCIG3OFZGosqFN4mA==}
 
   '@mswjs/interceptors@0.41.9':
     resolution: {integrity: sha512-VVPPgHyQ6ShqnrmDWuxjmUIsO9gWyOZFmuOfLd9LfBGQJwZfy0gvv9pbHSJuoFNIYC7ZDX9aoFwowjcdSC4E8w==}
@@ -5527,7 +5527,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@msw/url@0.1.1': {}
+  '@msw/url@0.1.2': {}
 
   '@mswjs/interceptors@0.41.9':
     dependencies:

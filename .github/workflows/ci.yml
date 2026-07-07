@@ -36,13 +36,11 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Cache build output
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: Save build cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
 
   build-24:
     name: build (24)
@@ -70,13 +68,11 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Cache build output
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: Save build cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-24-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-24-build-
 
   test-unit:
     name: test (unit)
@@ -97,12 +93,11 @@ jobs:
           node-version: 22
 
       - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
+          fail-on-cache-miss: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -132,12 +127,11 @@ jobs:
           node-version: 22
 
       - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
+          fail-on-cache-miss: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -167,12 +161,11 @@ jobs:
           node-version: 24
 
       - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-24-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-24-build-
+          fail-on-cache-miss: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -226,12 +219,11 @@ jobs:
           node-version: 22
 
       - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
+          fail-on-cache-miss: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -268,12 +260,11 @@ jobs:
           node-version: 20
 
       - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./lib
           key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
+          fail-on-cache-miss: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

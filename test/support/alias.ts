@@ -13,9 +13,3 @@ export const mswExports = {
   'msw/browser': fromRoot('./lib/browser/index.mjs'),
   msw: fromRoot('./lib/core/index.mjs'),
 }
-
-export const customViteEnvironments = {
-  'vitest-environment-node-websocket': fromRoot(
-    './test/support/environments/vitest-environment-node-websocket',
-  ),
-}

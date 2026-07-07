@@ -14,7 +14,6 @@ import { getTimestamp } from './utils/logging/getTimestamp'
 import { devUtils } from './utils/internal/devUtils'
 import { colors } from './ws/utils/attachWebSocketLogger'
 import { toPublicUrl } from './utils/request/toPublicUrl'
-import type { MaybePromise } from './typeUtils'
 
 type EventMapConstraint = {
   message?: unknown
@@ -196,18 +195,6 @@ class ServerSentEventHandler<
       console.groupEnd()
     })
     /* eslint-enable no-console */
-  }
-
-  protected async exhaustCleanups(
-    cleanups: Array<() => MaybePromise<void>>,
-  ): Promise<void> {
-    const onClose = () => {
-      this.#emitter.removeListener('error', onClose)
-      this.#emitter.removeListener('close', onClose)
-      void super.exhaustCleanups(cleanups)
-    }
-
-    this.#emitter.once('error', onClose).once('close', onClose)
   }
 }
 

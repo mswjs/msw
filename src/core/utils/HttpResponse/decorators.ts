@@ -59,3 +59,28 @@ export function decorateResponse(
 export function getRawSetCookie(response: Response): string | undefined {
   return Reflect.get(response, kSetCookie)
 }
+
+/**
+ * Copy the instance-level response decorations, like the mocked
+ * response type or the raw "Set-Cookie" header record, from one
+ * response instance to another.
+ */
+export function copyResponseDecorations(
+  source: Response,
+  target: Response,
+): void {
+  const typeDescriptor = Object.getOwnPropertyDescriptor(source, 'type')
+
+  if (typeDescriptor) {
+    Object.defineProperty(target, 'type', typeDescriptor)
+  }
+
+  const setCookieDescriptor = Object.getOwnPropertyDescriptor(
+    source,
+    kSetCookie,
+  )
+
+  if (setCookieDescriptor) {
+    Object.defineProperty(target, kSetCookie, setCookieDescriptor)
+  }
+}

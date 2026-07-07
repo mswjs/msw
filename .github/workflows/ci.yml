@@ -184,7 +184,7 @@ jobs:
         run: pnpm test:memory
 
   test-e2e:
-    name: test (e2e) (22)
+    name: test (e2e)
     needs: build-22
     runs-on: ubuntu-latest
     steps:
@@ -199,7 +199,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

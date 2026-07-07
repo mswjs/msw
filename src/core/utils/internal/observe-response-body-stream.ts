@@ -12,20 +12,6 @@ export interface ObservedResponse {
 }
 
 /**
- * The `cancel` transformer callback is missing from the TypeScript
- * DOM types. It is invoked when the readable side of the transform
- * stream is canceled by the consumer or its writable side is aborted
- * (e.g. when the source stream errors).
- * @see https://streams.spec.whatwg.org/#transformer-api
- */
-interface TransformerWithCancel<Input, Output> extends Transformer<
-  Input,
-  Output
-> {
-  cancel?: (reason: unknown) => void | PromiseLike<void>
-}
-
-/**
  * Observe the `ReadableStream` body of the given response.
  * Returns a copy of that response whose body reports when it has
  * settled (was read to completion, errored, or canceled by the consumer).
@@ -40,28 +26,47 @@ export function observeResponseBodyStream(
   }
 
   const settled = new DeferredPromise<void>()
-  const settle = (): void => {
-    settled.resolve()
-  }
+  const reader = response.body.getReader()
+
+  /**
+   * @note Relay the body through a manual underlying source instead of
+   * `.pipeThrough(new TransformStream({ flush, cancel }))`. The `cancel`
+   * transformer callback is not implemented in Chromium, which loses
+   * the stream error/cancelation signals there entirely.
+   */
+  const observedStream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const readResult = await reader.read()
+
+        if (readResult.done) {
+          settled.resolve()
+          controller.close()
+          return
+        }
+
+        controller.enqueue(readResult.value)
+      } catch (error) {
+        settled.resolve()
+        throw error
+      }
+    },
+    async cancel(reason) {
+      settled.resolve()
+      await reader.cancel(reason)
+    },
+  })
 
   /**
    * @note Reconstruct the response because the body of an existing
    * response cannot be replaced. Use `FetchResponse` to support
    * non-standard response status codes (e.g. 101).
    */
-  const observedResponse = new FetchResponse(
-    response.body.pipeThrough(
-      new TransformStream({
-        flush: settle,
-        cancel: settle,
-      } as TransformerWithCancel<Uint8Array, Uint8Array>),
-    ),
-    {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    },
-  )
+  const observedResponse = new FetchResponse(observedStream, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
 
   copyResponseOwnProperties(response, observedResponse)
 

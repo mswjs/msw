@@ -368,17 +368,30 @@ export abstract class RequestHandler<
       if (finalizeFunction == null) {
         // Run any scheduled cleanups if the request gets aborted
         // while the resolver is still executing.
-        args.request.signal.addEventListener(
-          'abort',
-          () => this.runScheduledCleanups(args.requestId),
-          {
-            once: true,
-            signal: listenerController.signal,
-          },
-        )
+        if (!args.request.signal.aborted) {
+          args.request.signal.addEventListener(
+            'abort',
+            () => this.runScheduledCleanups(args.requestId),
+            {
+              once: true,
+              signal: listenerController.signal,
+            },
+          )
+        }
 
         finalizeFunction = (callback) => {
           this.scheduleCleanup(args.requestId, callback)
+
+          /**
+           * @note Run the cleanup immediately if the request has already
+           * been aborted. The "abort" listener above never fires for an
+           * already-aborted signal (and fires at most once), while
+           * long-lived resolvers (streams, generators) may never settle
+           * to run the cleanups on completion.
+           */
+          if (args.request.signal.aborted) {
+            void this.runScheduledCleanups(args.requestId)
+          }
         }
       }
 

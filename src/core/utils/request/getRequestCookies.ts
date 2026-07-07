@@ -1,7 +1,4 @@
-import {
-  parse as parseCookie,
-  serialize as serializeCookie,
-} from '../../../shims/cookie'
+import { parseCookie, stringifySetCookie } from 'cookie'
 import { cookieStore } from '../cookieStore'
 
 function parseCookies(input: string): Record<string, string> {
@@ -65,7 +62,7 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
   for (const name in cookiesFromDocument) {
     request.headers.append(
       'cookie',
-      serializeCookie(name, cookiesFromDocument[name]),
+      stringifySetCookie({ name, value: cookiesFromDocument[name] }),
     )
   }
 

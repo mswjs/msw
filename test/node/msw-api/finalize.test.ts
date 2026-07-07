@@ -1,7 +1,7 @@
 // @vitest-environment node
+import { setTimeout } from 'node:timers/promises'
 import { http, passthrough } from 'msw'
 import { setupServer } from 'msw/node'
-import { setTimeout } from 'node:timers/promises'
 
 const server = setupServer()
 
@@ -147,6 +147,66 @@ it('runs after the request has been aborted', async () => {
 
   await expect(responsePromise).rejects.toThrow()
   expect(cleanup).toHaveBeenCalledOnce()
+})
+
+it('runs immediately when scheduled after the request has been aborted', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', async ({ finalize }) => {
+      // Await past the point where the request gets aborted so the
+      // first `finalize` access happens on an already-aborted signal.
+      await setTimeout(250)
+      finalize(cleanup)
+
+      // Simulate a long-lived resolver that never settles.
+      await new Promise(() => {})
+    }),
+  )
+
+  const controller = new AbortController()
+  const responsePromise = fetch('http://localhost/resource', {
+    signal: controller.signal,
+  })
+  await setTimeout(100)
+  controller.abort()
+
+  await expect(responsePromise).rejects.toThrow()
+  await vi.waitFor(() => {
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+})
+
+it('runs cleanups scheduled after the abort listener has fired', async () => {
+  const cleanupBeforeAbort = vi.fn()
+  const cleanupAfterAbort = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', async ({ finalize }) => {
+      finalize(cleanupBeforeAbort)
+
+      // Await past the point where the request gets aborted
+      // (the "abort" listener fires and runs `cleanupBeforeAbort`).
+      await setTimeout(250)
+      finalize(cleanupAfterAbort)
+
+      // Simulate a long-lived resolver that never settles.
+      await new Promise(() => {})
+    }),
+  )
+
+  const controller = new AbortController()
+  const responsePromise = fetch('http://localhost/resource', {
+    signal: controller.signal,
+  })
+  await setTimeout(100)
+  controller.abort()
+
+  await expect(responsePromise).rejects.toThrow()
+  await vi.waitFor(() => {
+    expect(cleanupBeforeAbort).toHaveBeenCalledOnce()
+    expect(cleanupAfterAbort).toHaveBeenCalledOnce()
+  })
 })
 
 it('runs once the generator resolver is exhausted', async () => {

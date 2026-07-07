@@ -1,9 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import {
-  mswExports,
-  customViteEnvironments,
-  fromRoot,
-} from './test/support/alias'
+import { mswExports, fromRoot } from './test/support/alias'
 
 export default defineConfig({
   test: {
@@ -13,7 +9,6 @@ export default defineConfig({
     dir: './src',
     alias: {
       ...mswExports,
-      ...customViteEnvironments,
       '#core': fromRoot('src/core'),
     },
     typecheck: {

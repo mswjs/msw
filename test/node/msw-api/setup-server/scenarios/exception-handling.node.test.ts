@@ -1,4 +1,3 @@
-// @vitest-environment node-websocket
 import { http, HttpResponse, ws } from 'msw'
 import { setupServer } from 'msw/node'
 

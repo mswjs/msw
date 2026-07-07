@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { mswExports, customViteEnvironments } from '../support/alias'
+import { mswExports } from '../support/alias'
 
 export default defineConfig({
   test: {
@@ -7,7 +7,6 @@ export default defineConfig({
     globals: true,
     alias: {
       ...mswExports,
-      ...customViteEnvironments,
     },
     environmentOptions: {
       jsdom: {

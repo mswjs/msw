@@ -305,7 +305,7 @@
     "simple-git-hooks": "^2.13.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "undici": "^8.1.0",
+    "undici": "^7.28.0",
     "url-loader": "^4.1.1",
     "vitest": "^4.1.4",
     "webpack": "^5.106.2",

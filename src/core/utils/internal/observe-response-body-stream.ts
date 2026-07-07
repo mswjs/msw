@@ -1,6 +1,6 @@
 import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
-import { copyResponseDecorations } from '../HttpResponse/decorators'
+import { copyResponseOwnProperties } from '../HttpResponse/decorators'
 
 export interface ObservedResponse {
   response: Response
@@ -63,7 +63,7 @@ export function observeResponseBodyStream(
     },
   )
 
-  copyResponseDecorations(response, observedResponse)
+  copyResponseOwnProperties(response, observedResponse)
 
   return {
     response: observedResponse,

@@ -1,5 +1,5 @@
 import statuses from '../../../shims/statuses'
-import type { HttpResponseInit } from '../../HttpResponse'
+import type { HttpResponse, HttpResponseInit } from '../../HttpResponse'
 
 const { message } = statuses
 
@@ -27,7 +27,7 @@ export function normalizeResponseInit(
 }
 
 export function decorateResponse(
-  response: Response,
+  response: HttpResponse<any>,
   init: HttpResponseDecoratedInit,
 ): Response {
   // Allow mocking the response type.
@@ -61,26 +61,22 @@ export function getRawSetCookie(response: Response): string | undefined {
 }
 
 /**
- * Copy the instance-level response decorations, like the mocked
- * response type or the raw "Set-Cookie" header record, from one
- * response instance to another.
+ * Copy the given response own properties, like internal symbols,
+ * onto another response. Used for faithful internal copying of responses.
  */
-export function copyResponseDecorations(
+export function copyResponseOwnProperties(
   source: Response,
   target: Response,
 ): void {
-  const typeDescriptor = Object.getOwnPropertyDescriptor(source, 'type')
+  for (const propertyName of Reflect.ownKeys(source)) {
+    const descriptor = Object.getOwnPropertyDescriptor(source, propertyName)
+    const existingDescriptor = Object.getOwnPropertyDescriptor(
+      target,
+      propertyName,
+    )
 
-  if (typeDescriptor) {
-    Object.defineProperty(target, 'type', typeDescriptor)
-  }
-
-  const setCookieDescriptor = Object.getOwnPropertyDescriptor(
-    source,
-    kSetCookie,
-  )
-
-  if (setCookieDescriptor) {
-    Object.defineProperty(target, kSetCookie, setCookieDescriptor)
+    if (descriptor && existingDescriptor == null) {
+      Object.defineProperty(target, propertyName, descriptor)
+    }
   }
 }

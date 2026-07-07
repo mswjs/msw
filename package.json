@@ -251,7 +251,7 @@
     "@mswjs/interceptors": "^0.41.7",
     "@open-draft/deferred-promise": "^3.0.0",
     "@types/statuses": "^2.0.6",
-    "cookie": "^1.1.1",
+    "cookie": "^2.0.1",
     "graphql": "^16.13.2",
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",

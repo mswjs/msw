@@ -82,8 +82,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2
       '@ossjs/release':
-        specifier: ^0.10.1
-        version: 0.10.1
+        specifier: ^0.11.1
+        version: 0.11.1
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.61.1
@@ -858,8 +858,8 @@ packages:
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
-  '@ossjs/release@0.10.1':
-    resolution: {integrity: sha512-Djr1DXVTeR476ZdNC0RYPQQuX7Hx+CnEex1AyBBnsizQ7KqsidW99iooDFxT36jy8ReXwdTgIsjP2OSdyjfbLQ==}
+  '@ossjs/release@0.11.1':
+    resolution: {integrity: sha512-tkneP+Jic6a7IpmOEaifAtMUl44uzh19Ij8GHogz2gVpfjwFkxqj0r2inUvKqsHLEEV0F3lDLKXNEzvwat/+Ug==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -5571,7 +5571,7 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
-  '@ossjs/release@0.10.1':
+  '@ossjs/release@0.11.1':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@types/conventional-commits-parser': 5.0.2

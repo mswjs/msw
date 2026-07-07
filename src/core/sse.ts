@@ -80,7 +80,7 @@ const SSE_RESPONSE_INIT: ResponseInit = {
 class ServerSentEventHandler<
   EventMap extends EventMapConstraint,
 > extends HttpHandler {
-  #emitter: Emitter<ServerSentEventClientEventMap>
+  #loggableRequests: WeakSet<Request>
 
   constructor(path: Path, resolver: ServerSentEventResolver<EventMap, any>) {
     invariant(
@@ -94,7 +94,16 @@ class ServerSentEventHandler<
         info.request,
       )
 
-      client[kClientEmitter] = this.#emitter
+      /**
+       * @note Scope the emitter to this connection so its logging
+       * listeners don't accumulate on the handler across connections.
+       */
+      const emitter = new Emitter<ServerSentEventClientEventMap>()
+      client[kClientEmitter] = emitter
+
+      if (this.#loggableRequests.has(info.request)) {
+        this.#attachClientLogger(info.request, emitter)
+      }
 
       /**
        * @note Extend the resolver info via assignment instead of a spread.
@@ -111,7 +120,7 @@ class ServerSentEventHandler<
       return response
     })
 
-    this.#emitter = new Emitter<ServerSentEventClientEventMap>()
+    this.#loggableRequests = new WeakSet()
   }
 
   async predicate(args: {
@@ -140,7 +149,9 @@ class ServerSentEventHandler<
         response: new Response('[streaming]', SSE_RESPONSE_INIT),
       })
 
-      this.#attachClientLogger(args.request, this.#emitter)
+      // Defer attaching the client logger until the resolver runs
+      // and creates a connection-scoped emitter for this request.
+      this.#loggableRequests.add(args.request)
     }
 
     return matches

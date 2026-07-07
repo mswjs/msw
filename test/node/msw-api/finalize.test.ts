@@ -172,9 +172,7 @@ it('runs immediately when scheduled after the request has been aborted', async (
   controller.abort()
 
   await expect(responsePromise).rejects.toThrow()
-  await vi.waitFor(() => {
-    expect(cleanup).toHaveBeenCalledOnce()
-  })
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
 it('runs cleanups scheduled after the abort listener has fired', async () => {
@@ -203,10 +201,8 @@ it('runs cleanups scheduled after the abort listener has fired', async () => {
   controller.abort()
 
   await expect(responsePromise).rejects.toThrow()
-  await vi.waitFor(() => {
-    expect(cleanupBeforeAbort).toHaveBeenCalledOnce()
-    expect(cleanupAfterAbort).toHaveBeenCalledOnce()
-  })
+  await expect.poll(() => cleanupBeforeAbort).toHaveBeenCalledOnce()
+  await expect.poll(() => cleanupAfterAbort).toHaveBeenCalledOnce()
 })
 
 it('runs once the generator resolver is exhausted', async () => {

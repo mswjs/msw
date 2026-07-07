@@ -96,11 +96,17 @@ class ServerSentEventHandler<
 
       client[kClientEmitter] = this.#emitter
 
-      await resolver({
-        ...info,
-        client,
-        server,
-      })
+      /**
+       * @note Extend the resolver info via assignment instead of a spread.
+       * Spreading the info would invoke its lazy `finalize` getter,
+       * initializing the finalize machinery for resolvers that never use it.
+       */
+      await resolver(
+        Object.assign(info, {
+          client,
+          server,
+        }),
+      )
 
       return response
     })

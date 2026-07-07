@@ -1,7 +1,7 @@
 // @vitest-environment node
+import { setTimeout } from 'node:timers/promises'
 import { http, passthrough } from 'msw'
 import { setupServer } from 'msw/node'
-import { setTimeout } from 'node:timers/promises'
 
 const server = setupServer()
 

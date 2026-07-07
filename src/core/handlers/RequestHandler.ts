@@ -355,20 +355,41 @@ export abstract class RequestHandler<
 
     const listenerController = new AbortController()
 
-    args.request.signal.addEventListener(
-      'abort',
-      () => this.runScheduledCleanups(args.requestId),
-      {
-        once: true,
-        signal: listenerController.signal,
-      },
-    )
+    /**
+     * @note Initialize the `finalize` machinery lazily, on the first
+     * access of the `finalize` property by the resolver. If the resolver
+     * never accesses it, the handler behaves as if `finalize` never
+     * existed: no abort listeners, no scheduled cleanups, and no response
+     * body stream observation (see `this.complete()`).
+     */
+    let finalizeFunction: ResponseResolverFinalizeFunction | undefined
+
+    const getFinalize = (): ResponseResolverFinalizeFunction => {
+      if (finalizeFunction == null) {
+        // Run any scheduled cleanups if the request gets aborted
+        // while the resolver is still executing.
+        args.request.signal.addEventListener(
+          'abort',
+          () => this.runScheduledCleanups(args.requestId),
+          {
+            once: true,
+            signal: listenerController.signal,
+          },
+        )
+
+        finalizeFunction = (callback) => {
+          this.scheduleCleanup(args.requestId, callback)
+        }
+      }
+
+      return finalizeFunction
+    }
 
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
-        finalize: (callback) => {
-          this.scheduleCleanup(args.requestId, callback)
+        get finalize(): ResponseResolverFinalizeFunction {
+          return getFinalize()
         },
         requestId: args.requestId,
         request: args.request,

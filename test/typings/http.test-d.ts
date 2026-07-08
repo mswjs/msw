@@ -256,6 +256,26 @@ it('supports object with extra keys as a response body type argument', () => {
   })
 })
 
+it('forbids a plain fetch response for a non-object response body type', () => {
+  http.get<never, never, string>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response('hello'),
+  )
+
+  http.get<never, never, 'hello'>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response('hello'),
+  )
+
+  http.get<never, never, null>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response(null),
+  )
+})
+
 it('supports response body type argument declared via type', () => {
   type ResponseBodyType = { id: number }
   http.get<never, never, ResponseBodyType>('/user', () => {

@@ -3,8 +3,8 @@ import path from 'node:path'
 import crypto from 'crypto'
 import minify from 'babel-minify'
 import { invariant } from 'outvariant'
-import type { Plugin } from 'esbuild'
-import copyServiceWorker from '../../copyServiceWorker.js'
+import type { TsdownPlugin } from 'tsdown'
+import copyServiceWorker from '../../copyServiceWorker.ts'
 
 const SERVICE_WORKER_ENTRY_PATH = path.resolve(
   process.cwd(),
@@ -27,15 +27,16 @@ export function getWorkerChecksum(): string {
   return getChecksum(workerContents)
 }
 
-export function copyWorkerPlugin(checksum: string): Plugin {
+export function copyWorkerPlugin(checksum: string): TsdownPlugin {
   return {
     name: 'copyWorkerPlugin',
-    async setup(build) {
+    async buildStart() {
       invariant(
         SERVICE_WORKER_ENTRY_PATH,
         'Failed to locate the worker script source file',
       )
-
+    },
+    async writeBundle() {
       if (fs.existsSync(SERVICE_WORKER_OUTPUT_PATH)) {
         console.warn(
           'Skipped copying the worker script to "%s": already exists',
@@ -44,31 +45,14 @@ export function copyWorkerPlugin(checksum: string): Plugin {
         return
       }
 
-      // Generate the checksum from the worker script's contents.
-      // const workerContents = await fs.readFile(workerSourcePath, 'utf8')
-      // const checksum = getChecksum(workerContents)
+      // eslint-disable-next-line no-console
+      console.log('worker script checksum:', checksum)
 
-      build.onLoad({ filter: /mockServiceWorker\.js$/ }, async () => {
-        return {
-          // Prevent the worker script from being transpiled.
-          // But, generally, the worker script is not in the entrypoints.
-          contents: '',
-        }
-      })
-
-      build.onEnd(() => {
-        // eslint-disable-next-line no-console
-        console.log('worker script checksum:', checksum)
-
-        // Copy the worker script on the next tick.
-        process.nextTick(async () => {
-          await copyServiceWorker(
-            SERVICE_WORKER_ENTRY_PATH,
-            SERVICE_WORKER_OUTPUT_PATH,
-            checksum,
-          )
-        })
-      })
+      await copyServiceWorker(
+        SERVICE_WORKER_ENTRY_PATH,
+        SERVICE_WORKER_OUTPUT_PATH,
+        checksum,
+      )
     },
   }
 }

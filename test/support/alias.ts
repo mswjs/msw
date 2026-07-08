@@ -14,9 +14,3 @@ export const mswExports = {
   'msw/graphql': fromRoot('./lib/graphql/index.mjs'),
   msw: fromRoot('./lib/core/index.mjs'),
 }
-
-export const customViteEnvironments = {
-  'vitest-environment-node-websocket': fromRoot(
-    './test/support/environments/vitest-environment-node-websocket',
-  ),
-}

@@ -7,11 +7,7 @@ import {
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import type { HttpResponse } from '../HttpResponse'
-import {
-  type StrictRequest,
-  type DefaultUnsafeFetchResponse,
-} from '../HttpResponse'
-import type { GraphQLRequestBody } from './GraphQLHandler'
+import type { StrictRequest, DefaultUnsafeFetchResponse } from '../HttpResponse'
 import { devUtils } from '../utils/internal/devUtils'
 import { getRawSetCookie } from '../utils/HttpResponse/decorators'
 import { observeResponseBodyStream } from '../utils/internal/observe-response-body-stream'
@@ -53,8 +49,10 @@ export type ResponseResolverReturnType<
          * For esome reason, making the default HttpResponse<T> | DefaultUnsafeFetchResponse
          * union breaks the body type inference for HTTP requests.
          * @see https://github.com/mswjs/msw/issues/2130
+         * @note Don't import the actual GraphQL types not to introduce a dependency
+         * from /core to /graphql.
          */
-        ResponseBodyType extends GraphQLRequestBody<any>
+        ResponseBodyType extends Record<string, any> | undefined
         ? HttpResponse<ResponseBodyType> | DefaultUnsafeFetchResponse
         : HttpResponse<ResponseBodyType>)
   | undefined

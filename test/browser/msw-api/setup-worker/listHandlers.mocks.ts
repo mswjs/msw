@@ -1,4 +1,5 @@
-import { http, graphql } from 'msw'
+import { http } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
 const resolver = () => void 0

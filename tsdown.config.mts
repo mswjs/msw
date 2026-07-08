@@ -9,7 +9,6 @@ import {
 } from './config/plugins/rolldown/copyWorkerPlugin.ts'
 import { resolveCoreImportsPlugin } from './config/plugins/rolldown/resolveCoreImportsPlugin.ts'
 import { forceFileExtensionsPlugin } from './config/plugins/rolldown/forceFileExtensionsPlugin.ts'
-import { graphqlImportPlugin } from './config/plugins/rolldown/graphQLImportPlugin.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(
@@ -70,19 +69,35 @@ const coreConfig: UserConfig = {
     neverBundle: [ecosystemDependencies, /shims\/(cookie|statuses)$/],
     onlyBundle: false,
   },
-  format: {
-    esm: {
-      plugins: [graphqlImportPlugin(), forceFileExtensionsPlugin()],
-    },
-    cjs: {
-      plugins: [forceFileExtensionsPlugin()],
-    },
-  },
+  format: ['esm', 'cjs'],
   outDir: './lib/core',
   unbundle: true,
   sourcemap: true,
   dts: { build: true },
   tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  plugins: [forceFileExtensionsPlugin()],
+}
+
+const graphqlConfig: UserConfig = {
+  ...commonConfig,
+  name: 'graphql',
+  platform: 'neutral',
+  entry: glob.sync('./src/graphql/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
+  deps: {
+    neverBundle: [mswCore, ecosystemDependencies],
+    onlyBundle: false,
+  },
+  format: ['esm', 'cjs'],
+  outDir: './lib/graphql',
+  unbundle: true,
+  sourcemap: true,
+  dts: { build: true },
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
 const nodeConfig: UserConfig = {
@@ -183,6 +198,9 @@ const iifeConfig: UserConfig = {
     alwaysBundle: [
       ...Object.keys(packageJson.dependencies),
       ecosystemDependencies,
+      // The IIFE bundle re-exports "msw/graphql", so the
+      // "graphql" peer dependency must be bundled with it.
+      'graphql',
     ],
     onlyBundle: false,
   },
@@ -205,6 +223,7 @@ const iifeConfig: UserConfig = {
 export default defineConfig([
   ...shimConfigs,
   coreConfig,
+  graphqlConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,

@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { bypass, graphql, HttpResponse } from 'msw'
+import { bypass, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { HttpServer } from '@open-draft/test-server/http'

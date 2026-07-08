@@ -1,10 +1,9 @@
-/**
- * @vitest-environment jsdom
- */
 import { encodeBuffer } from '@mswjs/interceptors'
 import { OperationTypeNode } from 'graphql'
-import type { ParsedGraphQLRequest } from './parseGraphQLRequest'
-import { parseGraphQLRequest } from './parseGraphQLRequest'
+import {
+  parseGraphQLRequest,
+  type ParsedGraphQLRequest,
+} from './parse-graphql-request'
 
 test('returns true given a GraphQL-compatible request', async () => {
   const getRequest = new Request(

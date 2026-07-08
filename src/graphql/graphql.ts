@@ -1,8 +1,8 @@
 import type { OperationTypeNode } from 'graphql'
-import {
-  type ResponseResolver,
-  type RequestHandlerOptions,
-} from './handlers/RequestHandler'
+import type {
+  ResponseResolver,
+  RequestHandlerOptions,
+} from '#core/handlers/RequestHandler'
 import {
   GraphQLHandler,
   type GraphQLVariables,
@@ -11,8 +11,8 @@ import {
   type GraphQLResponseBody,
   type GraphQLQuery,
   type GraphQLPredicate,
-} from './handlers/GraphQLHandler'
-import type { Path } from './utils/matching/matchRequestUrl'
+} from './graphql-handler'
+import type { Path } from '#core/utils/matching/matchRequestUrl'
 
 export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,

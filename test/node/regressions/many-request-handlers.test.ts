@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { HttpServer } from '@open-draft/test-server/http'
-import { graphql, http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {

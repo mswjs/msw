@@ -1,5 +1,5 @@
 import { http } from '../../http'
-import { graphql } from '../../graphql'
+import { graphql } from '../../../graphql'
 import { ws } from '../../ws'
 import type { WebSocketNetworkFrameEventMap } from './websocket-frame'
 import { WebSocketNetworkFrame } from './websocket-frame'

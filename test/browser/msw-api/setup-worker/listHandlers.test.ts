@@ -1,4 +1,5 @@
-import type { http, graphql } from 'msw'
+import type { http } from 'msw'
+import type { graphql } from 'msw/graphql'
 import type { SetupWorkerApi } from 'msw/browser'
 import { test, expect } from '../../playwright.extend'
 

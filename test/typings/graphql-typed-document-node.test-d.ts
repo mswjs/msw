@@ -1,5 +1,6 @@
-import { graphql, HttpResponse } from 'msw'
-import { type TypedDocumentNode } from '@graphql-typed-document-node/core'
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 
 const GetUserQuery = {} as TypedDocumentNode<
   {

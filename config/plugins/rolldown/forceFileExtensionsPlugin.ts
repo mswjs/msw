@@ -7,9 +7,11 @@ export function forceFileExtensionsPlugin(): TsdownPlugin {
   return {
     name: 'forceFileExtensionsPlugin',
     renderChunk(code, chunk, outputOptions) {
-      const isEsm = outputOptions.format === 'es'
+      const isEsm =
+        outputOptions.format === 'es' ||
+        chunk.fileName.endsWith(ESM_EXTENSION)
 
-      if (!(chunk.fileName.endsWith(ESM_EXTENSION) || isEsm)) {
+      if (!isEsm) {
         return
       }
 

@@ -13,6 +13,7 @@ import {
   type GraphQLPredicate,
 } from './graphql-handler'
 import type { Path } from '#core/utils/matching/matchRequestUrl'
+import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
 import {
   createGraphQLSubscriptionHandler,
   type GraphQLSubscriptionHandlerFactory,
@@ -59,9 +60,44 @@ function createScopedGraphQLHandler(
   }
 }
 
-function createGraphQLOperationHandler(url: Path): GraphQLOperationHandler {
+function createGraphQLOperationHandler(
+  url: Path,
+  subscriptionFactory?: GraphQLSubscriptionHandlerFactory,
+): GraphQLOperationHandler {
   return (resolver, options) => {
-    return new GraphQLHandler('all', new RegExp('.*'), url, resolver, options)
+    const handler = new GraphQLHandler(
+      'all',
+      new RegExp('.*'),
+      url,
+      resolver,
+      options,
+    )
+
+    if (!subscriptionFactory) {
+      return handler
+    }
+
+    // Attach a catch-all subscription handler as a sibling so the
+    // operation handler also matches GraphQL subscriptions over WebSocket.
+    // The subscription transport guarantees only actual GraphQL
+    // subscriptions are dispatched to it.
+    const subscriptionCatchAllHandler = subscriptionFactory(
+      new RegExp('.*'),
+      ({ operationName, subscription }) => {
+        /**
+         * @note Subscriptions are resolved imperatively so the resolver
+         * is invoked with a reduced info object (no request to expose),
+         * and its return value is ignored.
+         */
+        resolver({
+          operationName,
+          query: subscription.query,
+          variables: subscription.variables,
+        } as Parameters<typeof resolver>[0])
+      },
+    )
+
+    return attachSiblingHandlers(handler, [subscriptionCatchAllHandler])
   }
 }
 
@@ -125,6 +161,11 @@ export const graphql = {
    *   return HttpResponse.json({ data: { name: 'John' } })
    * })
    *
+   * @note Unlike `graphql.link(url).operation()`, this handler does not
+   * match GraphQL subscriptions: intercepting them requires claiming the
+   * WebSocket connections to a concrete endpoint, and a wildcard would
+   * claim every WebSocket connection on the page.
+   *
    * @see {@link https://mswjs.io/docs/api/graphql#graphqloperationresolver `graphql.operation()` API reference}
    */
   operation: createGraphQLOperationHandler('*'),
@@ -139,14 +180,21 @@ export const graphql = {
    * @see {@link https://mswjs.io/docs/api/graphql#graphqllinkurl `graphql.link()` API reference}
    */
   link(url: Path): GraphQLLinkHandlers {
+    /**
+     * @note Create the subscription handler factory once per link so
+     * the `subscription()` and `operation()` handlers share the same
+     * underlying subscription transport (deduped by reference).
+     */
+    const subscription = createGraphQLSubscriptionHandler(url)
+
     return {
-      operation: createGraphQLOperationHandler(url),
+      operation: createGraphQLOperationHandler(url, subscription),
       query: createScopedGraphQLHandler('query' as OperationTypeNode, url),
       mutation: createScopedGraphQLHandler(
         'mutation' as OperationTypeNode,
         url,
       ),
-      subscription: createGraphQLSubscriptionHandler(url),
+      subscription,
     }
   },
 }

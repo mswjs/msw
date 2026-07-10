@@ -2,7 +2,10 @@ import { invariant } from 'outvariant'
 import { type RequestHandler } from '../handlers/RequestHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
-import { getSiblingHandlers } from '../utils/internal/attachSiblingHandlers'
+import {
+  getSiblingHandlers,
+  isSiblingHandler,
+} from '../utils/internal/attachSiblingHandlers'
 
 export type AnyHandler = RequestHandler | WebSocketHandler
 export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
@@ -68,6 +71,18 @@ export abstract class HandlersController {
     return Object.values(this.getState().handlers)
       .flat()
       .filter((handler) => handler != null)
+  }
+
+  /**
+   * Return the list of explicitly registered handlers.
+   * Unlike `currentHandlers()`, this excludes sibling handlers,
+   * which are an implementation detail (e.g. the WebSocket upgrade
+   * handler or the GraphQL subscription transport).
+   */
+  public listHandlers(): Array<AnyHandler> {
+    return this.currentHandlers().filter((handler) => {
+      return !isSiblingHandler(handler)
+    })
   }
 
   public getHandlersByKind(kind: AnyHandler['kind']): Array<AnyHandler> {

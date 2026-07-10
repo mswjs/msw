@@ -238,7 +238,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       handlersController.restore()
     },
     listHandlers() {
-      return toReadonlyArray(handlersController.currentHandlers())
+      return toReadonlyArray(handlersController.listHandlers())
     },
   }
 }

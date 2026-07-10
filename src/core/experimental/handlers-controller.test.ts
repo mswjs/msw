@@ -308,6 +308,35 @@ describe(InMemoryHandlersController.prototype.reset, () => {
   })
 })
 
+describe(InMemoryHandlersController.prototype.listHandlers, () => {
+  it('lists explicitly registered handlers, hiding their siblings', () => {
+    const httpHandler = http.get('/', () => {})
+    const wsHandler = ws.link('*').addEventListener('connection', () => {})
+
+    const controller = new InMemoryHandlersController([httpHandler, wsHandler])
+
+    expect(controller.listHandlers()).toEqual([httpHandler, wsHandler])
+  })
+
+  it('hides siblings of runtime handlers', () => {
+    const controller = new InMemoryHandlersController([])
+    const wsHandler = ws.link('*').addEventListener('connection', () => {})
+
+    controller.use([wsHandler])
+
+    expect(controller.listHandlers()).toEqual([wsHandler])
+  })
+
+  it('keeps siblings in "currentHandlers()" so the handler lifecycle reaches them', () => {
+    const wsHandler = ws.link('*').addEventListener('connection', () => {})
+    const [upgradeHandler] = getSiblingHandlers(wsHandler)
+
+    const controller = new InMemoryHandlersController([wsHandler])
+
+    expect(controller.currentHandlers()).toEqual([wsHandler, upgradeHandler])
+  })
+})
+
 describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
   it('returns an empty array given an empty controller', () => {
     const controller = new InMemoryHandlersController([])

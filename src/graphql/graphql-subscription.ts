@@ -14,7 +14,9 @@ import {
   WebSocketHandler,
   kConnect,
   type WebSocketHandlerConnection,
+  type WebSocketResolutionContext,
 } from '#core/handlers/WebSocketHandler'
+import { GraphQLSubscriptionEvent } from '#core/experimental/frames/websocket-frame'
 import {
   matchRequestUrl,
   type Path,
@@ -196,6 +198,7 @@ interface GraphQLSubscriptionConnection {
   server: WebSocketServerConnectionProtocol
   subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriber>
   subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
+  events?: WebSocketResolutionContext['events']
   isBound: boolean
 }
 
@@ -237,6 +240,23 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     clientId: string,
   ): GraphQLSubscriptionConnection | undefined {
     return this.#connections.get(clientId)
+  }
+
+  public async run(
+    connection: WebSocketConnectionData,
+    resolutionContext?: WebSocketResolutionContext,
+  ): Promise<WebSocketHandlerConnection | null> {
+    const handlerConnection = await super.run(connection, resolutionContext)
+
+    // Capture the network frame events reference for this connection.
+    // The transport emits life-cycle events (e.g. "graphql:subscription")
+    // long after the run: whenever the client sends a "subscribe" message.
+    if (handlerConnection) {
+      const transportConnection = this.#getOrCreateConnection(handlerConnection)
+      transportConnection.events = resolutionContext?.events
+    }
+
+    return handlerConnection
   }
 
   /**
@@ -462,6 +482,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
 
     for (const subscriber of connection.subscribers.values()) {
       if (subscriber({ node, message })) {
+        this.#emitSubscriptionEvent(connection, node, message)
         return
       }
     }
@@ -470,6 +491,36 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
       'Intercepted a GraphQL subscription "%s" to "%s" that has no matching subscription handler. If you wish to mock this subscription, create a subscription handler for it.',
       node.operationName || '(anonymous)',
       toPublicUrl(connection.client.url),
+    )
+  }
+
+  /**
+   * Emit the "graphql:subscription" life-cycle event on the network.
+   * The event is emitted once the subscription has been established:
+   * matched by a subscription handler and resolved.
+   */
+  #emitSubscriptionEvent(
+    connection: GraphQLSubscriptionConnection,
+    node: ParsedGraphQLQuery,
+    message: GraphQLWebSocketSubscribeMessage,
+  ): void {
+    // Anonymous subscriptions can never match a subscription handler.
+    if (!connection.events || !node.operationName) {
+      return
+    }
+
+    connection.events.emit(
+      new GraphQLSubscriptionEvent({
+        operationName: node.operationName,
+        query: message.payload.query,
+        variables: { ...message.payload.variables },
+        request: new Request(connection.client.url, {
+          headers: {
+            connection: 'upgrade',
+            upgrade: 'websocket',
+          },
+        }),
+      }),
     )
   }
 }

@@ -26,6 +26,7 @@ beforeAll(() => {
 
 afterEach(() => {
   server.resetHandlers()
+  server.events.removeAllListeners()
   vi.restoreAllMocks()
 })
 
@@ -414,13 +415,18 @@ it('subscribes to extraneous pubsubs', async () => {
   const pubsub = createPubSub<{
     commentAdded: [{ commentAdded: { text: string } }]
   }>()
-  const subscriptionEstablishedPromise = Promise.withResolvers<void>()
+  const subscriptionAddedPromise = Promise.withResolvers<void>()
+
+  server.events.on('graphql:subscription', ({ operationName }) => {
+    if (operationName === 'OnCommentAdded') {
+      subscriptionAddedPromise.resolve()
+    }
+  })
 
   const api = graphql.link('https://localhost/graphql')
   server.use(
     api.subscription('OnCommentAdded', ({ subscription }) => {
       subscription.from(pubsub.subscribe('commentAdded'))
-      subscriptionEstablishedPromise.resolve()
     }),
     api.mutation('AddComment', ({ variables }) => {
       const { comment } = variables
@@ -452,7 +458,7 @@ it('subscribes to extraneous pubsubs', async () => {
   // pubsub. Unlike the client, the pubsub does not replay events published
   // before the subscription became active (the mutation below may otherwise
   // outrace the WebSocket handshake, e.g. on Node.js 24).
-  await subscriptionEstablishedPromise.promise
+  await subscriptionAddedPromise.promise
 
   const comment = { text: 'hello world' }
   await fetch('https://localhost/graphql', {
@@ -480,6 +486,84 @@ it('subscribes to extraneous pubsubs', async () => {
       },
     },
   })
+})
+
+it('emits the "graphql:subscription" life-cycle event when a subscription is established', async () => {
+  const subscriptionEventPromise = Promise.withResolvers<{
+    operationName: string
+    query: string
+    variables: Record<string, unknown>
+    request: Request
+  }>()
+
+  server.events.on('graphql:subscription', (event) => {
+    subscriptionEventPromise.resolve(event)
+  })
+
+  const api = graphql.link('https://localhost/graphql')
+  server.use(api.subscription('OnCommentAdded', () => {}))
+
+  const client = createClient({
+    url: 'wss://localhost/graphql',
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded($postId: ID!) {
+        commentAdded(postId: $postId) {
+          text
+        }
+      }
+    `,
+    variables: { postId: 'post-1' },
+  })
+  const pendingNext = subscription.next()
+
+  const subscriptionEvent = await subscriptionEventPromise.promise
+
+  expect(subscriptionEvent.operationName).toBe('OnCommentAdded')
+  expect(subscriptionEvent.query).toContain('subscription OnCommentAdded')
+  expect(subscriptionEvent.variables).toEqual({ postId: 'post-1' })
+  expect(subscriptionEvent.request).toBeInstanceOf(Request)
+  expect(subscriptionEvent.request.url).toBe('wss://localhost/graphql')
+  expect(subscriptionEvent.request.headers.get('connection')).toBe('upgrade')
+  expect(subscriptionEvent.request.headers.get('upgrade')).toBe('websocket')
+
+  pendingNext.catch(() => {})
+  await client.dispose()
+})
+
+it('does not emit the "graphql:subscription" life-cycle event for unhandled subscriptions', async () => {
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+  const subscriptionListener = vi.fn()
+  server.events.on('graphql:subscription', subscriptionListener)
+
+  const api = graphql.link('https://localhost/graphql')
+  server.use(api.subscription('OnCommentAdded', () => {}))
+
+  const client = createClient({
+    url: 'wss://localhost/graphql',
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnPostAdded {
+        postAdded {
+          id
+        }
+      }
+    `,
+  })
+  const pendingNext = subscription.next()
+
+  // The unhandled subscription warning marks the dispatch completion.
+  await expect
+    .poll(() => vi.mocked(console.warn).mock.calls.flat().join('\n'))
+    .toMatch(/no matching subscription handler/)
+
+  expect(subscriptionListener).not.toHaveBeenCalled()
+
+  pendingNext.catch(() => {})
+  await client.dispose()
 })
 
 it('combines extraneous and default pubsubs', async () => {

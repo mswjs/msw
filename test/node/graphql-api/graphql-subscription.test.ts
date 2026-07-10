@@ -206,9 +206,6 @@ it('scopes published data to the subscribed client', async () => {
     return messages
   }
 
-  // Each client must receive only the data published to its
-  // own subscription (subscription ids are unique per socket,
-  // not across the clients).
   await expect(collectMessages('john')).resolves.toEqual([
     { data: { greeting: 'hello, john' } },
   ])
@@ -245,7 +242,6 @@ it('respects handler overrides for the same operation', async () => {
     `,
   })
 
-  // Must receive the data from the override handler.
   await expect(subscription.next()).resolves.toEqual({
     done: false,
     value: {
@@ -255,8 +251,36 @@ it('respects handler overrides for the same operation', async () => {
     },
   })
 
-  // The initial handler must not be called (first matching handler wins).
   expect(initialResolver).not.toHaveBeenCalled()
+})
+
+it('matches an outgoing subscription with "graphql.operation()"', async () => {
+  const operationResolver = vi.fn()
+
+  const api = graphql.link('https://localhost/graphql')
+  server.use(api.operation(operationResolver))
+
+  const client = createClient({
+    url: 'wss://localhost/graphql',
+  })
+  client.iterate({
+    query: gql`
+      subscription OnCommentAdded($postId: ID!) {
+        commentAdded(postId: $postId) {
+          text
+        }
+      }
+    `,
+    variables: { postId: 'post-1' },
+  })
+
+  await expect
+    .poll(() => operationResolver)
+    .toHaveBeenCalledExactlyOnceWith({
+      operationName: 'OnCommentAdded',
+      query: expect.stringContaining('subscription OnCommentAdded'),
+      variables: { postId: 'post-1' },
+    })
 })
 
 it('supports one-time subscription handlers', async () => {

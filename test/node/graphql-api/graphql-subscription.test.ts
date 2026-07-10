@@ -6,7 +6,6 @@ import {
   type GraphQLSubscription,
   type GraphQLSubscriptionResolver,
 } from 'msw/graphql'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
 import {
@@ -137,7 +136,7 @@ it('terminates a subscription with errors', async () => {
 })
 
 it('exposes path parameters from the WebSocket link', async () => {
-  const paramsPromise = new DeferredPromise<PathParams>()
+  const paramsPromise = Promise.withResolvers<PathParams>()
   const api = graphql.link('https://localhost/:service')
 
   server.use(
@@ -162,7 +161,7 @@ it('exposes path parameters from the WebSocket link', async () => {
 
   await subscription.next()
 
-  await expect(paramsPromise).resolves.toEqual({
+  await expect(paramsPromise.promise).resolves.toEqual({
     service: 'user-service',
   })
 })
@@ -338,7 +337,7 @@ it('warns when publishing to a subscription after the handlers were reset', asyn
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const api = graphql.link('http://localhost:4000/graphql')
-  const subscriptionPromise = new DeferredPromise<GraphQLSubscription>()
+  const subscriptionPromise = Promise.withResolvers<GraphQLSubscription>()
 
   server.use(
     api.subscription('OnCommentAdded', ({ subscription }) => {
@@ -360,7 +359,7 @@ it('warns when publishing to a subscription after the handlers were reset', asyn
   })
   const pendingNext = subscription.next()
 
-  const interceptedSubscription = await subscriptionPromise
+  const interceptedSubscription = await subscriptionPromise.promise
   server.resetHandlers()
 
   // Publishing to a stale subscription must be a warning no-op
@@ -387,7 +386,7 @@ it('responds to the protocol ping messages', async () => {
     'graphql-transport-ws',
   ])
   const messages: Array<{ type: string }> = []
-  const pongPromise = new DeferredPromise<void>()
+  const pongPromise = Promise.withResolvers<void>()
 
   socket.onopen = () => {
     socket.send(JSON.stringify({ type: 'connection_init' }))
@@ -405,7 +404,7 @@ it('responds to the protocol ping messages', async () => {
     }
   }
 
-  await pongPromise
+  await pongPromise.promise
 
   expect(messages).toEqual([{ type: 'connection_ack' }, { type: 'pong' }])
   socket.close()
@@ -415,7 +414,7 @@ it('subscribes to extraneous pubsubs', async () => {
   const pubsub = createPubSub<{
     commentAdded: [{ commentAdded: { text: string } }]
   }>()
-  const subscriptionEstablishedPromise = new DeferredPromise<void>()
+  const subscriptionEstablishedPromise = Promise.withResolvers<void>()
 
   const api = graphql.link('https://localhost/graphql')
   server.use(
@@ -453,7 +452,7 @@ it('subscribes to extraneous pubsubs', async () => {
   // pubsub. Unlike the client, the pubsub does not replay events published
   // before the subscription became active (the mutation below may otherwise
   // outrace the WebSocket handshake, e.g. on Node.js 24).
-  await subscriptionEstablishedPromise
+  await subscriptionEstablishedPromise.promise
 
   const comment = { text: 'hello world' }
   await fetch('https://localhost/graphql', {

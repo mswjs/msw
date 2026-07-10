@@ -219,7 +219,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Registers the given handler as a subscriber to the GraphQL
+   * Register the given handler as a subscriber to the GraphQL
    * subscriptions on the given WebSocket connection. Subscribers are
    * dispatched in registration order, which follows the handlers
    * resolution order (runtime handlers take precedence).
@@ -240,7 +240,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Sends a `next` message with the given payload to the subscription.
+   * Send a `next` message with the given payload to the subscription.
    */
   public publish(args: {
     clientId: string
@@ -266,7 +266,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Sends a terminal `error` message to the subscription and
+   * Send a terminal `error` message to the subscription and
    * removes it from the registry of active subscriptions.
    */
   public error(args: {
@@ -294,7 +294,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Sends a `complete` message to the subscription and removes it
+   * Send a `complete` message to the subscription and removes it
    * from the registry of active subscriptions.
    */
   public complete(args: { clientId: string; subscriptionId: string }): void {
@@ -313,7 +313,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Clears the registry of connections and their active subscriptions.
+   * Clear the registry of connections and their active subscriptions.
    * @note This method is invoked automatically when the handlers
    * controller resets the handlers (e.g. `server.resetHandlers()`).
    */

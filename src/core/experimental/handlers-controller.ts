@@ -9,12 +9,21 @@ export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
 
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
   const groups: HandlersMap = {}
+  const visitedHandlers = new Set<AnyHandler>()
 
-  const pushUnique = (kind: AnyHandler['kind'], handler: AnyHandler) => {
-    const bucket = (groups[kind] ||= [])
+  const visit = (handler: AnyHandler) => {
+    if (visitedHandlers.has(handler)) {
+      return
+    }
 
-    if (!bucket.includes(handler)) {
-      bucket.push(handler)
+    visitedHandlers.add(handler)
+    const bucket = (groups[handler.kind] ||= [])
+    bucket.push(handler)
+
+    // Recurse so siblings of siblings (user-composed handler
+    // graphs) are grouped as well, not silently dropped.
+    for (const sibling of getSiblingHandlers(handler)) {
+      visit(sibling)
     }
   }
 
@@ -22,11 +31,7 @@ export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
    * @note `Object.groupBy` is not implemented in Node.js v20.
    */
   for (const handler of handlers) {
-    pushUnique(handler.kind, handler)
-
-    for (const sibling of getSiblingHandlers(handler)) {
-      pushUnique(sibling.kind, sibling)
-    }
+    visit(handler)
   }
 
   return groups
@@ -86,11 +91,19 @@ export abstract class HandlersController {
 
     // Prepend overrides to their respective kind buckets so they take
     // priority over existing handlers while preserving input order.
+    // Drop existing references that reappear in the overrides (e.g. a
+    // shared upgrade sibling from the same link) so a handler is never
+    // registered twice.
     for (const kind in overrides) {
       const overridesForKind = overrides[kind as AnyHandler['kind']]!
       const existingForKind = handlers[kind as AnyHandler['kind']]
       handlers[kind as AnyHandler['kind']] = existingForKind
-        ? [...overridesForKind, ...existingForKind]
+        ? [
+            ...overridesForKind,
+            ...existingForKind.filter((existingHandler) => {
+              return !overridesForKind.includes(existingHandler)
+            }),
+          ]
         : overridesForKind
     }
 

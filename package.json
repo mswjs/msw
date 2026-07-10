@@ -292,6 +292,8 @@
     "fs-teardown": "^0.3.0",
     "glob": "^13.0.6",
     "graphql": "^16.13.2",
+    "graphql-ws": "^5.16.0",
+    "graphql-yoga": "^5.13.4",
     "jsdom": "^25.0.1",
     "json-bigint": "^1.0.0",
     "knip": "^6.4.1",

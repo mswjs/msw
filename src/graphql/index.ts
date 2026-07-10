@@ -18,3 +18,18 @@ export {
 } from './graphql-handler'
 
 export type { ParsedGraphQLRequest } from './parse-graphql-request'
+
+export {
+  createGraphQLSubscriptionHandler,
+  GraphQLSubscription,
+  GraphQLSubscriptionHandler,
+  GraphQLSubscriptionTransportHandler,
+  GraphQLPassthroughSubscription,
+  type GraphQLSubscriptionHandlerFactory,
+  type GraphQLSubscriptionHandlerOptions,
+  type GraphQLSubscriptionName,
+  type GraphQLSubscriptionPayload,
+  type GraphQLSubscriptionResolver,
+  type GraphQLSubscriptionResolverInfo,
+  type GraphQLPassthroughSubscriptionEventMap,
+} from './graphql-subscription'

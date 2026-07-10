@@ -184,6 +184,36 @@ export class GraphQLHandler extends RequestHandler<
     return predicate
   }
 
+  /**
+   * Creates a GraphQL handler information object from the given
+   * operation predicate. Normalizes `DocumentNode` and typed document
+   * string predicates to plain operation names.
+   */
+  static parseGraphQLRequestInfo(args: {
+    operationType: GraphQLOperationType
+    predicate: GraphQLPredicate
+    url: Path
+  }): GraphQLHandlerInfo {
+    const operationName = GraphQLHandler.#parseOperationName(
+      args.predicate,
+      args.operationType,
+    )
+
+    const displayOperationName =
+      typeof operationName === 'function' ? '[custom predicate]' : operationName
+
+    const header =
+      args.operationType === 'all'
+        ? `${args.operationType} (origin: ${args.url.toString()})`
+        : `${args.operationType}${displayOperationName ? ` ${displayOperationName}` : ''} (origin: ${args.url.toString()})`
+
+    return {
+      header,
+      operationType: args.operationType,
+      operationName,
+    }
+  }
+
   constructor(
     operationType: GraphQLOperationType,
     predicate: GraphQLPredicate,
@@ -191,28 +221,12 @@ export class GraphQLHandler extends RequestHandler<
     resolver: ResponseResolver<GraphQLResolverExtras<any>, any, any>,
     options?: RequestHandlerOptions,
   ) {
-    const operationName = GraphQLHandler.#parseOperationName(
-      predicate,
-      operationType,
-    )
-
-    const displayOperationName =
-      typeof operationName === 'function' ? '[custom predicate]' : operationName
-
-    const header =
-      operationType === 'all'
-        ? `${operationType} (origin: ${endpoint.toString()})`
-        : `${operationType}${displayOperationName ? ` ${displayOperationName}` : ''} (origin: ${endpoint.toString()})`
-
     super({
-      info: {
-        header,
+      info: GraphQLHandler.parseGraphQLRequestInfo({
         operationType,
-        operationName: GraphQLHandler.#parseOperationName(
-          predicate,
-          operationType,
-        ),
-      },
+        predicate,
+        url: endpoint,
+      }),
       resolver,
       options,
     })
@@ -242,10 +256,8 @@ export class GraphQLHandler extends RequestHandler<
   }
 
   async parse(args: { request: Request }): Promise<GraphQLRequestParsedResult> {
-    /**
-     * If the request doesn't match a specified endpoint, there's no
-     * need to parse it since there's no case where we would handle this
-     */
+    // If the request doesn't match a specified endpoint, there's no
+    // need to parse it since there's no case where we would handle this
     const match = matchRequestUrl(new URL(args.request.url), this.endpoint)
     const cookies = getAllRequestCookies(args.request)
 

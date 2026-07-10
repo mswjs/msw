@@ -1,0 +1,1102 @@
+import { invariant } from 'outvariant'
+import { Emitter, TypedEvent } from 'rettime'
+import { parse, OperationTypeNode, type GraphQLError } from 'graphql'
+import { resolveWebSocketUrl } from '@mswjs/interceptors'
+import type {
+  WebSocketClientConnectionProtocol,
+  WebSocketConnectionData,
+  WebSocketData,
+  WebSocketServerConnectionProtocol,
+} from '@mswjs/interceptors/WebSocket'
+import { http } from '#core/http'
+import { ws } from '#core/ws'
+import {
+  WebSocketHandler,
+  kConnect,
+  type WebSocketHandlerConnection,
+} from '#core/handlers/WebSocketHandler'
+import {
+  matchRequestUrl,
+  type Path,
+  type PathParams,
+} from '#core/utils/matching/matchRequestUrl'
+import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
+import { jsonParse } from '#core/utils/internal/jsonParse'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { getTimestamp } from '#core/utils/logging/getTimestamp'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { colors } from '#core/ws/utils/attachWebSocketLogger'
+import {
+  GraphQLHandler,
+  isDocumentNode,
+  type DocumentTypeDecoration,
+  type GraphQLHandlerInfo,
+  type GraphQLHandlerNameSelector,
+  type GraphQLQuery,
+  type GraphQLVariables,
+} from './graphql-handler'
+import {
+  parseDocumentNode,
+  type ParsedGraphQLQuery,
+} from './parse-graphql-request'
+
+/**
+ * Messages of the `graphql-transport-ws` subprotocol.
+ * @see https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverWebSocket.md
+ */
+export interface GraphQLWebSocketInitMessage {
+  type: 'connection_init'
+  payload?: Record<string, unknown>
+}
+
+export interface GraphQLWebSocketSubscribePayload<
+  Variables extends GraphQLVariables = GraphQLVariables,
+> {
+  operationName?: string | null
+  query: string
+  variables?: Variables
+  extensions?: Record<string, unknown>
+}
+
+export interface GraphQLWebSocketSubscribeMessage<
+  Variables extends GraphQLVariables = GraphQLVariables,
+> {
+  type: 'subscribe'
+  id: string
+  payload: GraphQLWebSocketSubscribePayload<Variables>
+}
+
+export interface GraphQLWebSocketCompleteMessage {
+  type: 'complete'
+  id: string
+}
+
+export interface GraphQLWebSocketPingMessage {
+  type: 'ping'
+  payload?: Record<string, unknown>
+}
+
+export interface GraphQLWebSocketPongMessage {
+  type: 'pong'
+  payload?: Record<string, unknown>
+}
+
+export type GraphQLWebSocketClientMessage =
+  | GraphQLWebSocketInitMessage
+  | GraphQLWebSocketSubscribeMessage
+  | GraphQLWebSocketCompleteMessage
+  | GraphQLWebSocketPingMessage
+  | GraphQLWebSocketPongMessage
+
+export interface GraphQLWebSocketAcknowledgeMessage {
+  type: 'connection_ack'
+  payload?: Record<string, unknown>
+}
+
+export interface GraphQLWebSocketNextMessage {
+  type: 'next'
+  id: string
+  payload: GraphQLSubscriptionPayload
+}
+
+export interface GraphQLWebSocketErrorMessage {
+  type: 'error'
+  id: string
+  payload: ReadonlyArray<Partial<GraphQLError>>
+}
+
+export type GraphQLWebSocketServerMessage =
+  | GraphQLWebSocketAcknowledgeMessage
+  | GraphQLWebSocketNextMessage
+  | GraphQLWebSocketErrorMessage
+  | GraphQLWebSocketCompleteMessage
+  | GraphQLWebSocketPingMessage
+  | GraphQLWebSocketPongMessage
+
+/**
+ * A GraphQL execution result published to a subscription.
+ */
+export interface GraphQLSubscriptionPayload<
+  Query extends GraphQLQuery = GraphQLQuery,
+> {
+  data?: Query | null
+  errors?: ReadonlyArray<Partial<GraphQLError>> | null
+  extensions?: Record<string, unknown>
+}
+
+function createAcknowledgeMessage(): string {
+  return JSON.stringify({
+    type: 'connection_ack',
+  } satisfies GraphQLWebSocketAcknowledgeMessage)
+}
+
+function createNextMessage(args: {
+  id: string
+  payload: GraphQLSubscriptionPayload
+}): string {
+  return JSON.stringify({
+    id: args.id,
+    type: 'next',
+    payload: args.payload,
+  } satisfies GraphQLWebSocketNextMessage)
+}
+
+function createErrorMessage(args: {
+  id: string
+  payload: ReadonlyArray<Partial<GraphQLError>>
+}): string {
+  return JSON.stringify({
+    id: args.id,
+    type: 'error',
+    payload: args.payload,
+  } satisfies GraphQLWebSocketErrorMessage)
+}
+
+function createCompleteMessage(args: { id: string }): string {
+  return JSON.stringify({
+    id: args.id,
+    type: 'complete',
+  } satisfies GraphQLWebSocketCompleteMessage)
+}
+
+function createPongMessage(): string {
+  return JSON.stringify({
+    type: 'pong',
+  } satisfies GraphQLWebSocketPongMessage)
+}
+
+function parseGraphQLWebSocketMessage<MessageType extends { type: string }>(
+  data: WebSocketData,
+): MessageType | undefined {
+  if (typeof data !== 'string') {
+    return undefined
+  }
+
+  const message = jsonParse<MessageType>(data)
+
+  if (!message || typeof message.type !== 'string') {
+    return undefined
+  }
+
+  return message
+}
+
+/**
+ * A subscriber provided by a `GraphQLSubscriptionHandler` for a particular
+ * WebSocket connection. Returns true if the handler matched the parsed
+ * subscribe operation and resolved it.
+ */
+type GraphQLSubscriptionSubscriber = (args: {
+  node: ParsedGraphQLQuery
+  message: GraphQLWebSocketSubscribeMessage
+}) => boolean
+
+interface GraphQLSubscriptionConnection {
+  client: WebSocketClientConnectionProtocol
+  server: WebSocketServerConnectionProtocol
+  subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriber>
+  subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
+  isBound: boolean
+}
+
+/**
+ * A WebSocket handler implementing the `graphql-transport-ws` protocol
+ * session for a single GraphQL endpoint. One transport is shared across
+ * all subscription handlers created from the same `graphql.link()` call
+ * (attached to each of them as a sibling handler).
+ *
+ * The transport owns the protocol/session concerns: connection
+ * acknowledgement, keep-alive, the per-connection registry of active
+ * subscriptions, and dispatching parsed `subscribe` operations to the
+ * matching subscription handler.
+ */
+export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
+  #connections: Map<string, GraphQLSubscriptionConnection>
+
+  constructor(url: Path) {
+    super(url)
+    this.#connections = new Map()
+  }
+
+  /**
+   * Registers the given handler as a subscriber to the GraphQL
+   * subscriptions on the given WebSocket connection. Subscribers are
+   * dispatched in registration order, which follows the handlers
+   * resolution order (runtime handlers take precedence).
+   */
+  public subscribe(
+    connection: WebSocketHandlerConnection,
+    handler: WebSocketHandler,
+    subscriber: GraphQLSubscriptionSubscriber,
+  ): void {
+    const transportConnection = this.#getOrCreateConnection(connection)
+    transportConnection.subscribers.set(handler, subscriber)
+  }
+
+  public getConnection(
+    clientId: string,
+  ): GraphQLSubscriptionConnection | undefined {
+    return this.#connections.get(clientId)
+  }
+
+  /**
+   * Sends a `next` message with the given payload to the subscription.
+   */
+  public publish(args: {
+    clientId: string
+    subscriptionId: string
+    payload: GraphQLSubscriptionPayload
+  }): void {
+    const connection = this.#getConnectionForSubscription({
+      clientId: args.clientId,
+      subscriptionId: args.subscriptionId,
+      intent: 'publish to',
+    })
+
+    if (!connection) {
+      return
+    }
+
+    connection.client.send(
+      createNextMessage({
+        id: args.subscriptionId,
+        payload: args.payload,
+      }),
+    )
+  }
+
+  /**
+   * Sends a terminal `error` message to the subscription and
+   * removes it from the registry of active subscriptions.
+   */
+  public error(args: {
+    clientId: string
+    subscriptionId: string
+    errors: ReadonlyArray<Partial<GraphQLError>>
+  }): void {
+    const connection = this.#getConnectionForSubscription({
+      clientId: args.clientId,
+      subscriptionId: args.subscriptionId,
+      intent: 'error',
+    })
+
+    if (!connection) {
+      return
+    }
+
+    connection.client.send(
+      createErrorMessage({
+        id: args.subscriptionId,
+        payload: args.errors,
+      }),
+    )
+    connection.subscriptions.delete(args.subscriptionId)
+  }
+
+  /**
+   * Sends a `complete` message to the subscription and removes it
+   * from the registry of active subscriptions.
+   */
+  public complete(args: { clientId: string; subscriptionId: string }): void {
+    const connection = this.#getConnectionForSubscription({
+      clientId: args.clientId,
+      subscriptionId: args.subscriptionId,
+      intent: 'complete',
+    })
+
+    if (!connection) {
+      return
+    }
+
+    connection.client.send(createCompleteMessage({ id: args.subscriptionId }))
+    connection.subscriptions.delete(args.subscriptionId)
+  }
+
+  /**
+   * Clears the registry of connections and their active subscriptions.
+   * @note This method is invoked automatically when the handlers
+   * controller resets the handlers (e.g. `server.resetHandlers()`).
+   */
+  public reset(): void {
+    this.#connections.clear()
+  }
+
+  /**
+   * @note The transport is the sole owner of logging for GraphQL
+   * subscription connections. It logs parsed `graphql-transport-ws`
+   * frames instead of raw WebSocket messages.
+   */
+  public log(connection: WebSocketConnectionData): () => void {
+    return attachGraphQLSubscriptionLogger(connection)
+  }
+
+  protected [kConnect](connection: WebSocketHandlerConnection): boolean {
+    const transportConnection = this.#getOrCreateConnection(connection)
+
+    // Bind the protocol listeners at most once per connection
+    // (e.g. if this transport gets registered multiple times).
+    if (transportConnection.isBound) {
+      return true
+    }
+
+    transportConnection.isBound = true
+    const { client } = connection
+
+    client.addEventListener('message', (event) => {
+      this.#handleClientMessage(client.id, event.data)
+    })
+
+    client.addEventListener('close', () => {
+      this.#connections.delete(client.id)
+    })
+
+    return true
+  }
+
+  #getOrCreateConnection(
+    connection: WebSocketHandlerConnection,
+  ): GraphQLSubscriptionConnection {
+    const existingConnection = this.#connections.get(connection.client.id)
+
+    if (existingConnection) {
+      return existingConnection
+    }
+
+    const transportConnection: GraphQLSubscriptionConnection = {
+      client: connection.client,
+      server: connection.server,
+      subscribers: new Map(),
+      subscriptions: new Map(),
+      isBound: false,
+    }
+    this.#connections.set(connection.client.id, transportConnection)
+
+    return transportConnection
+  }
+
+  #getConnectionForSubscription(args: {
+    clientId: string
+    subscriptionId: string
+    intent: string
+  }): GraphQLSubscriptionConnection | undefined {
+    const connection = this.#connections.get(args.clientId)
+
+    if (!connection || !connection.subscriptions.has(args.subscriptionId)) {
+      devUtils.warn(
+        'Failed to %s the GraphQL subscription "%s": the subscription is no longer active.',
+        args.intent,
+        args.subscriptionId,
+      )
+      return undefined
+    }
+
+    return connection
+  }
+
+  #handleClientMessage(clientId: string, data: WebSocketData): void {
+    const connection = this.#connections.get(clientId)
+
+    if (!connection) {
+      return
+    }
+
+    const message =
+      parseGraphQLWebSocketMessage<GraphQLWebSocketClientMessage>(data)
+
+    if (!message) {
+      return
+    }
+
+    switch (message.type) {
+      case 'connection_init': {
+        connection.client.send(createAcknowledgeMessage())
+        break
+      }
+
+      case 'ping': {
+        connection.client.send(createPongMessage())
+        break
+      }
+
+      case 'subscribe': {
+        this.#handleSubscribeMessage(connection, message)
+        break
+      }
+
+      case 'complete': {
+        connection.subscriptions.delete(message.id)
+        break
+      }
+    }
+  }
+
+  #handleSubscribeMessage(
+    connection: GraphQLSubscriptionConnection,
+    message: GraphQLWebSocketSubscribeMessage,
+  ): void {
+    let node: ParsedGraphQLQuery
+
+    try {
+      node = parseDocumentNode(parse(message.payload.query))
+    } catch (error) {
+      devUtils.warn(
+        'Failed to intercept a GraphQL subscription to "%s": the subscription query is not a valid GraphQL document.\n\n%s',
+        toPublicUrl(connection.client.url),
+        error,
+      )
+      return
+    }
+
+    if (node.operationType !== OperationTypeNode.SUBSCRIPTION) {
+      devUtils.warn(
+        'Intercepted a GraphQL %s "%s" over WebSocket: only subscription operations are supported over the WebSocket transport.',
+        node.operationType,
+        node.operationName || '(anonymous)',
+      )
+      return
+    }
+
+    // Register the subscription before dispatching it so the resolver
+    // can publish to it synchronously.
+    connection.subscriptions.set(message.id, message)
+
+    for (const subscriber of connection.subscribers.values()) {
+      if (subscriber({ node, message })) {
+        return
+      }
+    }
+
+    devUtils.warn(
+      'Intercepted a GraphQL subscription "%s" to "%s" that has no matching subscription handler. If you wish to mock this subscription, create a subscription handler for it.',
+      node.operationName || '(anonymous)',
+      toPublicUrl(connection.client.url),
+    )
+  }
+}
+
+export type GraphQLSubscriptionName<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> = GraphQLHandlerNameSelector | DocumentTypeDecoration<Query, Variables>
+
+export interface GraphQLSubscriptionResolverInfo<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> {
+  /**
+   * Path parameters parsed from the WebSocket connection URL.
+   */
+  params: PathParams
+
+  /**
+   * The name of the intercepted operation.
+   */
+  operationName: string
+
+  /**
+   * Intercepted GraphQL subscription.
+   */
+  subscription: GraphQLSubscription<Query, Variables>
+}
+
+export type GraphQLSubscriptionResolver<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> = (info: GraphQLSubscriptionResolverInfo<Query, Variables>) => void
+
+export interface GraphQLSubscriptionHandlerOptions {
+  /**
+   * Mark this handler as used after its first match.
+   * Used handlers do not match subsequent subscriptions.
+   */
+  once?: boolean
+}
+
+/**
+ * A WebSocket handler intercepting GraphQL subscriptions by their
+ * operation name. Matching and resolution are delegated to it by the
+ * subscription transport (its sibling handler) so the first matching
+ * handler wins, respecting runtime handler overrides.
+ */
+export class GraphQLSubscriptionHandler<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> extends WebSocketHandler {
+  public info: GraphQLHandlerInfo
+  public isUsed: boolean
+
+  readonly #operationName: string | RegExp
+  readonly #transport: GraphQLSubscriptionTransportHandler
+  readonly #resolver: GraphQLSubscriptionResolver<Query, Variables>
+  readonly #options: GraphQLSubscriptionHandlerOptions
+
+  constructor(args: {
+    url: Path
+    operationName: GraphQLSubscriptionName<Query, Variables>
+    transport: GraphQLSubscriptionTransportHandler
+    resolver: GraphQLSubscriptionResolver<Query, Variables>
+    options?: GraphQLSubscriptionHandlerOptions
+  }) {
+    super(args.url)
+
+    // Create the same GraphQL handler info as request-based GraphQL
+    // handlers so this handler prints nicely during introspection
+    // (e.g. `server.listHandlers()`). This also normalizes `DocumentNode`
+    // and typed document predicates to plain operation names.
+    this.info = GraphQLHandler.parseGraphQLRequestInfo({
+      operationType: OperationTypeNode.SUBSCRIPTION,
+      predicate: args.operationName,
+      url: args.url,
+    })
+
+    const { operationName } = this.info
+
+    invariant(
+      typeof operationName !== 'function' && !isDocumentNode(operationName),
+      'Failed to create a GraphQL subscription handler: custom predicates are not supported for subscriptions',
+    )
+
+    this.#operationName = operationName
+    this.#transport = args.transport
+    this.#resolver = args.resolver
+    this.#options = args.options || {}
+    this.isUsed = false
+  }
+
+  public reset(): void {
+    this.isUsed = false
+  }
+
+  /**
+   * @note Individual subscription handlers stay silent. The subscription
+   * transport owns the GraphQL-aware logging for the entire connection
+   * (a logger is attached once per matching handler otherwise).
+   */
+  public log(): () => void {
+    return function detachLogger() {}
+  }
+
+  protected [kConnect](connection: WebSocketHandlerConnection): boolean {
+    this.#transport.subscribe(connection, this, (args) => {
+      return this.#handleSubscribe(connection, args)
+    })
+
+    return true
+  }
+
+  #handleSubscribe(
+    connection: WebSocketHandlerConnection,
+    args: {
+      node: ParsedGraphQLQuery
+      message: GraphQLWebSocketSubscribeMessage
+    },
+  ): boolean {
+    if (this.#options.once && this.isUsed) {
+      return false
+    }
+
+    const { operationName } = args.node
+
+    if (!operationName || !this.#matchesOperationName(operationName)) {
+      return false
+    }
+
+    this.isUsed = true
+
+    const subscription = new GraphQLSubscription<Query, Variables>({
+      message: args.message,
+      clientId: connection.client.id,
+      transport: this.#transport,
+    })
+
+    this.#resolver({
+      params: connection.params,
+      operationName,
+      subscription,
+    })
+
+    return true
+  }
+
+  #matchesOperationName(operationName: string): boolean {
+    if (this.#operationName instanceof RegExp) {
+      return this.#operationName.test(operationName)
+    }
+
+    return this.#operationName === operationName
+  }
+}
+
+/**
+ * Representation of the intercepted GraphQL subscription.
+ */
+export class GraphQLSubscription<
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+> {
+  public id: string
+  public query: string
+  public variables: Variables
+  public extensions?: Record<string, unknown>
+
+  readonly #message: GraphQLWebSocketSubscribeMessage
+  readonly #clientId: string
+  readonly #transport: GraphQLSubscriptionTransportHandler
+
+  constructor(args: {
+    message: GraphQLWebSocketSubscribeMessage
+    clientId: string
+    transport: GraphQLSubscriptionTransportHandler
+  }) {
+    this.id = args.message.id
+    this.query = args.message.payload.query
+    this.variables = (args.message.payload.variables || {}) as Variables
+    this.extensions = args.message.payload.extensions
+
+    this.#message = args.message
+    this.#clientId = args.clientId
+    this.#transport = args.transport
+  }
+
+  /**
+   * Publish an execution result to the subscribed client.
+   *
+   * @example
+   * subscription.publish({
+   *   data: {
+   *     postAdded: {
+   *       id: 'abc-123'
+   *     }
+   *   }
+   * })
+   */
+  public publish(payload: GraphQLSubscriptionPayload<Query>): void {
+    this.#transport.publish({
+      clientId: this.#clientId,
+      subscriptionId: this.id,
+      payload,
+    })
+  }
+
+  /**
+   * Use the given `Iterable` or `AsyncIterable` as the source
+   * of data for this subscription. Whenever the iterable yields a
+   * value, it gets published to this subscription.
+   *
+   * @example
+   * subscription.from(async function* () {
+   *   yield { text: 'hello world' }
+   * })
+   */
+  public async from(
+    source: Iterable<Query> | AsyncIterable<Query>,
+  ): Promise<void> {
+    for await (const data of source) {
+      this.publish({ data })
+    }
+  }
+
+  /**
+   * Terminate this subscription with the given errors.
+   *
+   * @example
+   * subscription.error([{ message: 'Something went wrong' }])
+   */
+  public error(errors: ReadonlyArray<Partial<GraphQLError>>): void {
+    this.#transport.error({
+      clientId: this.#clientId,
+      subscriptionId: this.id,
+      errors,
+    })
+  }
+
+  /**
+   * Marks this subscription as complete.
+   *
+   * @example
+   * subscription.complete()
+   */
+  public complete(): void {
+    this.#transport.complete({
+      clientId: this.#clientId,
+      subscriptionId: this.id,
+    })
+  }
+
+  /**
+   * Perform this GraphQL subscription as-is.
+   * This establishes a connection to the actual server, replays
+   * the intercepted subscription, and forwards the server payloads
+   * to the GraphQL client. You can intercept, modify, or prevent
+   * any of the original server messages.
+   *
+   * @example
+   * const postAddedSubscription = subscription.passthrough()
+   * postAddedSubscription.addEventListener('next', (event) => {
+   *   event.preventDefault()
+   *   event.data.payload.data.postAdded.id = 'mock-id'
+   *   subscription.publish(event.data.payload)
+   * })
+   */
+  public passthrough(): GraphQLPassthroughSubscription {
+    const connection = this.#transport.getConnection(this.#clientId)
+
+    /**
+     * @note One can only call this method inside the GraphQL subscription
+     * handler. By that point, the WebSocket connection has been established
+     * and intercepted so the connection reference is guaranteed.
+     */
+    invariant(
+      connection,
+      'Failed to passthrough the GraphQL subscription ("%s"): the underlying WebSocket connection is closed',
+      this.query,
+    )
+
+    return new GraphQLPassthroughSubscription({
+      server: connection.server,
+      message: this.#message,
+    })
+  }
+}
+
+export type GraphQLPassthroughSubscriptionEventMap = {
+  connection_ack: TypedEvent
+  next: TypedEvent<GraphQLWebSocketNextMessage>
+  error: TypedEvent<GraphQLWebSocketErrorMessage>
+  complete: TypedEvent<GraphQLWebSocketCompleteMessage>
+}
+
+/**
+ * Representation of a GraphQL subscription to the actual server.
+ * You interface with this object from the client's perspective.
+ */
+export class GraphQLPassthroughSubscription {
+  readonly #server: WebSocketServerConnectionProtocol
+  readonly #message: GraphQLWebSocketSubscribeMessage
+  readonly #emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
+  readonly #abortController: AbortController
+
+  constructor(args: {
+    server: WebSocketServerConnectionProtocol
+    message: GraphQLWebSocketSubscribeMessage
+  }) {
+    this.#server = args.server
+    this.#message = args.message
+    this.#emitter = new Emitter()
+
+    // An abort controller responsible for removing the server event
+    // listeners once the subscription is unsubscribed.
+    this.#abortController = new AbortController()
+
+    this.#server.connect()
+    this.#server.addEventListener(
+      'open',
+      () => {
+        // Once the WebSocket server connection is established, send the
+        // client connection prompt to the server. This lets the server
+        // connect and authorize this client.
+        this.#server.send(
+          JSON.stringify({
+            type: 'connection_init',
+          } satisfies GraphQLWebSocketInitMessage),
+        )
+      },
+      { signal: this.#abortController.signal },
+    )
+
+    this.#server.addEventListener(
+      'message',
+      (event) => {
+        const message =
+          parseGraphQLWebSocketMessage<GraphQLWebSocketServerMessage>(
+            event.data,
+          )
+
+        if (!message) {
+          return
+        }
+
+        switch (message.type) {
+          case 'connection_ack': {
+            // Prevent the original acknowledgement from being forwarded
+            // to the client: the client has already received a mocked
+            // acknowledgement upon connecting.
+            event.preventDefault()
+            this.#emitter.emit(new TypedEvent('connection_ack'))
+
+            // Once the GraphQL server acknowledges the connection, send
+            // the subscription intent message. This is the same message
+            // as was sent from the GraphQL client.
+            this.#server.send(JSON.stringify(this.#message))
+            break
+          }
+
+          case 'next': {
+            if (message.id !== this.#message.id) {
+              break
+            }
+
+            const nextEvent = new TypedEvent('next', { data: message })
+            this.#emitter.emit(nextEvent)
+
+            if (nextEvent.defaultPrevented) {
+              event.preventDefault()
+            }
+
+            break
+          }
+
+          case 'error': {
+            if (message.id !== this.#message.id) {
+              break
+            }
+
+            const errorEvent = new TypedEvent('error', { data: message })
+            this.#emitter.emit(errorEvent)
+
+            if (errorEvent.defaultPrevented) {
+              event.preventDefault()
+            }
+
+            break
+          }
+
+          case 'complete': {
+            if (message.id !== this.#message.id) {
+              break
+            }
+
+            const completeEvent = new TypedEvent('complete', { data: message })
+            this.#emitter.emit(completeEvent)
+
+            if (completeEvent.defaultPrevented) {
+              event.preventDefault()
+            }
+
+            break
+          }
+        }
+      },
+      { signal: this.#abortController.signal },
+    )
+  }
+
+  /**
+   * Add an event listener to the given GraphQL subscription event.
+   *
+   * @example
+   * const onPostAddedSubscription = subscription.passthrough()
+   * onPostAddedSubscription.addEventListener('next', (event) => {
+   *   console.log(event.data)
+   *   // { id, payload, ... }
+   * })
+   */
+  public addEventListener<
+    EventType extends keyof GraphQLPassthroughSubscriptionEventMap & string,
+  >(
+    event: EventType,
+    listener: Emitter.Listener<
+      Emitter<GraphQLPassthroughSubscriptionEventMap>,
+      EventType
+    >,
+  ): void {
+    this.#emitter.on(event, listener, {
+      signal: this.#abortController.signal,
+    })
+  }
+
+  /**
+   * Unsubscribe from this passthrough GraphQL subscription.
+   * This closes the underlying server connection.
+   *
+   * @note Unsubscribing from the original subscription has no
+   * effect on the intercepted `subscription` object.
+   *
+   * @example
+   * const onPostAddedSubscription = subscription.passthrough()
+   * onPostAddedSubscription.unsubscribe()
+   */
+  public unsubscribe(): void {
+    this.#abortController.abort()
+    this.#emitter.removeAllListeners()
+    this.#server.close()
+  }
+}
+
+function logGraphQLFrame(args: {
+  color: string
+  label: string
+  payload?: unknown
+}): void {
+  const timestamp = getTimestamp({ milliseconds: true })
+
+  if (typeof args.payload === 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log(
+      devUtils.formatMessage(`${timestamp} %c${args.label}%c`),
+      `color:${args.color}`,
+      'color:inherit',
+    )
+    return
+  }
+
+  console.groupCollapsed(
+    devUtils.formatMessage(`${timestamp} %c${args.label}%c`),
+    `color:${args.color}`,
+    'color:inherit',
+  )
+  // eslint-disable-next-line no-console
+  console.log(args.payload)
+  console.groupEnd()
+}
+
+/**
+ * Attach a GraphQL-aware logger to the intercepted WebSocket connection.
+ * Unlike the raw WebSocket logger, this logger prints parsed
+ * `graphql-transport-ws` frames relevant to the subscription.
+ */
+function attachGraphQLSubscriptionLogger(
+  connection: WebSocketConnectionData,
+): () => void {
+  const { client } = connection
+  const abortController = new AbortController()
+
+  logGraphQLFrame({
+    color: colors.system,
+    label: `GraphQL subscription connection ${toPublicUrl(client.url)}`,
+  })
+
+  client.addEventListener(
+    'message',
+    (event) => {
+      const message =
+        parseGraphQLWebSocketMessage<GraphQLWebSocketClientMessage>(event.data)
+
+      if (!message) {
+        return
+      }
+
+      switch (message.type) {
+        case 'subscribe': {
+          logGraphQLFrame({
+            color: colors.outgoing,
+            label: `subscribe (id: ${message.id})`,
+            payload: message.payload,
+          })
+          break
+        }
+
+        case 'complete': {
+          logGraphQLFrame({
+            color: colors.outgoing,
+            label: `complete (id: ${message.id})`,
+          })
+          break
+        }
+      }
+    },
+    { signal: abortController.signal },
+  )
+
+  // Proxy `client.send` to log the frames published to the client
+  // (`client.send` does not dispatch any observable events).
+  const originalClientSend = client.send
+
+  client.send = new Proxy(client.send, {
+    apply: (target, thisArg, args) => {
+      const [data] = args
+      const message =
+        parseGraphQLWebSocketMessage<GraphQLWebSocketServerMessage>(data)
+
+      if (message) {
+        switch (message.type) {
+          case 'next': {
+            logGraphQLFrame({
+              color: colors.mocked,
+              label: `next (id: ${message.id})`,
+              payload: message.payload,
+            })
+            break
+          }
+
+          case 'error': {
+            logGraphQLFrame({
+              color: colors.mocked,
+              label: `error (id: ${message.id})`,
+              payload: message.payload,
+            })
+            break
+          }
+
+          case 'complete': {
+            logGraphQLFrame({
+              color: colors.mocked,
+              label: `complete (id: ${message.id})`,
+            })
+            break
+          }
+        }
+      }
+
+      return Reflect.apply(target, thisArg, args)
+    },
+  })
+
+  return function detachLogger() {
+    abortController.abort()
+    client.send = originalClientSend
+  }
+}
+
+export type GraphQLSubscriptionHandlerFactory = <
+  Query extends GraphQLQuery = GraphQLQuery,
+  Variables extends GraphQLVariables = GraphQLVariables,
+>(
+  operationName: GraphQLSubscriptionName<Query, Variables>,
+  resolver: GraphQLSubscriptionResolver<Query, Variables>,
+  options?: GraphQLSubscriptionHandlerOptions,
+) => GraphQLSubscriptionHandler<Query, Variables>
+
+/**
+ * Create a `subscription()` handler factory bound to the given GraphQL
+ * endpoint. All subscription handlers created by the factory share a single
+ * subscription transport and a single WebSocket upgrade handler, both
+ * attached to each handler as siblings.
+ *
+ * @example
+ * const subscription = createGraphQLSubscriptionHandler('https://api.example.com/graphql')
+ * subscription('OnPostAdded', ({ subscription }) => {
+ *   subscription.publish({ data: { postAdded: { id: 'abc-123' } } })
+ * })
+ */
+export function createGraphQLSubscriptionHandler(
+  url: Path,
+): GraphQLSubscriptionHandlerFactory {
+  const webSocketUrl =
+    typeof url === 'string' ? url.replace(/^http/, 'ws') : url
+
+  const transport = new GraphQLSubscriptionTransportHandler(webSocketUrl)
+
+  // The `upgrade` request handler enables WebSocket interception in Node.js.
+  // The same handler instance is shared between all subscription handlers
+  // of this endpoint (sibling handlers are deduped by reference).
+  const upgradeHandler = http.get(({ request }) => {
+    return (
+      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
+      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), webSocketUrl)
+        .matches
+    )
+  }, ws.onUpgrade)
+
+  return (operationName, resolver, options) => {
+    const handler = new GraphQLSubscriptionHandler({
+      url: webSocketUrl,
+      operationName,
+      transport,
+      resolver,
+      options,
+    })
+
+    return attachSiblingHandlers(handler, [transport, upgradeHandler])
+  }
+}

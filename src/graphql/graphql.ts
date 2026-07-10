@@ -13,6 +13,10 @@ import {
   type GraphQLPredicate,
 } from './graphql-handler'
 import type { Path } from '#core/utils/matching/matchRequestUrl'
+import {
+  createGraphQLSubscriptionHandler,
+  type GraphQLSubscriptionHandlerFactory,
+} from './graphql-subscription'
 
 export type GraphQLRequestHandler = <
   Query extends GraphQLQuery = GraphQLQuery,
@@ -65,6 +69,17 @@ export interface GraphQLLinkHandlers {
   query: GraphQLRequestHandler
   mutation: GraphQLRequestHandler
   operation: GraphQLOperationHandler
+  /**
+   * Intercept a GraphQL subscription.
+   *
+   * @example
+   * graphql.subscription('OnPostAdded', ({ subscription }) => {
+   *   subscription.publish({
+   *    data: { postAdded: { id: 'abc-123' } },
+   *   })
+   * })
+   */
+  subscription: GraphQLSubscriptionHandlerFactory
 }
 
 /**
@@ -131,6 +146,7 @@ export const graphql = {
         'mutation' as OperationTypeNode,
         url,
       ),
+      subscription: createGraphQLSubscriptionHandler(url),
     }
   },
 }

@@ -10,6 +10,7 @@ import { createPubSub, createSchema } from 'graphql-yoga'
 import { createClient } from '../../support/graphqlClient'
 import { gql } from '../../support/graphql'
 import { createTestGraphQLServer } from '../../support/graphqlServer'
+import { WebSocketServer } from '../../support/WebSocketServer'
 
 const server = setupServer()
 
@@ -1035,4 +1036,79 @@ it('augments original server subscription payload', async () => {
     },
     done: false,
   })
+})
+
+it('intercepts GraphQL subscriptions on a wildcard link', async () => {
+  const api = graphql.link('*')
+
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription }) => {
+      subscription.publish({
+        data: {
+          commentAdded: {
+            id: '1',
+          },
+        },
+      })
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded {
+        commentAdded {
+          id
+        }
+      }
+    `,
+  })
+
+  await expect(subscription.next()).resolves.toEqual({
+    value: {
+      data: {
+        commentAdded: {
+          id: '1',
+        },
+      },
+    },
+    done: false,
+  })
+})
+
+it('performs non-GraphQL WebSocket connections as-is despite a wildcard link', async () => {
+  const webSocketServer = new WebSocketServer()
+  await webSocketServer.listen()
+  webSocketServer.on('connection', (client) => {
+    client.send('hello from server')
+  })
+
+  try {
+    const api = graphql.link('*')
+
+    server.use(
+      api.subscription('OnCommentAdded', () => {}),
+      api.operation(() => {}),
+    )
+
+    // A plain WebSocket connection does not request the
+    // "graphql-transport-ws" subprotocol, so even a wildcard GraphQL
+    // link must not claim it. The connection is performed as-is.
+    const socket = new WebSocket(webSocketServer.url)
+    const incomingMessage = await new Promise<string>((resolve, reject) => {
+      socket.addEventListener('message', (event) => {
+        resolve(String(event.data))
+      })
+      socket.addEventListener('error', () => {
+        reject(new Error('Expected the WebSocket connection to succeed'))
+      })
+    })
+
+    expect(incomingMessage).toBe('hello from server')
+    socket.close()
+  } finally {
+    await webSocketServer.close()
+  }
 })

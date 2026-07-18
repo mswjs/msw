@@ -18,6 +18,7 @@ export class TestWebSocketTransport
 
 export function createTestWebSocketConnection(
   url: string | URL,
+  options?: { protocols?: string | Array<string> },
 ): WebSocketConnectionData {
   const socket = new WebSocket(url)
   const transport = new TestWebSocketTransport()
@@ -30,7 +31,7 @@ export function createTestWebSocketConnection(
       () => socket,
     ),
     info: {
-      protocols: [],
+      protocols: options?.protocols ?? [],
     },
   }
 }

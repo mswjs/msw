@@ -215,15 +215,31 @@ export const ws: WebSocketNamespace = {
     const digest = await crypto.subtle.digest('SHA-1', keyBytes)
     const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
 
-    new WebSocket(resolveWebSocketUrl(request.url))
+    // Forward the subprotocols requested by the client to the intercepted
+    // connection so WebSocket handlers can match on them.
+    const requestedProtocols = request.headers
+      .get('sec-websocket-protocol')
+      ?.split(',')
+      .map((protocol) => protocol.trim())
+
+    new WebSocket(resolveWebSocketUrl(request.url), requestedProtocols)
+
+    const headers = new Headers({
+      upgrade: 'websocket',
+      connection: 'upgrade',
+      'sec-websocket-accept': acceptValue,
+    })
+
+    // Confirm the first requested subprotocol as the accepted one.
+    // Clients that requested subprotocols are entitled to fail the
+    // connection if the server confirms none (RFC 6455, section 4.1).
+    if (requestedProtocols && requestedProtocols.length > 0) {
+      headers.set('sec-websocket-protocol', requestedProtocols[0])
+    }
 
     return new FetchResponse(null, {
       status: 101,
-      headers: {
-        upgrade: 'websocket',
-        connection: 'upgrade',
-        'sec-websocket-accept': acceptValue,
-      },
+      headers,
     })
   },
 }

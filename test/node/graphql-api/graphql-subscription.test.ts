@@ -269,11 +269,23 @@ it('matches an outgoing subscription with "graphql.operation()"', async () => {
 
   await expect
     .poll(() => operationResolver)
-    .toHaveBeenCalledExactlyOnceWith({
-      operationName: 'OnCommentAdded',
-      query: expect.stringContaining('subscription OnCommentAdded'),
-      variables: { postId: 'post-1' },
-    })
+    .toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        operationName: 'OnCommentAdded',
+        query: expect.stringContaining('subscription OnCommentAdded'),
+        variables: { postId: 'post-1' },
+      }),
+    )
+
+  // The resolver must receive the full resolver contract, not a
+  // reduced object that only looks like one to TypeScript.
+  const [info] = operationResolver.mock.calls[0]
+  expect(info.request).toBeInstanceOf(Request)
+  expect(info.request.url).toBe('wss://localhost/graphql')
+  expect(info.request.headers.get('upgrade')).toBe('websocket')
+  expect(info.requestId).toEqual(expect.any(String))
+  expect(info.cookies).toEqual({})
+  expect(info.finalize).toBeInstanceOf(Function)
 })
 
 it('supports one-time "graphql.operation()" handlers', async () => {

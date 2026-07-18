@@ -12,6 +12,8 @@ import {
   type GraphQLQuery,
   type GraphQLPredicate,
 } from './graphql-handler'
+import { createRequestId } from '@mswjs/interceptors'
+import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
 import type { Path } from '#core/utils/matching/matchRequestUrl'
 import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
 import {
@@ -64,7 +66,21 @@ function createGraphQLOperationHandler(
   url: Path,
   subscriptionFactory?: GraphQLSubscriptionHandlerFactory,
 ): GraphQLOperationHandler {
-  return (resolver, options) => {
+  /**
+   * @note An explicitly generic function so the subscription sibling
+   * can be created with the same `Query`/`Variables` types as the
+   * operation resolver, without casting its resolver info.
+   */
+  return <
+    Query extends GraphQLQuery = GraphQLQuery,
+    Variables extends GraphQLVariables = GraphQLVariables,
+  >(
+    resolver: GraphQLResponseResolver<
+      [Query] extends [never] ? GraphQLQuery : Query,
+      Variables
+    >,
+    options?: RequestHandlerOptions,
+  ): GraphQLHandler => {
     const handler = new GraphQLHandler(
       'all',
       new RegExp('.*'),
@@ -81,19 +97,23 @@ function createGraphQLOperationHandler(
     // operation handler also matches GraphQL subscriptions over WebSocket.
     // The subscription transport guarantees only actual GraphQL
     // subscriptions are dispatched to it.
-    const subscriptionCatchAllHandler = subscriptionFactory(
+    const subscriptionCatchAllHandler = subscriptionFactory<Query, Variables>(
       new RegExp('.*'),
-      ({ operationName, subscription }) => {
+      ({ operationName, subscription, request, finalize }) => {
         /**
-         * @note Subscriptions are resolved imperatively so the resolver
-         * is invoked with a reduced info object (no request to expose),
-         * and its return value is ignored.
+         * @note Subscriptions are resolved imperatively, so the return
+         * value of the resolver is ignored. The request describes the
+         * WebSocket connection this subscription is multiplexed over.
          */
         resolver({
           operationName,
           query: subscription.query,
           variables: subscription.variables,
-        } as Parameters<typeof resolver>[0])
+          cookies: getAllRequestCookies(request),
+          request,
+          requestId: createRequestId(),
+          finalize,
+        })
       },
       // Forward the handler options so a one-time operation handler is
       // also consumed by the first subscription it matches.

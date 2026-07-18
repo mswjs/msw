@@ -176,6 +176,20 @@ function createPongMessage(): string {
   } satisfies GraphQLWebSocketPongMessage)
 }
 
+/**
+ * Construct a request representing the WebSocket upgrade of the given
+ * connection. GraphQL subscriptions have no request of their own, so
+ * this describes the connection they are multiplexed over.
+ */
+function createUpgradeRequest(url: URL): Request {
+  return new Request(url, {
+    headers: {
+      connection: 'upgrade',
+      upgrade: 'websocket',
+    },
+  })
+}
+
 function parseGraphQLWebSocketMessage<MessageType extends { type: string }>(
   data: WebSocketData,
 ): MessageType | undefined {
@@ -758,12 +772,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
         operationName: node.operationName,
         query: message.payload.query,
         variables: { ...message.payload.variables },
-        request: new Request(connection.client.url, {
-          headers: {
-            connection: 'upgrade',
-            upgrade: 'websocket',
-          },
-        }),
+        request: createUpgradeRequest(connection.client.url),
       }),
     )
   }
@@ -792,6 +801,12 @@ export interface GraphQLSubscriptionResolverInfo<
    * Intercepted GraphQL subscription.
    */
   subscription: GraphQLSubscription<Query, Variables>
+
+  /**
+   * The request that established the WebSocket connection this
+   * subscription is multiplexed over.
+   */
+  request: Request
 
   /**
    * Schedule a cleanup to run once this subscription ends and the
@@ -922,6 +937,7 @@ export class GraphQLSubscriptionHandler<
       params: connection.params,
       operationName,
       subscription,
+      request: createUpgradeRequest(connection.client.url),
       finalize: (cleanup) => {
         this.#transport.finalize({
           clientId: connection.client.id,

@@ -6,12 +6,6 @@ import {
   type Response,
   type Page,
 } from '@playwright/test'
-import {
-  Headers,
-  headersToObject,
-  flattenHeadersObject,
-  type FlatHeadersObject,
-} from 'headers-polyfill'
 import { spyOnConsole, type ConsoleMessages } from 'page-with'
 import {
   HttpServer,
@@ -166,7 +160,7 @@ export const test = base.extend<TestFixtures>({
 
       const resolvedInit = {
         ...fetchOptions,
-        headers: flattenHeadersObject(headersToObject(requestHeaders)),
+        headers: Object.fromEntries(requestHeaders),
       }
 
       // Don't await the request here so that we can await the response
@@ -196,7 +190,7 @@ export const test = base.extend<TestFixtures>({
       const requestId = crypto.randomUUID()
       const method = options.method || 'POST'
       const requestUrl = new URL(uri, 'http://localhost:8080')
-      const headers: FlatHeadersObject = {
+      const headers: Record<string, string> = {
         'x-request-id': requestId,
       }
 
@@ -216,7 +210,7 @@ export const test = base.extend<TestFixtures>({
         {
           url: string
           method: string
-          headers: FlatHeadersObject
+          headers: Record<string, string>
           options: GraphQLQueryOptions
         }
       >(

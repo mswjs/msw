@@ -1,7 +1,9 @@
 import { encodeBuffer } from '@mswjs/interceptors'
-import { OperationTypeNode } from 'graphql'
+import { OperationTypeNode, parse } from 'graphql'
 import {
+  parseDocumentNode,
   parseGraphQLRequest,
+  type ParsedGraphQLQuery,
   type ParsedGraphQLRequest,
 } from './parse-graphql-request'
 
@@ -93,4 +95,43 @@ test('does not read the original request body', async () => {
   // Must not read the original request body because GraphQL parsing
   // is an internal operation that must not lock the body stream.
   expect(request.bodyUsed).toBe(false)
+})
+
+describe('parseDocumentNode', () => {
+  const document = parse(`
+    query GetComments {
+      comments {
+        text
+      }
+    }
+
+    subscription OnCommentAdded {
+      commentAdded {
+        text
+      }
+    }
+  `)
+
+  test('returns the first operation given no operation name', () => {
+    expect(parseDocumentNode(document)).toEqual<ParsedGraphQLQuery>({
+      operationType: OperationTypeNode.QUERY,
+      operationName: 'GetComments',
+    })
+  })
+
+  test('returns the operation matching the given operation name', () => {
+    expect(
+      parseDocumentNode(document, 'OnCommentAdded'),
+    ).toEqual<ParsedGraphQLQuery>({
+      operationType: OperationTypeNode.SUBSCRIPTION,
+      operationName: 'OnCommentAdded',
+    })
+  })
+
+  test('falls back to the first operation given an unknown operation name', () => {
+    expect(parseDocumentNode(document, 'Unknown')).toEqual<ParsedGraphQLQuery>({
+      operationType: OperationTypeNode.QUERY,
+      operationName: 'GetComments',
+    })
+  })
 })

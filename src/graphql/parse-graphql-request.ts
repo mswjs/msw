@@ -29,10 +29,25 @@ export type ParsedGraphQLRequest<
     })
   | undefined
 
-export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
-  const operationDef = node.definitions.find((definition) => {
+export function parseDocumentNode(
+  node: DocumentNode,
+  operationName?: string | null,
+): ParsedGraphQLQuery {
+  const operationDefs = node.definitions.filter((definition) => {
     return definition.kind === 'OperationDefinition'
-  }) as OperationDefinitionNode
+  }) as Array<OperationDefinitionNode>
+
+  /**
+   * @note A document may bundle multiple operations (e.g. the ones
+   * emitted by GraphQL Code Generator). Honor the requested operation
+   * name, falling back to the first operation, like a GraphQL server
+   * given a request without an operation name.
+   */
+  const operationDef = operationName
+    ? operationDefs.find((definition) => {
+        return definition.name?.value === operationName
+      }) || operationDefs[0]
+    : operationDefs[0]
 
   return {
     operationType: operationDef?.operation,

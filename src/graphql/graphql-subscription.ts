@@ -648,7 +648,10 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     let node: ParsedGraphQLQuery
 
     try {
-      node = parseDocumentNode(parse(message.payload.query))
+      node = parseDocumentNode(
+        parse(message.payload.query),
+        message.payload.operationName,
+      )
     } catch (error) {
       devUtils.warn(
         'Failed to intercept a GraphQL subscription to "%s": the subscription query is not a valid GraphQL document.\n\n%s',

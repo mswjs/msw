@@ -749,6 +749,46 @@ it('combines extraneous and default pubsubs', async () => {
   })
 })
 
+it('selects the operation by name in a multi-operation document', async () => {
+  const api = graphql.link('http://localhost:4000/graphql')
+
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription }) => {
+      subscription.publish({
+        data: { commentAdded: { text: 'Hello world' } },
+      })
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+  })
+  const subscription = client.iterate({
+    // A document bundle where the subscription is not the first operation.
+    query: gql`
+      query GetComments {
+        comments {
+          text
+        }
+      }
+
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+    operationName: 'OnCommentAdded',
+  })
+
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: {
+      data: { commentAdded: { text: 'Hello world' } },
+    },
+  })
+})
+
 it('replays the connection params to the original server', async () => {
   const connectionParamsListener = vi.fn()
 

@@ -20,18 +20,19 @@ export async function createTestGraphQLServer(options: {
   const yoga = createYoga({
     schema: options.schema,
     graphiql: false,
+    graphqlEndpoint: pathname,
   })
 
   const testServer = await createTestHttpServer({
     defineRoutes(router) {
-      router.get('/graphql/*', ({ req }) => {
+      router.get(`${pathname}/*`, ({ req }) => {
         return yoga.fetch(req.raw)
       })
     },
   })
   const wss = createWebSocketMiddleware({
     server: testServer,
-    pathname: yoga.graphqlEndpoint,
+    pathname,
   })
 
   const disposeOfServer = useServer(

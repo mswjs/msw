@@ -8,6 +8,7 @@ import {
 } from './config/plugins/rolldown/copyWorkerPlugin.ts'
 import { resolveCoreImportsPlugin } from './config/plugins/rolldown/resolveCoreImportsPlugin.ts'
 import { forceFileExtensionsPlugin } from './config/plugins/rolldown/forceFileExtensionsPlugin.ts'
+import { cleanStrayDeclarationsPlugin } from './config/plugins/rolldown/clean-stray-declarations-plugin.ts'
 
 const packageJson = JSON.parse(
   fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
@@ -54,7 +55,9 @@ const shimConfigs: UserConfig[] = glob
     outDir: './lib/shims',
     unbundle: false,
     sourcemap: false,
-    dts: { build: true },
+    dts: true,
+    tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
+    plugins: [cleanStrayDeclarationsPlugin()],
   }))
 
 const coreConfig: UserConfig = {
@@ -74,9 +77,13 @@ const coreConfig: UserConfig = {
   outDir: './lib/core',
   unbundle: true,
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const graphqlConfig: UserConfig = {
@@ -96,9 +103,13 @@ const graphqlConfig: UserConfig = {
   outDir: './lib/graphql',
   unbundle: true,
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const httpConfig: UserConfig = {
@@ -118,9 +129,13 @@ const httpConfig: UserConfig = {
   outDir: './lib/http',
   unbundle: true,
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const wsConfig: UserConfig = {
@@ -140,9 +155,13 @@ const wsConfig: UserConfig = {
   outDir: './lib/ws',
   unbundle: true,
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const nodeConfig: UserConfig = {
@@ -168,9 +187,13 @@ const nodeConfig: UserConfig = {
     codeSplitting: false,
   },
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const browserConfig: UserConfig = {
@@ -194,7 +217,7 @@ const browserConfig: UserConfig = {
     codeSplitting: false,
   },
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
@@ -203,6 +226,7 @@ const browserConfig: UserConfig = {
     resolveCoreImportsPlugin(),
     forceFileExtensionsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
+    cleanStrayDeclarationsPlugin(),
   ],
 }
 
@@ -231,9 +255,13 @@ const reactNativeConfig: UserConfig = {
     codeSplitting: false,
   },
   sourcemap: true,
-  dts: { build: true },
+  dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
-  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+  plugins: [
+    resolveCoreImportsPlugin(),
+    forceFileExtensionsPlugin(),
+    cleanStrayDeclarationsPlugin(),
+  ],
 }
 
 const iifeConfig: UserConfig = {

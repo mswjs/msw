@@ -6,7 +6,6 @@
     "moduleResolution": "bundler",
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": false,
     "verbatimModuleSyntax": true
   },
   "include": ["./global.d.ts"],

@@ -1,6 +1,5 @@
 import type { sse } from 'msw'
 import type { setupWorker } from 'msw/browser'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
@@ -20,7 +19,7 @@ test('runs cleanup after the event source is closed by the client', async ({
     skipActivation: true,
   })
 
-  const finalizedAt = new DeferredPromise<number>()
+  const finalizedAt = Promise.withResolvers<number>()
   await page.exposeFunction('notifyFinalized', () => {
     finalizedAt.resolve(Date.now())
   })
@@ -47,7 +46,7 @@ test('runs cleanup after the event source is closed by the client', async ({
     })
   })
 
-  await expect(finalizedAt).resolves.toBeGreaterThanOrEqual(closedAt)
+  await expect(finalizedAt.promise).resolves.toBeGreaterThanOrEqual(closedAt)
 })
 
 test('runs cleanup after the event source is closed by the handler', async ({
@@ -58,7 +57,7 @@ test('runs cleanup after the event source is closed by the handler', async ({
     skipActivation: true,
   })
 
-  const finalizedAt = new DeferredPromise<number>()
+  const finalizedAt = Promise.withResolvers<number>()
   await page.exposeFunction('notifyFinalized', () => {
     finalizedAt.resolve(Date.now())
   })
@@ -85,7 +84,7 @@ test('runs cleanup after the event source is closed by the handler', async ({
     })
   })
 
-  await expect(finalizedAt).resolves.toBeGreaterThanOrEqual(closedAt)
+  await expect(finalizedAt.promise).resolves.toBeGreaterThanOrEqual(closedAt)
 })
 
 test('runs cleanup after the event source is errored by the handler', async ({
@@ -96,7 +95,7 @@ test('runs cleanup after the event source is errored by the handler', async ({
     skipActivation: true,
   })
 
-  const finalizedAt = new DeferredPromise<number>()
+  const finalizedAt = Promise.withResolvers<number>()
   await page.exposeFunction('notifyFinalized', () => {
     finalizedAt.resolve(Date.now())
   })
@@ -123,7 +122,7 @@ test('runs cleanup after the event source is errored by the handler', async ({
     })
   })
 
-  await expect(finalizedAt).resolves.toBeGreaterThanOrEqual(closedAt)
+  await expect(finalizedAt.promise).resolves.toBeGreaterThanOrEqual(closedAt)
 })
 
 test('runs independent cleanups for parallel event sources', async ({
@@ -189,7 +188,7 @@ test('runs cleanup when the handler closes the event source synchronously', asyn
     skipActivation: true,
   })
 
-  const finalized = new DeferredPromise<void>()
+  const finalized = Promise.withResolvers<void>()
   await page.exposeFunction('notifyFinalized', () => {
     finalized.resolve()
   })
@@ -210,5 +209,5 @@ test('runs cleanup when the handler closes the event source synchronously', asyn
     new EventSource('http://localhost/stream')
   })
 
-  await expect(finalized).resolves.toBeUndefined()
+  await expect(finalized.promise).resolves.toBeUndefined()
 })

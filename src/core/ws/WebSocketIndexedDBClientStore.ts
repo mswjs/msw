@@ -1,4 +1,3 @@
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 import type { WebSocketClientStore } from './WebSocketClientStore'
 import { type SerializedWebSocketClient } from './WebSocketClientStore'
@@ -14,7 +13,7 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
   }
 
   public async add(client: WebSocketClientConnectionProtocol): Promise<void> {
-    const promise = new DeferredPromise<void>()
+    const promise = Promise.withResolvers<void>()
     const store = await this.getStore()
 
     /**
@@ -40,11 +39,11 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       )
     }
 
-    return promise
+    return promise.promise
   }
 
   public async getAll(): Promise<Array<SerializedWebSocketClient>> {
-    const promise = new DeferredPromise<Array<SerializedWebSocketClient>>()
+    const promise = Promise.withResolvers<Array<SerializedWebSocketClient>>()
     const store = await this.getStore()
     const request = store.getAll() as IDBRequest<
       Array<SerializedWebSocketClient>
@@ -62,11 +61,11 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       )
     }
 
-    return promise
+    return promise.promise
   }
 
   public async deleteMany(clientIds: Array<string>): Promise<void> {
-    const promise = new DeferredPromise<void>()
+    const promise = Promise.withResolvers<void>()
     const store = await this.getStore()
 
     for (const clientId of clientIds) {
@@ -85,11 +84,11 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       )
     }
 
-    return promise
+    return promise.promise
   }
 
   private async createDatabase(): Promise<IDBDatabase> {
-    const promise = new DeferredPromise<IDBDatabase>()
+    const promise = Promise.withResolvers<IDBDatabase>()
     const request = indexedDB.open(DB_NAME, 1)
 
     request.onsuccess = ({ currentTarget }) => {
@@ -128,7 +127,7 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
       )
     }
 
-    return promise
+    return promise.promise
   }
 
   private async getStore(): Promise<IDBObjectStore> {

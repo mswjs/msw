@@ -2,7 +2,6 @@ import { setTimeout } from 'node:timers/promises'
 import { sse } from 'msw'
 import { setupWorker } from 'msw/browser'
 import { createTestHttpServer } from '@epic-web/test-server/http'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { test, expect } from '../playwright.extend'
 
 declare namespace window {
@@ -30,7 +29,7 @@ test('stops reconnecting to the upstream when the consumer closes mid-backoff', 
   })
 
   let upstreamRequestCount = 0
-  const firstRequestReceived = new DeferredPromise<void>()
+  const firstRequestReceived = Promise.withResolvers<void>()
 
   await using server = await createTestHttpServer({
     defineRoutes(router) {
@@ -82,7 +81,7 @@ test('stops reconnecting to the upstream when the consumer closes mid-backoff', 
     })
   }, url)
 
-  await firstRequestReceived
+  await firstRequestReceived.promise
 
   // Wait long enough for a second reconnect to have fired if the
   // abort wiring did not cancel the backoff.

@@ -7,10 +7,13 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import type { HttpResponse } from '../HttpResponse'
-import type { StrictRequest, DefaultUnsafeFetchResponse } from '../HttpResponse'
+import type { HttpResponse } from '#http/http-response'
+import type {
+  StrictRequest,
+  DefaultUnsafeFetchResponse,
+} from '#http/http-response'
 import { devUtils } from '../utils/internal/devUtils'
-import { getRawSetCookie } from '../utils/HttpResponse/decorators'
+import { getRawSetCookie } from '../utils/response-decorators'
 import { observeResponseBodyStream } from '../utils/internal/observe-response-body-stream'
 
 export type DefaultRequestMultipartBody = Record<

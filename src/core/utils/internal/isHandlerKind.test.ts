@@ -1,5 +1,5 @@
 import { GraphQLHandler } from '../../../graphql/graphql-handler'
-import { HttpHandler } from '../../handlers/HttpHandler'
+import { HttpHandler } from '#http/http-handler'
 import { RequestHandler } from '../../handlers/RequestHandler'
 import { WebSocketHandler } from '../../handlers/WebSocketHandler'
 import { isHandlerKind } from './isHandlerKind'

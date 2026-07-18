@@ -15,6 +15,8 @@ const packageJson = JSON.parse(
 
 const ecosystemDependencies = /^@mswjs\/(.+)$/
 const mswCore = /#core(\/.+)?$/
+const mswHttp = /#http(\/.+)?$/
+const mswGraphql = /#graphql(\/.+)?$/
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
 const commonConfig = {
@@ -64,7 +66,7 @@ const coreConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [ecosystemDependencies, /shims\/(cookie|statuses)$/],
+    neverBundle: [mswHttp, mswGraphql, ecosystemDependencies, /shims\/(cookie|statuses)$/],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -73,7 +75,7 @@ const coreConfig: UserConfig = {
   sourcemap: true,
   dts: { build: true },
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [forceFileExtensionsPlugin()],
+  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
 const graphqlConfig: UserConfig = {
@@ -86,7 +88,7 @@ const graphqlConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -108,7 +110,7 @@ const httpConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -130,7 +132,7 @@ const wsConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -155,7 +157,7 @@ const nodeConfig: UserConfig = {
     },
   },
   deps: {
-    neverBundle: [mswCore, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -176,7 +178,7 @@ const browserConfig: UserConfig = {
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
   deps: {
-    neverBundle: [mswCore, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
     alwaysBundle: Object.keys(packageJson.dependencies).filter(
       (packageName) => {
         return !ecosystemDependencies.test(packageName)
@@ -214,6 +216,8 @@ const reactNativeConfig: UserConfig = {
       'util',
       'events',
       mswCore,
+      mswHttp,
+      mswGraphql,
       ecosystemDependencies,
     ],
     onlyBundle: false,

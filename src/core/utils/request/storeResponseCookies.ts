@@ -1,5 +1,5 @@
 import { cookieStore } from '../cookieStore'
-import { getRawSetCookie } from '../HttpResponse/decorators'
+import { getRawSetCookie } from '../response-decorators'
 
 export async function storeResponseCookies(
   request: Request,

@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 import { TextEncoder } from 'util'
-import { HttpResponse, kDefaultContentType } from './HttpResponse'
+import { HttpResponse, kDefaultContentType } from './http-response'
 
 it('creates a plain response', async () => {
   const response = new HttpResponse(null, { status: 301 })

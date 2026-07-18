@@ -8,7 +8,7 @@ export {
   http,
   type HttpRequestHandler,
   type HttpResponseResolver,
-} from '#core/http'
+} from './http'
 
 export {
   HttpHandler,
@@ -19,11 +19,11 @@ export {
   type HttpRequestResolverExtras,
   type HttpHandlerMethod,
   type HttpCustomPredicate,
-} from '#core/handlers/HttpHandler'
+} from './http-handler'
 
 export {
   HttpResponse,
   type HttpResponseInit,
   type StrictRequest,
   type StrictResponse,
-} from '#core/HttpResponse'
+} from './http-response'

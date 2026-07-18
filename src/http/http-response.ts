@@ -1,16 +1,21 @@
 import { FetchResponse } from '@mswjs/interceptors'
-import type { DefaultBodyType, JsonBodyType } from './handlers/RequestHandler'
-import type { NoInfer } from './typeUtils'
+import type {
+  DefaultBodyType,
+  JsonBodyType,
+} from '#core/handlers/RequestHandler'
+import type { NoInfer } from '#core/typeUtils'
 import {
   decorateResponse,
   normalizeResponseInit,
-} from './utils/HttpResponse/decorators'
+} from '#core/utils/response-decorators'
+import { kDefaultContentType, bodyType } from './symbols'
+
+export { kDefaultContentType, bodyType }
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType
 }
 
-export const bodyType: unique symbol = Symbol('bodyType')
 export type DefaultUnsafeFetchResponse = Response & {
   [bodyType]?: never
 }
@@ -27,8 +32,6 @@ export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
  */
 export type StrictResponse<BodyType extends DefaultBodyType> =
   HttpResponse<BodyType>
-
-export const kDefaultContentType = Symbol.for('kDefaultContentType')
 
 /**
  * A drop-in replacement for the standard `Response` class

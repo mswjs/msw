@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { http } from './http'
+import { http } from '#http/http'
 import { getResponse } from './getResponse'
 
 it('returns undefined given empty headers array', async () => {

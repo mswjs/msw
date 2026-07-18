@@ -1,6 +1,6 @@
 import { invariant } from 'outvariant'
-import { type RequestHandler } from '../handlers/RequestHandler'
-import { type WebSocketHandler } from '../handlers/WebSocketHandler'
+import type { RequestHandler } from '../handlers/RequestHandler'
+import type { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
 import type { MaybePromise } from '../typeUtils'
 import {

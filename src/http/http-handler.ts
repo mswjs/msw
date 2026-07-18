@@ -1,25 +1,25 @@
-import { type ResponseResolutionContext } from '../utils/executeHandlers'
-import { devUtils } from '../utils/internal/devUtils'
-import { isStringEqual } from '../utils/internal/isStringEqual'
-import { getStatusCodeColor } from '../utils/logging/getStatusCodeColor'
-import { getTimestamp } from '../utils/logging/getTimestamp'
-import { serializeRequest } from '../utils/logging/serializeRequest'
-import { serializeResponse } from '../utils/logging/serializeResponse'
+import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { isStringEqual } from '#core/utils/internal/isStringEqual'
+import { getStatusCodeColor } from '#core/utils/logging/getStatusCodeColor'
+import { getTimestamp } from '#core/utils/logging/getTimestamp'
+import { serializeRequest } from '#core/utils/logging/serializeRequest'
+import { serializeResponse } from '#core/utils/logging/serializeResponse'
 import {
   matchRequestUrl,
   type Match,
   type Path,
   type PathParams,
-} from '../utils/matching/matchRequestUrl'
-import { toPublicUrl } from '../utils/request/toPublicUrl'
-import { getAllRequestCookies } from '../utils/request/getRequestCookies'
-import { cleanUrl } from '../utils/url/cleanUrl'
+} from '#core/utils/matching/matchRequestUrl'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
+import { cleanUrl } from '#core/utils/url/cleanUrl'
 import {
   RequestHandler,
   type RequestHandlerDefaultInfo,
   type RequestHandlerOptions,
   type ResponseResolver,
-} from './RequestHandler'
+} from '#core/handlers/RequestHandler'
 
 export type HttpHandlerMethod = string | RegExp
 
@@ -56,8 +56,7 @@ export type HttpCustomPredicate<Params extends PathParams> = (args: {
   request: Request
   cookies: Record<string, string>
 }) =>
-  | HttpCustomPredicateResult<Params>
-  | Promise<HttpCustomPredicateResult<Params>>
+  HttpCustomPredicateResult<Params> | Promise<HttpCustomPredicateResult<Params>>
 
 export type HttpCustomPredicateResult<Params extends PathParams> =
   | boolean
@@ -67,8 +66,7 @@ export type HttpCustomPredicateResult<Params extends PathParams> =
     }
 
 export type HttpRequestPredicate<Params extends PathParams> =
-  | Path
-  | HttpCustomPredicate<Params>
+  Path | HttpCustomPredicate<Params>
 
 /**
  * Request handler for HTTP requests.

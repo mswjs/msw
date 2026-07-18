@@ -7,7 +7,7 @@ import {
   HttpNetworkFrame,
   ResponseEvent,
 } from '#core/experimental/frames/http-frame'
-import { HttpResponse } from '#core/HttpResponse'
+import { HttpResponse } from '#http/http-response'
 import { toResponseInit } from '#core/utils/toResponseInit'
 import { devUtils } from '#core/utils/internal/devUtils'
 import {

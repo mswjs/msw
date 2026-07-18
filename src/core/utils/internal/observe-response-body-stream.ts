@@ -1,5 +1,5 @@
 import { FetchResponse } from '@mswjs/interceptors'
-import { copyResponseOwnProperties } from '../HttpResponse/decorators'
+import { copyResponseOwnProperties } from '../response-decorators'
 
 export interface ObservedResponse {
   response: Response

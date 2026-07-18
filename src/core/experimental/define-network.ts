@@ -4,8 +4,8 @@ import {
   NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
-import { type NetworkFrameResolutionContext } from './frames/network-frame'
-import { type UnhandledFrameHandle } from './on-unhandled-frame'
+import type { NetworkFrameResolutionContext } from './frames/network-frame'
+import type { UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   HandlersController,
   InMemoryHandlersController,

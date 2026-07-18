@@ -49,7 +49,11 @@
   },
   "imports": {
     "#core": "./src/core",
-    "#core/*": "./src/core/*"
+    "#core/*": "./src/core/*",
+    "#http": "./src/http",
+    "#http/*": "./src/http/*",
+    "#graphql": "./src/graphql",
+    "#graphql/*": "./src/graphql/*"
   },
   "bin": {
     "msw": "cli/index.js"

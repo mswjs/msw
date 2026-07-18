@@ -1,4 +1,4 @@
-import { type ServiceWorkerSourceOptions } from '../sources/service-worker-source'
+import type { ServiceWorkerSourceOptions } from '../sources/service-worker-source'
 import { shouldInvalidateWorker } from './should-invalidate-worker'
 
 function createOptions(

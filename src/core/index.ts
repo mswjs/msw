@@ -4,8 +4,8 @@ export { SetupApi } from './experimental/setup-api'
 
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
-export { http } from './http'
-export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
+export { http } from '#http/http'
+export { HttpHandler, HttpMethods } from '#http/http-handler'
 
 /* Server-Sent Events */
 export {
@@ -52,8 +52,8 @@ export type {
   HttpRequestResolverExtras,
   HttpHandlerMethod,
   HttpCustomPredicate,
-} from './handlers/HttpHandler'
-export type { HttpRequestHandler, HttpResponseResolver } from './http'
+} from '#http/http-handler'
+export type { HttpRequestHandler, HttpResponseResolver } from '#http/http'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
@@ -63,7 +63,7 @@ export {
   type HttpResponseInit,
   type StrictRequest,
   type StrictResponse,
-} from './HttpResponse'
+} from '#http/http-response'
 export { delay, type DelayMode } from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'

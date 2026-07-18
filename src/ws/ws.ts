@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { type EventMap } from 'rettime'
+import type { EventMap } from 'rettime'
 import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,

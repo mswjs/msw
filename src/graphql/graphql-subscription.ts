@@ -8,7 +8,7 @@ import type {
   WebSocketData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
-import { http } from '#core/http'
+import { http } from '#http/http'
 import { webSocketUpgrade } from '#core/ws/websocket-upgrade'
 import {
   WebSocketHandler,
@@ -16,7 +16,7 @@ import {
   type WebSocketHandlerConnection,
   type WebSocketResolutionContext,
 } from '#core/handlers/WebSocketHandler'
-import { GraphQLSubscriptionEvent } from '#core/experimental/frames/websocket-frame'
+import { GraphQLSubscriptionEvent } from './graphql-subscription-event'
 import {
   matchRequestUrl,
   type Path,
@@ -29,7 +29,7 @@ import { jsonParse } from '#core/utils/internal/jsonParse'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { getTimestamp } from '#core/utils/logging/getTimestamp'
 import { toPublicUrl } from '#core/utils/request/toPublicUrl'
-import { colors } from '#core/ws/utils/attachWebSocketLogger'
+import { colors } from '#core/utils/logging/colors'
 import {
   GraphQLHandler,
   isDocumentNode,

@@ -1,4 +1,4 @@
-import { HttpHandler, HttpMethods } from '../handlers/HttpHandler'
+import { HttpHandler, HttpMethods } from '#http/http-handler'
 import { NetworkSource } from './sources/network-source'
 import { defineNetwork } from './define-network'
 

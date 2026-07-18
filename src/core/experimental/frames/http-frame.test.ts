@@ -1,4 +1,4 @@
-import { http } from '../../http'
+import { http } from '#http/http'
 import { graphql } from '../../../graphql'
 import { ws } from '../../../ws'
 import { bypass } from '../../bypass'

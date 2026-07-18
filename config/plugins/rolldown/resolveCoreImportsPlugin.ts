@@ -1,10 +1,11 @@
 import type { TsdownPlugin } from 'tsdown'
 
-const CORE_IMPORT_PATTERN = /(from|import)\s+["']#core(.*?)["'](;)?/gm
+const CORE_IMPORT_PATTERN =
+  /(from|import)\s+["']#(core|http|graphql)(.*?)["'](;)?/gm
 
 /**
- * Resolves the "#core" import alias to relative paths
- * in the emitted chunks, including the type definition files.
+ * Resolves the "#core", "#http", and "#graphql" import aliases to
+ * relative paths in the emitted chunks, including the type definition files.
  */
 export function resolveCoreImportsPlugin(): TsdownPlugin {
   return {
@@ -23,18 +24,19 @@ function replaceCoreImports(
   chunkFileName: string,
 ): string {
   // Chunk file names are relative to the output directory, which
-  // is a sibling of "lib/core" (e.g. "lib/graphql"). Step out of
-  // the chunk's own directory depth, then out of the output directory.
+  // is a sibling of the aliased module (e.g. "lib/graphql" next to
+  // "lib/core"). Step out of the chunk's own directory depth, then
+  // out of the output directory.
   const chunkDepth = chunkFileName.split('/').length - 1
-  const coreRootPath = `${'../'.repeat(chunkDepth + 1)}core`
+  const libRootPath = '../'.repeat(chunkDepth + 1)
 
   return fileContents.replace(
     CORE_IMPORT_PATTERN,
-    (_, keyword, maybeSubmodulePath, maybeSemicolon) => {
+    (_, keyword, moduleName, maybeSubmodulePath, maybeSemicolon) => {
       const submodulePath = maybeSubmodulePath || '/index'
       const semicolon = maybeSemicolon || ''
 
-      return `${keyword} "${coreRootPath}${submodulePath}.js"${semicolon}`
+      return `${keyword} "${libRootPath}${moduleName}${submodulePath}.js"${semicolon}`
     },
   )
 }

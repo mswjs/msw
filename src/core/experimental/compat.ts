@@ -2,7 +2,7 @@
  * Collection of helpers for bridging the compatibility between the old and the new APIs.
  */
 import { invariant } from 'outvariant'
-import { type UnhandledRequestStrategy } from '../utils/request/onUnhandledRequest'
+import type { UnhandledRequestStrategy } from '../utils/request/onUnhandledRequest'
 import {
   executeUnhandledFrameHandle,
   type UnhandledFrameCallback,

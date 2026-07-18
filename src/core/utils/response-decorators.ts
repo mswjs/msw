@@ -1,5 +1,5 @@
-import statuses from '../../../shims/statuses'
-import type { HttpResponse, HttpResponseInit } from '../../HttpResponse'
+import statuses from '../../shims/statuses'
+import type { HttpResponse, HttpResponseInit } from '#http/http-response'
 
 const { message } = statuses
 

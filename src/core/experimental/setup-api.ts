@@ -1,5 +1,5 @@
-import { type DefaultEventMap, Emitter } from 'rettime'
-import { type LifeCycleEventEmitter } from '../sharedOptions'
+import type { DefaultEventMap, Emitter } from 'rettime'
+import type { LifeCycleEventEmitter } from '../sharedOptions'
 import type { HandlersController } from './handlers-controller'
 import {
   InMemoryHandlersController,

@@ -2,11 +2,10 @@ import { invariant } from 'outvariant'
 import { isCommonAssetRequest } from '../isCommonAssetRequest'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
 import { HttpNetworkFrame } from './frames/http-frame'
-import { type AnyNetworkFrame } from './frames/network-frame'
+import type { AnyNetworkFrame } from './frames/network-frame'
 
 export type UnhandledFrameHandle =
-  | UnhandledFrameStrategy
-  | UnhandledFrameCallback
+  UnhandledFrameStrategy | UnhandledFrameCallback
 
 export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
 

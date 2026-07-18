@@ -8,13 +8,7 @@ import { getTimestamp } from '../../utils/logging/getTimestamp'
 import { toPublicUrl } from '../../utils/request/toPublicUrl'
 import { getMessageLength } from './getMessageLength'
 import { getPublicData } from './getPublicData'
-
-export const colors = {
-  system: '#3b82f6',
-  outgoing: '#22c55e',
-  incoming: '#ef4444',
-  mocked: '#ff6a33',
-}
+import { colors } from '../../utils/logging/colors'
 
 export function attachWebSocketLogger(
   connection: WebSocketConnectionData,

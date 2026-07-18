@@ -7,7 +7,7 @@ import {
   type DefineNetworkOptions,
 } from '#core/experimental/define-network'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { type SetupServerCommon } from '../node/glossary'
+import type { SetupServerCommon } from '../node/glossary'
 import { defineSetupServerApi } from '../node/setup-server-common'
 
 const defaultInterceptors: Array<Interceptor<any>> = [

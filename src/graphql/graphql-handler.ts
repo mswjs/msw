@@ -32,7 +32,8 @@ import {
 import { toPublicUrl } from '#core/utils/request/toPublicUrl'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
-import { kDefaultContentType, type StrictRequest } from '#core/HttpResponse'
+import { kDefaultContentType } from '#http/symbols'
+import type { StrictRequest } from '#http/http-response'
 import { getAllAcceptedMimeTypes } from '#core/utils/request/getAllAcceptedMimeTypes'
 import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 

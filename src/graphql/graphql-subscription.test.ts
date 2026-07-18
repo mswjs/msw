@@ -2,7 +2,7 @@
 import { invariant } from 'outvariant'
 import { OperationTypeNode, parse } from 'graphql'
 import { getSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
-import { HttpHandler } from '#core/handlers/HttpHandler'
+import { HttpHandler } from '#http/http-handler'
 import { WebSocketHandler } from '#core/handlers/WebSocketHandler'
 import { WebSocketNetworkFrame } from '#core/experimental/frames/websocket-frame'
 import { InMemoryHandlersController } from '#core/experimental/handlers-controller'

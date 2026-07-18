@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { createRequestId } from '@mswjs/interceptors'
-import type { HttpRequestResolverExtras } from './HttpHandler'
-import { HttpHandler } from './HttpHandler'
-import { HttpResponse } from '..'
-import type { ResponseResolver } from './RequestHandler'
+import type { HttpRequestResolverExtras } from './http-handler'
+import { HttpHandler } from './http-handler'
+import { HttpResponse } from './index'
+import type { ResponseResolver } from '#core/handlers/RequestHandler'
 
 const resolver: ResponseResolver<
   HttpRequestResolverExtras<{ userId: string }>

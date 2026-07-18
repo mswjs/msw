@@ -1,5 +1,6 @@
 import { TypedEvent } from 'rettime'
-import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { GraphQLSubscriptionEvent } from '#graphql/graphql-subscription-event'
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import {
   kConnect,
   kAutoConnect,
@@ -15,7 +16,7 @@ import {
 } from '../on-unhandled-frame'
 import { devUtils } from '../../utils/internal/devUtils'
 import type { HandlersController } from '../handlers-controller'
-import { type AnyHandler } from '../handlers-controller'
+import type { AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -25,43 +26,6 @@ export type WebSocketNetworkFrameEventMap = {
   connection: WebSocketConnectionEvent
   'graphql:subscription': GraphQLSubscriptionEvent
   unhandledException: UnhandledWebSocketExceptionEvent
-}
-
-export interface GraphQLSubscriptionEventInit {
-  operationName: string
-  query: string
-  variables: Record<string, unknown>
-  request: Request
-}
-
-/**
- * Emitted when a GraphQL subscription is established over an
- * intercepted WebSocket connection (i.e. matched by a subscription
- * handler and resolved).
- *
- * @note The event type is declared here, next to the WebSocket frame
- * event map, so the life-cycle event emitters derived from this map
- * (e.g. `server.events`) are typed correctly. It carries plain data
- * only and is emitted exclusively by the `msw/graphql` module —
- * the core stays free of the `graphql` dependency.
- */
-export class GraphQLSubscriptionEvent extends TypedEvent<
-  void,
-  void,
-  'graphql:subscription'
-> {
-  public readonly operationName: string
-  public readonly query: string
-  public readonly variables: Record<string, unknown>
-  public readonly request: Request
-
-  constructor(init: GraphQLSubscriptionEventInit) {
-    super('graphql:subscription')
-    this.operationName = init.operationName
-    this.query = init.query
-    this.variables = init.variables
-    this.request = init.request
-  }
 }
 
 class WebSocketConnectionEvent<

@@ -7,7 +7,7 @@ import {
   type GraphQLRequestBody,
   type GraphQLResolverExtras,
 } from './graphql-handler'
-import { HttpResponse } from '../core/HttpResponse'
+import { HttpResponse } from '#http/http-response'
 import type { ResponseResolver } from '../core/handlers/RequestHandler'
 
 const resolver: ResponseResolver<GraphQLResolverExtras<{ userId: string }>> = ({

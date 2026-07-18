@@ -5,13 +5,13 @@ import {
   HttpHandler,
   type HttpRequestResolverExtras,
   type HttpRequestParsedResult,
-} from './handlers/HttpHandler'
+} from '#http/http-handler'
 import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 import { delay } from './delay'
 import { getTimestamp } from './utils/logging/getTimestamp'
 import { devUtils } from './utils/internal/devUtils'
-import { colors } from './ws/utils/attachWebSocketLogger'
+import { colors } from './utils/logging/colors'
 import { toPublicUrl } from './utils/request/toPublicUrl'
 
 type EventMapConstraint = {

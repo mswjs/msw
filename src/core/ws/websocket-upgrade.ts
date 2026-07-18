@@ -1,5 +1,5 @@
 import { FetchResponse, resolveWebSocketUrl } from '@mswjs/interceptors'
-import { http } from '../http'
+import { http } from '#http/http'
 import {
   type Path,
   type PathParams,

@@ -15,8 +15,8 @@ import {
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import type { HandlersController } from '../handlers-controller'
-import { type AnyHandler } from '../handlers-controller'
-import { type RequestHandler } from '../../handlers/RequestHandler'
+import type { AnyHandler } from '../handlers-controller'
+import type { RequestHandler } from '../../handlers/RequestHandler'
 
 interface HttpNetworkFrameOptions {
   id?: string

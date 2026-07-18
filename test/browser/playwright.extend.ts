@@ -137,7 +137,7 @@ export const test = base.extend<TestFixtures>({
       }
     })
 
-    workerConsole.removeAllListeners()
+    workerConsole.clear()
     await compilation?.dispose()
   },
   async waitFor({}, use) {

@@ -1,5 +1,4 @@
-import { Emitter } from 'strict-event-emitter'
-import type { Emitter as NetworkFrameEmitter } from 'rettime'
+import { Emitter, TypedEvent } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
@@ -26,7 +25,7 @@ type WebSocketHandlerParsedResult = {
 }
 
 export type WebSocketHandlerEventMap = {
-  connection: [args: WebSocketHandlerConnection]
+  connection: WebSocketConnectionEvent
 }
 
 export interface WebSocketHandlerConnection {
@@ -34,6 +33,24 @@ export interface WebSocketHandlerConnection {
   server: WebSocketServerConnectionProtocol
   info: WebSocketConnectionData['info']
   params: PathParams
+}
+
+export class WebSocketConnectionEvent
+  extends TypedEvent<void, void, 'connection'>
+  implements WebSocketHandlerConnection
+{
+  public readonly client: WebSocketClientConnectionProtocol
+  public readonly server: WebSocketServerConnectionProtocol
+  public readonly info: WebSocketConnectionData['info']
+  public readonly params: PathParams
+
+  constructor(connection: WebSocketHandlerConnection) {
+    super('connection')
+    this.client = connection.client
+    this.server = connection.server
+    this.info = connection.info
+    this.params = connection.params
+  }
 }
 
 export interface WebSocketResolutionContext {
@@ -44,7 +61,7 @@ export interface WebSocketResolutionContext {
    * Allows handlers to emit additional events not covered by the frame
    * into the network's life-cycle event stream (e.g. `server.events`).
    */
-  events?: Pick<NetworkFrameEmitter<WebSocketNetworkFrameEventMap>, 'emit'>
+  events?: Pick<Emitter<WebSocketNetworkFrameEventMap>, 'emit'>
 
   [kAutoConnect]?: boolean
 }
@@ -201,10 +218,10 @@ export class WebSocketHandler extends Handler {
     )
 
     /**
-     * @fixme Use "rettime" and await these events to have
-     * exceptions propagate properly.
+     * @fixme Await these events (e.g. via `.emitAsPromise()`) to have
+     * exceptions from asynchronous listeners propagate properly.
      */
-    return this[kEmitter].emit('connection', connection)
+    return this[kEmitter].emit(new WebSocketConnectionEvent(connection))
   }
 
   public log(connection: WebSocketConnectionData): () => void {

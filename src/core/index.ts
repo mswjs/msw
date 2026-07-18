@@ -11,6 +11,7 @@ export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 export { ws, type WebSocketLink } from './ws'
 export {
   WebSocketHandler,
+  WebSocketConnectionEvent,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'

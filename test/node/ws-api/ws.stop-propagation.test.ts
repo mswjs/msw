@@ -118,7 +118,7 @@ it('stops immediate propagation for client "message" event', async () => {
 it('stops propagation for server "open" event', async () => {
   const serverOpenListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', () => {})
+  originalServer.on('connection', () => {})
 
   server.use(
     service.addEventListener('connection', ({ client, server }) => {
@@ -165,7 +165,7 @@ it('stops propagation for server "open" event', async () => {
 it('stops immediate propagation for server "open" event', async () => {
   const serverOpenListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', () => {})
+  originalServer.on('connection', () => {})
 
   server.use(
     service.addEventListener('connection', ({ client, server }) => {
@@ -209,7 +209,7 @@ it('stops immediate propagation for server "open" event', async () => {
 it('stops propagation for server "message" event', async () => {
   const serverMessageListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', (ws) => {
+  originalServer.on('connection', (ws) => {
     // Send data from the original server to trigger the "message" event.
     ws.send('hello')
   })
@@ -259,7 +259,7 @@ it('stops propagation for server "message" event', async () => {
 it('stops immediate propagation for server "message" event', async () => {
   const serverMessageListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', (ws) => {
+  originalServer.on('connection', (ws) => {
     // Send data from the original server to trigger the "message" event.
     ws.send('hello')
   })
@@ -400,7 +400,7 @@ it('stops immediate propagation for server "error" event', async () => {
 it('stops propagation for server "close" event', async () => {
   const serverCloseListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', (ws) => {
+  originalServer.on('connection', (ws) => {
     ws.close()
   })
 
@@ -447,7 +447,7 @@ it('stops propagation for server "close" event', async () => {
 it('stops immediate propagation for server "close" event', async () => {
   const serverCloseListener = vi.fn<(input: number) => void>()
 
-  originalServer.addListener('connection', (ws) => {
+  originalServer.on('connection', (ws) => {
     ws.close()
   })
 

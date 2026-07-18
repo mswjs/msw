@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import { type EventMap } from 'rettime'
 import { FetchResponse, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketData,
@@ -30,7 +31,7 @@ if (hasRefCounted(webSocketChannel)) {
 
 export type WebSocketEventListener<
   EventType extends keyof WebSocketHandlerEventMap,
-> = (...args: WebSocketHandlerEventMap[EventType]) => void
+> = EventMap.Listener<WebSocketHandlerEventMap, EventType>
 
 export type WebSocketLink = {
   /**

@@ -1,22 +1,23 @@
 import { invariant } from 'outvariant'
-import { Emitter } from 'strict-event-emitter'
+import { Emitter, TypedEvent } from 'rettime'
 import fastify, { type FastifyInstance } from 'fastify'
 import fastifyWebSocket, {
   type WebSocket as FastifySocket,
 } from '@fastify/websocket'
 
 type WebSocketEventMap = {
-  connection: [client: FastifySocket]
+  connection: TypedEvent<FastifySocket>
 }
 
-export class WebSocketServer extends Emitter<WebSocketEventMap> {
+export class WebSocketServer {
   private _url?: string
   private app: FastifyInstance
   private clients: Set<FastifySocket>
+  private emitter: Emitter<WebSocketEventMap>
 
   constructor() {
-    super()
     this.clients = new Set()
+    this.emitter = new Emitter()
 
     this.app = fastify()
     this.app.register(fastifyWebSocket)
@@ -25,9 +26,35 @@ export class WebSocketServer extends Emitter<WebSocketEventMap> {
         this.clients.add(socket)
         socket.once('close', () => this.clients.delete(socket))
 
-        this.emit('connection', socket)
+        this.emitter.emit(new TypedEvent('connection', { data: socket }))
       })
     })
+  }
+
+  /**
+   * @note Keep the `ws`-like listener signature (the client as the
+   * first argument) so this helper mirrors an actual WebSocket server.
+   */
+  public on(
+    event: 'connection',
+    listener: (client: FastifySocket) => void,
+  ): void {
+    this.emitter.on(event, (event) => {
+      listener(event.data)
+    })
+  }
+
+  public once(
+    event: 'connection',
+    listener: (client: FastifySocket) => void,
+  ): void {
+    this.emitter.once(event, (event) => {
+      listener(event.data)
+    })
+  }
+
+  public removeAllListeners(): void {
+    this.emitter.removeAllListeners()
   }
 
   get url(): string {

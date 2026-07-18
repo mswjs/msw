@@ -1,5 +1,4 @@
 import { format } from 'outvariant'
-import { Emitter } from 'strict-event-emitter'
 import { type Page } from '@playwright/test'
 
 type WorkerConsoleMessageType =
@@ -33,10 +32,6 @@ type WorkerConsoleMessageType =
   | 'context'
   | 'memory'
 
-type WorkerConsoleEventMap = {
-  [MessageType in WorkerConsoleMessageType]: [message: string]
-}
-
 type InternalWorkerConsoleMessageData = {
   type: 'internal/console'
   payload: {
@@ -54,7 +49,7 @@ declare global {
   }
 }
 
-export class WorkerConsole extends Emitter<WorkerConsoleEventMap> {
+export class WorkerConsole {
   public messages: Map<WorkerConsoleMessageType, Array<string>> = new Map()
 
   private addMessage(
@@ -85,7 +80,6 @@ export class WorkerConsole extends Emitter<WorkerConsoleEventMap> {
         const formattedMessage = format(template, ...positionals)
 
         this.addMessage(messageType, formattedMessage)
-        this.emit(messageType, formattedMessage)
       },
     )
 
@@ -104,9 +98,8 @@ export class WorkerConsole extends Emitter<WorkerConsoleEventMap> {
     })
   }
 
-  public removeAllListeners(...args: Array<any>) {
+  public clear(): void {
     this.messages.clear()
-    return super.removeAllListeners(...args)
   }
 }
 

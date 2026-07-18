@@ -41,9 +41,6 @@ importers:
       statuses:
         specifier: ^2.0.2
         version: 2.0.2
-      strict-event-emitter:
-        specifier: ^0.5.1
-        version: 0.5.1
       tough-cookie:
         specifier: ^6.0.2
         version: 6.0.2

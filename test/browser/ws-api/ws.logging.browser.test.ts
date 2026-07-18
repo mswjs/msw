@@ -439,7 +439,7 @@ test('logs incoming server messages', async ({
     skipActivation: true,
   })
 
-  server.addListener('connection', (ws) => {
+  server.on('connection', (ws) => {
     ws.send('hello from server')
 
     ws.addEventListener('message', (event) => {
@@ -505,7 +505,7 @@ test('logs raw incoming server events', async ({
     skipActivation: true,
   })
 
-  server.addListener('connection', (ws) => {
+  server.on('connection', (ws) => {
     ws.send('hello from server')
   })
 
@@ -683,7 +683,7 @@ test('marks the prevented incoming server event as dashed', async ({
     skipActivation: true,
   })
 
-  server.addListener('connection', (ws) => {
+  server.on('connection', (ws) => {
     ws.send('hello from server')
   })
 

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
 
 // When executing the "postinstall" script, the "process.cwd" equals
@@ -16,7 +17,9 @@ function postInstall() {
     return
   }
 
-  const cliExecutable = path.resolve(process.cwd(), 'cli/index.js')
+  const cliExecutable = fileURLToPath(
+    new URL('../../cli/index.js', import.meta.url),
+  )
 
   try {
     /**

@@ -7,14 +7,7 @@
   "env": {
     "builtin": true
   },
-  "ignorePatterns": [
-    "/lib",
-    "/node",
-    "/browser",
-    "/graphql",
-    "/native",
-    "/config"
-  ],
+  "ignorePatterns": ["/lib", "/config"],
   "rules": {
     "constructor-super": "error",
     "for-direction": "error",

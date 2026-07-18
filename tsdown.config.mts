@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig, type UserConfig } from 'tsdown'
 import * as glob from 'glob'
 import {
@@ -10,7 +9,6 @@ import {
 import { resolveCoreImportsPlugin } from './config/plugins/rolldown/resolveCoreImportsPlugin.ts'
 import { forceFileExtensionsPlugin } from './config/plugins/rolldown/forceFileExtensionsPlugin.ts'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(
   fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
 ) as { dependencies: Record<string, string> }
@@ -37,7 +35,7 @@ const shimConfigs: UserConfig[] = glob
     name: `shims:${path.basename(entry, '.ts')}`,
     platform: 'neutral',
     entry: [entry],
-    format: ['esm', 'cjs'],
+    format: ['esm'],
     deps: {
       alwaysBundle: Object.keys(packageJson.dependencies),
       onlyBundle: false,
@@ -69,12 +67,12 @@ const coreConfig: UserConfig = {
     neverBundle: [ecosystemDependencies, /shims\/(cookie|statuses)$/],
     onlyBundle: false,
   },
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   outDir: './lib/core',
   unbundle: true,
   sourcemap: true,
   dts: { build: true },
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [forceFileExtensionsPlugin()],
 }
 
@@ -91,12 +89,12 @@ const graphqlConfig: UserConfig = {
     neverBundle: [mswCore, ecosystemDependencies],
     onlyBundle: false,
   },
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   outDir: './lib/graphql',
   unbundle: true,
   sourcemap: true,
   dts: { build: true },
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.core.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
@@ -116,7 +114,7 @@ const nodeConfig: UserConfig = {
     neverBundle: [mswCore, ecosystemDependencies],
     onlyBundle: false,
   },
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   outDir: './lib/node',
   unbundle: false,
   outputOptions: {
@@ -124,7 +122,7 @@ const nodeConfig: UserConfig = {
   },
   sourcemap: true,
   dts: { build: true },
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
   plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
@@ -142,7 +140,7 @@ const browserConfig: UserConfig = {
     ),
     onlyBundle: false,
   },
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   outDir: './lib/browser',
   unbundle: false,
   outputOptions: {
@@ -150,7 +148,7 @@ const browserConfig: UserConfig = {
   },
   sourcemap: true,
   dts: { build: true },
-  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
@@ -176,7 +174,7 @@ const reactNativeConfig: UserConfig = {
     ],
     onlyBundle: false,
   },
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   outDir: './lib/native',
   unbundle: false,
   outputOptions: {
@@ -184,7 +182,7 @@ const reactNativeConfig: UserConfig = {
   },
   sourcemap: true,
   dts: { build: true },
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
   plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
@@ -214,7 +212,7 @@ const iifeConfig: UserConfig = {
   },
   sourcemap: true,
   dts: false,
-  tsconfig: path.resolve(__dirname, 'src/browser/tsconfig.browser.build.json'),
+  tsconfig: path.resolve(import.meta.dirname, 'src/browser/tsconfig.browser.build.json'),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },

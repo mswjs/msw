@@ -7,7 +7,6 @@ import { test, expect } from '../../../../playwright.extend'
 test('does not interfere with a shared worker', async ({
   loadExample,
   spyOnConsole,
-  waitFor,
   page,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -33,8 +32,6 @@ test('does not interfere with a shared worker', async ({
     worker.port.postMessage('john')
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('error')).toBeUndefined()
-    expect(consoleSpy.get('log')).toContain('hello, john')
-  })
+  await expect.poll(() => consoleSpy.get('log')).toContain('hello, john')
+  expect(consoleSpy.get('error')).toBeUndefined()
 })

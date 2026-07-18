@@ -95,7 +95,6 @@ test.afterAll(async () => {
 test('prints a fallback start message in the console', async ({
   spyOnConsole,
   page,
-  waitFor,
 }, testInfo) => {
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
@@ -108,14 +107,13 @@ test('prints a fallback start message in the console', async ({
 
   const consoleGroups = consoleSpy.get('startGroupCollapsed')
 
-  await waitFor(() => {
-    expect(consoleGroups).toContain('[MSW] Mocking enabled (fallback mode).')
-  })
+  await expect
+    .poll(() => consoleGroups)
+    .toContain('[MSW] Mocking enabled (fallback mode).')
 })
 
 test('responds with a mocked response to a handled request', async ({
   spyOnConsole,
-  waitFor,
   page,
 }, testInfo) => {
   const fetch = createFetchWithoutNetwork(page)
@@ -136,15 +134,15 @@ test('responds with a mocked response to a handled request', async ({
   const response = await fetch(server.https.url('/user'))
 
   // Prints the request message group in the console.
-  await waitFor(() => {
-    expect(consoleSpy.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           /\[MSW\] \d{2}:\d{2}:\d{2} GET https:\/\/127\.0\.0\.1:\d+\/user 200 OK/,
         ),
       ]),
     )
-  })
 
   // Responds with a mocked response.
   expect(response.status).toEqual(200)

@@ -10,17 +10,14 @@ test('prints the response info to the console', async ({
   loadExample,
   spyOnConsole,
   fetch,
-  waitFor,
 }) => {
   await loadExample(new URL('../../rest-api/basic.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
   const waitForResponseLog = async (exp: RegExp) => {
-    await waitFor(() => {
-      expect(consoleSpy.get('startGroupCollapsed')).toEqual(
-        expect.arrayContaining([expect.stringMatching(exp)]),
-      )
-    })
+    await expect
+      .poll(() => consoleSpy.get('startGroupCollapsed'))
+      .toEqual(expect.arrayContaining([expect.stringMatching(exp)]))
   }
 
   const getResponseLogs = (exp: RegExp) => {

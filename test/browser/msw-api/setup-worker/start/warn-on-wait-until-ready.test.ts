@@ -1,5 +1,4 @@
 import { test, expect } from '../../../playwright.extend'
-import { waitFor } from '../../../../support/waitFor'
 
 test('warns on the "waitUntilReady" option in "worker.start()"', async ({
   loadExample,
@@ -10,9 +9,9 @@ test('warns on the "waitUntilReady" option in "worker.start()"', async ({
     new URL('./warn-on-wait-until-ready.mocks.ts', import.meta.url),
   )
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toEqual([
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual([
       `[MSW] The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.`,
     ])
-  })
 })

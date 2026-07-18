@@ -26,7 +26,6 @@ const exampleOptions: Parameters<TestFixtures['loadExample']> = [
 test('resolves the "start" Promise when the worker has been activated', async ({
   loadExample,
   spyOnConsole,
-  waitFor,
   page,
 }) => {
   await loadExample(...exampleOptions)
@@ -49,12 +48,10 @@ test('resolves the "start" Promise when the worker has been activated', async ({
     .evaluate(() => window.msw.startWorker())
     .then(() => events.push('start resolved'))
 
-  const untilActivationMessage = waitFor(() => {
-    expect(consoleSpy.get('startGroupCollapsed')).toContain(
-      '[MSW] Mocking enabled.',
-    )
-    events.push('enabled message')
-  })
+  const untilActivationMessage = expect
+    .poll(() => consoleSpy.get('startGroupCollapsed'))
+    .toContain('[MSW] Mocking enabled.')
+    .then(() => events.push('enabled message'))
 
   await Promise.all([
     untilActivationMessage,

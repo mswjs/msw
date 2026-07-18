@@ -22,7 +22,6 @@ import type {
   CompilationOptions,
   WebpackHttpServer,
 } from 'webpack-http-server'
-import { waitFor } from '../support/waitFor'
 import { WorkerConsole } from './setup/workerConsole'
 import { getWebpackServer } from './setup/webpackHttpServer'
 import { WebSocketServer } from '../support/WebSocketServer'
@@ -54,7 +53,6 @@ export interface TestFixtures {
   query(uri: string, options: GraphQLQueryOptions): Promise<Response>
   makeUrl(path: string): string
   spyOnConsole(page?: Page): ConsoleMessages
-  waitFor(predicate: () => unknown): Promise<void>
   waitForMswActivation(): Promise<void>
   defineWebSocketServer(): Promise<WebSocketServer>
 }
@@ -140,23 +138,15 @@ export const test = base.extend<TestFixtures>({
     workerConsole.clear()
     await compilation?.dispose()
   },
-  async waitFor({}, use) {
-    await use(waitFor)
-  },
   async waitForMswActivation({ spyOnConsole }, use) {
     const consoleSpy = spyOnConsole()
 
-    await use(() => {
-      return waitFor(() => {
-        const groupMessages = consoleSpy.get('startGroupCollapsed')
+    await use(async () => {
+      await expect
+        .poll(() => consoleSpy.get('startGroupCollapsed'))
+        .toContain('[MSW] Mocking enabled.')
 
-        if (groupMessages?.includes('[MSW] Mocking enabled.')) {
-          consoleSpy.clear()
-          return Promise.resolve()
-        }
-
-        return Promise.reject()
-      })
+      consoleSpy.clear()
     })
 
     consoleSpy.clear()

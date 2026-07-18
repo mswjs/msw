@@ -13,7 +13,6 @@ test('removes a listener by the event name', async ({
   spyOnConsole,
   fetch,
   page,
-  waitFor,
   makeUrl,
 }) => {
   const consoleSpy = spyOnConsole()
@@ -27,11 +26,9 @@ test('removes a listener by the event name', async ({
   const url = makeUrl('/user')
   await fetch(url)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:mocked]'))
 
   expect(consoleSpy.get('warning')).not.toContainEqual(
     expect.stringContaining('[request:end]'),

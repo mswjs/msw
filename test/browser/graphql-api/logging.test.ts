@@ -1,5 +1,4 @@
 import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
-import { waitFor } from '../../support/waitFor'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
 
@@ -24,8 +23,9 @@ test('prints a log for a GraphQL query', async ({
     `,
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('raw')?.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -34,7 +34,6 @@ test('prints a log for a GraphQL query', async ({
         ),
       ]),
     )
-  })
 })
 
 test('prints a log for a GraphQL mutation', async ({
@@ -55,8 +54,9 @@ test('prints a log for a GraphQL mutation', async ({
     `,
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('raw')?.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -65,7 +65,6 @@ test('prints a log for a GraphQL mutation', async ({
         ),
       ]),
     )
-  })
 })
 
 test('prints a log for a GraphQL query intercepted via the "operation()" link handler', async ({
@@ -86,8 +85,9 @@ test('prints a log for a GraphQL query intercepted via the "operation()" link ha
     `,
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('raw')?.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -96,7 +96,6 @@ test('prints a log for a GraphQL query intercepted via the "operation()" link ha
         ),
       ]),
     )
-  })
 })
 
 test('prints a log for a GraphQL mutation intercepted via the "operation()" link handler', async ({
@@ -117,8 +116,9 @@ test('prints a log for a GraphQL mutation intercepted via the "operation()" link
     `,
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('raw')?.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('raw')?.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -127,5 +127,4 @@ test('prints a log for a GraphQL mutation intercepted via the "operation()" link
         ),
       ]),
     )
-  })
 })

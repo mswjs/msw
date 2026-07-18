@@ -144,7 +144,6 @@ test('propagates parsing errors from the invalid GraphQL requests', async ({
   loadExample,
   spyOnConsole,
   query,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(OPERATION_EXAMPLE)
@@ -160,15 +159,15 @@ test('propagates parsing errors from the invalid GraphQL requests', async ({
     query: INVALID_QUERY,
   })
 
-  await waitFor(() => {
-    expect(consoleSpy.get('error')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('error'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringContaining(
           'Failed to intercept a GraphQL request to "POST http://localhost:8080/graphql": cannot parse query. See the error message from the parser below.\n\nSyntax Error: Expected "$", found ")".',
         ),
       ]),
     )
-  })
 })
 
 test('bypasses seemingly compatible REST requests', async ({

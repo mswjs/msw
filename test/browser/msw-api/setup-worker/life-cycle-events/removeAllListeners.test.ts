@@ -14,7 +14,6 @@ test('removes all listeners attached to the worker instance', async ({
   spyOnConsole,
   fetch,
   page,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -22,11 +21,9 @@ test('removes all listeners attached to the worker instance', async ({
   const url = 'http://localhost/user'
   await fetch(url)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:mocked]'))
 
   // Remove all life-cycle events listeners.
   await page.evaluate(() => {
@@ -39,15 +36,11 @@ test('removes all listeners attached to the worker instance', async ({
   await fetch(url)
 
   // Negative assertion. We don't want this to pass.
-  const promise = waitFor(() => {
-    const warnings = consoleSpy.get('warning')
-    expect(warnings).toBeDefined()
-    expect(warnings).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
-
-  await expect(promise).rejects.toThrow()
+  await expect(
+    expect
+      .poll(() => consoleSpy.get('warning'), { timeout: 2000 })
+      .toContainEqual(expect.stringContaining('[response:mocked]')),
+  ).rejects.toThrow()
 })
 
 test('removes all the listeners by the event name', async ({
@@ -55,7 +48,6 @@ test('removes all the listeners by the event name', async ({
   spyOnConsole,
   fetch,
   page,
-  waitFor,
 }) => {
   const consoleSpy = spyOnConsole()
   await loadExample(ON_EXAMPLE)
@@ -63,11 +55,9 @@ test('removes all the listeners by the event name', async ({
   const url = 'http://localhost/user'
   await fetch(url)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:mocked]'))
 
   // Request the same endpoint again.
   await page.evaluate(() => {
@@ -79,11 +69,9 @@ test('removes all the listeners by the event name', async ({
   consoleSpy.clear()
   await fetch(url)
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toContainEqual(
-      expect.stringContaining('[response:mocked]'),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toContainEqual(expect.stringContaining('[response:mocked]'))
 
   expect(consoleSpy.get('warning')).not.toContainEqual(
     expect.stringContaining('[request:end]'),

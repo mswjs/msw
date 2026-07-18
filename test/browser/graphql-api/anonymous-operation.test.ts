@@ -1,7 +1,6 @@
 import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '../playwright.extend'
 import { gql } from '../../support/graphql'
-import { waitFor } from '../../support/waitFor'
 
 declare namespace window {
   export const msw: {
@@ -62,10 +61,11 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
     },
   })
 
-  await waitFor(() => {
-    // Must print a generic unhandled GraphQL request warning.
-    // This has nothing to do with the operation being anonymous.
-    expect(consoleSpy.get('warning')).toEqual([
+  // Must print a generic unhandled GraphQL request warning.
+  // This has nothing to do with the operation being anonymous.
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual([
       `\
 [MSW] Warning: intercepted a request without a matching request handler:
 
@@ -76,7 +76,6 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
 If you still wish to intercept this unhandled request, please create a request handler for it.
 Read more: https://mswjs.io/docs/http/intercepting-requests`,
     ])
-  })
 })
 
 test('warns on handled anonymous GraphQL operation', async ({
@@ -132,15 +131,15 @@ test('warns on handled anonymous GraphQL operation', async ({
   })
 
   // Must print the warning because an anonymous operation has been performed.
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual(
       expect.arrayContaining([
         `[MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
 Consider naming this operation or using the "operation()" request handler of "graphql.link()" to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`,
       ]),
     )
-  })
 })
 
 test('does not print a warning on anonymous GraphQL operation handled by the "operation()" link handler', async ({

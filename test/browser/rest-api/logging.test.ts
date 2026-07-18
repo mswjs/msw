@@ -1,6 +1,5 @@
 import { test, expect } from '../playwright.extend'
 import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
-import { waitFor } from '../../support/waitFor'
 
 test('prints the intercepted request info into browser console', async ({
   loadExample,
@@ -12,8 +11,9 @@ test('prints the intercepted request info into browser console', async ({
 
   await fetch('https://example.com/users/octocat')
 
-  await waitFor(() => {
-    expect(consoleSpy.get('raw')!.get('startGroupCollapsed')).toEqual(
+  await expect
+    .poll(() => consoleSpy.get('raw')!.get('startGroupCollapsed'))
+    .toEqual(
       expect.arrayContaining([
         expect.stringMatching(
           new RegExp(
@@ -22,5 +22,4 @@ test('prints the intercepted request info into browser console', async ({
         ),
       ]),
     )
-  })
 })

@@ -6,7 +6,6 @@ test('bypasses the unhandled request with the "Accept" header containing "text/e
   spyOnConsole,
   createServer,
   page,
-  waitFor,
 }) => {
   const server = await createServer((app) => {
     app.get('/user', async (req, res) => {
@@ -35,10 +34,8 @@ test('bypasses the unhandled request with the "Accept" header containing "text/e
     })
   }, server.http.url('/user'))
 
-  await waitFor(() => {
-    expect(consoleSpy.get('error')).toBeUndefined()
-    expect(consoleSpy.get('log')).toEqual(
-      expect.arrayContaining(['hello', 'beautiful', 'world']),
-    )
-  })
+  await expect
+    .poll(() => consoleSpy.get('log'))
+    .toEqual(expect.arrayContaining(['hello', 'beautiful', 'world']))
+  expect(consoleSpy.get('error')).toBeUndefined()
 })

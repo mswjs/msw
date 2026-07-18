@@ -6,7 +6,6 @@ test('handles a stream response without throwing a timeout error', async ({
   spyOnConsole,
   fetch,
   page,
-  waitFor,
 }) => {
   const server = await createServer((app) => {
     app.get('/stream', (_, res) => {
@@ -58,11 +57,9 @@ test('handles a stream response without throwing a timeout error', async ({
 
   const response = await getStreamResponse()
 
-  await waitFor(() => {
-    expect(consoleSpy.get('warning')).toEqual([
-      `[response:bypass] first-chunk last-chunk`,
-    ])
-  })
+  await expect
+    .poll(() => consoleSpy.get('warning'))
+    .toEqual([`[response:bypass] first-chunk last-chunk`])
 
   expect(response).toEqual('first-chunk last-chunk')
 })

@@ -301,6 +301,67 @@ it('runs after a GraphQL query handler returns a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
+it('runs after a GraphQL operation handler returns a response', async () => {
+  const cleanup = vi.fn()
+
+  const api = graphql.link('http://localhost/graphql')
+  server.use(
+    api.operation(({ finalize }) => {
+      finalize(cleanup)
+      return HttpResponse.json({ data: { user: { id: '1' } } })
+    }),
+  )
+
+  const response = await fetch('http://localhost/graphql', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      query: `query GetUser { user { id } }`,
+    }),
+  })
+
+  await expect(response.json()).resolves.toEqual({
+    data: { user: { id: '1' } },
+  })
+  expect(cleanup).toHaveBeenCalledOnce()
+})
+
+it('runs after a GraphQL operation subscription is completed', async () => {
+  const cleanup = vi.fn()
+  const resolverCalled = Promise.withResolvers<void>()
+
+  const api = graphql.link('ws://localhost:4000/graphql')
+  server.use(
+    api.operation(({ finalize }) => {
+      finalize(cleanup)
+      resolverCalled.resolve()
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+    lazy: false,
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  subscription.next()
+  await resolverCalled.promise
+  expect(cleanup).not.toHaveBeenCalled()
+
+  // Unsubscribing sends a "complete" frame from the client.
+  await subscription.return?.()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
 it('reports a failing GraphQL subscription cleanup without an unhandled rejection', async () => {
   const unhandledRejectionListener = vi.fn()
   process.on('unhandledRejection', unhandledRejectionListener)

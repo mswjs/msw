@@ -26,7 +26,6 @@ export {
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
 export {
   onUnhandledRequest,
   type UnhandledRequestStrategy,

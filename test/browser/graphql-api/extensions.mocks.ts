@@ -2,6 +2,8 @@ import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('/graphql')
+
 interface LoginQuery {
   user: {
     id: number
@@ -11,7 +13,7 @@ interface LoginQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<LoginQuery>('Login', () => {
+  api.query<LoginQuery>('Login', () => {
     return HttpResponse.json({
       data: {
         user: {

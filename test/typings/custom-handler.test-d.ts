@@ -7,11 +7,13 @@ const generateHttpHandler: HttpRequestHandler = (path, resolver, options) => {
   return http.get(path, resolver, options)
 }
 
+const api = graphql.link('https://api.example.com/graphql')
+
 const generateGraphQLHandler: GraphQLRequestHandler = (
   operationName,
   resolver,
 ) => {
-  return graphql.query(operationName, resolver)
+  return api.query(operationName, resolver)
 }
 
 it('accepts custom request handler (setupWorker)', () => {

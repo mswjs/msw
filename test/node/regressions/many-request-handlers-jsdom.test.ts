@@ -13,6 +13,9 @@ const httpServer = new HttpServer((app) => {
   })
 })
 
+// The test server URL is only known once it starts listening,
+// so use a wildcard link to match any GraphQL endpoint.
+const api = graphql.link('*')
 const server = setupServer()
 
 const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
@@ -85,7 +88,7 @@ describe('graphql handlers', () => {
   beforeEach(() => {
     server.use(
       ...new Array(NUMBER_OF_REQUEST_HANDLERS).fill(null).map((_, index) => {
-        return graphql.query(`Get${index}`, () => {
+        return api.query(`Get${index}`, () => {
           return HttpResponse.json({ data: { index } })
         })
       }),

@@ -3,7 +3,7 @@ export {
   type GraphQLRequestHandler,
   type GraphQLOperationHandler,
   type GraphQLResponseResolver,
-  type GraphQLLinkHandlers,
+  type GraphQLLink,
 } from './graphql'
 
 export {

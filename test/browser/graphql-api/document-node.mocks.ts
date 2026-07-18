@@ -30,11 +30,12 @@ const GetSubscription = parse(`
   }
 `)
 
+const api = graphql.link('*')
 const github = graphql.link('https://api.github.com/graphql')
 
 const worker = setupWorker(
   // "DocumentNode" can be used as the expected query/mutation.
-  graphql.query(GetUser, () => {
+  api.query(GetUser, () => {
     return HttpResponse.json({
       data: {
         // Note that inferring the query body and variables
@@ -46,7 +47,7 @@ const worker = setupWorker(
       },
     })
   }),
-  graphql.mutation<object, { username: string }>(Login, ({ variables }) => {
+  api.mutation<object, { username: string }>(Login, ({ variables }) => {
     return HttpResponse.json({
       data: {
         session: {

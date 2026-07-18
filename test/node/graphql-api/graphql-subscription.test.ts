@@ -247,7 +247,7 @@ it('respects handler overrides for the same operation', async () => {
   expect(initialResolver).not.toHaveBeenCalled()
 })
 
-it('matches an outgoing subscription with "graphql.operation()"', async () => {
+it('matches an outgoing subscription with the "operation()" link handler', async () => {
   const operationResolver = vi.fn()
 
   const api = graphql.link('https://localhost/graphql')
@@ -288,7 +288,7 @@ it('matches an outgoing subscription with "graphql.operation()"', async () => {
   expect(info.finalize).toBeInstanceOf(Function)
 })
 
-it('supports one-time "graphql.operation()" handlers', async () => {
+it('supports one-time "operation()" link handlers', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const operationResolver = vi.fn()

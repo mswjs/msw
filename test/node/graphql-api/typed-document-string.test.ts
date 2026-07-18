@@ -8,6 +8,7 @@ import {
   createTypedDocumentString,
 } from '../../support/graphql'
 
+const api = graphql.link('http://localhost:3000/graphql')
 const server = setupServer()
 
 beforeAll(() => {
@@ -38,7 +39,7 @@ it('supports TypedDocumentString as request predicate', async () => {
   >(GET_USER)
 
   server.use(
-    graphql.query(documentString, ({ variables }) => {
+    api.query(documentString, ({ variables }) => {
       return HttpResponse.json({
         data: {
           user: {

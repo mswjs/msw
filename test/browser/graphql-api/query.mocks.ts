@@ -2,6 +2,8 @@ import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('*')
+
 interface GetUserDetailQuery {
   user: {
     firstName: string
@@ -10,7 +12,7 @@ interface GetUserDetailQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<GetUserDetailQuery>('GetUserDetail', () => {
+  api.query<GetUserDetailQuery>('GetUserDetail', () => {
     return HttpResponse.json({
       data: {
         user: {

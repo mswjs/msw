@@ -2,6 +2,8 @@ import { http, HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('https://api.example.com/graphql')
+
 it('does not produce a type error when called without arguments', () => {
   setupWorker()
 })
@@ -21,12 +23,12 @@ it('accepts a single HTTP request handler', () => {
 
 it('accepts a single GraphQL request handler', () => {
   setupWorker(
-    graphql.query('GetUser', () => {
+    api.query('GetUser', () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )
   setupWorker(
-    graphql.query('GetUser', async () => {
+    api.query('GetUser', async () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )

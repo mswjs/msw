@@ -4,6 +4,7 @@ import { setupServer } from 'msw/node'
 import { graphql } from 'msw/graphql'
 import { gql } from '../../support/graphql'
 
+const api = graphql.link('http://localhost/graphql')
 const server = setupServer()
 
 beforeAll(() => {
@@ -40,8 +41,8 @@ it('selects the operation by name for a POST request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
-    graphql.query('GetUser', queryResolver),
-    graphql.mutation('UpdateUser', () => {
+    api.query('GetUser', queryResolver),
+    api.mutation('UpdateUser', () => {
       return HttpResponse.json({ data: { updateUser: { id: '1' } } })
     }),
   )
@@ -68,8 +69,8 @@ it('selects the operation by name for a GET request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
-    graphql.query('GetUser', queryResolver),
-    graphql.mutation('UpdateUser', () => {
+    api.query('GetUser', queryResolver),
+    api.mutation('UpdateUser', () => {
       return HttpResponse.json({ data: { updateUser: { id: '1' } } })
     }),
   )
@@ -90,8 +91,8 @@ it('selects the operation by name for a multipart request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
-    graphql.query('GetUser', queryResolver),
-    graphql.mutation('UpdateUser', () => {
+    api.query('GetUser', queryResolver),
+    api.mutation('UpdateUser', () => {
       return HttpResponse.json({ data: { updateUser: { id: '1' } } })
     }),
   )
@@ -123,8 +124,8 @@ it('does not match any handler given an unknown operation name', async () => {
   const mutationResolver = vi.fn()
 
   server.use(
-    graphql.query('GetUser', queryResolver),
-    graphql.mutation('UpdateUser', mutationResolver),
+    api.query('GetUser', queryResolver),
+    api.mutation('UpdateUser', mutationResolver),
   )
 
   const response = await fetch('http://localhost/graphql', {

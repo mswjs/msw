@@ -58,9 +58,11 @@ test('includes runtime request handlers when listing handlers', async ({
 
   const handlerHeaders = await page.evaluate(() => {
     const { worker, http, graphql } = window.msw
+    const api = graphql.link('*')
+
     worker.use(
       http.get('https://test.mswjs.io/book/:bookId', () => void 0),
-      graphql.query('GetRandomNumber', () => void 0),
+      api.query('GetRandomNumber', () => void 0),
     )
     const handlers = worker.listHandlers()
     return handlers.map((handler) => handler.info.header)

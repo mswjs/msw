@@ -4,6 +4,8 @@ import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
 const mswGraphql = graphql.link('https://mswjs.com/graphql')
+// A wildcard link mimics an endpoint-agnostic GraphQL handler.
+const wildcardGraphql = graphql.link('*')
 const server = setupServer()
 
 beforeAll(async () => {
@@ -30,7 +32,7 @@ test('no console error occurs when the http handler is first', async () => {
         },
       })
     }),
-    graphql.query('GetOtherUser', () => {
+    wildcardGraphql.query('GetOtherUser', () => {
       return HttpResponse.json({
         data: {
           data: 'graphql route',
@@ -139,9 +141,9 @@ test('no console error occurs when the http handler is second to the graphql han
   expect(consoleError).not.toHaveBeenCalled()
 })
 
-test("a console error occurs when the http handler is second to the graphql handler, and we don't use link", async () => {
+test('a console error occurs when the http handler is second to the graphql handler, and we use a wildcard link', async () => {
   server.use(
-    graphql.query('GetData', () => {
+    wildcardGraphql.query('GetData', () => {
       return HttpResponse.json({
         data: {
           data: 'graphql route',

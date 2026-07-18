@@ -2,6 +2,8 @@ import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 
+const api = graphql.link('https://api.example.com/graphql')
+
 const GetUserQuery = {} as TypedDocumentNode<
   {
     user: {
@@ -12,7 +14,7 @@ const GetUserQuery = {} as TypedDocumentNode<
 >
 
 it('infers the result type', () => {
-  graphql.query(GetUserQuery, () => {
+  api.query(GetUserQuery, () => {
     if (Math.random()) {
       return HttpResponse.json({
         data: {
@@ -33,7 +35,7 @@ it('infers the result type', () => {
 })
 
 it('infers the query variables type', () => {
-  graphql.query(GetUserQuery, ({ query, variables }) => {
+  api.query(GetUserQuery, ({ query, variables }) => {
     expectTypeOf(query).toBeString()
     expectTypeOf(variables).toEqualTypeOf<{ userId: string }>()
 

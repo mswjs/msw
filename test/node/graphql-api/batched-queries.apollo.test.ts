@@ -55,15 +55,19 @@ function batchedGraphQLQuery(url: string, handlers: Array<RequestHandler>) {
   })
 }
 
+// The test server URL is only known once it starts listening,
+// so use a wildcard link to match any GraphQL endpoint.
+const api = graphql.link('*')
+
 const graphqlHandlers = [
-  graphql.query('GetUser', () => {
+  api.query('GetUser', () => {
     return HttpResponse.json({
       data: {
         user: { id: 1 },
       },
     })
   }),
-  graphql.query('GetProduct', () => {
+  api.query('GetProduct', () => {
     return HttpResponse.json({
       data: {
         product: { name: 'Hoover 2000' },

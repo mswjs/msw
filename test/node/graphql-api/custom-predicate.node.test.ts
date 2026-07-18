@@ -4,6 +4,7 @@ import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
+const api = graphql.link('http://localhost:3000/graphql')
 const server = setupServer()
 
 beforeAll(() => {
@@ -22,7 +23,7 @@ afterAll(() => {
 
 it('matches requests when the predicate function returns true', async () => {
   server.use(
-    graphql.query(
+    api.query(
       ({ operationName }) => {
         return operationName.toLowerCase().includes('user')
       },
@@ -52,7 +53,7 @@ it('matches requests when the predicate function returns true', async () => {
 
 it('does not match requests when the predicate function returns false', async () => {
   server.use(
-    graphql.query(
+    api.query(
       ({ operationName }) => {
         return operationName.toLowerCase().includes('user')
       },

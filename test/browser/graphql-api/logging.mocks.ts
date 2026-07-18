@@ -15,8 +15,10 @@ interface LoginQuery {
   }
 }
 
+const api = graphql.link('/graphql')
+
 const worker = setupWorker(
-  graphql.query<GetUserDetailQuery>('GetUserDetail', () => {
+  api.query<GetUserDetailQuery>('GetUserDetail', () => {
     return HttpResponse.json({
       data: {
         user: {
@@ -26,7 +28,7 @@ const worker = setupWorker(
       },
     })
   }),
-  graphql.mutation<LoginQuery>('Login', () => {
+  api.mutation<LoginQuery>('Login', () => {
     return HttpResponse.json({
       data: {
         user: {
@@ -35,7 +37,7 @@ const worker = setupWorker(
       },
     })
   }),
-  graphql.operation(() => {
+  api.operation(() => {
     return HttpResponse.json(
       {
         data: {

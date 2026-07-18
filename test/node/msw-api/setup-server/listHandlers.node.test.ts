@@ -4,13 +4,14 @@ import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
 const resolver = () => {}
+const api = graphql.link('*')
 const github = graphql.link('https://api.github.com')
 
 const server = setupServer(
   http.get('https://test.mswjs.io/book/:bookId', resolver),
-  graphql.query('GetUser', resolver),
-  graphql.mutation('UpdatePost', resolver),
-  graphql.operation(resolver),
+  api.query('GetUser', resolver),
+  api.mutation('UpdatePost', resolver),
+  api.operation(resolver),
   github.query('GetRepo', resolver),
   github.operation(resolver),
 )
@@ -58,7 +59,7 @@ test('forbids from modifying the list of handlers', () => {
 test('includes runtime request handlers when listing handlers', () => {
   server.use(
     http.get('https://test.mswjs.io/book/:bookId', resolver),
-    graphql.query('GetRandomNumber', resolver),
+    api.query('GetRandomNumber', resolver),
   )
 
   const handlers = server.listHandlers()

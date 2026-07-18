@@ -14,6 +14,8 @@ import {
   type GraphQLResponseResolver,
 } from 'msw/graphql'
 
+const api = graphql.link('https://api.example.com/graphql')
+
 it('custom http resolver has correct parameters type', () => {
   /**
    * A higher-order resolver that injects a fixed
@@ -59,7 +61,7 @@ function identityGraphQLResolver<
 }
 
 it('custom graphql resolver has correct variables and response type', () => {
-  graphql.query<{ number: number }, { id: string }>(
+  api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()
@@ -74,7 +76,7 @@ it('custom graphql resolver has correct variables and response type', () => {
 })
 
 it('custom graphql resolver does not accept unknown variables', () => {
-  graphql.query<{ number: number }, { id: string }>(
+  api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()

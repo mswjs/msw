@@ -10,6 +10,8 @@ import {
   InMemoryHandlersController,
 } from './handlers-controller'
 
+const gql = graphql.link('*')
+
 describe(groupHandlersByKind, () => {
   it('groups handlers attached as siblings of siblings', () => {
     const grandchildHandler = http.get('/grandchild', () => {})
@@ -156,7 +158,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
 
   it('preserves order of handlers', () => {
     const httpOne = http.get('/', () => {})
-    const graphqlOne = graphql.query('', () => {})
+    const graphqlOne = gql.query('', () => {})
     const httpTwo = http.get('/', () => {})
 
     const controller = new InMemoryHandlersController([httpOne])
@@ -347,7 +349,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
     expect(
       new InMemoryHandlersController([
         http.get('/', () => {}),
-        graphql.query('', () => {}),
+        gql.query('', () => {}),
       ]).getHandlersByKind('websocket'),
     ).toEqual([])
 
@@ -359,7 +361,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
 
   it('returns all handlers if they all match', () => {
     const httpHandler = http.get('/', () => {})
-    const graphqlHandler = graphql.query('', () => {})
+    const graphqlHandler = gql.query('', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
 
     expect(
@@ -378,7 +380,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
 
   it('returns only the matching handlers', () => {
     const httpHandler = http.get('/', () => {})
-    const graphqlHandler = graphql.query('', () => {})
+    const graphqlHandler = gql.query('', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const wsHandlerSiblings = getSiblingHandlers(wsHandler)
 
@@ -412,9 +414,9 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
       ]).getHandlersByKind('request'),
     ).toEqual([httpOne, httpTwo, httpThree])
 
-    const graphqlOne = graphql.query('', () => {})
-    const graphqlTwo = graphql.query('', () => {})
-    const graphqlThree = graphql.query('', () => {})
+    const graphqlOne = gql.query('', () => {})
+    const graphqlTwo = gql.query('', () => {})
+    const graphqlThree = gql.query('', () => {})
 
     expect(
       new InMemoryHandlersController([

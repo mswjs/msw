@@ -15,7 +15,11 @@ const httpServer = new HttpServer((app) => {
   })
 })
 
-const server = setupServer(graphql.query('GetUser', () => {}))
+// The test server URL is only known once it starts listening,
+// so use a wildcard link to match any GraphQL endpoint.
+const api = graphql.link('*')
+
+const server = setupServer(api.query('GetUser', () => {}))
 
 beforeAll(async () => {
   server.listen()
@@ -56,12 +60,12 @@ it('warns on unhandled anonymous GraphQL operations', async () => {
     .toHaveBeenCalledWith(`\
 [MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
+Consider naming this operation or using the "operation()" request handler of "graphql.link()" to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
 })
 
-it('does not print a warning when using anonymous operation with "graphql.operation()"', async () => {
+it('does not print a warning when using anonymous operation with the "operation()" link handler', async () => {
   server.use(
-    graphql.operation(async () => {
+    api.operation(async () => {
       return HttpResponse.json({
         data: {
           pets: [{ name: 'Tom' }, { name: 'Jerry' }],

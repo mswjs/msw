@@ -4,6 +4,7 @@ import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient } from '../../support/graphql'
 
+const api = graphql.link('http://any.host.here/irrelevant')
 const server = setupServer()
 
 beforeAll(() => {
@@ -20,7 +21,7 @@ afterAll(() => {
 
 it('responds with the "application/json" content type by default', async () => {
   server.use(
-    graphql.query('GetUser', () => {
+    api.query('GetUser', () => {
       return HttpResponse.json({
         data: { user: { name: 'John Maverick' } },
       })
@@ -50,7 +51,7 @@ it('responds with the "application/json" content type by default', async () => {
 
 it('responds with the "application/graphql-response+json" content type if the client accepts it', async () => {
   server.use(
-    graphql.mutation('CreatePost', () => {
+    api.mutation('CreatePost', () => {
       return HttpResponse.json({
         data: { post: { id: 'abc-123' } },
       })
@@ -112,7 +113,7 @@ it('responds with the "application/graphql-response+json" content type if the cl
 
 it('respects the "Accept" request header quality', async () => {
   server.use(
-    graphql.mutation('CreatePost', () => {
+    api.mutation('CreatePost', () => {
       return HttpResponse.json({
         data: { post: { id: 'abc-123' } },
       })
@@ -147,7 +148,7 @@ it('respects the "Accept" request header quality', async () => {
 
 it('responds with the "application/graphql-response+json" in generator responses', async () => {
   server.use(
-    graphql.query('GetForecast', function* () {
+    api.query('GetForecast', function* () {
       yield HttpResponse.json({
         data: { forecast: { degrees: 25 } },
       })
@@ -180,7 +181,7 @@ it('responds with the "application/graphql-response+json" in generator responses
 
 it('ignores request "Accept" preferences if an explicit "content-type" is set on the mocked response', async () => {
   server.use(
-    graphql.query('GetUser', () => {
+    api.query('GetUser', () => {
       return HttpResponse.json(
         {
           data: { user: { name: 'John Maverick' } },

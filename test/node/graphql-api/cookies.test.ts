@@ -4,6 +4,7 @@ import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
+const api = graphql.link('http://localhost:3000/graphql')
 const server = setupServer()
 
 beforeAll(() => {
@@ -20,7 +21,7 @@ afterAll(() => {
 
 it('intercepts request cookies', async () => {
   server.use(
-    graphql.query('GetSession', ({ cookies }) => {
+    api.query('GetSession', ({ cookies }) => {
       return HttpResponse.json({
         data: {
           session: {
@@ -56,7 +57,7 @@ it('intercepts request cookies', async () => {
 
 it('mocks a single response cookie', async () => {
   server.use(
-    graphql.mutation<{ user: { email: string } }, { email: string }>(
+    api.mutation<{ user: { email: string } }, { email: string }>(
       'SignIn',
       ({ variables }) => {
         return HttpResponse.json(
@@ -105,7 +106,7 @@ it('mocks a single response cookie', async () => {
 
 it('mocks a multi-value response cookie', async () => {
   server.use(
-    graphql.mutation<{ user: { email: string } }, { email: string }>(
+    api.mutation<{ user: { email: string } }, { email: string }>(
       'SignIn',
       ({ variables }) => {
         return HttpResponse.json(

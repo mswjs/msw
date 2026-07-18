@@ -88,12 +88,15 @@ test('warns on handled anonymous GraphQL operation', async ({
   await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
-  await page.evaluate(() => {
+  const endpointUrl = httpServer.http.url('/graphql')
+
+  await page.evaluate((endpointUrl) => {
     const { worker, graphql, HttpResponse } = window.msw
+    const api = graphql.link(endpointUrl)
 
     worker.use(
       // This handler will have no effect on the anonymous operation performed.
-      graphql.query('IrrelevantQuery', () => {
+      api.query('IrrelevantQuery', () => {
         return HttpResponse.json({
           data: {
             user: {
@@ -103,12 +106,10 @@ test('warns on handled anonymous GraphQL operation', async ({
         })
       }),
     )
-  })
+  }, endpointUrl)
 
-  const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
     // Intentionally anonymous query.
-    // It will be handled in the "graphql.operation()" handler above.
     query: gql`
       query {
         user {
@@ -120,7 +121,7 @@ test('warns on handled anonymous GraphQL operation', async ({
 
   const json = await response.json()
 
-  // Must get the original response because the "graphql.query()"
+  // Must get the original response because the "query()"
   // handler won't match an anonymous GraphQL operation.
   expect(json).toEqual({
     data: {
@@ -136,13 +137,13 @@ test('warns on handled anonymous GraphQL operation', async ({
       expect.arrayContaining([
         `[MSW] Failed to intercept a GraphQL request at "POST ${endpointUrl}": anonymous GraphQL operations are not supported.
 
-Consider naming this operation or using "graphql.operation()" request handler to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`,
+Consider naming this operation or using the "operation()" request handler of "graphql.link()" to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`,
       ]),
     )
   })
 })
 
-test('does not print a warning on anonymous GraphQL operation handled by "graphql.operation()"', async ({
+test('does not print a warning on anonymous GraphQL operation handled by the "operation()" link handler', async ({
   loadExample,
   spyOnConsole,
   page,
@@ -151,14 +152,17 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
   await loadExample(new URL('./anonymous-operation.mocks.ts', import.meta.url))
   const consoleSpy = spyOnConsole()
 
-  await page.evaluate(() => {
+  const endpointUrl = httpServer.http.url('/graphql')
+
+  await page.evaluate((endpointUrl) => {
     const { worker, graphql, HttpResponse } = window.msw
+    const api = graphql.link(endpointUrl)
 
     worker.use(
       // This handler will match ANY anonymous GraphQL operation.
       // It's a good idea to include some matching logic to differentiate
       // between those operations. We're omitting it for testing purposes.
-      graphql.operation(() => {
+      api.operation(() => {
         return HttpResponse.json({
           data: {
             user: {
@@ -168,12 +172,11 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
         })
       }),
     )
-  })
+  }, endpointUrl)
 
-  const endpointUrl = httpServer.http.url('/graphql')
   const response = await query(endpointUrl, {
     // Intentionally anonymous query.
-    // It will be handled in the "graphql.operation()" handler above.
+    // It will be handled in the "operation()" handler above.
     query: gql`
       query {
         user {
@@ -194,7 +197,7 @@ test('does not print a warning on anonymous GraphQL operation handled by "graphq
     },
   })
 
-  // Must not print any warnings because a permissive "graphql.operation()"
+  // Must not print any warnings because a permissive "operation()"
   // handler was used to intercept and mock the anonymous GraphQL operation.
   expect(consoleSpy.get('warning')).toBeUndefined()
 })

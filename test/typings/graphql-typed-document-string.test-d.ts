@@ -6,8 +6,10 @@ declare function createTypedDocumentString<TResult = any, TVariables = any>(
   query: string,
 ): DocumentTypeDecoration<TResult, TVariables>
 
+const api = graphql.link('https://api.example.com/graphql')
+
 it('infers the result type', () => {
-  graphql.query(
+  api.query(
     createTypedDocumentString<{ user: { id: string; name: string } }>(''),
     () => {
       if (Math.random()) {
@@ -30,7 +32,7 @@ it('infers the result type', () => {
 })
 
 it('infers the variables type', () => {
-  graphql.query(
+  api.query(
     createTypedDocumentString<null, { id: string }>(''),
     ({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()

@@ -280,8 +280,9 @@ it('runs once the returned iterator is exhausted', async () => {
 it('runs after a GraphQL query handler returns a response', async () => {
   const cleanup = vi.fn()
 
+  const api = graphql.link('http://localhost/graphql')
   server.use(
-    graphql.query('GetUser', ({ finalize }) => {
+    api.query('GetUser', ({ finalize }) => {
       finalize(cleanup)
       return HttpResponse.json({ data: { user: { id: '1' } } })
     }),

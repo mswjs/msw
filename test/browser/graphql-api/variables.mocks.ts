@@ -2,6 +2,8 @@ import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('/graphql')
+
 interface GetGitHubUserQuery {
   user: {
     username: string
@@ -34,7 +36,7 @@ interface GetActiveUserQueryVariables {
 }
 
 const worker = setupWorker(
-  graphql.query<GetGitHubUserQuery, GetGitHubUserQueryVariables>(
+  api.query<GetGitHubUserQuery, GetGitHubUserQueryVariables>(
     'GetGithubUser',
     ({ variables }) => {
       const { username } = variables
@@ -50,7 +52,7 @@ const worker = setupWorker(
     },
   ),
 
-  graphql.mutation<DeletePostQuery, DeletePostQueryVariables>(
+  api.mutation<DeletePostQuery, DeletePostQueryVariables>(
     'DeletePost',
     ({ variables }) => {
       const { postId } = variables
@@ -65,7 +67,7 @@ const worker = setupWorker(
     },
   ),
 
-  graphql.query<GetActiveUserQuery, GetActiveUserQueryVariables>(
+  api.query<GetActiveUserQuery, GetActiveUserQueryVariables>(
     'GetActiveUser',
     ({ variables }) => {
       // Intentionally unused variable

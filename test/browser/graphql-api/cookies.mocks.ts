@@ -2,8 +2,10 @@ import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('/graphql')
+
 const worker = setupWorker(
-  graphql.query('GetUser', () => {
+  api.query('GetUser', () => {
     return HttpResponse.json(
       {
         data: {

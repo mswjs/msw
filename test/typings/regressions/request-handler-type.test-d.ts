@@ -13,6 +13,8 @@ import { graphql, type GraphQLHandler } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { setupWorker } from 'msw/browser'
 
+const api = graphql.link('https://api.example.com/graphql')
+
 it('handler types extend the AnyHandler type', () => {
   expectTypeOf<RequestHandler>().toExtend<AnyHandler>()
   expectTypeOf<HttpHandler>().toExtend<AnyHandler>()
@@ -29,7 +31,7 @@ it('http handlers extend the RequestHandler type', () => {
 })
 
 it('graphql handlers extend the RequestHandler type', () => {
-  const handlers = [graphql.query('GetUser', () => {})]
+  const handlers = [api.query('GetUser', () => {})]
 
   expectTypeOf<GraphQLHandler>().toExtend<RequestHandler>()
   expectTypeOf(handlers).toExtend<Array<RequestHandler>>()
@@ -37,7 +39,7 @@ it('graphql handlers extend the RequestHandler type', () => {
 })
 
 it('a list of http and graphql handlers extend the RequestHandler type', () => {
-  const handlers = [http.get('/', () => {}), graphql.query('GetUser', () => {})]
+  const handlers = [http.get('/', () => {}), api.query('GetUser', () => {})]
 
   expectTypeOf(handlers).toExtend<Array<RequestHandler>>()
   expectTypeOf(handlers).toEqualTypeOf<Array<HttpHandler | GraphQLHandler>>()

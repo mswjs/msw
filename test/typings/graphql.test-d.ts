@@ -25,26 +25,28 @@ declare function createTypedDocumentString<TResult = any, TVariables = any>(
   query: string,
 ): DocumentTypeDecoration<TResult, TVariables>
 
+const api = graphql.link('https://api.example.com/graphql')
+
 it('graphql mutation can be used without variables generic type', () => {
-  graphql.mutation('GetUser', () => {
+  api.mutation('GetUser', () => {
     return HttpResponse.json({ data: { id: '2' } })
   })
 })
 
 it('graphql mutation accepts inline generic variables type', () => {
-  graphql.mutation<never, { id: string }>('GetUser', ({ variables }) => {
+  api.mutation<never, { id: string }>('GetUser', ({ variables }) => {
     expectTypeOf(variables).toEqualTypeOf<{ id: string }>()
   })
 })
 
 it('graphql mutation accepts inline generic variables never type', () => {
-  graphql.mutation<never, never>('CreateUser', ({ variables }) => {
+  api.mutation<never, never>('CreateUser', ({ variables }) => {
     expectTypeOf(variables).toEqualTypeOf<never>()
   })
 })
 
 it("graphql mutation does not accept null as variables' generic mutation type", () => {
-  graphql.mutation<
+  api.mutation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
     null
@@ -52,7 +54,7 @@ it("graphql mutation does not accept null as variables' generic mutation type", 
 })
 
 it('graphql mutation allows explicit null as the response body type for the mutation', () => {
-  graphql.mutation<{ key: string }>('MutateData', () => {
+  api.mutation<{ key: string }>('MutateData', () => {
     return HttpResponse.json({
       // Explicit null in mutations must also be allowed.
       data: null,
@@ -60,7 +62,7 @@ it('graphql mutation allows explicit null as the response body type for the muta
   })
 })
 it('graphql mutation does not allow mismatched mutation response', () => {
-  graphql.mutation<{ key: string }>('MutateData', () => {
+  api.mutation<{ key: string }>('MutateData', () => {
     return HttpResponse.json({
       // @ts-expect-error Response data doesn't match the query type.
       data: {},
@@ -69,7 +71,7 @@ it('graphql mutation does not allow mismatched mutation response', () => {
 })
 
 it("graphql query does not accept null as variables' generic query type ", () => {
-  graphql.query<
+  api.query<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
     null
@@ -82,7 +84,7 @@ it("graphql query accepts the correct type for the variables' generic query type
    */
   // Returned mocked response body must satisfy the
   // GraphQL query generic.
-  graphql.query<{ id: string }>('GetUser', () => {
+  api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       data: { id: '2' },
     })
@@ -90,7 +92,7 @@ it("graphql query accepts the correct type for the variables' generic query type
 })
 
 it('graphql query allows explicit null as the response body type for the query', () => {
-  graphql.query<{ id: string }>('GetUser', () => {
+  api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       // Explicit null must be allowed.
       data: null,
@@ -99,7 +101,7 @@ it('graphql query allows explicit null as the response body type for the query',
 })
 
 it('supports nullable queries', () => {
-  graphql.query<{ id: string } | null>('GetUser', () => {
+  api.query<{ id: string } | null>('GetUser', () => {
     return HttpResponse.json({
       data: null,
     })
@@ -107,7 +109,7 @@ it('supports nullable queries', () => {
 })
 
 it('supports nullable mutations', () => {
-  graphql.mutation<{ id: string } | null>('GetUser', () => {
+  api.mutation<{ id: string } | null>('GetUser', () => {
     return HttpResponse.json({
       data: null,
     })
@@ -115,7 +117,7 @@ it('supports nullable mutations', () => {
 })
 
 it('graphql query does not accept invalid data type for the response body type for the query', () => {
-  graphql.query<{ id: string }>('GetUser', () => {
+  api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       data: {
         // @ts-expect-error "id" type is incorrect
@@ -126,7 +128,7 @@ it('graphql query does not accept invalid data type for the response body type f
 })
 
 it('graphql query does not allow empty response when the query type is defined', () => {
-  graphql.query<{ id: string }>(
+  api.query<{ id: string }>(
     'GetUser',
     // @ts-expect-error response json is empty
     () => HttpResponse.json({ data: {} }),
@@ -134,7 +136,7 @@ it('graphql query does not allow empty response when the query type is defined',
 })
 
 it('graphql query does not allow incompatible response body type', () => {
-  graphql.query<{ id: string }>(
+  api.query<{ id: string }>(
     'GetUser',
     // @ts-expect-error incompatible response body type
     () => HttpResponse.text('hello'),
@@ -142,7 +144,7 @@ it('graphql query does not allow incompatible response body type', () => {
 })
 
 it('graphql operation does not accept null as variables type', () => {
-  graphql.operation<
+  api.operation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
     null
@@ -152,7 +154,7 @@ it('graphql operation does not accept null as variables type', () => {
 })
 
 it('graphql operation does not allow mismatched operation response', () => {
-  graphql.operation<{ key: string }>(() => {
+  api.operation<{ key: string }>(() => {
     return HttpResponse.json({
       // @ts-expect-error Response data doesn't match the query type.
       data: {},
@@ -161,17 +163,17 @@ it('graphql operation does not allow mismatched operation response', () => {
 })
 
 it('graphql operation allows explicit null as the response body type for the operation', () => {
-  graphql.operation<{ key: string }>(() => {
+  api.operation<{ key: string }>(() => {
     return HttpResponse.json({ data: null })
   })
 })
 
 it('graphql handlers allow passthrough responses', () => {
   // Passthrough responses.
-  graphql.query('GetUser', () => passthrough())
-  graphql.mutation('AddPost', () => passthrough())
-  graphql.operation(() => passthrough())
-  graphql.query('GetUser', ({ request }) => {
+  api.query('GetUser', () => passthrough())
+  api.mutation('AddPost', () => passthrough())
+  api.operation(() => passthrough())
+  api.query('GetUser', ({ request }) => {
     if (request.headers.has('cookie')) {
       return passthrough()
     }
@@ -181,18 +183,18 @@ it('graphql handlers allow passthrough responses', () => {
 })
 
 it('supports Response.error()', () => {
-  graphql.query<{ id: string }>('GetUser', () => HttpResponse.error())
-  graphql.mutation('UpdatePost', () => HttpResponse.error())
-  graphql.operation(() => HttpResponse.error())
+  api.query<{ id: string }>('GetUser', () => HttpResponse.error())
+  api.mutation('UpdatePost', () => HttpResponse.error())
+  api.operation(() => HttpResponse.error())
 
-  graphql.query('GetUser', async () => HttpResponse.error())
-  graphql.query('GetUser', function* () {
+  api.query('GetUser', async () => HttpResponse.error())
+  api.query('GetUser', function* () {
     return HttpResponse.error()
   })
 
-  graphql.query('GetUser', () => Response.error())
-  graphql.query('GetUser', async () => Response.error())
-  graphql.query('GetUser', function* () {
+  api.query('GetUser', () => Response.error())
+  api.query('GetUser', async () => Response.error())
+  api.query('GetUser', function* () {
     return Response.error()
   })
 })
@@ -208,7 +210,7 @@ it("graphql variables cannot extract type from the runtime 'DocumentNode'", () =
           }
         }
       `)
-  graphql.query(getUser, () => {
+  api.query(getUser, () => {
     return HttpResponse.json({
       // Cannot extract query type from the runtime `DocumentNode`.
       data: { arbitrary: true },
@@ -224,7 +226,7 @@ it('graphql query cannot extract variable and response types', () => {
         }
       }
       `)
-  graphql.query(getUserById, ({ variables }) => {
+  api.query(getUserById, ({ variables }) => {
     // Cannot extract variables type from a DocumentNode.
     expectTypeOf(variables).toEqualTypeOf<Record<string, any>>()
 
@@ -248,7 +250,7 @@ it('graphql mutation cannot extract variable and response types', () => {
           }
         }
       `)
-  graphql.mutation(createUser, () => {
+  api.mutation(createUser, () => {
     return HttpResponse.json({
       data: { arbitrary: true },
     })
@@ -256,7 +258,7 @@ it('graphql mutation cannot extract variable and response types', () => {
 })
 
 it('graphql query allows extensions in the response body', () => {
-  graphql.query<{ id: string }>('GetUser', () => {
+  api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       data: { id: '2' },
       extensions: {
@@ -268,7 +270,7 @@ it('graphql query allows extensions in the response body', () => {
 })
 
 it('supports a "finalize" function', () => {
-  graphql.query('GetUser', ({ finalize }) => {
+  api.query('GetUser', ({ finalize }) => {
     expectTypeOf(finalize).toEqualTypeOf<
       (callback: () => Promise<void> | void) => void
     >()

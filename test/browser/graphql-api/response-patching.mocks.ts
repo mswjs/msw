@@ -1,7 +1,10 @@
 import { bypass, HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
+
 import { createGraphQLClient, gql } from '../../support/graphql'
+
+const api = graphql.link('*')
 
 interface GetUserQuery {
   user: {
@@ -11,7 +14,7 @@ interface GetUserQuery {
 }
 
 const worker = setupWorker(
-  graphql.query<GetUserQuery>('GetUser', async ({ request }) => {
+  api.query<GetUserQuery>('GetUser', async ({ request }) => {
     const originalResponse = await fetch(bypass(request))
     const originalJson = await originalResponse.json()
 

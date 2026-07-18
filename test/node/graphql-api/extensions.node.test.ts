@@ -15,8 +15,10 @@ const schema = gql`
   }
 `
 
+const api = graphql.link('http://localhost:3000/graphql')
+
 const server = setupServer(
-  graphql.query('GetUser', async ({ query }) => {
+  api.query('GetUser', async ({ query }) => {
     const { data, errors } = await executeGraphql({
       schema: buildSchema(schema),
       source: query,

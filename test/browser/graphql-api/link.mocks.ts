@@ -4,6 +4,7 @@ import { setupWorker } from 'msw/browser'
 
 const github = graphql.link('https://api.github.com/graphql')
 const stripe = graphql.link('https://api.stripe.com/graphql')
+const fallback = graphql.link('*')
 
 interface GetUserQuery {
   user: {
@@ -51,7 +52,7 @@ const worker = setupWorker(
       })
     },
   ),
-  graphql.query<GetUserQuery, { username: string }>(
+  fallback.query<GetUserQuery, { username: string }>(
     'GetUser',
     ({ variables }) => {
       return HttpResponse.json(

@@ -6,8 +6,12 @@ import { graphql as executeGraphql, buildSchema } from 'graphql'
 import { HttpServer } from '@open-draft/test-server/http'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
+// The test server URL is only known once it starts listening,
+// so use a wildcard link to match any GraphQL endpoint.
+const api = graphql.link('*')
+
 const server = setupServer(
-  graphql.query('GetUser', async ({ request }) => {
+  api.query('GetUser', async ({ request }) => {
     const originalResponse = await fetch(bypass(request))
     const { requestHeaders, queryResult } = await originalResponse.json()
 

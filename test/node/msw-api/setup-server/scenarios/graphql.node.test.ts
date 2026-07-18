@@ -26,8 +26,10 @@ const LOGIN = gql`
   }
 `
 
+const api = graphql.link('http://localhost:3000')
+
 const server = setupServer(
-  graphql.query('GetUserDetail', ({ variables }) => {
+  api.query('GetUserDetail', ({ variables }) => {
     const { userId } = variables
 
     return HttpResponse.json({
@@ -40,7 +42,7 @@ const server = setupServer(
       },
     })
   }),
-  graphql.mutation('Login', ({ variables }) => {
+  api.mutation('Login', ({ variables }) => {
     const { username } = variables
 
     return HttpResponse.json({

@@ -68,7 +68,7 @@ test('prints a log for a GraphQL mutation', async ({
   })
 })
 
-test('prints a log for a GraphQL query intercepted via "graphql.operation"', async ({
+test('prints a log for a GraphQL query intercepted via the "operation()" link handler', async ({
   loadExample,
   spyOnConsole,
   query,
@@ -99,7 +99,7 @@ test('prints a log for a GraphQL query intercepted via "graphql.operation"', asy
   })
 })
 
-test('prints a log for a GraphQL mutation intercepted via "graphql.operation"', async ({
+test('prints a log for a GraphQL mutation intercepted via the "operation()" link handler', async ({
   loadExample,
   spyOnConsole,
   query,

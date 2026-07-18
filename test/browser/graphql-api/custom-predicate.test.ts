@@ -24,9 +24,10 @@ test('matches requests when the predicate function returns true', async ({
 
   await page.evaluate(() => {
     const { worker, graphql } = window.msw
+    const api = graphql.link('*')
 
     worker.use(
-      graphql.query(
+      api.query(
         ({ variables }) => {
           return variables.id === 'abc-123'
         },
@@ -71,9 +72,10 @@ test('does not match requests when the predicate function returns false', async 
 
   await page.evaluate(() => {
     const { worker, graphql } = window.msw
+    const api = graphql.link('*')
 
     worker.use(
-      graphql.query(
+      api.query(
         ({ variables }) => {
           return variables.id === 'abc-123'
         },
@@ -83,7 +85,7 @@ test('does not match requests when the predicate function returns false', async 
           })
         },
       ),
-      graphql.operation(() => {
+      api.operation(() => {
         return Response.json({ data: { fallback: true } })
       }),
     )

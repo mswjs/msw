@@ -30,7 +30,12 @@ it('supports "connection" event listener', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', (connection) => {
-    expectTypeOf(connection).toEqualTypeOf<WebSocketHandlerConnection>()
+    /**
+     * @note The listener receives a `WebSocketConnectionEvent` that
+     * implements `WebSocketHandlerConnection`, exposing the connection
+     * properties directly on the event.
+     */
+    expectTypeOf(connection).toMatchTypeOf<WebSocketHandlerConnection>()
   })
 })
 

@@ -37,18 +37,15 @@ function getRelativePaths(paths) {
 }
 
 async function patchTypeDefs() {
-  const typeDefsPaths = glob.sync('**/*.d.{ts,mts}', {
+  const typeDefsPaths = glob.sync('**/*.d.ts', {
     cwd: BUILD_DIR,
     absolute: true,
   })
   const typeDefsWithCoreImports = typeDefsPaths
     .map((modulePath) => {
       const fileContents = fs.readFileSync(modulePath, 'utf8')
-      /**
-       * @note Treat all type definition files as ESM because even
-       * CJS .d.ts use `import` statements.
-       */
-      if (hasCoreImports(fileContents, true)) {
+
+      if (hasCoreImports(fileContents)) {
         return [modulePath, fileContents]
       }
     })
@@ -67,13 +64,7 @@ async function patchTypeDefs() {
   )
 
   for (const [typeDefsPath, fileContents] of typeDefsWithCoreImports) {
-    // Treat ".d.ts" files as ESM to replace "import" statements.
-    // Force no extension on the ".d.ts" imports.
-    const nextFileContents = replaceCoreImports(
-      typeDefsPath,
-      fileContents,
-      true,
-    )
+    const nextFileContents = replaceCoreImports(fileContents)
     fs.writeFileSync(typeDefsPath, nextFileContents, 'utf8')
     console.log('Successfully patched "%s"!', typeDefsPath)
   }
@@ -85,7 +76,7 @@ async function patchTypeDefs() {
 
   // Next, validate that we left no "#core" imports unresolved.
   const modulesWithUnresolvedImports = searchFilesForPattern(
-    '**/*.d.{ts,mts}',
+    '**/*.d.ts',
     '#core',
     'Failed to validate the .d.ts modules for the presence of the "#core" import. See the original error below.',
   )
@@ -106,7 +97,7 @@ ${getRelativePaths(modulesWithUnresolvedImports)
   // Ensure that the .d.ts files compile without errors after resolving the "#core" imports.
   console.log('Compiling the .d.ts modules with tsc...')
   const tscCompilation = await execAsync(
-    `tsc --noEmit --skipLibCheck ${typeDefsPaths.map((filePath) => `"${filePath}"`).join(' ')}`,
+    `tsc --noEmit --skipLibCheck --module esnext --moduleResolution bundler ${typeDefsPaths.map((filePath) => `"${filePath}"`).join(' ')}`,
     {
       cwd: fileURLToPath(BUILD_DIR),
     },
@@ -116,26 +107,6 @@ ${getRelativePaths(modulesWithUnresolvedImports)
     console.error(
       'Failed to compile the .d.ts modules with tsc. See the original error below.',
       tscCompilation.stderr,
-    )
-
-    return process.exit(1)
-  }
-
-  // Ensure that CJS .d.ts file never reference .mjs files.
-  const mjsInCjsResults = searchFilesForPattern(
-    '**/*.d.ts',
-    '.mjs',
-    'Failed to validate the .d.ts modules not referencing ".mjs" files. See the original error below.',
-  )
-
-  if (mjsInCjsResults.length > 0) {
-    console.error(
-      `Found .d.ts modules referencing ".mjs" files after patching:
-
-${getRelativePaths(mjsInCjsResults)
-  .map((p) => `  - ${p}`)
-  .join('\n')}
-        `,
     )
 
     return process.exit(1)

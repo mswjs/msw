@@ -1,39 +1,17 @@
-const CORE_ESM_IMPORT_PATTERN = /(from|import)\s+["'](#core(.*?))["'](;)?/gm
-const CORE_CJS_IMPORT_PATTERN = /require\(["'](#core(.*?))["']\)(;)?/gm
+const CORE_IMPORT_PATTERN = /(from|import)\s+["']#core(.*?)["'](;)?/gm
 
-function getCoreImportPattern(isEsm) {
-  return isEsm ? CORE_ESM_IMPORT_PATTERN : CORE_CJS_IMPORT_PATTERN
+export function hasCoreImports(fileContents) {
+  return fileContents.search(CORE_IMPORT_PATTERN) !== -1
 }
 
-export function hasCoreImports(fileContents, isEsm) {
-  return fileContents.search(getCoreImportPattern(isEsm)) !== -1
-}
-
-export function replaceCoreImports(moduleFilePath, fileContents, isEsm) {
-  if (isEsm) {
-    return fileContents.replace(
-      CORE_ESM_IMPORT_PATTERN,
-      (_, keyword, __, maybeSubmodulePath, maybeSemicolon) => {
-        const submodulePath = maybeSubmodulePath || '/index'
-        /**
-         * @note Although all .d.ts are considered ESM, append different
-         * file extension for d.mts files.
-         */
-        const extension = moduleFilePath.endsWith('.d.mts') ? '.mjs' : ''
-        const semicolon = maybeSemicolon || ''
-
-        return `${keyword} "../core${submodulePath}${extension}"${semicolon}`
-      },
-    )
-  }
-
+export function replaceCoreImports(fileContents) {
   return fileContents.replace(
-    CORE_CJS_IMPORT_PATTERN,
-    (_, __, maybeSubmodulePath, maybeSemicolon) => {
+    CORE_IMPORT_PATTERN,
+    (_, keyword, maybeSubmodulePath, maybeSemicolon) => {
       const submodulePath = maybeSubmodulePath || '/index'
       const semicolon = maybeSemicolon || ''
 
-      return `require("../core${submodulePath}")${semicolon}`
+      return `${keyword} "../core${submodulePath}.js"${semicolon}`
     },
   )
 }

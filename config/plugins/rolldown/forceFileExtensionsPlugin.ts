@@ -1,54 +1,38 @@
 import type { TsdownPlugin } from 'tsdown'
 
-export const ESM_EXTENSION = '.mjs'
-export const CJS_EXTENSION = '.js'
+export const ESM_EXTENSION = '.js'
 
+/**
+ * Forces explicit file extensions on relative imports
+ * in the emitted ESM chunks so they resolve in Node.js.
+ */
 export function forceFileExtensionsPlugin(): TsdownPlugin {
   return {
     name: 'forceFileExtensionsPlugin',
-    renderChunk(code, chunk, outputOptions) {
-      const isEsm =
-        outputOptions.format === 'es' || chunk.fileName.endsWith(ESM_EXTENSION)
-
-      if (!isEsm) {
-        return
-      }
-
+    renderChunk(code) {
       return {
-        code: modifyRelativeImports(code, isEsm),
+        code: modifyRelativeImports(code),
         map: null,
       }
     },
   }
 }
 
-const CJS_RELATIVE_IMPORT_EXP = /require\(["'](\..+)["']\)(;)?/gm
 const ESM_RELATIVE_IMPORT_EXP = /from ["'](\..+)["'](;)?/gm
 
-function modifyRelativeImports(contents: string, isEsm: boolean): string {
-  const extension = isEsm ? ESM_EXTENSION : CJS_EXTENSION
-  const importExpression = isEsm
-    ? ESM_RELATIVE_IMPORT_EXP
-    : CJS_RELATIVE_IMPORT_EXP
-
+function modifyRelativeImports(contents: string): string {
   return contents.replace(
-    importExpression,
+    ESM_RELATIVE_IMPORT_EXP,
     (_, importPath, maybeSemicolon = '') => {
       if (importPath.endsWith('.') || importPath.endsWith('/')) {
-        return isEsm
-          ? `from '${importPath}/index${extension}'${maybeSemicolon}`
-          : `require("${importPath}/index${extension}")${maybeSemicolon}`
+        return `from '${importPath}/index${ESM_EXTENSION}'${maybeSemicolon}`
       }
 
-      if (importPath.endsWith(extension)) {
-        return isEsm
-          ? `from '${importPath}'${maybeSemicolon}`
-          : `require("${importPath}")${maybeSemicolon}`
+      if (importPath.endsWith(ESM_EXTENSION)) {
+        return `from '${importPath}'${maybeSemicolon}`
       }
 
-      return isEsm
-        ? `from '${importPath}${extension}'${maybeSemicolon}`
-        : `require("${importPath}${extension}")${maybeSemicolon}`
+      return `from '${importPath}${ESM_EXTENSION}'${maybeSemicolon}`
     },
   )
 }

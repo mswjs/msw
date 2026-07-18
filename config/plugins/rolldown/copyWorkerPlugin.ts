@@ -1,19 +1,17 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import url from 'node:url'
 import crypto from 'crypto'
 import minify from 'babel-minify'
 import { invariant } from 'outvariant'
 import type { TsdownPlugin } from 'tsdown'
 import copyServiceWorker from '../../copyServiceWorker.ts'
 
-const SERVICE_WORKER_ENTRY_PATH = path.resolve(
-  process.cwd(),
-  './src/mockServiceWorker.js',
+const SERVICE_WORKER_ENTRY_PATH = url.fileURLToPath(
+  new URL('../../../src/mockServiceWorker.js', import.meta.url),
 )
 
-const SERVICE_WORKER_OUTPUT_PATH = path.resolve(
-  process.cwd(),
-  './lib/mockServiceWorker.js',
+const SERVICE_WORKER_OUTPUT_PATH = url.fileURLToPath(
+  new URL('../../../lib/mockServiceWorker.js', import.meta.url),
 )
 
 function getChecksum(contents: string): string {

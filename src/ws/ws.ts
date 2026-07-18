@@ -1,6 +1,5 @@
 import { invariant } from 'outvariant'
 import { type EventMap } from 'rettime'
-import { FetchResponse, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketData,
   WebSocketClientConnectionProtocol,
@@ -9,17 +8,19 @@ import {
   WebSocketHandler,
   kEmitter,
   type WebSocketHandlerEventMap,
-} from './handlers/WebSocketHandler'
-import { hasRefCounted } from './utils/internal/hasRefCounted'
+} from '#core/handlers/WebSocketHandler'
+import { hasRefCounted } from '#core/utils/internal/hasRefCounted'
 import {
   type Path,
   type PathParams,
   isPath,
-  matchRequestUrl,
-} from './utils/matching/matchRequestUrl'
-import { WebSocketClientManager } from './ws/WebSocketClientManager'
-import { http } from './http'
-import { attachSiblingHandlers } from './utils/internal/attachSiblingHandlers'
+} from '#core/utils/matching/matchRequestUrl'
+import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
+import {
+  createWebSocketUpgradeHandler,
+  webSocketUpgrade,
+} from '#core/ws/websocket-upgrade'
+import { WebSocketClientManager } from './websocket-client-manager'
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
 
@@ -90,21 +91,6 @@ export type WebSocketLink = {
 }
 
 /**
- * Creates a request handler that responds to WebSocket upgrade
- * requests whose URL matches the given path.
- *
- * @internal
- */
-export function createWebSocketUpgradeHandler(url: Path) {
-  return http.get(({ request }) => {
-    return (
-      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
-      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
-    )
-  }, ws.onUpgrade)
-}
-
-/**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
  * @example
@@ -145,8 +131,8 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
         await clientManager.addConnection(client)
       })
 
-      // The "handleWebSocketEvent" function will invoke
-      // the "run()" method on the WebSocketHandler.
+      // The WebSocket network frame invokes the "run()" method
+      // on the WebSocketHandler when resolving a connection.
       // If the handler matches, it will emit the "connection"
       // event. Attach the user-defined listener to that event.
       webSocketHandler[kEmitter].on(event, listener)
@@ -175,8 +161,6 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   }
 }
 
-const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-
 interface WebSocketNamespace {
   link: typeof createWebSocketLinkHandler
   /**
@@ -204,44 +188,7 @@ interface WebSocketNamespace {
  */
 export const ws: WebSocketNamespace = {
   link: createWebSocketLinkHandler,
-  async onUpgrade({ request }) {
-    const key = request.headers.get('sec-websocket-key')
-
-    if (!key) {
-      return
-    }
-
-    const keyBytes = new TextEncoder().encode(key + WEBSOCKET_GUID)
-    const digest = await crypto.subtle.digest('SHA-1', keyBytes)
-    const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
-
-    // Forward the subprotocols requested by the client to the intercepted
-    // connection so WebSocket handlers can match on them.
-    const requestedProtocols = request.headers
-      .get('sec-websocket-protocol')
-      ?.split(',')
-      .map((protocol) => protocol.trim())
-
-    new WebSocket(resolveWebSocketUrl(request.url), requestedProtocols)
-
-    const headers = new Headers({
-      upgrade: 'websocket',
-      connection: 'upgrade',
-      'sec-websocket-accept': acceptValue,
-    })
-
-    // Confirm the first requested subprotocol as the accepted one.
-    // Clients that requested subprotocols are entitled to fail the
-    // connection if the server confirms none (RFC 6455, section 4.1).
-    if (requestedProtocols && requestedProtocols.length > 0) {
-      headers.set('sec-websocket-protocol', requestedProtocols[0])
-    }
-
-    return new FetchResponse(null, {
-      status: 101,
-      headers,
-    })
-  },
+  onUpgrade: webSocketUpgrade,
 }
 
 export { type WebSocketData }

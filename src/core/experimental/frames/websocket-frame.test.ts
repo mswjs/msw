@@ -1,6 +1,6 @@
 import { http } from '../../http'
 import { graphql } from '../../../graphql'
-import { ws } from '../../ws'
+import { ws } from '../../../ws'
 import type { WebSocketNetworkFrameEventMap } from './websocket-frame'
 import { WebSocketNetworkFrame } from './websocket-frame'
 import { createTestWebSocketConnection } from '../../../../test/support/ws-test-utils'

@@ -1,4 +1,4 @@
-import { ws } from 'msw'
+import { ws } from 'msw/ws'
 import { setupServer } from 'msw/node'
 
 const service = ws.link('wss://*')

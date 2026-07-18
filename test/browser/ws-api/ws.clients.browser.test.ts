@@ -1,4 +1,4 @@
-import type { WebSocketLink, ws } from 'msw'
+import type { WebSocketLink, ws } from 'msw/ws'
 import type { SetupWorker, setupWorker } from 'msw/browser'
 import { test, expect } from '../playwright.extend'
 

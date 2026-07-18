@@ -9,7 +9,7 @@ import type {
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import { http } from '#core/http'
-import { ws } from '#core/ws'
+import { webSocketUpgrade } from '#core/ws/websocket-upgrade'
 import {
   WebSocketHandler,
   kConnect,
@@ -1473,7 +1473,7 @@ export function createGraphQLSubscriptionHandler(
       matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), webSocketUrl)
         .matches
     )
-  }, ws.onUpgrade)
+  }, webSocketUpgrade)
 
   return (operationName, resolver, options) => {
     const handler = new GraphQLSubscriptionHandler({

@@ -36,9 +36,9 @@
       "types": "./lib/graphql/index.d.ts",
       "default": "./lib/graphql/index.js"
     },
-    "./core/ws": {
-      "types": "./lib/core/ws.d.ts",
-      "default": "./lib/core/ws.js"
+    "./ws": {
+      "types": "./lib/ws/index.d.ts",
+      "default": "./lib/ws/index.js"
     },
     "./experimental": {
       "types": "./lib/core/experimental/index.d.ts",

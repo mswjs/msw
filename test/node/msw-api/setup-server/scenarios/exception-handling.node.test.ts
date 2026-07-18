@@ -1,4 +1,5 @@
-import { http, HttpResponse, ws } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { ws } from 'msw/ws'
 import { setupServer } from 'msw/node'
 
 const server = setupServer()

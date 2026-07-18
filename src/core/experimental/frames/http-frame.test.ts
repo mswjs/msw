@@ -1,6 +1,6 @@
 import { http } from '../../http'
 import { graphql } from '../../../graphql'
-import { ws } from '../../ws'
+import { ws } from '../../../ws'
 import { bypass } from '../../bypass'
 import type { HttpNetworkFrameEventMap } from './http-frame'
 import { HttpNetworkFrame } from './http-frame'

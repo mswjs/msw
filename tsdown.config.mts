@@ -98,6 +98,28 @@ const graphqlConfig: UserConfig = {
   plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
+const wsConfig: UserConfig = {
+  ...commonConfig,
+  name: 'ws',
+  platform: 'neutral',
+  entry: glob.sync('./src/ws/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
+  deps: {
+    neverBundle: [mswCore, ecosystemDependencies],
+    onlyBundle: false,
+  },
+  format: ['esm'],
+  outDir: './lib/ws',
+  unbundle: true,
+  sourcemap: true,
+  dts: { build: true },
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
+  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+}
+
 const nodeConfig: UserConfig = {
   ...commonConfig,
   name: 'node',
@@ -222,6 +244,7 @@ export default defineConfig([
   ...shimConfigs,
   coreConfig,
   graphqlConfig,
+  wsConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,

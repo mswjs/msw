@@ -7,15 +7,6 @@ export { RequestHandler } from './handlers/RequestHandler'
 export { http } from './http'
 export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
 
-/* WebSocket handler */
-export { ws, type WebSocketLink } from './ws'
-export {
-  WebSocketHandler,
-  WebSocketConnectionEvent,
-  type WebSocketHandlerEventMap,
-  type WebSocketHandlerConnection,
-} from './handlers/WebSocketHandler'
-
 /* Server-Sent Events */
 export {
   sse,
@@ -63,8 +54,6 @@ export type {
   HttpCustomPredicate,
 } from './handlers/HttpHandler'
 export type { HttpRequestHandler, HttpResponseResolver } from './http'
-
-export type { WebSocketData, WebSocketEventListener } from './ws'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
 export type { ResponseResolutionContext } from './utils/executeHandlers'

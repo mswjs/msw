@@ -1,4 +1,4 @@
-import type { ws } from 'msw'
+import type { ws } from 'msw/ws'
 import type { setupWorker } from 'msw/browser'
 import type { Page } from '@playwright/test'
 import { test, expect } from '../playwright.extend'

@@ -3,8 +3,8 @@ import type {
   WebSocketData,
   WebSocketLink,
   WebSocketHandlerConnection,
-} from 'msw'
-import { ws } from 'msw'
+} from 'msw/ws'
+import { ws } from 'msw/ws'
 import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 
 it('supports URL as the link argument', () => {

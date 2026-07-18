@@ -3,9 +3,9 @@ import type {
   WebSocketClientConnectionProtocol,
   WebSocketClientEventMap,
 } from '@mswjs/interceptors/WebSocket'
-import type { WebSocketClientStore } from './WebSocketClientStore'
-import { WebSocketMemoryClientStore } from './WebSocketMemoryClientStore'
-import { WebSocketIndexedDBClientStore } from './WebSocketIndexedDBClientStore'
+import type { WebSocketClientStore } from './websocket-client-store'
+import { WebSocketMemoryClientStore } from './websocket-memory-client-store'
+import { WebSocketIndexedDBClientStore } from './websocket-indexeddb-client-store'
 
 export type WebSocketBroadcastChannelMessage =
   | {

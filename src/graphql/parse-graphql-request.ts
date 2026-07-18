@@ -17,7 +17,11 @@ interface GraphQLInput {
 }
 
 export interface ParsedGraphQLQuery {
-  operationType: OperationTypeNode
+  /**
+   * Undefined if the document has no operation matching the
+   * requested operation name.
+   */
+  operationType?: OperationTypeNode
   operationName?: string
 }
 
@@ -41,18 +45,24 @@ export function parseDocumentNode(
   /**
    * @note A document may bundle multiple operations (e.g. the ones
    * emitted by GraphQL Code Generator). Honor the requested operation
-   * name, falling back to the first operation, like a GraphQL server
-   * given a request without an operation name.
+   * name, and resolve nothing if the document has no such operation.
+   * Falling back to the first operation would silently resolve one the
+   * client never asked for.
    */
   const operationDef = operationName
     ? operationDefs.find((definition) => {
         return definition.name?.value === operationName
-      }) || operationDefs[0]
+      })
     : operationDefs[0]
 
   return {
     operationType: operationDef?.operation,
-    operationName: operationDef?.name?.value,
+    /**
+     * @note Echo the requested operation name even when the document
+     * has no such operation. It makes the "unhandled operation" warnings
+     * name the operation the client actually asked for.
+     */
+    operationName: operationDef?.name?.value || operationName || undefined,
   }
 }
 

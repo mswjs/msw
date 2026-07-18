@@ -117,3 +117,28 @@ it('selects the operation by name for a multipart request', async () => {
   })
   expect(queryResolver).not.toHaveBeenCalled()
 })
+
+it('does not match any handler given an unknown operation name', async () => {
+  const queryResolver = vi.fn()
+  const mutationResolver = vi.fn()
+
+  server.use(
+    graphql.query('GetUser', queryResolver),
+    graphql.mutation('UpdateUser', mutationResolver),
+  )
+
+  const response = await fetch('http://localhost/graphql', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      query: DOCUMENT,
+      operationName: 'Unknown',
+    }),
+  }).catch((error) => error)
+
+  // Resolving the leading operation would mock an operation the
+  // client never asked for.
+  expect(queryResolver).not.toHaveBeenCalled()
+  expect(mutationResolver).not.toHaveBeenCalled()
+  expect(response).toBeInstanceOf(Error)
+})

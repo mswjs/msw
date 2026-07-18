@@ -128,10 +128,11 @@ describe('parseDocumentNode', () => {
     })
   })
 
-  test('falls back to the first operation given an unknown operation name', () => {
+  test('resolves no operation given an unknown operation name', () => {
     expect(parseDocumentNode(document, 'Unknown')).toEqual<ParsedGraphQLQuery>({
-      operationType: OperationTypeNode.QUERY,
-      operationName: 'GetComments',
+      operationType: undefined,
+      // The requested name is echoed back for diagnostics.
+      operationName: 'Unknown',
     })
   })
 })

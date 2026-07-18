@@ -1,7 +1,7 @@
 import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createWebSocketMiddleware } from '@epic-web/test-server/ws'
 import { createYoga, type YogaSchemaDefinition } from 'graphql-yoga'
-import { useServer } from 'graphql-ws/lib/use/ws'
+import { useServer } from 'graphql-ws/use/ws'
 
 /**
  * Create a real GraphQL server that serves queries over HTTP and
@@ -42,20 +42,20 @@ export async function createTestGraphQLServer(options: {
       },
       execute: (args: any) => args.execute(args),
       subscribe: (args: any) => args.subscribe(args),
-      onSubscribe: async (ctx, params) => {
+      onSubscribe: async (ctx, _id, payload) => {
         const { schema, execute, subscribe, contextFactory, parse, validate } =
           yoga.getEnveloped({
             ...ctx,
             req: ctx.extra.request,
             socket: ctx.extra.socket,
-            params,
+            params: payload,
           })
 
         const args = {
           schema,
-          operationName: params.payload.operationName,
-          document: parse(params.payload.query),
-          variableValues: params.payload.variables,
+          operationName: payload.operationName,
+          document: parse(payload.query),
+          variableValues: payload.variables,
           contextValue: await contextFactory(),
           execute,
           subscribe,

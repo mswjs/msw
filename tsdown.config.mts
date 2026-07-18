@@ -29,37 +29,6 @@ const commonConfig = {
   clean: false,
 } satisfies UserConfig
 
-const shimConfigs: UserConfig[] = glob
-  .sync('./src/shims/**/*.ts', {
-    posix: true,
-    dotRelative: true,
-  })
-  .map((entry) => ({
-    ...commonConfig,
-    name: `shims:${path.basename(entry, '.ts')}`,
-    platform: 'neutral',
-    entry: [entry],
-    format: ['esm'],
-    deps: {
-      alwaysBundle: Object.keys(packageJson.dependencies),
-      onlyBundle: false,
-    },
-    inputOptions: {
-      resolve: {
-        mainFields: ['main', 'module'],
-      },
-    },
-    outputOptions: {
-      codeSplitting: false,
-    },
-    outDir: './lib/shims',
-    unbundle: false,
-    sourcemap: false,
-    dts: true,
-    tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-    plugins: [cleanStrayDeclarationsPlugin()],
-  }))
-
 const coreConfig: UserConfig = {
   ...commonConfig,
   name: 'core',
@@ -70,7 +39,7 @@ const coreConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswHttp, mswGraphql, mswWs, ecosystemDependencies, /shims\/(cookie|statuses)$/],
+    neverBundle: [mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -297,7 +266,6 @@ const iifeConfig: UserConfig = {
 }
 
 export default defineConfig([
-  ...shimConfigs,
   coreConfig,
   httpConfig,
   graphqlConfig,

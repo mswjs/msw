@@ -17,9 +17,6 @@ importers:
       '@mswjs/interceptors':
         specifier: ^0.41.7
         version: 0.41.9
-      '@types/statuses':
-        specifier: ^2.0.6
-        version: 2.0.6
       cookie:
         specifier: ^2.0.1
         version: 2.0.1
@@ -38,9 +35,6 @@ importers:
       rettime:
         specifier: ^0.11.11
         version: 0.11.11
-      statuses:
-        specifier: ^2.0.2
-        version: 2.0.2
       tough-cookie:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1585,9 +1579,6 @@ packages:
 
   '@types/set-cookie-parser@2.4.10':
     resolution: {integrity: sha512-GGmQVGpQWUe5qglJozEjZV/5dyxbOOZ0LHe/lqyWssB88Y4svNfst0uqBVscdDeIKl5Jy5+aPSvy7mI9tYRguw==}
-
-  '@types/statuses@2.0.6':
-    resolution: {integrity: sha512-xMAgYwceFhRA2zY+XbEA7mxYbA093wdiW8Vu6gZPGWy9cmOyU9XesH1tNcEWsKFd5Vzrqx5T3D38PWx1FIIXkA==}
 
   '@types/uuid@8.3.4':
     resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
@@ -6339,8 +6330,6 @@ snapshots:
   '@types/set-cookie-parser@2.4.10':
     dependencies:
       '@types/node': 22.19.21
-
-  '@types/statuses@2.0.6': {}
 
   '@types/uuid@8.3.4': {}
 

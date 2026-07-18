@@ -1,7 +1,5 @@
-import statuses from '../../shims/statuses'
 import type { HttpResponse, HttpResponseInit } from '#http/http-response'
-
-const { message } = statuses
+import { httpStatusMessages } from './http-status-messages'
 
 const kSetCookie = Symbol('kSetCookie')
 
@@ -15,7 +13,7 @@ export function normalizeResponseInit(
   init: HttpResponseInit = {},
 ): HttpResponseDecoratedInit {
   const status = init?.status || 200
-  const statusText = init?.statusText || message[status] || ''
+  const statusText = init?.statusText || httpStatusMessages[status] || ''
   const headers = new Headers(init?.headers)
 
   return {

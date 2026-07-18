@@ -100,7 +100,7 @@ export type ResponseResolverInfo<
   finalize: ResponseResolverFinalizeFunction
 } & ResolverExtraInfo
 
-type ResponseResolverFinalizeFunction = (
+export type ResponseResolverFinalizeFunction = (
   callback: () => MaybePromise<void>,
 ) => void
 

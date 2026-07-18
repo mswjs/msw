@@ -22,6 +22,8 @@ import {
   type Path,
   type PathParams,
 } from '#core/utils/matching/matchRequestUrl'
+import type { ResponseResolverFinalizeFunction } from '#core/handlers/RequestHandler'
+import type { MaybePromise } from '#core/typeUtils'
 import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
 import { jsonParse } from '#core/utils/internal/jsonParse'
 import { devUtils } from '#core/utils/internal/devUtils'
@@ -198,11 +200,20 @@ interface GraphQLSubscriptionSubscriberEntry {
   subscriber: GraphQLSubscriptionSubscriber
 }
 
+/**
+ * An active subscription and the cleanups scheduled for it via the
+ * `finalize()` function exposed to the subscription resolver.
+ */
+interface GraphQLSubscriptionEntry {
+  message: GraphQLWebSocketSubscribeMessage
+  cleanups: Array<() => MaybePromise<void>>
+}
+
 interface GraphQLSubscriptionConnection {
   client: WebSocketClientConnectionProtocol
   server: WebSocketServerConnectionProtocol
   subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriberEntry>
-  subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
+  subscriptions: Map<string, GraphQLSubscriptionEntry>
   events?: WebSocketResolutionContext['events']
 }
 
@@ -285,6 +296,80 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
+   * Schedule a cleanup to run once the given subscription ends.
+   *
+   * @note If the subscription has already ended by the time this is
+   * called, the cleanup runs immediately. The resolver can no longer
+   * affect that subscription, so there is nothing left to wait for.
+   */
+  /**
+   * End the given subscription without notifying the client. Used when
+   * the subscription has already been terminated over the wire (e.g. the
+   * original server completed it and that frame reached the client).
+   */
+  public endSubscription(args: {
+    clientId: string
+    subscriptionId: string
+  }): void {
+    const connection = connections.get(args.clientId)
+
+    if (connection != null) {
+      this.#endSubscription(connection, args.subscriptionId)
+    }
+  }
+
+  public finalize(args: {
+    clientId: string
+    subscriptionId: string
+    cleanup: () => MaybePromise<void>
+  }): void {
+    const subscription = connections
+      .get(args.clientId)
+      ?.subscriptions.get(args.subscriptionId)
+
+    if (subscription == null) {
+      void args.cleanup()
+      return
+    }
+
+    subscription.cleanups.push(args.cleanup)
+  }
+
+  /**
+   * End the given subscription and run the cleanups scheduled for it.
+   *
+   * This is the single exit point for every way a subscription can end:
+   * completed by the mock, by the client, or by the original server;
+   * terminated with errors; or dropped when the client disconnects.
+   * Ending an already-ended subscription is a no-op, so the cleanups
+   * are guaranteed to run at most once.
+   */
+  #endAllSubscriptions(connection: GraphQLSubscriptionConnection): void {
+    for (const subscriptionId of Array.from(connection.subscriptions.keys())) {
+      this.#endSubscription(connection, subscriptionId)
+    }
+  }
+
+  #endSubscription(
+    connection: GraphQLSubscriptionConnection,
+    subscriptionId: string,
+  ): void {
+    const subscription = connection.subscriptions.get(subscriptionId)
+
+    if (subscription == null) {
+      return
+    }
+
+    connection.subscriptions.delete(subscriptionId)
+
+    // Run the cleanups as LIFO, consistently with `finalize()`
+    // in the request handlers.
+    for (let index = subscription.cleanups.length - 1; index >= 0; index--) {
+      void subscription.cleanups[index]()
+    }
+  }
+
+  /**
    * Send a `next` message with the given payload to the subscription.
    */
   public publish(args: {
@@ -335,7 +420,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
         payload: args.errors,
       }),
     )
-    connection.subscriptions.delete(args.subscriptionId)
+    this.#endSubscription(connection, args.subscriptionId)
   }
 
   /**
@@ -354,7 +439,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     }
 
     connection.client.send(createCompleteMessage({ id: args.subscriptionId }))
-    connection.subscriptions.delete(args.subscriptionId)
+    this.#endSubscription(connection, args.subscriptionId)
   }
 
   /**
@@ -374,7 +459,9 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
         }
       }
 
-      connection.subscriptions.clear()
+      // Resetting the handlers detaches the resolvers from their
+      // subscriptions, so run their cleanups instead of dropping them.
+      this.#endAllSubscriptions(connection)
     }
 
     this.#connections.clear()
@@ -423,6 +510,9 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     })
 
     client.addEventListener('close', () => {
+      // The resolvers can no longer affect any of the subscriptions
+      // on this connection once the client disconnects.
+      this.#endAllSubscriptions(transportConnection)
       connections.delete(client.id)
     })
 
@@ -479,7 +569,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
       }
 
       case 'complete': {
-        connection.subscriptions.delete(message.id)
+        this.#endSubscription(connection, message.id)
         break
       }
     }
@@ -513,7 +603,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
 
     // Register the subscription before dispatching it so the resolver
     // can publish to it synchronously.
-    connection.subscriptions.set(message.id, message)
+    connection.subscriptions.set(message.id, { message, cleanups: [] })
 
     for (const { subscriber } of connection.subscribers.values()) {
       if (subscriber({ node, message })) {
@@ -583,6 +673,20 @@ export interface GraphQLSubscriptionResolverInfo<
    * Intercepted GraphQL subscription.
    */
   subscription: GraphQLSubscription<Query, Variables>
+
+  /**
+   * Schedule a cleanup to run once this subscription ends and the
+   * resolver can no longer affect it: it has been completed (by the mock,
+   * the client, or the original server), terminated with errors, or the
+   * client has disconnected.
+   *
+   * @example
+   * api.subscription('OnCommentAdded', ({ subscription, finalize }) => {
+   *   const interval = setInterval(() => subscription.publish(payload), 1000)
+   *   finalize(() => clearInterval(interval))
+   * })
+   */
+  finalize: ResponseResolverFinalizeFunction
 }
 
 export type GraphQLSubscriptionResolver<
@@ -699,6 +803,13 @@ export class GraphQLSubscriptionHandler<
       params: connection.params,
       operationName,
       subscription,
+      finalize: (cleanup) => {
+        this.#transport.finalize({
+          clientId: connection.client.id,
+          subscriptionId: subscription.id,
+          cleanup,
+        })
+      },
     })
 
     return true
@@ -841,6 +952,12 @@ export class GraphQLSubscription<
     return new GraphQLPassthroughSubscription({
       server: connection.server,
       message: this.#message,
+      onTerminate: () => {
+        this.#transport.endSubscription({
+          clientId: this.#clientId,
+          subscriptionId: this.id,
+        })
+      },
     })
   }
 }
@@ -861,13 +978,16 @@ export class GraphQLPassthroughSubscription {
   readonly #message: GraphQLWebSocketSubscribeMessage
   readonly #emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   readonly #abortController: AbortController
+  readonly #onTerminate: () => void
 
   constructor(args: {
     server: WebSocketServerConnectionProtocol
     message: GraphQLWebSocketSubscribeMessage
+    onTerminate: () => void
   }) {
     this.#server = args.server
     this.#message = args.message
+    this.#onTerminate = args.onTerminate
     this.#emitter = new Emitter()
 
     // An abort controller responsible for removing the server event
@@ -942,8 +1062,13 @@ export class GraphQLPassthroughSubscription {
 
             if (errorEvent.defaultPrevented) {
               event.preventDefault()
+              break
             }
 
+            // The original server terminated the subscription and that
+            // frame reaches the client, so the subscription ends here.
+            // A prevented frame means the mock took over instead.
+            this.#onTerminate()
             break
           }
 
@@ -957,8 +1082,10 @@ export class GraphQLPassthroughSubscription {
 
             if (completeEvent.defaultPrevented) {
               event.preventDefault()
+              break
             }
 
+            this.#onTerminate()
             break
           }
         }

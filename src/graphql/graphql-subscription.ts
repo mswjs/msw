@@ -128,6 +128,13 @@ export interface GraphQLSubscriptionPayload<
   extensions?: Record<string, unknown>
 }
 
+function createInitMessage(payload?: Record<string, unknown>): string {
+  return JSON.stringify({
+    type: 'connection_init',
+    payload,
+  } satisfies GraphQLWebSocketInitMessage)
+}
+
 function createAcknowledgeMessage(): string {
   return JSON.stringify({
     type: 'connection_ack',
@@ -212,6 +219,12 @@ interface GraphQLSubscriptionConnection {
    */
   subscriptions: Map<string, Array<GraphQLSubscriptionCleanup>>
   events?: WebSocketResolutionContext['events']
+  /**
+   * The payload of the client's `connection_init` message (i.e. the
+   * `connectionParams` of the GraphQL client). Kept so it can be
+   * replayed to the original server on passthrough.
+   */
+  connectionParams?: Record<string, unknown>
 }
 
 /**
@@ -604,6 +617,9 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
 
     switch (message.type) {
       case 'connection_init': {
+        // Preserve the initialization payload (e.g. the client's
+        // credentials) so passthrough can replay it to the server.
+        connection.connectionParams = message.payload
         connection.client.send(createAcknowledgeMessage())
         break
       }
@@ -1002,6 +1018,7 @@ export class GraphQLSubscription<
     return new GraphQLPassthroughSubscription({
       server: connection.server,
       message: this.#message,
+      connectionParams: connection.connectionParams,
       onTerminate: () => {
         this.#transport.endSubscription({
           clientId: this.#clientId,
@@ -1029,14 +1046,17 @@ export class GraphQLPassthroughSubscription {
   readonly #emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   readonly #abortController: AbortController
   readonly #onTerminate: () => void
+  readonly #connectionParams?: Record<string, unknown>
 
   constructor(args: {
     server: WebSocketServerConnectionProtocol
     message: GraphQLWebSocketSubscribeMessage
+    connectionParams?: Record<string, unknown>
     onTerminate: () => void
   }) {
     this.#server = args.server
     this.#message = args.message
+    this.#connectionParams = args.connectionParams
     this.#onTerminate = args.onTerminate
     this.#emitter = new Emitter()
 
@@ -1051,11 +1071,7 @@ export class GraphQLPassthroughSubscription {
         // Once the WebSocket server connection is established, send the
         // client connection prompt to the server. This lets the server
         // connect and authorize this client.
-        this.#server.send(
-          JSON.stringify({
-            type: 'connection_init',
-          } satisfies GraphQLWebSocketInitMessage),
-        )
+        this.#server.send(createInitMessage(this.#connectionParams))
       },
       { signal: this.#abortController.signal },
     )

@@ -10,6 +10,10 @@ import { useServer } from 'graphql-ws/lib/use/ws'
 export async function createTestGraphQLServer(options: {
   pathname?: string
   schema: YogaSchemaDefinition<Record<string, unknown>, Record<string, unknown>>
+  /**
+   * Called with the `connectionParams` of every connected client.
+   */
+  onConnect?: (connectionParams?: Record<string, unknown>) => void
 }) {
   const pathname = options.pathname || '/graphql'
 
@@ -32,6 +36,9 @@ export async function createTestGraphQLServer(options: {
 
   const disposeOfServer = useServer(
     {
+      onConnect: (ctx) => {
+        options.onConnect?.(ctx.connectionParams)
+      },
       execute: (args: any) => args.execute(args),
       subscribe: (args: any) => args.subscribe(args),
       onSubscribe: async (ctx, params) => {

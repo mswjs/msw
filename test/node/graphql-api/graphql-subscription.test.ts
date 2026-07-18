@@ -749,6 +749,70 @@ it('combines extraneous and default pubsubs', async () => {
   })
 })
 
+it('replays the connection params to the original server', async () => {
+  const connectionParamsListener = vi.fn()
+
+  await using testServer = await createTestGraphQLServer({
+    onConnect: connectionParamsListener,
+    schema: createSchema({
+      typeDefs: gql`
+        type Comment {
+          text: String!
+        }
+
+        type Query {
+          comments: [Comment!]!
+        }
+
+        type Subscription {
+          commentAdded: Comment!
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          commentAdded: {
+            async *subscribe() {
+              yield { commentAdded: { text: 'hello world' } }
+            },
+          },
+        },
+      },
+    }),
+  })
+
+  const api = graphql.link(testServer.http.url().href)
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription }) => {
+      subscription.passthrough()
+    }),
+  )
+
+  await using client = createClient({
+    url: testServer.ws.url().href,
+    connectionParams: { authorization: 'Bearer abc-123' },
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: { data: { commentAdded: { text: 'hello world' } } },
+  })
+
+  // The client's `connectionParams` must reach the original server
+  // unchanged, otherwise it cannot authorize this client.
+  expect(connectionParamsListener).toHaveBeenCalledWith({
+    authorization: 'Bearer abc-123',
+  })
+})
+
 it('bypasses a subscription', async () => {
   await using testServer = await createTestGraphQLServer({
     schema: createSchema({

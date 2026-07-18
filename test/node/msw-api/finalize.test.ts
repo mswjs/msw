@@ -486,6 +486,48 @@ it('runs after a GraphQL subscription is completed by the original server', asyn
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
+it('runs after the network is closed while the subscription is open', async () => {
+  const cleanup = vi.fn()
+  const subscriptionEstablished = Promise.withResolvers<void>()
+
+  const api = graphql.link('ws://localhost:4000/graphql')
+  server.use(
+    api.subscription('OnCommentAdded', ({ finalize }) => {
+      finalize(cleanup)
+      subscriptionEstablished.resolve()
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+    lazy: false,
+  })
+  client
+    .iterate({
+      query: gql`
+        subscription OnCommentAdded {
+          commentAdded {
+            text
+          }
+        }
+      `,
+    })
+    .next()
+
+  await subscriptionEstablished.promise
+  expect(cleanup).not.toHaveBeenCalled()
+
+  // Closing the network detaches the resolver from the subscription
+  // while the client is still connected.
+  server.close()
+
+  // Restore the network before asserting so a failure here
+  // cannot leave the network closed for the rest of the suite.
+  server.listen()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
 it('runs cleanup for parallel requests', async () => {
   const cleanup = vi.fn()
 

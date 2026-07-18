@@ -325,10 +325,16 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     this.#exhaustCleanups([args.cleanup])
   }
 
-  #endAllSubscriptions(connection: GraphQLSubscriptionConnection): void {
+  async #endAllSubscriptions(
+    connection: GraphQLSubscriptionConnection,
+  ): Promise<void> {
+    const pendingCleanups: Array<Promise<void>> = []
+
     for (const subscriptionId of connection.subscriptions.keys()) {
-      this.#endSubscription(connection, subscriptionId)
+      pendingCleanups.push(this.#endSubscription(connection, subscriptionId))
     }
+
+    await Promise.all(pendingCleanups)
   }
 
   /**
@@ -344,15 +350,15 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   #endSubscription(
     connection: GraphQLSubscriptionConnection,
     subscriptionId: string,
-  ): void {
+  ): Promise<void> {
     const cleanups = connection.subscriptions.get(subscriptionId)
 
     if (!cleanups) {
-      return
+      return Promise.resolve()
     }
 
     connection.subscriptions.delete(subscriptionId)
-    this.#exhaustCleanups(cleanups)
+    return this.#exhaustCleanups(cleanups)
   }
 
   /**
@@ -482,6 +488,34 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
       if (ownsConnection) {
         this.#endAllSubscriptions(connection)
       }
+    }
+  }
+
+  /**
+   * Forget the sessions of this transport, ending their subscriptions.
+   * @note This method is invoked automatically when the network is
+   * disabled (e.g. `server.close()`).
+   */
+  public dispose(): MaybePromise<void> {
+    const pendingCleanups: Array<Promise<void>> = []
+
+    for (const [clientId, connection] of connections) {
+      for (const [handler, entry] of connection.subscribers) {
+        if (entry.transport === this) {
+          connection.subscribers.delete(handler)
+        }
+      }
+
+      // A session is shared by all the transports of the same endpoint,
+      // so it's only torn down once the last of them is disposed of.
+      if (connection.subscribers.size === 0) {
+        pendingCleanups.push(this.#endAllSubscriptions(connection))
+        connections.delete(clientId)
+      }
+    }
+
+    if (pendingCleanups.length > 0) {
+      return Promise.all(pendingCleanups).then(() => {})
     }
   }
 

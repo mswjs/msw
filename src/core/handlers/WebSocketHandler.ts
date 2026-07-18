@@ -17,6 +17,7 @@ import {
   type PathParams,
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
+import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
 
@@ -56,14 +57,17 @@ export const kAutoConnect = Symbol('kAutoConnect')
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
-export class WebSocketHandler {
+export class WebSocketHandler extends Handler {
   public id: string
   public callFrame?: string
-  public kind = 'websocket' as const
+
+  public readonly kind = 'websocket'
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(protected readonly url: Path) {
+    super()
+
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()

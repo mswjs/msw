@@ -222,10 +222,29 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       )
 
       readyState = NetworkReadyState.DISABLED
+
+      // Let the handlers release the resources they hold before
+      // tearing down the network itself. Handlers may still need the
+      // network while disposing of themselves (e.g. to close the
+      // connections they own).
+      const handlersDisposal = handlersController.dispose()
       disposable.dispose()
 
-      return colorlessPromiseAll(
+      /**
+       * @note Tear down the sources synchronously, never behind the
+       * handlers disposal. `disable()` is not always awaited (e.g.
+       * `server.close()` is synchronous), and a deferred teardown would
+       * race any `enable()` that follows, disabling the sources that the
+       * new session has just enabled.
+       */
+      const sourcesDisposal = colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),
+      )
+
+      return (
+        handlersDisposal instanceof Promise
+          ? handlersDisposal.then(() => sourcesDisposal)
+          : sourcesDisposal
       ) as MaybePromise<ReturnType<Sources[number]['disable']>>
     },
     use(...handlers) {

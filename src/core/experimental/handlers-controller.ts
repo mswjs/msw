@@ -2,6 +2,7 @@ import { invariant } from 'outvariant'
 import { type RequestHandler } from '../handlers/RequestHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
+import type { MaybePromise } from '../typeUtils'
 import {
   getSiblingHandlers,
   isSiblingHandler,
@@ -134,9 +135,7 @@ export abstract class HandlersController {
     )
 
     for (const handler of this.currentHandlers()) {
-      if ('reset' in handler) {
-        handler['reset']()
-      }
+      handler.reset()
     }
 
     const { initialHandlers } = this.getState()
@@ -159,9 +158,25 @@ export abstract class HandlersController {
 
   public restore(): void {
     for (const handler of this.currentHandlers()) {
-      if ('restore' in handler) {
-        handler['restore']()
+      handler.restore()
+    }
+  }
+
+  public dispose(): MaybePromise<void> {
+    const pendingDisposals: Array<Promise<void>> = []
+
+    for (const handler of this.currentHandlers()) {
+      const disposal = handler.dispose()
+
+      if (disposal instanceof Promise) {
+        pendingDisposals.push(disposal)
       }
+    }
+
+    // Stay synchronous unless a handler actually disposes of
+    // itself asynchronously.
+    if (pendingDisposals.length > 0) {
+      return Promise.all(pendingDisposals).then(() => {})
     }
   }
 

@@ -276,6 +276,37 @@ it('matches an outgoing subscription with "graphql.operation()"', async () => {
     })
 })
 
+it('supports one-time "graphql.operation()" handlers', async () => {
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+  const operationResolver = vi.fn()
+  const api = graphql.link('http://localhost:4000/graphql')
+  server.use(api.operation(operationResolver, { once: true }))
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+    lazy: false,
+  })
+  const query = gql`
+    subscription OnCommentAdded {
+      commentAdded {
+        text
+      }
+    }
+  `
+
+  client.iterate({ query }).next()
+  await expect.poll(() => operationResolver).toHaveBeenCalledOnce()
+
+  // The second subscription must not match the used handler.
+  client.iterate({ query }).next()
+  await expect
+    .poll(() => vi.mocked(console.warn).mock.calls.flat().join('\n'))
+    .toMatch(/no matching subscription handler/)
+
+  expect(operationResolver).toHaveBeenCalledOnce()
+})
+
 it('supports one-time subscription handlers', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 

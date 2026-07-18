@@ -95,6 +95,9 @@ function createGraphQLOperationHandler(
           variables: subscription.variables,
         } as Parameters<typeof resolver>[0])
       },
+      // Forward the handler options so a one-time operation handler is
+      // also consumed by the first subscription it matches.
+      options,
     )
 
     return attachSiblingHandlers(handler, [subscriptionCatchAllHandler])

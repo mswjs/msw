@@ -18,7 +18,7 @@ import {
 } from '../utils/matching/matchRequestUrl'
 import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
+import { attachWebSocketLogger } from '#ws/utils/attach-websocket-logger'
 
 type WebSocketHandlerParsedResult = {
   match: Match

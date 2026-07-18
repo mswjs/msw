@@ -1,5 +1,5 @@
 import type { WebSocketData } from '@mswjs/interceptors/WebSocket'
-import { isObject } from '../../utils/internal/isObject'
+import { isObject } from '#core/utils/internal/isObject'
 
 /**
  * Returns the byte length of the given WebSocket message.

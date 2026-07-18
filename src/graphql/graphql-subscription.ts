@@ -9,7 +9,7 @@ import type {
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import { http } from '#http/http'
-import { webSocketUpgrade } from '#core/ws/websocket-upgrade'
+import { webSocketUpgrade } from '#ws/websocket-upgrade'
 import {
   WebSocketHandler,
   kConnect,

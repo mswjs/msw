@@ -3,12 +3,12 @@ import type {
   WebSocketConnectionData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
-import { devUtils } from '../../utils/internal/devUtils'
-import { getTimestamp } from '../../utils/logging/getTimestamp'
-import { toPublicUrl } from '../../utils/request/toPublicUrl'
-import { getMessageLength } from './getMessageLength'
-import { getPublicData } from './getPublicData'
-import { colors } from '../../utils/logging/colors'
+import { devUtils } from '#core/utils/internal/devUtils'
+import { getTimestamp } from '#core/utils/logging/getTimestamp'
+import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { getMessageLength } from './get-message-length'
+import { getPublicData } from './get-public-data'
+import { colors } from '#core/utils/logging/colors'
 
 export function attachWebSocketLogger(
   connection: WebSocketConnectionData,

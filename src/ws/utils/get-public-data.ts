@@ -1,6 +1,6 @@
 import type { WebSocketData } from '@mswjs/interceptors/WebSocket'
-import { isObject } from '../../utils/internal/isObject'
-import { truncateMessage } from './truncateMessage'
+import { isObject } from '#core/utils/internal/isObject'
+import { truncateMessage } from './truncate-message'
 
 export async function getPublicData(data: WebSocketData): Promise<string> {
   if (data instanceof Blob) {

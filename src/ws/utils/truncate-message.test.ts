@@ -1,4 +1,4 @@
-import { truncateMessage } from './truncateMessage'
+import { truncateMessage } from './truncate-message'
 
 it('returns a short string as-is', () => {
   expect(truncateMessage('')).toBe('')

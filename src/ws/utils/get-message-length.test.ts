@@ -1,4 +1,4 @@
-import { getMessageLength } from './getMessageLength'
+import { getMessageLength } from './get-message-length'
 
 it('returns the length of the string', () => {
   expect(getMessageLength('')).toBe(0)

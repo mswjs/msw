@@ -1,4 +1,4 @@
-import { getPublicData } from './getPublicData'
+import { getPublicData } from './get-public-data'
 
 it('returns a short string as-is', async () => {
   expect(await getPublicData('')).toBe('')

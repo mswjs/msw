@@ -19,7 +19,7 @@ import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandler
 import {
   createWebSocketUpgradeHandler,
   webSocketUpgrade,
-} from '#core/ws/websocket-upgrade'
+} from './websocket-upgrade'
 import { WebSocketClientManager } from './websocket-client-manager'
 
 const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')

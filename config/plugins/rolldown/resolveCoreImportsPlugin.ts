@@ -1,7 +1,7 @@
 import type { TsdownPlugin } from 'tsdown'
 
 const CORE_IMPORT_PATTERN =
-  /(from|import)\s+["']#(core|http|graphql)(.*?)["'](;)?/gm
+  /(from|import)\s+["']#(core|http|graphql|ws)(.*?)["'](;)?/gm
 
 /**
  * Resolves the "#core", "#http", and "#graphql" import aliases to

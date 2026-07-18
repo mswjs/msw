@@ -53,7 +53,9 @@
     "#http": "./src/http",
     "#http/*": "./src/http/*",
     "#graphql": "./src/graphql",
-    "#graphql/*": "./src/graphql/*"
+    "#graphql/*": "./src/graphql/*",
+    "#ws": "./src/ws",
+    "#ws/*": "./src/ws/*"
   },
   "bin": {
     "msw": "cli/index.js"

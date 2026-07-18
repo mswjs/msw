@@ -17,6 +17,7 @@ const ecosystemDependencies = /^@mswjs\/(.+)$/
 const mswCore = /#core(\/.+)?$/
 const mswHttp = /#http(\/.+)?$/
 const mswGraphql = /#graphql(\/.+)?$/
+const mswWs = /#ws(\/.+)?$/
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
 const commonConfig = {
@@ -66,7 +67,7 @@ const coreConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswHttp, mswGraphql, ecosystemDependencies, /shims\/(cookie|statuses)$/],
+    neverBundle: [mswHttp, mswGraphql, mswWs, ecosystemDependencies, /shims\/(cookie|statuses)$/],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -88,7 +89,7 @@ const graphqlConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -110,7 +111,7 @@ const httpConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -132,7 +133,7 @@ const wsConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -157,7 +158,7 @@ const nodeConfig: UserConfig = {
     },
   },
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -178,7 +179,7 @@ const browserConfig: UserConfig = {
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, ecosystemDependencies],
+    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
     alwaysBundle: Object.keys(packageJson.dependencies).filter(
       (packageName) => {
         return !ecosystemDependencies.test(packageName)
@@ -218,6 +219,7 @@ const reactNativeConfig: UserConfig = {
       mswCore,
       mswHttp,
       mswGraphql,
+      mswWs,
       ecosystemDependencies,
     ],
     onlyBundle: false,

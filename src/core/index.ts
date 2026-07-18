@@ -7,6 +7,20 @@ export { RequestHandler } from './handlers/RequestHandler'
 export { http } from '#http/http'
 export { HttpHandler, HttpMethods } from '#http/http-handler'
 
+/* WebSocket handler */
+export {
+  ws,
+  type WebSocketLink,
+  type WebSocketData,
+  type WebSocketEventListener,
+} from '#ws/ws'
+export {
+  WebSocketHandler,
+  WebSocketConnectionEvent,
+  type WebSocketHandlerEventMap,
+  type WebSocketHandlerConnection,
+} from './handlers/WebSocketHandler'
+
 /* Server-Sent Events */
 export {
   sse,

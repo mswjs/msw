@@ -98,6 +98,28 @@ const graphqlConfig: UserConfig = {
   plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
 }
 
+const httpConfig: UserConfig = {
+  ...commonConfig,
+  name: 'http',
+  platform: 'neutral',
+  entry: glob.sync('./src/http/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
+  deps: {
+    neverBundle: [mswCore, ecosystemDependencies],
+    onlyBundle: false,
+  },
+  format: ['esm'],
+  outDir: './lib/http',
+  unbundle: true,
+  sourcemap: true,
+  dts: { build: true },
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
+  plugins: [resolveCoreImportsPlugin(), forceFileExtensionsPlugin()],
+}
+
 const wsConfig: UserConfig = {
   ...commonConfig,
   name: 'ws',
@@ -243,6 +265,7 @@ const iifeConfig: UserConfig = {
 export default defineConfig([
   ...shimConfigs,
   coreConfig,
+  httpConfig,
   graphqlConfig,
   wsConfig,
   nodeConfig,

@@ -28,9 +28,9 @@
       "browser": null,
       "default": "./lib/native/index.js"
     },
-    "./core/http": {
-      "types": "./lib/core/http.d.ts",
-      "default": "./lib/core/http.js"
+    "./http": {
+      "types": "./lib/http/index.d.ts",
+      "default": "./lib/http/index.js"
     },
     "./graphql": {
       "types": "./lib/graphql/index.d.ts",

@@ -61,8 +61,7 @@
     "start": "tsdown --watch",
     "clean": "rimraf ./lib",
     "lint": "oxlint ./cli ./src ./test",
-    "build": "pnpm clean && cross-env NODE_ENV=production tsdown && pnpm patch:dts",
-    "patch:dts": "node \"./config/scripts/patch-ts.js\"",
+    "build": "pnpm clean && cross-env NODE_ENV=production tsdown",
     "publint": "publint",
     "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native && pnpm test:memory",
     "test:unit": "vitest",
@@ -82,7 +81,7 @@
   },
   "lint-staged": {
     "**/*.ts": [
-      "oxlint --fix"
+      "oxlint --fix --no-error-on-unmatched-pattern"
     ],
     "**/*.{ts,json}": [
       "prettier --write"

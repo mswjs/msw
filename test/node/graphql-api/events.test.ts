@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createClient } from 'graphql-ws'
+import { createClient } from '../../support/graphqlClient'
 import { setupServer } from 'msw/node'
 import { graphql } from 'msw/graphql'
 
@@ -26,7 +26,7 @@ it('emits the "graphql:subscription" event when a subscription is established', 
   server.use(api.subscription('OnCommentAdded', () => {}))
 
   const query = `subscription OnCommentAdded { commentAdded { text } }`
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   const subscription = client.iterate({

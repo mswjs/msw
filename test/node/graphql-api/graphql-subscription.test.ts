@@ -7,7 +7,7 @@ import {
   type GraphQLSubscriptionResolver,
 } from 'msw/graphql'
 import { createPubSub, createSchema } from 'graphql-yoga'
-import { createClient } from 'graphql-ws'
+import { createClient } from '../../support/graphqlClient'
 import { gql } from '../../support/graphql'
 import { createTestGraphQLServer } from '../../support/graphqlServer'
 
@@ -43,7 +43,7 @@ it('intercepts and mocks a GraphQL subscription', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -81,7 +81,7 @@ it('marks a subscription as complete', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -111,7 +111,7 @@ it('terminates a subscription with errors', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -140,7 +140,7 @@ it('exposes path parameters from the WebSocket link', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/user-service',
   })
   const subscription = client.iterate({
@@ -186,7 +186,7 @@ it('scopes published data to the subscribed client', async () => {
   `
 
   async function collectMessages(name: string): Promise<Array<unknown>> {
-    const client = createClient({ url: 'ws://localhost:4000/graphql' })
+    await using client = createClient({ url: 'ws://localhost:4000/graphql' })
     const messages: Array<unknown> = []
 
     for await (const result of client.iterate({
@@ -222,7 +222,7 @@ it('respects handler overrides for the same operation', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -253,7 +253,7 @@ it('matches an outgoing subscription with "graphql.operation()"', async () => {
   const api = graphql.link('https://localhost/graphql')
   server.use(api.operation(operationResolver))
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   client.iterate({
@@ -288,7 +288,7 @@ it('supports one-time subscription handlers', async () => {
 
   server.use(api.subscription('OnCommentAdded', resolver, { once: true }))
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const query = gql`
@@ -318,7 +318,6 @@ it('supports one-time subscription handlers', async () => {
   expect(resolver).toHaveBeenCalledTimes(1)
 
   secondNext.catch(() => {})
-  await client.dispose()
 })
 
 it('warns on a subscription without a matching handler', async () => {
@@ -327,7 +326,7 @@ it('warns on a subscription without a matching handler', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
   server.use(api.subscription('OnCommentAdded', () => {}))
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -348,7 +347,6 @@ it('warns on a subscription without a matching handler', async () => {
     )
 
   pendingNext.catch(() => {})
-  await client.dispose()
 })
 
 it('warns when publishing to a subscription after the handlers were reset', async () => {
@@ -363,7 +361,7 @@ it('warns when publishing to a subscription after the handlers were reset', asyn
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -393,7 +391,6 @@ it('warns when publishing to a subscription after the handlers were reset', asyn
   )
 
   pendingNext.catch(() => {})
-  await client.dispose()
 })
 
 it('responds to the protocol ping messages', async () => {
@@ -491,7 +488,7 @@ it('resolves a subscription once when multiple links share the endpoint', async 
     secondApi.subscription('OnCommentAdded', secondResolver),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
   })
   const subscription = client.iterate({
@@ -516,8 +513,6 @@ it('resolves a subscription once when multiple links share the endpoint', async 
   // endpoint between links must not resolve it once per transport.
   expect(firstResolver).toHaveBeenCalledTimes(1)
   expect(secondResolver).not.toHaveBeenCalled()
-
-  await client.dispose()
 })
 
 it('subscribes to extraneous pubsubs', async () => {
@@ -550,7 +545,7 @@ it('subscribes to extraneous pubsubs', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   const subscription = client.iterate({
@@ -612,7 +607,7 @@ it('emits the "graphql:subscription" life-cycle event when a subscription is est
   const api = graphql.link('https://localhost/graphql')
   server.use(api.subscription('OnCommentAdded', () => {}))
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   const subscription = client.iterate({
@@ -638,7 +633,6 @@ it('emits the "graphql:subscription" life-cycle event when a subscription is est
   expect(subscriptionEvent.request.headers.get('upgrade')).toBe('websocket')
 
   pendingNext.catch(() => {})
-  await client.dispose()
 })
 
 it('does not emit the "graphql:subscription" life-cycle event for unhandled subscriptions', async () => {
@@ -650,7 +644,7 @@ it('does not emit the "graphql:subscription" life-cycle event for unhandled subs
   const api = graphql.link('https://localhost/graphql')
   server.use(api.subscription('OnCommentAdded', () => {}))
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   const subscription = client.iterate({
@@ -672,7 +666,6 @@ it('does not emit the "graphql:subscription" life-cycle event for unhandled subs
   expect(subscriptionListener).not.toHaveBeenCalled()
 
   pendingNext.catch(() => {})
-  await client.dispose()
 })
 
 it('combines extraneous and default pubsubs', async () => {
@@ -704,7 +697,7 @@ it('combines extraneous and default pubsubs', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'wss://localhost/graphql',
   })
   const subscription = client.iterate({
@@ -794,7 +787,7 @@ it('bypasses a subscription', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: testServer.ws.url().href,
   })
   const subscription = client.iterate({
@@ -871,7 +864,7 @@ it('augments original server subscription payload', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: testServer.ws.url().href,
   })
   const subscription = client.iterate({

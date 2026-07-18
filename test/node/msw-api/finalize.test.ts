@@ -3,7 +3,7 @@ import { setTimeout } from 'node:timers/promises'
 import { http, passthrough, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { graphql } from 'msw/graphql'
-import { createClient } from 'graphql-ws'
+import { createClient } from '../../support/graphqlClient'
 import { createSchema } from 'graphql-yoga'
 import { gql } from '../../support/graphql'
 import { createTestGraphQLServer } from '../../support/graphqlServer'
@@ -314,7 +314,7 @@ it('runs after a GraphQL subscription is completed by the mock', async () => {
     }),
   )
 
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
     lazy: false,
   })
@@ -333,8 +333,6 @@ it('runs after a GraphQL subscription is completed by the mock', async () => {
     value: undefined,
   })
   expect(cleanup).toHaveBeenCalledOnce()
-
-  await client.dispose()
 })
 
 it('runs after a GraphQL subscription is completed by the client', async () => {
@@ -352,7 +350,7 @@ it('runs after a GraphQL subscription is completed by the client', async () => {
   // `lazy: false` keeps the socket open after the subscription ends.
   // Otherwise the client closes it, and the cleanup would run via the
   // disconnect path instead of the client's "complete" frame.
-  const client = createClient({
+  await using client = createClient({
     url: 'ws://localhost:4000/graphql',
     lazy: false,
   })
@@ -376,8 +374,6 @@ it('runs after a GraphQL subscription is completed by the client', async () => {
   await subscription.return?.()
 
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
-
-  await client.dispose()
 })
 
 it('runs after a GraphQL subscription is completed by the original server', async () => {
@@ -422,7 +418,7 @@ it('runs after a GraphQL subscription is completed by the original server', asyn
 
   // `lazy: false` keeps the socket open once the server completes the
   // subscription, so the cleanup cannot run via the disconnect path.
-  const client = createClient({
+  await using client = createClient({
     url: testServer.ws.url().href,
     lazy: false,
   })
@@ -443,8 +439,6 @@ it('runs after a GraphQL subscription is completed by the original server', asyn
 
   // The cleanup runs once the original server completes the subscription.
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
-
-  await client.dispose()
 })
 
 it('runs cleanup for parallel requests', async () => {

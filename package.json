@@ -12,20 +12,20 @@
       "default": "./lib/core/index.js"
     },
     "./browser": {
+      "types": "./lib/browser/index.d.ts",
       "node": null,
       "react-native": null,
-      "types": "./lib/browser/index.d.ts",
       "default": "./lib/browser/index.js"
     },
     "./node": {
+      "types": "./lib/node/index.d.ts",
       "browser": null,
       "react-native": null,
-      "types": "./lib/node/index.d.ts",
       "default": "./lib/node/index.js"
     },
     "./native": {
-      "browser": null,
       "types": "./lib/native/index.d.ts",
+      "browser": null,
       "default": "./lib/native/index.js"
     },
     "./core/http": {

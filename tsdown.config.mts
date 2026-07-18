@@ -206,7 +206,6 @@ const reactNativeConfig: UserConfig = {
   entry: ['./src/native/index.ts'],
   deps: {
     neverBundle: [
-      'picocolors',
       'util',
       'events',
       mswCore,

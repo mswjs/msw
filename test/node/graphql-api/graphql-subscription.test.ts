@@ -435,6 +435,98 @@ it('responds to the protocol ping messages', async () => {
   socket.close()
 })
 
+it('acknowledges the connection once when multiple links share the endpoint', async () => {
+  // Two `graphql.link()` calls to the same endpoint create two subscription
+  // transports, both matching this connection. They must share a single
+  // protocol session, otherwise each of them binds its own listeners and
+  // answers every client frame, duplicating the server messages.
+  const firstApi = graphql.link('http://localhost:4000/graphql')
+  const secondApi = graphql.link('http://localhost:4000/graphql')
+
+  server.use(
+    firstApi.subscription('OnCommentAdded', () => {}),
+    secondApi.subscription('OnCommentAdded', () => {}),
+  )
+
+  const socket = new WebSocket('ws://localhost:4000/graphql', [
+    'graphql-transport-ws',
+  ])
+  const messages: Array<{ type: string }> = []
+  const pongPromise = Promise.withResolvers<void>()
+
+  socket.onopen = () => {
+    socket.send(JSON.stringify({ type: 'connection_init' }))
+  }
+  socket.onmessage = (event) => {
+    const message = JSON.parse(String(event.data))
+    messages.push(message)
+
+    if (message.type === 'connection_ack') {
+      socket.send(JSON.stringify({ type: 'ping' }))
+    }
+
+    if (message.type === 'pong') {
+      pongPromise.resolve()
+    }
+  }
+
+  await pongPromise.promise
+
+  // Await a tick past the first "pong" so any duplicate frames the
+  // transports may send for the same client are captured as well.
+  await new Promise((resolve) => setTimeout(resolve, 100))
+
+  expect(messages).toEqual([{ type: 'connection_ack' }, { type: 'pong' }])
+  socket.close()
+})
+
+it('resolves a subscription once when multiple links share the endpoint', async () => {
+  const firstResolver = vi.fn<GraphQLSubscriptionResolver>(
+    ({ subscription }) => {
+      subscription.publish({
+        data: { commentAdded: { text: 'first' } },
+      })
+    },
+  )
+  const secondResolver = vi.fn<GraphQLSubscriptionResolver>()
+
+  const firstApi = graphql.link('http://localhost:4000/graphql')
+  const secondApi = graphql.link('http://localhost:4000/graphql')
+
+  server.use(
+    firstApi.subscription('OnCommentAdded', firstResolver),
+    secondApi.subscription('OnCommentAdded', secondResolver),
+  )
+
+  const client = createClient({
+    url: 'ws://localhost:4000/graphql',
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+
+  await expect(subscription.next()).resolves.toEqual({
+    done: false,
+    value: {
+      data: { commentAdded: { text: 'first' } },
+    },
+  })
+
+  // The subscription must be dispatched to the subscribers in the handler
+  // resolution order, and stop at the first one that matches. Sharing the
+  // endpoint between links must not resolve it once per transport.
+  expect(firstResolver).toHaveBeenCalledTimes(1)
+  expect(secondResolver).not.toHaveBeenCalled()
+
+  await client.dispose()
+})
+
 it('subscribes to extraneous pubsubs', async () => {
   const pubsub = createPubSub<{
     commentAdded: [{ commentAdded: { text: string } }]

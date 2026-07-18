@@ -193,14 +193,31 @@ type GraphQLSubscriptionSubscriber = (args: {
   message: GraphQLWebSocketSubscribeMessage
 }) => boolean
 
+interface GraphQLSubscriptionSubscriberEntry {
+  transport: GraphQLSubscriptionTransportHandler
+  subscriber: GraphQLSubscriptionSubscriber
+}
+
 interface GraphQLSubscriptionConnection {
   client: WebSocketClientConnectionProtocol
   server: WebSocketServerConnectionProtocol
-  subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriber>
+  subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriberEntry>
   subscriptions: Map<string, GraphQLWebSocketSubscribeMessage>
   events?: WebSocketResolutionContext['events']
-  isBound: boolean
 }
+
+/**
+ * The `graphql-transport-ws` sessions of the intercepted WebSocket
+ * connections, keyed by the client id.
+ *
+ * @note This registry is module-level, and not per-transport, on purpose.
+ * Multiple `graphql.link()` calls to the same endpoint create multiple
+ * transports, and all of them must share a single session per connection.
+ * Otherwise, each transport binds its own protocol listeners to the same
+ * client, which makes it receive duplicate `connection_ack`/`pong` frames
+ * and resolves matching subscription handlers more than once.
+ */
+const connections = new Map<string, GraphQLSubscriptionConnection>()
 
 /**
  * A WebSocket handler implementing the `graphql-transport-ws` protocol
@@ -214,11 +231,16 @@ interface GraphQLSubscriptionConnection {
  * matching subscription handler.
  */
 export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
-  #connections: Map<string, GraphQLSubscriptionConnection>
+  /**
+   * The sessions this transport participates in. A subset of the shared
+   * `connections` registry, kept so `reset()` only drops the state that
+   * belongs to this transport.
+   */
+  #connections: Set<GraphQLSubscriptionConnection>
 
   constructor(url: Path) {
     super(url)
-    this.#connections = new Map()
+    this.#connections = new Set()
   }
 
   /**
@@ -233,13 +255,16 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     subscriber: GraphQLSubscriptionSubscriber,
   ): void {
     const transportConnection = this.#getOrCreateConnection(connection)
-    transportConnection.subscribers.set(handler, subscriber)
+    transportConnection.subscribers.set(handler, {
+      transport: this,
+      subscriber,
+    })
   }
 
   public getConnection(
     clientId: string,
   ): GraphQLSubscriptionConnection | undefined {
-    return this.#connections.get(clientId)
+    return connections.get(clientId)
   }
 
   public async run(
@@ -333,11 +358,25 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   /**
-   * Clear the registry of connections and their active subscriptions.
+   * Drop this transport's subscribers and active subscriptions from the
+   * sessions it participates in. The sessions themselves are left intact:
+   * they are shared with the other transports of the same connection and
+   * own the protocol listeners for as long as the client stays connected.
+   *
    * @note This method is invoked automatically when the handlers
    * controller resets the handlers (e.g. `server.resetHandlers()`).
    */
   public reset(): void {
+    for (const connection of this.#connections) {
+      for (const [handler, entry] of connection.subscribers) {
+        if (entry.transport === this) {
+          connection.subscribers.delete(handler)
+        }
+      }
+
+      connection.subscriptions.clear()
+    }
+
     this.#connections.clear()
   }
 
@@ -351,34 +390,18 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   protected [kConnect](connection: WebSocketHandlerConnection): boolean {
-    const transportConnection = this.#getOrCreateConnection(connection)
-
-    // Bind the protocol listeners at most once per connection
-    // (e.g. if this transport gets registered multiple times).
-    if (transportConnection.isBound) {
-      return true
-    }
-
-    transportConnection.isBound = true
-    const { client } = connection
-
-    client.addEventListener('message', (event) => {
-      this.#handleClientMessage(client.id, event.data)
-    })
-
-    client.addEventListener('close', () => {
-      this.#connections.delete(client.id)
-    })
-
+    this.#getOrCreateConnection(connection)
     return true
   }
 
   #getOrCreateConnection(
     connection: WebSocketHandlerConnection,
   ): GraphQLSubscriptionConnection {
-    const existingConnection = this.#connections.get(connection.client.id)
+    const { client } = connection
+    const existingConnection = connections.get(client.id)
 
     if (existingConnection) {
+      this.#connections.add(existingConnection)
       return existingConnection
     }
 
@@ -387,9 +410,21 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
       server: connection.server,
       subscribers: new Map(),
       subscriptions: new Map(),
-      isBound: false,
     }
-    this.#connections.set(connection.client.id, transportConnection)
+    connections.set(client.id, transportConnection)
+    this.#connections.add(transportConnection)
+
+    // Bind the protocol listeners alongside the session that owns them.
+    // Creating the session and binding its listeners is a single step, so
+    // they are guaranteed to be bound exactly once per connection no matter
+    // how many transports end up sharing this session.
+    client.addEventListener('message', (event) => {
+      this.#handleClientMessage(client.id, event.data)
+    })
+
+    client.addEventListener('close', () => {
+      connections.delete(client.id)
+    })
 
     return transportConnection
   }
@@ -399,7 +434,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     subscriptionId: string
     intent: string
   }): GraphQLSubscriptionConnection | undefined {
-    const connection = this.#connections.get(args.clientId)
+    const connection = connections.get(args.clientId)
 
     if (!connection || !connection.subscriptions.has(args.subscriptionId)) {
       devUtils.warn(
@@ -414,7 +449,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }
 
   #handleClientMessage(clientId: string, data: WebSocketData): void {
-    const connection = this.#connections.get(clientId)
+    const connection = connections.get(clientId)
 
     if (!connection) {
       return
@@ -480,7 +515,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     // can publish to it synchronously.
     connection.subscriptions.set(message.id, message)
 
-    for (const subscriber of connection.subscribers.values()) {
+    for (const { subscriber } of connection.subscribers.values()) {
       if (subscriber({ node, message })) {
         this.#emitSubscriptionEvent(connection, node, message)
         return

@@ -1,3 +1,4 @@
+import { HttpHandler, HttpMethods } from '../handlers/HttpHandler'
 import { NetworkSource } from './sources/network-source'
 import { defineNetwork } from './define-network'
 
@@ -120,5 +121,39 @@ describe('disable()', () => {
 
     await network.enable()
     expect(network.disable()).toBeInstanceOf(Promise)
+  })
+
+  it('observes both the handler and the source disposal rejections', async () => {
+    const unhandledRejectionListener = vi.fn()
+    process.on('unhandledRejection', unhandledRejectionListener)
+
+    try {
+      class RejectingNetworkSource extends NetworkSource {
+        enable = () => {}
+        disable = () => Promise.reject(new Error('Source disposal error'))
+      }
+
+      const handler = new HttpHandler(HttpMethods.GET, '/resource', () => {})
+      handler.dispose = () =>
+        Promise.reject(new Error('Handler disposal error'))
+
+      const network = defineNetwork({
+        sources: [new RejectingNetworkSource()],
+        handlers: [handler],
+      })
+
+      network.enable()
+
+      await expect(network.disable()).rejects.toThrow()
+
+      // Give an unobserved rejection a chance to surface.
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      expect(unhandledRejectionListener).not.toHaveBeenCalled()
+    } finally {
+      // Detach the listener whether the assertions above pass or not,
+      // so a failure here cannot leak it into the rest of the run.
+      process.off('unhandledRejection', unhandledRejectionListener)
+    }
   })
 })

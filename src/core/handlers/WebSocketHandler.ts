@@ -1,16 +1,23 @@
 import { Emitter } from 'strict-event-emitter'
+import type { Emitter as NetworkFrameEmitter } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
   WebSocketConnectionData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
+/**
+ * @note A type-only import to prevent a runtime module cycle
+ * (the frame module imports this handler at runtime).
+ */
+import type { WebSocketNetworkFrameEventMap } from '../experimental/frames/websocket-frame'
 import {
   type Match,
   type Path,
   type PathParams,
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
+import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
 
@@ -31,6 +38,14 @@ export interface WebSocketHandlerConnection {
 
 export interface WebSocketResolutionContext {
   baseUrl?: string
+
+  /**
+   * An emit-only reference to the network frame's events.
+   * Allows handlers to emit additional events not covered by the frame
+   * into the network's life-cycle event stream (e.g. `server.events`).
+   */
+  events?: Pick<NetworkFrameEmitter<WebSocketNetworkFrameEventMap>, 'emit'>
+
   [kAutoConnect]?: boolean
 }
 
@@ -42,14 +57,17 @@ export const kAutoConnect = Symbol('kAutoConnect')
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
-export class WebSocketHandler {
+export class WebSocketHandler extends Handler {
   public id: string
   public callFrame?: string
-  public kind = 'websocket' as const
+
+  public readonly kind = 'websocket'
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(protected readonly url: Path) {
+    super()
+
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()
@@ -217,8 +235,7 @@ export class WebSocketHandler {
 function createStopPropagationListener(handler: WebSocketHandler) {
   return function stopPropagationListener(event: Event) {
     const propagationStoppedAt = Reflect.get(event, 'kPropagationStoppedAt') as
-      | string
-      | undefined
+      string | undefined
 
     if (propagationStoppedAt && handler.id !== propagationStoppedAt) {
       event.stopImmediatePropagation()

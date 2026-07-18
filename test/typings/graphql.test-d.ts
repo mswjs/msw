@@ -1,7 +1,29 @@
 import { it, expectTypeOf } from 'vitest'
 import { parse } from 'graphql'
-import { HttpResponse, passthrough } from 'msw'
-import { graphql } from 'msw/graphql'
+import type {
+  DocumentTypeDecoration,
+  TypedDocumentNode,
+} from '@graphql-typed-document-node/core'
+import { HttpResponse, passthrough, type PathParams } from 'msw'
+import {
+  graphql,
+  type GraphQLPassthroughSubscription,
+  type GraphQLSubscription,
+  type GraphQLSubscriptionPayload,
+} from 'msw/graphql'
+
+/**
+ * The two document flavors emitted by GraphQL Code Generator:
+ * a `TypedDocumentNode` (the "typed-document-node" plugin) and a
+ * `TypedDocumentString` (the "client" preset).
+ */
+declare function createTypedDocumentNode<TResult = any, TVariables = any>(
+  query: string,
+): TypedDocumentNode<TResult, TVariables>
+
+declare function createTypedDocumentString<TResult = any, TVariables = any>(
+  query: string,
+): DocumentTypeDecoration<TResult, TVariables>
 
 it('graphql mutation can be used without variables generic type', () => {
   graphql.mutation('GetUser', () => {
@@ -251,4 +273,223 @@ it('supports a "finalize" function', () => {
       (callback: () => Promise<void> | void) => void
     >()
   })
+})
+
+it('graphql subscription is only available on a link', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription('OnCommentAdded', () => {})
+
+  // Subscriptions require a concrete endpoint, so they are not
+  // exposed on the root "graphql" namespace.
+  // @ts-expect-error Property "subscription" does not exist.
+  graphql.subscription('OnCommentAdded', () => {})
+})
+
+it('graphql subscription accepts string, RegExp, and DocumentNode names', () => {
+  const api = graphql.link('ws://localhost/graphql')
+
+  api.subscription('OnCommentAdded', () => {})
+  api.subscription(/OnComment/, () => {})
+  api.subscription(
+    parse(`
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `),
+    () => {},
+  )
+
+  // Unlike queries and mutations, subscriptions do not
+  // support custom predicate functions.
+  api.subscription(
+    // @ts-expect-error A custom predicate is not a valid subscription name.
+    () => true,
+    () => {},
+  )
+})
+
+it('graphql subscription exposes the resolver info', () => {
+  graphql
+    .link('ws://localhost/:service')
+    .subscription('OnCommentAdded', (info) => {
+      expectTypeOf(info.operationName).toEqualTypeOf<string>()
+      expectTypeOf(info.params).toEqualTypeOf<PathParams>()
+      expectTypeOf(info.subscription).toEqualTypeOf<GraphQLSubscription>()
+      expectTypeOf(info.finalize).toEqualTypeOf<
+        (callback: () => Promise<void> | void) => void
+      >()
+    })
+})
+
+it('graphql subscription accepts inline generic variables type', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription<never, { postId: string }>(
+      'OnCommentAdded',
+      ({ subscription }) => {
+        expectTypeOf(subscription.variables).toEqualTypeOf<{
+          postId: string
+        }>()
+        expectTypeOf(subscription.query).toEqualTypeOf<string>()
+        expectTypeOf(subscription.id).toEqualTypeOf<string>()
+      },
+    )
+})
+
+it("graphql subscription does not accept null as variables' generic type", () => {
+  graphql.link('ws://localhost/graphql').subscription<
+    { key: string },
+    // @ts-expect-error `null` is not a valid variables type.
+    null
+  >('OnCommentAdded', () => {})
+})
+
+it('graphql subscription publishes a payload matching the query type', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription<{ commentAdded: { text: string } }>(
+      'OnCommentAdded',
+      ({ subscription }) => {
+        subscription.publish({
+          data: { commentAdded: { text: 'hello' } },
+        })
+
+        // Explicit null must be allowed.
+        subscription.publish({ data: null })
+
+        subscription.publish({
+          data: { commentAdded: { text: 'hello' } },
+          extensions: { requestId: 'abc-123' },
+        })
+
+        subscription.publish({
+          // @ts-expect-error Published data doesn't match the query type.
+          data: { commentAdded: { text: 123 } },
+        })
+
+        subscription.publish({
+          // @ts-expect-error Published data doesn't match the query type.
+          data: {},
+        })
+      },
+    )
+})
+
+it('graphql subscription publishes from an iterable of the query type', async () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription<{ commentAdded: { text: string } }>(
+      'OnCommentAdded',
+      async ({ subscription }) => {
+        expectTypeOf(subscription.from).returns.toEqualTypeOf<Promise<void>>()
+
+        await subscription.from([{ commentAdded: { text: 'hello' } }])
+
+        await subscription.from(
+          (async function* () {
+            yield { commentAdded: { text: 'hello' } }
+          })(),
+        )
+
+        // @ts-expect-error Published data doesn't match the query type.
+        await subscription.from([{ commentAdded: { text: 123 } }])
+      },
+    )
+})
+
+it('graphql subscription terminates with errors and completes', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription('OnCommentAdded', ({ subscription }) => {
+      subscription.error([{ message: 'Something went wrong' }])
+
+      // Partial "GraphQLError" objects are allowed.
+      subscription.error([{ message: 'Oops', path: ['commentAdded'] }])
+
+      // @ts-expect-error Errors must be a list.
+      subscription.error({ message: 'Something went wrong' })
+
+      expectTypeOf(subscription.complete).toEqualTypeOf<() => void>()
+    })
+})
+
+it('graphql subscription infers types from a TypedDocumentNode', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription(
+      createTypedDocumentNode<
+        { commentAdded: { text: string } },
+        { postId: string }
+      >(''),
+      ({ subscription }) => {
+        expectTypeOf(subscription.variables).toEqualTypeOf<{ postId: string }>()
+
+        subscription.publish({
+          data: { commentAdded: { text: 'hello' } },
+        })
+
+        subscription.publish({
+          // @ts-expect-error Published data doesn't match the document type.
+          data: { commentAdded: { text: 123 } },
+        })
+      },
+    )
+})
+
+it('graphql subscription infers types from a TypedDocumentString', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription(
+      createTypedDocumentString<
+        { commentAdded: { text: string } },
+        { postId: string }
+      >(''),
+      ({ subscription }) => {
+        expectTypeOf(subscription.variables).toEqualTypeOf<{ postId: string }>()
+
+        subscription.publish({
+          data: { commentAdded: { text: 'hello' } },
+        })
+
+        subscription.publish({
+          // @ts-expect-error Published data doesn't match the document type.
+          data: { commentAdded: { text: 123 } },
+        })
+      },
+    )
+})
+
+it('graphql subscription accepts handler options', () => {
+  const api = graphql.link('ws://localhost/graphql')
+
+  api.subscription('OnCommentAdded', () => {}, { once: true })
+
+  // @ts-expect-error Unknown handler option.
+  api.subscription('OnCommentAdded', () => {}, { unknownOption: true })
+})
+
+it('graphql subscription supports passthrough', () => {
+  graphql
+    .link('ws://localhost/graphql')
+    .subscription('OnCommentAdded', ({ subscription }) => {
+      const original = subscription.passthrough()
+      expectTypeOf(original).toEqualTypeOf<GraphQLPassthroughSubscription>()
+
+      original.addEventListener('next', (event) => {
+        expectTypeOf(event.data.type).toEqualTypeOf<'next'>()
+        expectTypeOf(event.data.id).toEqualTypeOf<string>()
+        expectTypeOf(
+          event.data.payload,
+        ).toEqualTypeOf<GraphQLSubscriptionPayload>()
+      })
+      original.addEventListener('complete', () => {})
+      original.addEventListener('error', () => {})
+      original.addEventListener('connection_ack', () => {})
+
+      // @ts-expect-error Unknown passthrough subscription event.
+      original.addEventListener('unknown', () => {})
+    })
 })

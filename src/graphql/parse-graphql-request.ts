@@ -13,10 +13,15 @@ import { parseMultipartData } from '#core/utils/internal/parseMultipartData'
 interface GraphQLInput {
   query: string | null
   variables?: GraphQLVariables
+  operationName?: string | null
 }
 
 export interface ParsedGraphQLQuery {
-  operationType: OperationTypeNode
+  /**
+   * Undefined if the document has no operation matching the
+   * requested operation name.
+   */
+  operationType?: OperationTypeNode
   operationName?: string
 }
 
@@ -29,21 +34,45 @@ export type ParsedGraphQLRequest<
     })
   | undefined
 
-export function parseDocumentNode(node: DocumentNode): ParsedGraphQLQuery {
-  const operationDef = node.definitions.find((definition) => {
+export function parseDocumentNode(
+  node: DocumentNode,
+  operationName?: string | null,
+): ParsedGraphQLQuery {
+  const operationDefs = node.definitions.filter((definition) => {
     return definition.kind === 'OperationDefinition'
-  }) as OperationDefinitionNode
+  }) as Array<OperationDefinitionNode>
+
+  /**
+   * @note A document may bundle multiple operations (e.g. the ones
+   * emitted by GraphQL Code Generator). Honor the requested operation
+   * name, and resolve nothing if the document has no such operation.
+   * Falling back to the first operation would silently resolve one the
+   * client never asked for.
+   */
+  const operationDef = operationName
+    ? operationDefs.find((definition) => {
+        return definition.name?.value === operationName
+      })
+    : operationDefs[0]
 
   return {
     operationType: operationDef?.operation,
-    operationName: operationDef?.name?.value,
+    /**
+     * @note Echo the requested operation name even when the document
+     * has no such operation. It makes the "unhandled operation" warnings
+     * name the operation the client actually asked for.
+     */
+    operationName: operationDef?.name?.value || operationName || undefined,
   }
 }
 
-async function parseQuery(query: string): Promise<ParsedGraphQLQuery | Error> {
+async function parseQuery(
+  query: string,
+  operationName?: string | null,
+): Promise<ParsedGraphQLQuery | Error> {
   try {
     const ast = parse(query)
-    return parseDocumentNode(ast)
+    return parseDocumentNode(ast, operationName)
   } catch (error) {
     return error as Error
   }
@@ -99,6 +128,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
       return {
         query,
         variables: jsonParse(variables),
+        operationName: url.searchParams.get('operationName'),
       }
     }
 
@@ -122,9 +152,11 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
 
         const { operations, map, ...files } = responseJson
         const parsedOperations =
-          jsonParse<{ query?: string; variables?: GraphQLVariables }>(
-            operations,
-          ) || {}
+          jsonParse<{
+            query?: string
+            variables?: GraphQLVariables
+            operationName?: string | null
+          }>(operations) || {}
 
         if (!parsedOperations.query) {
           return null
@@ -142,6 +174,7 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
         return {
           query: parsedOperations.query,
           variables,
+          operationName: parsedOperations.operationName,
         }
       }
 
@@ -149,15 +182,17 @@ async function getGraphQLInput(request: Request): Promise<GraphQLInput | null> {
       const requestJson: {
         query: string
         variables?: GraphQLVariables
+        operationName?: string | null
         operations?: any /** @todo Annotate this */
       } = await requestClone.json().catch(() => null)
 
       if (requestJson?.query) {
-        const { query, variables } = requestJson
+        const { query, variables, operationName } = requestJson
 
         return {
           query,
           variables,
+          operationName,
         }
       }
       return null
@@ -181,8 +216,8 @@ export async function parseGraphQLRequest(
     return
   }
 
-  const { query, variables } = input
-  const parsedResult = await parseQuery(query)
+  const { query, variables, operationName } = input
+  const parsedResult = await parseQuery(query, operationName)
 
   if (parsedResult instanceof Error) {
     const requestPublicUrl = toPublicUrl(request.url)

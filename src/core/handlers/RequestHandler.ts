@@ -1,3 +1,4 @@
+import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
   isIterable,
@@ -100,7 +101,7 @@ export type ResponseResolverInfo<
   finalize: ResponseResolverFinalizeFunction
 } & ResolverExtraInfo
 
-type ResponseResolverFinalizeFunction = (
+export type ResponseResolverFinalizeFunction = (
   callback: () => MaybePromise<void>,
 ) => void
 
@@ -140,13 +141,13 @@ export abstract class RequestHandler<
   ParsedResult extends Record<string, any> | undefined = any,
   ResolverExtras extends Record<string, unknown> = any,
   HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
-> {
+> extends Handler {
   static cache = new WeakMap<
     StrictRequest<DefaultBodyType>,
     StrictRequest<DefaultBodyType>
   >()
 
-  public readonly kind = 'request' as const
+  public readonly kind = 'request'
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverIterator?:
@@ -174,6 +175,8 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
+    super()
+
     this.resolver = args.resolver
     this.options = args.options
     this.scheduledCleanups = new Map()
@@ -194,7 +197,7 @@ export abstract class RequestHandler<
    * removed from the active handlers list so re-adding it later starts
    * from a clean state.
    */
-  protected reset(): void {
+  public reset(): void {
     this.scheduledCleanups.clear()
 
     const iterator = this.resolverIterator
@@ -212,7 +215,7 @@ export abstract class RequestHandler<
    * exhausted (e.g. via `{ once: true }`). Also clears any accumulated
    * resolution state.
    */
-  protected restore(): void {
+  public restore(): void {
     if (this.options?.once) {
       this.reset()
       this.isUsed = false

@@ -23,7 +23,45 @@ export interface WebSocketNetworkFrameOptions {
 
 export type WebSocketNetworkFrameEventMap = {
   connection: WebSocketConnectionEvent
+  'graphql:subscription': GraphQLSubscriptionEvent
   unhandledException: UnhandledWebSocketExceptionEvent
+}
+
+export interface GraphQLSubscriptionEventInit {
+  operationName: string
+  query: string
+  variables: Record<string, unknown>
+  request: Request
+}
+
+/**
+ * Emitted when a GraphQL subscription is established over an
+ * intercepted WebSocket connection (i.e. matched by a subscription
+ * handler and resolved).
+ *
+ * @note The event type is declared here, next to the WebSocket frame
+ * event map, so the life-cycle event emitters derived from this map
+ * (e.g. `server.events`) are typed correctly. It carries plain data
+ * only and is emitted exclusively by the `msw/graphql` module —
+ * the core stays free of the `graphql` dependency.
+ */
+export class GraphQLSubscriptionEvent extends TypedEvent<
+  void,
+  void,
+  'graphql:subscription'
+> {
+  public readonly operationName: string
+  public readonly query: string
+  public readonly variables: Record<string, unknown>
+  public readonly request: Request
+
+  constructor(init: GraphQLSubscriptionEventInit) {
+    super('graphql:subscription')
+    this.operationName = init.operationName
+    this.query = init.query
+    this.variables = init.variables
+    this.request = init.request
+  }
 }
 
 class WebSocketConnectionEvent<
@@ -115,6 +153,12 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     for (const handler of handlers) {
       const handlerConnection = await handler.run(connection, {
         baseUrl: resolutionContext?.baseUrl?.toString(),
+        /**
+         * @note Expose an emit-only reference to this frame's events
+         * so the handlers can emit additional events not covered by
+         * the frame (e.g. "graphql:subscription").
+         */
+        events: this.events,
         /**
          * @note Do not emit the "connection" event when running the handler.
          * Use the run only to get the resolved connection object.

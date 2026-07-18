@@ -89,6 +89,21 @@ export type WebSocketLink = {
 }
 
 /**
+ * Creates a request handler that responds to WebSocket upgrade
+ * requests whose URL matches the given path.
+ *
+ * @internal
+ */
+export function createWebSocketUpgradeHandler(url: Path) {
+  return http.get(({ request }) => {
+    return (
+      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
+      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
+    )
+  }, ws.onUpgrade)
+}
+
+/**
  * Intercepts outgoing WebSocket connections to the given URL.
  *
  * @example
@@ -112,12 +127,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
   // WebSocketHandler returned by this link. `groupHandlersByKind` dedupes
   // by reference, so it lands in the `request` bucket exactly once regardless
   // of which subset of WS handlers the user ends up registering.
-  const upgradeHandler = http.get(({ request }) => {
-    return (
-      request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
-      matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
-    )
-  }, ws.onUpgrade)
+  const upgradeHandler = createWebSocketUpgradeHandler(url)
 
   return {
     get clients() {

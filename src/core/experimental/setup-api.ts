@@ -50,6 +50,6 @@ export abstract class SetupApi<
   }
 
   public listHandlers(): ReadonlyArray<AnyHandler> {
-    return toReadonlyArray(this.handlersController.currentHandlers())
+    return toReadonlyArray(this.handlersController.listHandlers())
   }
 }

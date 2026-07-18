@@ -2,19 +2,32 @@ import { invariant } from 'outvariant'
 import { type RequestHandler } from '../handlers/RequestHandler'
 import { type WebSocketHandler } from '../handlers/WebSocketHandler'
 import { devUtils } from '../utils/internal/devUtils'
-import { getSiblingHandlers } from '../utils/internal/attachSiblingHandlers'
+import type { MaybePromise } from '../typeUtils'
+import {
+  getSiblingHandlers,
+  isSiblingHandler,
+} from '../utils/internal/attachSiblingHandlers'
 
 export type AnyHandler = RequestHandler | WebSocketHandler
 export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
 
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
   const groups: HandlersMap = {}
+  const visitedHandlers = new Set<AnyHandler>()
 
-  const pushUnique = (kind: AnyHandler['kind'], handler: AnyHandler) => {
-    const bucket = (groups[kind] ||= [])
+  const visit = (handler: AnyHandler) => {
+    if (visitedHandlers.has(handler)) {
+      return
+    }
 
-    if (!bucket.includes(handler)) {
-      bucket.push(handler)
+    visitedHandlers.add(handler)
+    const bucket = (groups[handler.kind] ||= [])
+    bucket.push(handler)
+
+    // Recurse so siblings of siblings (user-composed handler
+    // graphs) are grouped as well, not silently dropped.
+    for (const sibling of getSiblingHandlers(handler)) {
+      visit(sibling)
     }
   }
 
@@ -22,11 +35,7 @@ export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
    * @note `Object.groupBy` is not implemented in Node.js v20.
    */
   for (const handler of handlers) {
-    pushUnique(handler.kind, handler)
-
-    for (const sibling of getSiblingHandlers(handler)) {
-      pushUnique(sibling.kind, sibling)
-    }
+    visit(handler)
   }
 
   return groups
@@ -65,6 +74,18 @@ export abstract class HandlersController {
       .filter((handler) => handler != null)
   }
 
+  /**
+   * Return the list of explicitly registered handlers.
+   * Unlike `currentHandlers()`, this excludes sibling handlers,
+   * which are an implementation detail (e.g. the WebSocket upgrade
+   * handler or the GraphQL subscription transport).
+   */
+  public listHandlers(): Array<AnyHandler> {
+    return this.currentHandlers().filter((handler) => {
+      return !isSiblingHandler(handler)
+    })
+  }
+
   public getHandlersByKind(kind: AnyHandler['kind']): Array<AnyHandler> {
     return this.getState().handlers[kind] || []
   }
@@ -86,11 +107,19 @@ export abstract class HandlersController {
 
     // Prepend overrides to their respective kind buckets so they take
     // priority over existing handlers while preserving input order.
+    // Drop existing references that reappear in the overrides (e.g. a
+    // shared upgrade sibling from the same link) so a handler is never
+    // registered twice.
     for (const kind in overrides) {
       const overridesForKind = overrides[kind as AnyHandler['kind']]!
       const existingForKind = handlers[kind as AnyHandler['kind']]
       handlers[kind as AnyHandler['kind']] = existingForKind
-        ? [...overridesForKind, ...existingForKind]
+        ? [
+            ...overridesForKind,
+            ...existingForKind.filter((existingHandler) => {
+              return !overridesForKind.includes(existingHandler)
+            }),
+          ]
         : overridesForKind
     }
 
@@ -106,9 +135,7 @@ export abstract class HandlersController {
     )
 
     for (const handler of this.currentHandlers()) {
-      if ('reset' in handler) {
-        handler['reset']()
-      }
+      handler.reset()
     }
 
     const { initialHandlers } = this.getState()
@@ -131,9 +158,25 @@ export abstract class HandlersController {
 
   public restore(): void {
     for (const handler of this.currentHandlers()) {
-      if ('restore' in handler) {
-        handler['restore']()
+      handler.restore()
+    }
+  }
+
+  public dispose(): MaybePromise<void> {
+    const pendingDisposals: Array<Promise<void>> = []
+
+    for (const handler of this.currentHandlers()) {
+      const disposal = handler.dispose()
+
+      if (disposal instanceof Promise) {
+        pendingDisposals.push(disposal)
       }
+    }
+
+    // Stay synchronous unless a handler actually disposes of
+    // itself asynchronously.
+    if (pendingDisposals.length > 0) {
+      return Promise.all(pendingDisposals).then(() => {})
     }
   }
 

@@ -312,7 +312,7 @@ async function getResponse(event, client, requestId) {
 
   switch (clientMessage.type) {
     case 'MOCK_RESPONSE': {
-      return respondWithMock(clientMessage.data)
+      return respondWithMock(clientMessage.data, event)
     }
 
     case 'PASSTHROUGH': {
@@ -350,9 +350,10 @@ function sendToClient(client, message, transferrables = []) {
 
 /**
  * @param {Response} response
- * @returns {Response}
+ * @param {FetchEvent} event
+ * @returns {Promise<Response>}
  */
-function respondWithMock(response) {
+async function respondWithMock(response, event) {
   // Setting response status code to 0 is a no-op.
   // However, when responding with a "Response.error()", the produced Response
   // instance will have status code set to 0. Since it's not possible to create
@@ -361,7 +362,19 @@ function respondWithMock(response) {
     return Response.error()
   }
 
-  const mockedResponse = new Response(response.body, response)
+  let body = response.body
+
+  // Buffer the streamed mocked response body for navigation requests.
+  // The stream is transferred from the client that is being navigated
+  // away from. Once the navigation commits, that client gets destroyed
+  // and the stream will never complete, resulting in an empty document.
+  // Buffering here keeps "event.respondWith()" pending (the navigation
+  // cannot commit) until the entire body arrives from the client.
+  if (event.request.mode === 'navigate' && body instanceof ReadableStream) {
+    body = await new Response(body).arrayBuffer()
+  }
+
+  const mockedResponse = new Response(body, response)
 
   Reflect.defineProperty(mockedResponse, IS_MOCKED_RESPONSE, {
     value: true,

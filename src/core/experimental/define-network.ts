@@ -241,9 +241,14 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         resolvedOptions.sources.map((source) => source.disable()),
       )
 
+      /**
+       * @note Await both disposals so neither rejection goes unobserved.
+       * Chaining them would leave the source disposal floating whenever
+       * the handlers disposal rejects.
+       */
       return (
         handlersDisposal instanceof Promise
-          ? handlersDisposal.then(() => sourcesDisposal)
+          ? Promise.all([handlersDisposal, sourcesDisposal]).then(() => {})
           : sourcesDisposal
       ) as MaybePromise<ReturnType<Sources[number]['disable']>>
     },

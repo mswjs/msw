@@ -15,7 +15,7 @@ interface LoginQuery {
   }
 }
 
-const api = graphql.link('/graphql')
+const api = graphql.link('http://localhost:8080/graphql')
 
 const worker = setupWorker(
   api.query<GetUserDetailQuery>('GetUserDetail', () => {

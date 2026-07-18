@@ -3,12 +3,11 @@
  */
 import {
   http,
-  ws,
   type HttpHandler,
   type RequestHandler,
   type AnyHandler,
-  type WebSocketHandler,
 } from 'msw'
+import { ws, type WebSocketHandler } from 'msw/ws'
 import { graphql, type GraphQLHandler } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { setupWorker } from 'msw/browser'

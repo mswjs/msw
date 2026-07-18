@@ -225,6 +225,56 @@ interface GraphQLSubscriptionConnection {
    * replayed to the original server on passthrough.
    */
   connectionParams?: Record<string, unknown>
+  /**
+   * Resolves once the original server has acknowledged this connection.
+   * The upstream session is established once per connection, no matter
+   * how many subscriptions pass through it.
+   */
+  upstreamSession?: Promise<void>
+}
+
+/**
+ * Connect to the original server and initialize the `graphql-transport-ws`
+ * session for the given connection, at most once.
+ *
+ * @note The server connection is shared by every subscription of this
+ * client. Initializing it more than once makes a compliant GraphQL server
+ * close it ("Too many initialisation requests").
+ */
+function ensureUpstreamSession(
+  connection: GraphQLSubscriptionConnection,
+): Promise<void> {
+  if (connection.upstreamSession) {
+    return connection.upstreamSession
+  }
+
+  const { server } = connection
+
+  connection.upstreamSession = new Promise<void>((resolve) => {
+    server.addEventListener('message', (event) => {
+      const message =
+        parseGraphQLWebSocketMessage<GraphQLWebSocketServerMessage>(event.data)
+
+      if (message?.type === 'connection_ack') {
+        // Prevent the original acknowledgement from being forwarded to
+        // the client: it has already received a mocked one on connect.
+        event.preventDefault()
+        resolve()
+      }
+    })
+
+    server.addEventListener(
+      'open',
+      () => {
+        server.send(createInitMessage(connection.connectionParams))
+      },
+      { once: true },
+    )
+
+    server.connect()
+  })
+
+  return connection.upstreamSession
 }
 
 /**
@@ -1021,7 +1071,7 @@ export class GraphQLSubscription<
     return new GraphQLPassthroughSubscription({
       server: connection.server,
       message: this.#message,
-      connectionParams: connection.connectionParams,
+      upstreamSession: ensureUpstreamSession(connection),
       onTerminate: () => {
         this.#transport.endSubscription({
           clientId: this.#clientId,
@@ -1049,17 +1099,15 @@ export class GraphQLPassthroughSubscription {
   readonly #emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   readonly #abortController: AbortController
   readonly #onTerminate: () => void
-  readonly #connectionParams?: Record<string, unknown>
 
   constructor(args: {
     server: WebSocketServerConnectionProtocol
     message: GraphQLWebSocketSubscribeMessage
-    connectionParams?: Record<string, unknown>
+    upstreamSession: Promise<void>
     onTerminate: () => void
   }) {
     this.#server = args.server
     this.#message = args.message
-    this.#connectionParams = args.connectionParams
     this.#onTerminate = args.onTerminate
     this.#emitter = new Emitter()
 
@@ -1067,17 +1115,13 @@ export class GraphQLPassthroughSubscription {
     // listeners once the subscription is unsubscribed.
     this.#abortController = new AbortController()
 
-    this.#server.connect()
-    this.#server.addEventListener(
-      'open',
-      () => {
-        // Once the WebSocket server connection is established, send the
-        // client connection prompt to the server. This lets the server
-        // connect and authorize this client.
-        this.#server.send(createInitMessage(this.#connectionParams))
-      },
-      { signal: this.#abortController.signal },
-    )
+    // Replay this subscription once the shared upstream session is
+    // established, so the server can authorize this client first.
+    args.upstreamSession.then(() => {
+      if (!this.#abortController.signal.aborted) {
+        this.#server.send(JSON.stringify(this.#message))
+      }
+    })
 
     this.#server.addEventListener(
       'message',
@@ -1093,16 +1137,8 @@ export class GraphQLPassthroughSubscription {
 
         switch (message.type) {
           case 'connection_ack': {
-            // Prevent the original acknowledgement from being forwarded
-            // to the client: the client has already received a mocked
-            // acknowledgement upon connecting.
             event.preventDefault()
             this.#emitter.emit(new TypedEvent('connection_ack'))
-
-            // Once the GraphQL server acknowledges the connection, send
-            // the subscription intent message. This is the same message
-            // as was sent from the GraphQL client.
-            this.#server.send(JSON.stringify(this.#message))
             break
           }
 
@@ -1189,7 +1225,7 @@ export class GraphQLPassthroughSubscription {
 
   /**
    * Unsubscribe from this passthrough GraphQL subscription.
-   * This closes the underlying server connection.
+   * This stops this subscription on the original server.
    *
    * @note Unsubscribing from the original subscription has no
    * effect on the intercepted `subscription` object.
@@ -1201,7 +1237,13 @@ export class GraphQLPassthroughSubscription {
   public unsubscribe(): void {
     this.#abortController.abort()
     this.#emitter.removeAllListeners()
-    this.#server.close()
+
+    /**
+     * @note Complete this subscription instead of closing the server
+     * connection. That connection is shared by every subscription of
+     * this client, and closing it would terminate the unrelated ones.
+     */
+    this.#server.send(createCompleteMessage({ id: this.#message.id }))
   }
 }
 

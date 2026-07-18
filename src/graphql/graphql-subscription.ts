@@ -200,20 +200,17 @@ interface GraphQLSubscriptionSubscriberEntry {
   subscriber: GraphQLSubscriptionSubscriber
 }
 
-/**
- * An active subscription and the cleanups scheduled for it via the
- * `finalize()` function exposed to the subscription resolver.
- */
-interface GraphQLSubscriptionEntry {
-  message: GraphQLWebSocketSubscribeMessage
-  cleanups: Array<() => MaybePromise<void>>
-}
+type GraphQLSubscriptionCleanup = () => MaybePromise<void>
 
 interface GraphQLSubscriptionConnection {
   client: WebSocketClientConnectionProtocol
   server: WebSocketServerConnectionProtocol
   subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriberEntry>
-  subscriptions: Map<string, GraphQLSubscriptionEntry>
+  /**
+   * The active subscriptions of this connection, mapped to the cleanups
+   * scheduled for them via the resolver's `finalize()`.
+   */
+  subscriptions: Map<string, Array<GraphQLSubscriptionCleanup>>
   events?: WebSocketResolutionContext['events']
 }
 
@@ -242,18 +239,6 @@ const connections = new Map<string, GraphQLSubscriptionConnection>()
  * matching subscription handler.
  */
 export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
-  /**
-   * The sessions this transport participates in. A subset of the shared
-   * `connections` registry, kept so `reset()` only drops the state that
-   * belongs to this transport.
-   */
-  #connections: Set<GraphQLSubscriptionConnection>
-
-  constructor(url: Path) {
-    super(url)
-    this.#connections = new Set()
-  }
-
   /**
    * Register the given handler as a subscriber to the GraphQL
    * subscriptions on the given WebSocket connection. Subscribers are
@@ -289,19 +274,17 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     // long after the run: whenever the client sends a "subscribe" message.
     if (handlerConnection) {
       const transportConnection = this.#getOrCreateConnection(handlerConnection)
-      transportConnection.events = resolutionContext?.events
+
+      // Never overwrite the events of a session shared with another
+      // transport: only the frame that resolved it provides them.
+      if (resolutionContext?.events) {
+        transportConnection.events = resolutionContext.events
+      }
     }
 
     return handlerConnection
   }
 
-  /**
-   * Schedule a cleanup to run once the given subscription ends.
-   *
-   * @note If the subscription has already ended by the time this is
-   * called, the cleanup runs immediately. The resolver can no longer
-   * affect that subscription, so there is nothing left to wait for.
-   */
   /**
    * End the given subscription without notifying the client. Used when
    * the subscription has already been terminated over the wire (e.g. the
@@ -313,26 +296,39 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
   }): void {
     const connection = connections.get(args.clientId)
 
-    if (connection != null) {
+    if (connection) {
       this.#endSubscription(connection, args.subscriptionId)
     }
   }
 
+  /**
+   * Schedule a cleanup to run once the given subscription ends.
+   *
+   * @note If the subscription has already ended by the time this is
+   * called, the cleanup runs immediately. The resolver can no longer
+   * affect that subscription, so there is nothing left to wait for.
+   */
   public finalize(args: {
     clientId: string
     subscriptionId: string
-    cleanup: () => MaybePromise<void>
+    cleanup: GraphQLSubscriptionCleanup
   }): void {
-    const subscription = connections
+    const cleanups = connections
       .get(args.clientId)
       ?.subscriptions.get(args.subscriptionId)
 
-    if (subscription == null) {
-      void args.cleanup()
+    if (cleanups) {
+      cleanups.push(args.cleanup)
       return
     }
 
-    subscription.cleanups.push(args.cleanup)
+    this.#exhaustCleanups([args.cleanup])
+  }
+
+  #endAllSubscriptions(connection: GraphQLSubscriptionConnection): void {
+    for (const subscriptionId of connection.subscriptions.keys()) {
+      this.#endSubscription(connection, subscriptionId)
+    }
   }
 
   /**
@@ -340,32 +336,51 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
    *
    * This is the single exit point for every way a subscription can end:
    * completed by the mock, by the client, or by the original server;
-   * terminated with errors; or dropped when the client disconnects.
-   * Ending an already-ended subscription is a no-op, so the cleanups
-   * are guaranteed to run at most once.
+   * terminated with errors; dropped when the client disconnects; or
+   * detached from its resolver when the handlers are reset. Ending an
+   * already-ended subscription is a no-op, so the cleanups are
+   * guaranteed to run at most once.
    */
-  #endAllSubscriptions(connection: GraphQLSubscriptionConnection): void {
-    for (const subscriptionId of Array.from(connection.subscriptions.keys())) {
-      this.#endSubscription(connection, subscriptionId)
-    }
-  }
-
   #endSubscription(
     connection: GraphQLSubscriptionConnection,
     subscriptionId: string,
   ): void {
-    const subscription = connection.subscriptions.get(subscriptionId)
+    const cleanups = connection.subscriptions.get(subscriptionId)
 
-    if (subscription == null) {
+    if (!cleanups) {
       return
     }
 
     connection.subscriptions.delete(subscriptionId)
+    this.#exhaustCleanups(cleanups)
+  }
 
-    // Run the cleanups as LIFO, consistently with `finalize()`
-    // in the request handlers.
-    for (let index = subscription.cleanups.length - 1; index >= 0; index--) {
-      void subscription.cleanups[index]()
+  /**
+   * Run the given cleanups as LIFO, consistently with `finalize()` in
+   * the request handlers. Cleanups are detached from the subscription
+   * life-cycle: nothing awaits them, so this must never reject.
+   */
+  async #exhaustCleanups(
+    cleanups: Array<GraphQLSubscriptionCleanup>,
+  ): Promise<void> {
+    const errors: Array<Error> = []
+
+    for (let index = cleanups.length - 1; index >= 0; index--) {
+      try {
+        await cleanups[index]()
+      } catch (error) {
+        if (error instanceof Error) {
+          errors.push(error)
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      devUtils.error(
+        'Failed to execute the cleanup for a GraphQL subscription to "%s". Please see the original error below.',
+        this.url.toString(),
+        new AggregateError(errors),
+      )
     }
   }
 
@@ -452,19 +467,22 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
    * controller resets the handlers (e.g. `server.resetHandlers()`).
    */
   public reset(): void {
-    for (const connection of this.#connections) {
+    for (const connection of connections.values()) {
+      let ownsConnection = false
+
       for (const [handler, entry] of connection.subscribers) {
         if (entry.transport === this) {
           connection.subscribers.delete(handler)
+          ownsConnection = true
         }
       }
 
       // Resetting the handlers detaches the resolvers from their
       // subscriptions, so run their cleanups instead of dropping them.
-      this.#endAllSubscriptions(connection)
+      if (ownsConnection) {
+        this.#endAllSubscriptions(connection)
+      }
     }
-
-    this.#connections.clear()
   }
 
   /**
@@ -488,7 +506,6 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
     const existingConnection = connections.get(client.id)
 
     if (existingConnection) {
-      this.#connections.add(existingConnection)
       return existingConnection
     }
 
@@ -499,7 +516,6 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
       subscriptions: new Map(),
     }
     connections.set(client.id, transportConnection)
-    this.#connections.add(transportConnection)
 
     // Bind the protocol listeners alongside the session that owns them.
     // Creating the session and binding its listeners is a single step, so
@@ -603,7 +619,7 @@ export class GraphQLSubscriptionTransportHandler extends WebSocketHandler {
 
     // Register the subscription before dispatching it so the resolver
     // can publish to it synchronously.
-    connection.subscriptions.set(message.id, { message, cleanups: [] })
+    connection.subscriptions.set(message.id, [])
 
     for (const { subscriber } of connection.subscribers.values()) {
       if (subscriber({ node, message })) {

@@ -301,6 +301,51 @@ it('runs after a GraphQL query handler returns a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
+it('reports a failing GraphQL subscription cleanup without an unhandled rejection', async () => {
+  const unhandledRejectionListener = vi.fn()
+  process.on('unhandledRejection', unhandledRejectionListener)
+
+  const secondCleanup = vi.fn()
+
+  const api = graphql.link('http://localhost:4000/graphql')
+  server.use(
+    api.subscription('OnCommentAdded', ({ subscription, finalize }) => {
+      finalize(secondCleanup)
+      finalize(async () => {
+        throw new Error('Cleanup error')
+      })
+      queueMicrotask(() => {
+        subscription.complete()
+      })
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost:4000/graphql',
+    lazy: false,
+  })
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnCommentAdded {
+        commentAdded {
+          text
+        }
+      }
+    `,
+  })
+  await subscription.next()
+
+  await expect
+    .poll(() => vi.mocked(console.error).mock.calls.flat().join('\n'))
+    .toMatch(/Failed to execute the cleanup for a GraphQL subscription/)
+
+  // A failing cleanup must not prevent the remaining cleanups from running.
+  expect(secondCleanup).toHaveBeenCalledOnce()
+
+  process.off('unhandledRejection', unhandledRejectionListener)
+  expect(unhandledRejectionListener).not.toHaveBeenCalled()
+})
+
 it('runs after a GraphQL subscription is completed by the mock', async () => {
   const cleanup = vi.fn()
 

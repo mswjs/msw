@@ -23,7 +23,6 @@ export {
   createGraphQLSubscriptionHandler,
   GraphQLSubscription,
   GraphQLSubscriptionHandler,
-  GraphQLSubscriptionTransportHandler,
   GraphQLPassthroughSubscription,
   type GraphQLSubscriptionHandlerFactory,
   type GraphQLSubscriptionHandlerOptions,

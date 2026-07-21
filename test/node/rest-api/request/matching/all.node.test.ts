@@ -63,7 +63,7 @@ test('matches all requests given no custom path', async () => {
     expect(response.status).toBe(200)
 
     // Responses to HEAD requests never have a body.
-    expect(await response.text()).toEqual(
+    await expect(response.text()).resolves.toEqual(
       method === HttpMethods.HEAD ? '' : 'welcome to the jungle',
     )
   }
@@ -85,7 +85,9 @@ test('respects custom path when matching requests', async () => {
   await forEachMethod(async (method) => {
     const response = await fetch(httpServer.http.url('/api/'), { method })
     expect(response.status).toBe(200)
-    expect(await response.text()).toEqual(expectedBodyForMethod(method))
+    await expect(response.text()).resolves.toEqual(
+      expectedBodyForMethod(method),
+    )
   })
 
   // Nested requests.
@@ -94,7 +96,9 @@ test('respects custom path when matching requests', async () => {
       method,
     })
     expect(response.status).toBe(200)
-    expect(await response.text()).toEqual(expectedBodyForMethod(method))
+    await expect(response.text()).resolves.toEqual(
+      expectedBodyForMethod(method),
+    )
   })
 
   // Mismatched requests.

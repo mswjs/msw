@@ -51,7 +51,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 9.15.0
+          version: 11.5.2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

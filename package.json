@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./lib/core/index.js",
   "types": "./lib/core/index.d.ts",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@11.5.2",
   "exports": {
     ".": {
       "types": "./lib/core/index.d.ts",

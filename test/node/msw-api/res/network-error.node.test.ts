@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -14,7 +12,5 @@ beforeAll(() => server.listen())
 afterAll(() => server.close())
 
 test('throws a network error when used with fetch', async () => {
-  await expect(fetch('http://example.com/user')).rejects.toThrow(
-    'Failed to fetch',
-  )
+  await expect(fetch('http://example.com/user')).rejects.toThrow('fetch failed')
 })

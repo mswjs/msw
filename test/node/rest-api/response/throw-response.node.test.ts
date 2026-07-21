@@ -66,7 +66,7 @@ it('supports throwing a network error in a response resolver', async () => {
     }),
   )
 
-  await expect(fetch('https://example.com')).rejects.toThrow('Failed to fetch')
+  await expect(fetch('https://example.com')).rejects.toThrow('fetch failed')
 })
 
 it('supports middleware-style responses', async () => {

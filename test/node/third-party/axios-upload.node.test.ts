@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
 const server = setupServer(
-  http.post('https://example.com/upload', async ({ request }) => {
+  http.post('https://localhost/upload', async ({ request }) => {
     const data = await request.formData()
     const file = data.get('file')
 
@@ -37,7 +37,7 @@ afterAll(() => {
 it('responds with a mocked response to an upload request', async () => {
   const onUploadProgress = vi.fn()
   const request = axios.create({
-    baseURL: 'https://example.com',
+    baseURL: 'https://localhost',
     onUploadProgress,
   })
 

@@ -64,7 +64,7 @@ export class SetupServerCommonApi implements SetupServerCommon {
     })
   }
 
-  get events() {
+  get events(): SetupServerCommon['events'] {
     return this.network.events
   }
 

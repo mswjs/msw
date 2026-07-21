@@ -77,9 +77,10 @@ describe('http handlers', () => {
         body: 'request-body-',
       },
     )
-    // Each clone is a new AbortSignal listener which needs to be registered.
+    // One clone is the handler lookup clone, shared (cached) across all handlers.
     // One clone is `onUnhandledRequest` reading the request body to print.
-    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
+    // Passthrough performs no clone: the raw request bytes are replayed at the socket level.
+    expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
     expect(stdErrSpy).not.toHaveBeenCalled()
   })
@@ -127,7 +128,9 @@ describe('graphql handlers', () => {
     })
 
     expect(unhandledResponse.status).toEqual(500)
-    expect(requestCloneSpy).toHaveBeenCalledTimes(4)
+    // Same clones as the unhandled http request, plus one clone
+    // for parsing the GraphQL query from the request body.
+    expect(requestCloneSpy).toHaveBeenCalledTimes(3)
     // Must not print any memory leak warnings.
     expect(stdErrSpy).not.toHaveBeenCalled()
   })

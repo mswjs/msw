@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       '@mswjs/interceptors':
-        specifier: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770
-        version: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770
+        specifier: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1
+        version: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1
       cookie:
         specifier: ^2.0.1
         version: 2.0.1
@@ -718,8 +718,8 @@ packages:
   '@msw/url@0.1.2':
     resolution: {integrity: sha512-DdeBLQxQ+ZrtmwEmaj7GQ7lbzPCgbbbyAqOz/I4ulo68hwBpfdNvQJ5bmihJUkAAKOeCmqCIG3OFZGosqFN4mA==}
 
-  '@mswjs/interceptors@https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770':
-    resolution: {tarball: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770}
+  '@mswjs/interceptors@https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1':
+    resolution: {integrity: sha512-sRyQsLmqypkcWfukQs1Av3Xjh7uqcrTfqm8XzK56HeWVY7T8msyADFwzOutJRo6hecThepHkZ4f0zAXf/LzuNQ==, tarball: https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1}
     version: 0.41.9
     engines: {node: '>=22'}
 
@@ -5735,7 +5735,7 @@ snapshots:
 
   '@msw/url@0.1.2': {}
 
-  '@mswjs/interceptors@https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770':
+  '@mswjs/interceptors@https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/until': 2.1.0

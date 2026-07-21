@@ -130,7 +130,7 @@
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
     "@msw/url": "^0.1.2",
-    "@mswjs/interceptors": "https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@770",
+    "@mswjs/interceptors": "https://pkg.pr.new/mswjs/interceptors/@mswjs/interceptors@e4113a1",
     "cookie": "^2.0.1",
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",

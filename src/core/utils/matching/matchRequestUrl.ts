@@ -18,13 +18,15 @@ export function isPath(value: unknown): value is Path {
 
 /**
  * Match the given URL against a path pattern.
+ * Accepts a string for request targets that are not valid URLs,
+ * such as the authority-form targets of CONNECT requests ("host:port").
  */
 export function matchRequestUrl(
-  url: URL,
+  url: URL | string,
   pattern: Path,
   baseUrl?: string,
 ): Match {
-  const cleanUrl = getCleanUrl(url)
+  const cleanUrl = typeof url === 'string' ? url : getCleanUrl(url)
 
   if (pattern instanceof RegExp) {
     const match = pattern.flags.includes('g')
@@ -39,7 +41,9 @@ export function matchRequestUrl(
     }
   }
 
-  // Resolve potentially realive patterns against the baseUrl.
-  const normalizedPath = normalizePath(pattern, baseUrl)
+  // Resolve potentially relative patterns against the baseUrl.
+  // Authority-form targets have no base to resolve against.
+  const normalizedPath =
+    typeof url === 'string' ? pattern : normalizePath(pattern, baseUrl)
   return matchPattern(normalizedPath, cleanUrl)
 }

@@ -54,6 +54,7 @@ function createHttpHandler<Method extends HttpMethods | RegExp>(
  */
 export const http = {
   all: createHttpHandler(/.+/),
+  connect: createHttpHandler(HttpMethods.CONNECT),
   head: createHttpHandler(HttpMethods.HEAD),
   get: createHttpHandler(HttpMethods.GET),
   post: createHttpHandler(HttpMethods.POST),

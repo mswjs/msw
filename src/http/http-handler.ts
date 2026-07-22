@@ -29,6 +29,7 @@ export interface HttpHandlerInfo extends RequestHandlerDefaultInfo {
 }
 
 export enum HttpMethods {
+  CONNECT = 'CONNECT',
   HEAD = 'HEAD',
   GET = 'GET',
   POST = 'POST',
@@ -96,6 +97,16 @@ export class HttpHandler extends RequestHandler<
       options,
     })
 
+    if (
+      method === HttpMethods.CONNECT &&
+      typeof predicate === 'string' &&
+      URL.canParse(predicate)
+    ) {
+      devUtils.warn(
+        `Detected invalid request handler at  "CONNECT ${predicate}": CONNECT request predicates must only contain the authority, never the protocol.`,
+      )
+    }
+
     this.checkRedundantQueryParameters()
   }
 
@@ -122,8 +133,16 @@ export class HttpHandler extends RequestHandler<
     request: Request
     resolutionContext?: ResponseResolutionContext
   }) {
-    const url = new URL(args.request.url)
-    const cookies = getAllRequestCookies(args.request)
+    /**
+     * CONNECT requests describe their target in the authority-form
+     * ("host:port"), which is not a valid URL. Cookies are bound to
+     * origins so they never apply to such targets either.
+     */
+    const isConnectRequest = isStringEqual(
+      args.request.method,
+      HttpMethods.CONNECT,
+    )
+    const cookies = isConnectRequest ? {} : getAllRequestCookies(args.request)
 
     /**
      * Handle custom predicate functions.
@@ -151,7 +170,11 @@ export class HttpHandler extends RequestHandler<
     }
 
     const match = this.info.path
-      ? matchRequestUrl(url, this.info.path, args.resolutionContext?.baseUrl)
+      ? matchRequestUrl(
+          isConnectRequest ? args.request.url : new URL(args.request.url),
+          this.info.path,
+          args.resolutionContext?.baseUrl,
+        )
       : { matches: false, params: {} }
 
     return {

@@ -1,4 +1,5 @@
 import type { Interceptor } from '@mswjs/interceptors'
+import { HttpRequestInterceptor } from '@mswjs/interceptors/http'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
@@ -17,6 +18,7 @@ import {
 } from './setup-server-common'
 
 const defaultInterceptors: Array<Interceptor<any>> = [
+  new HttpRequestInterceptor(),
   new ClientRequestInterceptor(),
   new XMLHttpRequestInterceptor(),
   new FetchInterceptor(),

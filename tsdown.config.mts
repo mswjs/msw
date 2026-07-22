@@ -7,7 +7,6 @@ import {
   copyWorkerPlugin,
 } from './config/plugins/rolldown/copyWorkerPlugin.ts'
 import { resolveCoreImportsPlugin } from './config/plugins/rolldown/resolveCoreImportsPlugin.ts'
-import { forceFileExtensionsPlugin } from './config/plugins/rolldown/forceFileExtensionsPlugin.ts'
 import { cleanStrayDeclarationsPlugin } from './config/plugins/rolldown/clean-stray-declarations-plugin.ts'
 
 const packageJson = JSON.parse(
@@ -50,7 +49,6 @@ const coreConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }
@@ -76,7 +74,6 @@ const graphqlConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }
@@ -102,7 +99,6 @@ const httpConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }
@@ -128,7 +124,6 @@ const wsConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }
@@ -160,7 +155,6 @@ const nodeConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }
@@ -193,7 +187,6 @@ const browserConfig: UserConfig = {
   },
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
     cleanStrayDeclarationsPlugin(),
   ],
@@ -227,7 +220,6 @@ const reactNativeConfig: UserConfig = {
   tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
   plugins: [
     resolveCoreImportsPlugin(),
-    forceFileExtensionsPlugin(),
     cleanStrayDeclarationsPlugin(),
   ],
 }

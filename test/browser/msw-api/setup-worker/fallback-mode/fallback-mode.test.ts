@@ -181,6 +181,35 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`),
   )
 })
 
+test('invokes the custom callback on an unhandled "file://" request', async ({
+  spyOnConsole,
+  page,
+}, testInfo) => {
+  const consoleSpy = spyOnConsole()
+  await gotoStaticPage(page, testInfo.workerIndex)
+
+  await page.evaluate(async () => {
+    const { setupWorker } = window.msw
+    const worker = setupWorker()
+    await worker.start({
+      onUnhandledRequest(request) {
+        console.log(`Oops, unhandled ${request.method} ${request.url}`)
+      },
+    })
+  })
+
+  // Only the fallback mode can observe "file://" requests:
+  // the fetch call never reaches the network (or the worker),
+  // failing as unsupported in the browser itself.
+  await page.evaluate(() => {
+    return fetch('file:///does/not/exist').catch(() => void 0)
+  })
+
+  await expect
+    .poll(() => consoleSpy.get('log'))
+    .toContain('Oops, unhandled GET file:///does/not/exist')
+})
+
 test('stops the fallback interceptor when called "worker.stop()"', async ({
   spyOnConsole,
   page,

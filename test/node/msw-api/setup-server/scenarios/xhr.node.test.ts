@@ -18,6 +18,8 @@ const server = setupServer(
         headers: {
           'Content-Type': 'application/json',
           'X-Header': 'yes',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Expose-Headers': 'x-header',
         },
       },
     )

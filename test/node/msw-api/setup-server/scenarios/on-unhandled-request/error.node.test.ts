@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
@@ -68,12 +66,15 @@ test('errors on unhandled request when using the "error" strategy', async () => 
 
   const requestError = await makeRequest()
 
-  expect.soft(requestError).toBeInstanceOf(Error)
-  expect
-    .soft(requestError.message)
-    .toBe(
+  expect.soft(requestError).toBeInstanceOf(TypeError)
+  expect.soft(requestError.message).toBe('fetch failed')
+
+  // The network-level error that failed the request is
+  // forwarded as the "cause" of the fetch rejection.
+  expect.soft(requestError.cause).toMatchObject({
+    message:
       '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
-    )
+  })
 
   expect(console.error)
     .toHaveBeenCalledWith(`[MSW] Error: intercepted a request without a matching request handler:

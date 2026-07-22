@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
 
@@ -20,13 +18,14 @@ beforeAll(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  server.resetHandlers()
 })
 
 afterAll(() => {
   server.close()
 })
 
-it('calls the given callback function on un unhandled request', async () => {
+it('invokes the callback for an unhandled request', async () => {
   const response = await fetch('https://test.mswjs.io')
 
   // Request should be performed as-is, since the callback didn't throw.
@@ -34,23 +33,9 @@ it('calls the given callback function on un unhandled request', async () => {
   expect(unhandledListener).toHaveBeenCalledTimes(1)
 
   const [request, print] = unhandledListener.mock.calls[0]
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe('https://test.mswjs.io/')
-  expect(print).toEqual({
-    error: expect.any(Function),
-    warning: expect.any(Function),
-  })
-})
-
-it('calls the given callback on unhandled "file://" requests', async () => {
-  await fetch('file:///does/not/exist').catch(() => void 0)
-
-  expect(unhandledListener).toHaveBeenCalledTimes(1)
-
-  const [request, print] = unhandledListener.mock.calls[0]
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe('file:///does/not/exist')
-  expect(print).toEqual({
+  expect.soft(request.method).toBe('GET')
+  expect.soft(request.url).toBe('https://test.mswjs.io/')
+  expect.soft(print).toEqual({
     error: expect.any(Function),
     warning: expect.any(Function),
   })

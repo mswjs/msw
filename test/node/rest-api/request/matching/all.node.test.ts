@@ -42,20 +42,30 @@ test('matches all requests given no custom path', async () => {
   )
 
   const responses = await Promise.all(
-    Object.values(HttpMethods).reduce<Promise<Response>[]>((all, method) => {
+    Object.values(HttpMethods).reduce<
+      Array<Promise<{ method: HttpMethods; response: Response }>>
+    >((all, method) => {
       return all.concat(
         [
           httpServer.http.url('/'),
           httpServer.http.url('/foo'),
           'https://example.com',
-        ].map((url) => fetch(url, { method })),
+        ].map((url) => {
+          return fetch(url, { method }).then((response) => {
+            return { method, response }
+          })
+        }),
       )
     }, []),
   )
 
-  for (const response of responses) {
+  for (const { method, response } of responses) {
     expect(response.status).toBe(200)
-    expect(await response.text()).toEqual('welcome to the jungle')
+
+    // Responses to HEAD requests never have a body.
+    await expect(response.text()).resolves.toEqual(
+      method === HttpMethods.HEAD ? '' : 'welcome to the jungle',
+    )
   }
 })
 
@@ -66,11 +76,18 @@ test('respects custom path when matching requests', async () => {
     }),
   )
 
+  // Responses to HEAD requests never have a body.
+  const expectedBodyForMethod = (method: HttpMethods) => {
+    return method === HttpMethods.HEAD ? '' : 'hello world'
+  }
+
   // Root requests.
   await forEachMethod(async (method) => {
     const response = await fetch(httpServer.http.url('/api/'), { method })
     expect(response.status).toBe(200)
-    expect(await response.text()).toEqual('hello world')
+    await expect(response.text()).resolves.toEqual(
+      expectedBodyForMethod(method),
+    )
   })
 
   // Nested requests.
@@ -79,7 +96,9 @@ test('respects custom path when matching requests', async () => {
       method,
     })
     expect(response.status).toBe(200)
-    expect(await response.text()).toEqual('hello world')
+    await expect(response.text()).resolves.toEqual(
+      expectedBodyForMethod(method),
+    )
   })
 
   // Mismatched requests.

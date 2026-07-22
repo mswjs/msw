@@ -66,6 +66,23 @@ it('allows modifying the bypassed request instance', async () => {
   expect(original.bodyUsed).toBe(false)
 })
 
+it('removes the "content-length" request header', async () => {
+  // Intercepted requests parsed from the wire include the received
+  // "content-length" header. Deriving a request with a different body
+  // makes that header stale, and the request client would reject the
+  // bypassed request due to the content length mismatch.
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    headers: { 'content-length': '42' },
+    body: 'a-body-that-is-42-characters-long-in-total',
+  })
+  const request = bypass(new Request(original, { body: 'short' }))
+
+  expect(request.headers.get('content-length')).toBeNull()
+  await expect(request.text()).resolves.toBe('short')
+  expect(original.bodyUsed).toBe(false)
+})
+
 it('supports bypassing "keepalive: true" requests', async () => {
   const original = new Request('http://localhost/resource', {
     method: 'POST',

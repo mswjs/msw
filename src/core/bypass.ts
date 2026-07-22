@@ -42,5 +42,16 @@ export function bypass(input: BypassRequestInput, init?: RequestInit): Request {
    */
   requestClone.headers.append('accept', 'msw/passthrough')
 
+  /**
+   * Delete the "content-length" request header.
+   * Intercepted requests are parsed from the wire and include the
+   * received "content-length" header. If the consumer derives a new
+   * request with a different body (e.g. `new Request(request, { body })`),
+   * that header becomes stale and the request client will reject the
+   * bypassed request due to the content length mismatch. The request
+   * client always re-computes this header from the actual request body.
+   */
+  requestClone.headers.delete('content-length')
+
   return requestClone
 }

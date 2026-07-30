@@ -29,6 +29,7 @@ afterAll(() => {
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  cookieStore.reset()
 })
 
 it('does not crash request handling when localStorage quota is exceeded', async () => {
@@ -49,7 +50,9 @@ it('does not crash request handling when localStorage quota is exceeded', async 
 
   // The cookie must remain available in-memory for the current session.
   expect(
-    cookieStore.getCookies(url).map((cookie) => `${cookie.key}=${cookie.value}`),
+    cookieStore
+      .getCookies(url)
+      .map((cookie) => `${cookie.key}=${cookie.value}`),
   ).toEqual(['name=value'])
 
   // A warning must be emitted so the failure is not silent.
@@ -57,9 +60,7 @@ it('does not crash request handling when localStorage quota is exceeded', async 
 })
 
 it('persists cookies to localStorage when the quota is available', async () => {
-  await expect(
-    cookieStore.setCookie('token=abc', url),
-  ).resolves.toBeUndefined()
+  await expect(cookieStore.setCookie('token=abc', url)).resolves.toBeUndefined()
 
   expect(localStorage.getItem('__msw-cookie-store__')).toContain('token')
 })

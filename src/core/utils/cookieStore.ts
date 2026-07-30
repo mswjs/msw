@@ -31,6 +31,12 @@ class CookieStore {
     return this.#jar.getCookiesSync(url)
   }
 
+  public reset(): void {
+    this.#memoryStore = new MemoryCookieStore()
+    this.#memoryStore.idx = this.getCookieStoreIndex()
+    this.#jar = new CookieJar(this.#memoryStore)
+  }
+
   public async setCookie(cookieName: string, url: string): Promise<void> {
     await this.#jar.setCookie(cookieName, url)
     this.persist()

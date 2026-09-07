@@ -180,12 +180,6 @@ importers:
       vitest:
         specifier: ^4.1.4
         version: 4.1.10(@types/node@22.19.21)(jsdom@25.0.1)(msw@)(vite@8.1.5(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
-      webpack:
-        specifier: ^5.106.2
-        version: 5.108.4(esbuild@0.28.1)
-      webpack-http-server:
-        specifier: ^0.5.0
-        version: 0.5.0(esbuild@0.28.1)
 
 packages:
 
@@ -4999,9 +4993,6 @@ packages:
   webidl-conversions@7.0.0:
     resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
     engines: {node: '>=12'}
-
-  webpack-http-server@0.5.0:
-    resolution: {integrity: sha512-kyewxAnzmDuZxe09fn/Bb0PeEnaDxHChYKFVsMy4oeBUs9Cyv2j1uEgzQJ7ljPFexLU8ongUS4i4O+e22CeBZQ==}
 
   webpack-merge@5.10.0:
     resolution: {integrity: sha512-+4zXKdx7UnO+1jaN4l2lHVD+mFvnlZQP/6ljaJVb4SZiwIKeUnrT5l0gkT8z+n4hKpC+jpOv6O9R+gLtag7pSA==}
@@ -10034,31 +10025,6 @@ snapshots:
   webidl-conversions@3.0.1: {}
 
   webidl-conversions@7.0.0: {}
-
-  webpack-http-server@0.5.0(esbuild@0.28.1):
-    dependencies:
-      '@types/express': 4.17.25
-      '@types/mustache': 4.2.6
-      express: 4.22.2
-      memfs: 3.5.3
-      mustache: 4.2.0
-      outvariant: 1.4.3
-      webpack: 5.108.4(esbuild@0.28.1)
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
 
   webpack-merge@5.10.0:
     dependencies:

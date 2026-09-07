@@ -23,7 +23,7 @@ interface HttpNetworkFrameOptions {
   request: Request
 }
 
-export class RequestEvent<
+class RequestEvent<
   DataType extends { requestId: string; request: Request } = {
     requestId: string
     request: Request
@@ -66,7 +66,7 @@ export class ResponseEvent<
   }
 }
 
-export class UnhandledExceptionEvent<
+class UnhandledExceptionEvent<
   DataType extends {
     error: Error
     requestId: string

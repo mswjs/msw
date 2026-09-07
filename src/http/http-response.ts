@@ -10,7 +10,7 @@ import {
 } from '#core/utils/response-decorators'
 import { kDefaultContentType, bodyType } from './symbols'
 
-export { kDefaultContentType, bodyType }
+export { kDefaultContentType }
 
 export interface HttpResponseInit extends ResponseInit {
   type?: ResponseType

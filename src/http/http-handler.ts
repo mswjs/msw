@@ -58,7 +58,7 @@ export type HttpCustomPredicate<Params extends PathParams> = (args: {
 }) =>
   HttpCustomPredicateResult<Params> | Promise<HttpCustomPredicateResult<Params>>
 
-export type HttpCustomPredicateResult<Params extends PathParams> =
+type HttpCustomPredicateResult<Params extends PathParams> =
   | boolean
   | {
       matches: boolean

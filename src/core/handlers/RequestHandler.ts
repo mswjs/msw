@@ -673,7 +673,7 @@ export abstract class RequestHandler<
 /**
  * Forwards the cookies from the given response to `document.cookie`.
  */
-export function forwardResponseCookies(response: Response): void {
+function forwardResponseCookies(response: Response): void {
   // Cookie forwarding is only relevant in the browser.
   if (typeof document === 'undefined') {
     return

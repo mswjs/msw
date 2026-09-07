@@ -67,7 +67,6 @@ export interface WebSocketResolutionContext {
 }
 
 export const kEmitter = Symbol('kEmitter')
-export const kSender = Symbol('kSender')
 export const kConnect = Symbol('kConnect')
 export const kAutoConnect = Symbol('kAutoConnect')
 

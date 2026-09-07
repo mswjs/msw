@@ -111,7 +111,7 @@ export type GraphQLCustomPredicate = (args: {
   cookies: Record<string, string>
 }) => GraphQLCustomPredicateResult | Promise<GraphQLCustomPredicateResult>
 
-export type GraphQLCustomPredicateResult = boolean | { matches: boolean }
+type GraphQLCustomPredicateResult = boolean | { matches: boolean }
 
 export type GraphQLPredicate<Query = any, Variables = any> =
   | GraphQLHandlerNameSelector

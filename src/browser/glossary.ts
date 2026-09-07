@@ -1,5 +1,4 @@
 import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
-import type { RequiredDeep } from '#core/typeUtils'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
@@ -56,11 +55,6 @@ export interface StartOptions extends SharedOptions {
 }
 
 export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
-
-export type StartHandler = (
-  options: RequiredDeep<StartOptions>,
-  initialOptions: StartOptions,
-) => StartReturnType
 
 export type StopHandler = () => Promise<void> | void
 

@@ -1,10 +1,10 @@
 import { isNodeProcess } from 'is-node-process'
 import { hasRefCounted } from './utils/internal/hasRefCounted'
 
-export const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
-export const MIN_SERVER_RESPONSE_TIME = 100
-export const MAX_SERVER_RESPONSE_TIME = 400
-export const NODE_SERVER_RESPONSE_TIME = 5
+const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
+const MIN_SERVER_RESPONSE_TIME = 100
+const MAX_SERVER_RESPONSE_TIME = 400
+const NODE_SERVER_RESPONSE_TIME = 5
 
 function getRealisticResponseTime(): number {
   if (isNodeProcess()) {

@@ -2,7 +2,7 @@ import { toPublicUrl } from './toPublicUrl'
 import { InternalError, devUtils } from '../internal/devUtils'
 import { isCommonAssetRequest } from '../../isCommonAssetRequest'
 
-export interface UnhandledRequestPrint {
+interface UnhandledRequestPrint {
   warning: () => void
   error: () => void
 }
@@ -13,10 +13,7 @@ export type UnhandledRequestCallback = (
 ) => void
 
 export type UnhandledRequestStrategy =
-  | 'bypass'
-  | 'warn'
-  | 'error'
-  | UnhandledRequestCallback
+  'bypass' | 'warn' | 'error' | UnhandledRequestCallback
 
 export async function onUnhandledRequest(
   request: Request,

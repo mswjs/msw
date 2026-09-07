@@ -3,7 +3,6 @@
   "entry": [
     "src/{core,browser,node,native,graphql}/index.ts!",
     "src/mockServiceWorker.js!",
-    "cli/index.js!",
     "config/**/*.{js,ts}!",
     "test/**/*ts"
   ],

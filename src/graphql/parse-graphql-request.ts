@@ -78,7 +78,7 @@ async function parseQuery(
   }
 }
 
-export type GraphQLParsedOperationsMap = Record<string, string[]>
+type GraphQLParsedOperationsMap = Record<string, string[]>
 export type GraphQLMultipartRequestBody = {
   operations: string
   map?: string

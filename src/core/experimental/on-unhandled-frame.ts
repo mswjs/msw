@@ -7,14 +7,14 @@ import type { AnyNetworkFrame } from './frames/network-frame'
 export type UnhandledFrameHandle =
   UnhandledFrameStrategy | UnhandledFrameCallback
 
-export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
+type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
 
 export type UnhandledFrameCallback = (args: {
   frame: AnyNetworkFrame
   defaults: UnhandledFrameDefaults
 }) => Promise<void> | void
 
-export type UnhandledFrameDefaults = {
+type UnhandledFrameDefaults = {
   warn: () => void
   error: () => void
 }

@@ -187,12 +187,6 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3
 
-  test/modules/node/node-esm-tests:
-    dependencies:
-      msw:
-        specifier: file:/Users/kettanaito/Projects/mswjs/msw/msw-2.15.0.tgz
-        version: file:msw-2.15.0.tgz(@types/node@24.13.3)(graphql@17.0.2)(typescript@7.0.2)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
-
 packages:
 
   '@asamuzakjp/css-color@3.2.0':
@@ -3876,23 +3870,6 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  msw@file:msw-2.15.0.tgz:
-    resolution: {integrity: sha512-jAGxaWVkPssfTFT5pcXfBBWiR5OMVmn0A9n+fUfCwaIF5bfw9UIeYWtm/hUPLt3WK8VN9wYrtLPo5maGNFtNkg==, tarball: file:msw-2.15.0.tgz}
-    version: 2.15.0
-    engines: {node: '>=22'}
-    hasBin: true
-    peerDependencies:
-      graphql: '>=16'
-      typescript: '>=5.9.x'
-      vite: '>=6'
-    peerDependenciesMeta:
-      graphql:
-        optional: true
-      typescript:
-        optional: true
-      vite:
-        optional: true
-
   mustache@4.2.0:
     resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
     hasBin: true
@@ -5695,13 +5672,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.19.21
 
-  '@inquirer/confirm@6.1.1(@types/node@24.13.3)':
-    dependencies:
-      '@inquirer/core': 11.2.1(@types/node@24.13.3)
-      '@inquirer/type': 4.0.7(@types/node@24.13.3)
-    optionalDependencies:
-      '@types/node': 24.13.3
-
   '@inquirer/core@11.2.1(@types/node@22.19.21)':
     dependencies:
       '@inquirer/ansi': 2.0.7
@@ -5713,18 +5683,6 @@ snapshots:
       signal-exit: 4.1.0
     optionalDependencies:
       '@types/node': 22.19.21
-
-  '@inquirer/core@11.2.1(@types/node@24.13.3)':
-    dependencies:
-      '@inquirer/ansi': 2.0.7
-      '@inquirer/figures': 2.0.7
-      '@inquirer/type': 4.0.7(@types/node@24.13.3)
-      cli-width: 4.1.0
-      fast-wrap-ansi: 0.2.2
-      mute-stream: 3.0.0
-      signal-exit: 4.1.0
-    optionalDependencies:
-      '@types/node': 24.13.3
 
   '@inquirer/external-editor@1.0.3(@types/node@22.19.21)':
     dependencies:
@@ -5738,10 +5696,6 @@ snapshots:
   '@inquirer/type@4.0.7(@types/node@22.19.21)':
     optionalDependencies:
       '@types/node': 22.19.21
-
-  '@inquirer/type@4.0.7(@types/node@24.13.3)':
-    optionalDependencies:
-      '@types/node': 24.13.3
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -8802,28 +8756,6 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@file:msw-2.15.0.tgz(@types/node@24.13.3)(graphql@17.0.2)(typescript@7.0.2)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)):
-    dependencies:
-      '@inquirer/confirm': 6.1.1(@types/node@24.13.3)
-      '@msw/url': 0.1.2
-      '@mswjs/interceptors': 0.42.1
-      cookie: 2.0.1
-      headers-polyfill: 5.0.1
-      is-node-process: 1.2.0
-      outvariant: 1.4.3
-      rettime: 0.11.11
-      tough-cookie: 6.0.2
-      type-fest: 5.8.0
-      until-async: 3.0.2
-      yargs: 17.7.3
-    optionalDependencies:
-      graphql: 17.0.2
-      typescript: 7.0.2
-      vite: 8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - supports-color
-
   mustache@4.2.0: {}
 
   mute-stream@0.0.8: {}
@@ -10047,22 +9979,6 @@ snapshots:
       jiti: 2.7.0
       terser: 5.49.0
       yaml: 2.9.0
-
-  vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0):
-    dependencies:
-      lightningcss: 1.33.0
-      picomatch: 4.0.5
-      postcss: 8.5.20
-      rolldown: 1.1.5
-      tinyglobby: 0.2.17
-    optionalDependencies:
-      '@types/node': 24.13.3
-      esbuild: 0.28.1
-      fsevents: 2.3.3
-      jiti: 2.7.0
-      terser: 5.49.0
-      yaml: 2.9.0
-    optional: true
 
   vitest@4.1.10(@types/node@22.19.21)(@vitest/browser-playwright@4.1.10)(jsdom@25.0.1)(msw@)(vite@8.1.5(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)):
     dependencies:

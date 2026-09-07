@@ -3,6 +3,7 @@ import { http, HttpHandler, HttpResponse } from './index'
 test('exposes the http request handler namespace', () => {
   expect(Object.keys(http)).toEqual([
     'all',
+    'connect',
     'head',
     'get',
     'post',

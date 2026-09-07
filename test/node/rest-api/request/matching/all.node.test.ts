@@ -30,7 +30,9 @@ afterAll(async () => {
 
 async function forEachMethod(callback: (method: HttpMethods) => unknown) {
   for (const method of Object.values(HttpMethods)) {
-    await callback(method)
+    if (method !== 'CONNECT') {
+      await callback(method)
+    }
   }
 }
 
@@ -42,21 +44,24 @@ test('matches all requests given no custom path', async () => {
   )
 
   const responses = await Promise.all(
-    Object.values(HttpMethods).reduce<
-      Array<Promise<{ method: HttpMethods; response: Response }>>
-    >((all, method) => {
-      return all.concat(
-        [
-          httpServer.http.url('/'),
-          httpServer.http.url('/foo'),
-          'https://example.com',
-        ].map((url) => {
-          return fetch(url, { method }).then((response) => {
-            return { method, response }
-          })
-        }),
-      )
-    }, []),
+    Object.values(HttpMethods)
+      .filter((method) => method !== 'CONNECT')
+      .reduce<Array<Promise<{ method: HttpMethods; response: Response }>>>(
+        (all, method) => {
+          return all.concat(
+            [
+              httpServer.http.url('/'),
+              httpServer.http.url('/foo'),
+              'https://example.com',
+            ].map((url) => {
+              return fetch(url, { method }).then((response) => {
+                return { method, response }
+              })
+            }),
+          )
+        },
+        [],
+      ),
   )
 
   for (const { method, response } of responses) {

@@ -38,7 +38,9 @@ describe(
       })
 
       // Install "msw" from the tarball into the dummy project.
-      const installCommand = await fsMock.exec(`npm install ${TARBALL_PATH}`)
+      const installCommand = await fsMock.exec(
+        `npm install --ignore-scripts=false ${TARBALL_PATH}`,
+      )
       expect(installCommand.stderr).toBe('')
 
       // Asset the worker script has been created/updated.
@@ -57,7 +59,9 @@ describe(
         }),
       })
 
-      const installCommand = await fsMock.exec(`npm install ${TARBALL_PATH}`)
+      const installCommand = await fsMock.exec(
+        `npm install --ignore-scripts=false ${TARBALL_PATH}`,
+      )
       /**
        * @note Cannot assert on the empty stderr because npm
        * writes to stderr if there's a new version of npm available.

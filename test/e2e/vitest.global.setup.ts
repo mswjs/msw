@@ -1,31 +1,40 @@
-import fs from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { invariant } from 'outvariant'
-import type { GlobalSetupContext } from 'vitest/node'
+import type { TestProject } from 'vitest/node'
 import * as packageJson from '../../package.json'
 
-export default function setup({ provide }: GlobalSetupContext) {
-  const tarballPath = fileURLToPath(
-    new URL(`../../msw-${packageJson.version}.tgz`, import.meta.url),
+export default function setup({ provide }: TestProject) {
+  const tarballDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'msw-e2e-'))
+  const tarballPath = path.join(
+    tarballDirectory,
+    `msw-${packageJson.version}.tgz`,
   )
-
-  if (fs.existsSync(tarballPath)) {
-    return
-  }
-
-  // Pack the library before all E2E tests.
-  spawnSync('pnpm', ['pack'], {
-    stdio: 'inherit',
-  })
+  const packResult = spawnSync(
+    'pnpm',
+    [
+      '--config.ignore-scripts=true',
+      'pack',
+      '--pack-destination',
+      tarballDirectory,
+    ],
+    {
+      encoding: 'utf8',
+    },
+  )
 
   invariant(
-    fs.existsSync(tarballPath),
-    'Failed to set up e2e tests: library tarball not found at "%s"',
+    packResult.status === 0 && fs.existsSync(tarballPath),
+    'Failed to package the library for E2E tests at "%s":\n%s',
     tarballPath,
+    packResult.stderr,
   )
 
-  console.log('Library built at "%s"!', tarballPath)
-
   provide('tarballPath', tarballPath)
+
+  return () => {
+    fs.rmSync(tarballDirectory, { force: true, recursive: true })
+  }
 }

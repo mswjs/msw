@@ -1,0 +1,174 @@
+import type { SetupWorkerApi } from 'msw/browser'
+import type { TestFixtures } from '../../../setup/playwright'
+import { inlineSource, test, expect } from '../../../setup/playwright'
+
+const startSource = inlineSource(`
+import { http } from 'msw'
+import { setupWorker } from 'msw/browser'
+
+const worker = setupWorker(
+  http.get('/user', () => {
+    return new Response()
+  }),
+)
+
+Object.assign(window, {
+  msw: {
+    async startWorker() {
+      await worker.start({
+        serviceWorker: {
+          // Use a custom Service Worker for this test that intentionally
+          // delays the worker installation time. This allows us to test
+          // that the "worker.start()" Promise indeed resolves only after
+          // the worker has been activated and not just registered.
+          url: './worker.js',
+        },
+      })
+    },
+    stopWorker: worker.stop.bind(worker),
+  },
+})
+`)
+
+declare namespace window {
+  export const msw: {
+    startWorker: () => ReturnType<SetupWorkerApi['start']>
+    stopWorker: () => ReturnType<SetupWorkerApi['stop']>
+  }
+}
+
+const exampleOptions: Parameters<TestFixtures['loadExample']> = [
+  startSource,
+  {
+    skipActivation: true,
+    beforeNavigation(compilation) {
+      compilation.use((router) => {
+        router.get('/worker.js', (_, res) => {
+          res.sendFile(new URL('worker.delayed.js', import.meta.url).pathname)
+        })
+      })
+    },
+  },
+]
+
+test('resolves the "start" Promise when the worker has been activated', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  await loadExample(...exampleOptions)
+  const consoleSpy = spyOnConsole()
+  const events: Array<string> = []
+
+  const untilWorkerActivated = page
+    .evaluate(() => {
+      return new Promise((resolve) => {
+        navigator.serviceWorker.addEventListener('controllerchange', resolve)
+      })
+    })
+    .then(() => events.push('worker activated'))
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  const untilStartResolved = page
+    .evaluate(() => window.msw.startWorker())
+    .then(() => events.push('start resolved'))
+
+  const untilActivationMessage = expect
+    .poll(() => consoleSpy.get('startGroupCollapsed'))
+    .toContain('[MSW] Mocking enabled.')
+    .then(() => events.push('enabled message'))
+
+  await Promise.all([
+    untilActivationMessage,
+    untilWorkerActivated,
+    untilStartResolved,
+  ])
+
+  expect(events[0]).toEqual('worker activated')
+  expect(events[1]).toEqual('start resolved')
+  expect(events[2]).toEqual('enabled message')
+  expect(events).toHaveLength(3)
+})
+
+test('prints the start message when the worker has been registered', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  const { compilation } = await loadExample(...exampleOptions)
+  const consoleSpy = spyOnConsole()
+
+  const expectedWorkerScope = new URL('.', compilation.previewUrl).href
+  const expectedWorkerUrl = new URL('./worker.js', compilation.previewUrl).href
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  await page.evaluate(() => {
+    return window.msw.startWorker()
+  })
+
+  expect(consoleSpy.get('log')).toContain(
+    `Worker scope: ${expectedWorkerScope}`,
+  )
+  expect(consoleSpy.get('log')).toContain(
+    `Worker script URL: ${expectedWorkerUrl}`,
+  )
+})
+
+test('prints a warning if "worker.start()" is called multiple times', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  await loadExample(...exampleOptions)
+  const consoleSpy = spyOnConsole()
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  await page.evaluate(async () => {
+    await window.msw.startWorker()
+    await window.msw.startWorker()
+  })
+
+  // The activation message ise printed only once.
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+  ])
+
+  // The warning is printed about multiple calls of "worker.start()".
+  expect(consoleSpy.get('warning')).toEqual([
+    `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
+  ])
+})
+
+test('does not warn on a redundant start call when restarting the worker', async ({
+  loadExample,
+  spyOnConsole,
+  page,
+}) => {
+  await loadExample(...exampleOptions)
+  const consoleSpy = spyOnConsole()
+
+  await page.waitForFunction(() => {
+    return typeof window.msw !== 'undefined'
+  })
+
+  await page.evaluate(async () => {
+    await window.msw.startWorker()
+    window.msw.stopWorker()
+    await window.msw.startWorker()
+  })
+
+  expect(consoleSpy.get('warning')).toBeUndefined()
+  expect(consoleSpy.get('startGroupCollapsed')).toEqual([
+    '[MSW] Mocking enabled.',
+    '[MSW] Mocking enabled.',
+  ])
+})

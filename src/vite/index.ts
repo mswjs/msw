@@ -1,0 +1,1 @@
+export { msw } from './plugin'

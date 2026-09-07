@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-20:
     name: build (20)
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -47,7 +47,7 @@ jobs:
 
   build-22:
     name: build (22)
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -82,7 +82,7 @@ jobs:
   test-unit:
     name: test (unit)
     needs: build-22
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -117,7 +117,7 @@ jobs:
   test-node-20:
     name: test (node.js) (20)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -152,7 +152,7 @@ jobs:
   test-node-22:
     name: test (node.js) (22)
     needs: build-22
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -187,7 +187,7 @@ jobs:
   test-e2e:
     name: test (e2e) (20)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -211,7 +211,7 @@ jobs:
   test-browser:
     name: test (browser)
     needs: build-22
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -253,7 +253,7 @@ jobs:
   test-native:
     name: test (react-native)
     needs: build-20
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0

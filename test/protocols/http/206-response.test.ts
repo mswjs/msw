@@ -52,7 +52,7 @@ test('forwards the 206 response to a bypassed "Range" request', async ({
     'content-length': '6',
     'content-type': 'text/plain',
   })
-  expect(await response.text()).toBe('llo wo')
+  await expect(response.text()).resolves.toBe('llo wo')
 })
 
 test('responds with a 206 response to a mocked "Range" request', async ({
@@ -71,5 +71,5 @@ test('responds with a 206 response to a mocked "Range" request', async ({
     'content-length': '6',
     'content-type': 'text/plain',
   })
-  expect(await response.text()).toBe('llo wo')
+  await expect(response.text()).resolves.toBe('llo wo')
 })

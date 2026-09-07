@@ -1,9 +1,8 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { defineNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
-  http.get('https://test.mswjs.io/', async () => {
-    await delay(2000)
+  http.get('https://test.mswjs.io/', () => {
     return HttpResponse.json(
       { mocked: true },
       {

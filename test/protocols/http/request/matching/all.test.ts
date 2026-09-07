@@ -30,7 +30,7 @@ test('respects custom path when matching requests', async ({ fetch }) => {
 
   for (const response of rootResponses) {
     expect(response.status()).toEqual(200)
-    expect(await response.text()).toEqual('hello world')
+    await expect(response.text()).resolves.toEqual('hello world')
   }
 
   // Nested request.
@@ -40,7 +40,7 @@ test('respects custom path when matching requests', async ({ fetch }) => {
 
   for (const response of nestedResponses) {
     expect(response.status()).toBe(200)
-    expect(await response.text()).toBe('hello world')
+    await expect(response.text()).resolves.toBe('hello world')
   }
 
   // Mismatched request.
@@ -52,6 +52,6 @@ test('respects custom path when matching requests', async ({ fetch }) => {
 
   for (const response of mismatchedResponses) {
     expect(response.status()).toEqual(200)
-    expect(await response.text()).toEqual('welcome to the jungle')
+    await expect(response.text()).resolves.toEqual('welcome to the jungle')
   }
 })

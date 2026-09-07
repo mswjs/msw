@@ -24,7 +24,7 @@ describe.concurrent('concurrent tests', () => {
     server.boundary(async () => {
       const response = await fetch('/initial')
       expect(response.status).toBe(200)
-      expect(await response.text()).toBe('initial')
+      await expect(response.text()).resolves.toBe('initial')
     }),
   )
 
@@ -39,7 +39,7 @@ describe.concurrent('concurrent tests', () => {
 
       const response = await fetch('/initial')
       expect(response.status).toBe(200)
-      expect(await response.text()).toBe('override')
+      await expect(response.text()).resolves.toBe('override')
     }),
   )
 
@@ -48,7 +48,7 @@ describe.concurrent('concurrent tests', () => {
     server.boundary(async () => {
       const response = await fetch('/initial')
       expect(response.status).toBe(200)
-      expect(await response.text()).toBe('initial')
+      await expect(response.text()).resolves.toBe('initial')
     }),
   )
 })

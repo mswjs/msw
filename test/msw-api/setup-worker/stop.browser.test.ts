@@ -18,7 +18,11 @@ test('disables mocking when the worker is stopped', async ({
   }
 
   await network.stop()
-  const response = await fetch(testServer.http.url('/user'))
+  const response = await fetch(
+    testServer.http.url('/user'),
+    {},
+    { captureResponse: false },
+  )
 
   expect.soft(response.fromServiceWorker()).toBe(false)
   await expect(response.json()).resolves.toEqual({

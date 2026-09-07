@@ -35,7 +35,7 @@ test('supports throwing a plain Response in a response resolver', async ({
 }) => {
   const response = await fetch('/throw/plain')
   expect(response.status()).toBe(200)
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 test('supports throwing an HttpResponse in a response resolver', async ({
@@ -44,7 +44,7 @@ test('supports throwing an HttpResponse in a response resolver', async ({
   const response = await fetch('/throw/http-response')
   expect(response.status()).toBe(200)
   expect(await response.headerValue('Content-Type')).toBe('text/plain')
-  expect(await response.text()).toBe('hello world')
+  await expect(response.text()).resolves.toBe('hello world')
 })
 
 test('supports throwing an error response in a response resolver', async ({
@@ -86,7 +86,7 @@ test('supports throwing a network error in a response resolver', async ({
 test('supports middleware-style responses', async ({ fetch }) => {
   const response = await fetch('/middleware?id=1')
   expect(response.status()).toBe(200)
-  expect(await response.text()).toBe('ok')
+  await expect(response.text()).resolves.toBe('ok')
 
   const errorResponse = await fetch('/middleware')
   expect(errorResponse.status()).toBe(400)

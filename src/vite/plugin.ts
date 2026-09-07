@@ -25,6 +25,12 @@ export interface MswPluginOptions {
  * })
  */
 export function msw(options: MswPluginOptions = {}): Plugin {
+  if (process.env.NODE_ENV === 'production') {
+    return {
+      name: 'msw',
+    }
+  }
+
   const workerUrl = options.workerUrl ?? DEFAULT_WORKER_URL
   const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
 

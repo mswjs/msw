@@ -77,7 +77,7 @@ test('responds with a ReadableStream', async () => {
   expect(response.body).toBeInstanceOf(ReadableStream)
   expect(response.body!.locked).toBe(false)
 
-  expect(await response.text()).toBe('helloworld')
+  await expect(response.text()).resolves.toBe('helloworld')
 })
 
 test('supports delays when enqueuing chunks', async () => {

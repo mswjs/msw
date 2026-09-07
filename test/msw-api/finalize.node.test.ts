@@ -134,12 +134,13 @@ it('runs multiple cleanups as LIFO', async () => {
 
 it('runs after the request has been aborted', async () => {
   const cleanup = vi.fn()
+  const handlerStarted = Promise.withResolvers<void>()
 
   server.use(
     http.get('http://localhost/resource', async ({ finalize }) => {
       finalize(cleanup)
-      await setTimeout(250)
-      return new Response()
+      handlerStarted.resolve()
+      await new Promise(() => {})
     }),
   )
 
@@ -147,7 +148,7 @@ it('runs after the request has been aborted', async () => {
   const responsePromise = fetch('http://localhost/resource', {
     signal: controller.signal,
   })
-  await setTimeout(100)
+  await handlerStarted.promise
   controller.abort()
 
   await expect(responsePromise).rejects.toThrow()
@@ -156,12 +157,13 @@ it('runs after the request has been aborted', async () => {
 
 it('runs immediately when scheduled after the request has been aborted', async () => {
   const cleanup = vi.fn()
+  const handlerStarted = Promise.withResolvers<void>()
+  const continueHandler = Promise.withResolvers<void>()
 
   server.use(
     http.get('http://localhost/resource', async ({ finalize }) => {
-      // Await past the point where the request gets aborted so the
-      // first `finalize` access happens on an already-aborted signal.
-      await setTimeout(250)
+      handlerStarted.resolve()
+      await continueHandler.promise
       finalize(cleanup)
 
       // Simulate a long-lived resolver that never settles.
@@ -173,8 +175,9 @@ it('runs immediately when scheduled after the request has been aborted', async (
   const responsePromise = fetch('http://localhost/resource', {
     signal: controller.signal,
   })
-  await setTimeout(100)
+  await handlerStarted.promise
   controller.abort()
+  continueHandler.resolve()
 
   await expect(responsePromise).rejects.toThrow()
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
@@ -183,14 +186,15 @@ it('runs immediately when scheduled after the request has been aborted', async (
 it('runs cleanups scheduled after the abort listener has fired', async () => {
   const cleanupBeforeAbort = vi.fn()
   const cleanupAfterAbort = vi.fn()
+  const handlerStarted = Promise.withResolvers<void>()
+  const continueHandler = Promise.withResolvers<void>()
 
   server.use(
     http.get('http://localhost/resource', async ({ finalize }) => {
       finalize(cleanupBeforeAbort)
 
-      // Await past the point where the request gets aborted
-      // (the "abort" listener fires and runs `cleanupBeforeAbort`).
-      await setTimeout(250)
+      handlerStarted.resolve()
+      await continueHandler.promise
       finalize(cleanupAfterAbort)
 
       // Simulate a long-lived resolver that never settles.
@@ -202,8 +206,9 @@ it('runs cleanups scheduled after the abort listener has fired', async () => {
   const responsePromise = fetch('http://localhost/resource', {
     signal: controller.signal,
   })
-  await setTimeout(100)
+  await handlerStarted.promise
   controller.abort()
+  continueHandler.resolve()
 
   await expect(responsePromise).rejects.toThrow()
   await expect.poll(() => cleanupBeforeAbort).toHaveBeenCalledOnce()

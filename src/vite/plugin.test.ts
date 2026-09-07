@@ -2,6 +2,18 @@ import * as fs from 'node:fs'
 import { createServer } from 'vite'
 import { msw } from './plugin'
 
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
+
+it('does nothing in production', () => {
+  vi.stubEnv('NODE_ENV', 'production')
+
+  expect(msw()).toEqual({
+    name: 'msw',
+  })
+})
+
 it('serves the worker script at the default URL', async () => {
   const server = await createServer({
     configFile: false,
@@ -27,7 +39,7 @@ it('serves the worker script at the default URL', async () => {
   expect(response.headers.get('content-type')).toBe(
     'application/javascript; charset=utf-8',
   )
-  expect(await response.text()).toBe(
+  await expect(response.text()).resolves.toBe(
     fs.readFileSync(
       new URL('../mockServiceWorker.js', import.meta.url),
       'utf8',
@@ -57,5 +69,5 @@ it('supports a custom worker URL', async () => {
   const response = await fetch(new URL('/assets/worker.js', serverUrl))
 
   expect(response.status).toBe(200)
-  expect(await response.text()).toContain('* Mock Service Worker.')
+  await expect(response.text()).resolves.toContain('* Mock Service Worker.')
 })

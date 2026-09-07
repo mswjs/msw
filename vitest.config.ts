@@ -39,6 +39,7 @@ export default defineConfig({
     noDiscovery: true,
   },
   test: {
+    fileParallelism: true,
     globals: true,
     onConsoleLog(_log, _logType, entity) {
       return entity?.project.name !== 'browser'
@@ -135,7 +136,6 @@ export default defineConfig({
             '**/*.pw.test.ts',
           ],
           alias: mswExports,
-          fileParallelism: false,
           setupFiles: ['./test/setup/vitest-browser.ts'],
           browser: {
             enabled: true,

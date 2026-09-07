@@ -54,6 +54,7 @@ interface CapturedResponse {
 }
 
 interface FetchOptions {
+  captureResponse?: boolean
   waitForResponse?(response: BrowserResponse): boolean | Promise<boolean>
 }
 
@@ -384,6 +385,11 @@ export function defineNetwork(
           headers: requestHeaders,
         }
         const capturedResponses: Array<CapturedResponse> = []
+        let responseCaptured = Promise.withResolvers<void>()
+        const notifyResponseCaptured = () => {
+          responseCaptured.resolve()
+          responseCaptured = Promise.withResolvers<void>()
+        }
         const markMockedResponse = ({
           request,
           response,
@@ -393,6 +399,7 @@ export function defineNetwork(
         }) => {
           if (request.headers.get('accept-language') === requestId) {
             capturedResponses.push({ mocked: true, request, response })
+            notifyResponseCaptured()
           }
         }
         const markBypassedResponse = ({
@@ -404,6 +411,7 @@ export function defineNetwork(
         }) => {
           if (request.headers.get('accept-language') === requestId) {
             capturedResponses.push({ mocked: false, request, response })
+            notifyResponseCaptured()
           }
         }
 
@@ -411,46 +419,53 @@ export function defineNetwork(
         network.events.on('response:bypass', markBypassedResponse)
         const response = await globalThis.fetch(requestUrl, resolvedInit)
 
-        await new Promise((resolve) => {
-          setTimeout(resolve, 50)
-        })
-
-        network.events.removeListener('response:mocked', markMockedResponse)
-        network.events.removeListener('response:bypass', markBypassedResponse)
-
-        const browserResponses = capturedResponses.map((capturedResponse) => {
+        if (options.captureResponse === false) {
+          network.events.removeListener('response:mocked', markMockedResponse)
+          network.events.removeListener('response:bypass', markBypassedResponse)
           return new BrowserResponse(
-            capturedResponse.response,
-            capturedResponse.request.url,
-            capturedResponse.request.headers,
-            capturedResponse.mocked,
-            true,
+            response,
+            requestUrl,
+            requestHeaders,
+            false,
           )
-        })
+        }
 
-        if (options.waitForResponse) {
+        while (true) {
+          const nextResponseCaptured = responseCaptured.promise
+          const browserResponses = capturedResponses.map((capturedResponse) => {
+            return new BrowserResponse(
+              capturedResponse.response,
+              capturedResponse.request.url,
+              capturedResponse.request.headers,
+              capturedResponse.mocked,
+              true,
+            )
+          })
+
           for (const browserResponse of browserResponses) {
-            if (await options.waitForResponse(browserResponse)) {
+            const isExpectedResponse = options.waitForResponse
+              ? await options.waitForResponse(browserResponse)
+              : browserResponse.isMocked() ||
+                !browserResponse
+                  .request()
+                  .headers()
+                  .accept?.includes('msw/passthrough')
+
+            if (isExpectedResponse) {
+              network.events.removeListener(
+                'response:mocked',
+                markMockedResponse,
+              )
+              network.events.removeListener(
+                'response:bypass',
+                markBypassedResponse,
+              )
               return browserResponse
             }
           }
-        } else {
-          const mockedResponse = browserResponses.find((candidateResponse) => {
-            return candidateResponse.isMocked()
-          })
 
-          if (mockedResponse) {
-            return mockedResponse
-          }
-
-          const bypassedResponse = browserResponses.at(-1)
-
-          if (bypassedResponse) {
-            return bypassedResponse
-          }
+          await nextResponseCaptured
         }
-
-        return new BrowserResponse(response, requestUrl, requestHeaders, false)
       }
     })
     .extend('makeUrl', ({ testServer }) => {

@@ -1,13 +1,23 @@
-import { delay, http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+
+let responseGate = Promise.withResolvers<void>()
 
 const handlers = [
   http.get('*/events/passthrough', async () => {
-    await delay(500)
+    await responseGate.promise
     return HttpResponse.text('hello world')
   }),
 ]
 const test = defineNetwork({ handlers })
+
+test.beforeEach(() => {
+  responseGate = Promise.withResolvers<void>()
+})
+
+test.afterEach(() => {
+  responseGate.resolve()
+})
 
 test('handles an in-flight request performed before the worker was stopped', async ({
   network,
@@ -29,7 +39,9 @@ test('handles an in-flight request performed before the worker was stopped', asy
   )
 
   await requestStart.promise
-  await network.stop()
+  const stopPromise = network.stop()
+  responseGate.resolve()
+  await stopPromise
 
   await expect(dataPromise).resolves.toBe('hello world')
 })

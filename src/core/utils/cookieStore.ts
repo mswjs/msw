@@ -31,6 +31,12 @@ class CookieStore {
     return this.#jar.getCookiesSync(url)
   }
 
+  public reset(): void {
+    this.#memoryStore = new MemoryCookieStore()
+    this.#memoryStore.idx = this.getCookieStoreIndex()
+    this.#jar = new CookieJar(this.#memoryStore)
+  }
+
   public async setCookie(cookieName: string, url: string): Promise<void> {
     await this.#jar.setCookie(cookieName, url)
     this.persist()
@@ -88,7 +94,18 @@ class CookieStore {
       }
     }
 
-    localStorage.setItem(this.#storageKey, JSON.stringify(data))
+    try {
+      localStorage.setItem(this.#storageKey, JSON.stringify(data))
+    } catch (error) {
+      // Persisting cookies to `localStorage` can fail (e.g. with a
+      // `QuotaExceededError` when the storage is full). Treat persistence as
+      // best-effort: the cookies remain available in-memory for the current
+      // session, and the failure must not crash the request handling pipeline.
+      console.warn(
+        '[MSW] Failed to persist cookies to "localStorage". Cookies will still work for the current session but will not survive a page reload. This is likely because the storage quota has been exceeded.',
+        error,
+      )
+    }
   }
 }
 

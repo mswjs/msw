@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -49,7 +47,7 @@ it('supports mocking multiple response cookies', async () => {
   expect(response.headers.get('Set-Cookie')).toBe('a=1, b=2')
 })
 
-it('does not validate response cookies against the request URL', async () => {
+it('returns response cookies for a different domain', async () => {
   const cookie = 'sessionId=abc-123; Domain=example.com; Path=/'
   server.use(
     http.get('http://localhost/resource', () => {
@@ -61,6 +59,6 @@ it('does not validate response cookies against the request URL', async () => {
 
   const response = await fetch('http://localhost/resource')
 
-  expect(response.status).toBe(200)
-  expect(response.headers.getSetCookie()).toEqual([cookie])
+  expect.soft(response.status).toBe(200)
+  expect.soft(response.headers.getSetCookie()).toEqual<Array<string>>([cookie])
 })

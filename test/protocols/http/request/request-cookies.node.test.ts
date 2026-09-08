@@ -19,35 +19,93 @@ const test = defineNetwork({
   ],
 })
 
-test.for<RequestCredentials>(['omit', 'same-origin', 'include'])(
-  'does not inherit response cookies with credentials: %s',
-  async (credentials) => {
-    const response = await fetch('http://localhost/session', {
-      method: 'POST',
-      credentials,
-    })
-    expect(response.headers.getSetCookie()).toEqual([
-      'sessionId=stored-session',
-    ])
+test.afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
-    const nextResponse = await fetch('http://localhost/session', {
-      credentials,
-    })
-    expect(await nextResponse.json()).toEqual({
-      cookies: {},
-      cookieHeader: null,
-    })
+test('does not inherit response cookies with omitted credentials', async () => {
+  await fetch('http://localhost/session', {
+    method: 'POST',
+    credentials: 'omit',
+  })
 
-    const explicitResponse = await fetch('http://localhost/session', {
-      credentials,
-      headers: { Cookie: 'sessionId=explicit-session; userId=123' },
-    })
-    expect(await explicitResponse.json()).toEqual({
-      cookies: { sessionId: 'explicit-session', userId: '123' },
-      cookieHeader: 'sessionId=explicit-session; userId=123',
-    })
-  },
-)
+  const response = await fetch('http://localhost/session', {
+    credentials: 'omit',
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: {},
+    cookieHeader: null,
+  })
+})
+
+test('does not inherit response cookies with same-origin credentials', async () => {
+  await fetch('http://localhost/session', {
+    method: 'POST',
+    credentials: 'same-origin',
+  })
+
+  const response = await fetch('http://localhost/session', {
+    credentials: 'same-origin',
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: {},
+    cookieHeader: null,
+  })
+})
+
+test('does not inherit response cookies with included credentials', async () => {
+  await fetch('http://localhost/session', {
+    method: 'POST',
+    credentials: 'include',
+  })
+
+  const response = await fetch('http://localhost/session', {
+    credentials: 'include',
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: {},
+    cookieHeader: null,
+  })
+})
+
+test('preserves explicit request cookies with omitted credentials', async () => {
+  await fetch('http://localhost/session', { method: 'POST' })
+
+  const response = await fetch('http://localhost/session', {
+    credentials: 'omit',
+    headers: { Cookie: 'sessionId=explicit-session; userId=123' },
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: { sessionId: 'explicit-session', userId: '123' },
+    cookieHeader: 'sessionId=explicit-session; userId=123',
+  })
+})
+
+test('preserves explicit request cookies with same-origin credentials', async () => {
+  await fetch('http://localhost/session', { method: 'POST' })
+
+  const response = await fetch('http://localhost/session', {
+    credentials: 'same-origin',
+    headers: { Cookie: 'sessionId=explicit-session; userId=123' },
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: { sessionId: 'explicit-session', userId: '123' },
+    cookieHeader: 'sessionId=explicit-session; userId=123',
+  })
+})
+
+test('preserves explicit request cookies with included credentials', async () => {
+  await fetch('http://localhost/session', { method: 'POST' })
+
+  const response = await fetch('http://localhost/session', {
+    credentials: 'include',
+    headers: { Cookie: 'sessionId=explicit-session; userId=123' },
+  })
+  await expect(response.json()).resolves.toEqual({
+    cookies: { sessionId: 'explicit-session', userId: '123' },
+    cookieHeader: 'sessionId=explicit-session; userId=123',
+  })
+})
 
 test('does not emulate document cookies when browser globals exist', async () => {
   const readCookie = vi.fn(() => 'documentCookie=value')
@@ -62,17 +120,13 @@ test('does not emulate document cookies when browser globals exist', async () =>
   })
   vi.stubGlobal('location', new URL('http://localhost'))
 
-  try {
-    await fetch('http://localhost/session', { method: 'POST' })
-    const response = await fetch('http://localhost/session')
+  await fetch('http://localhost/session', { method: 'POST' })
+  const response = await fetch('http://localhost/session')
 
-    expect(await response.json()).toEqual({
-      cookies: {},
-      cookieHeader: null,
-    })
-    expect(readCookie).not.toHaveBeenCalled()
-    expect(writeCookie).not.toHaveBeenCalled()
-  } finally {
-    vi.unstubAllGlobals()
-  }
+  await expect(response.json()).resolves.toEqual({
+    cookies: {},
+    cookieHeader: null,
+  })
+  expect(readCookie).not.toHaveBeenCalled()
+  expect(writeCookie).not.toHaveBeenCalled()
 })

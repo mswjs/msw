@@ -35,6 +35,13 @@ async function gotoStaticPage(page: Page, workerIndex: number): Promise<void> {
     `file://${fsMock.resolve(`worker-${workerIndex}/index.html`)}`,
     { waitUntil: 'networkidle' },
   )
+  await expect
+    .poll(() => {
+      return page.evaluate(() => {
+        return typeof window.msw?.setupWorker
+      })
+    })
+    .toBe('function')
 }
 
 interface DirectFetchResponse {

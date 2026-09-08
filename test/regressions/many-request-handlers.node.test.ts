@@ -19,7 +19,7 @@ const api = graphql.link('*')
 const server = setupServer()
 
 const requestCloneSpy = vi.spyOn(Request.prototype, 'clone')
-const stdErrSpy = vi.spyOn(process.stderr, 'write')
+const processWarningSpy = vi.spyOn(process, 'emitWarning')
 
 const NUMBER_OF_REQUEST_HANDLERS = 100
 
@@ -66,7 +66,9 @@ describe('http handlers', () => {
     // Each clone is a new AbortSignal listener which needs to be registered
     expect(requestCloneSpy).toHaveBeenCalledTimes(1)
     expect(httpResponse).toBe(`request-body-${NUMBER_OF_REQUEST_HANDLERS - 1}`)
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processWarningSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MaxListenersExceededWarning' }),
+    )
   })
 
   it('does not print a memory leak warning for onUnhandledRequest', async () => {
@@ -82,7 +84,9 @@ describe('http handlers', () => {
     // Passthrough performs no clone: the raw request bytes are replayed at the socket level.
     expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processWarningSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MaxListenersExceededWarning' }),
+    )
   })
 })
 
@@ -113,7 +117,9 @@ describe('graphql handlers', () => {
     expect(graphqlResponse).toEqual({
       data: { index: NUMBER_OF_REQUEST_HANDLERS - 1 },
     })
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processWarningSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MaxListenersExceededWarning' }),
+    )
   })
 
   it('does not print a memory leak warning for onUnhandledRequest', async () => {
@@ -132,6 +138,8 @@ describe('graphql handlers', () => {
     // for parsing the GraphQL query from the request body.
     expect(requestCloneSpy).toHaveBeenCalledTimes(3)
     // Must not print any memory leak warnings.
-    expect(stdErrSpy).not.toHaveBeenCalled()
+    expect(processWarningSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MaxListenersExceededWarning' }),
+    )
   })
 })

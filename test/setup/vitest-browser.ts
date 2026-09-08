@@ -1,5 +1,9 @@
 import { vi } from 'vitest'
 
+// Clear persisted cookies before MSW reads them during module initialization.
+localStorage.clear()
+sessionStorage.clear()
+
 function suppressConsoleOutput(): void {
   return
 }

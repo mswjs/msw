@@ -48,3 +48,19 @@ it('supports mocking multiple response cookies', async () => {
   const response = await fetch('http://localhost/resource')
   expect(response.headers.get('Set-Cookie')).toBe('a=1, b=2')
 })
+
+it('does not validate response cookies against the request URL', async () => {
+  const cookie = 'sessionId=abc-123; Domain=example.com; Path=/'
+  server.use(
+    http.get('http://localhost/resource', () => {
+      return new HttpResponse(null, {
+        headers: { 'Set-Cookie': cookie },
+      })
+    }),
+  )
+
+  const response = await fetch('http://localhost/resource')
+
+  expect(response.status).toBe(200)
+  expect(response.headers.getSetCookie()).toEqual([cookie])
+})

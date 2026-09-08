@@ -1,3 +1,4 @@
+import { isNodeProcess } from 'is-node-process'
 import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
@@ -675,7 +676,7 @@ export abstract class RequestHandler<
  */
 function forwardResponseCookies(response: Response): void {
   // Cookie forwarding is only relevant in the browser.
-  if (typeof document === 'undefined') {
+  if (isNodeProcess() || typeof document === 'undefined') {
     return
   }
 

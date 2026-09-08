@@ -277,3 +277,11 @@ We've been extremely humbled to receive awards and mentions from the community f
     </td>
   </tr>
 </table>
+
+## Special thanks
+
+Thank you to [Blacksmith](https://www.blacksmith.sh/) for a x10 faster remote builds.
+
+<a href="https://www.blacksmith.sh/" target="_blank">
+  <img src="media/blacksmith-powered-wob.png" alt="CI powered by Blacksmith" width="300" />
+</a>

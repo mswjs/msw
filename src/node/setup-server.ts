@@ -16,31 +16,42 @@ import {
   SetupServerCommonApi,
 } from './setup-server-common'
 
-const defaultInterceptors: Array<Interceptor<any>> = [
-  new ClientRequestInterceptor(),
-  new XMLHttpRequestInterceptor(),
-  new FetchInterceptor(),
-  /**
-   * @fixme WebSocketInterceptor is in a browser-only export of Interceptors
-   * while the Interceptor class imported from the root module points to `lib/node`.
-   * An absolute madness to solve as it requires to duplicate the build config we have
-   * in MSW: shared core, CJS/ESM patching, .d.ts patching...
-   */
-  new WebSocketInterceptor() as any,
-]
-
-export const defaultNetworkOptions: DefineNetworkOptions<[InterceptorSource]> =
-  {
-    sources: [
-      new InterceptorSource({
-        interceptors: defaultInterceptors,
-      }),
-    ],
-    onUnhandledFrame: 'warn',
-    context: {
-      quiet: true,
-    },
-  }
+export const defaultNetworkOptions: DefineNetworkOptions<
+  Array<InterceptorSource>
+> = {
+  sources: [
+    new InterceptorSource({
+      interceptors: [
+        new ClientRequestInterceptor(),
+        new XMLHttpRequestInterceptor(),
+        new FetchInterceptor(),
+      ],
+      lazy: {
+        enabled: true,
+        handlers: ['request'],
+      },
+    }),
+    new InterceptorSource({
+      interceptors: [
+        /**
+         * @fixme WebSocketInterceptor is in a browser-only export of Interceptors
+         * while the Interceptor class imported from the root module points to `lib/node`.
+         * An absolute madness to solve as it requires to duplicate the build config we have
+         * in MSW: shared core, CJS/ESM patching, .d.ts patching...
+         */
+        new WebSocketInterceptor() as any,
+      ],
+      lazy: {
+        enabled: true,
+        handlers: ['websocket'],
+      },
+    }),
+  ],
+  onUnhandledFrame: 'warn',
+  context: {
+    quiet: true,
+  },
+}
 
 /**
  * Enables request interception in Node.js with the given request handlers.

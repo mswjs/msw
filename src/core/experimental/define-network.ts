@@ -1,8 +1,8 @@
 import { invariant } from 'outvariant'
 import { Emitter, type DefaultEventMap } from 'rettime'
-import {
+import type {
   NetworkSource,
-  type ExtractSourceEvents,
+  ExtractSourceEvents,
 } from './sources/network-source'
 import type { NetworkFrameResolutionContext } from './frames/network-frame'
 import type { UnhandledFrameHandle } from './on-unhandled-frame'
@@ -13,6 +13,8 @@ import {
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 import { Disposable } from '../utils/internal/Disposable'
+import type { HandlerKind } from '../handlers/Handler'
+import { NetworkSourceRegistry } from './network-source-registry'
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
@@ -76,21 +78,6 @@ export interface NetworkHandlersApi {
   listHandlers: () => ReadonlyArray<AnyHandler>
 }
 
-function colorlessPromiseAll<T>(values: Array<T>): MaybePromise<T>
-function colorlessPromiseAll(values: Array<unknown>): Promise<void> | void {
-  const promises: Array<Promise<void>> = []
-
-  for (const value of values) {
-    if (value instanceof Promise) {
-      promises.push(value)
-    }
-  }
-
-  if (promises.length > 0) {
-    return Promise.all(promises).then(() => {})
-  }
-}
-
 export enum NetworkReadyState {
   DISABLED,
   ENABLED,
@@ -114,6 +101,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
   let readyState: NetworkReadyState = NetworkReadyState.DISABLED
   const events = new Emitter<MergeEventMaps<Sources>>()
   const disposable = new Disposable()
+  let sourceRegistry: NetworkSourceRegistry | undefined
 
   const deriveHandlersController = (
     handlers: DefineNetworkOptions<Sources>['handlers'],
@@ -174,16 +162,19 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
         session.active = false
       })
 
-      const result = resolvedOptions.sources.map((source) => {
-        /**
-         * @note Preemptively disable the network source before enabling.
-         * This intentionally calls only the prototype method that clears the
-         * event listeners and nothing else. This prevents the "frame" listeners
-         * from accumulating across enable/disable in case the source is a singleton.
-         */
-        NetworkSource.prototype.disable.call(source)
+      const registry = (sourceRegistry = new NetworkSourceRegistry(
+        resolvedOptions.sources,
+      ))
 
+      for (const source of resolvedOptions.sources) {
         source.on('frame', async ({ frame }) => {
+          await registry.idle
+
+          if (!session.active) {
+            frame.passthrough()
+            return
+          }
+
           frame.events.on('*', (event) => {
             /**
              * @note Prevent event forwarding manually and not via an AbortController
@@ -207,13 +198,13 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
             resolvedOptions.context,
           )
         })
+      }
 
-        return source.enable()
-      })
+      const { handlers } = handlersController.use([])
 
-      return colorlessPromiseAll(result) as MaybePromise<
-        ReturnType<Sources[number]['enable']>
-      >
+      return registry.accept(
+        Object.keys(handlers) as Array<HandlerKind>,
+      ) as MaybePromise<ReturnType<Sources[number]['enable']>>
     },
     disable() {
       invariant(
@@ -230,16 +221,14 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       const handlersDisposal = handlersController.dispose()
       disposable.dispose()
 
-      /**
-       * @note Tear down the sources synchronously, never behind the
-       * handlers disposal. `disable()` is not always awaited (e.g.
-       * `server.close()` is synchronous), and a deferred teardown would
-       * race any `enable()` that follows, disabling the sources that the
-       * new session has just enabled.
-       */
-      const sourcesDisposal = colorlessPromiseAll(
-        resolvedOptions.sources.map((source) => source.disable()),
-      )
+      // Remove listeners immediately, even if source shutdown is asynchronous.
+      // The registry starts teardown synchronously where possible and serializes
+      // it with other registries using the same sources.
+      for (const source of resolvedOptions.sources) {
+        source.removeAllListeners()
+      }
+
+      const sourcesDisposal = sourceRegistry?.dispose()
 
       /**
        * @note Await both disposals so neither rejection goes unobserved.
@@ -253,10 +242,22 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       ) as MaybePromise<ReturnType<Sources[number]['disable']>>
     },
     use(...handlers) {
-      handlersController.use(handlers)
+      const state = handlersController.use(handlers)
+
+      if (readyState === NetworkReadyState.ENABLED) {
+        sourceRegistry?.accept(
+          Object.keys(state.handlers) as Array<HandlerKind>,
+        )
+      }
     },
     resetHandlers(...handlers) {
-      handlersController.reset(handlers)
+      const state = handlersController.reset(handlers)
+
+      if (readyState === NetworkReadyState.ENABLED) {
+        sourceRegistry?.accept(
+          Object.keys(state.handlers) as Array<HandlerKind>,
+        )
+      }
     },
     restoreHandlers() {
       handlersController.restore()

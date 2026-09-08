@@ -1,15 +1,17 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
+import type { NetworkSourceOptions } from '#core/experimental/sources/network-source'
 import { devUtils } from '#core/utils/internal/devUtils'
 
-interface FallbackHttpSourceOptions {
+interface FallbackHttpSourceOptions extends NetworkSourceOptions {
   quiet?: boolean
 }
 
 export class FallbackHttpSource extends InterceptorSource {
   constructor(private readonly options: FallbackHttpSourceOptions) {
     super({
+      ...options,
       interceptors: [new XMLHttpRequestInterceptor(), new FetchInterceptor()],
     })
   }

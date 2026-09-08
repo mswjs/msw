@@ -1,4 +1,3 @@
-import type { Interceptor } from '@mswjs/interceptors'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
@@ -10,16 +9,11 @@ import { InterceptorSource } from '#core/experimental/sources/interceptor-source
 import type { SetupServerCommon } from '../node/glossary'
 import { defineSetupServerApi } from '../node/setup-server-common'
 
-const defaultInterceptors: Array<Interceptor<any>> = [
-  new FetchInterceptor(),
-  new XMLHttpRequestInterceptor(),
-]
-
 export const defaultNetworkOptions: DefineNetworkOptions<[InterceptorSource]> =
   {
     sources: [
       new InterceptorSource({
-        interceptors: defaultInterceptors,
+        interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()],
       }),
     ],
     onUnhandledFrame: 'warn',

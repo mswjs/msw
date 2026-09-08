@@ -5,27 +5,23 @@ const server = setupServer()
 
 afterEach(() => {
   server.close()
+  server.resetHandlers()
 })
 
-it('patches WebSocket class even if no event handlers were defined', () => {
+it('leaves WebSocket unpatched when no event handlers are registered', () => {
+  const originalWebSocket = globalThis.WebSocket
   server.listen()
-
-  const raw = new WebSocket('wss://example.com')
-  expect(raw.constructor.name).toBe('WebSocketOverride')
-  expect(raw).toBeInstanceOf(EventTarget)
+  expect(globalThis.WebSocket).toBe(originalWebSocket)
 })
 
 it('does not patch WebSocket class until server.listen() is called', () => {
+  const originalWebSocket = globalThis.WebSocket
   const api = ws.link('wss://example.com')
   server.use(api.addEventListener('connection', () => {}))
 
-  const raw = new WebSocket('wss://example.com')
-  expect(raw.constructor.name).toBe('WebSocket')
-  expect(raw).toBeInstanceOf(EventTarget)
+  expect(globalThis.WebSocket).toBe(originalWebSocket)
 
   server.listen()
 
-  const mocked = new WebSocket('wss://example.com')
-  expect(mocked.constructor.name).not.toBe('WebSocket')
-  expect(mocked).toBeInstanceOf(EventTarget)
+  expect(globalThis.WebSocket).not.toBe(originalWebSocket)
 })

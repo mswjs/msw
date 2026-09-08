@@ -5,7 +5,10 @@ export {
 } from './define-network'
 
 /* Network sources */
-export { NetworkSource } from './sources/network-source'
+export {
+  NetworkSource,
+  type NetworkSourceOptions,
+} from './sources/network-source'
 export { InterceptorSource } from './sources/interceptor-source'
 
 /* Frames */

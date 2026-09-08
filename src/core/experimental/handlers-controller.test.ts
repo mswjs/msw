@@ -12,6 +12,37 @@ import {
 
 const gql = graphql.link('*')
 
+it('returns the current state when adding handlers, including an empty update', () => {
+  const initialHandler = http.get('/initial', () => {})
+  const runtimeHandler = http.get('/runtime', () => {})
+  const controller = new InMemoryHandlersController([initialHandler])
+
+  expect(controller.use([runtimeHandler])).toEqual({
+    initialHandlers: { request: [initialHandler] },
+    handlers: { request: [runtimeHandler, initialHandler] },
+  })
+  expect(controller.use([])).toEqual({
+    initialHandlers: { request: [initialHandler] },
+    handlers: { request: [runtimeHandler, initialHandler] },
+  })
+})
+
+it('returns the current state when resetting or replacing handlers', () => {
+  const initialHandler = http.get('/initial', () => {})
+  const runtimeHandler = http.get('/runtime', () => {})
+  const controller = new InMemoryHandlersController([initialHandler])
+  controller.use([runtimeHandler])
+
+  expect(controller.reset([])).toEqual({
+    initialHandlers: { request: [initialHandler] },
+    handlers: { request: [initialHandler] },
+  })
+  expect(controller.reset([runtimeHandler])).toEqual({
+    initialHandlers: { request: [runtimeHandler] },
+    handlers: { request: [runtimeHandler] },
+  })
+})
+
 describe(groupHandlersByKind, () => {
   it('groups handlers attached as siblings of siblings', () => {
     const grandchildHandler = http.get('/grandchild', () => {})

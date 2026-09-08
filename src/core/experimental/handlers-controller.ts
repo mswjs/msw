@@ -90,7 +90,7 @@ export abstract class HandlersController {
     return this.getState().handlers[kind] || []
   }
 
-  public use(nextHandlers: Array<AnyHandler>): void {
+  public use(nextHandlers: Array<AnyHandler>): HandlersControllerState {
     invariant(
       this.#validateHandlers(nextHandlers),
       devUtils.formatMessage(
@@ -99,7 +99,7 @@ export abstract class HandlersController {
     )
 
     if (nextHandlers.length === 0) {
-      return
+      return this.getState()
     }
 
     const { handlers } = this.getState()
@@ -124,9 +124,10 @@ export abstract class HandlersController {
     }
 
     this.setState({ handlers })
+    return this.getState()
   }
 
-  public reset(nextHandlers: Array<AnyHandler>): void {
+  public reset(nextHandlers: Array<AnyHandler>): HandlersControllerState {
     invariant(
       nextHandlers.length > 0 ? this.#validateHandlers(nextHandlers) : true,
       devUtils.formatMessage(
@@ -145,7 +146,7 @@ export abstract class HandlersController {
         handlers: { ...initialHandlers },
       })
 
-      return
+      return this.getState()
     }
 
     const normalizedNextHandlers = groupHandlersByKind(nextHandlers)
@@ -154,6 +155,7 @@ export abstract class HandlersController {
       initialHandlers: normalizedNextHandlers,
       handlers: { ...normalizedNextHandlers },
     })
+    return this.getState()
   }
 
   public restore(): void {

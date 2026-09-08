@@ -1,4 +1,5 @@
 import { Emitter, TypedEvent, type TypedListenerOptions } from 'rettime'
+import type { HandlerKind } from '../../handlers/Handler'
 import type {
   AnyNetworkFrame,
   ExtractFrameEvents,
@@ -24,13 +25,25 @@ type NetworkSourceEventMap<Frame extends AnyNetworkFrame> = {
 export type ExtractSourceEvents<Source> =
   Source extends NetworkSource<infer Frame> ? ExtractFrameEvents<Frame> : never
 
+export interface NetworkSourceOptions {
+  /**
+   * Enable this source only while one of the given handler kinds is registered.
+   */
+  lazy?: {
+    enabled: boolean
+    handlers: ReadonlyArray<HandlerKind>
+  }
+}
+
 export abstract class NetworkSource<
   Frame extends AnyNetworkFrame = AnyNetworkFrame,
 > {
   protected emitter: Emitter<NetworkSourceEventMap<Frame>>
+  public readonly lazy: NonNullable<NetworkSourceOptions['lazy']>
 
-  constructor() {
+  constructor(options: NetworkSourceOptions = {}) {
     this.emitter = new Emitter()
+    this.lazy = options.lazy ?? { enabled: false, handlers: [] }
   }
 
   public abstract enable(): unknown | Promise<unknown>
@@ -50,7 +63,9 @@ export abstract class NetworkSource<
     this.emitter.on(type, listener, options)
   }
 
-  public disable(): void | Promise<void> {
+  public disable(): void | Promise<void> {}
+
+  public removeAllListeners(): void {
     this.emitter.removeAllListeners()
   }
 }

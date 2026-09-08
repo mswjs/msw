@@ -9,13 +9,13 @@ import type {
   WebSocketConnectionData,
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
-import { NetworkSource } from './network-source'
+import { NetworkSource, type NetworkSourceOptions } from './network-source'
 import { InternalError } from '../../utils/internal/devUtils'
 import { HttpNetworkFrame, ResponseEvent } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
 import { deleteRequestPassthroughHeader } from '../request-utils'
 
-export interface InterceptorSourceOptions {
+export interface InterceptorSourceOptions extends NetworkSourceOptions {
   interceptors: Array<Interceptor<HttpRequestEventMap | WebSocketEventMap>>
 }
 
@@ -31,7 +31,7 @@ export class InterceptorSource extends NetworkSource {
   #frames: Map<string, HttpNetworkFrame>
 
   constructor(options: InterceptorSourceOptions) {
-    super()
+    super(options)
 
     this.#interceptor = new BatchInterceptor({
       name: 'interceptor-source',

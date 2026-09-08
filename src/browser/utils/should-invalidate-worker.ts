@@ -5,6 +5,7 @@ export function shouldInvalidateWorker(
   nextOptions: ServiceWorkerSourceOptions,
 ): boolean {
   return (
+    JSON.stringify(prevOptions.lazy) !== JSON.stringify(nextOptions.lazy) ||
     prevOptions.findWorker !== nextOptions.findWorker ||
     prevOptions.serviceWorker.url !== nextOptions.serviceWorker.url ||
     JSON.stringify(prevOptions.serviceWorker.options) !==

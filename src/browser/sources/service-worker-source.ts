@@ -1,7 +1,10 @@
 import { invariant } from 'outvariant'
 import type { Emitter } from 'rettime'
 import { FetchResponse } from '@mswjs/interceptors'
-import { NetworkSource } from '#core/experimental/sources/network-source'
+import {
+  NetworkSource,
+  type NetworkSourceOptions,
+} from '#core/experimental/sources/network-source'
 import { RequestHandler } from '#core/handlers/RequestHandler'
 import {
   HttpNetworkFrame,
@@ -22,7 +25,7 @@ import { deserializeRequest } from '../utils/deserializeRequest'
 import { validateWorkerScope } from '../utils/validate-worker-scope'
 import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'
 
-export interface ServiceWorkerSourceOptions {
+export interface ServiceWorkerSourceOptions extends NetworkSourceOptions {
   quiet?: boolean
   serviceWorker: {
     url: string
@@ -83,7 +86,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   #workerState: 'pending' | 'fulfilled' | 'rejected'
 
   constructor(options: ServiceWorkerSourceOptions) {
-    super()
+    super(options)
 
     invariant(
       supportsServiceWorker(),
@@ -164,13 +167,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   public async disable(): Promise<void> {
-    /**
-     * @note Do NOT call `super.disable()` because it removes any "frame" listeners
-     * from this network source, effectively turning it off. The Service Worker source
-     * is a bit special since it might process in-flight requests that have been performed
-     * after it's been disabled.
-     */
-
     if (typeof this.#stoppedAt !== 'undefined') {
       devUtils.warn(
         `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,

@@ -34,7 +34,7 @@ it('emits the "frame" event when a frame is queued', async () => {
   )
 })
 
-it('removes all listeners when "disable" is called', async () => {
+it('preserves listeners when disabled', async () => {
   class CustomNetworkSource extends NetworkSource {
     enable = async () => {}
   }
@@ -44,9 +44,27 @@ it('removes all listeners when "disable" is called', async () => {
   source.on('frame', frameListener)
 
   expect(source.disable()).toBeUndefined()
+  const frame = new TestFrame()
+  await expect(source.queue(frame)).resolves.toBeUndefined()
+
+  expect(frameListener).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ frame }),
+  )
+})
+
+it('removes all listeners explicitly', async () => {
+  class CustomNetworkSource extends NetworkSource {
+    enable = async () => {}
+  }
+
+  const source = new CustomNetworkSource()
+  const frameListener = vi.fn()
+  source.on('frame', frameListener)
+
+  source.removeAllListeners()
   await expect(source.queue(new TestFrame())).resolves.toBeUndefined()
 
-  expect.soft(frameListener).not.toHaveBeenCalled()
+  expect(frameListener).not.toHaveBeenCalled()
 })
 
 it('accepts AbortSignal when attaching event listeners', async () => {

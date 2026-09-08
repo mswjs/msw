@@ -76,6 +76,10 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
           })
         : new FallbackHttpSource({
             quiet: options?.quiet,
+            lazy: {
+              enabled: true,
+              handlers: ['request'],
+            },
           })
 
       network.configure({

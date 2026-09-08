@@ -29,11 +29,13 @@ test('forwards document cookies on the request when "withCredentials" is set to 
     })
   })
 
-  expect(consoleSpy.get('log')).toContain(
-    JSON.stringify({
-      cookies: {
-        foo: 'bar',
-      },
-    }),
-  )
+  await expect
+    .poll(() => consoleSpy.get('log'))
+    .toContain(
+      JSON.stringify({
+        cookies: {
+          foo: 'bar',
+        },
+      }),
+    )
 })

@@ -15,12 +15,10 @@ class CookieStore {
   #memoryStore: MemoryCookieStore
 
   constructor() {
-    if (!isNodeProcess()) {
-      invariant(
-        typeof localStorage !== 'undefined',
-        'Failed to create a CookieStore: `localStorage` is not available in this environment. This is likely an issue with your environment, which has been detected as browser (or browser-like) environment and must implement global browser APIs correctly.',
-      )
-    }
+    invariant(
+      typeof localStorage !== 'undefined',
+      'Failed to create a CookieStore: `localStorage` is not available in this environment. This is likely an issue with your environment, which has been detected as browser (or browser-like) environment and must implement global browser APIs correctly.',
+    )
 
     this.#memoryStore = new MemoryCookieStore()
     this.#memoryStore.idx = this.getCookieStoreIndex()
@@ -92,4 +90,5 @@ class CookieStore {
   }
 }
 
-export const cookieStore = new CookieStore()
+// Node.js has no implicit cookie jar. Leave cookie management to the client.
+export const cookieStore = isNodeProcess() ? null : new CookieStore()

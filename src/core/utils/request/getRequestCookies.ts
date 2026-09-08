@@ -56,6 +56,10 @@ export function getAllRequestCookies(request: Request): Record<string, string> {
     ? parseCookies(requestCookieHeader)
     : {}
 
+  if (cookieStore === null) {
+    return cookiesFromHeaders
+  }
+
   const cookiesFromDocument = getDocumentCookies(request)
 
   // Forward the document cookies to the request headers.

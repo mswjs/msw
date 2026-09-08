@@ -205,7 +205,7 @@ const reactNativeConfig: UserConfig = {
   ...commonConfig,
   name: 'react-native',
   platform: 'node',
-  entry: ['./src/native/index.ts'],
+  entry: ['./src/react-native/index.ts'],
   deps: {
     neverBundle: [
       'util',
@@ -219,7 +219,7 @@ const reactNativeConfig: UserConfig = {
     onlyBundle: false,
   },
   format: ['esm'],
-  outDir: './lib/native',
+  outDir: './lib/react-native',
   unbundle: false,
   outputOptions: {
     codeSplitting: false,

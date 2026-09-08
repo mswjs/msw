@@ -2,7 +2,7 @@
  * @see https://github.com/mswjs/msw/pull/1858
  * @see https://github.com/mswjs/msw/issues/1868
  */
-import { setupServer } from 'msw/native'
+import { setupServer } from 'msw/react-native'
 
 test('calls "setupServer" without errors in React Native', async () => {
   /**

@@ -81,7 +81,7 @@ export default defineConfig({
             ...exclude,
             '**/*.browser.test.ts',
             '**/*.memory.test.ts',
-            '**/*.native.test.ts',
+            '**/*.react-native.test.ts',
             '**/*.pw.test.ts',
           ],
           alias: mswExports,
@@ -110,11 +110,11 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          name: 'native',
+          name: 'react-native',
           sequence: {
             groupOrder: 3,
           },
-          include: ['test/**/*.native.test.ts'],
+          include: ['test/**/*.react-native.test.ts'],
           exclude: exclude,
           alias: mswExports,
           setupFiles: ['./test/react-native/vitest.setup.ts'],
@@ -132,7 +132,7 @@ export default defineConfig({
             ...exclude,
             '**/*.node.test.ts',
             '**/*.memory.test.ts',
-            '**/*.native.test.ts',
+            '**/*.react-native.test.ts',
             '**/*.pw.test.ts',
           ],
           alias: mswExports,

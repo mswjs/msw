@@ -13,7 +13,7 @@ import type { ListenOptions, SetupServerCommon } from './glossary'
 
 /**
  * Define the common `setupServer` API around the given network.
- * This is used by both `msw/node` and `msw/native` to implement the same
+ * This is used by both `msw/node` and `msw/react-native` to implement the same
  * baseline setup methods, like `.use()`, `.resetHandlers()`, `.close()`, etc.
  */
 export function defineSetupServerApi(

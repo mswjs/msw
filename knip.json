@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "src/{core,browser,node,native,graphql}/index.ts!",
+    "src/{core,browser,node,react-native,graphql}/index.ts!",
     "src/mockServiceWorker.js!",
     "config/**/*.{js,ts}!",
     "test/**/*ts"

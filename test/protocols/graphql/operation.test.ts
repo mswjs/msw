@@ -52,11 +52,15 @@ test('intercepts and mocks a GraphQL query', async ({
   })
 
   if (task.file.projectName === 'browser') {
-    expect(consoleSpy.get('startGroupCollapsed')).toEqual(
-      expect.arrayContaining([
-        expect.stringMatching(/\[MSW\] \d{2}:\d{2}:\d{2} query GetUser 200 OK/),
-      ]),
-    )
+    await expect
+      .poll(() => consoleSpy.get('startGroupCollapsed'))
+      .toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(
+            /\[MSW\] \d{2}:\d{2}:\d{2} query GetUser 200 OK/,
+          ),
+        ]),
+      )
   }
 })
 
@@ -99,13 +103,15 @@ test('intercepts and mocks an anonymous GraphQL query', async ({
   })
 
   if (task.file.projectName === 'browser') {
-    expect(consoleSpy.get('startGroupCollapsed')).toEqual(
-      expect.arrayContaining([
-        expect.stringMatching(
-          /\[MSW\] \d{2}:\d{2}:\d{2} anonymous query 200 OK/,
-        ),
-      ]),
-    )
+    await expect
+      .poll(() => consoleSpy.get('startGroupCollapsed'))
+      .toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(
+            /\[MSW\] \d{2}:\d{2}:\d{2} anonymous query 200 OK/,
+          ),
+        ]),
+      )
   }
 })
 

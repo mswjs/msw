@@ -1,5 +1,9 @@
 import { TypedEvent } from 'rettime'
-import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketConnectionEvent as InterceptorConnectionEvent } from '@mswjs/interceptors'
+type WebSocketConnectionData = Pick<
+  InterceptorConnectionEvent,
+  'client' | 'server' | 'info'
+>
 import {
   kConnect,
   kAutoConnect,

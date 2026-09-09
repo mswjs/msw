@@ -1,7 +1,7 @@
-import type { Interceptor } from '@mswjs/interceptors'
+import type { Interceptor, HttpRequestEventMap } from '@mswjs/interceptors'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/ClientRequest'
-import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
-import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest/web'
+import { FetchInterceptor } from '@mswjs/interceptors/fetch/web'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import {
   defineNetwork,
@@ -16,17 +16,13 @@ import {
   SetupServerCommonApi,
 } from './setup-server-common'
 
-const defaultInterceptors: Array<Interceptor<any>> = [
+// The web interceptors preserve interception at the Fetch/XHR API boundary.
+// Their declarations duplicate Interceptor's private fields across builds.
+const defaultInterceptors = [
   new ClientRequestInterceptor(),
-  new XMLHttpRequestInterceptor(),
-  new FetchInterceptor(),
-  /**
-   * @fixme WebSocketInterceptor is in a browser-only export of Interceptors
-   * while the Interceptor class imported from the root module points to `lib/node`.
-   * An absolute madness to solve as it requires to duplicate the build config we have
-   * in MSW: shared core, CJS/ESM patching, .d.ts patching...
-   */
-  new WebSocketInterceptor() as any,
+  new XMLHttpRequestInterceptor() as unknown as Interceptor<HttpRequestEventMap>,
+  new FetchInterceptor() as unknown as Interceptor<HttpRequestEventMap>,
+  new WebSocketInterceptor(),
 ]
 
 export const defaultNetworkOptions: DefineNetworkOptions<[InterceptorSource]> =

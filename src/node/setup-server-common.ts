@@ -1,7 +1,6 @@
 import type { PartialDeep } from 'type-fest'
 import type { Interceptor } from '@mswjs/interceptors'
 import {
-  NetworkReadyState,
   defineNetwork,
   type NetworkApi,
 } from '#core/experimental/define-network'
@@ -10,42 +9,7 @@ import type { HandlersController } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { ListenOptions, SetupServerCommon } from './glossary'
-
-/**
- * Define the common `setupServer` API around the given network.
- * This is used by both `msw/node` and `msw/native` to implement the same
- * baseline setup methods, like `.use()`, `.resetHandlers()`, `.close()`, etc.
- */
-export function defineSetupServerApi(
-  network: NetworkApi<any>,
-): SetupServerCommon {
-  return {
-    events: network.events,
-    listen(options) {
-      network.configure({
-        onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
-          return options?.onUnhandledRequest || 'warn'
-        }),
-      })
-
-      network.enable()
-    },
-    use: network.use.bind(network),
-    resetHandlers: network.resetHandlers.bind(network),
-    restoreHandlers: network.restoreHandlers.bind(network),
-    listHandlers: network.listHandlers.bind(network),
-    close() {
-      /**
-       * @note Ignore closing after closed for backwards compatibility.
-       */
-      if (network.readyState === NetworkReadyState.DISABLED) {
-        return
-      }
-
-      network.disable()
-    },
-  }
-}
+export { defineSetupServerApi } from '#core/experimental/setup-server-api'
 
 /**
  * @deprecated

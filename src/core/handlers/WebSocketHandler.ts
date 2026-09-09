@@ -1,8 +1,12 @@
+import type { WebSocketConnectionEvent } from '@mswjs/interceptors'
+type WebSocketConnectionData = Pick<
+  WebSocketConnectionEvent,
+  'client' | 'server' | 'info'
+>
 import { Emitter } from 'strict-event-emitter'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
-  WebSocketConnectionData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 import {
@@ -217,8 +221,7 @@ export class WebSocketHandler {
 function createStopPropagationListener(handler: WebSocketHandler) {
   return function stopPropagationListener(event: Event) {
     const propagationStoppedAt = Reflect.get(event, 'kPropagationStoppedAt') as
-      | string
-      | undefined
+      string | undefined
 
     if (propagationStoppedAt && handler.id !== propagationStoppedAt) {
       event.stopImmediatePropagation()

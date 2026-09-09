@@ -6,7 +6,9 @@ function getCoreImportPattern(isEsm) {
 }
 
 export function hasCoreImports(fileContents, isEsm) {
-  return getCoreImportPattern(isEsm).test(fileContents)
+  const pattern = getCoreImportPattern(isEsm)
+  pattern.lastIndex = 0
+  return pattern.test(fileContents)
 }
 
 export function replaceCoreImports(moduleFilePath, fileContents, isEsm) {

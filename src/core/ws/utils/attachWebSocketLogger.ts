@@ -1,6 +1,10 @@
+import type { WebSocketConnectionEvent } from '@mswjs/interceptors'
+type WebSocketConnectionData = Pick<
+  WebSocketConnectionEvent,
+  'client' | 'server' | 'info'
+>
 import type {
   WebSocketClientConnection,
-  WebSocketConnectionData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
 import { devUtils } from '../../utils/internal/devUtils'

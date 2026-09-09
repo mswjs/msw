@@ -1,4 +1,8 @@
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketConnectionEvent } from '@mswjs/interceptors'
+type WebSocketConnectionData = Pick<
+  WebSocketConnectionEvent,
+  'client' | 'server' | 'info'
+>
 import type { RequestHandler } from '../handlers/RequestHandler'
 import type { WebSocketHandler } from '../handlers/WebSocketHandler'
 import { webSocketInterceptor } from './webSocketInterceptor'

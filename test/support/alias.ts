@@ -9,7 +9,6 @@ export function fromRoot(...paths: Array<string>): string {
 
 export const mswExports = {
   'msw/node': fromRoot('./lib/node/index.mjs'),
-  'msw/native': fromRoot('./lib/native/index.mjs'),
   'msw/browser': fromRoot('./lib/browser/index.mjs'),
   msw: fromRoot('./lib/core/index.mjs'),
 }

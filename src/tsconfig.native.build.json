@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.node.build.json",
+  "compilerOptions": {
+    "customConditions": ["react-native", "browser"]
+  }
+}

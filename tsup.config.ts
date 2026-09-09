@@ -126,7 +126,7 @@ const reactNativeConfig: Options = {
   splitting: false,
   sourcemap: true,
   dts: true,
-  tsconfig: path.resolve(__dirname, 'src/tsconfig.node.build.json'),
+  tsconfig: path.resolve(__dirname, 'src/tsconfig.native.build.json'),
   esbuildPlugins: [resolveCoreImportsPlugin(), forceEsmExtensionsPlugin()],
 }
 

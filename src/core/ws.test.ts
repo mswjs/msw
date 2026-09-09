@@ -19,3 +19,12 @@ it('throws an error when given a non-path argument to "ws.link()"', () => {
     ws.link(2),
   ).toThrow('Expected a WebSocket server URL to be a valid path but got number')
 })
+
+it('does not construct BroadcastChannel when importing the core API', async () => {
+  vi.resetModules()
+  using broadcastChannelSpy = vi.spyOn(globalThis, 'BroadcastChannel')
+
+  await import('./index')
+
+  expect(broadcastChannelSpy).not.toHaveBeenCalled()
+})

@@ -20,12 +20,19 @@ import { WebSocketClientManager } from './ws/WebSocketClientManager'
 import { http } from './http'
 import { attachSiblingHandlers } from './utils/internal/attachSiblingHandlers'
 
-const webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
+let webSocketChannel: BroadcastChannel | undefined
 
-if (hasRefCounted(webSocketChannel)) {
-  // Allows the Node.js thread to exit if it is the only active handle in the event system.
-  // https://nodejs.org/api/worker_threads.html#broadcastchannelunref
-  webSocketChannel.unref()
+function getWebSocketChannel(): BroadcastChannel {
+  if (!webSocketChannel) {
+    webSocketChannel = new BroadcastChannel('msw:websocket-client-manager')
+
+    if (hasRefCounted(webSocketChannel)) {
+      // Allow Node.js to exit when this channel is the only active handle.
+      webSocketChannel.unref()
+    }
+  }
+
+  return webSocketChannel
 }
 
 export type WebSocketEventListener<
@@ -106,7 +113,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
     typeof url,
   )
 
-  const clientManager = new WebSocketClientManager(webSocketChannel)
+  const clientManager = new WebSocketClientManager(getWebSocketChannel())
 
   // The same upgrade handler instance is attached as a sibling to every
   // WebSocketHandler returned by this link. `groupHandlersByKind` dedupes

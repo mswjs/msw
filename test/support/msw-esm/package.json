@@ -10,16 +10,6 @@
         "types": "./lib/core/index.d.mts",
         "default": "./lib/core/index.mjs"
       },
-      "react-native": {
-        "import": {
-          "types": "./lib/core/index.d.mts",
-          "default": "./lib/core/index.mjs"
-        },
-        "default": {
-          "types": "./lib/core/index.d.ts",
-          "default": "./lib/core/index.js"
-        }
-      },
       "import": {
         "types": "./lib/core/index.d.mts",
         "default": "./lib/core/index.mjs"
@@ -47,7 +37,6 @@
         "default": "./lib/browser/index.mjs"
       },
       "node": null,
-      "react-native": null,
       "default": {
         "types": "./lib/browser/index.d.ts",
         "default": "./lib/browser/index.js"
@@ -71,31 +60,9 @@
         "default": "./lib/node/index.mjs"
       },
       "browser": null,
-      "react-native": null,
       "default": {
         "types": "./lib/node/index.d.ts",
         "default": "./lib/node/index.js"
-      }
-    },
-    "./native": {
-      "react-native": {
-        "import": {
-          "types": "./lib/native/index.d.mts",
-          "default": "./lib/native/index.mjs"
-        },
-        "default": {
-          "types": "./lib/native/index.d.ts",
-          "default": "./lib/native/index.js"
-        }
-      },
-      "browser": null,
-      "import": {
-        "types": "./lib/native/index.d.mts",
-        "default": "./lib/native/index.mjs"
-      },
-      "default": {
-        "types": "./lib/native/index.d.ts",
-        "default": "./lib/native/index.js"
       }
     },
     "./core/http": {

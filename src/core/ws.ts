@@ -8,6 +8,7 @@ import {
   WebSocketHandler,
   kEmitter,
   type WebSocketHandlerEventMap,
+  type WebSocketHandlerConnectionTransformer,
 } from './handlers/WebSocketHandler'
 import { hasRefCounted } from './utils/internal/hasRefCounted'
 import {
@@ -31,6 +32,10 @@ if (hasRefCounted(webSocketChannel)) {
 export type WebSocketEventListener<
   EventType extends keyof WebSocketHandlerEventMap,
 > = (...args: WebSocketHandlerEventMap[EventType]) => void
+
+export interface WebSocketLinkOptions {
+  transform?: WebSocketHandlerConnectionTransformer
+}
 
 export type WebSocketLink = {
   /**
@@ -97,7 +102,10 @@ export type WebSocketLink = {
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path): WebSocketLink {
+function createWebSocketLinkHandler(
+  url: Path,
+  options: WebSocketLinkOptions = {},
+): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
@@ -124,7 +132,7 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const webSocketHandler = new WebSocketHandler(url)
+      const webSocketHandler = new WebSocketHandler(url, options.transform)
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.

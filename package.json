@@ -32,6 +32,9 @@
       "types": "./lib/vite/index.d.ts",
       "default": "./lib/vite/index.js"
     },
+    "./vite/client": {
+      "types": "./src/vite/client.d.ts"
+    },
     "./http": {
       "types": "./lib/http/index.d.ts",
       "default": "./lib/http/index.js"
@@ -68,7 +71,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "tsdown --watch",
+    "dev": "tsdown --watch",
     "clean": "rimraf ./lib",
     "lint": "oxlint ./cli ./src ./test",
     "build": "pnpm clean && cross-env NODE_ENV=production tsdown",

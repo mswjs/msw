@@ -5,11 +5,13 @@ const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 
 export interface MswPluginOptions {
-  /**
-   * URL to serve the worker script at.
-   * @default "/mockServiceWorker.js"
-   */
-  workerUrl?: string
+  serviceWorker?: {
+    /**
+     * URL to serve the worker script at.
+     * @default "/mockServiceWorker.js"
+     */
+    url?: string
+  }
 }
 
 /**
@@ -31,7 +33,7 @@ export function msw(options: MswPluginOptions = {}): Plugin {
     }
   }
 
-  const workerUrl = options.workerUrl ?? DEFAULT_WORKER_URL
+  const workerUrl = options.serviceWorker?.url ?? DEFAULT_WORKER_URL
   const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
 
   return {

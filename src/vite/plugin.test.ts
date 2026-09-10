@@ -28,7 +28,21 @@ afterAll(async () => {
   await fsMock.cleanup()
 })
 
-it('strips the network and mock-only handler modules from a production client bundle', async () => {
+it('loads the packaged plugin without installing its development dependencies', async () => {
+  await fsMock.create({
+    'plugin.mjs': fs.readFileSync(fromRoot('lib/vite/index.js'), 'utf8'),
+    'verify.mjs': `
+import { msw } from './plugin.mjs'
+console.log(msw().name)
+`,
+  })
+
+  const { stdout } = await fsMock.exec('node ./verify.mjs')
+
+  expect(stdout.trim()).toBe('msw')
+})
+
+it('strips the network and mock-only handler modules from a production client bundle in auto mode', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html':
@@ -76,7 +90,7 @@ document.querySelector('output')!.textContent = appValue + start({
     configFile: false,
     root: fsMock.resolve('.'),
     logLevel: 'silent',
-    plugins: [msw()],
+    plugins: [msw({ mode: 'auto' })],
     resolve: {
       alias: {
         'msw/experimental': fromRoot('lib/core/experimental/index.js'),
@@ -193,6 +207,7 @@ it('does not serve the worker when the dev server runs in production', async () 
 })
 
 it('restores cached server mocking after hot updates and replaces it on full reloads', async () => {
+  const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'entry.js': `
 import { network } from 'virtual:msw'
@@ -224,7 +239,7 @@ export { network }
     configFile: false,
     root: fsMock.resolve('.'),
     logLevel: 'silent',
-    plugins: [msw()],
+    plugins: [builtMsw()],
     resolve: {
       alias: {
         'msw/experimental': fromRoot('lib/core/experimental/index.js'),
@@ -302,6 +317,76 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
+it('replays server setup and retires replaced networks during reloads', async () => {
+  const { msw: builtMsw } = await import('../../lib/vite/index.js')
+  await fsMock.create({
+    'entry.js': `
+import { network } from 'virtual:msw'
+import { http, HttpResponse } from 'msw/http'
+network.configure({ handlers: [http.get('http://msw.test/resource', () => HttpResponse.text('mocked'))] })
+await network.enable()
+export { network }
+`,
+  })
+  const server = await createServer({
+    configFile: false,
+    root: fsMock.resolve('.'),
+    logLevel: 'silent',
+    plugins: [builtMsw()],
+    resolve: {
+      alias: {
+        'msw/experimental': fromRoot('lib/core/experimental/index.js'),
+        ...mswExports,
+      },
+    },
+    server: { middlewareMode: true, watch: null },
+  })
+  await using serverResource = {
+    [Symbol.asyncDispose]: server.close.bind(server),
+  }
+  const runner = createServerModuleRunner(server.environments.ssr)
+  await using runnerResource = {
+    [Symbol.asyncDispose]: runner.close.bind(runner),
+  }
+  const original = await runner.import<{ network: typeof network }>('/entry.js')
+  await using originalInterception = {
+    [Symbol.asyncDispose]: async () => {
+      if (original.network.readyState === 1) {
+        await original.network.disable()
+      }
+    },
+  }
+
+  const entryModule = runner.evaluatedModules.getModuleByUrl('/entry.js')
+  expect(entryModule).toBeDefined()
+  runner.evaluatedModules.invalidateModule(entryModule!)
+  const replayed = await runner.import<{ network: typeof network }>('/entry.js')
+
+  expect(replayed.network).toBe(original.network)
+
+  // An overlapping SSR import can evaluate the replacement before HMR cleanup runs.
+  runner.evaluatedModules.clear()
+  const replacement = await runner.import<{ network: typeof network }>(
+    '/entry.js',
+  )
+  await using replacementInterception = {
+    [Symbol.asyncDispose]: async () => {
+      if (replacement.network.readyState === 1) {
+        await replacement.network.disable()
+      }
+    },
+  }
+
+  expect(replacement.network).not.toBe(original.network)
+  expect(original.network.readyState).toBe(0)
+  await original.network.enable()
+  expect(original.network.readyState).toBe(0)
+  expect(replacement.network.readyState).toBe(1)
+  const response = await fetch('http://msw.test/resource')
+
+  await expect(response.text()).resolves.toBe('mocked')
+})
+
 it('creates one disabled network on the server and lets the user enable it', async () => {
   await fsMock.create({
     'entry.js': `
@@ -354,6 +439,7 @@ export { network }
 })
 
 it('preserves browser interception through hot updates with a custom worker URL', async () => {
+  const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'index.html':
       '<button>Enable</button><output></output><script type="module" src="/entry.js"></script>',
@@ -386,7 +472,7 @@ document.querySelector('button').onclick = async () => {
     configFile: false,
     root: fsMock.resolve('.'),
     logLevel: 'silent',
-    plugins: [msw({ serviceWorker: { url: '/mocks/worker.js' } })],
+    plugins: [builtMsw({ serviceWorker: { url: '/mocks/worker.js' } })],
     resolve: {
       alias: {
         'msw/experimental': fromRoot('lib/core/experimental/index.js'),
@@ -411,7 +497,9 @@ document.querySelector('button').onclick = async () => {
   const connected = page.waitForEvent('console', {
     predicate: (message) => message.text().includes('[vite] connected.'),
   })
-  await page.goto(new URL('/mocks/', server.resolvedUrls!.local[0]).href)
+  await page.goto(new URL('/mocks/', server.resolvedUrls!.local[0]).href, {
+    waitUntil: 'networkidle',
+  })
   await connected
 
   await expect.poll(() => page.locator('output').textContent()).toBe('0')
@@ -607,13 +695,15 @@ it('serves the worker script without writing files during development', async ()
   )
 })
 
-it('serves the worker script at a custom URL', async () => {
+it('serves only the worker at a custom URL in worker-only mode', async () => {
   const server = await createServer({
     configFile: false,
     root: fsMock.resolve('.'),
     publicDir: 'static',
     logLevel: 'silent',
-    plugins: [msw({ serviceWorker: { url: '/assets/worker.js' } })],
+    plugins: [
+      msw({ mode: 'worker-only', serviceWorker: { url: '/assets/worker.js' } }),
+    ],
     server: {
       host: '127.0.0.1',
       port: 0,
@@ -633,6 +723,45 @@ it('serves the worker script at a custom URL', async () => {
   expect(response.status).toBe(200)
   expect(fs.existsSync(fsMock.resolve('static'))).toBe(false)
   await expect(response.text()).resolves.toContain('* Mock Service Worker.')
+  await expect(
+    server.environments.client.pluginContainer.resolveId('virtual:msw'),
+  ).resolves.toBeNull()
+  await expect(
+    server.environments.ssr.pluginContainer.resolveId('virtual:msw/options'),
+  ).resolves.toBeNull()
+})
+
+it('preserves user integrations during production builds in worker-only mode', async () => {
+  vi.stubEnv('NODE_ENV', 'production')
+  await fsMock.create({
+    'package.json': '{"type":"module"}',
+    'entry.js': `
+import { network } from 'virtual:msw'
+import { handlers } from './handlers.js'
+network.configure({ handlers })
+await network.enable()
+`,
+    'handlers.js': "export const handlers = ['USER_DEFINED_HANDLERS']",
+  })
+
+  await build({
+    configFile: false,
+    root: fsMock.resolve('.'),
+    logLevel: 'silent',
+    plugins: [msw({ mode: 'worker-only' })],
+    build: {
+      ssr: 'entry.js',
+      minify: false,
+      rollupOptions: { external: ['virtual:msw'] },
+    },
+  })
+  const output = fs.readFileSync(fsMock.resolve('dist/entry.js'), 'utf8')
+
+  expect(output).toContain('virtual:msw')
+  expect(output).toContain('network.configure(')
+  expect(output).toContain('await network.enable()')
+  expect(output).toContain('USER_DEFINED_HANDLERS')
+  expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
 })
 
 it('does not write the worker script during production builds', async () => {

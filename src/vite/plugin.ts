@@ -1,14 +1,23 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 import { stripNetwork } from './strip-network'
 
 const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 const VIRTUAL_MODULE_ID = 'virtual:msw'
+const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
+const RUNTIME_PATH = fileURLToPath(new URL('./runtime.js', import.meta.url))
 const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
 
 export interface MswPluginOptions {
+  /**
+   * Use automatic integration or only provide the worker script for manual setup.
+   * In worker-only mode, virtual modules and production code removal are disabled.
+   * @default "auto"
+   */
+  mode?: 'auto' | 'worker-only'
   serviceWorker?: {
     /**
      * URL to serve the worker script at.
@@ -38,13 +47,14 @@ export interface MswPluginOptions {
  * await network.enable()
  *
  * @remarks
- * In production, network setup and its exclusively used imports are removed.
+ * In auto mode, production builds remove network setup and its exclusively used imports.
  * No worker script is served or written.
  *
  * For application TypeScript projects that do not include the Vite config,
  * add `/// <reference types="msw/vite/client" />` to an included declaration file.
  */
 export function msw(options: MswPluginOptions = {}): Plugin {
+  const mode = options.mode ?? 'auto'
   const workerUrl = options.serviceWorker?.url ?? DEFAULT_WORKER_URL
   let isProduction = false
 
@@ -52,83 +62,64 @@ export function msw(options: MswPluginOptions = {}): Plugin {
     name: 'msw',
     enforce: 'post',
     transform(code, id) {
-      if (!isProduction || !code.includes(VIRTUAL_MODULE_ID)) {
+      if (
+        mode === 'worker-only' ||
+        !isProduction ||
+        !code.includes(VIRTUAL_MODULE_ID)
+      ) {
         return
       }
 
-      const result = stripNetwork(code, id)
+      const result = stripNetwork(code, id, this.parse(code))
 
       if (result?.code != null) {
         return { code: result.code, map: result.map }
       }
     },
-    resolveId(id) {
+    async resolveId(id) {
+      if (mode === 'worker-only') {
+        return
+      }
+
+      if (id === VIRTUAL_OPTIONS_ID) {
+        return `\0${VIRTUAL_OPTIONS_ID}`
+      }
+
       if (id === VIRTUAL_MODULE_ID) {
+        if (!isProduction) {
+          return this.resolve(RUNTIME_PATH)
+        }
+
         return RESOLVED_VIRTUAL_MODULE_ID
       }
     },
     load(id) {
-      if (id !== RESOLVED_VIRTUAL_MODULE_ID) {
+      if (mode === 'worker-only') {
         return
       }
 
-      if (isProduction) {
+      if (id === RESOLVED_VIRTUAL_MODULE_ID && isProduction) {
         return {
           code: 'export const network = undefined',
           moduleSideEffects: false,
         }
       }
 
+      if (id !== `\0${VIRTUAL_OPTIONS_ID}`) {
+        return
+      }
+
       const isServer = this.environment.config.consumer === 'server'
       const integration = isServer ? 'msw/node' : 'msw/browser'
       const hasCustomWorkerUrl = !isServer && workerUrl !== DEFAULT_WORKER_URL
-      const optionsImport = hasCustomWorkerUrl
-        ? 'createDefaultNetworkOptions'
-        : 'defaultNetworkOptions'
-      const networkOptions = hasCustomWorkerUrl
-        ? `createDefaultNetworkOptions(${JSON.stringify(workerUrl)})`
-        : 'defaultNetworkOptions'
+
+      if (!hasCustomWorkerUrl) {
+        return `export { defaultNetworkOptions } from '${integration}'`
+      }
 
       return `
-import { defineNetwork, NetworkReadyState } from 'msw/experimental'
-import { ${optionsImport} } from '${integration}'
-
-export const network = defineNetwork(${networkOptions})
-
-if (import.meta.hot) {
-  let resumeAfterUpdate = false
-
-  const disableNetwork = async () => {
-    if (network.readyState === NetworkReadyState.ENABLED) {
-      await network.disable()
-    }
-  }
-
-  const beforeUpdate = async () => {
-    resumeAfterUpdate = network.readyState === NetworkReadyState.ENABLED
-    await disableNetwork()
-  }
-
-  const afterUpdate = async () => {
-    const shouldResume = resumeAfterUpdate
-    resumeAfterUpdate = false
-
-    if (shouldResume && network.readyState === NetworkReadyState.DISABLED) {
-      await network.enable()
-    }
-  }
-
-  import.meta.hot.on('vite:beforeUpdate', beforeUpdate)
-  import.meta.hot.on('vite:afterUpdate', afterUpdate)
-  import.meta.hot.on('vite:beforeFullReload', disableNetwork)
-  import.meta.hot.dispose(async () => {
-    resumeAfterUpdate = false
-    import.meta.hot.off('vite:beforeUpdate', beforeUpdate)
-    import.meta.hot.off('vite:afterUpdate', afterUpdate)
-    import.meta.hot.off('vite:beforeFullReload', disableNetwork)
-    await disableNetwork()
-  })
-}
+import { createDefaultNetworkOptions } from '${integration}'
+export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
 `
     },
     async configResolved(config) {

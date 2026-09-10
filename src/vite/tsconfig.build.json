@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["./index.ts", "./plugin.ts"],
+  "include": ["./index.ts", "./plugin.ts", "./runtime.ts", "./options.d.ts"],
   "compilerOptions": {
     "types": ["node"]
   }

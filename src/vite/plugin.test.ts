@@ -438,7 +438,7 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
-it('preserves browser interception through hot updates with a custom worker URL', async () => {
+it('preserves browser interception through hot updates', async () => {
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'index.html':
@@ -472,7 +472,7 @@ document.querySelector('button').onclick = async () => {
     configFile: false,
     root: fsMock.resolve('.'),
     logLevel: 'silent',
-    plugins: [builtMsw({ serviceWorker: { url: '/mocks/worker.js' } })],
+    plugins: [builtMsw()],
     resolve: {
       alias: {
         'msw/experimental': fromRoot('lib/core/experimental/index.js'),
@@ -538,7 +538,7 @@ document.querySelector('button').onclick = async () => {
       return registrations[0].active?.scriptURL
     }),
   ).resolves.toBe(
-    new URL('/mocks/worker.js', server.resolvedUrls!.local[0]).href,
+    new URL('/mockServiceWorker.js', server.resolvedUrls!.local[0]).href,
   )
   expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
   expect(serverIntegration.network.readyState).toBe(0)
@@ -695,15 +695,13 @@ it('serves the worker script without writing files during development', async ()
   )
 })
 
-it('serves only the worker at a custom URL in worker-only mode', async () => {
+it('serves only the worker in worker-only mode', async () => {
   const server = await createServer({
     configFile: false,
     root: fsMock.resolve('.'),
     publicDir: 'static',
     logLevel: 'silent',
-    plugins: [
-      msw({ mode: 'worker-only', serviceWorker: { url: '/assets/worker.js' } }),
-    ],
+    plugins: [msw({ mode: 'worker-only' })],
     server: {
       host: '127.0.0.1',
       port: 0,
@@ -718,7 +716,7 @@ it('serves only the worker at a custom URL in worker-only mode', async () => {
   const serverUrl = server.resolvedUrls?.local[0]
   expect(serverUrl).toBeDefined()
 
-  const response = await fetch(new URL('/assets/worker.js', serverUrl))
+  const response = await fetch(new URL('/mockServiceWorker.js', serverUrl))
 
   expect(response.status).toBe(200)
   expect(fs.existsSync(fsMock.resolve('static'))).toBe(false)
@@ -783,7 +781,7 @@ it('does not write the worker script during production builds', async () => {
   expect(fs.existsSync(fsMock.resolve('dist/mockServiceWorker.js'))).toBe(false)
 })
 
-it('writes a custom worker URL to the configured public directory', async () => {
+it('writes the worker to the configured public directory', async () => {
   vi.stubEnv('NODE_ENV', 'development')
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
@@ -795,7 +793,7 @@ it('writes a custom worker URL to the configured public directory', async () => 
     root: fsMock.resolve('.'),
     publicDir: 'static',
     logLevel: 'silent',
-    plugins: [msw({ serviceWorker: { url: '/mocks/worker.js' } })],
+    plugins: [msw()],
     build: {
       outDir: 'build/client',
       assetsDir: 'bundled',
@@ -804,16 +802,16 @@ it('writes a custom worker URL to the configured public directory', async () => 
   })
 
   expect(
-    fs.readFileSync(fsMock.resolve('static/mocks/worker.js'), 'utf8'),
+    fs.readFileSync(fsMock.resolve('static/mockServiceWorker.js'), 'utf8'),
   ).toBe(
     fs.readFileSync(
       new URL('../mockServiceWorker.js', import.meta.url),
       'utf8',
     ),
   )
-  expect(fs.existsSync(fsMock.resolve('build/client/mocks/worker.js'))).toBe(
-    false,
-  )
+  expect(
+    fs.existsSync(fsMock.resolve('build/client/mockServiceWorker.js')),
+  ).toBe(false)
 })
 
 it('skips writing the worker when the public directory is disabled', async () => {

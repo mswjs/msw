@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 import { stripNetwork } from './strip-network'
 
-const DEFAULT_WORKER_URL = '/mockServiceWorker.js'
+const WORKER_URL = '/mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 const VIRTUAL_MODULE_ID = 'virtual:msw'
 const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
@@ -18,13 +18,6 @@ export interface MswPluginOptions {
    * @default "auto"
    */
   mode?: 'auto' | 'worker-only'
-  serviceWorker?: {
-    /**
-     * URL to serve the worker script at.
-     * @default "/mockServiceWorker.js"
-     */
-    url?: string
-  }
 }
 
 /**
@@ -55,7 +48,6 @@ export interface MswPluginOptions {
  */
 export function msw(options: MswPluginOptions = {}): Plugin {
   const mode = options.mode ?? 'auto'
-  const workerUrl = options.serviceWorker?.url ?? DEFAULT_WORKER_URL
   let isProduction = false
 
   return {
@@ -111,16 +103,8 @@ export function msw(options: MswPluginOptions = {}): Plugin {
 
       const isServer = this.environment.config.consumer === 'server'
       const integration = isServer ? 'msw/node' : 'msw/browser'
-      const hasCustomWorkerUrl = !isServer && workerUrl !== DEFAULT_WORKER_URL
 
-      if (!hasCustomWorkerUrl) {
-        return `export { defaultNetworkOptions } from '${integration}'`
-      }
-
-      return `
-import { createDefaultNetworkOptions } from '${integration}'
-export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
-`
+      return `export { defaultNetworkOptions } from '${integration}'`
     },
     async configResolved(config) {
       isProduction = config.isProduction
@@ -130,7 +114,7 @@ export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringif
       }
 
       const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
-      const workerPath = path.join(config.publicDir, workerUrl)
+      const workerPath = path.join(config.publicDir, WORKER_URL)
       await fs.promises.mkdir(path.dirname(workerPath), { recursive: true })
       await fs.promises.writeFile(workerPath, workerScript)
     },
@@ -143,7 +127,7 @@ export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringif
       server.middlewares.use((request, response, next) => {
         const requestUrl = new URL(request.url ?? '/', 'http://localhost')
 
-        if (requestUrl.pathname !== workerUrl) {
+        if (requestUrl.pathname !== WORKER_URL) {
           next()
           return
         }

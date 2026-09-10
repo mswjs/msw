@@ -33,7 +33,7 @@
       "default": "./lib/vite/index.js"
     },
     "./vite/client": {
-      "types": "./src/vite/virtual.d.ts"
+      "types": "./src/vite/client.d.ts"
     },
     "./http": {
       "types": "./lib/http/index.d.ts",

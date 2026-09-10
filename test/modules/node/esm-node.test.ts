@@ -27,7 +27,7 @@ it('runs in a ESM Node.js project', async () => {
     'resolve.mjs': `
 console.log('msw:', await import.meta.resolve('msw'))
 console.log('msw/node:', await import.meta.resolve('msw/node'))
-console.log('msw/native:', await import.meta.resolve('msw/native'))
+console.log('msw/react-native:', await import.meta.resolve('msw/react-native'))
 `,
     'runtime.mjs': `
 import { http } from 'msw'
@@ -53,13 +53,13 @@ console.log(typeof server.listen)
    * That should be the source of truth.
    */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.mjs/m,
+    /^msw\/react-native: (.+?)\/node_modules\/msw\/lib\/react-native\/index\.js/m,
   )
 
   /**
@@ -78,7 +78,7 @@ it('runs in a CJS Node.js project', async () => {
     'resolve.cjs': `
 console.log('msw:', require.resolve('msw'))
 console.log('msw/node:', require.resolve('msw/node'))
-console.log('msw/native:', require.resolve('msw/native'))
+console.log('msw/react-native:', require.resolve('msw/react-native'))
 `,
     'runtime.cjs': `
 const { http } = require('msw')
@@ -100,22 +100,20 @@ console.log(typeof server.listen)
 
   /**
    * @note Although the test requires the package in CJS,
-   * the "module-sync" condition allows loading the ESM build.
-   * This is supported in Node.js v20+.
+   * Node.js v22+ supports requiring ESM modules synchronously
+   * (the "require(esm)" feature).
    */
   expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
+    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
   )
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
+    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
   )
-
-  // Must load regular CJS build for React Native.
   expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
+    /^msw\/react-native: (.+?)\/node_modules\/msw\/lib\/react-native\/index\.js/m,
   )
 
-  const runtimeStdio = await fsMock.exec('node ./runtime.mjs')
+  const runtimeStdio = await fsMock.exec('node ./runtime.cjs')
   expect(runtimeStdio.stderr).toBe('')
   expect(runtimeStdio.stdout).toMatch(/function/m)
 })

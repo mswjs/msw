@@ -1,4 +1,4 @@
-import { http } from '../core/http'
+import { http } from '#http/http'
 import { AsyncHandlersController } from './async-handlers-controller'
 
 it('respects initial handlers in the boundary', () => {

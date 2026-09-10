@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.src.json",
-  "include": ["./node", "./native"],
+  "include": ["./node", "./react-native"],
   "exclude": ["**/*.test.ts"],
   "references": [
     {

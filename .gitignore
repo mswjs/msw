@@ -16,6 +16,7 @@ msw-*.tgz
 **/test-results
 /test/modules/node/node-esm-tests
 *.tsbuildinfo
+.pnpm-store/
 
 # Smoke test temporary files.
 /package.json.copy

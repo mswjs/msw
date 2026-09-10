@@ -1,4 +1,4 @@
-import type { HttpResponse } from './HttpResponse'
+import type { HttpResponse } from '#http/http-response'
 
 /**
  * Performs the intercepted request as-is.

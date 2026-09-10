@@ -1,5 +1,5 @@
-import { type DefaultEventMap, Emitter } from 'rettime'
-import { type LifeCycleEventEmitter } from '../sharedOptions'
+import type { DefaultEventMap, Emitter } from 'rettime'
+import type { LifeCycleEventEmitter } from '../sharedOptions'
 import type { HandlersController } from './handlers-controller'
 import {
   InMemoryHandlersController,
@@ -50,6 +50,6 @@ export abstract class SetupApi<
   }
 
   public listHandlers(): ReadonlyArray<AnyHandler> {
-    return toReadonlyArray(this.handlersController.currentHandlers())
+    return toReadonlyArray(this.handlersController.listHandlers())
   }
 }

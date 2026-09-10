@@ -1,10 +1,5 @@
-import { it } from 'vitest'
-import {
-  http,
-  graphql,
-  type HttpRequestHandler,
-  type GraphQLRequestHandler,
-} from 'msw'
+import { http, HttpRequestHandler } from 'msw'
+import { type GraphQLRequestHandler, graphql } from 'msw/graphql'
 import { setupWorker } from 'msw/browser'
 import { setupServer } from 'msw/node'
 
@@ -12,11 +7,13 @@ const generateHttpHandler: HttpRequestHandler = (path, resolver, options) => {
   return http.get(path, resolver, options)
 }
 
+const api = graphql.link('https://api.example.com/graphql')
+
 const generateGraphQLHandler: GraphQLRequestHandler = (
   operationName,
   resolver,
 ) => {
-  return graphql.query(operationName, resolver)
+  return api.query(operationName, resolver)
 }
 
 it('accepts custom request handler (setupWorker)', () => {

@@ -1,6 +1,4 @@
-import statuses from '../../../shims/statuses'
-
-const { message } = statuses
+import { httpStatusMessages } from '../http-status-messages'
 
 export interface SerializedResponse {
   status: number
@@ -20,7 +18,7 @@ export async function serializeResponse(
   // from status codes. This has no effect on the actual response instance.
   const responseStatus = responseClone.status || 200
   const responseStatusText =
-    responseClone.statusText || message[responseStatus] || 'OK'
+    responseClone.statusText || httpStatusMessages[responseStatus] || 'OK'
 
   return {
     status: responseStatus,

@@ -1,16 +1,20 @@
 import { it, expectTypeOf } from 'vitest'
 import {
   http,
-  graphql,
   delay,
   HttpResponse,
   type HttpResponseResolver,
   type PathParams,
   type DefaultBodyType,
+} from 'msw'
+import {
+  graphql,
   type GraphQLQuery,
   type GraphQLVariables,
   type GraphQLResponseResolver,
-} from 'msw'
+} from 'msw/graphql'
+
+const api = graphql.link('https://api.example.com/graphql')
 
 it('custom http resolver has correct parameters type', () => {
   /**
@@ -57,7 +61,7 @@ function identityGraphQLResolver<
 }
 
 it('custom graphql resolver has correct variables and response type', () => {
-  graphql.query<{ number: number }, { id: string }>(
+  api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()
@@ -72,7 +76,7 @@ it('custom graphql resolver has correct variables and response type', () => {
 })
 
 it('custom graphql resolver does not accept unknown variables', () => {
-  graphql.query<{ number: number }, { id: string }>(
+  api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()

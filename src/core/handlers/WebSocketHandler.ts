@@ -1,25 +1,31 @@
-import { Emitter } from 'strict-event-emitter'
+import { Emitter, TypedEvent } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
   WebSocketConnectionData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
+/**
+ * @note A type-only import to prevent a runtime module cycle
+ * (the frame module imports this handler at runtime).
+ */
+import type { WebSocketNetworkFrameEventMap } from '../experimental/frames/websocket-frame'
 import {
   type Match,
   type Path,
   type PathParams,
   matchRequestUrl,
 } from '../utils/matching/matchRequestUrl'
+import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import { attachWebSocketLogger } from '../ws/utils/attachWebSocketLogger'
+import { attachWebSocketLogger } from '#ws/utils/attach-websocket-logger'
 
 type WebSocketHandlerParsedResult = {
   match: Match
 }
 
 export type WebSocketHandlerEventMap = {
-  connection: [args: WebSocketHandlerConnection]
+  connection: WebSocketConnectionEvent
 }
 
 export interface WebSocketHandlerConnection {
@@ -29,27 +35,55 @@ export interface WebSocketHandlerConnection {
   params: PathParams
 }
 
+export class WebSocketConnectionEvent
+  extends TypedEvent<void, void, 'connection'>
+  implements WebSocketHandlerConnection
+{
+  public readonly client: WebSocketClientConnectionProtocol
+  public readonly server: WebSocketServerConnectionProtocol
+  public readonly info: WebSocketConnectionData['info']
+  public readonly params: PathParams
+
+  constructor(connection: WebSocketHandlerConnection) {
+    super('connection')
+    this.client = connection.client
+    this.server = connection.server
+    this.info = connection.info
+    this.params = connection.params
+  }
+}
+
 export interface WebSocketResolutionContext {
   baseUrl?: string
+
+  /**
+   * An emit-only reference to the network frame's events.
+   * Allows handlers to emit additional events not covered by the frame
+   * into the network's life-cycle event stream (e.g. `server.events`).
+   */
+  events?: Pick<Emitter<WebSocketNetworkFrameEventMap>, 'emit'>
+
   [kAutoConnect]?: boolean
 }
 
 export const kEmitter = Symbol('kEmitter')
-export const kSender = Symbol('kSender')
 export const kConnect = Symbol('kConnect')
 export const kAutoConnect = Symbol('kAutoConnect')
 
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
-export class WebSocketHandler {
+export class WebSocketHandler extends Handler {
   public id: string
   public callFrame?: string
-  public kind = 'websocket' as const
+
+  public readonly kind = 'websocket'
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
 
   constructor(protected readonly url: Path) {
+    super()
+
     this.id = createRequestId()
 
     this[kEmitter] = new Emitter()
@@ -183,10 +217,10 @@ export class WebSocketHandler {
     )
 
     /**
-     * @fixme Use "rettime" and await these events to have
-     * exceptions propagate properly.
+     * @fixme Await these events (e.g. via `.emitAsPromise()`) to have
+     * exceptions from asynchronous listeners propagate properly.
      */
-    return this[kEmitter].emit('connection', connection)
+    return this[kEmitter].emit(new WebSocketConnectionEvent(connection))
   }
 
   public log(connection: WebSocketConnectionData): () => void {
@@ -217,8 +251,7 @@ export class WebSocketHandler {
 function createStopPropagationListener(handler: WebSocketHandler) {
   return function stopPropagationListener(event: Event) {
     const propagationStoppedAt = Reflect.get(event, 'kPropagationStoppedAt') as
-      | string
-      | undefined
+      string | undefined
 
     if (propagationStoppedAt && handler.id !== propagationStoppedAt) {
       event.stopImmediatePropagation()

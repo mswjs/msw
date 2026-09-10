@@ -10,9 +10,13 @@ permissions:
   contents: read
 
 jobs:
-  build-20:
-    name: build (20)
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+  build:
+    name: build (Node.js ${{ matrix.nodeVersion }})
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        nodeVersion: ['22.23.2', '24', '26']
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -20,90 +24,12 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 9.15.0
+          version: 11.5.2
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
-
-      - name: Cache build output
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-20
-
-  build-22:
-    name: build (22)
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
-
-      - name: Cache build output
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-22
-
-  test-unit:
-    name: test (unit)
-    needs: build-22
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 22
-
-      - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
+          node-version: ${{ matrix.nodeVersion }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -111,173 +37,21 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps --only-shell
 
-      - name: Unit tests
-        run: pnpm test:unit
+      - name: Lint
+        run: pnpm lint
 
-  test-node-20:
-    name: test (node.js) (20)
-    needs: build-20
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Build
+        run: pnpm build
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
+      - name: Tests
+        run: pnpm test
 
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 20
+      - name: Playwright tests
+        run: pnpm test:playwright
 
-      - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-20-build-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Node.js tests
-        run: pnpm test:node
-
-      - name: Memory tests
-        run: pnpm test:memory
-
-  test-node-22:
-    name: test (node.js) (22)
-    needs: build-22
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 22
-
-      - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Node.js tests
-        run: pnpm test:node
-
-      - name: Memory tests
-        run: pnpm test:memory
-
-  test-e2e:
-    name: test (e2e) (20)
-    needs: build-20
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: E2E tests
-        run: pnpm test:e2e
-
-  test-browser:
-    name: test (browser)
-    needs: build-22
-    runs-on: blacksmith-8vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 22
-
-      - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-22-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-build-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Playwright install
-        run: pnpm exec playwright install chromium --with-deps --only-shell
-
-      - name: Browser tests
-        run: pnpm test:browser
-
-      - name: Upload test artifacts
+      - name: Upload Playwright artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: playwright-report
-          path: test/browser/test-results
-
-  test-native:
-    name: test (react-native)
-    needs: build-20
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 20
-
-      - name: Restore build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ./lib
-          key: ${{ runner.os }}-node-20-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-node-20-build-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: React Native tests
-        run: pnpm test:native
+          name: playwright-report-node-${{ matrix.nodeVersion }}
+          path: test/test-results

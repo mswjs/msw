@@ -8,14 +8,11 @@ export function fromRoot(...paths: Array<string>): string {
 }
 
 export const mswExports = {
-  'msw/node': fromRoot('./lib/node/index.mjs'),
-  'msw/native': fromRoot('./lib/native/index.mjs'),
-  'msw/browser': fromRoot('./lib/browser/index.mjs'),
-  msw: fromRoot('./lib/core/index.mjs'),
-}
-
-export const customViteEnvironments = {
-  'vitest-environment-node-websocket': fromRoot(
-    './test/support/environments/vitest-environment-node-websocket',
-  ),
+  'msw/http': fromRoot('./lib/http/index.js'),
+  'msw/node': fromRoot('./lib/node/index.js'),
+  'msw/react-native': fromRoot('./lib/react-native/index.js'),
+  'msw/browser': fromRoot('./lib/browser/index.js'),
+  'msw/graphql': fromRoot('./lib/graphql/index.js'),
+  'msw/ws': fromRoot('./lib/ws/index.js'),
+  msw: fromRoot('./lib/core/index.js'),
 }

@@ -4,15 +4,19 @@ export { SetupApi } from './experimental/setup-api'
 
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
-export { http } from './http'
-export { HttpHandler, HttpMethods } from './handlers/HttpHandler'
-export { graphql } from './graphql'
-export { GraphQLHandler } from './handlers/GraphQLHandler'
+export { http } from '#http/http'
+export { HttpHandler, HttpMethods } from '#http/http-handler'
 
 /* WebSocket handler */
-export { ws, type WebSocketLink } from './ws'
+export {
+  ws,
+  type WebSocketLink,
+  type WebSocketData,
+  type WebSocketEventListener,
+} from '#ws/ws'
 export {
   WebSocketHandler,
+  WebSocketConnectionEvent,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
 } from './handlers/WebSocketHandler'
@@ -28,7 +32,6 @@ export {
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export { handleRequest, type HandleRequestOptions } from './utils/handleRequest'
 export {
   onUnhandledRequest,
   type UnhandledRequestStrategy,
@@ -63,29 +66,10 @@ export type {
   HttpRequestResolverExtras,
   HttpHandlerMethod,
   HttpCustomPredicate,
-} from './handlers/HttpHandler'
-export type { HttpRequestHandler, HttpResponseResolver } from './http'
-
-export type {
-  GraphQLQuery,
-  GraphQLVariables,
-  GraphQLRequestBody,
-  GraphQLResponseBody,
-  GraphQLJsonRequestBody,
-  GraphQLOperationType,
-  GraphQLCustomPredicate,
-} from './handlers/GraphQLHandler'
-export type {
-  GraphQLRequestHandler,
-  GraphQLOperationHandler,
-  GraphQLResponseResolver,
-  GraphQLLinkHandlers,
-} from './graphql'
-
-export type { WebSocketData, WebSocketEventListener } from './ws'
+} from '#http/http-handler'
+export type { HttpRequestHandler, HttpResponseResolver } from '#http/http'
 
 export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
-export type { ParsedGraphQLRequest } from './utils/internal/parseGraphQLRequest'
 export type { ResponseResolutionContext } from './utils/executeHandlers'
 
 export {
@@ -93,7 +77,7 @@ export {
   type HttpResponseInit,
   type StrictRequest,
   type StrictResponse,
-} from './HttpResponse'
+} from '#http/http-response'
 export { delay, type DelayMode } from './delay'
 export { bypass } from './bypass'
 export { passthrough } from './passthrough'

@@ -1,6 +1,5 @@
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
-import { copyResponseOwnProperties } from '../HttpResponse/decorators'
+import { copyResponseOwnProperties } from '../response-decorators'
 
 export interface ObservedResponse {
   response: Response
@@ -25,7 +24,7 @@ export function observeResponseBodyStream(
     return null
   }
 
-  const settled = new DeferredPromise<void>()
+  const settled = Promise.withResolvers<void>()
   const reader = response.body.getReader()
 
   /**
@@ -72,6 +71,6 @@ export function observeResponseBodyStream(
 
   return {
     response: observedResponse,
-    settled,
+    settled: settled.promise,
   }
 }

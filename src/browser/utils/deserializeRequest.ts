@@ -1,4 +1,4 @@
-import { pruneGetRequestBody } from './pruneGetRequestBody'
+import { FetchRequest } from '@mswjs/interceptors'
 import type { IncomingWorkerRequest } from './workerChannel'
 
 /**
@@ -8,8 +8,7 @@ import type { IncomingWorkerRequest } from './workerChannel'
 export function deserializeRequest(
   serializedRequest: IncomingWorkerRequest,
 ): Request {
-  return new Request(serializedRequest.url, {
+  return new FetchRequest(serializedRequest.url, {
     ...serializedRequest,
-    body: pruneGetRequestBody(serializedRequest),
   })
 }

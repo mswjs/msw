@@ -1,18 +1,17 @@
 import { invariant } from 'outvariant'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { Emitter, TypedEvent } from 'rettime'
 import type { ResponseResolver } from './handlers/RequestHandler'
 import {
   HttpHandler,
   type HttpRequestResolverExtras,
   type HttpRequestParsedResult,
-} from './handlers/HttpHandler'
+} from '#http/http-handler'
 import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 import type { Path, PathParams } from './utils/matching/matchRequestUrl'
 import { delay } from './delay'
 import { getTimestamp } from './utils/logging/getTimestamp'
 import { devUtils } from './utils/internal/devUtils'
-import { colors } from './ws/utils/attachWebSocketLogger'
+import { colors } from './utils/logging/colors'
 import { toPublicUrl } from './utils/request/toPublicUrl'
 
 type EventMapConstraint = {
@@ -252,12 +251,14 @@ class ServerSentEventClient<
 
   #encoder: TextEncoder
   #controller: ReadableStreamDefaultController<Uint8Array>
-  #closed: DeferredPromise<void>
+  #closed: PromiseWithResolvers<void>
+  #isClosed: boolean
 
   constructor(controller: ReadableStreamDefaultController<Uint8Array>) {
     this.#encoder = new TextEncoder()
     this.#controller = controller
-    this.#closed = new DeferredPromise()
+    this.#closed = Promise.withResolvers()
+    this.#isClosed = false
   }
 
   /**
@@ -313,11 +314,12 @@ class ServerSentEventClient<
    * error.
    */
   public error(): void {
-    if (this.#closed.state !== 'pending') {
+    if (this.#isClosed) {
       return
     }
 
     this.#controller.error()
+    this.#isClosed = true
     this.#closed.resolve()
     this[kClientEmitter]?.emit(new TypedEvent('error'))
   }
@@ -326,12 +328,13 @@ class ServerSentEventClient<
    * Closes the underlying `EventSource`, closing the connection.
    */
   public close(): void {
-    if (this.#closed.state !== 'pending') {
+    if (this.#isClosed) {
       return
     }
 
     try {
       this.#controller.close()
+      this.#isClosed = true
       this.#closed.resolve()
     } catch {
       //
@@ -341,7 +344,7 @@ class ServerSentEventClient<
   }
 
   #enqueue(chunk: Uint8Array): void {
-    if (this.#closed.state !== 'pending') {
+    if (this.#isClosed) {
       return
     }
 
@@ -754,15 +757,16 @@ class ObservableEventSource extends EventTarget implements EventSource {
       return
     }
 
-    const aborted = new DeferredPromise<void>()
+    const aborted = Promise.withResolvers<void>()
     const onAbort = () => aborted.resolve()
     signal.addEventListener('abort', onAbort, { once: true })
 
-    await Promise.race([delay(this[kReconnectionTime]), aborted]).finally(
-      () => {
-        signal.removeEventListener('abort', onAbort)
-      },
-    )
+    await Promise.race([
+      delay(this[kReconnectionTime]),
+      aborted.promise,
+    ]).finally(() => {
+      signal.removeEventListener('abort', onAbort)
+    })
 
     if (signal.aborted) {
       return

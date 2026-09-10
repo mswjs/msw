@@ -1,5 +1,8 @@
-import { http, HttpResponse, graphql } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
+
+const api = graphql.link('https://api.example.com/graphql')
 
 it('does not produce a type error when called without arguments', () => {
   setupServer()
@@ -20,12 +23,12 @@ it('accepts a single HTTP request handler', () => {
 
 it('accepts a single GraphQL request handler', () => {
   setupServer(
-    graphql.query('GetUser', () => {
+    api.query('GetUser', () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )
   setupServer(
-    graphql.query('GetUser', async () => {
+    api.query('GetUser', async () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )

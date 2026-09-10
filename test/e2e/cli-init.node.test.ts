@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-import { spawnSync } from 'node:child_process'
 import { createTeardown } from 'fs-teardown'
 import { fromTemp } from '../support/utils'
 
@@ -24,7 +23,6 @@ function readJson(filePath: string) {
 }
 
 beforeAll(async () => {
-  spawnSync('pnpm', ['build'])
   await fsMock.prepare()
 })
 

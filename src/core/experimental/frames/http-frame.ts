@@ -15,15 +15,15 @@ import {
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import type { HandlersController } from '../handlers-controller'
-import { type AnyHandler } from '../handlers-controller'
-import { type RequestHandler } from '../../handlers/RequestHandler'
+import type { AnyHandler } from '../handlers-controller'
+import type { RequestHandler } from '../../handlers/RequestHandler'
 
 interface HttpNetworkFrameOptions {
   id?: string
   request: Request
 }
 
-export class RequestEvent<
+class RequestEvent<
   DataType extends { requestId: string; request: Request } = {
     requestId: string
     request: Request
@@ -66,7 +66,7 @@ export class ResponseEvent<
   }
 }
 
-export class UnhandledExceptionEvent<
+class UnhandledExceptionEvent<
   DataType extends {
     error: Error
     requestId: string

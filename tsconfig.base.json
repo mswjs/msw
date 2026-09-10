@@ -6,12 +6,7 @@
     "moduleResolution": "bundler",
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": false,
-    "verbatimModuleSyntax": true,
-    "paths": {
-      "#core": ["./src/core"],
-      "#core/*": ["./src/core/*"]
-    }
+    "verbatimModuleSyntax": true
   },
   "include": ["./global.d.ts"],
   "exclude": ["node_modules", "lib"]

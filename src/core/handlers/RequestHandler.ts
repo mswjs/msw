@@ -1,4 +1,5 @@
-import { Headers as HeadersPolyfill } from 'headers-polyfill'
+import { isNodeProcess } from 'is-node-process'
+import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
 import {
   isIterable,
@@ -7,14 +8,13 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import type { HttpResponse } from '../HttpResponse'
-import {
-  type StrictRequest,
-  type DefaultUnsafeFetchResponse,
-} from '../HttpResponse'
-import type { GraphQLRequestBody } from './GraphQLHandler'
+import type { HttpResponse } from '#http/http-response'
+import type {
+  StrictRequest,
+  DefaultUnsafeFetchResponse,
+} from '#http/http-response'
 import { devUtils } from '../utils/internal/devUtils'
-import { getRawSetCookie } from '../utils/HttpResponse/decorators'
+import { getRawSetCookie } from '../utils/response-decorators'
 import { observeResponseBodyStream } from '../utils/internal/observe-response-body-stream'
 
 export type DefaultRequestMultipartBody = Record<
@@ -54,8 +54,10 @@ export type ResponseResolverReturnType<
          * For esome reason, making the default HttpResponse<T> | DefaultUnsafeFetchResponse
          * union breaks the body type inference for HTTP requests.
          * @see https://github.com/mswjs/msw/issues/2130
+         * @note Don't import the actual GraphQL types not to introduce a dependency
+         * from /core to /graphql.
          */
-        ResponseBodyType extends GraphQLRequestBody<any>
+        ResponseBodyType extends Record<string, any> | undefined
         ? HttpResponse<ResponseBodyType> | DefaultUnsafeFetchResponse
         : HttpResponse<ResponseBodyType>)
   | undefined
@@ -103,7 +105,7 @@ export type ResponseResolverInfo<
   finalize: ResponseResolverFinalizeFunction
 } & ResolverExtraInfo
 
-type ResponseResolverFinalizeFunction = (
+export type ResponseResolverFinalizeFunction = (
   callback: () => MaybePromise<void>,
 ) => void
 
@@ -143,13 +145,13 @@ export abstract class RequestHandler<
   ParsedResult extends Record<string, any> | undefined = any,
   ResolverExtras extends Record<string, unknown> = any,
   HandlerOptions extends RequestHandlerOptions = RequestHandlerOptions,
-> {
+> extends Handler {
   static cache = new WeakMap<
     StrictRequest<DefaultBodyType>,
     StrictRequest<DefaultBodyType>
   >()
 
-  public readonly kind = 'request' as const
+  public readonly kind = 'request'
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
   private resolverIterator?:
@@ -177,6 +179,8 @@ export abstract class RequestHandler<
   public isUsed: boolean
 
   constructor(args: RequestHandlerArgs<HandlerInfo, HandlerOptions>) {
+    super()
+
     this.resolver = args.resolver
     this.options = args.options
     this.scheduledCleanups = new Map()
@@ -197,7 +201,7 @@ export abstract class RequestHandler<
    * removed from the active handlers list so re-adding it later starts
    * from a clean state.
    */
-  protected reset(): void {
+  public reset(): void {
     this.scheduledCleanups.clear()
 
     const iterator = this.resolverIterator
@@ -215,7 +219,7 @@ export abstract class RequestHandler<
    * exhausted (e.g. via `{ once: true }`). Also clears any accumulated
    * resolution state.
    */
-  protected restore(): void {
+  public restore(): void {
     if (this.options?.once) {
       this.reset()
       this.isUsed = false
@@ -670,28 +674,13 @@ export abstract class RequestHandler<
 /**
  * Forwards the cookies from the given response to `document.cookie`.
  */
-export function forwardResponseCookies(response: Response): void {
+function forwardResponseCookies(response: Response): void {
   // Cookie forwarding is only relevant in the browser.
-  if (typeof document === 'undefined') {
+  if (isNodeProcess() || typeof document === 'undefined') {
     return
   }
 
-  const responseCookies = getRawSetCookie(response)
-
-  if (!responseCookies) {
-    return
-  }
-
-  // Write the mocked response cookies to the document.
-  // Use `headers-polyfill` to get the Set-Cookie header value correctly.
-  // This is an alternative until TypeScript 5.2
-  // and Node.js v20 become the minimum supported versions
-  // and "Headers.prototype.getSetCookie" can be used directly.
-  const allResponseCookies = HeadersPolyfill.prototype.getSetCookie.call(
-    new Headers([['set-cookie', responseCookies]]),
-  )
-
-  for (const cookieString of allResponseCookies) {
+  for (const cookieString of getRawSetCookie(response)) {
     document.cookie = cookieString
   }
 }

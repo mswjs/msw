@@ -1,10 +1,12 @@
-import { http } from '../../http'
-import { graphql } from '../../graphql'
-import { ws } from '../../ws'
+import { http } from '#http/http'
+import { graphql } from '../../../graphql'
+import { ws } from '../../../ws'
 import type { WebSocketNetworkFrameEventMap } from './websocket-frame'
 import { WebSocketNetworkFrame } from './websocket-frame'
 import { createTestWebSocketConnection } from '../../../../test/support/ws-test-utils'
 import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
+
+const gql = graphql.link('*')
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -40,7 +42,7 @@ it('filters only websocket type handlers', async () => {
   const frame = new WebSocketFrame({ connection })
 
   const httpHandlers = [http.post('http://localhost/api/user', () => {})]
-  const graphqlHandlers = [graphql.query('GetUser', () => {})]
+  const graphqlHandlers = [gql.query('GetUser', () => {})]
   const webSocketHandlers = [
     ws.link('ws://localhost').addEventListener('connection', () => {}),
   ]

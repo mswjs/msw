@@ -1,5 +1,6 @@
 import { TypedEvent } from 'rettime'
-import { type WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { GraphQLSubscriptionEvent } from '#graphql/graphql-subscription-event'
+import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
 import {
   kConnect,
   kAutoConnect,
@@ -15,7 +16,7 @@ import {
 } from '../on-unhandled-frame'
 import { devUtils } from '../../utils/internal/devUtils'
 import type { HandlersController } from '../handlers-controller'
-import { type AnyHandler } from '../handlers-controller'
+import type { AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
   connection: WebSocketConnectionData
@@ -23,6 +24,7 @@ export interface WebSocketNetworkFrameOptions {
 
 export type WebSocketNetworkFrameEventMap = {
   connection: WebSocketConnectionEvent
+  'graphql:subscription': GraphQLSubscriptionEvent
   unhandledException: UnhandledWebSocketExceptionEvent
 }
 
@@ -115,6 +117,12 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     for (const handler of handlers) {
       const handlerConnection = await handler.run(connection, {
         baseUrl: resolutionContext?.baseUrl?.toString(),
+        /**
+         * @note Expose an emit-only reference to this frame's events
+         * so the handlers can emit additional events not covered by
+         * the frame (e.g. "graphql:subscription").
+         */
+        events: this.events,
         /**
          * @note Do not emit the "connection" event when running the handler.
          * Use the run only to get the resolved connection object.

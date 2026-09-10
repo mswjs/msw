@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 import { stripNetwork } from './strip-network'
 
-const WORKER_URL = '/mockServiceWorker.js'
+const WORKER_FILENAME = 'mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 const VIRTUAL_MODULE_ID = 'virtual:msw'
 const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
@@ -49,6 +49,7 @@ export interface MswPluginOptions {
 export function msw(options: MswPluginOptions = {}): Plugin {
   const mode = options.mode ?? 'auto'
   let isProduction = false
+  let workerUrl = `/${WORKER_FILENAME}`
 
   return {
     name: 'msw',
@@ -102,19 +103,31 @@ export function msw(options: MswPluginOptions = {}): Plugin {
       }
 
       const isServer = this.environment.config.consumer === 'server'
-      const integration = isServer ? 'msw/node' : 'msw/browser'
 
-      return `export { defaultNetworkOptions } from '${integration}'`
+      if (isServer) {
+        return `export { defaultNetworkOptions } from 'msw/node'`
+      }
+
+      return `
+import { createDefaultNetworkOptions } from 'msw/browser'
+export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
+`
     },
     async configResolved(config) {
       isProduction = config.isProduction
+      // Keep relative build bases relative and service workers on the app's origin.
+      const base =
+        config.base === './'
+          ? config.base
+          : new URL(config.base, 'http://localhost').pathname
+      workerUrl = `${base}${WORKER_FILENAME}`
 
       if (isProduction || config.command !== 'build' || !config.publicDir) {
         return
       }
 
       const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
-      const workerPath = path.join(config.publicDir, WORKER_URL)
+      const workerPath = path.join(config.publicDir, WORKER_FILENAME)
       await fs.promises.mkdir(path.dirname(workerPath), { recursive: true })
       await fs.promises.writeFile(workerPath, workerScript)
     },
@@ -127,7 +140,7 @@ export function msw(options: MswPluginOptions = {}): Plugin {
       server.middlewares.use((request, response, next) => {
         const requestUrl = new URL(request.url ?? '/', 'http://localhost')
 
-        if (requestUrl.pathname !== WORKER_URL) {
+        if (requestUrl.pathname !== workerUrl) {
           next()
           return
         }

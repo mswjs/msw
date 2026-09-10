@@ -438,7 +438,7 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
-it('preserves browser interception through hot updates', async () => {
+it('preserves browser interception through hot updates under a base path', async () => {
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'index.html':
@@ -470,6 +470,7 @@ document.querySelector('button').onclick = async () => {
 
   const server = await createServer({
     configFile: false,
+    base: '/app/',
     root: fsMock.resolve('.'),
     logLevel: 'silent',
     plugins: [builtMsw()],
@@ -497,7 +498,7 @@ document.querySelector('button').onclick = async () => {
   const connected = page.waitForEvent('console', {
     predicate: (message) => message.text().includes('[vite] connected.'),
   })
-  await page.goto(new URL('/mocks/', server.resolvedUrls!.local[0]).href, {
+  await page.goto(new URL('/app/nested/', server.resolvedUrls!.local[0]).href, {
     waitUntil: 'networkidle',
   })
   await connected
@@ -538,7 +539,7 @@ document.querySelector('button').onclick = async () => {
       return registrations[0].active?.scriptURL
     }),
   ).resolves.toBe(
-    new URL('/mockServiceWorker.js', server.resolvedUrls!.local[0]).href,
+    new URL('/app/mockServiceWorker.js', server.resolvedUrls!.local[0]).href,
   )
   expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
   expect(serverIntegration.network.readyState).toBe(0)
@@ -695,9 +696,46 @@ it('serves the worker script without writing files during development', async ()
   )
 })
 
-it('serves only the worker in worker-only mode', async () => {
+it('serves the worker at the root for a relative development base', async () => {
   const server = await createServer({
     configFile: false,
+    base: './',
+    root: fsMock.resolve('.'),
+    logLevel: 'silent',
+    plugins: [msw()],
+    server: {
+      host: '127.0.0.1',
+      port: 0,
+    },
+  })
+  await using _ = {
+    [Symbol.asyncDispose]: server.close.bind(server),
+  }
+
+  await server.listen()
+
+  const serverUrl = server.resolvedUrls?.local[0]
+  expect(serverUrl).toBeDefined()
+
+  const response = await fetch(new URL('/mockServiceWorker.js', serverUrl))
+
+  expect(response.status).toBe(200)
+  expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
+  expect(response.headers.get('content-type')).toBe(
+    'application/javascript; charset=utf-8',
+  )
+  await expect(response.text()).resolves.toBe(
+    fs.readFileSync(
+      new URL('../mockServiceWorker.js', import.meta.url),
+      'utf8',
+    ),
+  )
+})
+
+it('serves only the worker in worker-only mode with an absolute base URL', async () => {
+  const server = await createServer({
+    configFile: false,
+    base: 'https://cdn.example.com/app/',
     root: fsMock.resolve('.'),
     publicDir: 'static',
     logLevel: 'silent',
@@ -716,9 +754,13 @@ it('serves only the worker in worker-only mode', async () => {
   const serverUrl = server.resolvedUrls?.local[0]
   expect(serverUrl).toBeDefined()
 
-  const response = await fetch(new URL('/mockServiceWorker.js', serverUrl))
+  const response = await fetch(new URL('/app/mockServiceWorker.js', serverUrl))
 
   expect(response.status).toBe(200)
+  expect(response.headers.get('service-worker-allowed')).toBe('/')
+  await expect(
+    fetch(new URL('/mockServiceWorker.js', serverUrl)),
+  ).resolves.toHaveProperty('status', 404)
   expect(fs.existsSync(fsMock.resolve('static'))).toBe(false)
   await expect(response.text()).resolves.toContain('* Mock Service Worker.')
   await expect(
@@ -790,6 +832,7 @@ it('writes the worker to the configured public directory', async () => {
 
   await build({
     configFile: false,
+    base: '/app/',
     root: fsMock.resolve('.'),
     publicDir: 'static',
     logLevel: 'silent',
@@ -809,6 +852,7 @@ it('writes the worker to the configured public directory', async () => {
       'utf8',
     ),
   )
+  expect(fs.existsSync(fsMock.resolve('static/app'))).toBe(false)
   expect(
     fs.existsSync(fsMock.resolve('build/client/mockServiceWorker.js')),
   ).toBe(false)

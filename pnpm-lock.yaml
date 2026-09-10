@@ -69,9 +69,6 @@ importers:
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.61.1
-      '@types/estree':
-        specifier: ^1.0.9
-        version: 1.0.9
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -111,9 +108,6 @@ importers:
       esbuild:
         specifier: ^0.28.0
         version: 0.28.1
-      estree-walker:
-        specifier: ^3.0.3
-        version: 3.0.3
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -135,9 +129,6 @@ importers:
       graphql-yoga:
         specifier: ^5.21.2
         version: 5.21.2(graphql@17.0.2)
-      is-reference:
-        specifier: ^3.0.3
-        version: 3.0.3
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -150,9 +141,6 @@ importers:
       lint-staged:
         specifier: ^17.1.1
         version: 17.1.1
-      magic-string:
-        specifier: ^1.2.3
-        version: 1.2.3
       msw:
         specifier: workspace:^
         version: 'link:'
@@ -162,9 +150,6 @@ importers:
       page-with:
         specifier: ^0.6.1
         version: 0.6.1(esbuild@0.28.1)
-      periscopic:
-        specifier: ^4.0.3
-        version: 4.0.3
       prettier:
         specifier: ^3.9.6
         version: 3.9.6
@@ -3416,9 +3401,6 @@ packages:
   is-promise@4.0.0:
     resolution: {integrity: sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==}
 
-  is-reference@3.0.3:
-    resolution: {integrity: sha512-ixkJoqQvAP88E6wLydLGGqCJsrFUnqoH6HnaczB8XmDH1oaWU+xxdptvikTgaEhtZ53Ky6YXiBuUI2WXLMCwjw==}
-
   is-regex@1.2.1:
     resolution: {integrity: sha512-MjYsKHO5O7mCsmRGxWcLWheFqN9DJ/2TmngvjKXihe6efViPqc274+Fx/4fYj/r03+ESvBdTXK0V6tA3rgez1g==}
     engines: {node: '>= 0.4'}
@@ -3728,9 +3710,6 @@ packages:
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
-
-  magic-string@1.2.3:
-    resolution: {integrity: sha512-Bpb0W2TbLKOZ7vJnOUnVRGq3WL2p+ISV29M6hYPL1AFCpyKZpdr5ytiXoTSSxRVhg8YW7f65+6gbG8WG6PCa/g==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -4067,9 +4046,6 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
-
-  periscopic@4.0.3:
-    resolution: {integrity: sha512-iD/CnjEI6TJYwqLXmEVByEbT1RwUGSW3W51t/uWf+2Ag7FMHLqJ1XNhawGaXBf9/gZr+DhF3bTGLOw+03GJnzg==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -5158,9 +5134,6 @@ packages:
 
   yuku-parser@0.7.0:
     resolution: {integrity: sha512-72HXJhlPOolJN4ER0xZy1wtAeWZEG4uXfZnzEm2uD7yAWt32VE/52FwIfVGi2Hs2P0JRZK2+sPwULQMTuEzYtw==}
-
-  zimmerframe@1.1.5:
-    resolution: {integrity: sha512-msJxIvYDYcoNL+PJsu+7qmpDWsYmAxTY+2TNYXXF0hzBzBk0BMecOqDOG/EckUoKCuKwObfbugIl8QpqHDXeFA==}
 
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
@@ -8347,10 +8320,6 @@ snapshots:
 
   is-promise@4.0.0: {}
 
-  is-reference@3.0.3:
-    dependencies:
-      '@types/estree': 1.0.9
-
   is-regex@1.2.1:
     dependencies:
       call-bound: 1.0.4
@@ -8667,10 +8636,6 @@ snapshots:
   lru-cache@8.0.5: {}
 
   magic-string@0.30.21:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-
-  magic-string@1.2.3:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
@@ -9001,12 +8966,6 @@ snapshots:
   path-to-regexp@8.4.2: {}
 
   pathe@2.0.3: {}
-
-  periscopic@4.0.3:
-    dependencies:
-      '@types/estree': 1.0.9
-      is-reference: 3.0.3
-      zimmerframe: 1.1.5
 
   picocolors@1.1.1: {}
 
@@ -10241,7 +10200,5 @@ snapshots:
       '@yuku-parser/binding-linux-x64-musl': 0.7.0
       '@yuku-parser/binding-win32-arm64': 0.7.0
       '@yuku-parser/binding-win32-x64': 0.7.0
-
-  zimmerframe@1.1.5: {}
 
   zod@4.4.3: {}

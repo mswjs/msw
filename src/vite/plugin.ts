@@ -2,7 +2,6 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
-import { stripNetwork } from './strip-network'
 
 const WORKER_FILENAME = 'mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
@@ -14,7 +13,7 @@ const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
 export interface MswPluginOptions {
   /**
    * Use automatic integration or only provide the worker script for manual setup.
-   * In worker-only mode, virtual modules and production code removal are disabled.
+   * In worker-only mode, virtual modules are disabled.
    * @default "auto"
    */
   mode?: 'auto' | 'worker-only'
@@ -33,15 +32,17 @@ export interface MswPluginOptions {
  *
  * @example
  * // src/{client,server}.ts
- * import { network } from 'virtual:msw'
- * import { handlers } from './mocks/handlers'
+ * if (import.meta.env.DEV) {
+ *   const { network } = await import('virtual:msw')
+ *   const { handlers } = await import('./mocks/handlers')
  *
- * network.configure({ handlers })
- * await network.enable()
+ *   network.configure({ handlers })
+ *   await network.enable()
+ * }
  *
  * @remarks
- * In auto mode, production builds remove network setup and its exclusively used imports.
- * No worker script is served or written.
+ * Guard mocking setup with `import.meta.env.DEV` to exclude it from production builds.
+ * No worker script is served or written in production.
  *
  * For application TypeScript projects that do not include the Vite config,
  * add `/// <reference types="msw/vite/client" />` to an included declaration file.
@@ -53,22 +54,6 @@ export function msw(options: MswPluginOptions = {}): Plugin {
 
   return {
     name: 'msw',
-    enforce: 'post',
-    transform(code, id) {
-      if (
-        mode === 'worker-only' ||
-        !isProduction ||
-        !code.includes(VIRTUAL_MODULE_ID)
-      ) {
-        return
-      }
-
-      const result = stripNetwork(code, id, this.parse(code))
-
-      if (result?.code != null) {
-        return { code: result.code, map: result.map }
-      }
-    },
     async resolveId(id) {
       if (mode === 'worker-only') {
         return

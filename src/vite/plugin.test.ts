@@ -42,7 +42,7 @@ console.log(msw().name)
   expect(stdout.trim()).toBe('msw')
 })
 
-it('strips the network and mock-only handler modules from a production client bundle in auto mode', async () => {
+it('excludes user-guarded mocking from a production client bundle', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html':
@@ -61,18 +61,17 @@ export function createHandler() {
 `,
     'side-effect.ts': "document.body.dataset.sideEffect = 'preserved'",
     'entry.ts': `
-import { network as mocking } from 'virtual:msw'
-import { handlers } from './handlers'
 import { appValue, createHandler } from './shared'
 import './side-effect'
 
-const initialHandlers = handlers
-mocking.configure({ handlers: initialHandlers })
-await mocking.enable()
-mocking.use(createHandler())
-mocking.events.on('request:start', () => console.log('MOCK_ONLY_EVENT'))
-const { disable } = mocking
-await disable()
+if (import.meta.env.DEV) {
+  const { network: mocking } = await import('virtual:msw')
+  const { handlers } = await import('./handlers')
+
+  mocking.configure({ handlers })
+  await mocking.enable()
+  mocking.use(createHandler())
+}
 
 function start(network: { enable(): string }) {
   return network.enable()
@@ -137,7 +136,7 @@ document.querySelector('output')!.textContent = appValue + start({
   ).resolves.toBe('preserved')
 }, 20_000)
 
-it('strips the network and handler imports from a production server bundle', async () => {
+it('excludes user-guarded mocking from a production server bundle', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
@@ -148,13 +147,13 @@ console.log('MOCK_ONLY_HANDLER_MODULE')
 export const handlers = [http.get('/resource', () => HttpResponse.text('MOCK_ONLY_RESPONSE'))]
 `,
     'entry.js': `
-import * as mocking from 'virtual:msw'
-import { handlers } from './handlers.js'
+if (import.meta.env.DEV) {
+  const { network } = await import('virtual:msw')
+  const { handlers } = await import('./handlers.js')
 
-mocking.network.configure({ handlers })
-await mocking.network.enable()
-mocking.network.use(...handlers)
-await mocking.network.disable()
+  network.configure({ handlers })
+  await network.enable()
+}
 
 console.log('Application ready')
 `,

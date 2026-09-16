@@ -307,37 +307,6 @@ const viteConfig: UserConfig = {
   plugins: [cleanStrayDeclarationsPlugin()],
 }
 
-const reactNativeConfig: UserConfig = {
-  ...commonConfig,
-  name: 'react-native',
-  platform: 'node',
-  entry: ['./src/react-native/index.ts'],
-  deps: {
-    neverBundle: [
-      'util',
-      'events',
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/react-native',
-  unbundle: false,
-  outputOptions: {
-    codeSplitting: false,
-  },
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
 const iifeConfig: UserConfig = {
   ...commonConfig,
   name: 'iife',
@@ -381,7 +350,6 @@ export default defineConfig([
   sseConfig,
   utilsConfig,
   nodeConfig,
-  reactNativeConfig,
   browserConfig,
   viteConfig,
   iifeConfig,

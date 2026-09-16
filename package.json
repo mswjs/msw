@@ -14,19 +14,12 @@
     "./browser": {
       "types": "./lib/browser/index.d.ts",
       "node": null,
-      "react-native": null,
       "default": "./lib/browser/index.js"
     },
     "./node": {
       "types": "./lib/node/index.d.ts",
       "browser": null,
-      "react-native": null,
       "default": "./lib/node/index.js"
-    },
-    "./react-native": {
-      "types": "./lib/react-native/index.d.ts",
-      "browser": null,
-      "default": "./lib/react-native/index.js"
     },
     "./vite": {
       "types": "./lib/vite/index.d.ts",
@@ -90,7 +83,6 @@
     "test": "vitest",
     "test:unit": "vitest --project=unit",
     "test:node": "vitest --project=node",
-    "test:react-native": "vitest --project=react-native",
     "test:browser": "vitest --project=browser",
     "test:memory": "vitest --project=memory",
     "test:playwright": "playwright test -c ./test/playwright.config.ts",

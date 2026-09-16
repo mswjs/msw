@@ -27,7 +27,6 @@ it('runs in a ESM Node.js project', async () => {
     'resolve.mjs': `
 console.log('msw:', await import.meta.resolve('msw'))
 console.log('msw/node:', await import.meta.resolve('msw/node'))
-console.log('msw/react-native:', await import.meta.resolve('msw/react-native'))
 `,
     'runtime.mjs': `
 import { http } from 'msw'
@@ -58,9 +57,6 @@ console.log(typeof server.listen)
   expect(resolveStdio.stdout).toMatch(
     /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
   )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/react-native: (.+?)\/node_modules\/msw\/lib\/react-native\/index\.js/m,
-  )
 
   /**
    * @todo Also test the "msw/browser" import that throws,
@@ -78,7 +74,6 @@ it('runs in a CJS Node.js project', async () => {
     'resolve.cjs': `
 console.log('msw:', require.resolve('msw'))
 console.log('msw/node:', require.resolve('msw/node'))
-console.log('msw/react-native:', require.resolve('msw/react-native'))
 `,
     'runtime.cjs': `
 const { http } = require('msw')
@@ -108,9 +103,6 @@ console.log(typeof server.listen)
   )
   expect(resolveStdio.stdout).toMatch(
     /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/react-native: (.+?)\/node_modules\/msw\/lib\/react-native\/index\.js/m,
   )
 
   const runtimeStdio = await fsMock.exec('node ./runtime.cjs')

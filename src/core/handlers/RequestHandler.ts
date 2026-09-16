@@ -8,8 +8,8 @@ import {
 } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import type { HttpResponse } from '#http/http-response'
 import type {
+  HttpResponse,
   StrictRequest,
   DefaultUnsafeFetchResponse,
 } from '#http/http-response'

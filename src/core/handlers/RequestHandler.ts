@@ -1,11 +1,7 @@
 import { isNodeProcess } from 'is-node-process'
 import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import {
-  isIterable,
-  type AsyncIterable,
-  type Iterable,
-} from '../utils/internal/isIterable'
+import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
 import type {

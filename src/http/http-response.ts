@@ -26,14 +26,6 @@ export interface StrictRequest<BodyType extends JsonBodyType> extends Request {
 }
 
 /**
- * Opaque `Response` type that supports strict body type.
- *
- * @deprecated Please use {@link HttpResponse} instead.
- */
-export type StrictResponse<BodyType extends DefaultBodyType> =
-  HttpResponse<BodyType>
-
-/**
  * A drop-in replacement for the standard `Response` class
  * to allow additional features, like mocking the response `Set-Cookie` header.
  *

@@ -19,5 +19,4 @@ export {
   HttpResponse,
   type HttpResponseInit,
   type StrictRequest,
-  type StrictResponse,
 } from './http-response'

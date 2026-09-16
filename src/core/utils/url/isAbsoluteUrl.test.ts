@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { isAbsoluteUrl } from './isAbsoluteUrl'
 
 it('returns true for the "http" scheme', () => {

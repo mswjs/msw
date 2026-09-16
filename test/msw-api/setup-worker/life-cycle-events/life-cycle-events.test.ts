@@ -1,4 +1,4 @@
-import type { LifeCycleEventsMap } from 'msw'
+import type { HttpNetworkFrameEventMap } from 'msw/experimental'
 import { bypass, HttpResponse, http, passthrough } from 'msw'
 import type { Network } from '../../../setup/network'
 import {
@@ -26,29 +26,29 @@ const handlers = [
 ]
 
 const requestStartListener: (
-  ...args: LifeCycleEventsMap['request:start']
+  event: HttpNetworkFrameEventMap['request:start'],
 ) => void = ({ request, requestId }) => {
   console.warn(`[request:start] ${request.method} ${request.url} ${requestId}`)
 }
 const requestMatchListener: (
-  ...args: LifeCycleEventsMap['request:match']
+  event: HttpNetworkFrameEventMap['request:match'],
 ) => void = ({ request, requestId }) => {
   console.warn(`[request:match] ${request.method} ${request.url} ${requestId}`)
 }
 const requestUnhandledListener: (
-  ...args: LifeCycleEventsMap['request:unhandled']
+  event: HttpNetworkFrameEventMap['request:unhandled'],
 ) => void = ({ request, requestId }) => {
   console.warn(
     `[request:unhandled] ${request.method} ${request.url} ${requestId}`,
   )
 }
 const requestEndListener: (
-  ...args: LifeCycleEventsMap['request:end']
+  event: HttpNetworkFrameEventMap['request:end'],
 ) => void = ({ request, requestId }) => {
   console.warn(`[request:end] ${request.method} ${request.url} ${requestId}`)
 }
 const responseMockedListener: (
-  ...args: LifeCycleEventsMap['response:mocked']
+  event: HttpNetworkFrameEventMap['response:mocked'],
 ) => void = async ({ response, request, requestId }) => {
   const body = await response.clone().text()
   const responseUrl = response.url || request.url
@@ -57,7 +57,7 @@ const responseMockedListener: (
   )
 }
 const responseBypassListener: (
-  ...args: LifeCycleEventsMap['response:bypass']
+  event: HttpNetworkFrameEventMap['response:bypass'],
 ) => void = async ({ response, request, requestId }) => {
   const body = await response.clone().text()
   const responseUrl = response.url || request.url
@@ -66,7 +66,7 @@ const responseBypassListener: (
   )
 }
 const unhandledExceptionListener: (
-  ...args: LifeCycleEventsMap['unhandledException']
+  event: HttpNetworkFrameEventMap['unhandledException'],
 ) => void = ({ error, request, requestId }) => {
   console.warn(
     `[unhandledException] ${request.method} ${request.url} ${requestId} ${error.message}`,

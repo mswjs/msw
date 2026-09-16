@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
-import { type SetupServerApi, setupServer } from 'msw/node'
+import { type SetupServer, setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 
 const httpServer = new HttpServer((app) => {
@@ -11,7 +11,7 @@ const httpServer = new HttpServer((app) => {
 
 const server = setupServer()
 
-function spyOnEvents(server: SetupServerApi) {
+function spyOnEvents(server: SetupServer) {
   const listener = vi.fn()
   const wrapListener = (eventName: string, listener: any) => {
     return (...args: Array<unknown>) => listener(eventName, ...args)

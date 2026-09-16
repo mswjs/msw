@@ -3,7 +3,7 @@ import { inlineModule, test, expect } from '../../setup/playwright'
 
 declare namespace window {
   export const msw: {
-    worker: import('msw/browser').SetupWorkerApi
+    worker: import('msw/browser').SetupWorker
   }
 }
 

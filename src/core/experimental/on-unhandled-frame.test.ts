@@ -86,7 +86,7 @@ it('rejects and prints an error for the HTTP frame using the "error" strategy', 
       'error',
     ),
   ).rejects.toThrow(
-    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.`,
   )
 
   expect.soft(console.error).toHaveBeenCalledOnce()
@@ -227,7 +227,7 @@ it('throws if given an unknown strategy for the HTTP frame', async () => {
       'intentionally-invalid',
     ),
   ).rejects.toThrow(
-    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.`,
+    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledFrame" option.`,
   )
 })
 
@@ -252,7 +252,7 @@ it('rejects and prints an error for the WebSocket frame using the "error" strate
   await expect(
     executeUnhandledFrameHandle(new TestWebSocketFrame(), 'error'),
   ).rejects.toThrow(
-    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.`,
   )
 
   expect.soft(console.error).toHaveBeenCalledOnce()
@@ -293,7 +293,7 @@ it('throws if given an unknown strategy for the WebSocket frame', async () => {
       'intentionally-invalid',
     ),
   ).rejects.toThrow(
-    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.`,
+    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledFrame" option.`,
   )
 })
 

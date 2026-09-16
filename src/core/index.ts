@@ -1,5 +1,3 @@
-export { SetupApi } from './experimental/setup-api'
-
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
 export { http } from '#http/http'
@@ -44,7 +42,7 @@ export { getCleanUrlString } from '#utils/get-clean-url-string'
 
 export type { AnyHandler } from './experimental/handlers-controller'
 
-export type { SharedOptions, LifeCycleEventsMap } from './sharedOptions'
+export type { SharedOptions } from './sharedOptions'
 
 export type {
   ResponseResolver,
@@ -74,7 +72,6 @@ export {
   HttpResponse,
   type HttpResponseInit,
   type StrictRequest,
-  type StrictResponse,
 } from '#http/http-response'
 export { delay, type DelayMode } from '#utils/delay'
 export { bypass } from '#utils/bypass'

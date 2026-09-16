@@ -1,6 +1,43 @@
 import url from 'node:url'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
+import packageJson from '../../../package.json' with { type: 'json' }
+
+const exportsMap: Record<
+  string,
+  string | { default?: string | null } | undefined
+> = packageJson.exports
+
+/**
+ * Resolve the relative file path of the given export entry
+ * from the package.json exports map (the source of truth).
+ */
+function getExportPath(exportName: string): string {
+  const entry = exportsMap[exportName]
+  const target = typeof entry === 'string' ? entry : entry?.default
+
+  if (!target) {
+    throw new Error(`Export "${exportName}" has no default target`)
+  }
+
+  return target.replace(/^\.\//, '')
+}
+
+function expectResolvedExport(
+  stdout: string,
+  specifier: string,
+  exportName: string,
+): void {
+  const escape = (value: string) =>
+    value.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+
+  expect(stdout).toMatch(
+    new RegExp(
+      `^${escape(specifier)}: (.+?)/node_modules/msw/${escape(getExportPath(exportName))}$`,
+      'm',
+    ),
+  )
+}
 
 const fsMock = createTeardown({
   rootDir: url.fileURLToPath(new URL('node-esm-tests', import.meta.url)),
@@ -47,16 +84,8 @@ console.log(typeof server.listen)
     'node --experimental-import-meta-resolve ./resolve.mjs',
   )
   expect(resolveStdio.stderr).toBe('')
-  /**
-   * @todo Take these expected export paths from package.json.
-   * That should be the source of truth.
-   */
-  expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
-  )
+  expectResolvedExport(resolveStdio.stdout, 'msw', '.')
+  expectResolvedExport(resolveStdio.stdout, 'msw/node', './node')
 
   /**
    * @todo Also test the "msw/browser" import that throws,
@@ -89,21 +118,12 @@ console.log(typeof server.listen)
   expect(resolveStdio.stderr).toBe('')
 
   /**
-   * @todo Take these expected export paths from package.json.
-   * That should be the source of truth.
-   */
-
-  /**
    * @note Although the test requires the package in CJS,
    * Node.js v22+ supports requiring ESM modules synchronously
    * (the "require(esm)" feature).
    */
-  expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.js/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.js/m,
-  )
+  expectResolvedExport(resolveStdio.stdout, 'msw', '.')
+  expectResolvedExport(resolveStdio.stdout, 'msw/node', './node')
 
   const runtimeStdio = await fsMock.exec('node ./runtime.cjs')
   expect(runtimeStdio.stderr).toBe('')

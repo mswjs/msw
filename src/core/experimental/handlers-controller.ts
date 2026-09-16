@@ -31,9 +31,6 @@ export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
     }
   }
 
-  /**
-   * @note `Object.groupBy` is not implemented in Node.js v20.
-   */
   for (const handler of handlers) {
     visit(handler)
   }

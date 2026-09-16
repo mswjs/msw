@@ -1,4 +1,4 @@
-import type { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorker } from 'msw/browser'
 import type { TestFixtures } from '../../../setup/playwright'
 import { inlineSource, test, expect } from '../../../setup/playwright'
 
@@ -32,8 +32,8 @@ Object.assign(window, {
 
 declare namespace window {
   export const msw: {
-    startWorker: () => ReturnType<SetupWorkerApi['start']>
-    stopWorker: () => ReturnType<SetupWorkerApi['stop']>
+    startWorker: () => ReturnType<SetupWorker['start']>
+    stopWorker: () => ReturnType<SetupWorker['stop']>
   }
 }
 

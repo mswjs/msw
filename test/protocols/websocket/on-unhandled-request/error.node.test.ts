@@ -55,7 +55,7 @@ Read more: https://mswjs.io/docs/websocket`,
     expect(event.type).toBe('error')
     expect(event.cause).toBeInstanceOf(Error)
     expect(event.cause.message).toBe(
-      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.',
     )
   }),
 )

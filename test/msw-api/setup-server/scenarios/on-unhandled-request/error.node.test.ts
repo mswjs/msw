@@ -73,7 +73,7 @@ test('errors on unhandled request when using the "error" strategy', async () => 
   // forwarded as the "cause" of the fetch rejection.
   expect.soft(requestError.cause).toMatchObject({
     message:
-      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+      '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.',
   })
 
   expect(console.error)

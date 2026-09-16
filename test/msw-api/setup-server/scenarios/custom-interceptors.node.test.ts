@@ -1,25 +1,25 @@
 // @vitest-environment node
 import nodeHttp from 'node:http'
 import { HttpResponse, http } from 'msw'
-import { SetupServerApi } from 'msw/node'
+import { defineNetwork, InterceptorSource } from 'msw/experimental'
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { waitForClientRequest } from '../../../support/utils'
 
-const server = new SetupServerApi(
-  [
+const network = defineNetwork({
+  sources: [new InterceptorSource({ interceptors: [new FetchInterceptor()] })],
+  handlers: [
     http.get('http://localhost', () => {
       return HttpResponse.text('hello world')
     }),
   ],
-  [new FetchInterceptor()],
-)
+})
 
 beforeAll(() => {
-  server.listen()
+  network.enable()
 })
 
 afterAll(() => {
-  server.close()
+  network.disable()
 })
 
 test('uses only the provided interceptors', async () => {

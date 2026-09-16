@@ -1,4 +1,4 @@
-import type { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorker } from 'msw/browser'
 import { inlineSource, test, expect } from '../../../setup/playwright'
 
 const removesAllListenersSource = inlineSource(`
@@ -22,7 +22,7 @@ Object.assign(window, {
 
 declare namespace window {
   export const msw: {
-    createWorker(): SetupWorkerApi
+    createWorker(): SetupWorker
   }
 }
 

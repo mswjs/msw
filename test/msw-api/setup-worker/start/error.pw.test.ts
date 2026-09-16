@@ -1,9 +1,9 @@
-import type { SetupWorkerApi } from 'msw/browser'
+import type { SetupWorker } from 'msw/browser'
 import { inlineModule, test, expect } from '../../../setup/playwright'
 
 declare namespace window {
   export const msw: {
-    worker: SetupWorkerApi
+    worker: SetupWorker
   }
 }
 

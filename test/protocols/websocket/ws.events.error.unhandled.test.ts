@@ -31,7 +31,7 @@ test('emits "websocket:error" on an unhandled connection with the "error" strate
   expect(event.error).toEqual(
     expect.objectContaining({
       message:
-        '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+        '[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.',
     }),
   )
 })

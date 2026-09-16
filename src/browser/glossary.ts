@@ -38,16 +38,6 @@ export interface StartOptions extends SharedOptions {
   quiet?: boolean
 
   /**
-   * Defers any network requests until the Service Worker
-   * instance is activated.
-   * @default true
-   * @deprecated
-   * Please use a proper browser integration instead.
-   * @see https://mswjs.io/docs/integrations/browser
-   */
-  waitUntilReady?: boolean
-
-  /**
    * A custom lookup function to find a Mock Service Worker in the list
    * of all registered Service Workers on the page.
    */

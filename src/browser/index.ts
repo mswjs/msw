@@ -1,4 +1,4 @@
-export { setupWorker, SetupWorkerApi } from './setup-worker'
+export { setupWorker } from './setup-worker'
 export type { SetupWorker, StartOptions } from './glossary'
 export {
   defaultNetworkOptions,

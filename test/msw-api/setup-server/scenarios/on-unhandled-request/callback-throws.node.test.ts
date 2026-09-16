@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
+import { HttpNetworkFrame } from 'msw/experimental'
 
 const server = setupServer(
   http.get('https://test.mswjs.io/user', () => {
@@ -10,9 +11,15 @@ const server = setupServer(
 
 beforeAll(() =>
   server.listen({
-    onUnhandledRequest(request) {
+    onUnhandledFrame({ frame }) {
+      if (!(frame instanceof HttpNetworkFrame)) {
+        throw new Error(`Unexpected frame protocol "${frame.protocol}"`)
+      }
+
+      const { request } = frame.data
+
       /**
-       * @fixme @todo For some reason, the exception from the "onUnhandledRequest"
+       * @fixme @todo For some reason, the exception from the "onUnhandledFrame"
        * callback doesn't propagate to the intercepted request but instead is thrown
        * in this test's context.
        */
@@ -25,7 +32,7 @@ afterAll(() => {
   server.close()
 })
 
-test('handles exceptions in "onUnhandledRequest" callback as 500 responses', async () => {
+test('handles exceptions in "onUnhandledFrame" callback as 500 responses', async () => {
   const response = await fetch('https://example.com')
 
   expect(response.status).toBe(500)

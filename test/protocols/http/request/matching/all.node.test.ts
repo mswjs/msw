@@ -15,7 +15,7 @@ beforeAll(async () => {
   await httpServer.listen()
 
   server.listen({
-    onUnhandledRequest: 'bypass',
+    onUnhandledFrame: 'bypass',
   })
 })
 

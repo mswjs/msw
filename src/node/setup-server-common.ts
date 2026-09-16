@@ -1,5 +1,4 @@
 import type { NetworkApi } from '#core/experimental/define-network'
-import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { SetupServerCommon } from './glossary'
 
 /**
@@ -16,9 +15,7 @@ export function defineSetupServerApi(
     events: network.events,
     listen(options) {
       network.configure({
-        onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
-          return options?.onUnhandledRequest || 'warn'
-        }),
+        onUnhandledFrame: options?.onUnhandledFrame ?? 'warn',
       })
 
       network.enable()

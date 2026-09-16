@@ -29,14 +29,14 @@ export async function enableNetwork(
 ): Promise<void> {
   if ('close' in network) {
     network.listen({
-      onUnhandledRequest: 'bypass',
+      onUnhandledFrame: 'bypass',
       ...definition.serverOptions,
     })
     return
   }
 
   await network.start({
-    onUnhandledRequest: 'bypass',
+    onUnhandledFrame: 'bypass',
     ...definition.workerOptions,
   })
 }

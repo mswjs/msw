@@ -1,3 +1,4 @@
+import { HttpNetworkFrame } from 'msw/experimental'
 import { test, expect } from '../../../../setup/vitest-helpers'
 
 test('executes a given callback on an unhandled request', async ({
@@ -13,8 +14,11 @@ test('executes a given callback on an unhandled request', async ({
   await network.stop()
   const consoleSpy = spyOnConsole()
   await network.start({
-    onUnhandledRequest(request) {
-      console.log(`Oops, unhandled ${request.method} ${request.url}`)
+    onUnhandledFrame({ frame }) {
+      if (frame instanceof HttpNetworkFrame) {
+        const { request } = frame.data
+        console.log(`Oops, unhandled ${request.method} ${request.url}`)
+      }
     },
   })
 

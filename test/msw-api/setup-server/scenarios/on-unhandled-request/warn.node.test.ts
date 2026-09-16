@@ -4,7 +4,7 @@ import { setupServer } from 'msw/node'
 const server = setupServer()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'warn' })
+  server.listen({ onUnhandledFrame: 'warn' })
   vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 })
 

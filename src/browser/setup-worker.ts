@@ -4,7 +4,6 @@ import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
 import { defineNetwork } from '#core/experimental/define-network'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
@@ -60,9 +59,7 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
             interceptors: [new WebSocketInterceptor()],
           }),
         ],
-        onUnhandledFrame: fromLegacyOnUnhandledRequest(() => {
-          return options?.onUnhandledRequest || 'warn'
-        }),
+        onUnhandledFrame: options?.onUnhandledFrame ?? 'warn',
         context: {
           quiet: options?.quiet,
         },

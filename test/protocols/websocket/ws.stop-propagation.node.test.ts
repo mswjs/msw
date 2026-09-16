@@ -11,7 +11,7 @@ beforeAll(async () => {
   server.listen({
     // We are intentionally connecting to non-existing WebSocket URLs.
     // Skip the unhandled request warnings, they are intentional.
-    onUnhandledRequest: 'bypass',
+    onUnhandledFrame: 'bypass',
   })
   await originalServer.listen()
 })

@@ -54,6 +54,7 @@ interface BrowserRuntime {
   bypass: typeof import('msw').bypass
   graphql: typeof import('msw/graphql').graphql
   http: typeof import('msw').http
+  HttpNetworkFrame: typeof import('msw/experimental').HttpNetworkFrame
   HttpResponse: typeof import('msw').HttpResponse
   passthrough: typeof import('msw').passthrough
   setupWorker: typeof import('msw/browser').setupWorker
@@ -70,12 +71,14 @@ export function inlineModule(
       import { graphql } from 'msw/graphql'
       import { setupWorker } from 'msw/browser'
       import { ws } from 'msw/ws'
+      import { HttpNetworkFrame } from 'msw/experimental'
 
       const setup = ${setup.toString()}
       await setup({
         bypass,
         graphql,
         http,
+        HttpNetworkFrame,
         HttpResponse,
         passthrough,
         setupWorker,

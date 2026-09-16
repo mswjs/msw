@@ -5,7 +5,7 @@ const service = ws.link('wss://localhost:4321')
 const server = setupServer()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' })
+  server.listen({ onUnhandledFrame: 'error' })
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
@@ -48,7 +48,7 @@ Read more: https://mswjs.io/docs/websocket`,
 
     expect(errorListener).toHaveBeenCalledOnce()
 
-    // Must forward the original `onUnhandledRequest` error as the
+    // Must forward the original `onUnhandledFrame` error as the
     // `cause` property of the error event emitted on the connection.
     const [event] = errorListener.mock.calls[0]
     expect(event).toBeInstanceOf(Event)

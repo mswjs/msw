@@ -5,7 +5,7 @@ const service = ws.link('wss://localhost:4321')
 const server = setupServer()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'warn' })
+  server.listen({ onUnhandledFrame: 'warn' })
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 

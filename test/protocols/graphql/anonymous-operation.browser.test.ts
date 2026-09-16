@@ -18,7 +18,7 @@ test('does not warn on anonymous GraphQL operation when no GraphQL handlers are 
   }
 
   await network.stop()
-  await network.start({ onUnhandledRequest: 'warn' })
+  await network.start({ onUnhandledFrame: 'warn' })
 
   const endpointUrl = testServer.http.url('/anonymous/graphql')
   const response = await query(endpointUrl, {

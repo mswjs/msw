@@ -1,3 +1,4 @@
+import { HttpNetworkFrame } from 'msw/experimental'
 import { test, expect } from '../../../../setup/vitest-helpers'
 
 test('executes the default "warn" strategy in a custom callback', async ({
@@ -13,9 +14,13 @@ test('executes the default "warn" strategy in a custom callback', async ({
   await network.stop()
   const consoleSpy = spyOnConsole()
   await network.start({
-    onUnhandledRequest(request, print) {
-      console.log(`Oops, unhandled ${request.method} ${request.url}`)
-      print.warning()
+    onUnhandledFrame({ frame, defaults }) {
+      if (frame instanceof HttpNetworkFrame) {
+        const { request } = frame.data
+        console.log(`Oops, unhandled ${request.method} ${request.url}`)
+      }
+
+      defaults.warn()
     },
   })
 
@@ -46,9 +51,13 @@ test('executes the default "error" strategy in a custom callback', async ({
   await network.stop()
   const consoleSpy = spyOnConsole()
   await network.start({
-    onUnhandledRequest(request, print) {
-      console.log(`Oops, unhandled ${request.method} ${request.url}`)
-      print.error()
+    onUnhandledFrame({ frame, defaults }) {
+      if (frame instanceof HttpNetworkFrame) {
+        const { request } = frame.data
+        console.log(`Oops, unhandled ${request.method} ${request.url}`)
+      }
+
+      defaults.error()
     },
   })
 

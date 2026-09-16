@@ -5,8 +5,6 @@ import type { AnyHandler } from '#core/experimental/handlers-controller'
 import type { NetworkReadyState } from '#core/experimental/define-network'
 import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
 
-export interface ListenOptions extends SharedOptions {}
-
 export interface SetupServerCommon {
   /**
    * The current ready state of the underlying network.
@@ -18,7 +16,7 @@ export interface SetupServerCommon {
    *
    * @see {@link https://mswjs.io/docs/api/setup-server/listen `server.listen()` API reference}
    */
-  listen: (options?: PartialDeep<ListenOptions>) => void
+  listen: (options?: PartialDeep<SharedOptions>) => void
 
   /**
    * Stops the request interception by restoring all augmented modules.

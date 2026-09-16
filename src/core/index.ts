@@ -28,11 +28,6 @@ export {
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export {
-  onUnhandledRequest,
-  type UnhandledRequestStrategy,
-  type UnhandledRequestCallback,
-} from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
 export { getCleanUrlString } from '#utils/get-clean-url-string'
 

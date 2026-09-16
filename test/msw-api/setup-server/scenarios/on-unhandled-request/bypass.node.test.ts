@@ -22,7 +22,7 @@ beforeAll(async () => {
       return HttpResponse.json({ firstName: 'John' })
     }),
   )
-  server.listen({ onUnhandledRequest: 'bypass' })
+  server.listen({ onUnhandledFrame: 'bypass' })
 
   vi.spyOn(global.console, 'error').mockImplementation(() => void 0)
   vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)

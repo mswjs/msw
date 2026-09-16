@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { setupServer } from 'msw/node'
 import { HttpResponse, http } from 'msw'
+import { HttpNetworkFrame } from 'msw/experimental'
 
 const server = setupServer(
   http.get('https://test.mswjs.io/user', () => {
@@ -12,7 +13,7 @@ const unhandledListener = vi.fn()
 
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: unhandledListener,
+    onUnhandledFrame: unhandledListener,
   })
 })
 
@@ -32,11 +33,12 @@ it('invokes the callback for an unhandled request', async () => {
   expect(response).toHaveProperty('status', 404)
   expect(unhandledListener).toHaveBeenCalledTimes(1)
 
-  const [request, print] = unhandledListener.mock.calls[0]
-  expect.soft(request.method).toBe('GET')
-  expect.soft(request.url).toBe('https://test.mswjs.io/')
-  expect.soft(print).toEqual({
+  const [{ frame, defaults }] = unhandledListener.mock.calls[0]
+  expect(frame).toBeInstanceOf(HttpNetworkFrame)
+  expect.soft(frame.data.request.method).toBe('GET')
+  expect.soft(frame.data.request.url).toBe('https://test.mswjs.io/')
+  expect.soft(defaults).toEqual({
+    warn: expect.any(Function),
     error: expect.any(Function),
-    warning: expect.any(Function),
   })
 })

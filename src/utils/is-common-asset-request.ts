@@ -6,11 +6,12 @@
  *
  * @example
  * import { isCommonAssetRequest } from 'msw'
+ * import { HttpNetworkFrame } from 'msw/experimental'
  *
  * await worker.start({
- *   onUnhandledRequest(request, print) {
- *     if (!isCommonAssetRequest(request)) {
- *       print.warning()
+ *   onUnhandledFrame({ frame, defaults }) {
+ *     if (frame instanceof HttpNetworkFrame && !isCommonAssetRequest(frame.data.request)) {
+ *       defaults.warn()
  *     }
  *   }
  * })

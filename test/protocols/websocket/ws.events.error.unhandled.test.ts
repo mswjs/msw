@@ -4,8 +4,8 @@ import { defineNetwork, expect } from '../../setup/vitest-helpers'
 type WebSocketErrorEvent = WebSocketNetworkFrameEventMap['websocket:error']
 
 const test = defineNetwork({
-  serverOptions: { onUnhandledRequest: 'error' },
-  workerOptions: { onUnhandledRequest: 'error' },
+  serverOptions: { onUnhandledFrame: 'error' },
+  workerOptions: { onUnhandledFrame: 'error' },
 })
 
 test('emits "websocket:error" on an unhandled connection with the "error" strategy', async ({

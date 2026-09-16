@@ -34,7 +34,7 @@ beforeAll(async () => {
       // the request is performed as-is and is still considered handled.
     }),
   )
-  server.listen({ onUnhandledRequest: 'error' })
+  server.listen({ onUnhandledFrame: 'error' })
 })
 
 beforeEach(() => {

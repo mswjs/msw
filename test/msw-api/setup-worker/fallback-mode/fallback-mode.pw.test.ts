@@ -1,26 +1,31 @@
 import type { http, HttpResponse } from 'msw'
 import type { setupWorker } from 'msw/browser'
+import type { HttpNetworkFrame } from 'msw/experimental'
 import { createTeardown } from 'fs-teardown'
 import type { Page } from '@playwright/test'
 import type { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { fromTemp } from '../../../support/utils'
 import { inlineModule, test, expect } from '../../../setup/playwright'
 
-const fallbackExample = inlineModule(({ http, HttpResponse, setupWorker }) => {
-  Object.assign(window, {
-    msw: {
-      setupWorker,
-      http,
-      HttpResponse,
-    },
-  })
-})
+const fallbackExample = inlineModule(
+  ({ http, HttpResponse, setupWorker, HttpNetworkFrame }) => {
+    Object.assign(window, {
+      msw: {
+        setupWorker,
+        http,
+        HttpResponse,
+        HttpNetworkFrame,
+      },
+    })
+  },
+)
 
 declare namespace window {
   export const msw: {
     setupWorker: typeof setupWorker
     http: typeof http
     HttpResponse: typeof HttpResponse
+    HttpNetworkFrame: typeof HttpNetworkFrame
   }
 }
 
@@ -208,11 +213,14 @@ test('invokes the custom callback on an unhandled "file://" request', async ({
   await gotoStaticPage(page, testInfo.workerIndex)
 
   await page.evaluate(async () => {
-    const { setupWorker } = window.msw
+    const { setupWorker, HttpNetworkFrame } = window.msw
     const worker = setupWorker()
     await worker.start({
-      onUnhandledRequest(request) {
-        console.log(`Oops, unhandled ${request.method} ${request.url}`)
+      onUnhandledFrame({ frame }) {
+        if (frame instanceof HttpNetworkFrame) {
+          const { request } = frame.data
+          console.log(`Oops, unhandled ${request.method} ${request.url}`)
+        }
       },
     })
   })

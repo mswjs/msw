@@ -1,13 +1,14 @@
 import { ws } from 'msw/ws'
 import { setupServer } from 'msw/node'
+import { WebSocketNetworkFrame } from 'msw/experimental'
 
 const service = ws.link('wss://localhost:4321')
 const server = setupServer()
 
-const onUnhandledRequest = vi.fn()
+const onUnhandledFrame = vi.fn()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest })
+  server.listen({ onUnhandledFrame })
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
@@ -31,16 +32,15 @@ it('calls a custom callback on an unhandled WebSocket connection', async () => {
     })
   })
 
-  expect(onUnhandledRequest).toHaveBeenCalledOnce()
+  expect(onUnhandledFrame).toHaveBeenCalledOnce()
 
-  const [request] = onUnhandledRequest.mock.calls[0]
-  expect(request).toBeInstanceOf(Request)
-  expect(request.method).toBe('GET')
-  expect(request.url).toBe('wss://localhost:4321/')
-  expect(Array.from(request.headers)).toEqual([
-    ['connection', 'upgrade'],
-    ['upgrade', 'websocket'],
-  ])
+  const [{ frame, defaults }] = onUnhandledFrame.mock.calls[0]
+  expect(frame).toBeInstanceOf(WebSocketNetworkFrame)
+  expect(frame.data.connection.client.url.href).toBe('wss://localhost:4321/')
+  expect(defaults).toEqual({
+    warn: expect.any(Function),
+    error: expect.any(Function),
+  })
 })
 
 it('does not call a custom callback for a handled WebSocket connection', async () => {
@@ -55,5 +55,5 @@ it('does not call a custom callback for a handled WebSocket connection', async (
     })
   })
 
-  expect(onUnhandledRequest).not.toHaveBeenCalled()
+  expect(onUnhandledFrame).not.toHaveBeenCalled()
 })

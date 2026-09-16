@@ -9,7 +9,7 @@ const handlers = [
 ]
 const test = defineNetwork({
   handlers,
-  workerOptions: { onUnhandledRequest: 'warn' },
+  workerOptions: { onUnhandledFrame: 'warn' },
 })
 
 test('warns on an unhandled REST API request with an absolute URL', async ({

@@ -12,7 +12,7 @@ test('bypasses an unhandled request', async ({
 
   await network.stop()
   const consoleSpy = spyOnConsole()
-  await network.start({ onUnhandledRequest: 'bypass' })
+  await network.start({ onUnhandledFrame: 'bypass' })
 
   const response = await fetch(testServer.http.url('/events/unknown-route'))
 

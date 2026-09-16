@@ -45,10 +45,6 @@ export interface StartOptions extends SharedOptions {
   findWorker?: FindWorker
 }
 
-export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
-
-export type StopHandler = () => Promise<void> | void
-
 export interface SetupWorker {
   /**
    * The current ready state of the underlying network.
@@ -60,14 +56,16 @@ export interface SetupWorker {
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()` API reference}
    */
-  start: (options?: StartOptions) => StartReturnType
+  start: (
+    options?: StartOptions,
+  ) => Promise<ServiceWorkerRegistration | undefined>
 
   /**
    * Stops requests interception for the current client.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()` API reference}
    */
-  stop: StopHandler
+  stop: () => Promise<void> | void
 
   /**
    * Prepends given request handlers to the list of existing handlers.

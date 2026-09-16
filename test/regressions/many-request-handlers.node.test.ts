@@ -71,7 +71,7 @@ describe('http handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning for onUnhandledRequest', async () => {
+  it('does not print a memory leak warning for onUnhandledFrame', async () => {
     const httpResponse = await fetch(
       `${httpServer.http.url(`/resource/not-defined`)}`,
       {
@@ -80,7 +80,7 @@ describe('http handlers', () => {
       },
     )
     // One clone is the handler lookup clone, shared (cached) across all handlers.
-    // One clone is `onUnhandledRequest` reading the request body to print.
+    // One clone is `onUnhandledFrame` reading the request body to print.
     // Passthrough performs no clone: the raw request bytes are replayed at the socket level.
     expect(requestCloneSpy).toHaveBeenCalledTimes(2)
     expect(httpResponse.status).toBe(500)
@@ -122,7 +122,7 @@ describe('graphql handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning for onUnhandledRequest', async () => {
+  it('does not print a memory leak warning for onUnhandledFrame', async () => {
     const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
       headers: {

@@ -3,7 +3,7 @@ import type {
   DefaultBodyType,
   JsonBodyType,
 } from '#core/handlers/RequestHandler'
-import type { NoInfer } from '#core/typeUtils'
+import type { TransparentNoInfer } from '#core/typeUtils'
 import {
   decorateResponse,
   normalizeResponseInit,
@@ -49,7 +49,10 @@ export class HttpResponse<
 > extends FetchResponse {
   readonly [bodyType]: BodyType = null as any
 
-  constructor(body?: NoInfer<BodyType> | null, init?: HttpResponseInit) {
+  constructor(
+    body?: TransparentNoInfer<BodyType> | null,
+    init?: HttpResponseInit,
+  ) {
     const responseInit = normalizeResponseInit(init)
     super(body as BodyInit, responseInit)
     decorateResponse(this, responseInit)
@@ -66,7 +69,7 @@ export class HttpResponse<
    * HttpResponse.text('Error', { status: 500 })
    */
   static text<BodyType extends string>(
-    body?: NoInfer<BodyType> | null,
+    body?: TransparentNoInfer<BodyType> | null,
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)
@@ -105,7 +108,7 @@ export class HttpResponse<
    * HttpResponse.json({ error: 'Not Authorized' }, { status: 401 })
    */
   static json<BodyType extends JsonBodyType>(
-    body?: NoInfer<BodyType> | null | undefined,
+    body?: TransparentNoInfer<BodyType> | null | undefined,
     init?: HttpResponseInit,
   ): HttpResponse<BodyType> {
     const responseInit = normalizeResponseInit(init)

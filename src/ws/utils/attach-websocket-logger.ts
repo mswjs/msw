@@ -136,7 +136,7 @@ export function attachWebSocketLogger(
  * that intercepted this connection. This helps you see
  * what handlers observe this connection.
  */
-export function logConnectionOpen(client: WebSocketClientConnection) {
+function logConnectionOpen(client: WebSocketClientConnection) {
   const publicUrl = toPublicUrl(client.url)
 
   console.groupCollapsed(

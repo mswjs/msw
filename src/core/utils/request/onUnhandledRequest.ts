@@ -1,6 +1,6 @@
 import { toPublicUrl } from './toPublicUrl'
 import { InternalError, devUtils } from '../internal/devUtils'
-import { isCommonAssetRequest } from '../../isCommonAssetRequest'
+import { isCommonAssetRequest } from '#utils/is-common-asset-request'
 
 interface UnhandledRequestPrint {
   warning: () => void

@@ -1,7 +1,7 @@
 import { http } from '#http/http'
 import { graphql } from '../../../graphql'
 import { ws } from '../../../ws'
-import { bypass } from '../../bypass'
+import { bypass } from '#utils/bypass'
 import type { HttpNetworkFrameEventMap } from './http-frame'
 import { HttpNetworkFrame } from './http-frame'
 import { InMemoryHandlersController } from '../../experimental/handlers-controller'

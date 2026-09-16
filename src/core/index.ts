@@ -38,7 +38,7 @@ export {
   type UnhandledRequestCallback,
 } from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
-export { cleanUrl } from './utils/url/cleanUrl'
+export { getCleanUrlString } from '#utils/get-clean-url-string'
 
 /**
  * Type definitions.
@@ -78,10 +78,10 @@ export {
   type StrictRequest,
   type StrictResponse,
 } from '#http/http-response'
-export { delay, type DelayMode } from './delay'
-export { bypass } from './bypass'
-export { passthrough } from './passthrough'
-export { isCommonAssetRequest } from './isCommonAssetRequest'
+export { delay, type DelayMode } from '#utils/delay'
+export { bypass } from '#utils/bypass'
+export { passthrough } from '#utils/passthrough'
+export { isCommonAssetRequest } from '#utils/is-common-asset-request'
 
 // Validate environmental globals before executing any code.
 // This ensures that the library gives user-friendly errors

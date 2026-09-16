@@ -5,7 +5,8 @@
     "./http/**/*.ts",
     "./graphql/**/*.ts",
     "./ws/**/*.ts",
-    "./sse/**/*.ts"
+    "./sse/**/*.ts",
+    "./utils/**/*.ts"
   ],
   "files": [],
   "compilerOptions": {

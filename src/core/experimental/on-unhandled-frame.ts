@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { isCommonAssetRequest } from '../isCommonAssetRequest'
+import { isCommonAssetRequest } from '#utils/is-common-asset-request'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
 import { HttpNetworkFrame } from './frames/http-frame'
 import type { AnyNetworkFrame } from './frames/network-frame'

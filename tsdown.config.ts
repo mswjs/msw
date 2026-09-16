@@ -19,6 +19,7 @@ const mswHttp = /#http(\/.+)?$/
 const mswGraphql = /#graphql(\/.+)?$/
 const mswWs = /#ws(\/.+)?$/
 const mswSse = /#sse(\/.+)?$/
+const mswUtils = /#utils(\/.+)?$/
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
 const commonConfig = {
@@ -39,7 +40,14 @@ const coreConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswHttp, mswGraphql, mswWs, mswSse, ecosystemDependencies],
+    neverBundle: [
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      mswUtils,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -67,6 +75,7 @@ const graphqlConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -96,6 +105,7 @@ const httpConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -125,6 +135,7 @@ const wsConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -154,12 +165,43 @@ const sseConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
   },
   format: ['esm'],
   outDir: './lib/sse',
+  unbundle: true,
+  sourcemap: true,
+  dts: true,
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
+  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
+}
+
+const utilsConfig: UserConfig = {
+  ...commonConfig,
+  name: 'utils',
+  platform: 'neutral',
+  entry: glob.sync('./src/utils/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
+  deps: {
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      mswUtils,
+      ecosystemDependencies,
+    ],
+    onlyBundle: false,
+  },
+  format: ['esm'],
+  outDir: './lib/utils',
   unbundle: true,
   sourcemap: true,
   dts: true,
@@ -186,6 +228,7 @@ const nodeConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -214,6 +257,7 @@ const browserConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     alwaysBundle: Object.keys(packageJson.dependencies).filter(
@@ -277,6 +321,7 @@ const reactNativeConfig: UserConfig = {
       mswGraphql,
       mswWs,
       mswSse,
+      mswUtils,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -334,6 +379,7 @@ export default defineConfig([
   graphqlConfig,
   wsConfig,
   sseConfig,
+  utilsConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,

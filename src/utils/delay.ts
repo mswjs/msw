@@ -1,5 +1,5 @@
 import { isNodeProcess } from 'is-node-process'
-import { hasRefCounted } from './utils/internal/hasRefCounted'
+import { hasRefCounted } from '#core/utils/internal/hasRefCounted'
 
 const SET_TIMEOUT_MAX_ALLOWED_INT = 2147483647
 const MIN_SERVER_RESPONSE_TIME = 100

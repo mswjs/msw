@@ -8,7 +8,7 @@ import {
 } from '#http/http-handler'
 import type { ResponseResolutionContext } from '#core/utils/executeHandlers'
 import type { Path, PathParams } from '#core/utils/matching/matchRequestUrl'
-import { delay } from '#core/delay'
+import { delay } from '#utils/delay'
 import { getTimestamp } from '#core/utils/logging/getTimestamp'
 import { devUtils } from '#core/utils/internal/devUtils'
 import { colors } from '#core/utils/logging/colors'

@@ -86,7 +86,7 @@ it('resolves a matching connection', async () => {
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -121,7 +121,7 @@ it('resolves a connection when there are no handlers', async () => {
   )
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -159,7 +159,7 @@ it('resolves a non-matching connection', async () => {
   )
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -199,7 +199,7 @@ it('returns null and prints the error on unhandled exception', async () => {
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -257,7 +257,7 @@ it('does not print an unhandled exception if the "unhandledException" listener i
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),

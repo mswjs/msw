@@ -23,7 +23,11 @@ export interface WebSocketNetworkFrameOptions {
 }
 
 export type WebSocketNetworkFrameEventMap = {
-  connection: WebSocketConnectionEvent
+  /**
+   * Emitted when a WebSocket connection is intercepted,
+   * before any handlers are resolved against it.
+   */
+  'websocket:connection': WebSocketConnectionEvent
   'graphql:subscription': GraphQLSubscriptionEvent
   unhandledException: UnhandledWebSocketExceptionEvent
 }
@@ -96,7 +100,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     const { connection } = this.data
 
     this.events.emit(
-      new WebSocketConnectionEvent('connection', {
+      new WebSocketConnectionEvent('websocket:connection', {
         url: connection.client.url,
         protocols: connection.info.protocols,
       }),
@@ -124,7 +128,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
          */
         events: this.events,
         /**
-         * @note Do not emit the "connection" event when running the handler.
+         * @note Do not emit the handler's "connection" event when running the handler.
          * Use the run only to get the resolved connection object.
          */
         [kAutoConnect]: false,
@@ -137,7 +141,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       hasMatchingHandlers = true
 
       /**
-       * @note Attach the WebSocket logger *before* emitting the "connection" event.
+       * @note Attach the WebSocket logger *before* emitting the handler's "connection" event.
        * Connection event listeners may perform actions that should be reflected in the logs
        * (e.g. closing the connection immediately). If the logger is attached after the connection,
        * those actions cannot be properly logged.

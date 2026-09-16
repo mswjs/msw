@@ -1,6 +1,6 @@
 import { TypedEvent } from 'rettime'
 import type { GraphQLSubscriptionEvent } from '#graphql/graphql-subscription-event'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketConnectionEventData } from '@mswjs/interceptors/WebSocket'
 import {
   kConnect,
   kAutoConnect,
@@ -19,7 +19,7 @@ import type { HandlersController } from '../handlers-controller'
 import type { AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
-  connection: WebSocketConnectionData
+  connection: WebSocketConnectionEventData
 }
 
 export type WebSocketNetworkFrameEventMap = {
@@ -80,7 +80,7 @@ class WebSocketErrorEvent<
 export abstract class WebSocketNetworkFrame extends NetworkFrame<
   'ws',
   {
-    connection: WebSocketConnectionData
+    connection: WebSocketConnectionEventData
   },
   WebSocketNetworkFrameEventMap
 > {

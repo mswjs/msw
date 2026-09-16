@@ -1,8 +1,9 @@
 import { Emitter, TypedEvent } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
+  WebSocketConnectionInfo,
+  WebSocketConnectionEventData,
   WebSocketClientConnectionProtocol,
-  WebSocketConnectionData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
 /**
@@ -31,7 +32,7 @@ export type WebSocketHandlerEventMap = {
 export interface WebSocketHandlerConnection {
   client: WebSocketClientConnectionProtocol
   server: WebSocketServerConnectionProtocol
-  info: WebSocketConnectionData['info']
+  info: WebSocketConnectionInfo
   params: PathParams
 }
 
@@ -41,7 +42,7 @@ export class WebSocketConnectionEvent
 {
   public readonly client: WebSocketClientConnectionProtocol
   public readonly server: WebSocketServerConnectionProtocol
-  public readonly info: WebSocketConnectionData['info']
+  public readonly info: WebSocketConnectionInfo
   public readonly params: PathParams
 
   constructor(connection: WebSocketHandlerConnection) {
@@ -138,7 +139,7 @@ export class WebSocketHandler extends Handler {
   }
 
   public async run(
-    connection: WebSocketConnectionData,
+    connection: WebSocketConnectionEventData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
     const parsedResult = this.#match(connection.client.url, resolutionContext)
@@ -223,7 +224,7 @@ export class WebSocketHandler extends Handler {
     return this[kEmitter].emit(new WebSocketConnectionEvent(connection))
   }
 
-  public log(connection: WebSocketConnectionData): () => void {
+  public log(connection: WebSocketConnectionEventData): () => void {
     return attachWebSocketLogger(connection)
   }
 

@@ -1,6 +1,6 @@
 import type {
   WebSocketClientConnection,
-  WebSocketConnectionData,
+  WebSocketConnectionEventData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
 import { devUtils } from '#core/utils/internal/devUtils'
@@ -11,7 +11,7 @@ import { getPublicData } from './get-public-data'
 import { colors } from '#core/utils/logging/colors'
 
 export function attachWebSocketLogger(
-  connection: WebSocketConnectionData,
+  connection: WebSocketConnectionEventData,
 ): () => void {
   const { client, server } = connection
   const controller = new AbortController()

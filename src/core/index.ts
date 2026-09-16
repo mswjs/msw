@@ -19,7 +19,7 @@ export {
   WebSocketConnectionEvent,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
-} from './handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 
 /* Server-Sent Events */
 export {

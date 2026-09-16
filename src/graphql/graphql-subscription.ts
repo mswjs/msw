@@ -15,7 +15,7 @@ import {
   kConnect,
   type WebSocketHandlerConnection,
   type WebSocketResolutionContext,
-} from '#core/handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 import { GraphQLSubscriptionEvent } from './graphql-subscription-event'
 import {
   matchRequestUrl,

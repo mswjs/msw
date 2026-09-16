@@ -1,4 +1,4 @@
-import { WebSocketHandler } from './WebSocketHandler'
+import { WebSocketHandler } from './websocket-handler'
 
 describe('parse', () => {
   it('matches an exact url', () => {

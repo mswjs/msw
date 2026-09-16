@@ -8,7 +8,7 @@ import {
   WebSocketHandler,
   kEmitter,
   type WebSocketHandlerEventMap,
-} from '#core/handlers/WebSocketHandler'
+} from './websocket-handler'
 import { hasRefCounted } from '#core/utils/internal/hasRefCounted'
 import {
   type Path,

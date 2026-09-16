@@ -1,6 +1,6 @@
 import type { AnyHandler } from '../../experimental/handlers-controller'
 import type { RequestHandler } from '../../handlers/RequestHandler'
-import type { WebSocketHandler } from '../../handlers/WebSocketHandler'
+import type { WebSocketHandler } from '#ws/websocket-handler'
 import { isObject } from './isObject'
 
 /**

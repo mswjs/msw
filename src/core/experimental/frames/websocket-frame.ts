@@ -5,7 +5,7 @@ import {
   kConnect,
   kAutoConnect,
   type WebSocketHandler,
-} from '../../handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 import {
   NetworkFrame,
   type NetworkFrameResolutionContext,

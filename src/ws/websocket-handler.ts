@@ -9,16 +9,16 @@ import type {
  * @note A type-only import to prevent a runtime module cycle
  * (the frame module imports this handler at runtime).
  */
-import type { WebSocketNetworkFrameEventMap } from '../experimental/frames/websocket-frame'
+import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import {
   type Match,
   type Path,
   type PathParams,
   matchRequestUrl,
-} from '../utils/matching/matchRequestUrl'
-import { Handler } from './Handler'
-import { getCallFrame } from '../utils/internal/getCallFrame'
-import { attachWebSocketLogger } from '#ws/utils/attach-websocket-logger'
+} from '#core/utils/matching/matchRequestUrl'
+import { Handler } from '#core/handlers/Handler'
+import { getCallFrame } from '#core/utils/internal/getCallFrame'
+import { attachWebSocketLogger } from './utils/attach-websocket-logger'
 
 type WebSocketHandlerParsedResult = {
   match: Match

@@ -74,7 +74,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   #listenerController?: AbortController
   #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
-  #stoppedAt?: number
 
   public workerPromise: Promise<[ServiceWorker, ServiceWorkerRegistration]>
   #workerResolvers: PromiseWithResolvers<
@@ -101,24 +100,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   public async enable(): Promise<ServiceWorkerRegistration> {
-    /**
-     * @note The source is considered already running if the worker has been
-     * resolved AND `stop()` has not been called since. `workerPromise` is NOT
-     * reset on `disable()` so that the channel's `getWorker()` can keep
-     * resolving to the registered SW for post-stop passthrough replies.
-     */
-    if (
-      this.#workerState === 'fulfilled' &&
-      typeof this.#stoppedAt == 'undefined'
-    ) {
-      devUtils.warn(
-        'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
-      )
-
-      return this.workerPromise.then(([, registration]) => registration)
-    }
-
-    this.#stoppedAt = undefined
     this.#channel.removeAllListeners()
     this.#frames.clear()
 
@@ -170,16 +151,6 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
      * is a bit special since it might process in-flight requests that have been performed
      * after it's been disabled.
      */
-
-    if (typeof this.#stoppedAt !== 'undefined') {
-      devUtils.warn(
-        `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
-      )
-
-      return
-    }
-
-    this.#stoppedAt = Date.now()
 
     this.#listenerController?.abort()
     this.#listenerController = undefined

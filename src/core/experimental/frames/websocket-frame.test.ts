@@ -1,3 +1,4 @@
+import { CloseEvent } from '@mswjs/interceptors/WebSocket'
 import { http } from '#http/http'
 import { graphql } from '../../../graphql'
 import { ws } from '../../../ws'

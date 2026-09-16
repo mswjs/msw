@@ -80,6 +80,14 @@ it('annotates event listener argument (node)', () => {
       response: Response
     }>()
   })
+
+  server.events.on('websocket:error', (event) => {
+    expectTypeOf(event).toExtend<{
+      url: URL
+      protocols: string | Array<string> | undefined
+      error: unknown
+    }>()
+  })
 })
 
 it('annotates event listener argument (browser)', () => {
@@ -110,6 +118,14 @@ it('annotates event listener argument (browser)', () => {
       request: Request
       requestId: string
       response: Response
+    }>()
+  })
+
+  worker.events.on('websocket:error', (event) => {
+    expectTypeOf(event).toExtend<{
+      url: URL
+      protocols: string | Array<string> | undefined
+      error: unknown
     }>()
   })
 })

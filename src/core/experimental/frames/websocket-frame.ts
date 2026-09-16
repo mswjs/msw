@@ -28,8 +28,14 @@ export type WebSocketNetworkFrameEventMap = {
    * before any handlers are resolved against it.
    */
   'websocket:connection': WebSocketConnectionEvent
+  /**
+   * Emitted when the WebSocket connection errors.
+   * This includes initial connection errors as well as runtime errors
+   * after the connection has been established.
+   */
+  'websocket:error': WebSocketErrorEvent
   'graphql:subscription': GraphQLSubscriptionEvent
-  unhandledException: UnhandledWebSocketExceptionEvent
+  unhandledException: WebSocketErrorEvent
 }
 
 class WebSocketConnectionEvent<
@@ -50,7 +56,7 @@ class WebSocketConnectionEvent<
   }
 }
 
-class UnhandledWebSocketExceptionEvent<
+class WebSocketErrorEvent<
   DataType extends {
     url: URL
     protocols: string | Array<string> | undefined
@@ -62,15 +68,11 @@ class UnhandledWebSocketExceptionEvent<
   },
   ReturnType = void,
   EventType extends string = string,
-> extends TypedEvent<DataType, ReturnType, EventType> {
-  public readonly url: URL
-  public readonly protocols: string | Array<string> | undefined
+> extends WebSocketConnectionEvent<DataType, ReturnType, EventType> {
   public readonly error: unknown
 
   constructor(type: EventType, data: DataType) {
-    super(...([type, {}] as any))
-    this.url = data.url
-    this.protocols = data.protocols
+    super(type, data)
     this.error = data.error
   }
 }
@@ -104,6 +106,25 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
         url: connection.client.url,
         protocols: connection.info.protocols,
       }),
+    )
+
+    const handleSocketError = (event: Event) => {
+      this.events.emit(
+        new WebSocketErrorEvent('websocket:error', {
+          url: connection.client.url,
+          protocols: connection.info.protocols,
+          error: getErrorFromEvent(event),
+        }),
+      )
+    }
+
+    connection.client.socket.addEventListener('error', handleSocketError)
+    connection.client.socket.addEventListener(
+      'close',
+      () => {
+        connection.client.socket.removeEventListener('error', handleSocketError)
+      },
+      { once: true },
     )
 
     // No WebSocket handlers defined.
@@ -157,7 +178,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       } catch (error) {
         if (
           !this.events.emit(
-            new UnhandledWebSocketExceptionEvent('unhandledException', {
+            new WebSocketErrorEvent('unhandledException', {
               error,
               url: connection.client.url,
               protocols: connection.info.protocols,
@@ -198,4 +219,21 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
 
     return `intercepted a WebSocket connection without a matching event handler:${details}If you still wish to intercept this unhandled connection, please create an event handler for it.\nRead more: https://mswjs.io/docs/websocket`
   }
+}
+
+/**
+ * Extract the error from the given "error" event, if any.
+ * Supports both the `ErrorEvent.error` property and the `cause`
+ * property that MSW sets when erroring the connection itself.
+ */
+function getErrorFromEvent(event: Event): unknown {
+  if ('error' in event && event.error != null) {
+    return event.error
+  }
+
+  if ('cause' in event && event.cause != null) {
+    return event.cause
+  }
+
+  return undefined
 }

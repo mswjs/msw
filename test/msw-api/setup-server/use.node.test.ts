@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { type SetupServer, setupServer } from 'msw/node'
 import type { RequestHandler as ExpressRequestHandler } from 'express'

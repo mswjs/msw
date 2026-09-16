@@ -1,6 +1,4 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'

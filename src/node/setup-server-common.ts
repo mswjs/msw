@@ -1,4 +1,9 @@
-import type { NetworkApi } from '#core/experimental/define-network'
+import { invariant } from 'outvariant'
+import {
+  NetworkReadyState,
+  type NetworkApi,
+} from '#core/experimental/define-network'
+import { devUtils } from '#core/utils/internal/devUtils'
 import type { SetupServerCommon } from './glossary'
 
 /**
@@ -14,6 +19,13 @@ export function defineSetupServerApi(
     },
     events: network.events,
     listen(options) {
+      invariant(
+        network.readyState === NetworkReadyState.DISABLED,
+        devUtils.formatMessage(
+          'Failed to call "server.listen()": the server is already listening. Remove the redundant "server.listen()" call.',
+        ),
+      )
+
       network.configure({
         onUnhandledFrame: options?.onUnhandledFrame ?? 'warn',
       })

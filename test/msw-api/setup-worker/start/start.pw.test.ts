@@ -120,7 +120,7 @@ test('prints the start message when the worker has been registered', async ({
   )
 })
 
-test('prints a warning if "worker.start()" is called multiple times', async ({
+test('throws if "worker.start()" is called multiple times', async ({
   loadExample,
   spyOnConsole,
   page,
@@ -132,20 +132,24 @@ test('prints a warning if "worker.start()" is called multiple times', async ({
     return typeof window.msw !== 'undefined'
   })
 
-  await page.evaluate(async () => {
+  const errorMessage = await page.evaluate(async () => {
     await window.msw.startWorker()
-    await window.msw.startWorker()
+
+    return window.msw.startWorker().then(
+      () => null,
+      (error: Error) => error.message,
+    )
   })
 
-  // The activation message ise printed only once.
+  expect(errorMessage).toBe(
+    '[MSW] Failed to call "worker.start()": the worker is already started. Remove the redundant "worker.start()" call.',
+  )
+
+  // The activation message is printed only once.
   expect(consoleSpy.get('startGroupCollapsed')).toEqual([
     '[MSW] Mocking enabled.',
   ])
-
-  // The warning is printed about multiple calls of "worker.start()".
-  expect(consoleSpy.get('warning')).toEqual([
-    `[MSW] Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`,
-  ])
+  expect(consoleSpy.get('warning')).toBeUndefined()
 })
 
 test('does not warn on a redundant start call when restarting the worker', async ({

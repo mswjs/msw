@@ -1,7 +1,10 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import { defineNetwork } from '#core/experimental/define-network'
+import {
+  defineNetwork,
+  NetworkReadyState,
+} from '#core/experimental/define-network'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { devUtils } from '#core/utils/internal/devUtils'
@@ -38,6 +41,13 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       return network.readyState
     },
     async start(options) {
+      invariant(
+        network.readyState === NetworkReadyState.DISABLED,
+        devUtils.formatMessage(
+          'Failed to call "worker.start()": the worker is already started. Remove the redundant "worker.start()" call.',
+        ),
+      )
+
       const httpSource = supportsServiceWorker()
         ? await ServiceWorkerSource.from({
             serviceWorker: {

@@ -305,4 +305,7 @@ test('stops emitting events once the server is stopped', async () => {
   await fetch(httpServer.http.url('/user'))
 
   expect(listener).not.toHaveBeenCalled()
+
+  // Restore the server so the "afterAll" hook can close it.
+  server.listen()
 })

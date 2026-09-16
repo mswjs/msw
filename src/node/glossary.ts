@@ -2,11 +2,17 @@ import type { PartialDeep } from 'type-fest'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
+import type { NetworkReadyState } from '#core/experimental/define-network'
 import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
 
 export interface ListenOptions extends SharedOptions {}
 
 export interface SetupServerCommon {
+  /**
+   * The current ready state of the underlying network.
+   */
+  readonly readyState: NetworkReadyState
+
   /**
    * Starts the request interception based on the previously provided request handlers.
    *

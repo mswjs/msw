@@ -48,6 +48,13 @@ export function setupServer(...handlers: Array<AnyHandler>): SetupServer {
 
   return {
     ...commonApi,
+    /**
+     * @note Spreading evaluates the "readyState" getter once.
+     * Redefine it so the property stays live.
+     */
+    get readyState() {
+      return network.readyState
+    },
     boundary: handlersController.boundary.bind(handlersController),
   }
 }

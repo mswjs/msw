@@ -1,5 +1,11 @@
 import { expect, inject, test as base } from 'vitest'
-import { startNetwork, stopNetwork, type NetworkDefinition } from './network'
+import {
+  enableNetwork,
+  getNetworkDefinition,
+  startNetwork,
+  stopNetwork,
+  type NetworkDefinition,
+} from './network'
 
 interface TestServerUrls {
   http: string
@@ -57,7 +63,21 @@ export function defineNetwork(definition: NetworkDefinition = {}) {
     },
   )
 
-  test.beforeEach(({ network }) => {
+  test.beforeEach(async ({ network }) => {
+    /**
+     * @note Read the definition from the network, not from this closure.
+     * The module-level `test` below registers this hook too, and hooks
+     * run for every test in the file, including those created by another
+     * `defineNetwork()` call with a different definition.
+     */
+    const networkDefinition = getNetworkDefinition(network)
+
+    // A previous test may have stopped the network. Bring it back
+    // so every test starts from the state the file was defined with.
+    if (networkDefinition.enabled !== false && network.readyState === 0) {
+      await enableNetwork(network, networkDefinition)
+    }
+
     network.resetHandlers()
   })
 

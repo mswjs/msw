@@ -1,10 +1,7 @@
 import { invariant } from 'outvariant'
 import { isNodeProcess } from 'is-node-process'
 import { WebSocketInterceptor } from '@mswjs/interceptors/WebSocket'
-import {
-  defineNetwork,
-  NetworkReadyState,
-} from '#core/experimental/define-network'
+import { defineNetwork } from '#core/experimental/define-network'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
@@ -38,18 +35,10 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
   })
 
   return {
+    get readyState() {
+      return network.readyState
+    },
     async start(options) {
-      /**
-       * @todo @fixme
-       * This is kept for backward-compatibility reasons. We don't really need this check anymore.
-       */
-      if (network.readyState === NetworkReadyState.ENABLED) {
-        devUtils.warn(
-          'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
-        )
-        return
-      }
-
       const httpSource = supportsServiceWorker()
         ? await ServiceWorkerSource.from({
             serviceWorker: {
@@ -87,13 +76,6 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
       }
     },
     async stop() {
-      if (network.readyState === NetworkReadyState.DISABLED) {
-        devUtils.warn(
-          `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
-        )
-        return
-      }
-
       await network.disable()
       window.postMessage({ type: 'msw/worker:stop' })
     },

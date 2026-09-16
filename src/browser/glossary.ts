@@ -2,6 +2,7 @@ import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
+import type { NetworkReadyState } from '#core/experimental/define-network'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
@@ -49,6 +50,11 @@ export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
 export type StopHandler = () => Promise<void> | void
 
 export interface SetupWorker {
+  /**
+   * The current ready state of the underlying network.
+   */
+  readonly readyState: NetworkReadyState
+
   /**
    * Registers and activates the mock Service Worker.
    *

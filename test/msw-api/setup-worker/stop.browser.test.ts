@@ -33,7 +33,7 @@ test('disables mocking when the worker is stopped', async ({
   await network.start({ quiet: true })
 })
 
-test('prints a warning on multiple worker.stop() calls', async ({
+test('throws on multiple worker.stop() calls', async ({
   network,
   spyOnConsole,
 }) => {
@@ -49,12 +49,10 @@ test('prints a warning on multiple worker.stop() calls', async ({
   }
 
   expect(consoleSpy.get('log')?.filter(isStopMessage)).toHaveLength(1)
-  expect(consoleSpy.get('warning')).toBeUndefined()
 
-  await network.stop()
+  await expect(network.stop()).rejects.toThrow(
+    'Failed to call "disable" on the network: already disabled',
+  )
 
   expect(consoleSpy.get('log')?.filter(isStopMessage)).toHaveLength(1)
-  expect(consoleSpy.get('warning')).toEqual([
-    `[MSW] Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
-  ])
 })

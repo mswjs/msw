@@ -1,7 +1,4 @@
-import {
-  NetworkReadyState,
-  type NetworkApi,
-} from '#core/experimental/define-network'
+import type { NetworkApi } from '#core/experimental/define-network'
 import { fromLegacyOnUnhandledRequest } from '#core/experimental/compat'
 import type { SetupServerCommon } from './glossary'
 
@@ -13,6 +10,9 @@ export function defineSetupServerApi(
   network: NetworkApi<any>,
 ): SetupServerCommon {
   return {
+    get readyState() {
+      return network.readyState
+    },
     events: network.events,
     listen(options) {
       network.configure({
@@ -28,13 +28,6 @@ export function defineSetupServerApi(
     restoreHandlers: network.restoreHandlers.bind(network),
     listHandlers: network.listHandlers.bind(network),
     close() {
-      /**
-       * @note Ignore closing after closed for backwards compatibility.
-       */
-      if (network.readyState === NetworkReadyState.DISABLED) {
-        return
-      }
-
       network.disable()
     },
   }

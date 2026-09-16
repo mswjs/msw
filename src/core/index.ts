@@ -1,5 +1,3 @@
-import { checkGlobals } from './utils/internal/checkGlobals'
-
 export { SetupApi } from './experimental/setup-api'
 
 /* HTTP handlers */
@@ -82,9 +80,3 @@ export { delay, type DelayMode } from '#utils/delay'
 export { bypass } from '#utils/bypass'
 export { passthrough } from '#utils/passthrough'
 export { isCommonAssetRequest } from '#utils/is-common-asset-request'
-
-// Validate environmental globals before executing any code.
-// This ensures that the library gives user-friendly errors
-// when ran in the environments that require additional polyfills
-// from the end user.
-checkGlobals()

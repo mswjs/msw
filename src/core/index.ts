@@ -28,7 +28,7 @@ export {
   type ServerSentEventResolver,
   type ServerSentEventResolverExtras,
   type ServerSentEventMessage,
-} from './sse'
+} from '#sse/sse'
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'

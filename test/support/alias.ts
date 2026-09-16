@@ -14,5 +14,6 @@ export const mswExports = {
   'msw/browser': fromRoot('./lib/browser/index.js'),
   'msw/graphql': fromRoot('./lib/graphql/index.js'),
   'msw/ws': fromRoot('./lib/ws/index.js'),
+  'msw/sse': fromRoot('./lib/sse/index.js'),
   msw: fromRoot('./lib/core/index.js'),
 }

@@ -47,6 +47,10 @@
       "types": "./lib/ws/index.d.ts",
       "default": "./lib/ws/index.js"
     },
+    "./sse": {
+      "types": "./lib/sse/index.d.ts",
+      "default": "./lib/sse/index.js"
+    },
     "./experimental": {
       "types": "./lib/core/experimental/index.d.ts",
       "default": "./lib/core/experimental/index.js"
@@ -62,7 +66,9 @@
     "#graphql": "./src/graphql/index.ts",
     "#graphql/*": "./src/graphql/*.ts",
     "#ws": "./src/ws/index.ts",
-    "#ws/*": "./src/ws/*.ts"
+    "#ws/*": "./src/ws/*.ts",
+    "#sse": "./src/sse/index.ts",
+    "#sse/*": "./src/sse/*.ts"
   },
   "bin": {
     "msw": "cli/index.js"

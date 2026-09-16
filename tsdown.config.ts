@@ -18,6 +18,7 @@ const mswCore = /#core(\/.+)?$/
 const mswHttp = /#http(\/.+)?$/
 const mswGraphql = /#graphql(\/.+)?$/
 const mswWs = /#ws(\/.+)?$/
+const mswSse = /#sse(\/.+)?$/
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
 const commonConfig = {
@@ -38,7 +39,7 @@ const coreConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [mswHttp, mswGraphql, mswWs, mswSse, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -60,7 +61,14 @@ const graphqlConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -82,7 +90,14 @@ const httpConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -104,11 +119,47 @@ const wsConfig: UserConfig = {
     dotRelative: true,
   }),
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm'],
   outDir: './lib/ws',
+  unbundle: true,
+  sourcemap: true,
+  dts: true,
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
+  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
+}
+
+const sseConfig: UserConfig = {
+  ...commonConfig,
+  name: 'sse',
+  platform: 'neutral',
+  entry: glob.sync('./src/sse/**/*.ts', {
+    ignore: '**/*.test.ts',
+    posix: true,
+    dotRelative: true,
+  }),
+  deps: {
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
+    onlyBundle: false,
+  },
+  format: ['esm'],
+  outDir: './lib/sse',
   unbundle: true,
   sourcemap: true,
   dts: true,
@@ -129,7 +180,14 @@ const nodeConfig: UserConfig = {
     },
   },
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
     onlyBundle: false,
   },
   format: ['esm'],
@@ -150,7 +208,14 @@ const browserConfig: UserConfig = {
   platform: 'browser',
   entry: ['./src/browser/index.ts'],
   deps: {
-    neverBundle: [mswCore, mswHttp, mswGraphql, mswWs, ecosystemDependencies],
+    neverBundle: [
+      mswCore,
+      mswHttp,
+      mswGraphql,
+      mswWs,
+      mswSse,
+      ecosystemDependencies,
+    ],
     alwaysBundle: Object.keys(packageJson.dependencies).filter(
       (packageName) => {
         return !ecosystemDependencies.test(packageName)
@@ -211,6 +276,7 @@ const reactNativeConfig: UserConfig = {
       mswHttp,
       mswGraphql,
       mswWs,
+      mswSse,
       ecosystemDependencies,
     ],
     onlyBundle: false,
@@ -267,6 +333,7 @@ export default defineConfig([
   httpConfig,
   graphqlConfig,
   wsConfig,
+  sseConfig,
   nodeConfig,
   reactNativeConfig,
   browserConfig,

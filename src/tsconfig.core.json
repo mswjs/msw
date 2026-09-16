@@ -4,7 +4,8 @@
     "./core/**/*.ts",
     "./http/**/*.ts",
     "./graphql/**/*.ts",
-    "./ws/**/*.ts"
+    "./ws/**/*.ts",
+    "./sse/**/*.ts"
   ],
   "files": [],
   "compilerOptions": {

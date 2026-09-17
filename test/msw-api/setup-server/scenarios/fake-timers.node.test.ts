@@ -6,15 +6,6 @@ const SYSTEM_TIME = new Date('2024-01-01T00:00:00.000Z')
 
 const server = setupServer()
 
-/**
- * @note Measure real elapsed time via `process.hrtime`, which fake timers
- * never mock. The tests must not advance the fake clock manually.
- */
-function measureRealTime(): () => number {
-  const start = process.hrtime.bigint()
-  return () => Number(process.hrtime.bigint() - start) / 1_000_000
-}
-
 beforeAll(() => {
   server.listen()
 })
@@ -33,7 +24,7 @@ afterAll(() => {
   server.close()
 })
 
-test('supports fake timers without any delay in the handlers', async () => {
+it('supports fake timers without any delay in the handlers', async () => {
   server.use(
     http.get('https://test.mswjs.io/pull', () => {
       return HttpResponse.json({ status: 'pulled' })
@@ -44,7 +35,7 @@ test('supports fake timers without any delay in the handlers', async () => {
   await expect(response.json()).resolves.toEqual({ status: 'pulled' })
 })
 
-test('delays the response with fake timers enabled without advancing the time', async () => {
+it('delays the response when advancing the fake timers', async () => {
   server.use(
     http.get('https://test.mswjs.io/delayed', async () => {
       await delay(500)
@@ -52,14 +43,25 @@ test('delays the response with fake timers enabled without advancing the time', 
     }),
   )
 
-  const getElapsedTime = measureRealTime()
+  const responseListener = vi.fn()
+  const responsePromise = fetch('https://test.mswjs.io/delayed').then(
+    (response) => {
+      responseListener(response)
+      return response
+    },
+  )
 
-  const response = await fetch('https://test.mswjs.io/delayed')
-  const responseTime = getElapsedTime()
+  // The delayed response must not resolve until the fake timers
+  // have been advanced past the delay duration.
+  await vi.advanceTimersByTimeAsync(499)
+  expect(responseListener).not.toHaveBeenCalled()
 
-  expect(responseTime).toBeGreaterThanOrEqual(500)
+  await vi.advanceTimersByTimeAsync(1)
+  const response = await responsePromise
+
+  expect(responseListener).toHaveBeenCalledOnce()
   await expect(response.text()).resolves.toBe('john')
 
-  // No need to advance the timers to get a delayed mock response.
-  expect(Date.now()).toBe(SYSTEM_TIME.getTime())
+  // The delay advances the fake clock, not the real one.
+  expect(Date.now()).toBe(SYSTEM_TIME.getTime() + 500)
 })

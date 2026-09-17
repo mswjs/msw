@@ -23,21 +23,11 @@ test.afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-test('does not inherit response cookies with omitted credentials', async () => {
-  await fetch('http://localhost/session', {
-    method: 'POST',
-    credentials: 'omit',
-  })
-
-  const response = await fetch('http://localhost/session', {
-    credentials: 'omit',
-  })
-  await expect(response.json()).resolves.toEqual({
-    cookies: {},
-    cookieHeader: null,
-  })
-})
-
+/**
+ * @note Node.js has no cookie jar. Unlike the browser, mocked "Set-Cookie"
+ * response headers are not remembered and never resolve on later requests.
+ * The environment-agnostic expectations live in "request-cookies.test.ts".
+ */
 test('does not inherit response cookies with same-origin credentials', async () => {
   await fetch('http://localhost/session', {
     method: 'POST',

@@ -13,7 +13,7 @@ import {
 } from '#core/utils/matching/matchRequestUrl'
 import { toPublicUrl } from '#core/utils/request/toPublicUrl'
 import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
-import { cleanUrl } from '#core/utils/url/cleanUrl'
+import { getCleanUrlString } from '#utils/get-clean-url-string'
 import {
   RequestHandler,
   type RequestHandlerDefaultInfo,
@@ -58,7 +58,7 @@ export type HttpCustomPredicate<Params extends PathParams> = (args: {
 }) =>
   HttpCustomPredicateResult<Params> | Promise<HttpCustomPredicateResult<Params>>
 
-export type HttpCustomPredicateResult<Params extends PathParams> =
+type HttpCustomPredicateResult<Params extends PathParams> =
   | boolean
   | {
       matches: boolean
@@ -106,7 +106,7 @@ export class HttpHandler extends RequestHandler<
       return
     }
 
-    const url = cleanUrl(path)
+    const url = getCleanUrlString(path)
 
     // Bypass request handler URLs that have no redundant characters.
     if (url === path) {

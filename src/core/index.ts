@@ -1,7 +1,3 @@
-import { checkGlobals } from './utils/internal/checkGlobals'
-
-export { SetupApi } from './experimental/setup-api'
-
 /* HTTP handlers */
 export { RequestHandler } from './handlers/RequestHandler'
 export { http } from '#http/http'
@@ -19,7 +15,7 @@ export {
   WebSocketConnectionEvent,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
-} from './handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 
 /* Server-Sent Events */
 export {
@@ -28,17 +24,12 @@ export {
   type ServerSentEventResolver,
   type ServerSentEventResolverExtras,
   type ServerSentEventMessage,
-} from './sse'
+} from '#sse/sse'
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export {
-  onUnhandledRequest,
-  type UnhandledRequestStrategy,
-  type UnhandledRequestCallback,
-} from './utils/request/onUnhandledRequest'
 export { getResponse } from './getResponse'
-export { cleanUrl } from './utils/url/cleanUrl'
+export { getCleanUrlString } from '#utils/get-clean-url-string'
 
 /**
  * Type definitions.
@@ -46,7 +37,7 @@ export { cleanUrl } from './utils/url/cleanUrl'
 
 export type { AnyHandler } from './experimental/handlers-controller'
 
-export type { SharedOptions, LifeCycleEventsMap } from './sharedOptions'
+export type { SharedOptions } from './sharedOptions'
 
 export type {
   ResponseResolver,
@@ -76,15 +67,8 @@ export {
   HttpResponse,
   type HttpResponseInit,
   type StrictRequest,
-  type StrictResponse,
 } from '#http/http-response'
-export { delay, type DelayMode } from './delay'
-export { bypass } from './bypass'
-export { passthrough } from './passthrough'
-export { isCommonAssetRequest } from './isCommonAssetRequest'
-
-// Validate environmental globals before executing any code.
-// This ensures that the library gives user-friendly errors
-// when ran in the environments that require additional polyfills
-// from the end user.
-checkGlobals()
+export { delay, type DelayMode } from '#utils/delay'
+export { bypass } from '#utils/bypass'
+export { passthrough } from '#utils/passthrough'
+export { isCommonAssetRequest } from '#utils/is-common-asset-request'

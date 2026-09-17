@@ -1,14 +1,11 @@
+import { isNodeProcess } from 'is-node-process'
 import { Handler } from './Handler'
 import { getCallFrame } from '../utils/internal/getCallFrame'
-import {
-  isIterable,
-  type AsyncIterable,
-  type Iterable,
-} from '../utils/internal/isIterable'
+import { isIterable } from '../utils/internal/isIterable'
 import type { ResponseResolutionContext } from '../utils/executeHandlers'
 import type { MaybePromise } from '../typeUtils'
-import type { HttpResponse } from '#http/http-response'
 import type {
+  HttpResponse,
   StrictRequest,
   DefaultUnsafeFetchResponse,
 } from '#http/http-response'
@@ -673,9 +670,9 @@ export abstract class RequestHandler<
 /**
  * Forwards the cookies from the given response to `document.cookie`.
  */
-export function forwardResponseCookies(response: Response): void {
+function forwardResponseCookies(response: Response): void {
   // Cookie forwarding is only relevant in the browser.
-  if (typeof document === 'undefined') {
+  if (isNodeProcess() || typeof document === 'undefined') {
     return
   }
 

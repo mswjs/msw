@@ -6,7 +6,7 @@ import {
   type HttpResponseEvent,
 } from '@mswjs/interceptors'
 import type {
-  WebSocketConnectionData,
+  WebSocketConnectionEventData,
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
@@ -25,7 +25,7 @@ export interface InterceptorSourceOptions {
 export class InterceptorSource extends NetworkSource {
   #interceptor: BatchInterceptor<
     InterceptorSourceOptions['interceptors'],
-    HttpRequestEventMap | WebSocketEventMap
+    HttpRequestEventMap & WebSocketEventMap
   >
 
   #frames: Map<string, HttpNetworkFrame>
@@ -43,13 +43,10 @@ export class InterceptorSource extends NetworkSource {
   public enable(): void {
     this.#interceptor.apply()
 
-    /**
-     * @todo @fixme BatchInterceptor infers event types but not listener types.
-     */
     this.#interceptor
-      .on('request', this.#handleRequest.bind(this) as any)
-      .on('response', this.#handleResponse.bind(this) as any)
-      .on('connection', this.#handleWebSocketConnection.bind(this) as any)
+      .on('request', this.#handleRequest.bind(this))
+      .on('response', this.#handleResponse.bind(this))
+      .on('connection', this.#handleWebSocketConnection.bind(this))
   }
 
   public disable(): void {
@@ -113,7 +110,7 @@ export class InterceptorSource extends NetworkSource {
   }
 
   async #handleWebSocketConnection(
-    connection: WebSocketEventMap['connection'][0],
+    connection: WebSocketEventMap['connection'],
   ): Promise<void> {
     await this.queue(
       new InterceptorWebSocketNetworkFrame({
@@ -163,7 +160,7 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
 }
 
 class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
-  constructor(args: { connection: WebSocketConnectionData }) {
+  constructor(args: { connection: WebSocketConnectionEventData }) {
     super({ connection: args.connection })
 
     /**

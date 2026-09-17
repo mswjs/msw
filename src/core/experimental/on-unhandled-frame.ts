@@ -1,5 +1,5 @@
 import { invariant } from 'outvariant'
-import { isCommonAssetRequest } from '../isCommonAssetRequest'
+import { isCommonAssetRequest } from '#utils/is-common-asset-request'
 import { devUtils, InternalError } from '../utils/internal/devUtils'
 import { HttpNetworkFrame } from './frames/http-frame'
 import type { AnyNetworkFrame } from './frames/network-frame'
@@ -7,14 +7,14 @@ import type { AnyNetworkFrame } from './frames/network-frame'
 export type UnhandledFrameHandle =
   UnhandledFrameStrategy | UnhandledFrameCallback
 
-export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
+type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
 
 export type UnhandledFrameCallback = (args: {
   frame: AnyNetworkFrame
   defaults: UnhandledFrameDefaults
 }) => Promise<void> | void
 
-export type UnhandledFrameDefaults = {
+type UnhandledFrameDefaults = {
   warn: () => void
   error: () => void
 }
@@ -49,12 +49,8 @@ export async function executeUnhandledFrameHandle(
     invariant.as(
       InternalError,
       strategy === 'bypass' || strategy === 'warn' || strategy === 'error',
-      /**
-       * @fixme Rename "onUnhandledRequest" to "onUnhandledFrame" in the error message
-       * with the next major release.
-       */
       devUtils.formatMessage(
-        'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+        'Failed to react to an unhandled network frame: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledFrame" option.',
         strategy,
       ),
     )
@@ -69,7 +65,7 @@ export async function executeUnhandledFrameHandle(
       return Promise.reject(
         new InternalError(
           devUtils.formatMessage(
-            'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.',
+            'Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.',
           ),
         ),
       )

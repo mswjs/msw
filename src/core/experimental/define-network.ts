@@ -69,7 +69,7 @@ export interface NetworkApi<
   events: Emitter<MergeEventMaps<Sources>>
 }
 
-export interface NetworkHandlersApi {
+interface NetworkHandlersApi {
   use: (...handlers: Array<AnyHandler>) => void
   resetHandlers: (...handlers: Array<AnyHandler>) => void
   restoreHandlers: () => void

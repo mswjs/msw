@@ -54,7 +54,7 @@ type IncomingWorkerResponse = {
   >
 }
 
-export type WorkerEventResponse = {
+type WorkerEventResponse = {
   MOCK_RESPONSE: [
     data: StringifiedResponse,
     transfer?: [ReadableStream<Uint8Array>],
@@ -64,7 +64,7 @@ export type WorkerEventResponse = {
 
 const SUPPORTS_SERVICE_WORKER = supportsServiceWorker()
 
-export class WorkerEvent<
+class WorkerEvent<
   DataType,
   ReturnType = any,
   EventType extends string = string,

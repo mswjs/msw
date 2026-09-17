@@ -1,11 +1,11 @@
 import { TypedEvent } from 'rettime'
 import type { GraphQLSubscriptionEvent } from '#graphql/graphql-subscription-event'
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketConnectionEventData } from '@mswjs/interceptors/WebSocket'
 import {
   kConnect,
   kAutoConnect,
   type WebSocketHandler,
-} from '../../handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 import {
   NetworkFrame,
   type NetworkFrameResolutionContext,
@@ -19,13 +19,23 @@ import type { HandlersController } from '../handlers-controller'
 import type { AnyHandler } from '../handlers-controller'
 
 export interface WebSocketNetworkFrameOptions {
-  connection: WebSocketConnectionData
+  connection: WebSocketConnectionEventData
 }
 
 export type WebSocketNetworkFrameEventMap = {
-  connection: WebSocketConnectionEvent
+  /**
+   * Emitted when a WebSocket connection is intercepted,
+   * before any handlers are resolved against it.
+   */
+  'websocket:connection': WebSocketConnectionEvent
+  /**
+   * Emitted when the WebSocket connection errors.
+   * This includes initial connection errors as well as runtime errors
+   * after the connection has been established.
+   */
+  'websocket:error': WebSocketErrorEvent
   'graphql:subscription': GraphQLSubscriptionEvent
-  unhandledException: UnhandledWebSocketExceptionEvent
+  unhandledException: WebSocketErrorEvent
 }
 
 class WebSocketConnectionEvent<
@@ -46,7 +56,7 @@ class WebSocketConnectionEvent<
   }
 }
 
-class UnhandledWebSocketExceptionEvent<
+class WebSocketErrorEvent<
   DataType extends {
     url: URL
     protocols: string | Array<string> | undefined
@@ -58,15 +68,11 @@ class UnhandledWebSocketExceptionEvent<
   },
   ReturnType = void,
   EventType extends string = string,
-> extends TypedEvent<DataType, ReturnType, EventType> {
-  public readonly url: URL
-  public readonly protocols: string | Array<string> | undefined
+> extends WebSocketConnectionEvent<DataType, ReturnType, EventType> {
   public readonly error: unknown
 
   constructor(type: EventType, data: DataType) {
-    super(...([type, {}] as any))
-    this.url = data.url
-    this.protocols = data.protocols
+    super(type, data)
     this.error = data.error
   }
 }
@@ -74,7 +80,7 @@ class UnhandledWebSocketExceptionEvent<
 export abstract class WebSocketNetworkFrame extends NetworkFrame<
   'ws',
   {
-    connection: WebSocketConnectionData
+    connection: WebSocketConnectionEventData
   },
   WebSocketNetworkFrameEventMap
 > {
@@ -96,10 +102,29 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
     const { connection } = this.data
 
     this.events.emit(
-      new WebSocketConnectionEvent('connection', {
+      new WebSocketConnectionEvent('websocket:connection', {
         url: connection.client.url,
         protocols: connection.info.protocols,
       }),
+    )
+
+    const handleSocketError = (event: Event) => {
+      this.events.emit(
+        new WebSocketErrorEvent('websocket:error', {
+          url: connection.client.url,
+          protocols: connection.info.protocols,
+          error: getErrorFromEvent(event),
+        }),
+      )
+    }
+
+    connection.client.socket.addEventListener('error', handleSocketError)
+    connection.client.socket.addEventListener(
+      'close',
+      () => {
+        connection.client.socket.removeEventListener('error', handleSocketError)
+      },
+      { once: true },
     )
 
     // No WebSocket handlers defined.
@@ -124,7 +149,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
          */
         events: this.events,
         /**
-         * @note Do not emit the "connection" event when running the handler.
+         * @note Do not emit the handler's "connection" event when running the handler.
          * Use the run only to get the resolved connection object.
          */
         [kAutoConnect]: false,
@@ -137,7 +162,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       hasMatchingHandlers = true
 
       /**
-       * @note Attach the WebSocket logger *before* emitting the "connection" event.
+       * @note Attach the WebSocket logger *before* emitting the handler's "connection" event.
        * Connection event listeners may perform actions that should be reflected in the logs
        * (e.g. closing the connection immediately). If the logger is attached after the connection,
        * those actions cannot be properly logged.
@@ -153,7 +178,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
       } catch (error) {
         if (
           !this.events.emit(
-            new UnhandledWebSocketExceptionEvent('unhandledException', {
+            new WebSocketErrorEvent('unhandledException', {
               error,
               url: connection.client.url,
               protocols: connection.info.protocols,
@@ -194,4 +219,21 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
 
     return `intercepted a WebSocket connection without a matching event handler:${details}If you still wish to intercept this unhandled connection, please create an event handler for it.\nRead more: https://mswjs.io/docs/websocket`
   }
+}
+
+/**
+ * Extract the error from the given "error" event, if any.
+ * Supports both the `ErrorEvent.error` property and the `cause`
+ * property that MSW sets when erroring the connection itself.
+ */
+function getErrorFromEvent(event: Event): unknown {
+  if ('error' in event && event.error != null) {
+    return event.error
+  }
+
+  if ('cause' in event && event.cause != null) {
+    return event.cause
+  }
+
+  return undefined
 }

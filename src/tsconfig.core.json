@@ -1,6 +1,13 @@
 {
   "extends": "./tsconfig.src.json",
-  "include": ["./core/**/*.ts"],
+  "include": [
+    "./core/**/*.ts",
+    "./http/**/*.ts",
+    "./graphql/**/*.ts",
+    "./ws/**/*.ts",
+    "./sse/**/*.ts",
+    "./utils/**/*.ts"
+  ],
   "files": [],
   "compilerOptions": {
     "composite": true

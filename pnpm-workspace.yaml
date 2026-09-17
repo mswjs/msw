@@ -2,4 +2,4 @@ allowBuilds:
   esbuild: true
   simple-git-hooks: true
 minimumReleaseAgeExclude:
-  - '@mswjs/interceptors@0.42.0 || 0.42.1'
+  - '@mswjs/*'

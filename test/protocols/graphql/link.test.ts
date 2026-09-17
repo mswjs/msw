@@ -1,0 +1,189 @@
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
+import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { gql } from '../../support/graphql'
+
+const github = graphql.link('https://api.github.com/graphql')
+const stripe = graphql.link('https://api.stripe.com/graphql')
+const fallback = graphql.link('*')
+
+interface GetUserQuery {
+  user: {
+    id: string
+    username: string
+  }
+}
+
+interface PaymentQuery {
+  bankAccount: {
+    totalFunds: number
+  }
+}
+
+interface GetUserQuery {
+  user: {
+    id: string
+    username: string
+  }
+}
+
+const handlers = [
+  github.query<GetUserQuery, { username: string }>(
+    'GetUser',
+    ({ variables }) => {
+      return HttpResponse.json({
+        data: {
+          user: {
+            id: '46cfe8ff-a79b-42af-9699-b56e2239d1bb',
+            username: variables.username,
+          },
+        },
+      })
+    },
+  ),
+  stripe.mutation<PaymentQuery, { amount: number }>(
+    'Payment',
+    ({ variables }) => {
+      return HttpResponse.json({
+        data: {
+          bankAccount: {
+            totalFunds: 100 + variables.amount,
+          },
+        },
+      })
+    },
+  ),
+  fallback.query<GetUserQuery, { username: string }>(
+    'GetUser',
+    ({ variables }) => {
+      return HttpResponse.json(
+        {
+          data: {
+            user: {
+              id: '46cfe8ff-a79b-42af-9699-b56e2239d1bb',
+              username: variables.username,
+            },
+          },
+        },
+        {
+          headers: {
+            'X-Request-Handler': 'fallback',
+          },
+        },
+      )
+    },
+  ),
+]
+
+const test = defineNetwork({ handlers })
+
+test('mocks a GraphQL query to the GitHub GraphQL API', async ({ query }) => {
+  const res = await query('https://api.github.com/graphql', {
+    query: gql`
+      query GetUser($username: String!) {
+        user(username: $username) {
+          id
+          username
+        }
+      }
+    `,
+    variables: {
+      username: 'john',
+    },
+  })
+
+  const headers = await res.allHeaders()
+  const body = await res.json()
+
+  expect(res.status()).toBe(200)
+  expect(headers).toHaveProperty('content-type', 'application/json')
+  expect(body).toEqual({
+    data: {
+      user: {
+        id: '46cfe8ff-a79b-42af-9699-b56e2239d1bb',
+        username: 'john',
+      },
+    },
+  })
+})
+
+test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
+  query,
+}) => {
+  const res = await query('https://api.stripe.com/graphql', {
+    query: gql`
+      mutation Payment($amount: Int!) {
+        bankAccount {
+          totalFunds
+        }
+      }
+    `,
+    variables: {
+      amount: 350,
+    },
+  })
+
+  const headers = await res.allHeaders()
+  const body = await res.json()
+
+  expect(res.status()).toBe(200)
+  expect(headers).toHaveProperty('content-type', 'application/json')
+  expect(body).toEqual({
+    data: {
+      bankAccount: {
+        totalFunds: 450,
+      },
+    },
+  })
+})
+
+test('falls through to the matching GraphQL operation to an unknown endpoint', async ({
+  query,
+}) => {
+  const res = await query('/graphql', {
+    query: gql`
+      query GetUser($username: String!) {
+        user(username: $username) {
+          id
+          username
+        }
+      }
+    `,
+    variables: {
+      username: 'john',
+    },
+  })
+
+  const headers = await res.allHeaders()
+  const body = await res.json()
+
+  expect(headers).toHaveProperty('x-request-handler', 'fallback')
+  expect(body).toEqual({
+    data: {
+      user: {
+        id: '46cfe8ff-a79b-42af-9699-b56e2239d1bb',
+        username: 'john',
+      },
+    },
+  })
+})
+
+test('bypasses a GraphQL operation to an unknown endpoint', async ({
+  query,
+  testServer,
+}) => {
+  const res = await query(testServer.http.url('/link-bypass/graphql'), {
+    query: gql`
+      mutation Payment($amount: Int!) {
+        bankAccount {
+          totalFunds
+        }
+      }
+    `,
+    variables: {
+      amount: 350,
+    },
+  })
+
+  expect(res.status()).toBe(500)
+})

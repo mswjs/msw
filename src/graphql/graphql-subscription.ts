@@ -4,7 +4,7 @@ import { parse, OperationTypeNode, type GraphQLError } from 'graphql'
 import { resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
   WebSocketClientConnectionProtocol,
-  WebSocketConnectionData,
+  WebSocketConnectionEventData,
   WebSocketData,
   WebSocketServerConnectionProtocol,
 } from '@mswjs/interceptors/WebSocket'
@@ -15,7 +15,7 @@ import {
   kConnect,
   type WebSocketHandlerConnection,
   type WebSocketResolutionContext,
-} from '#core/handlers/WebSocketHandler'
+} from '#ws/websocket-handler'
 import { GraphQLSubscriptionEvent } from './graphql-subscription-event'
 import {
   matchRequestUrl,
@@ -48,12 +48,12 @@ import {
  * Messages of the `graphql-transport-ws` subprotocol.
  * @see https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverWebSocket.md
  */
-export interface GraphQLWebSocketInitMessage {
+interface GraphQLWebSocketInitMessage {
   type: 'connection_init'
   payload?: Record<string, unknown>
 }
 
-export interface GraphQLWebSocketSubscribePayload<
+interface GraphQLWebSocketSubscribePayload<
   Variables extends GraphQLVariables = GraphQLVariables,
 > {
   operationName?: string | null
@@ -70,46 +70,46 @@ export interface GraphQLWebSocketSubscribeMessage<
   payload: GraphQLWebSocketSubscribePayload<Variables>
 }
 
-export interface GraphQLWebSocketCompleteMessage {
+interface GraphQLWebSocketCompleteMessage {
   type: 'complete'
   id: string
 }
 
-export interface GraphQLWebSocketPingMessage {
+interface GraphQLWebSocketPingMessage {
   type: 'ping'
   payload?: Record<string, unknown>
 }
 
-export interface GraphQLWebSocketPongMessage {
+interface GraphQLWebSocketPongMessage {
   type: 'pong'
   payload?: Record<string, unknown>
 }
 
-export type GraphQLWebSocketClientMessage =
+type GraphQLWebSocketClientMessage =
   | GraphQLWebSocketInitMessage
   | GraphQLWebSocketSubscribeMessage
   | GraphQLWebSocketCompleteMessage
   | GraphQLWebSocketPingMessage
   | GraphQLWebSocketPongMessage
 
-export interface GraphQLWebSocketAcknowledgeMessage {
+interface GraphQLWebSocketAcknowledgeMessage {
   type: 'connection_ack'
   payload?: Record<string, unknown>
 }
 
-export interface GraphQLWebSocketNextMessage {
+interface GraphQLWebSocketNextMessage {
   type: 'next'
   id: string
   payload: GraphQLSubscriptionPayload
 }
 
-export interface GraphQLWebSocketErrorMessage {
+interface GraphQLWebSocketErrorMessage {
   type: 'error'
   id: string
   payload: ReadonlyArray<Partial<GraphQLError>>
 }
 
-export type GraphQLWebSocketServerMessage =
+type GraphQLWebSocketServerMessage =
   | GraphQLWebSocketAcknowledgeMessage
   | GraphQLWebSocketNextMessage
   | GraphQLWebSocketErrorMessage
@@ -308,7 +308,7 @@ const connections = new Map<string, GraphQLSubscriptionConnection>()
  * The WebSocket subprotocol implemented by the subscription transport.
  * @see https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverWebSocket.md
  */
-export const GRAPHQL_WEBSOCKET_SUBPROTOCOL = 'graphql-transport-ws'
+const GRAPHQL_WEBSOCKET_SUBPROTOCOL = 'graphql-transport-ws'
 
 function includesGraphQLSubprotocol(
   protocols: string | Array<string> | null | undefined,
@@ -337,7 +337,7 @@ function includesGraphQLSubprotocol(
  */
 abstract class GraphQLWebSocketHandler extends WebSocketHandler {
   public async run(
-    connection: WebSocketConnectionData,
+    connection: WebSocketConnectionEventData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
     if (!includesGraphQLSubprotocol(connection.info.protocols)) {
@@ -385,7 +385,7 @@ export class GraphQLSubscriptionTransportHandler extends GraphQLWebSocketHandler
   }
 
   public async run(
-    connection: WebSocketConnectionData,
+    connection: WebSocketConnectionEventData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
     const handlerConnection = await super.run(connection, resolutionContext)
@@ -645,7 +645,7 @@ export class GraphQLSubscriptionTransportHandler extends GraphQLWebSocketHandler
    * subscription connections. It logs parsed `graphql-transport-ws`
    * frames instead of raw WebSocket messages.
    */
-  public log(connection: WebSocketConnectionData): () => void {
+  public log(connection: WebSocketConnectionEventData): () => void {
     return attachGraphQLSubscriptionLogger(connection)
   }
 
@@ -1340,7 +1340,7 @@ function logGraphQLFrame(args: {
  * `graphql-transport-ws` frames relevant to the subscription.
  */
 function attachGraphQLSubscriptionLogger(
-  connection: WebSocketConnectionData,
+  connection: WebSocketConnectionEventData,
 ): () => void {
   const { client } = connection
   const abortController = new AbortController()

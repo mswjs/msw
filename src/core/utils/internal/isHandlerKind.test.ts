@@ -1,7 +1,7 @@
 import { GraphQLHandler } from '../../../graphql/graphql-handler'
 import { HttpHandler } from '#http/http-handler'
 import { RequestHandler } from '../../handlers/RequestHandler'
-import { WebSocketHandler } from '../../handlers/WebSocketHandler'
+import { WebSocketHandler } from '#ws/websocket-handler'
 import { isHandlerKind } from './isHandlerKind'
 
 it('returns true if expected a request handler and given a request handler', () => {

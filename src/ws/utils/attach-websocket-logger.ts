@@ -1,6 +1,6 @@
 import type {
   WebSocketClientConnection,
-  WebSocketConnectionData,
+  WebSocketConnectionEventData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
 import { devUtils } from '#core/utils/internal/devUtils'
@@ -11,7 +11,7 @@ import { getPublicData } from './get-public-data'
 import { colors } from '#core/utils/logging/colors'
 
 export function attachWebSocketLogger(
-  connection: WebSocketConnectionData,
+  connection: WebSocketConnectionEventData,
 ): () => void {
   const { client, server } = connection
   const controller = new AbortController()
@@ -136,7 +136,7 @@ export function attachWebSocketLogger(
  * that intercepted this connection. This helps you see
  * what handlers observe this connection.
  */
-export function logConnectionOpen(client: WebSocketClientConnection) {
+function logConnectionOpen(client: WebSocketClientConnection) {
   const publicUrl = toPublicUrl(client.url)
 
   console.groupCollapsed(

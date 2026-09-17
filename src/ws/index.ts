@@ -10,4 +10,4 @@ export {
   WebSocketConnectionEvent,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
-} from '#core/handlers/WebSocketHandler'
+} from './websocket-handler'

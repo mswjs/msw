@@ -14,19 +14,19 @@
     "./browser": {
       "types": "./lib/browser/index.d.ts",
       "node": null,
-      "react-native": null,
       "default": "./lib/browser/index.js"
     },
     "./node": {
       "types": "./lib/node/index.d.ts",
       "browser": null,
-      "react-native": null,
       "default": "./lib/node/index.js"
     },
-    "./native": {
-      "types": "./lib/native/index.d.ts",
-      "browser": null,
-      "default": "./lib/native/index.js"
+    "./vite": {
+      "types": "./lib/vite/index.d.ts",
+      "default": "./lib/vite/index.js"
+    },
+    "./vite/client": {
+      "types": "./src/vite/client.d.ts"
     },
     "./http": {
       "types": "./lib/http/index.d.ts",
@@ -39,6 +39,14 @@
     "./ws": {
       "types": "./lib/ws/index.d.ts",
       "default": "./lib/ws/index.js"
+    },
+    "./sse": {
+      "types": "./lib/sse/index.d.ts",
+      "default": "./lib/sse/index.js"
+    },
+    "./utils/*": {
+      "types": "./lib/utils/*.d.ts",
+      "default": "./lib/utils/*.js"
     },
     "./experimental": {
       "types": "./lib/core/experimental/index.d.ts",
@@ -55,7 +63,10 @@
     "#graphql": "./src/graphql/index.ts",
     "#graphql/*": "./src/graphql/*.ts",
     "#ws": "./src/ws/index.ts",
-    "#ws/*": "./src/ws/*.ts"
+    "#ws/*": "./src/ws/*.ts",
+    "#sse": "./src/sse/index.ts",
+    "#sse/*": "./src/sse/*.ts",
+    "#utils/*": "./src/utils/*.ts"
   },
   "bin": {
     "msw": "cli/index.js"
@@ -64,25 +75,24 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "tsdown --watch",
+    "dev": "tsdown --watch",
     "clean": "rimraf ./lib",
     "lint": "oxlint ./cli ./src ./test",
     "build": "pnpm clean && cross-env NODE_ENV=production tsdown",
     "publint": "publint",
-    "test": "pnpm test:unit && pnpm test:node && pnpm test:browser && pnpm test:native && pnpm test:memory",
-    "test:unit": "vitest",
-    "test:node": "vitest --config=./test/node/vitest.config.ts",
-    "test:native": "vitest --config=./test/native/vitest.config.ts",
-    "test:browser": "playwright test -c ./test/browser/playwright.config.ts",
+    "test": "vitest",
+    "test:unit": "vitest --project=unit",
+    "test:node": "vitest --project=node",
+    "test:browser": "vitest --project=browser",
+    "test:memory": "vitest --project=memory",
+    "test:playwright": "playwright test -c ./test/playwright.config.ts",
     "test:modules:node": "vitest run --config=./test/modules/node/vitest.config.ts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
-    "test:e2e": "vitest run --config=./test/e2e/vitest.config.ts",
-    "test:ts": "vitest --config=./test/typings/vitest.config.ts",
-    "test:memory": "vitest --config=./test/memory/vitest.config.ts",
+    "test:e2e": "vitest --project=e2e",
+    "test:ts": "vitest --project=types",
     "prepare": "pnpm simple-git-hooks init",
     "prepack": "pnpm build",
     "release": "release publish",
-    "postinstall": "node -e \"import('./config/scripts/postinstall.js').catch(() => void 0)\"",
     "knip": "knip"
   },
   "lint-staged": {
@@ -130,7 +140,7 @@
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
     "@msw/url": "^0.1.2",
-    "@mswjs/interceptors": "^0.42.1",
+    "@mswjs/interceptors": "^0.43.0",
     "cookie": "^2.0.1",
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",
@@ -154,51 +164,52 @@
     "@types/json-bigint": "^1.0.4",
     "@types/node": "~22.19.17",
     "@types/serviceworker": "^0.0.199",
+    "@types/ws": "^8.18.1",
+    "@vitest/browser-playwright": "4.1.10",
     "@web/dev-server": "^0.4.6",
     "axios": "^1.15.0",
     "babel-minify": "^0.5.1",
     "commitizen": "^4.3.1",
     "cross-env": "^10.1.0",
-    "cross-fetch": "^4.1.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "^0.28.0",
-    "esbuild-loader": "^4.4.3",
     "express": "^5.2.1",
     "fastify": "^5.8.5",
     "fs-teardown": "^0.3.0",
     "glob": "^13.0.6",
     "graphql": "^17.0.2",
-    "graphql-ws": "^6.1.0",
+    "graphql-ws": "^6.1.1",
     "graphql-yoga": "^5.21.2",
     "jsdom": "^25.0.1",
     "json-bigint": "^1.0.0",
-    "knip": "^6.27.0",
-    "lint-staged": "^17.1.0",
+    "knip": "^6.34.0",
+    "lint-staged": "^17.1.1",
     "msw": "workspace:^",
-    "oxlint": "^1.74.0",
+    "oxlint": "^1.75.0",
     "page-with": "^0.6.1",
-    "prettier": "^3.9.5",
-    "publint": "^0.3.18",
-    "regenerator-runtime": "^0.14.1",
+    "prettier": "^3.9.6",
+    "publint": "^0.3.22",
     "rimraf": "^6.1.3",
     "simple-git-hooks": "^2.13.1",
-    "tsdown": "^0.22.9",
+    "tsdown": "^0.22.13",
     "typescript": "^7.0.2",
-    "undici": "^8.7.0",
-    "url-loader": "^4.1.1",
+    "vite": "^8.1.5",
     "vitest": "^4.1.4",
-    "webpack": "^5.106.2",
-    "webpack-http-server": "^0.5.0"
+    "ws": "^8.21.3"
   },
   "peerDependencies": {
     "graphql": ">=16",
-    "typescript": ">=5.9.x"
+    "typescript": ">=5.9.x",
+    "vite": ">=6"
   },
   "peerDependenciesMeta": {
     "graphql": {
       "optional": true
     },
     "typescript": {
+      "optional": true
+    },
+    "vite": {
       "optional": true
     }
   },

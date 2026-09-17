@@ -1,0 +1,142 @@
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { Plugin } from 'vite'
+
+const WORKER_FILENAME = 'mockServiceWorker.js'
+const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
+const VIRTUAL_MODULE_ID = 'virtual:msw'
+const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
+const RUNTIME_PATH = fileURLToPath(new URL('./runtime.js', import.meta.url))
+const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
+
+export interface MswPluginOptions {
+  /**
+   * Use automatic integration or only provide the worker script for manual setup.
+   * In worker-only mode, virtual modules are disabled.
+   * @default "auto"
+   */
+  mode?: 'auto' | 'worker-only'
+}
+
+/**
+ * A Vite plugin for Mock Service Worker.
+ *
+ * @example
+ * // vite.config.ts
+ * import { msw } from 'msw/vite'
+ *
+ * export default defineConfig({
+ *   plugins: [msw()]
+ * })
+ *
+ * @example
+ * // src/{client,server}.ts
+ * if (import.meta.env.DEV) {
+ *   const { network } = await import('virtual:msw')
+ *   const { handlers } = await import('./mocks/handlers')
+ *
+ *   network.configure({ handlers })
+ *   await network.enable()
+ * }
+ *
+ * @remarks
+ * Guard mocking setup with `import.meta.env.DEV` to exclude it from production builds.
+ * No worker script is served or written in production.
+ *
+ * For application TypeScript projects that do not include the Vite config,
+ * add `/// <reference types="msw/vite/client" />` to an included declaration file.
+ */
+export function msw(options: MswPluginOptions = {}): Plugin {
+  const mode = options.mode ?? 'auto'
+  let isProduction = false
+  let workerUrl = `/${WORKER_FILENAME}`
+
+  return {
+    name: 'msw',
+    async resolveId(id) {
+      if (mode === 'worker-only') {
+        return
+      }
+
+      if (id === VIRTUAL_OPTIONS_ID) {
+        return `\0${VIRTUAL_OPTIONS_ID}`
+      }
+
+      if (id === VIRTUAL_MODULE_ID) {
+        if (!isProduction) {
+          return this.resolve(RUNTIME_PATH)
+        }
+
+        return RESOLVED_VIRTUAL_MODULE_ID
+      }
+    },
+    load(id) {
+      if (mode === 'worker-only') {
+        return
+      }
+
+      if (id === RESOLVED_VIRTUAL_MODULE_ID && isProduction) {
+        return {
+          code: 'export const network = undefined',
+          moduleSideEffects: false,
+        }
+      }
+
+      if (id !== `\0${VIRTUAL_OPTIONS_ID}`) {
+        return
+      }
+
+      const isServer = this.environment.config.consumer === 'server'
+
+      if (isServer) {
+        return `export { defaultNetworkOptions } from 'msw/node'`
+      }
+
+      return `
+import { createDefaultNetworkOptions } from 'msw/browser'
+export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
+`
+    },
+    async configResolved(config) {
+      isProduction = config.isProduction
+      // Keep relative build bases relative and service workers on the app's origin.
+      const base =
+        config.base === './'
+          ? config.base
+          : new URL(config.base, 'http://localhost').pathname
+      workerUrl = `${base}${WORKER_FILENAME}`
+
+      if (isProduction || config.command !== 'build' || !config.publicDir) {
+        return
+      }
+
+      const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
+      const workerPath = path.join(config.publicDir, WORKER_FILENAME)
+      await fs.promises.mkdir(path.dirname(workerPath), { recursive: true })
+      await fs.promises.writeFile(workerPath, workerScript)
+    },
+    configureServer(server) {
+      if (isProduction) {
+        return
+      }
+
+      const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
+      server.middlewares.use((request, response, next) => {
+        const requestUrl = new URL(request.url ?? '/', 'http://localhost')
+
+        if (requestUrl.pathname !== workerUrl) {
+          next()
+          return
+        }
+
+        response.writeHead(200, {
+          'cache-control': 'no-cache',
+          'content-type': 'application/javascript; charset=utf-8',
+          'service-worker-allowed': '/',
+        })
+        response.end(workerScript)
+      })
+    },
+  }
+}

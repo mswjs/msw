@@ -1,4 +1,5 @@
-import url from 'node:url'
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import type { ClientRequest, IncomingMessage } from 'http'
 
@@ -9,8 +10,13 @@ export function sleep(duration: number) {
 }
 
 export function fromTemp(...segments: string[]) {
-  return url.fileURLToPath(
-    new URL(path.join('../..', 'tmp', ...segments), import.meta.url),
+  const temporaryDirectory = fs.realpathSync(os.tmpdir())
+
+  return path.join(
+    temporaryDirectory,
+    'msw',
+    process.pid.toString(),
+    ...segments,
   )
 }
 

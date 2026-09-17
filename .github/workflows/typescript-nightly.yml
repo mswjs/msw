@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   compare:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -34,7 +34,7 @@ jobs:
           echo "rc_version=$rc_major_minor" >> $GITHUB_OUTPUT
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [compare]
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.

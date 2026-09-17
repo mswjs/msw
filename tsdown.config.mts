@@ -92,4 +92,3 @@ const iifeConfig: UserConfig = {
 }
 
 export default defineConfig([esmConfig, iifeConfig])
-

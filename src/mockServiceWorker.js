@@ -258,10 +258,25 @@ async function getResponse(event, client, requestId) {
   // (i.e. its body has been read and sent to the client).
   const requestClone = event.request.clone()
 
-  function passthrough() {
-    // Cast the request headers to a new Headers instance
-    // so the headers can be manipulated with.
-    const headers = new Headers(requestClone.headers)
+  /**
+   * @param {{ request?: { headers?: Array<[string, string]> } }} [data]
+   */
+  function passthrough(data) {
+    const headers = new Headers()
+    const requestHeaders = data?.request?.headers
+
+    if (Array.isArray(requestHeaders)) {
+      // Apply the request headers provided by the client.
+      // Those reflect any modifications made in the request handlers.
+      // Use ".append()" to support multiple headers with the same name.
+      for (const [name, value] of requestHeaders) {
+        headers.append(name, value)
+      }
+    } else {
+      for (const [name, value] of requestClone.headers) {
+        headers.append(name, value)
+      }
+    }
 
     // Remove the "accept" header value that marked this request as passthrough.
     // This prevents request alteration and also keeps it compliant with the
@@ -316,7 +331,7 @@ async function getResponse(event, client, requestId) {
     }
 
     case 'PASSTHROUGH': {
-      return passthrough()
+      return passthrough(clientMessage.data)
     }
   }
 

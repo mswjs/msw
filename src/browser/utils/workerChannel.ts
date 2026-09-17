@@ -54,12 +54,25 @@ type IncomingWorkerResponse = {
   >
 }
 
+/**
+ * Request modifications to apply to the passthrough request in the worker.
+ */
+export interface PassthroughPayload {
+  request: {
+    /**
+     * Request headers as a list of entries to support
+     * multiple headers with the same name.
+     */
+    headers: Array<[string, string]>
+  }
+}
+
 type WorkerEventResponse = {
   MOCK_RESPONSE: [
     data: StringifiedResponse,
     transfer?: [ReadableStream<Uint8Array>],
   ]
-  PASSTHROUGH: []
+  PASSTHROUGH: [data: PassthroughPayload]
 }
 
 const SUPPORTS_SERVICE_WORKER = supportsServiceWorker()

@@ -7,7 +7,7 @@ afterEach(() => {
   server.close()
 })
 
-it('patches WebSocket class even if no event handlers were defined', () => {
+test('patches WebSocket class even if no event handlers were defined', () => {
   server.listen()
 
   const raw = new WebSocket('wss://example.com')
@@ -15,7 +15,7 @@ it('patches WebSocket class even if no event handlers were defined', () => {
   expect(raw).toBeInstanceOf(EventTarget)
 })
 
-it('does not patch WebSocket class until server.listen() is called', () => {
+test('does not patch WebSocket class until server.listen() is called', () => {
   const api = ws.link('wss://example.com')
   server.use(api.addEventListener('connection', () => {}))
 

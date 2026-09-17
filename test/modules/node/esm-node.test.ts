@@ -59,7 +59,7 @@ test.afterAll(async ({}, { result }) => {
   await fsMock.cleanup()
 })
 
-it('runs in a ESM Node.js project', async () => {
+test('runs in a ESM Node.js project', async () => {
   await fsMock.create({
     'resolve.mjs': `
 console.log('msw:', await import.meta.resolve('msw'))
@@ -98,7 +98,7 @@ console.log(typeof server.listen)
   expect(runtimeStdio.stdout).toMatch(/function/m)
 })
 
-it('runs in a CJS Node.js project', async () => {
+test('runs in a CJS Node.js project', async () => {
   await fsMock.create({
     'resolve.cjs': `
 console.log('msw:', require.resolve('msw'))

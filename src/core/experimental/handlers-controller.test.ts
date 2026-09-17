@@ -13,7 +13,7 @@ import {
 const gql = graphql.link('*')
 
 describe(groupHandlersByKind, () => {
-  it('groups handlers attached as siblings of siblings', () => {
+  test('groups handlers attached as siblings of siblings', () => {
     const grandchildHandler = http.get('/grandchild', () => {})
     const childHandler = attachSiblingHandlers(
       http.get('/child', () => {}),
@@ -31,7 +31,7 @@ describe(groupHandlersByKind, () => {
     ])
   })
 
-  it('groups nested siblings of a different kind into their own bucket', () => {
+  test('groups nested siblings of a different kind into their own bucket', () => {
     const chat = ws.link('*')
     const wsHandler = chat.addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
@@ -46,7 +46,7 @@ describe(groupHandlersByKind, () => {
     expect(groups.request).toEqual([ownerHandler, upgradeHandler])
   })
 
-  it('does not recurse infinitely given a cyclic sibling graph', () => {
+  test('does not recurse infinitely given a cyclic sibling graph', () => {
     const handlerOne = http.get('/one', () => {})
     const handlerTwo = http.get('/two', () => {})
     attachSiblingHandlers(handlerOne, [handlerTwo])
@@ -60,7 +60,7 @@ describe(groupHandlersByKind, () => {
 })
 
 describe('constructor', () => {
-  it('places the sibling in its own kind bucket', () => {
+  test('places the sibling in its own kind bucket', () => {
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
 
@@ -70,7 +70,7 @@ describe('constructor', () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('interleaves the sibling at the owner position when grouping by kind', () => {
+  test('interleaves the sibling at the owner position when grouping by kind', () => {
     const httpOne = http.get('/', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
@@ -90,7 +90,7 @@ describe('constructor', () => {
     expect(controller.getHandlersByKind('websocket')).toEqual([wsHandler])
   })
 
-  it('extracts siblings from every owner in the input list', () => {
+  test('extracts siblings from every owner in the input list', () => {
     const wsOne = ws.link('*').addEventListener('connection', () => {})
     const wsTwo = ws.link('*').addEventListener('connection', () => {})
     const [upgradeOne] = getSiblingHandlers(wsOne)
@@ -105,7 +105,7 @@ describe('constructor', () => {
     ])
   })
 
-  it('dedupes the shared upgrade sibling across multiple handlers from the same link', () => {
+  test('dedupes the shared upgrade sibling across multiple handlers from the same link', () => {
     const chat = ws.link('*')
     const wsOne = chat.addEventListener('connection', () => {})
     const wsTwo = chat.addEventListener('connection', () => {})
@@ -119,7 +119,7 @@ describe('constructor', () => {
 })
 
 describe(InMemoryHandlersController.prototype.use, () => {
-  it('prepends a handler to an empty controller', () => {
+  test('prepends a handler to an empty controller', () => {
     const controller = new InMemoryHandlersController([])
     const httpHandler = http.get('/', () => {})
     controller.use([httpHandler])
@@ -128,7 +128,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.getHandlersByKind('request')).toEqual([httpHandler])
   })
 
-  it('prepends a single handler', () => {
+  test('prepends a single handler', () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
 
@@ -139,7 +139,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.getHandlersByKind('request')).toEqual([httpTwo, httpOne])
   })
 
-  it('prepends multiple handlers', () => {
+  test('prepends multiple handlers', () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
     const httpThree = http.get('/', () => {})
@@ -156,7 +156,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     ])
   })
 
-  it('preserves order of handlers', () => {
+  test('preserves order of handlers', () => {
     const httpOne = http.get('/', () => {})
     const graphqlOne = gql.query('', () => {})
     const httpTwo = http.get('/', () => {})
@@ -167,7 +167,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.currentHandlers()).toEqual([graphqlOne, httpTwo, httpOne])
   })
 
-  it('propagates siblings to their kind buckets at runtime', () => {
+  test('propagates siblings to their kind buckets at runtime', () => {
     const controller = new InMemoryHandlersController([])
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
@@ -178,7 +178,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('prepends incoming siblings before existing handlers of the same kind', () => {
+  test('prepends incoming siblings before existing handlers of the same kind', () => {
     const existingHttp = http.get('/existing', () => {})
     const controller = new InMemoryHandlersController([existingHttp])
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
@@ -192,7 +192,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     ])
   })
 
-  it('dedupes the shared upgrade sibling when called with multiple handlers from the same link', () => {
+  test('dedupes the shared upgrade sibling when called with multiple handlers from the same link', () => {
     const chat = ws.link('*')
     const wsOne = chat.addEventListener('connection', () => {})
     const wsTwo = chat.addEventListener('connection', () => {})
@@ -205,7 +205,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('dedupes the shared upgrade sibling against already-registered handlers', () => {
+  test('dedupes the shared upgrade sibling against already-registered handlers', () => {
     const chat = ws.link('*')
     const wsOne = chat.addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsOne)
@@ -218,7 +218,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('moves an already-registered handler to the front when used again', () => {
+  test('moves an already-registered handler to the front when used again', () => {
     const httpOne = http.get('/one', () => {})
     const httpTwo = http.get('/two', () => {})
     const controller = new InMemoryHandlersController([httpOne, httpTwo])
@@ -230,7 +230,7 @@ describe(InMemoryHandlersController.prototype.use, () => {
 })
 
 describe(InMemoryHandlersController.prototype.reset, () => {
-  it('resets to the initial handlers if called with an empty list', () => {
+  test('resets to the initial handlers if called with an empty list', () => {
     {
       const controller = new InMemoryHandlersController([])
       controller.reset([])
@@ -246,7 +246,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     }
   })
 
-  it('replaces the initial handlers if called with a list of handlers', () => {
+  test('replaces the initial handlers if called with a list of handlers', () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
     const controller = new InMemoryHandlersController([httpOne])
@@ -255,7 +255,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     expect(controller.currentHandlers()).toEqual([httpTwo])
   })
 
-  it('resets the initial handlers after runtime handlers are applied', () => {
+  test('resets the initial handlers after runtime handlers are applied', () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
     const controller = new InMemoryHandlersController([])
@@ -273,7 +273,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     expect(controller.currentHandlers()).toEqual([httpTwo])
   })
 
-  it('places siblings into their kind buckets when resetting to next handlers', () => {
+  test('places siblings into their kind buckets when resetting to next handlers', () => {
     const controller = new InMemoryHandlersController([])
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
@@ -284,7 +284,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('restores siblings when resetting to the initial handlers', () => {
+  test('restores siblings when resetting to the initial handlers', () => {
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
     const controller = new InMemoryHandlersController([wsHandler])
@@ -296,7 +296,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
 
-  it('dedupes the shared upgrade sibling when reset with multiple handlers from the same link', () => {
+  test('dedupes the shared upgrade sibling when reset with multiple handlers from the same link', () => {
     const chat = ws.link('*')
     const wsOne = chat.addEventListener('connection', () => {})
     const wsTwo = chat.addEventListener('connection', () => {})
@@ -311,7 +311,7 @@ describe(InMemoryHandlersController.prototype.reset, () => {
 })
 
 describe(InMemoryHandlersController.prototype.listHandlers, () => {
-  it('lists explicitly registered handlers, hiding their siblings', () => {
+  test('lists explicitly registered handlers, hiding their siblings', () => {
     const httpHandler = http.get('/', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
 
@@ -320,7 +320,7 @@ describe(InMemoryHandlersController.prototype.listHandlers, () => {
     expect(controller.listHandlers()).toEqual([httpHandler, wsHandler])
   })
 
-  it('hides siblings of runtime handlers', () => {
+  test('hides siblings of runtime handlers', () => {
     const controller = new InMemoryHandlersController([])
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
 
@@ -329,7 +329,7 @@ describe(InMemoryHandlersController.prototype.listHandlers, () => {
     expect(controller.listHandlers()).toEqual([wsHandler])
   })
 
-  it('keeps siblings in "currentHandlers()" so the handler lifecycle reaches them', () => {
+  test('keeps siblings in "currentHandlers()" so the handler lifecycle reaches them', () => {
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
     const [upgradeHandler] = getSiblingHandlers(wsHandler)
 
@@ -340,12 +340,12 @@ describe(InMemoryHandlersController.prototype.listHandlers, () => {
 })
 
 describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
-  it('returns an empty array given an empty controller', () => {
+  test('returns an empty array given an empty controller', () => {
     const controller = new InMemoryHandlersController([])
     expect(controller.getHandlersByKind('request')).toEqual([])
   })
 
-  it('returns an empty array given no handlers by the given kind', () => {
+  test('returns an empty array given no handlers by the given kind', () => {
     expect(
       new InMemoryHandlersController([
         http.get('/', () => {}),
@@ -359,7 +359,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
     ).toEqual(getSiblingHandlers(wsHandler))
   })
 
-  it('returns all handlers if they all match', () => {
+  test('returns all handlers if they all match', () => {
     const httpHandler = http.get('/', () => {})
     const graphqlHandler = gql.query('', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
@@ -378,7 +378,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
     ).toEqual([wsHandler])
   })
 
-  it('returns only the matching handlers', () => {
+  test('returns only the matching handlers', () => {
     const httpHandler = http.get('/', () => {})
     const graphqlHandler = gql.query('', () => {})
     const wsHandler = ws.link('*').addEventListener('connection', () => {})
@@ -401,7 +401,7 @@ describe(InMemoryHandlersController.prototype.getHandlersByKind, () => {
     ).toEqual([wsHandler])
   })
 
-  it('preserves the order of returned handlers', () => {
+  test('preserves the order of returned handlers', () => {
     const httpOne = http.get('/', () => {})
     const httpTwo = http.get('/', () => {})
     const httpThree = http.get('/', () => {})

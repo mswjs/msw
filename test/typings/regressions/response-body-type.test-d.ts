@@ -4,7 +4,7 @@
 import type { Path, DefaultBodyType } from 'msw'
 import { http, HttpResponse } from 'msw'
 
-it('accepts custom response body generic argument', () => {
+test('accepts custom response body generic argument', () => {
   function myHandler<CustomResponseBodyType extends DefaultBodyType>(
     path: Path,
   ) {

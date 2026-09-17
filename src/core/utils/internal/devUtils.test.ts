@@ -1,7 +1,7 @@
 import { InternalError } from './devUtils'
 
 describe(InternalError, () => {
-  it('creates an InternalError instance', () => {
+  test('creates an InternalError instance', () => {
     const error = new InternalError('Message')
 
     expect(error.name).toBe('InternalError')
@@ -10,7 +10,7 @@ describe(InternalError, () => {
     expect(error.stack).toMatch(/\w+/)
   })
 
-  it('passes the identity check', () => {
+  test('passes the identity check', () => {
     const error = new InternalError('Message')
     expect(error instanceof InternalError).toBe(true)
     expect(error instanceof Error).toBe(true)

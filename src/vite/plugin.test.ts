@@ -28,7 +28,7 @@ afterAll(async () => {
   await fsMock.cleanup()
 })
 
-it('loads the packaged plugin without installing its development dependencies', async () => {
+test('loads the packaged plugin without installing its development dependencies', async () => {
   await fsMock.create({
     'plugin.mjs': fs.readFileSync(fromRoot('lib/vite/index.js'), 'utf8'),
     'verify.mjs': `
@@ -42,7 +42,7 @@ console.log(msw().name)
   expect(stdout.trim()).toBe('msw')
 })
 
-it('excludes user-guarded mocking from a production client bundle', async () => {
+test('excludes user-guarded mocking from a production client bundle', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html':
@@ -136,7 +136,7 @@ document.querySelector('output')!.textContent = appValue + start({
   ).resolves.toBe('preserved')
 }, 20_000)
 
-it('excludes user-guarded mocking from a production server bundle', async () => {
+test('excludes user-guarded mocking from a production server bundle', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
@@ -183,7 +183,7 @@ console.log('Application ready')
   expect(stdout.trim()).toBe('Application ready')
 })
 
-it('does not serve the worker when the dev server runs in production', async () => {
+test('does not serve the worker when the dev server runs in production', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   const server = await createServer({
     configFile: false,
@@ -205,7 +205,7 @@ it('does not serve the worker when the dev server runs in production', async () 
   expect(response.status).toBe(404)
 })
 
-it('restores cached server mocking after hot updates and replaces it on full reloads', async () => {
+test('restores cached server mocking after hot updates and replaces it on full reloads', async () => {
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'entry.js': `
@@ -316,7 +316,7 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
-it('replays server setup and retires replaced networks during reloads', async () => {
+test('replays server setup and retires replaced networks during reloads', async () => {
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'entry.js': `
@@ -386,7 +386,7 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
-it('creates one disabled network on the server and lets the user enable it', async () => {
+test('creates one disabled network on the server and lets the user enable it', async () => {
   await fsMock.create({
     'entry.js': `
 import { network } from 'virtual:msw'
@@ -437,7 +437,7 @@ export { network }
   await expect(response.text()).resolves.toBe('mocked')
 })
 
-it('preserves browser interception through hot updates under a base path', async () => {
+test('preserves browser interception through hot updates under a base path', async () => {
   const { msw: builtMsw } = await import('../../lib/vite/index.js')
   await fsMock.create({
     'index.html':
@@ -544,7 +544,7 @@ document.querySelector('button').onclick = async () => {
   expect(serverIntegration.network.readyState).toBe(0)
 }, 20_000)
 
-it('creates a server network in development builds', async () => {
+test('creates a server network in development builds', async () => {
   vi.stubEnv('NODE_ENV', 'development')
   await fsMock.create({
     'package.json': '{"type":"module"}',
@@ -595,7 +595,7 @@ export { network }
   expect(stdout.trim()).toBe('mocked')
 })
 
-it('creates a browser network in development builds without enabling it automatically', async () => {
+test('creates a browser network in development builds without enabling it automatically', async () => {
   vi.stubEnv('NODE_ENV', 'development')
   await fsMock.create({
     'index.html':
@@ -660,7 +660,7 @@ document.querySelector('button').onclick = async () => {
   await expect.poll(() => page.locator('output').textContent()).toBe('override')
 }, 20_000)
 
-it('serves the worker script without writing files during development', async () => {
+test('serves the worker script without writing files during development', async () => {
   const server = await createServer({
     configFile: false,
     root: fsMock.resolve('.'),
@@ -695,7 +695,7 @@ it('serves the worker script without writing files during development', async ()
   )
 })
 
-it('serves the worker at the root for a relative development base', async () => {
+test('serves the worker at the root for a relative development base', async () => {
   const server = await createServer({
     configFile: false,
     base: './',
@@ -731,7 +731,7 @@ it('serves the worker at the root for a relative development base', async () => 
   )
 })
 
-it('serves only the worker in worker-only mode with an absolute base URL', async () => {
+test('serves only the worker in worker-only mode with an absolute base URL', async () => {
   const server = await createServer({
     configFile: false,
     base: 'https://cdn.example.com/app/',
@@ -770,7 +770,7 @@ it('serves only the worker in worker-only mode with an absolute base URL', async
   ).resolves.toBeNull()
 })
 
-it('preserves user integrations during production builds in worker-only mode', async () => {
+test('preserves user integrations during production builds in worker-only mode', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'package.json': '{"type":"module"}',
@@ -803,7 +803,7 @@ await network.enable()
   expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
 })
 
-it('does not write the worker script during production builds', async () => {
+test('does not write the worker script during production builds', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
@@ -822,7 +822,7 @@ it('does not write the worker script during production builds', async () => {
   expect(fs.existsSync(fsMock.resolve('dist/mockServiceWorker.js'))).toBe(false)
 })
 
-it('writes the worker to the configured public directory', async () => {
+test('writes the worker to the configured public directory', async () => {
   vi.stubEnv('NODE_ENV', 'development')
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
@@ -857,7 +857,7 @@ it('writes the worker to the configured public directory', async () => {
   ).toBe(false)
 })
 
-it('skips writing the worker when the public directory is disabled', async () => {
+test('skips writing the worker when the public directory is disabled', async () => {
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
   })

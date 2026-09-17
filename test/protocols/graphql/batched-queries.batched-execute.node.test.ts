@@ -108,7 +108,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('sends a mocked response to a batched GraphQL query', async () => {
+test('sends a mocked response to a batched GraphQL query', async () => {
   const client = createGraphQLClient({
     uri: httpServer.http.url('/graphql'),
   })
@@ -133,7 +133,7 @@ it('sends a mocked response to a batched GraphQL query', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('combines mocked and original responses in a single batched query', async () => {
+test('combines mocked and original responses in a single batched query', async () => {
   const client = createGraphQLClient({
     uri: httpServer.http.url('/graphql'),
   })

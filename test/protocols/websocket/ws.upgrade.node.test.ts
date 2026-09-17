@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('rejects a WebSocket upgrade via an HTTP request like Node.js', async () => {
+test('rejects a WebSocket upgrade via an HTTP request like Node.js', async () => {
   const api = ws.link('wss://localhost/ws')
 
   const connectionListener = vi.fn()

@@ -19,7 +19,7 @@ afterAll(() => {
   vi.restoreAllMocks()
 })
 
-it('dispatches a WebSocket error event on handler exception', async () => {
+test('dispatches a WebSocket error event on handler exception', async () => {
   server.use(
     service.addEventListener('connection', () => {
       throw new Error('Handler exception')

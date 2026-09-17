@@ -17,7 +17,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with an error response to axios request', async () => {
+test('responds with an error response to axios request', async () => {
   const error = await axios('https://example.com/resource')
     .then(() => {
       throw new Error('Must reject the request Promise')

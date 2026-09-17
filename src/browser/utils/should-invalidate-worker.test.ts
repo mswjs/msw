@@ -13,7 +13,7 @@ function createOptions(
   }
 }
 
-it('returns true when the worker url differs', () => {
+test('returns true when the worker url differs', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({
@@ -26,7 +26,7 @@ it('returns true when the worker url differs', () => {
   ).toBe(true)
 })
 
-it('returns true when the registration options differ', () => {
+test('returns true when the registration options differ', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({
@@ -39,7 +39,7 @@ it('returns true when the registration options differ', () => {
   ).toBe(true)
 })
 
-it('returns true when only one side has registration options', () => {
+test('returns true when only one side has registration options', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({ serviceWorker: { url: '/sw.js' } }),
@@ -50,7 +50,7 @@ it('returns true when only one side has registration options', () => {
   ).toBe(true)
 })
 
-it('returns true when findWorker differs by reference', () => {
+test('returns true when findWorker differs by reference', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({ findWorker: () => true }),
@@ -59,7 +59,7 @@ it('returns true when findWorker differs by reference', () => {
   ).toBe(true)
 })
 
-it('returns true when findWorker is added on one side', () => {
+test('returns true when findWorker is added on one side', () => {
   expect(
     shouldInvalidateWorker(
       createOptions(),
@@ -68,12 +68,12 @@ it('returns true when findWorker is added on one side', () => {
   ).toBe(true)
 })
 
-it('returns false for the same options reference', () => {
+test('returns false for the same options reference', () => {
   const options = createOptions()
   expect(shouldInvalidateWorker(options, options)).toBe(false)
 })
 
-it('returns false for deeply equal options', () => {
+test('returns false for deeply equal options', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({
@@ -86,7 +86,7 @@ it('returns false for deeply equal options', () => {
   ).toBe(false)
 })
 
-it('returns false for the same worker url without options', () => {
+test('returns false for the same worker url without options', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({ serviceWorker: { url: '/sw.js' } }),
@@ -95,7 +95,7 @@ it('returns false for the same worker url without options', () => {
   ).toBe(false)
 })
 
-it('returns false when findWorker is the same reference', () => {
+test('returns false when findWorker is the same reference', () => {
   const findWorker = () => true
   expect(
     shouldInvalidateWorker(
@@ -105,7 +105,7 @@ it('returns false when findWorker is the same reference', () => {
   ).toBe(false)
 })
 
-it('returns false regardless of the "quiet" option', () => {
+test('returns false regardless of the "quiet" option', () => {
   expect(
     shouldInvalidateWorker(
       createOptions({ quiet: true }),

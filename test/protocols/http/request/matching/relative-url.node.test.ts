@@ -21,7 +21,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds to a relative URL in jsdom', async () => {
+test('responds to a relative URL in jsdom', async () => {
   const response = await fetch('/api/movies')
 
   expect(response.status).toBe(200)

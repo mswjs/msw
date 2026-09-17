@@ -9,7 +9,7 @@ const api = graphql.link('https://api.example.com/graphql')
 
 const resolver: GraphQLResponseResolver<any, any> = () => void 0
 
-it('supports custom predicate', () => {
+test('supports custom predicate', () => {
   api.query<{ user: null }, { a: string }>(
     ({ request, cookies, operationType, operationName, query, variables }) => {
       expectTypeOf(request).toEqualTypeOf<Request>()
@@ -52,7 +52,7 @@ it('supports custom predicate', () => {
   )
 })
 
-it('supports returning extended match result from a custom predicate', () => {
+test('supports returning extended match result from a custom predicate', () => {
   api.query(() => ({ matches: true }), resolver)
   api.query(() => ({ matches: false }), resolver)
 

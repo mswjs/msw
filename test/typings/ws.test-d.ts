@@ -1,4 +1,4 @@
-import { it, expectTypeOf } from 'vitest'
+import { test, expectTypeOf } from 'vitest'
 import type {
   WebSocketData,
   WebSocketLink,
@@ -7,15 +7,15 @@ import type {
 import { ws } from 'msw/ws'
 import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
 
-it('supports URL as the link argument', () => {
+test('supports URL as the link argument', () => {
   expectTypeOf(ws.link('ws://localhost')).toEqualTypeOf<WebSocketLink>()
 })
 
-it('supports RegExp as the link argument', () => {
+test('supports RegExp as the link argument', () => {
   expectTypeOf(ws.link(/\/ws$/)).toEqualTypeOf<WebSocketLink>()
 })
 
-it('exposes root-level link APIs', () => {
+test('exposes root-level link APIs', () => {
   const link = ws.link('ws://localhost')
 
   expectTypeOf(link.addEventListener).toBeFunction()
@@ -26,7 +26,7 @@ it('exposes root-level link APIs', () => {
   >()
 })
 
-it('supports "connection" event listener', () => {
+test('supports "connection" event listener', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', (connection) => {
@@ -39,7 +39,7 @@ it('supports "connection" event listener', () => {
   })
 })
 
-it('errors on arbitrary event names passed to the link', () => {
+test('errors on arbitrary event names passed to the link', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener(
@@ -53,7 +53,7 @@ it('errors on arbitrary event names passed to the link', () => {
  * Client API.
  */
 
-it('exposes root-level "client" APIs', () => {
+test('exposes root-level "client" APIs', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -67,7 +67,7 @@ it('exposes root-level "client" APIs', () => {
   })
 })
 
-it('supports "message" event listener on the client', () => {
+test('supports "message" event listener on the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -77,7 +77,7 @@ it('supports "message" event listener on the client', () => {
   })
 })
 
-it('supports "close" event listener on the client', () => {
+test('supports "close" event listener on the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -87,7 +87,7 @@ it('supports "close" event listener on the client', () => {
   })
 })
 
-it('errors on arbitrary event names passed to the client', () => {
+test('errors on arbitrary event names passed to the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -103,7 +103,7 @@ it('errors on arbitrary event names passed to the client', () => {
  * Server API.
  */
 
-it('exposes root-level "server" APIs', () => {
+test('exposes root-level "server" APIs', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -115,7 +115,7 @@ it('exposes root-level "server" APIs', () => {
   })
 })
 
-it('supports "message" event listener on the server', () => {
+test('supports "message" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -125,7 +125,7 @@ it('supports "message" event listener on the server', () => {
   })
 })
 
-it('supports "open" event listener on the server', () => {
+test('supports "open" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -135,7 +135,7 @@ it('supports "open" event listener on the server', () => {
   })
 })
 
-it('supports "close" event listener on the server', () => {
+test('supports "close" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -145,7 +145,7 @@ it('supports "close" event listener on the server', () => {
   })
 })
 
-it('errors on arbitrary event names passed to the server', () => {
+test('errors on arbitrary event names passed to the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {

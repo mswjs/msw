@@ -60,7 +60,7 @@ const LOGIN = `
 `
 
 describe('info', () => {
-  it('exposes request handler information for query', () => {
+  test('exposes request handler information for query', () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -73,7 +73,7 @@ describe('info', () => {
     expect(handler.info.operationName).toEqual('GetUser')
   })
 
-  it('exposes request handler information for mutation', () => {
+  test('exposes request handler information for mutation', () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.MUTATION,
       'Login',
@@ -86,7 +86,7 @@ describe('info', () => {
     expect(handler.info.operationName).toEqual('Login')
   })
 
-  it('parses a query operation name from a given DocumentNode', () => {
+  test('parses a query operation name from a given DocumentNode', () => {
     const node = parse(`
       query GetUser {
         user {
@@ -107,7 +107,7 @@ describe('info', () => {
     expect(handler.info).toHaveProperty('operationName', 'GetUser')
   })
 
-  it('parses a mutation operation name from a given DocumentNode', () => {
+  test('parses a mutation operation name from a given DocumentNode', () => {
     const node = parse(`
       mutation Login {
         user {
@@ -127,7 +127,7 @@ describe('info', () => {
     expect(handler.info).toHaveProperty('operationName', 'Login')
   })
 
-  it('throws an exception given a DocumentNode with a mismatched operation type', () => {
+  test('throws an exception given a DocumentNode with a mismatched operation type', () => {
     const node = parse(`
       mutation CreateUser {
         user {
@@ -146,7 +146,7 @@ describe('info', () => {
 
 describe('parse', () => {
   describe('query', () => {
-    it('parses a query without variables (GET)', async () => {
+    test('parses a query without variables (GET)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -172,7 +172,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a query with variables (GET)', async () => {
+    test('parses a query with variables (GET)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -203,7 +203,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a query without variables (POST)', async () => {
+    test('parses a query without variables (POST)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -229,7 +229,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a query with variables (POST)', async () => {
+    test('parses a query with variables (POST)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -262,7 +262,7 @@ describe('parse', () => {
   })
 
   describe('mutation', () => {
-    it('parses a mutation without variables (GET)', async () => {
+    test('parses a mutation without variables (GET)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.MUTATION,
         'GetUser',
@@ -288,7 +288,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a mutation with variables (GET)', async () => {
+    test('parses a mutation with variables (GET)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.MUTATION,
         'GetUser',
@@ -319,7 +319,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a mutation without variables (POST)', async () => {
+    test('parses a mutation without variables (POST)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.MUTATION,
         'GetUser',
@@ -345,7 +345,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a mutation with variables (POST)', async () => {
+    test('parses a mutation with variables (POST)', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.MUTATION,
         'GetUser',
@@ -378,7 +378,7 @@ describe('parse', () => {
   })
 
   describe('with endpoint configuration', () => {
-    it('parses the request and parses grapqhl properties from it when the graphql.link endpoint matches', async () => {
+    test('parses the request and parses grapqhl properties from it when the graphql.link endpoint matches', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -439,7 +439,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a request but does not parse graphql properties from it graphql.link hostname does not match', async () => {
+    test('parses a request but does not parse graphql properties from it graphql.link hostname does not match', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -488,7 +488,7 @@ describe('parse', () => {
       })
     })
 
-    it('parses a request but does not parse graphql properties from it graphql.link pathname does not match', async () => {
+    test('parses a request but does not parse graphql properties from it graphql.link pathname does not match', async () => {
       const handler = new GraphQLHandler(
         OperationTypeNode.QUERY,
         'GetUser',
@@ -540,7 +540,7 @@ describe('parse', () => {
 })
 
 describe('predicate', () => {
-  it('respects operation type', async () => {
+  test('respects operation type', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -568,7 +568,7 @@ describe('predicate', () => {
     ).toBe(false)
   })
 
-  it('respects operation name', async () => {
+  test('respects operation name', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -602,7 +602,7 @@ describe('predicate', () => {
     ).resolves.toBe(false)
   })
 
-  it('allows anonymous GraphQL operations when using "all" expected operation type', async () => {
+  test('allows anonymous GraphQL operations when using "all" expected operation type', async () => {
     const handler = new GraphQLHandler('all', new RegExp('.*'), '*', resolver)
     const request = createPostGraphQLRequest({
       query: `
@@ -623,7 +623,7 @@ describe('predicate', () => {
     ).resolves.toBe(true)
   })
 
-  it('respects custom endpoint', async () => {
+  test('respects custom endpoint', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -654,7 +654,7 @@ describe('predicate', () => {
     ).resolves.toBe(false)
   })
 
-  it('supports custom predicate function', async () => {
+  test('supports custom predicate function', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       ({ query }) => {
@@ -693,7 +693,7 @@ describe('predicate', () => {
 })
 
 describe('test', () => {
-  it('respects operation type', async () => {
+  test('respects operation type', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -711,7 +711,7 @@ describe('test', () => {
     expect(await handler.test({ request: alienRequest })).toBe(false)
   })
 
-  it('respects operation name', async () => {
+  test('respects operation name', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -735,7 +735,7 @@ describe('test', () => {
     await expect(handler.test({ request: alienRequest })).resolves.toBe(false)
   })
 
-  it('respects custom endpoint', async () => {
+  test('respects custom endpoint', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -758,7 +758,7 @@ describe('test', () => {
 })
 
 describe('run', () => {
-  it('returns a mocked response given a matching query', async () => {
+  test('returns a mocked response given a matching query', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -803,7 +803,7 @@ describe('run', () => {
     })
   })
 
-  it('returns null given a non-matching query', async () => {
+  test('returns null given a non-matching query', async () => {
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,
       'GetUser',
@@ -821,7 +821,7 @@ describe('run', () => {
 })
 
 describe('isDocumentNode', () => {
-  it('returns true given a valid DocumentNode', () => {
+  test('returns true given a valid DocumentNode', () => {
     const node = parse(`
       query GetUser {
         user {
@@ -833,7 +833,7 @@ describe('isDocumentNode', () => {
     expect(isDocumentNode(node)).toEqual(true)
   })
 
-  it('returns false given an arbitrary input', () => {
+  test('returns false given an arbitrary input', () => {
     expect(isDocumentNode(null)).toEqual(false)
     expect(isDocumentNode(undefined)).toEqual(false)
     expect(isDocumentNode('')).toEqual(false)
@@ -843,7 +843,7 @@ describe('isDocumentNode', () => {
 })
 
 describe('request', () => {
-  it('has parsed operationName', async () => {
+  test('has parsed operationName', async () => {
     const matchAllResolver = vi.fn()
     const handler = new GraphQLHandler(
       OperationTypeNode.QUERY,

@@ -28,7 +28,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('intercepts a request once `server.listen()` is called after `server.close()`', async () => {
+test('intercepts a request once `server.listen()` is called after `server.close()`', async () => {
   const requestUrl = httpServer.http.url('/resource')
 
   server.use(

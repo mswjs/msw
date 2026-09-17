@@ -26,7 +26,7 @@ afterAll(() => {
   server.close()
 })
 
-it('invokes the callback for an unhandled request', async () => {
+test('invokes the callback for an unhandled request', async () => {
   const response = await fetch('https://test.mswjs.io')
 
   // Request should be performed as-is, since the callback didn't throw.

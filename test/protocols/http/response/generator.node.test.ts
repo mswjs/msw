@@ -22,7 +22,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports generator function as response resolver', async () => {
+test('supports generator function as response resolver', async () => {
   server.use(
     http.get('http://localhost/weather', function* () {
       let degree = 10
@@ -47,7 +47,7 @@ it('supports generator function as response resolver', async () => {
   await expect(fetchJson('http://localhost/weather')).resolves.toBe(14)
 })
 
-it('supports async generator function as response resolver', async () => {
+test('supports async generator function as response resolver', async () => {
   server.use(
     http.get('http://localhost/weather', async function* () {
       await delay(20)
@@ -71,7 +71,7 @@ it('supports async generator function as response resolver', async () => {
   await expect(fetchJson('http://localhost/weather')).resolves.toBe(14)
 })
 
-it('supports generator function as one-time response resolver', async () => {
+test('supports generator function as one-time response resolver', async () => {
   server.use(
     http.get(
       'http://localhost/weather',
@@ -104,7 +104,7 @@ it('supports generator function as one-time response resolver', async () => {
   await expect(fetchJson('http://localhost/weather')).resolves.toBe('fallback')
 })
 
-it('resets the generator state after the handlers are reset', async () => {
+test('resets the generator state after the handlers are reset', async () => {
   server.use(
     http.get('http://localhost/resource', function* () {
       yield HttpResponse.json('Yield')
@@ -123,7 +123,7 @@ it('resets the generator state after the handlers are reset', async () => {
   })()
 })
 
-it('resets the generator state of one-time handlers after the handlers are restored', async () => {
+test('resets the generator state of one-time handlers after the handlers are restored', async () => {
   server.use(
     http.get(
       'http://localhost/resource',
@@ -149,7 +149,7 @@ it('resets the generator state of one-time handlers after the handlers are resto
   })()
 })
 
-it('does nothing when restoring regular handlers', async () => {
+test('does nothing when restoring regular handlers', async () => {
   server.use(
     http.get('http://localhost/resource', function* () {
       yield HttpResponse.json('Yield')
@@ -168,7 +168,7 @@ it('does nothing when restoring regular handlers', async () => {
   })()
 })
 
-it('calls generator cleanup', async () => {
+test('calls generator cleanup', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -192,7 +192,7 @@ it('calls generator cleanup', async () => {
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('calls async generator cleanup', async () => {
+test('calls async generator cleanup', async () => {
   const cleanup = vi.fn(async () => {})
 
   server.use(
@@ -216,7 +216,7 @@ it('calls async generator cleanup', async () => {
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('forwards generator cleanup errors', async () => {
+test('forwards generator cleanup errors', async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
 
   const error = new Error('Reason')
@@ -254,7 +254,7 @@ it('forwards generator cleanup errors', async () => {
   )
 })
 
-it('calls generator cleanup when resetting a mid-flight generator', async () => {
+test('calls generator cleanup when resetting a mid-flight generator', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -278,7 +278,7 @@ it('calls generator cleanup when resetting a mid-flight generator', async () => 
   })()
 })
 
-it('does not call generator cleanup when resetting an exhausted generator', async () => {
+test('does not call generator cleanup when resetting an exhausted generator', async () => {
   const cleanup = vi.fn()
 
   server.use(

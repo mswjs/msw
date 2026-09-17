@@ -19,7 +19,7 @@ afterAll(() => {
   server.close()
 })
 
-it('intercepts request cookies', async () => {
+test('intercepts request cookies', async () => {
   server.use(
     api.query('GetSession', ({ cookies }) => {
       return HttpResponse.json({
@@ -55,7 +55,7 @@ it('intercepts request cookies', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('mocks a single response cookie', async () => {
+test('mocks a single response cookie', async () => {
   server.use(
     api.mutation<{ user: { email: string } }, { email: string }>(
       'SignIn',
@@ -104,7 +104,7 @@ it('mocks a single response cookie', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('mocks a multi-value response cookie', async () => {
+test('mocks a multi-value response cookie', async () => {
   server.use(
     api.mutation<{ user: { email: string } }, { email: string }>(
       'SignIn',

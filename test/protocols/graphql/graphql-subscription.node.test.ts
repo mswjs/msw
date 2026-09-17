@@ -28,7 +28,7 @@ afterAll(() => {
   server.close()
 })
 
-it('intercepts and mocks a GraphQL subscription', async () => {
+test('intercepts and mocks a GraphQL subscription', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -71,7 +71,7 @@ it('intercepts and mocks a GraphQL subscription', async () => {
   })
 })
 
-it('marks a subscription as complete', async () => {
+test('marks a subscription as complete', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -101,7 +101,7 @@ it('marks a subscription as complete', async () => {
   })
 })
 
-it('terminates a subscription with errors', async () => {
+test('terminates a subscription with errors', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -130,7 +130,7 @@ it('terminates a subscription with errors', async () => {
   ])
 })
 
-it('exposes path parameters from the WebSocket link', async () => {
+test('exposes path parameters from the WebSocket link', async () => {
   const paramsPromise = Promise.withResolvers<PathParams>()
   const api = graphql.link('https://localhost/:service')
 
@@ -161,7 +161,7 @@ it('exposes path parameters from the WebSocket link', async () => {
   })
 })
 
-it('scopes published data to the subscribed client', async () => {
+test('scopes published data to the subscribed client', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -208,7 +208,7 @@ it('scopes published data to the subscribed client', async () => {
   ])
 })
 
-it('respects handler overrides for the same operation', async () => {
+test('respects handler overrides for the same operation', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
   const initialResolver = vi.fn()
 
@@ -248,7 +248,7 @@ it('respects handler overrides for the same operation', async () => {
   expect(initialResolver).not.toHaveBeenCalled()
 })
 
-it('matches an outgoing subscription with the "operation()" link handler', async () => {
+test('matches an outgoing subscription with the "operation()" link handler', async () => {
   const operationResolver = vi.fn()
 
   const api = graphql.link('https://localhost/graphql')
@@ -289,7 +289,7 @@ it('matches an outgoing subscription with the "operation()" link handler', async
   expect(info.finalize).toBeInstanceOf(Function)
 })
 
-it('supports one-time "operation()" link handlers', async () => {
+test('supports one-time "operation()" link handlers', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const operationResolver = vi.fn()
@@ -320,7 +320,7 @@ it('supports one-time "operation()" link handlers', async () => {
   expect(operationResolver).toHaveBeenCalledOnce()
 })
 
-it('supports one-time subscription handlers', async () => {
+test('supports one-time subscription handlers', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const api = graphql.link('http://localhost:4000/graphql')
@@ -364,7 +364,7 @@ it('supports one-time subscription handlers', async () => {
   secondNext.catch(() => {})
 })
 
-it('warns on a subscription without a matching handler', async () => {
+test('warns on a subscription without a matching handler', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const api = graphql.link('http://localhost:4000/graphql')
@@ -393,7 +393,7 @@ it('warns on a subscription without a matching handler', async () => {
   pendingNext.catch(() => {})
 })
 
-it('warns when publishing to a subscription after the handlers were reset', async () => {
+test('warns when publishing to a subscription after the handlers were reset', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const api = graphql.link('http://localhost:4000/graphql')
@@ -437,7 +437,7 @@ it('warns when publishing to a subscription after the handlers were reset', asyn
   pendingNext.catch(() => {})
 })
 
-it('responds to the protocol ping messages', async () => {
+test('responds to the protocol ping messages', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
   server.use(api.subscription('OnCommentAdded', () => {}))
 
@@ -469,7 +469,7 @@ it('responds to the protocol ping messages', async () => {
   socket.close()
 })
 
-it('acknowledges the connection once when multiple links share the endpoint', async () => {
+test('acknowledges the connection once when multiple links share the endpoint', async () => {
   // Two `graphql.link()` calls to the same endpoint create two subscription
   // transports, both matching this connection. They must share a single
   // protocol session, otherwise each of them binds its own listeners and
@@ -514,7 +514,7 @@ it('acknowledges the connection once when multiple links share the endpoint', as
   socket.close()
 })
 
-it('resolves a subscription once when multiple links share the endpoint', async () => {
+test('resolves a subscription once when multiple links share the endpoint', async () => {
   const firstResolver = vi.fn<GraphQLSubscriptionResolver>(
     ({ subscription }) => {
       subscription.publish({
@@ -559,7 +559,7 @@ it('resolves a subscription once when multiple links share the endpoint', async 
   expect(secondResolver).not.toHaveBeenCalled()
 })
 
-it('subscribes to extraneous pubsubs', async () => {
+test('subscribes to extraneous pubsubs', async () => {
   const pubsub = createPubSub<{
     commentAdded: [{ commentAdded: { text: string } }]
   }>()
@@ -636,7 +636,7 @@ it('subscribes to extraneous pubsubs', async () => {
   })
 })
 
-it('emits the "graphql:subscription" life-cycle event when a subscription is established', async () => {
+test('emits the "graphql:subscription" life-cycle event when a subscription is established', async () => {
   const subscriptionEventPromise = Promise.withResolvers<{
     operationName: string
     query: string
@@ -679,7 +679,7 @@ it('emits the "graphql:subscription" life-cycle event when a subscription is est
   pendingNext.catch(() => {})
 })
 
-it('does not emit the "graphql:subscription" life-cycle event for unhandled subscriptions', async () => {
+test('does not emit the "graphql:subscription" life-cycle event for unhandled subscriptions', async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
   const subscriptionListener = vi.fn()
@@ -712,7 +712,7 @@ it('does not emit the "graphql:subscription" life-cycle event for unhandled subs
   pendingNext.catch(() => {})
 })
 
-it('combines extraneous and default pubsubs', async () => {
+test('combines extraneous and default pubsubs', async () => {
   const pubsub = createPubSub<{
     commentAdded: [{ commentAdded: { text: string } }]
   }>()
@@ -793,7 +793,7 @@ it('combines extraneous and default pubsubs', async () => {
   })
 })
 
-it('selects the operation by name in a multi-operation document', async () => {
+test('selects the operation by name in a multi-operation document', async () => {
   const api = graphql.link('http://localhost:4000/graphql')
 
   server.use(
@@ -833,7 +833,7 @@ it('selects the operation by name in a multi-operation document', async () => {
   })
 })
 
-it('replays the connection params to the original server', async () => {
+test('replays the connection params to the original server', async () => {
   const connectionParamsListener = vi.fn()
 
   await using testServer = await createTestGraphQLServer({
@@ -897,7 +897,7 @@ it('replays the connection params to the original server', async () => {
   })
 })
 
-it('bypasses a subscription', async () => {
+test('bypasses a subscription', async () => {
   await using testServer = await createTestGraphQLServer({
     schema: createSchema({
       typeDefs: gql`
@@ -961,7 +961,7 @@ it('bypasses a subscription', async () => {
   })
 })
 
-it('augments original server subscription payload', async () => {
+test('augments original server subscription payload', async () => {
   await using testServer = await createTestGraphQLServer({
     schema: createSchema({
       typeDefs: gql`
@@ -1038,7 +1038,7 @@ it('augments original server subscription payload', async () => {
   })
 })
 
-it('intercepts GraphQL subscriptions on a wildcard link', async () => {
+test('intercepts GraphQL subscriptions on a wildcard link', async () => {
   const api = graphql.link('*')
 
   server.use(
@@ -1078,7 +1078,7 @@ it('intercepts GraphQL subscriptions on a wildcard link', async () => {
   })
 })
 
-it('performs non-GraphQL WebSocket connections as-is despite a wildcard link', async () => {
+test('performs non-GraphQL WebSocket connections as-is despite a wildcard link', async () => {
   const webSocketServer = new WebSocketServer()
   await webSocketServer.listen()
   webSocketServer.on('connection', (client) => {

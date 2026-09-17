@@ -17,7 +17,7 @@ afterAll(() => {
   server.close()
 })
 
-it("axios times out when the handler's delay is greater than axios timeout", async () => {
+test("axios times out when the handler's delay is greater than axios timeout", async () => {
   server.use(
     http.get('http://localhost/slow', async () => {
       await delay(500)
@@ -38,7 +38,7 @@ it("axios times out when the handler's delay is greater than axios timeout", asy
   })
 })
 
-it("axios does not time out when the handler's delay is less than axios timeout", async () => {
+test("axios does not time out when the handler's delay is less than axios timeout", async () => {
   server.use(
     http.get('http://localhost/fast', async () => {
       await delay(50)

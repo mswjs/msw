@@ -18,7 +18,7 @@ afterAll(() => {
   server.close()
 })
 
-it('emits the "graphql:subscription" event when a subscription is established', async () => {
+test('emits the "graphql:subscription" event when a subscription is established', async () => {
   const subscriptionListener = vi.fn()
   server.events.on('graphql:subscription', subscriptionListener)
 

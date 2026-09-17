@@ -43,7 +43,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('returns a mocked response to an "http.get" request', async () => {
+test('returns a mocked response to an "http.get" request', async () => {
   const request = nodeHttp.get(httpServer.http.url('/resource'))
   const { response, responseText } = await waitForClientRequest(request)
 
@@ -57,7 +57,7 @@ it('returns a mocked response to an "http.get" request', async () => {
   expect(responseText).toBe('{"firstName":"John"}')
 })
 
-it('returns a mocked response to an "http.request" request', async () => {
+test('returns a mocked response to an "http.request" request', async () => {
   const request = nodeHttp.request(httpServer.http.url('/resource'))
   request.end()
   const { response, responseText } = await waitForClientRequest(request)

@@ -22,7 +22,7 @@ afterAll(async () => {
   await wsServer.close()
 })
 
-it('intercepts outgoing client text message', async () => {
+test('intercepts outgoing client text message', async () => {
   const mockMessageListener = vi.fn()
   const realConnectionListener = vi.fn()
 
@@ -50,7 +50,7 @@ it('intercepts outgoing client text message', async () => {
   })
 })
 
-it('intercepts outgoing client Blob message', async () => {
+test('intercepts outgoing client Blob message', async () => {
   const mockMessageListener = vi.fn()
   const realConnectionListener = vi.fn()
 
@@ -77,7 +77,7 @@ it('intercepts outgoing client Blob message', async () => {
   })
 })
 
-it('intercepts outgoing client ArrayBuffer message', async () => {
+test('intercepts outgoing client ArrayBuffer message', async () => {
   const mockMessageListener = vi.fn()
   const realConnectionListener = vi.fn()
 

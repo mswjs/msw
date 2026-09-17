@@ -4,11 +4,11 @@ import { setupWorker } from 'msw/browser'
 
 const api = graphql.link('https://api.example.com/graphql')
 
-it('does not produce a type error when called without arguments', () => {
+test('does not produce a type error when called without arguments', () => {
   setupWorker()
 })
 
-it('accepts a single HTTP request handler', () => {
+test('accepts a single HTTP request handler', () => {
   setupWorker(
     http.get('/user', () => {
       return HttpResponse.json({ name: 'John Doe' })
@@ -21,7 +21,7 @@ it('accepts a single HTTP request handler', () => {
   )
 })
 
-it('accepts a single GraphQL request handler', () => {
+test('accepts a single GraphQL request handler', () => {
   setupWorker(
     api.query('GetUser', () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
@@ -34,7 +34,7 @@ it('accepts a single GraphQL request handler', () => {
   )
 })
 
-it('supports a list of request handlers defined elsewhere', () => {
+test('supports a list of request handlers defined elsewhere', () => {
   const handlers = [
     http.get('/user', () => {
       return HttpResponse.json({ name: 'John Doe' })

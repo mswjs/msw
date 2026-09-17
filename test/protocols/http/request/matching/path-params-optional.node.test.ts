@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('intercepts a request that fully matches the path', async () => {
+test('intercepts a request that fully matches the path', async () => {
   server.use(
     http.get('http://localhost/user/:id?', () =>
       HttpResponse.json({ mocked: true }),
@@ -28,7 +28,7 @@ it('intercepts a request that fully matches the path', async () => {
   await expect.soft(response.json()).resolves.toEqual({ mocked: true })
 })
 
-it('intercepts a request that partially matches the path', async () => {
+test('intercepts a request that partially matches the path', async () => {
   server.use(
     http.get('http://localhost/user/:id?', () =>
       HttpResponse.json({ mocked: true }),

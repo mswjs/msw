@@ -48,7 +48,7 @@ afterAll(() => {
   server.close()
 })
 
-it('fetches the data from a GraphQL schema', async () => {
+test('fetches the data from a GraphQL schema', async () => {
   const result = await client({
     query: gql`
       query GetUser {
@@ -67,7 +67,7 @@ it('fetches the data from a GraphQL schema', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('propagates execution errors', async () => {
+test('propagates execution errors', async () => {
   const result = await client({
     query: gql`
       query GetUser {

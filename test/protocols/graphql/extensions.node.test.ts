@@ -50,7 +50,7 @@ afterAll(() => {
   server.close()
 })
 
-it('adds extensions to the original response data', async () => {
+test('adds extensions to the original response data', async () => {
   const client = createGraphQLClient({
     uri: 'http://localhost:3000/graphql',
   })

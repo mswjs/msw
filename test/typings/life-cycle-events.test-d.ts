@@ -5,7 +5,7 @@ import {
   type WebSocketNetworkFrameEventMap,
 } from 'msw/experimental'
 
-it('annotates life cycle event types (node)', () => {
+test('annotates life cycle event types (node)', () => {
   expectTypeOf(setupServer().events.on)
     .parameter(0)
     .toEqualTypeOf<
@@ -28,7 +28,7 @@ it('annotates life cycle event types (node)', () => {
     >()
 })
 
-it('annotates life cycle event types (browser)', () => {
+test('annotates life cycle event types (browser)', () => {
   expectTypeOf(setupWorker().events.on)
     .parameter(0)
     .toEqualTypeOf<
@@ -51,7 +51,7 @@ it('annotates life cycle event types (browser)', () => {
     >()
 })
 
-it('annotates event listener argument (node)', () => {
+test('annotates event listener argument (node)', () => {
   const server = setupServer()
   server.events.on('request:start', (args) => {
     expectTypeOf(args).toExtend<{ request: Request; requestId: string }>()
@@ -90,7 +90,7 @@ it('annotates event listener argument (node)', () => {
   })
 })
 
-it('annotates event listener argument (browser)', () => {
+test('annotates event listener argument (browser)', () => {
   const worker = setupWorker()
 
   worker.events.on('request:start', (args) => {

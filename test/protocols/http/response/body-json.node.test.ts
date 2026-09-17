@@ -19,26 +19,26 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with a JSON response body', async () => {
+test('responds with a JSON response body', async () => {
   const response = await fetch('http://localhost/json')
 
   expect(response.headers.get('Content-Type')).toBe('application/json')
   expect(await response.json()).toEqual({ firstName: 'John' })
 })
 
-it('responds with a single number JSON response body', async () => {
+test('responds with a single number JSON response body', async () => {
   const response = await fetch('http://localhost/number')
 
   expect(response.headers.get('Content-Type')).toBe('application/json')
   expect(await response.json()).toEqual(123)
 })
 
-it('implicitly sets "Content-Length" header on the mocked response', async () => {
+test('implicitly sets "Content-Length" header on the mocked response', async () => {
   const response = await fetch('http://localhost/json')
   expect(response.headers.get('Content-Length')).toBe('20')
 })
 
-it('implicitly sets "Content-Length" to 0 if the mocked response body is empty', async () => {
+test('implicitly sets "Content-Length" to 0 if the mocked response body is empty', async () => {
   server.use(
     http.get('http://localhost/json', () => {
       return HttpResponse.json()
@@ -49,7 +49,7 @@ it('implicitly sets "Content-Length" to 0 if the mocked response body is empty',
   expect(response.headers.get('Content-Length')).toBe('0')
 })
 
-it('respects custom "Content-Length" mocked response header', async () => {
+test('respects custom "Content-Length" mocked response header', async () => {
   server.use(
     http.get('http://localhost/json', () => {
       return HttpResponse.json(

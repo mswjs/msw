@@ -1,4 +1,4 @@
-import { it, expectTypeOf } from 'vitest'
+import { test, expectTypeOf } from 'vitest'
 import {
   http,
   delay,
@@ -16,7 +16,7 @@ import {
 
 const api = graphql.link('https://api.example.com/graphql')
 
-it('custom http resolver has correct parameters type', () => {
+test('custom http resolver has correct parameters type', () => {
   /**
    * A higher-order resolver that injects a fixed
    * delay before calling the provided resolver.
@@ -60,7 +60,7 @@ function identityGraphQLResolver<
   }
 }
 
-it('custom graphql resolver has correct variables and response type', () => {
+test('custom graphql resolver has correct variables and response type', () => {
   api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {
@@ -75,7 +75,7 @@ it('custom graphql resolver has correct variables and response type', () => {
   )
 })
 
-it('custom graphql resolver does not accept unknown variables', () => {
+test('custom graphql resolver does not accept unknown variables', () => {
   api.query<{ number: number }, { id: string }>(
     'GetUser',
     identityGraphQLResolver(({ variables }) => {

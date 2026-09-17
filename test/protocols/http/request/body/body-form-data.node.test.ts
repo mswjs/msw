@@ -31,7 +31,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports FormData request body', async () => {
+test('supports FormData request body', async () => {
   // Note that creating a `FormData` instance in Node/JSDOM differs
   // from the same instance in a real browser. Follow the instructions
   // of your `fetch` polyfill to learn more.
@@ -52,7 +52,7 @@ it('supports FormData request body', async () => {
   ])
 })
 
-it('respects Blob size in request body', async () => {
+test('respects Blob size in request body', async () => {
   const blob = new Blob([JSON.stringify({ data: 1 })], {
     type: 'application/json',
   })

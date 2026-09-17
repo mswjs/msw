@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports mocking a response cookie', async () => {
+test('supports mocking a response cookie', async () => {
   server.use(
     http.get('*/resource', () => {
       return new HttpResponse(null, {
@@ -31,7 +31,7 @@ it('supports mocking a response cookie', async () => {
   expect(response.headers.get('Set-Cookie')).toBe('a=1')
 })
 
-it('supports mocking multiple response cookies', async () => {
+test('supports mocking multiple response cookies', async () => {
   server.use(
     http.get('*/resource', () => {
       return new HttpResponse(null, {
@@ -47,7 +47,7 @@ it('supports mocking multiple response cookies', async () => {
   expect(response.headers.get('Set-Cookie')).toBe('a=1, b=2')
 })
 
-it('returns response cookies for a different domain', async () => {
+test('returns response cookies for a different domain', async () => {
   const cookie = 'sessionId=abc-123; Domain=example.com; Path=/'
   server.use(
     http.get('http://localhost/resource', () => {

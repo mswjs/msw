@@ -3,7 +3,7 @@
  */
 import { bypass } from './bypass'
 
-it('returns bypassed request given a request url string', async () => {
+test('returns bypassed request given a request url string', async () => {
   const request = bypass('https://api.example.com/resource')
 
   // Relative URLs are rebased against the current location.
@@ -12,14 +12,14 @@ it('returns bypassed request given a request url string', async () => {
   expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
 })
 
-it('returns bypassed request given a request url', async () => {
+test('returns bypassed request given a request url', async () => {
   const request = bypass(new URL('/resource', 'https://api.example.com'))
 
   expect(request.url).toBe('https://api.example.com/resource')
   expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
 })
 
-it('returns bypassed request given request instance', async () => {
+test('returns bypassed request given request instance', async () => {
   const original = new Request('http://localhost/resource', {
     method: 'POST',
     headers: {
@@ -44,7 +44,7 @@ it('returns bypassed request given request instance', async () => {
   ])
 })
 
-it('allows modifying the bypassed request instance', async () => {
+test('allows modifying the bypassed request instance', async () => {
   const original = new Request('http://localhost/resource', {
     method: 'POST',
     body: 'hello world',
@@ -66,7 +66,7 @@ it('allows modifying the bypassed request instance', async () => {
   expect(original.bodyUsed).toBe(false)
 })
 
-it('removes the "content-length" request header', async () => {
+test('removes the "content-length" request header', async () => {
   // Intercepted requests parsed from the wire include the received
   // "content-length" header. Deriving a request with a different body
   // makes that header stale, and the request client would reject the
@@ -83,7 +83,7 @@ it('removes the "content-length" request header', async () => {
   expect(original.bodyUsed).toBe(false)
 })
 
-it('supports bypassing "keepalive: true" requests', async () => {
+test('supports bypassing "keepalive: true" requests', async () => {
   const original = new Request('http://localhost/resource', {
     method: 'POST',
     keepalive: true,

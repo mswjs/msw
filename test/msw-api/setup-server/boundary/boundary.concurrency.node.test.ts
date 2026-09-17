@@ -19,7 +19,7 @@ afterAll(() => {
 })
 
 describe.concurrent('concurrent tests', () => {
-  it(
+  test(
     'resolves request against the initial handlers',
     server.boundary(async () => {
       const response = await fetch('/initial')
@@ -28,7 +28,7 @@ describe.concurrent('concurrent tests', () => {
     }),
   )
 
-  it(
+  test(
     'resolves request against the in-test handler override',
     server.boundary(async () => {
       server.use(
@@ -43,7 +43,7 @@ describe.concurrent('concurrent tests', () => {
     }),
   )
 
-  it(
+  test(
     'resolves requests against the initial handlers again',
     server.boundary(async () => {
       const response = await fetch('/initial')

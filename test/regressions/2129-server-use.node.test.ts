@@ -19,7 +19,7 @@ afterAll(async () => {
   server.close()
 })
 
-it('does not override existing handlers when adding override for a different method', async () => {
+test('does not override existing handlers when adding override for a different method', async () => {
   server.use(
     http.get('http://localhost/v1/issues', () => {
       return HttpResponse.text('get-body')

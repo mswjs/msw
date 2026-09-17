@@ -12,7 +12,7 @@ const resolver: ResponseResolver<
 }
 
 describe('info', () => {
-  it('exposes request handler information', () => {
+  test('exposes request handler information', () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
 
     expect(handler.info.header).toEqual('GET /user/:userId')
@@ -23,7 +23,7 @@ describe('info', () => {
 })
 
 describe('parse', () => {
-  it('parses a URL given a matching request', async () => {
+  test('parses a URL given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
@@ -38,7 +38,7 @@ describe('parse', () => {
     })
   })
 
-  it('parses a URL and ignores the request method', async () => {
+  test('parses a URL and ignores the request method', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/def-456', location.href), {
       method: 'POST',
@@ -55,7 +55,7 @@ describe('parse', () => {
     })
   })
 
-  it('returns negative match result given a non-matching request', async () => {
+  test('returns negative match result given a non-matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/login', location.href))
 
@@ -70,7 +70,7 @@ describe('parse', () => {
 })
 
 describe('predicate', () => {
-  it('returns true given a matching request', async () => {
+  test('returns true given a matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/login', location.href), {
       method: 'POST',
@@ -84,7 +84,7 @@ describe('predicate', () => {
     ).resolves.toBe(true)
   })
 
-  it('supports RegExp as the request method', async () => {
+  test('supports RegExp as the request method', async () => {
     const handler = new HttpHandler(/.+/, '/login', resolver)
     const requests = [
       new Request(new URL('/login', location.href)),
@@ -102,7 +102,7 @@ describe('predicate', () => {
     }
   })
 
-  it('returns false given a non-matching request', async () => {
+  test('returns false given a non-matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
 
@@ -114,7 +114,7 @@ describe('predicate', () => {
     ).resolves.toBe(false)
   })
 
-  it('supports custom predicate function', async () => {
+  test('supports custom predicate function', async () => {
     const handler = new HttpHandler(
       'GET',
       ({ request }) => {
@@ -146,7 +146,7 @@ describe('predicate', () => {
 })
 
 describe('test', () => {
-  it('returns true given a matching request', async () => {
+  test('returns true given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test({
       request: new Request(new URL('/user/abc-123', location.href)),
@@ -159,7 +159,7 @@ describe('test', () => {
     expect(secondTest).toBe(true)
   })
 
-  it('returns false given a non-matching request', async () => {
+  test('returns false given a non-matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const firstTest = await handler.test({
       request: new Request(new URL('/login', location.href)),
@@ -178,7 +178,7 @@ describe('test', () => {
 })
 
 describe('run', () => {
-  it('returns a mocked response given a matching request', async () => {
+  test('returns a mocked response given a matching request', async () => {
     const handler = new HttpHandler('GET', '/user/:userId', resolver)
     const request = new Request(new URL('/user/abc-123', location.href))
     const requestId = createRequestId()
@@ -203,7 +203,7 @@ describe('run', () => {
     })
   })
 
-  it('returns null given a non-matching request', async () => {
+  test('returns null given a non-matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
@@ -213,7 +213,7 @@ describe('run', () => {
     expect(result).toBeNull()
   })
 
-  it('returns an empty "params" object given request with no URL parameters', async () => {
+  test('returns an empty "params" object given request with no URL parameters', async () => {
     const handler = new HttpHandler('GET', '/users', resolver)
     const result = await handler.run({
       request: new Request(new URL('/users', location.href)),
@@ -223,7 +223,7 @@ describe('run', () => {
     expect(result?.parsedResult?.match?.params).toEqual({})
   })
 
-  it('exhausts resolver until its generator completes', async () => {
+  test('exhausts resolver until its generator completes', async () => {
     const handler = new HttpHandler('GET', '/users', function* () {
       let count = 0
 
@@ -254,7 +254,7 @@ describe('run', () => {
 })
 
 describe('finalize', () => {
-  it('returns the exact response instance if the resolver never accesses finalize', async () => {
+  test('returns the exact response instance if the resolver never accesses finalize', async () => {
     const response = new HttpResponse(
       new ReadableStream({
         start(controller) {
@@ -275,7 +275,7 @@ describe('finalize', () => {
     expect(result?.response).toBe(response)
   })
 
-  it('returns the exact response instance if finalize is accessed but never called', async () => {
+  test('returns the exact response instance if finalize is accessed but never called', async () => {
     const response = new HttpResponse(
       new ReadableStream({
         start(controller) {
@@ -296,7 +296,7 @@ describe('finalize', () => {
     expect(result?.response).toBe(response)
   })
 
-  it('defers the cleanup until the response stream settles', async () => {
+  test('defers the cleanup until the response stream settles', async () => {
     const cleanup = vi.fn()
     const response = new HttpResponse(
       new ReadableStream({
@@ -326,7 +326,7 @@ describe('finalize', () => {
     })
   })
 
-  it('runs the cleanup immediately for responses without a body', async () => {
+  test('runs the cleanup immediately for responses without a body', async () => {
     const cleanup = vi.fn()
     const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
       finalize(cleanup)

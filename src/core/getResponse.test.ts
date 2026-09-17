@@ -2,13 +2,13 @@
 import { http } from '#http/http'
 import { getResponse } from './getResponse'
 
-it('returns undefined given empty headers array', async () => {
+test('returns undefined given empty headers array', async () => {
   await expect(
     getResponse([], new Request('http://localhost/')),
   ).resolves.toBeUndefined()
 })
 
-it('returns undefined given no matching handlers', async () => {
+test('returns undefined given no matching handlers', async () => {
   await expect(
     getResponse(
       [http.get('/product', () => void 0)],
@@ -17,7 +17,7 @@ it('returns undefined given no matching handlers', async () => {
   ).resolves.toBeUndefined()
 })
 
-it('returns undefined given a matching handler that returned no response', async () => {
+test('returns undefined given a matching handler that returned no response', async () => {
   await expect(
     getResponse(
       [http.get('*/user', () => void 0)],
@@ -26,7 +26,7 @@ it('returns undefined given a matching handler that returned no response', async
   ).resolves.toBeUndefined()
 })
 
-it('returns undefined given a matching handler that returned explicit undefined', async () => {
+test('returns undefined given a matching handler that returned explicit undefined', async () => {
   await expect(
     getResponse(
       [http.get('*/user', () => undefined)],
@@ -35,7 +35,7 @@ it('returns undefined given a matching handler that returned explicit undefined'
   ).resolves.toBeUndefined()
 })
 
-it('returns the response returned from a matching handler', async () => {
+test('returns the response returned from a matching handler', async () => {
   const response = await getResponse(
     [http.get('*/user', () => Response.json({ name: 'John' }))],
     new Request('http://localhost/user'),
@@ -46,7 +46,7 @@ it('returns the response returned from a matching handler', async () => {
   await expect(response?.json()).resolves.toEqual({ name: 'John' })
 })
 
-it('returns the response from the first matching handler if multiple match', async () => {
+test('returns the response from the first matching handler if multiple match', async () => {
   const response = await getResponse(
     [
       http.get('*/user', () => Response.json({ name: 'John' })),
@@ -60,7 +60,7 @@ it('returns the response from the first matching handler if multiple match', asy
   await expect(response?.json()).resolves.toEqual({ name: 'John' })
 })
 
-it('supports custom base url', async () => {
+test('supports custom base url', async () => {
   const response = await getResponse(
     [http.get('/resource', () => new Response('hello world'))],
     new Request('https://localhost:3000/resource'),

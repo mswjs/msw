@@ -22,7 +22,7 @@ afterAll(async () => {
   await originalServer.close()
 })
 
-it('does not connect to the actual server by default', async () => {
+test('does not connect to the actual server by default', async () => {
   const serverConnectionListener = vi.fn()
   const mockConnectionListener = vi.fn()
 
@@ -37,7 +37,7 @@ it('does not connect to the actual server by default', async () => {
   })
 })
 
-it('connects to the actual server after calling "server.connect()"', async () => {
+test('connects to the actual server after calling "server.connect()"', async () => {
   const serverConnectionListener = vi.fn()
   const mockConnectionListener = vi.fn()
 
@@ -58,7 +58,7 @@ it('connects to the actual server after calling "server.connect()"', async () =>
   })
 })
 
-it('forwards incoming server events to the client once connected', async () => {
+test('forwards incoming server events to the client once connected', async () => {
   originalServer.once('connection', (client) => client.send('hello'))
 
   server.use(
@@ -77,7 +77,7 @@ it('forwards incoming server events to the client once connected', async () => {
   })
 })
 
-it('throws an error when connecting to a non-existing server', async () => {
+test('throws an error when connecting to a non-existing server', async () => {
   server.use(
     service.addEventListener('connection', ({ server }) => {
       server.connect()

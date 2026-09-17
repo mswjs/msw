@@ -1,7 +1,7 @@
-import { it } from 'vitest'
+import { test } from 'vitest'
 import { http, HttpResponse } from 'msw'
 
-it('supports generator function as response resolver', () => {
+test('supports generator function as response resolver', () => {
   http.get<never, never, { value: number }>('/', function* () {
     yield HttpResponse.json({ value: 1 })
     yield HttpResponse.json({ value: 2 })
@@ -18,7 +18,7 @@ it('supports generator function as response resolver', () => {
   })
 })
 
-it('supports async generator function as response resolver', () => {
+test('supports async generator function as response resolver', () => {
   http.get<never, never, { value: number }>('/', async function* () {
     yield HttpResponse.json({ value: 1 })
     yield HttpResponse.json({ value: 2 })
@@ -35,12 +35,12 @@ it('supports async generator function as response resolver', () => {
   })
 })
 
-it('supports returning nothing from generator resolvers', () => {
+test('supports returning nothing from generator resolvers', () => {
   http.get<never, never, { value: string }>('/', function* () {})
   http.get<never, never, { value: string }>('/', async function* () {})
 })
 
-it('supports returning undefined from generator resolvers', () => {
+test('supports returning undefined from generator resolvers', () => {
   http.get<never, never, { value: string }>('/', function* () {
     return undefined
   })

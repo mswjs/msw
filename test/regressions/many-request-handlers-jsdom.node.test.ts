@@ -54,7 +54,7 @@ describe('http handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning for the last handler', async () => {
+  test('does not print a memory leak warning for the last handler', async () => {
     const httpResponse = await fetch(
       `${httpServer.http.url(`/resource/${NUMBER_OF_REQUEST_HANDLERS - 1}`)}`,
       {
@@ -70,7 +70,7 @@ describe('http handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning for onUnhandledFrame', async () => {
+  test('does not print a memory leak warning for onUnhandledFrame', async () => {
     const httpResponse = await fetch(
       `${httpServer.http.url(`/resource/not-defined`)}`,
       {
@@ -100,7 +100,7 @@ describe('graphql handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning', async () => {
+  test('does not print a memory leak warning', async () => {
     const graphqlResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
       headers: {
@@ -120,7 +120,7 @@ describe('graphql handlers', () => {
     )
   })
 
-  it('does not print a memory leak warning for onUnhandledFrame', async () => {
+  test('does not print a memory leak warning for onUnhandledFrame', async () => {
     const unhandledResponse = await fetch(httpServer.http.url('/graphql'), {
       method: 'POST',
       headers: {

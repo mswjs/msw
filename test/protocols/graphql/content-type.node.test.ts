@@ -19,7 +19,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with the "application/json" content type by default', async () => {
+test('responds with the "application/json" content type by default', async () => {
   server.use(
     api.query('GetUser', () => {
       return HttpResponse.json({
@@ -49,7 +49,7 @@ it('responds with the "application/json" content type by default', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('responds with the "application/graphql-response+json" content type if the client accepts it', async () => {
+test('responds with the "application/graphql-response+json" content type if the client accepts it', async () => {
   server.use(
     api.mutation('CreatePost', () => {
       return HttpResponse.json({
@@ -111,7 +111,7 @@ it('responds with the "application/graphql-response+json" content type if the cl
   }
 })
 
-it('respects the "Accept" request header quality', async () => {
+test('respects the "Accept" request header quality', async () => {
   server.use(
     api.mutation('CreatePost', () => {
       return HttpResponse.json({
@@ -146,7 +146,7 @@ it('respects the "Accept" request header quality', async () => {
   }
 })
 
-it('responds with the "application/graphql-response+json" in generator responses', async () => {
+test('responds with the "application/graphql-response+json" in generator responses', async () => {
   server.use(
     api.query('GetForecast', function* () {
       yield HttpResponse.json({
@@ -179,7 +179,7 @@ it('responds with the "application/graphql-response+json" in generator responses
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('ignores request "Accept" preferences if an explicit "content-type" is set on the mocked response', async () => {
+test('ignores request "Accept" preferences if an explicit "content-type" is set on the mocked response', async () => {
   server.use(
     api.query('GetUser', () => {
       return HttpResponse.json(

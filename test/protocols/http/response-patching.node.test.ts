@@ -33,7 +33,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('supports patching an original HTTP response', async () => {
+test('supports patching an original HTTP response', async () => {
   server.use(
     http.post(httpServer.http.url('/resource'), async ({ request }) => {
       const originalResponse = await fetch(bypass(request))
@@ -53,7 +53,7 @@ it('supports patching an original HTTP response', async () => {
   expect(Object.fromEntries(response.headers)).toHaveProperty('accept', '*/*')
 })
 
-it('preserves request "accept" header when patching a response', async () => {
+test('preserves request "accept" header when patching a response', async () => {
   server.use(
     http.post(httpServer.http.url('/resource'), async ({ request }) => {
       const originalResponse = await fetch(bypass(request))

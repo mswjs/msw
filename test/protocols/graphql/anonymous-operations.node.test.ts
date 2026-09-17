@@ -38,7 +38,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('warns on unhandled anonymous GraphQL operations', async () => {
+test('warns on unhandled anonymous GraphQL operations', async () => {
   const endpointUrl = httpServer.http.url('/graphql')
   const client = createGraphQLClient({ uri: endpointUrl })
 
@@ -63,7 +63,7 @@ it('warns on unhandled anonymous GraphQL operations', async () => {
 Consider naming this operation or using the "operation()" request handler of "graphql.link()" to intercept GraphQL requests regardless of their operation name/type. Read more: https://mswjs.io/docs/api/graphql/#graphqloperationresolver`)
 })
 
-it('does not print a warning when using anonymous operation with the "operation()" link handler', async () => {
+test('does not print a warning when using anonymous operation with the "operation()" link handler', async () => {
   server.use(
     api.operation(async () => {
       return HttpResponse.json({

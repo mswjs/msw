@@ -3,7 +3,7 @@
 import { network } from 'virtual:msw'
 import { http, HttpResponse } from 'msw/http'
 
-it('exposes an environment-neutral network', () => {
+test('exposes an environment-neutral network', () => {
   network.configure({
     handlers: [http.get('/resource', () => HttpResponse.text('mocked'))],
     onUnhandledFrame: 'error',
@@ -20,7 +20,7 @@ it('exposes an environment-neutral network', () => {
   network.configure({ invalid: true })
 })
 
-it('types network lifecycle events', () => {
+test('types network lifecycle events', () => {
   network.events.on('request:start', (event) => {
     expectTypeOf(event.data.request).toEqualTypeOf<Request>()
   })

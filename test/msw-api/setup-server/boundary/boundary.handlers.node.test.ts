@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it.concurrent(
+test.concurrent(
   'treats higher scope handlers as initial handlers',
   server.boundary(async () => {
     expect(
@@ -38,7 +38,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent(
+test.concurrent(
   'resets the runtime handlers to the initial handlers',
   server.boundary(async () => {
     server.use(
@@ -62,7 +62,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent(
+test.concurrent(
   'treats the higher boundary handlers as initial handlers for nested boundary',
   server.boundary(async () => {
     server.use(

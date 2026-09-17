@@ -25,7 +25,7 @@ afterAll(() => {
   server.close()
 })
 
-it.concurrent(
+test.concurrent(
   'resolves outgoing events using initial handlers',
   server.boundary(async () => {
     const messageListener = vi.fn()
@@ -40,7 +40,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent(
+test.concurrent(
   'overrides an outgoing event listener',
   server.boundary(async () => {
     server.use(
@@ -69,7 +69,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent(
+test.concurrent(
   'combines initial and override listeners',
   server.boundary(async () => {
     server.use(
@@ -101,7 +101,7 @@ it.concurrent(
   }),
 )
 
-it.concurrent(
+test.concurrent(
   'combines initial and override listeners in the opposite order',
   async () => {
     server.use(
@@ -132,7 +132,7 @@ it.concurrent(
   },
 )
 
-it.concurrent(
+test.concurrent(
   'does not affect unrelated events',
   server.boundary(async () => {
     server.use(

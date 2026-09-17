@@ -23,7 +23,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports TypedDocumentNode as request predicate', async () => {
+test('supports TypedDocumentNode as request predicate', async () => {
   const GET_USER = gql`
     query GetUser($id: ID!) {
       user(id: $id) {

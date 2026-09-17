@@ -25,7 +25,7 @@ afterAll(() => {
   server.close()
 })
 
-it('runs after a handler that returns nothing', async () => {
+test('runs after a handler that returns nothing', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -38,7 +38,7 @@ it('runs after a handler that returns nothing', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a handler returns a response', async () => {
+test('runs after a handler returns a response', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -52,7 +52,7 @@ it('runs after a handler returns a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a handler that throws a response', async () => {
+test('runs after a handler that throws a response', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -66,7 +66,7 @@ it('runs after a handler that throws a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a handler that throws an error', async () => {
+test('runs after a handler that throws an error', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -80,7 +80,7 @@ it('runs after a handler that throws an error', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a handler that passes through', async () => {
+test('runs after a handler that passes through', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -94,7 +94,7 @@ it('runs after a handler that passes through', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs an asynchronous cleanup before the response is returned', async () => {
+test('runs an asynchronous cleanup before the response is returned', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -114,7 +114,7 @@ it('runs an asynchronous cleanup before the response is returned', async () => {
   expect(cleanup).toHaveBeenCalledBefore(responseReceived)
 })
 
-it('runs multiple cleanups as LIFO', async () => {
+test('runs multiple cleanups as LIFO', async () => {
   const cleanupOne = vi.fn()
   const cleanupTwo = vi.fn()
 
@@ -132,7 +132,7 @@ it('runs multiple cleanups as LIFO', async () => {
   expect(cleanupTwo).toHaveBeenCalledBefore(cleanupOne)
 })
 
-it('runs after the request has been aborted', async () => {
+test('runs after the request has been aborted', async () => {
   const cleanup = vi.fn()
   const handlerStarted = Promise.withResolvers<void>()
 
@@ -155,7 +155,7 @@ it('runs after the request has been aborted', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs immediately when scheduled after the request has been aborted', async () => {
+test('runs immediately when scheduled after the request has been aborted', async () => {
   const cleanup = vi.fn()
   const handlerStarted = Promise.withResolvers<void>()
   const continueHandler = Promise.withResolvers<void>()
@@ -183,7 +183,7 @@ it('runs immediately when scheduled after the request has been aborted', async (
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs cleanups scheduled after the abort listener has fired', async () => {
+test('runs cleanups scheduled after the abort listener has fired', async () => {
   const cleanupBeforeAbort = vi.fn()
   const cleanupAfterAbort = vi.fn()
   const handlerStarted = Promise.withResolvers<void>()
@@ -215,7 +215,7 @@ it('runs cleanups scheduled after the abort listener has fired', async () => {
   await expect.poll(() => cleanupAfterAbort).toHaveBeenCalledOnce()
 })
 
-it('runs once the generator resolver is exhausted', async () => {
+test('runs once the generator resolver is exhausted', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -246,7 +246,7 @@ it('runs once the generator resolver is exhausted', async () => {
   }
 })
 
-it('runs once the returned iterator is exhausted', async () => {
+test('runs once the returned iterator is exhausted', async () => {
   const cleanup = vi.fn()
 
   server.use(
@@ -282,7 +282,7 @@ it('runs once the returned iterator is exhausted', async () => {
   }
 })
 
-it('runs after a GraphQL query handler returns a response', async () => {
+test('runs after a GraphQL query handler returns a response', async () => {
   const cleanup = vi.fn()
 
   const api = graphql.link('http://localhost/graphql')
@@ -307,7 +307,7 @@ it('runs after a GraphQL query handler returns a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a GraphQL operation handler returns a response', async () => {
+test('runs after a GraphQL operation handler returns a response', async () => {
   const cleanup = vi.fn()
 
   const api = graphql.link('http://localhost/graphql')
@@ -332,7 +332,7 @@ it('runs after a GraphQL operation handler returns a response', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a GraphQL operation subscription is completed', async () => {
+test('runs after a GraphQL operation subscription is completed', async () => {
   const cleanup = vi.fn()
   const resolverCalled = Promise.withResolvers<void>()
 
@@ -368,7 +368,7 @@ it('runs after a GraphQL operation subscription is completed', async () => {
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('reports a failing GraphQL subscription cleanup without an unhandled rejection', async () => {
+test('reports a failing GraphQL subscription cleanup without an unhandled rejection', async () => {
   const unhandledRejectionListener = vi.fn()
   process.on('unhandledRejection', unhandledRejectionListener)
 
@@ -413,7 +413,7 @@ it('reports a failing GraphQL subscription cleanup without an unhandled rejectio
   expect(unhandledRejectionListener).not.toHaveBeenCalled()
 })
 
-it('runs after a GraphQL subscription is completed by the mock', async () => {
+test('runs after a GraphQL subscription is completed by the mock', async () => {
   const cleanup = vi.fn()
 
   const api = graphql.link('http://localhost:4000/graphql')
@@ -447,7 +447,7 @@ it('runs after a GraphQL subscription is completed by the mock', async () => {
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a GraphQL subscription is completed by the client', async () => {
+test('runs after a GraphQL subscription is completed by the client', async () => {
   const cleanup = vi.fn()
   const resolverCalled = Promise.withResolvers<void>()
 
@@ -488,7 +488,7 @@ it('runs after a GraphQL subscription is completed by the client', async () => {
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after a GraphQL subscription is completed by the original server', async () => {
+test('runs after a GraphQL subscription is completed by the original server', async () => {
   await using testServer = await createTestGraphQLServer({
     schema: createSchema({
       typeDefs: gql`
@@ -553,7 +553,7 @@ it('runs after a GraphQL subscription is completed by the original server', asyn
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs after the network is closed while the subscription is open', async () => {
+test('runs after the network is closed while the subscription is open', async () => {
   const cleanup = vi.fn()
   const subscriptionEstablished = Promise.withResolvers<void>()
 
@@ -595,7 +595,7 @@ it('runs after the network is closed while the subscription is open', async () =
   await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
-it('runs cleanup for parallel requests', async () => {
+test('runs cleanup for parallel requests', async () => {
   const cleanup = vi.fn()
 
   server.use(

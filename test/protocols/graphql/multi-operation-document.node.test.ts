@@ -37,7 +37,7 @@ const DOCUMENT = gql`
   }
 `
 
-it('selects the operation by name for a POST request', async () => {
+test('selects the operation by name for a POST request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
@@ -65,7 +65,7 @@ it('selects the operation by name for a POST request', async () => {
   expect(queryResolver).not.toHaveBeenCalled()
 })
 
-it('selects the operation by name for a GET request', async () => {
+test('selects the operation by name for a GET request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
@@ -87,7 +87,7 @@ it('selects the operation by name for a GET request', async () => {
   expect(queryResolver).not.toHaveBeenCalled()
 })
 
-it('selects the operation by name for a multipart request', async () => {
+test('selects the operation by name for a multipart request', async () => {
   const queryResolver = vi.fn()
 
   server.use(
@@ -119,7 +119,7 @@ it('selects the operation by name for a multipart request', async () => {
   expect(queryResolver).not.toHaveBeenCalled()
 })
 
-it('does not match any handler given an unknown operation name', async () => {
+test('does not match any handler given an unknown operation name', async () => {
   const queryResolver = vi.fn()
   const mutationResolver = vi.fn()
 

@@ -24,7 +24,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports fake timers without any delay in the handlers', async () => {
+test('supports fake timers without any delay in the handlers', async () => {
   server.use(
     http.get('https://test.mswjs.io/pull', () => {
       return HttpResponse.json({ status: 'pulled' })
@@ -35,7 +35,7 @@ it('supports fake timers without any delay in the handlers', async () => {
   await expect(response.json()).resolves.toEqual({ status: 'pulled' })
 })
 
-it('delays the response when advancing the fake timers', async () => {
+test('delays the response when advancing the fake timers', async () => {
   server.use(
     http.get('https://test.mswjs.io/delayed', async () => {
       await delay(500)

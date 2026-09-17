@@ -19,7 +19,7 @@ const subscription = createGraphQLSubscriptionHandler(
 )
 
 describe('info', () => {
-  it('resolves handler info for a string operation name', () => {
+  test('resolves handler info for a string operation name', () => {
     expect(
       subscription('OnCommentAdded', () => {}).info,
     ).toEqual<GraphQLHandlerInfo>({
@@ -30,7 +30,7 @@ describe('info', () => {
     })
   })
 
-  it('resolves handler info for a RegExp operation name', () => {
+  test('resolves handler info for a RegExp operation name', () => {
     expect(subscription(/Comment/, () => {}).info).toEqual<GraphQLHandlerInfo>({
       header: 'subscription /Comment/ (origin: ws://localhost:4000/graphql)',
       operationName: /Comment/,
@@ -38,7 +38,7 @@ describe('info', () => {
     })
   })
 
-  it('resolves handler info for a DocumentNode operation name', () => {
+  test('resolves handler info for a DocumentNode operation name', () => {
     const node = parse(`
       subscription OnCommentAdded {
         comment {
@@ -57,7 +57,7 @@ describe('info', () => {
 })
 
 describe('predicate', () => {
-  it('returns true for a matching WebSocket connection url', () => {
+  test('returns true for a matching WebSocket connection url', () => {
     const handler = subscription('OnCommentAdded', () => {})
     const url = 'ws://localhost:4000/graphql'
     const parsedResult = handler.parse({ url })
@@ -65,7 +65,7 @@ describe('predicate', () => {
     expect(handler.predicate({ url, parsedResult })).toBe(true)
   })
 
-  it('returns false for a non-matching WebSocket connection url', () => {
+  test('returns false for a non-matching WebSocket connection url', () => {
     const handler = subscription('OnCommentAdded', () => {})
     const url = 'ws://example.com/chat'
     const parsedResult = handler.parse({ url })
@@ -88,7 +88,7 @@ describe('subprotocol discrimination', () => {
       .filter((handler) => handler instanceof WebSocketHandler)
   }
 
-  it('does not claim connections that lack the "graphql-transport-ws" subprotocol', async () => {
+  test('does not claim connections that lack the "graphql-transport-ws" subprotocol', async () => {
     const api = graphql.link('*')
     const controller = new InMemoryHandlersController([
       api.subscription('OnCommentAdded', vi.fn()),
@@ -116,7 +116,7 @@ describe('subprotocol discrimination', () => {
       .toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ frame }))
   })
 
-  it('claims connections that request the "graphql-transport-ws" subprotocol', async () => {
+  test('claims connections that request the "graphql-transport-ws" subprotocol', async () => {
     const api = graphql.link('*')
     const controller = new InMemoryHandlersController([
       api.subscription('OnCommentAdded', vi.fn()),
@@ -140,7 +140,7 @@ describe('subprotocol discrimination', () => {
     expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   })
 
-  it('ignores upgrade requests that lack the "graphql-transport-ws" subprotocol', async () => {
+  test('ignores upgrade requests that lack the "graphql-transport-ws" subprotocol', async () => {
     const handler = subscription('OnCommentAdded', () => {})
     const [, upgradeHandler] = getSiblingHandlers(handler)
 
@@ -162,7 +162,7 @@ describe('subprotocol discrimination', () => {
     ).resolves.toBeNull()
   })
 
-  it('confirms the subprotocol for matching upgrade requests', async () => {
+  test('confirms the subprotocol for matching upgrade requests', async () => {
     const handler = subscription('OnCommentAdded', () => {})
     const [, upgradeHandler] = getSiblingHandlers(handler)
 
@@ -190,7 +190,7 @@ describe('subprotocol discrimination', () => {
 })
 
 describe('sibling handlers', () => {
-  it('shares the transport and upgrade handlers between subscription handlers', () => {
+  test('shares the transport and upgrade handlers between subscription handlers', () => {
     const firstHandler = subscription('OnCommentAdded', () => {})
     const secondHandler = subscription('OnPostAdded', () => {})
 

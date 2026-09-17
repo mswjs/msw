@@ -33,7 +33,7 @@ function spyOnWebSocketFrame(frame: WebSocketNetworkFrame) {
   }
 }
 
-it('filters only websocket type handlers', async () => {
+test('filters only websocket type handlers', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -58,7 +58,7 @@ it('filters only websocket type handlers', async () => {
   expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])
 })
 
-it('resolves a matching connection', async () => {
+test('resolves a matching connection', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -94,7 +94,7 @@ it('resolves a matching connection', async () => {
   ])
 })
 
-it('resolves a connection when there are no handlers', async () => {
+test('resolves a connection when there are no handlers', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -129,7 +129,7 @@ it('resolves a connection when there are no handlers', async () => {
   ])
 })
 
-it('resolves a non-matching connection', async () => {
+test('resolves a non-matching connection', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -167,7 +167,7 @@ it('resolves a non-matching connection', async () => {
   ])
 })
 
-it('returns null and prints the error on unhandled exception', async () => {
+test('returns null and prints the error on unhandled exception', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -222,7 +222,7 @@ it('returns null and prints the error on unhandled exception', async () => {
     )
 })
 
-it('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
+test('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -280,7 +280,7 @@ it('does not print an unhandled exception if the "unhandledException" listener i
   expect.soft(console.error).not.toHaveBeenCalled()
 })
 
-it('emits "websocket:error" when the client connection errors', async () => {
+test('emits "websocket:error" when the client connection errors', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -310,7 +310,7 @@ it('emits "websocket:error" when the client connection errors', async () => {
   ])
 })
 
-it('exposes the "error" property of the error event on "websocket:error"', async () => {
+test('exposes the "error" property of the error event on "websocket:error"', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -338,7 +338,7 @@ it('exposes the "error" property of the error event on "websocket:error"', async
   )
 })
 
-it('exposes the "cause" property of the error event on "websocket:error"', async () => {
+test('exposes the "cause" property of the error event on "websocket:error"', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -366,7 +366,7 @@ it('exposes the "cause" property of the error event on "websocket:error"', async
   )
 })
 
-it('stops emitting "websocket:error" once the client connection closes', async () => {
+test('stops emitting "websocket:error" once the client connection closes', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()

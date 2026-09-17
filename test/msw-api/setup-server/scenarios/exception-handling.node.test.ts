@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('treats unhandled exceptions in request handlers as 500 error responses', async () => {
+test('treats unhandled exceptions in request handlers as 500 error responses', async () => {
   server.use(
     http.get('http://localhost/resource', () => {
       throw new Error('Resolver error')
@@ -34,7 +34,7 @@ it('treats unhandled exceptions in request handlers as 500 error responses', asy
   })
 })
 
-it('treats unhandled exceptions in event handlers as 1011 socket closures', async () => {
+test('treats unhandled exceptions in event handlers as 1011 socket closures', async () => {
   const api = ws.link('ws://localhost/socket')
 
   server.use(
@@ -74,7 +74,7 @@ it('treats unhandled exceptions in event handlers as 1011 socket closures', asyn
   )
 })
 
-it('short-circuits on the unhandled exception in multiple matching request handlers', async () => {
+test('short-circuits on the unhandled exception in multiple matching request handlers', async () => {
   server.use(
     http.get('http://localhost/resource', () => {
       throw new Error('Resolver error')
@@ -95,7 +95,7 @@ it('short-circuits on the unhandled exception in multiple matching request handl
   })
 })
 
-it('short-circuits on the unhandled exception in multiple matching event handlers', async () => {
+test('short-circuits on the unhandled exception in multiple matching event handlers', async () => {
   const api = ws.link('ws://localhost/socket')
 
   server.use(

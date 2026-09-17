@@ -98,7 +98,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('sends a mocked response to a batched GraphQL query', async () => {
+test('sends a mocked response to a batched GraphQL query', async () => {
   const response = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {
@@ -136,7 +136,7 @@ it('sends a mocked response to a batched GraphQL query', async () => {
   ])
 })
 
-it('combines mocked and original responses in a single batched query', async () => {
+test('combines mocked and original responses in a single batched query', async () => {
   const response = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {

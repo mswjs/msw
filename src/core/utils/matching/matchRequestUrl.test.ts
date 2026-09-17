@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { matchRequestUrl } from './matchRequestUrl'
 
-it('returns true when matched against a string URL', () => {
+test('returns true when matched against a string URL', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io'), 'https://test.mswjs.io'),
   ).toEqual({
@@ -10,7 +10,7 @@ it('returns true when matched against a string URL', () => {
   })
 })
 
-it('returns false when a string URL does not match', () => {
+test('returns false when a string URL does not match', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io'), 'https://google.com'),
   ).toEqual({
@@ -19,7 +19,7 @@ it('returns false when a string URL does not match', () => {
   })
 })
 
-it('returns true when matched against a RegExp', () => {
+test('returns true when matched against a RegExp', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io'), /test\.mswjs\.io/),
   ).toEqual({
@@ -28,7 +28,7 @@ it('returns true when matched against a RegExp', () => {
   })
 })
 
-it('returns false when a RegExp does not match', () => {
+test('returns false when a RegExp does not match', () => {
   expect(matchRequestUrl(new URL('https://test.mswjs.io'), /foo\.bar/)).toEqual(
     {
       matches: false,
@@ -56,7 +56,7 @@ it('returns false when a RegExp does not match', () => {
   )
 })
 
-it('ignores query parameters when matching against a RegExp', () => {
+test('ignores query parameters when matching against a RegExp', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io/path?foo=bar'), /\/path$/),
   ).toEqual({
@@ -65,7 +65,7 @@ it('ignores query parameters when matching against a RegExp', () => {
   })
 })
 
-it('parses matching RegExp groups into index-based parameters', () => {
+test('parses matching RegExp groups into index-based parameters', () => {
   expect(
     matchRequestUrl(new URL('https://test.mswjs.io/path'), /(.+)\.mswjs\.io/g),
   ).toEqual({

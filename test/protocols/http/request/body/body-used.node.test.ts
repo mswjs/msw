@@ -27,7 +27,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('does not read the body while parsing an unhandled request', async () => {
+test('does not read the body while parsing an unhandled request', async () => {
   // Expecting an unhandled request warning in this test.
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -44,7 +44,7 @@ it('does not read the body while parsing an unhandled request', async () => {
   expect(await response.json()).toEqual({ response: `received: Hello server` })
 })
 
-it('does not read the body while parsing an unhandled request', async () => {
+test('does not read the body while parsing an unhandled request', async () => {
   const requestUrl = httpServer.http.url('/resource')
   server.use(
     http.post(requestUrl, () => {

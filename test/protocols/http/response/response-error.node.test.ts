@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with a mocked error response using "Response.error" shorthand', async () => {
+test('responds with a mocked error response using "Response.error" shorthand', async () => {
   server.use(
     http.get('https://api.example.com/resource', () => {
       return Response.error()

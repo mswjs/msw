@@ -2,7 +2,7 @@
 import { TextEncoder } from 'util'
 import { HttpResponse, kDefaultContentType } from './http-response'
 
-it('creates a plain response', async () => {
+test('creates a plain response', async () => {
   const response = new HttpResponse(null, { status: 301 })
   expect(response.status).toBe(301)
   expect(response.statusText).toBe('Moved Permanently')
@@ -11,12 +11,12 @@ it('creates a plain response', async () => {
   expect(Object.fromEntries(response.headers.entries())).toEqual({})
 })
 
-it('supports non-configurable status codes', () => {
+test('supports non-configurable status codes', () => {
   expect(new HttpResponse(null, { status: 101 })).toHaveProperty('status', 101)
 })
 
 describe('HttpResponse.text()', () => {
-  it('creates a text response', async () => {
+  test('creates a text response', async () => {
     const response = HttpResponse.text('hello world', { status: 201 })
 
     expect(response.status).toBe(201)
@@ -30,7 +30,7 @@ describe('HttpResponse.text()', () => {
     expect(kDefaultContentType in response).toBe(true)
   })
 
-  it('creates a text response with special characters', async () => {
+  test('creates a text response with special characters', async () => {
     const response = HttpResponse.text('안녕 세상', { status: 201 })
 
     expect(response.status).toBe(201)
@@ -43,7 +43,7 @@ describe('HttpResponse.text()', () => {
     })
   })
 
-  it('allows overriding the "Content-Type" response header', async () => {
+  test('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.text('hello world', {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     })
@@ -59,7 +59,7 @@ describe('HttpResponse.text()', () => {
     expect(kDefaultContentType in response).toBe(false)
   })
 
-  it('allows overriding the "Content-Length" response header', async () => {
+  test('allows overriding the "Content-Length" response header', async () => {
     const response = HttpResponse.text('hello world', {
       headers: { 'Content-Length': '32' },
     })
@@ -72,7 +72,7 @@ describe('HttpResponse.text()', () => {
 })
 
 describe('HttpResponse.json()', () => {
-  it('creates a json response given an object', async () => {
+  test('creates a json response given an object', async () => {
     const response = HttpResponse.json({ firstName: 'John' })
 
     expect(response.status).toBe(200)
@@ -86,7 +86,7 @@ describe('HttpResponse.json()', () => {
     expect(kDefaultContentType in response).toBe(true)
   })
 
-  it('creates a json response given an object with special characters', async () => {
+  test('creates a json response given an object with special characters', async () => {
     const response = HttpResponse.json({ firstName: '제로' })
 
     expect(response.status).toBe(200)
@@ -99,7 +99,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('creates a json response given an array', async () => {
+  test('creates a json response given an array', async () => {
     const response = HttpResponse.json([1, 2, 3])
 
     expect(response.status).toBe(200)
@@ -112,7 +112,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('creates a json response given a plain string', async () => {
+  test('creates a json response given a plain string', async () => {
     const response = HttpResponse.json(`"hello"`)
 
     expect(response.status).toBe(200)
@@ -125,7 +125,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('creates a json response given a number', async () => {
+  test('creates a json response given a number', async () => {
     const response = HttpResponse.json(123)
 
     expect(response.status).toBe(200)
@@ -138,7 +138,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('creates a json response given a json ReadableStream', async () => {
+  test('creates a json response given a json ReadableStream', async () => {
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       start(controller) {
@@ -163,7 +163,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('allows overriding the "Content-Type" response header', async () => {
+  test('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.json(
       { a: 1 },
       {
@@ -184,7 +184,7 @@ describe('HttpResponse.json()', () => {
     })
   })
 
-  it('allows overriding the "Content-Length" response header', async () => {
+  test('allows overriding the "Content-Length" response header', async () => {
     const response = HttpResponse.json(
       { a: 1 },
       {
@@ -200,7 +200,7 @@ describe('HttpResponse.json()', () => {
 })
 
 describe('HttpResponse.xml()', () => {
-  it('creates an xml response', async () => {
+  test('creates an xml response', async () => {
     const response = HttpResponse.xml('<user name="John" />')
 
     expect(kDefaultContentType in response).toBe(true)
@@ -214,7 +214,7 @@ describe('HttpResponse.xml()', () => {
     expect(kDefaultContentType in response).toBe(true)
   })
 
-  it('allows overriding the "Content-Type" response header', async () => {
+  test('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.xml('<user name="John" />', {
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
@@ -233,7 +233,7 @@ describe('HttpResponse.xml()', () => {
 })
 
 describe('HttpResponse.html()', () => {
-  it('creates an html response', async () => {
+  test('creates an html response', async () => {
     const response = HttpResponse.html('<p class="author">Jane Doe</p>')
 
     expect(response.status).toBe(200)
@@ -248,7 +248,7 @@ describe('HttpResponse.html()', () => {
     expect(kDefaultContentType in response).toBe(true)
   })
 
-  it('allows overriding the "Content-Type" response header', async () => {
+  test('allows overriding the "Content-Type" response header', async () => {
     const response = HttpResponse.html('<p class="author">Jane Doe</p>', {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
@@ -269,7 +269,7 @@ describe('HttpResponse.html()', () => {
 })
 
 describe('HttpResponse.arrayBuffer()', () => {
-  it('creates an array buffer response', async () => {
+  test('creates an array buffer response', async () => {
     const buffer = new TextEncoder().encode('hello world')
     const response = HttpResponse.arrayBuffer(buffer)
 
@@ -286,7 +286,7 @@ describe('HttpResponse.arrayBuffer()', () => {
     expect(kDefaultContentType in response).toBe(true)
   })
 
-  it('allows overriding the "Content-Type" response header', async () => {
+  test('allows overriding the "Content-Type" response header', async () => {
     const buffer = new TextEncoder().encode('hello world')
     const response = HttpResponse.arrayBuffer(buffer, {
       headers: {
@@ -307,7 +307,7 @@ describe('HttpResponse.arrayBuffer()', () => {
     expect(kDefaultContentType in response).toBe(false)
   })
 
-  it('creates an array buffer response from a shared array buffer', async () => {
+  test('creates an array buffer response from a shared array buffer', async () => {
     const arrayBuffer = new TextEncoder().encode('hello world')
 
     // Copy the data from the array buffer to a shared array buffer
@@ -329,7 +329,7 @@ describe('HttpResponse.arrayBuffer()', () => {
     })
   })
 
-  it('allows overriding the "Content-Type" response header for shared array buffers', async () => {
+  test('allows overriding the "Content-Type" response header for shared array buffers', async () => {
     const arrayBuffer = new TextEncoder().encode('hello world')
 
     // Copy the data from the array buffer to a shared array buffer
@@ -357,7 +357,7 @@ describe('HttpResponse.arrayBuffer()', () => {
   })
 })
 
-it('creates a form data response', async () => {
+test('creates a form data response', async () => {
   const formData = new FormData()
   formData.append('firstName', 'John')
   const response = HttpResponse.formData(formData)

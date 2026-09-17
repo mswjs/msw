@@ -17,7 +17,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-it('emits the "frame" event when a frame is queued', async () => {
+test('emits the "frame" event when a frame is queued', async () => {
   class CustomNetworkSource extends NetworkSource {
     enable = async () => {}
   }
@@ -34,7 +34,7 @@ it('emits the "frame" event when a frame is queued', async () => {
   )
 })
 
-it('removes all listeners when "disable" is called', async () => {
+test('removes all listeners when "disable" is called', async () => {
   class CustomNetworkSource extends NetworkSource {
     enable = async () => {}
   }
@@ -49,7 +49,7 @@ it('removes all listeners when "disable" is called', async () => {
   expect.soft(frameListener).not.toHaveBeenCalled()
 })
 
-it('accepts AbortSignal when attaching event listeners', async () => {
+test('accepts AbortSignal when attaching event listeners', async () => {
   class CustomNetworkSource extends NetworkSource {
     enable = async () => {}
   }

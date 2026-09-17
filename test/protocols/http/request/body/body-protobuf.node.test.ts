@@ -22,7 +22,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with a "application/protobuf" mocked response', async () => {
+test('responds with a "application/protobuf" mocked response', async () => {
   const payload = new Uint8Array([138, 1, 6, 10, 4, 10, 2, 32, 1])
 
   const response = await fetch('https://example.com/protobuf', {

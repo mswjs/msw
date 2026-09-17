@@ -26,7 +26,7 @@ afterAll(async () => {
   await originalServer.close()
 })
 
-it('stops propagation for client "message" event', async () => {
+test('stops propagation for client "message" event', async () => {
   const clientMessageListener = vi.fn<(input: number) => void>()
 
   server.use(
@@ -72,7 +72,7 @@ it('stops propagation for client "message" event', async () => {
   expect(clientMessageListener).toHaveBeenCalledTimes(2)
 })
 
-it('stops immediate propagation for client "message" event', async () => {
+test('stops immediate propagation for client "message" event', async () => {
   const clientMessageListener = vi.fn<(input: number) => void>()
 
   server.use(
@@ -115,7 +115,7 @@ it('stops immediate propagation for client "message" event', async () => {
   expect(clientMessageListener).toHaveBeenCalledOnce()
 })
 
-it('stops propagation for server "open" event', async () => {
+test('stops propagation for server "open" event', async () => {
   const serverOpenListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', () => {})
@@ -162,7 +162,7 @@ it('stops propagation for server "open" event', async () => {
   expect(serverOpenListener).toHaveBeenCalledTimes(2)
 })
 
-it('stops immediate propagation for server "open" event', async () => {
+test('stops immediate propagation for server "open" event', async () => {
   const serverOpenListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', () => {})
@@ -206,7 +206,7 @@ it('stops immediate propagation for server "open" event', async () => {
   expect(serverOpenListener).toHaveBeenCalledOnce()
 })
 
-it('stops propagation for server "message" event', async () => {
+test('stops propagation for server "message" event', async () => {
   const serverMessageListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', (ws) => {
@@ -256,7 +256,7 @@ it('stops propagation for server "message" event', async () => {
   expect(serverMessageListener).toHaveBeenCalledTimes(2)
 })
 
-it('stops immediate propagation for server "message" event', async () => {
+test('stops immediate propagation for server "message" event', async () => {
   const serverMessageListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', (ws) => {
@@ -303,7 +303,7 @@ it('stops immediate propagation for server "message" event', async () => {
   expect(serverMessageListener).toHaveBeenCalledOnce()
 })
 
-it('stops propagation for server "error" event', async () => {
+test('stops propagation for server "error" event', async () => {
   const serverErrorListener = vi.fn<(input: number) => void>()
 
   server.use(
@@ -351,7 +351,7 @@ it('stops propagation for server "error" event', async () => {
   expect(serverErrorListener).toHaveBeenCalledTimes(2)
 })
 
-it('stops immediate propagation for server "error" event', async () => {
+test('stops immediate propagation for server "error" event', async () => {
   const serverErrorListener = vi.fn<(input: number) => void>()
 
   server.use(
@@ -397,7 +397,7 @@ it('stops immediate propagation for server "error" event', async () => {
   expect(serverErrorListener).toHaveBeenCalledOnce()
 })
 
-it('stops propagation for server "close" event', async () => {
+test('stops propagation for server "close" event', async () => {
   const serverCloseListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', (ws) => {
@@ -444,7 +444,7 @@ it('stops propagation for server "close" event', async () => {
   expect(serverCloseListener).toHaveBeenCalledTimes(2)
 })
 
-it('stops immediate propagation for server "close" event', async () => {
+test('stops immediate propagation for server "close" event', async () => {
   const serverCloseListener = vi.fn<(input: number) => void>()
 
   originalServer.on('connection', (ws) => {

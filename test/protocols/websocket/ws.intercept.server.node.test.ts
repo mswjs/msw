@@ -22,7 +22,7 @@ afterAll(async () => {
   await originalServer.close()
 })
 
-it('intercepts incoming server text message', async () => {
+test('intercepts incoming server text message', async () => {
   const serverMessageListener = vi.fn()
   const clientMessageListener = vi.fn()
 
@@ -54,7 +54,7 @@ it('intercepts incoming server text message', async () => {
   })
 })
 
-it('intercepts incoming server Blob message', async () => {
+test('intercepts incoming server Blob message', async () => {
   const serverMessageListener = vi.fn()
   const clientMessageListener = vi.fn()
 
@@ -91,7 +91,7 @@ it('intercepts incoming server Blob message', async () => {
   })
 })
 
-it('intercepts incoming ArrayBuffer message', async () => {
+test('intercepts incoming ArrayBuffer message', async () => {
   const encoder = new TextEncoder()
   const serverMessageListener = vi.fn()
   const clientMessageListener = vi.fn()

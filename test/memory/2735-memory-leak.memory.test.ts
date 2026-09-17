@@ -85,7 +85,7 @@ afterAll(() => {
   server.close()
 })
 
-it('does not retain a per-request Emitter after the response is delivered', async () => {
+test('does not retain a per-request Emitter after the response is delivered', async () => {
   server.use(
     http.get('https://localhost/leak', () => {
       return new Response()

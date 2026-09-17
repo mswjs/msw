@@ -21,7 +21,7 @@ afterAll(() => {
   server.close()
 })
 
-it('matches requests when the predicate function returns true', async () => {
+test('matches requests when the predicate function returns true', async () => {
   server.use(
     api.query(
       ({ operationName }) => {
@@ -51,7 +51,7 @@ it('matches requests when the predicate function returns true', async () => {
   expect.soft(result.errors).toBeUndefined()
 })
 
-it('does not match requests when the predicate function returns false', async () => {
+test('does not match requests when the predicate function returns false', async () => {
   server.use(
     api.query(
       ({ operationName }) => {

@@ -26,7 +26,7 @@ afterAll(async () => {
   await originalServer.close()
 })
 
-it('patches incoming server message', async () => {
+test('patches incoming server message', async () => {
   originalServer.once('connection', (client) => {
     client.send('hi from John')
   })
@@ -57,7 +57,7 @@ it('patches incoming server message', async () => {
   })
 })
 
-it('combines original and mock server messages', async () => {
+test('combines original and mock server messages', async () => {
   originalServer.once('connection', (client) => {
     client.send('original message')
   })
@@ -86,7 +86,7 @@ it('combines original and mock server messages', async () => {
   })
 })
 
-it('combines original and mock server messages in the different order', async () => {
+test('combines original and mock server messages in the different order', async () => {
   originalServer.once('connection', (client) => {
     client.send('original message')
   })

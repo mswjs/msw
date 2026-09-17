@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('supports throwing a plain Response in a response resolver', async () => {
+test('supports throwing a plain Response in a response resolver', async () => {
   server.use(
     http.get('https://example.com/', () => {
       // You can throw a Response instance in a response resolver
@@ -31,7 +31,7 @@ it('supports throwing a plain Response in a response resolver', async () => {
   await expect(response.text()).resolves.toBe('hello world')
 })
 
-it('supports throwing an HttpResponse instance in a response resolver', async () => {
+test('supports throwing an HttpResponse instance in a response resolver', async () => {
   server.use(
     http.get('https://example.com/', () => {
       throw HttpResponse.text('hello world')
@@ -45,7 +45,7 @@ it('supports throwing an HttpResponse instance in a response resolver', async ()
   await expect(response.text()).resolves.toBe('hello world')
 })
 
-it('supports throwing an error response in a response resolver', async () => {
+test('supports throwing an error response in a response resolver', async () => {
   server.use(
     http.get('https://example.com/', () => {
       throw HttpResponse.text('not found', { status: 400 })
@@ -59,7 +59,7 @@ it('supports throwing an error response in a response resolver', async () => {
   await expect(response.text()).resolves.toBe('not found')
 })
 
-it('supports throwing a network error in a response resolver', async () => {
+test('supports throwing a network error in a response resolver', async () => {
   server.use(
     http.get('https://example.com/', () => {
       throw HttpResponse.error()
@@ -69,7 +69,7 @@ it('supports throwing a network error in a response resolver', async () => {
   await expect(fetch('https://example.com')).rejects.toThrow('fetch failed')
 })
 
-it('supports middleware-style responses', async () => {
+test('supports middleware-style responses', async () => {
   server.use(
     http.get('https://example.com/', ({ request }) => {
       const url = new URL(request.url)

@@ -8,7 +8,7 @@ declare function createTypedDocumentString<TResult = any, TVariables = any>(
 
 const api = graphql.link('https://api.example.com/graphql')
 
-it('infers the result type', () => {
+test('infers the result type', () => {
   api.query(
     createTypedDocumentString<{ user: { id: string; name: string } }>(''),
     () => {
@@ -31,7 +31,7 @@ it('infers the result type', () => {
   )
 })
 
-it('infers the variables type', () => {
+test('infers the variables type', () => {
   api.query(
     createTypedDocumentString<null, { id: string }>(''),
     ({ variables }) => {

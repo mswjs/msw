@@ -22,7 +22,7 @@ afterAll(() => {
   vi.restoreAllMocks()
 })
 
-it('calls a custom callback on an unhandled WebSocket connection', async () => {
+test('calls a custom callback on an unhandled WebSocket connection', async () => {
   const socket = new WebSocket('wss://localhost:4321')
 
   await vi.waitFor(() => {
@@ -43,7 +43,7 @@ it('calls a custom callback on an unhandled WebSocket connection', async () => {
   })
 })
 
-it('does not call a custom callback for a handled WebSocket connection', async () => {
+test('does not call a custom callback for a handled WebSocket connection', async () => {
   server.use(service.addEventListener('connection', () => {}))
 
   const socket = new WebSocket('wss://localhost:4321')

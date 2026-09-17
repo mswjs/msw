@@ -23,7 +23,7 @@ afterAll(() => {
   vi.restoreAllMocks()
 })
 
-it('warns on unhandled requests by default', async () => {
+test('warns on unhandled requests by default', async () => {
   const response = await fetch('https://test.mswjs.io')
 
   // Request should be performed as-is
@@ -39,7 +39,7 @@ If you still wish to intercept this unhandled request, please create a request h
 Read more: https://mswjs.io/docs/http/intercepting-requests`)
 })
 
-it('does not warn on unhandled "file://" requests', async () => {
+test('does not warn on unhandled "file://" requests', async () => {
   // This request is expected to fail:
   // Fetching non-existing file URL.
   await fetch('file:///file/does/not/exist').catch(() => void 0)

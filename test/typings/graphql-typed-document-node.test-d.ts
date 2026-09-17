@@ -13,7 +13,7 @@ const GetUserQuery = {} as TypedDocumentNode<
   { userId: string }
 >
 
-it('infers the result type', () => {
+test('infers the result type', () => {
   api.query(GetUserQuery, () => {
     if (Math.random()) {
       return HttpResponse.json({
@@ -34,7 +34,7 @@ it('infers the result type', () => {
   })
 })
 
-it('infers the query variables type', () => {
+test('infers the query variables type', () => {
   api.query(GetUserQuery, ({ query, variables }) => {
     expectTypeOf(query).toBeString()
     expectTypeOf(variables).toEqualTypeOf<{ userId: string }>()

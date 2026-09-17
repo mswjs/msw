@@ -1,7 +1,7 @@
 import { WebSocketHandler } from './websocket-handler'
 
 describe('parse', () => {
-  it('matches an exact url', () => {
+  test('matches an exact url', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
         url: new URL('ws://localhost:3000'),
@@ -14,7 +14,7 @@ describe('parse', () => {
     })
   })
 
-  it('ignores trailing slash', () => {
+  test('ignores trailing slash', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
         url: new URL('ws://localhost:3000/'),
@@ -38,7 +38,7 @@ describe('parse', () => {
     })
   })
 
-  it('supports path parameters', () => {
+  test('supports path parameters', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000/:serviceName').parse({
         url: new URL('ws://localhost:3000/auth'),
@@ -53,7 +53,7 @@ describe('parse', () => {
     })
   })
 
-  it('ignores "/socket.io/" prefix in the client url', () => {
+  test('ignores "/socket.io/" prefix in the client url', () => {
     expect(
       new WebSocketHandler('ws://localhost:3000').parse({
         url: new URL(
@@ -81,7 +81,7 @@ describe('parse', () => {
     })
   })
 
-  it('preserves non-prefix "/socket.io/" path segment', () => {
+  test('preserves non-prefix "/socket.io/" path segment', () => {
     /**
      * @note It is highly unlikely but we still shouldn't modify the
      * WebSocket client URL if it contains a user-defined "socket.io" segment.
@@ -109,7 +109,7 @@ describe('parse', () => {
     })
   })
 
-  it('supports a custom resolution context (base url)', () => {
+  test('supports a custom resolution context (base url)', () => {
     expect(
       new WebSocketHandler('/api/ws').parse({
         url: new URL('ws://localhost:3000/api/ws'),
@@ -127,19 +127,19 @@ describe('parse', () => {
 })
 
 describe('test', () => {
-  it('returns true for a matching string', () => {
+  test('returns true for a matching string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('ws://localhost/ws'),
     ).toBe(true)
   })
 
-  it('returns false for a non-matching string', () => {
+  test('returns false for a non-matching string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('ws://localhost/other'),
     ).toBe(false)
   })
 
-  it('returns true for a relative matching string', () => {
+  test('returns true for a relative matching string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('/ws', {
         baseUrl: 'ws://localhost',
@@ -147,7 +147,7 @@ describe('test', () => {
     ).toBe(true)
   })
 
-  it('returns false for a relative non-matching string', () => {
+  test('returns false for a relative non-matching string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('/other', {
         baseUrl: 'ws://localhost',
@@ -155,7 +155,7 @@ describe('test', () => {
     ).toBe(false)
   })
 
-  it('returns true for a matching URL', () => {
+  test('returns true for a matching URL', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test(
         new URL('ws://localhost/ws'),
@@ -163,7 +163,7 @@ describe('test', () => {
     ).toBe(true)
   })
 
-  it('returns false for a non-matching URL', () => {
+  test('returns false for a non-matching URL', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test(
         new URL('ws://localhost/other'),
@@ -171,13 +171,13 @@ describe('test', () => {
     ).toBe(false)
   })
 
-  it('returns true for a matching HTTP url string', () => {
+  test('returns true for a matching HTTP url string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('http://localhost/ws'),
     ).toBe(true)
   })
 
-  it('returns false for a non-matching HTTP url string', () => {
+  test('returns false for a non-matching HTTP url string', () => {
     expect(
       new WebSocketHandler('ws://localhost/ws').test('http://localhost/other'),
     ).toBe(false)

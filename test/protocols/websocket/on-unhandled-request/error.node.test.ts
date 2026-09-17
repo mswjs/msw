@@ -19,7 +19,7 @@ afterAll(() => {
   vi.restoreAllMocks()
 })
 
-it(
+test(
   'errors on unhandled WebSocket connection',
   server.boundary(async () => {
     const socket = new WebSocket('wss://localhost:4321')
@@ -60,7 +60,7 @@ Read more: https://mswjs.io/docs/websocket`,
   }),
 )
 
-it(
+test(
   'does not error on handled WebSocket connection',
   server.boundary(async () => {
     server.use(service.addEventListener('connection', () => {}))

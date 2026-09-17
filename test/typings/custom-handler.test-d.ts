@@ -16,14 +16,14 @@ const generateGraphQLHandler: GraphQLRequestHandler = (
   return api.query(operationName, resolver)
 }
 
-it('accepts custom request handler (setupWorker)', () => {
+test('accepts custom request handler (setupWorker)', () => {
   setupWorker(
     generateHttpHandler('/', () => {}),
     generateGraphQLHandler('GetResource', () => {}),
   )
 })
 
-it('accepts custom request handler (setupServer)', () => {
+test('accepts custom request handler (setupServer)', () => {
   setupServer(
     generateHttpHandler('/', () => {}),
     generateGraphQLHandler('GetResource', () => {}),

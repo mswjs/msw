@@ -1,18 +1,18 @@
 import { ws } from './ws'
 
-it('exports the "link()" method', () => {
+test('exports the "link()" method', () => {
   expect(ws).toHaveProperty('link')
   expect(ws.link).toBeInstanceOf(Function)
 })
 
-it('throws an error when calling "ws.link()" without a URL argument', () => {
+test('throws an error when calling "ws.link()" without a URL argument', () => {
   expect(() =>
     // @ts-expect-error Intentionally invalid call.
     ws.link(),
   ).toThrow('Expected a WebSocket server URL but got undefined')
 })
 
-it('throws an error when given a non-path argument to "ws.link()"', () => {
+test('throws an error when given a non-path argument to "ws.link()"', () => {
   expect(() =>
     // @ts-expect-error Intentionally invalid argument.
     ws.link(2),

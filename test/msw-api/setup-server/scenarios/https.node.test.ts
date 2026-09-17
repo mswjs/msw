@@ -45,7 +45,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('returns a mocked response to an "https.get" request', async () => {
+test('returns a mocked response to an "https.get" request', async () => {
   const request = https.get(httpServer.https.url('/resource'), {
     agent: httpsAgent,
   })
@@ -61,7 +61,7 @@ it('returns a mocked response to an "https.get" request', async () => {
   expect(responseText).toBe('{"firstName":"John"}')
 })
 
-it('returns a mocked response to an "https.request" request', async () => {
+test('returns a mocked response to an "https.request" request', async () => {
   const request = https.request(httpServer.https.url('/resource'), {
     agent: httpsAgent,
   })

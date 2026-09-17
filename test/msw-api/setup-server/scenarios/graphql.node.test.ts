@@ -73,7 +73,7 @@ afterAll(() => {
   server.close()
 })
 
-it('returns the mocked response for a GraphQL query', async () => {
+test('returns the mocked response for a GraphQL query', async () => {
   const res = await apolloClient({
     query: GET_USER_DETAIL,
     variables: {
@@ -91,7 +91,7 @@ it('returns the mocked response for a GraphQL query', async () => {
   })
 })
 
-it('returns the mocked response for a GraphQL mutation', async () => {
+test('returns the mocked response for a GraphQL mutation', async () => {
   const res = await apolloClient({
     query: LOGIN,
     variables: {

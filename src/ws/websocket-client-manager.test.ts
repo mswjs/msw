@@ -21,7 +21,7 @@ afterEach(() => {
   vi.resetAllMocks()
 })
 
-it('adds a client from this runtime to the list of clients', async () => {
+test('adds a client from this runtime to the list of clients', async () => {
   const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
@@ -34,7 +34,7 @@ it('adds a client from this runtime to the list of clients', async () => {
   expect(Array.from(manager.clients.values())).toEqual([connection])
 })
 
-it('adds multiple clients from this runtime to the list of clients', async () => {
+test('adds multiple clients from this runtime to the list of clients', async () => {
   const manager = new WebSocketClientManager(channel)
   const connectionOne = new WebSocketClientConnection(
     socket,
@@ -58,7 +58,7 @@ it('adds multiple clients from this runtime to the list of clients', async () =>
   ])
 })
 
-it('replays a "send" event coming from another runtime', async () => {
+test('replays a "send" event coming from another runtime', async () => {
   const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
@@ -87,7 +87,7 @@ it('replays a "send" event coming from another runtime', async () => {
   })
 })
 
-it('replays a "close" event coming from another runtime', async () => {
+test('replays a "close" event coming from another runtime', async () => {
   const manager = new WebSocketClientManager(channel)
   const connection = new WebSocketClientConnection(
     socket,
@@ -117,7 +117,7 @@ it('replays a "close" event coming from another runtime', async () => {
   })
 })
 
-it('removes the extraneous message listener when the connection closes', async () => {
+test('removes the extraneous message listener when the connection closes', async () => {
   const manager = new WebSocketClientManager(channel)
   const transport = new TestWebSocketTransport()
   const connection = new WebSocketClientConnection(socket, transport)

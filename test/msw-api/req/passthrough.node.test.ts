@@ -37,7 +37,7 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('performs request as-is when returning "req.passthrough" call in the resolver', async () => {
+test('performs request as-is when returning "req.passthrough" call in the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
@@ -54,7 +54,7 @@ it('performs request as-is when returning "req.passthrough" call in the resolver
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('does not allow fall-through when returning "req.passthrough" call in the resolver', async () => {
+test('does not allow fall-through when returning "req.passthrough" call in the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
@@ -74,7 +74,7 @@ it('does not allow fall-through when returning "req.passthrough" call in the res
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('performs a request as-is if nothing was returned from the resolver', async () => {
+test('performs a request as-is if nothing was returned from the resolver', async () => {
   const endpointUrl = httpServer.http.url('/user')
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
@@ -91,7 +91,7 @@ it('performs a request as-is if nothing was returned from the resolver', async (
 })
 
 for (const code of [204, 205, 304]) {
-  it(`performs a ${code} request as-is if nothing was returned from the resolver`, async () => {
+  test(`performs a ${code} request as-is if nothing was returned from the resolver`, async () => {
     const endpointUrl = httpServer.http.url(`/code/${code}`)
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {
@@ -104,7 +104,7 @@ for (const code of [204, 205, 304]) {
     expect(res.status).toEqual(code)
   })
 
-  it(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
+  test(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
     const endpointUrl = httpServer.http.url(`/code/${code}`)
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {

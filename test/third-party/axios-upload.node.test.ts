@@ -34,7 +34,7 @@ afterAll(() => {
   server.close()
 })
 
-it('responds with a mocked response to an upload request', async () => {
+test('responds with a mocked response to an upload request', async () => {
   const onUploadProgress = vi.fn()
   const request = axios.create({
     baseURL: 'https://localhost',

@@ -16,7 +16,7 @@ afterAll(() => {
   server.close()
 })
 
-it('matches requests when the predicate function returns true', async () => {
+test('matches requests when the predicate function returns true', async () => {
   server.use(
     http.post(
       async ({ request }) => {
@@ -38,7 +38,7 @@ it('matches requests when the predicate function returns true', async () => {
   await expect.soft(response.text()).resolves.toBe('hello world')
 })
 
-it('does not match requests when the predicate function returns false', async () => {
+test('does not match requests when the predicate function returns false', async () => {
   server.use(
     http.post(
       async ({ request }) => {

@@ -4,7 +4,7 @@ import { RequestHandler } from '../../handlers/RequestHandler'
 import { WebSocketHandler } from '#ws/websocket-handler'
 import { isHandlerKind } from './isHandlerKind'
 
-it('returns true if expected a request handler and given a request handler', () => {
+test('returns true if expected a request handler and given a request handler', () => {
   expect(isHandlerKind('request')(new HttpHandler('*', '*', () => {}))).toBe(
     true,
   )
@@ -14,7 +14,7 @@ it('returns true if expected a request handler and given a request handler', () 
   ).toBe(true)
 })
 
-it('returns true if expected a request handler and given a custom request handler', () => {
+test('returns true if expected a request handler and given a custom request handler', () => {
   class MyHandler extends RequestHandler {
     constructor() {
       super({ info: { header: '*' }, resolver: () => {} })
@@ -26,11 +26,11 @@ it('returns true if expected a request handler and given a custom request handle
   expect(isHandlerKind('request')(new MyHandler())).toBe(true)
 })
 
-it('returns false if expected a request handler but given event handler', () => {
+test('returns false if expected a request handler but given event handler', () => {
   expect(isHandlerKind('request')(new WebSocketHandler('*'))).toBe(false)
 })
 
-it('returns false if expected a request handler but given arbitrary object', () => {
+test('returns false if expected a request handler but given arbitrary object', () => {
   expect(isHandlerKind('request')(undefined)).toBe(false)
   expect(isHandlerKind('request')(null)).toBe(false)
   expect(isHandlerKind('request')({})).toBe(false)
@@ -39,11 +39,11 @@ it('returns false if expected a request handler but given arbitrary object', () 
   expect(isHandlerKind('request')('hello')).toBe(false)
 })
 
-it('returns true if expected an event handler and given an event handler', () => {
+test('returns true if expected an event handler and given an event handler', () => {
   expect(isHandlerKind('websocket')(new WebSocketHandler('*'))).toBe(true)
 })
 
-it('returns true if expected an event handler and given a custom event handler', () => {
+test('returns true if expected an event handler and given a custom event handler', () => {
   class MyEventHandler extends WebSocketHandler {
     constructor() {
       super('*')
@@ -52,7 +52,7 @@ it('returns true if expected an event handler and given a custom event handler',
   expect(isHandlerKind('websocket')(new MyEventHandler())).toBe(true)
 })
 
-it('returns false if expected an event handler but given arbitrary object', () => {
+test('returns false if expected an event handler but given arbitrary object', () => {
   expect(isHandlerKind('websocket')(undefined)).toBe(false)
   expect(isHandlerKind('websocket')(null)).toBe(false)
   expect(isHandlerKind('websocket')({})).toBe(false)

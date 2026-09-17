@@ -1,4 +1,4 @@
-import { it, expectTypeOf } from 'vitest'
+import { test, expectTypeOf } from 'vitest'
 import { parse } from 'graphql'
 import type {
   DocumentTypeDecoration,
@@ -27,25 +27,25 @@ declare function createTypedDocumentString<TResult = any, TVariables = any>(
 
 const api = graphql.link('https://api.example.com/graphql')
 
-it('graphql mutation can be used without variables generic type', () => {
+test('graphql mutation can be used without variables generic type', () => {
   api.mutation('GetUser', () => {
     return HttpResponse.json({ data: { id: '2' } })
   })
 })
 
-it('graphql mutation accepts inline generic variables type', () => {
+test('graphql mutation accepts inline generic variables type', () => {
   api.mutation<never, { id: string }>('GetUser', ({ variables }) => {
     expectTypeOf(variables).toEqualTypeOf<{ id: string }>()
   })
 })
 
-it('graphql mutation accepts inline generic variables never type', () => {
+test('graphql mutation accepts inline generic variables never type', () => {
   api.mutation<never, never>('CreateUser', ({ variables }) => {
     expectTypeOf(variables).toEqualTypeOf<never>()
   })
 })
 
-it("graphql mutation does not accept null as variables' generic mutation type", () => {
+test("graphql mutation does not accept null as variables' generic mutation type", () => {
   api.mutation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -53,7 +53,7 @@ it("graphql mutation does not accept null as variables' generic mutation type", 
   >('', () => {})
 })
 
-it('graphql mutation allows explicit null as the response body type for the mutation', () => {
+test('graphql mutation allows explicit null as the response body type for the mutation', () => {
   api.mutation<{ key: string }>('MutateData', () => {
     return HttpResponse.json({
       // Explicit null in mutations must also be allowed.
@@ -61,7 +61,7 @@ it('graphql mutation allows explicit null as the response body type for the muta
     })
   })
 })
-it('graphql mutation does not allow mismatched mutation response', () => {
+test('graphql mutation does not allow mismatched mutation response', () => {
   api.mutation<{ key: string }>('MutateData', () => {
     return HttpResponse.json({
       // @ts-expect-error Response data doesn't match the query type.
@@ -70,7 +70,7 @@ it('graphql mutation does not allow mismatched mutation response', () => {
   })
 })
 
-it("graphql query does not accept null as variables' generic query type ", () => {
+test("graphql query does not accept null as variables' generic query type ", () => {
   api.query<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -78,7 +78,7 @@ it("graphql query does not accept null as variables' generic query type ", () =>
   >('', () => {})
 })
 
-it("graphql query accepts the correct type for the variables' generic query type", () => {
+test("graphql query accepts the correct type for the variables' generic query type", () => {
   /**
    * Response body type (GraphQL query type).
    */
@@ -91,7 +91,7 @@ it("graphql query accepts the correct type for the variables' generic query type
   })
 })
 
-it('graphql query allows explicit null as the response body type for the query', () => {
+test('graphql query allows explicit null as the response body type for the query', () => {
   api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       // Explicit null must be allowed.
@@ -100,7 +100,7 @@ it('graphql query allows explicit null as the response body type for the query',
   })
 })
 
-it('supports nullable queries', () => {
+test('supports nullable queries', () => {
   api.query<{ id: string } | null>('GetUser', () => {
     return HttpResponse.json({
       data: null,
@@ -108,7 +108,7 @@ it('supports nullable queries', () => {
   })
 })
 
-it('supports nullable mutations', () => {
+test('supports nullable mutations', () => {
   api.mutation<{ id: string } | null>('GetUser', () => {
     return HttpResponse.json({
       data: null,
@@ -116,7 +116,7 @@ it('supports nullable mutations', () => {
   })
 })
 
-it('graphql query does not accept invalid data type for the response body type for the query', () => {
+test('graphql query does not accept invalid data type for the response body type for the query', () => {
   api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       data: {
@@ -127,7 +127,7 @@ it('graphql query does not accept invalid data type for the response body type f
   })
 })
 
-it('graphql query does not allow empty response when the query type is defined', () => {
+test('graphql query does not allow empty response when the query type is defined', () => {
   api.query<{ id: string }>(
     'GetUser',
     // @ts-expect-error response json is empty
@@ -135,7 +135,7 @@ it('graphql query does not allow empty response when the query type is defined',
   )
 })
 
-it('graphql query does not allow incompatible response body type', () => {
+test('graphql query does not allow incompatible response body type', () => {
   api.query<{ id: string }>(
     'GetUser',
     // @ts-expect-error incompatible response body type
@@ -143,7 +143,7 @@ it('graphql query does not allow incompatible response body type', () => {
   )
 })
 
-it('graphql operation does not accept null as variables type', () => {
+test('graphql operation does not accept null as variables type', () => {
   api.operation<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -153,7 +153,7 @@ it('graphql operation does not accept null as variables type', () => {
   })
 })
 
-it('graphql operation does not allow mismatched operation response', () => {
+test('graphql operation does not allow mismatched operation response', () => {
   api.operation<{ key: string }>(() => {
     return HttpResponse.json({
       // @ts-expect-error Response data doesn't match the query type.
@@ -162,13 +162,13 @@ it('graphql operation does not allow mismatched operation response', () => {
   })
 })
 
-it('graphql operation allows explicit null as the response body type for the operation', () => {
+test('graphql operation allows explicit null as the response body type for the operation', () => {
   api.operation<{ key: string }>(() => {
     return HttpResponse.json({ data: null })
   })
 })
 
-it('graphql handlers allow passthrough responses', () => {
+test('graphql handlers allow passthrough responses', () => {
   // Passthrough responses.
   api.query('GetUser', () => passthrough())
   api.mutation('AddPost', () => passthrough())
@@ -182,7 +182,7 @@ it('graphql handlers allow passthrough responses', () => {
   })
 })
 
-it('supports Response.error()', () => {
+test('supports Response.error()', () => {
   api.query<{ id: string }>('GetUser', () => HttpResponse.error())
   api.mutation('UpdatePost', () => HttpResponse.error())
   api.operation(() => HttpResponse.error())
@@ -199,7 +199,7 @@ it('supports Response.error()', () => {
   })
 })
 
-it("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {
+test("graphql variables cannot extract type from the runtime 'DocumentNode'", () => {
   /**
    * Supports `DocumentNode` as the GraphQL operation name.
    */
@@ -218,7 +218,7 @@ it("graphql variables cannot extract type from the runtime 'DocumentNode'", () =
   })
 })
 
-it('graphql query cannot extract variable and response types', () => {
+test('graphql query cannot extract variable and response types', () => {
   const getUserById = parse(`
       query GetUserById($userId: String!) {
         user(id: $userId) {
@@ -242,7 +242,7 @@ it('graphql query cannot extract variable and response types', () => {
   })
 })
 
-it('graphql mutation cannot extract variable and response types', () => {
+test('graphql mutation cannot extract variable and response types', () => {
   const createUser = parse(`
         mutation CreateUser {
           user {
@@ -257,7 +257,7 @@ it('graphql mutation cannot extract variable and response types', () => {
   })
 })
 
-it('graphql query allows extensions in the response body', () => {
+test('graphql query allows extensions in the response body', () => {
   api.query<{ id: string }>('GetUser', () => {
     return HttpResponse.json({
       data: { id: '2' },
@@ -269,7 +269,7 @@ it('graphql query allows extensions in the response body', () => {
   })
 })
 
-it('supports a "finalize" function', () => {
+test('supports a "finalize" function', () => {
   api.query('GetUser', ({ finalize }) => {
     expectTypeOf(finalize).toEqualTypeOf<
       (callback: () => Promise<void> | void) => void
@@ -277,7 +277,7 @@ it('supports a "finalize" function', () => {
   })
 })
 
-it('graphql subscription is only available on a link', () => {
+test('graphql subscription is only available on a link', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription('OnCommentAdded', () => {})
@@ -288,7 +288,7 @@ it('graphql subscription is only available on a link', () => {
   graphql.subscription('OnCommentAdded', () => {})
 })
 
-it('graphql subscription accepts string, RegExp, and DocumentNode names', () => {
+test('graphql subscription accepts string, RegExp, and DocumentNode names', () => {
   const api = graphql.link('ws://localhost/graphql')
 
   api.subscription('OnCommentAdded', () => {})
@@ -313,7 +313,7 @@ it('graphql subscription accepts string, RegExp, and DocumentNode names', () => 
   )
 })
 
-it('graphql subscription exposes the resolver info', () => {
+test('graphql subscription exposes the resolver info', () => {
   graphql
     .link('ws://localhost/:service')
     .subscription('OnCommentAdded', (info) => {
@@ -326,7 +326,7 @@ it('graphql subscription exposes the resolver info', () => {
     })
 })
 
-it('graphql subscription accepts inline generic variables type', () => {
+test('graphql subscription accepts inline generic variables type', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription<never, { postId: string }>(
@@ -341,7 +341,7 @@ it('graphql subscription accepts inline generic variables type', () => {
     )
 })
 
-it("graphql subscription does not accept null as variables' generic type", () => {
+test("graphql subscription does not accept null as variables' generic type", () => {
   graphql.link('ws://localhost/graphql').subscription<
     { key: string },
     // @ts-expect-error `null` is not a valid variables type.
@@ -349,7 +349,7 @@ it("graphql subscription does not accept null as variables' generic type", () =>
   >('OnCommentAdded', () => {})
 })
 
-it('graphql subscription publishes a payload matching the query type', () => {
+test('graphql subscription publishes a payload matching the query type', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription<{ commentAdded: { text: string } }>(
@@ -380,7 +380,7 @@ it('graphql subscription publishes a payload matching the query type', () => {
     )
 })
 
-it('graphql subscription publishes from an iterable of the query type', async () => {
+test('graphql subscription publishes from an iterable of the query type', async () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription<{ commentAdded: { text: string } }>(
@@ -402,7 +402,7 @@ it('graphql subscription publishes from an iterable of the query type', async ()
     )
 })
 
-it('graphql subscription terminates with errors and completes', () => {
+test('graphql subscription terminates with errors and completes', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription('OnCommentAdded', ({ subscription }) => {
@@ -418,7 +418,7 @@ it('graphql subscription terminates with errors and completes', () => {
     })
 })
 
-it('graphql subscription infers types from a TypedDocumentNode', () => {
+test('graphql subscription infers types from a TypedDocumentNode', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription(
@@ -441,7 +441,7 @@ it('graphql subscription infers types from a TypedDocumentNode', () => {
     )
 })
 
-it('graphql subscription infers types from a TypedDocumentString', () => {
+test('graphql subscription infers types from a TypedDocumentString', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription(
@@ -464,7 +464,7 @@ it('graphql subscription infers types from a TypedDocumentString', () => {
     )
 })
 
-it('graphql subscription accepts handler options', () => {
+test('graphql subscription accepts handler options', () => {
   const api = graphql.link('ws://localhost/graphql')
 
   api.subscription('OnCommentAdded', () => {}, { once: true })
@@ -473,7 +473,7 @@ it('graphql subscription accepts handler options', () => {
   api.subscription('OnCommentAdded', () => {}, { unknownOption: true })
 })
 
-it('graphql subscription supports passthrough', () => {
+test('graphql subscription supports passthrough', () => {
   graphql
     .link('ws://localhost/graphql')
     .subscription('OnCommentAdded', ({ subscription }) => {

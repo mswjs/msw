@@ -34,7 +34,7 @@ afterAll(() => {
   server.close()
 })
 
-it('returns a mocked response to a GET request using fetch', async () => {
+test('returns a mocked response to a GET request using fetch', async () => {
   const res = await fetch('http://test.mswjs.io')
 
   expect(res.status).toEqual(401)
@@ -47,7 +47,7 @@ it('returns a mocked response to a GET request using fetch', async () => {
   })
 })
 
-it('returns a mocked response to a POST request using fetch', async () => {
+test('returns a mocked response to a POST request using fetch', async () => {
   const res = await fetch('https://test.mswjs.io', {
     method: 'POST',
     headers: {

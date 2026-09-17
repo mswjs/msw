@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/book/:bookId', function originalResolver() {
@@ -9,7 +9,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('returns a mocked response from a runtime request handler upon match', async ({
   network,

@@ -1,6 +1,6 @@
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
-const test = defineNetwork()
+const test = defineTestNetwork()
 
 test('handles a CORS request with an "opaque" response', async ({
   page,

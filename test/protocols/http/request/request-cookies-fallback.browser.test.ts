@@ -3,7 +3,7 @@
  */
 import { vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 /**
  * @note Remove the Service Worker API before the network starts
@@ -29,7 +29,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test.afterEach(() => {
   document.cookie.split(';').forEach((cookie) => {

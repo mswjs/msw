@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.post('*/text', async ({ request }) => {
@@ -27,7 +27,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('reads plain text request body as text', async ({ fetch }) => {
   const res = await fetch('/text', {

@@ -2,7 +2,7 @@
  * @see https://github.com/mswjs/msw/issues/2714
  */
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 let callCount = 0
 const handlers = [
@@ -11,7 +11,7 @@ const handlers = [
     return HttpResponse.json({ callCount })
   }),
 ]
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('does not accumulate request handlers across restarts', async ({
   network,

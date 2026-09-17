@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosProgressEvent } from 'axios'
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../setup/vitest-helpers'
 
 const handlers = [
   http.post('*/upload', async ({ request }) => {
@@ -25,7 +25,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a mocked response to an upload request', async () => {
   const progressEvents: Array<AxiosProgressEvent> = []

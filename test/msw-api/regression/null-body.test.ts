@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get<{ code: string }>('*/api/:code', ({ params }) => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 for (const code of [204, 205, 304]) {
   test(`gracefully handles a ${code} response null body during life-cycle events`, async ({

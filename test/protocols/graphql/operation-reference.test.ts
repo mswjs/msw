@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const api = graphql.link('*')
 const handlers = [
@@ -21,7 +21,7 @@ const handlers = [
     })
   }),
 ]
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('allows referencing the request body in the GraphQL query handler', async ({
   query,

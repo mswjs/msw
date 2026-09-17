@@ -2,7 +2,7 @@ import type { HttpNetworkFrameEventMap } from 'msw/experimental'
 import { bypass, HttpResponse, http, passthrough } from 'msw'
 import type { Network } from '../../../setup/network'
 import {
-  defineNetwork,
+  defineTestNetwork,
   expect,
   type ConsoleMessages,
 } from '../../../setup/vitest-helpers'
@@ -103,7 +103,7 @@ function getRequestId(messages: ConsoleMessages) {
   return requestStartMessage?.split(' ')?.[3]
 }
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test.beforeEach(({ network }) => {
   return addNetworkListeners(network)

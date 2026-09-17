@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/json', () => {
@@ -10,7 +10,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a JSON response body', async ({ fetch }) => {
   const res = await fetch('/json')

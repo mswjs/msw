@@ -17,7 +17,7 @@ This directory categorizes all test suites based on the library's execution or A
 - `*.browser.test.ts` runs only in Vitest Browser Mode.
 - `*.pw.test.ts` uses Playwright for full-page lifecycle or multi-tab behavior.
 
-Define initial handlers with `defineNetwork({ handlers })`. Each test receives the
+Define initial handlers with `defineTestNetwork({ handlers })`. Each test receives the
 actual `setupServer()` or `setupWorker()` instance as the `network` fixture.
 
 ## Contributing

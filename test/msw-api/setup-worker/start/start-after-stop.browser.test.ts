@@ -2,14 +2,14 @@
  * @see https://github.com/mswjs/msw/issues/2714
  */
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('/resource', () => {
     return HttpResponse.text('hello world')
   }),
 ]
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('handles requests after starting a stopped worker', async ({
   network,

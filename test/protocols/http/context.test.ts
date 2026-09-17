@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://test.mswjs.io/', () => {
@@ -17,7 +17,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('composes various context utilities into a valid mocked response', async ({
   fetch,

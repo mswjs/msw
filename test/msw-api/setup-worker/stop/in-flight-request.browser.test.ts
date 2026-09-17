@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 let responseGate = Promise.withResolvers<void>()
 
@@ -9,7 +9,7 @@ const handlers = [
     return HttpResponse.text('hello world')
   }),
 ]
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test.beforeEach(() => {
   responseGate = Promise.withResolvers<void>()

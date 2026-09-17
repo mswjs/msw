@@ -1,5 +1,5 @@
 import { http, bypass } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.post('/analytics', ({ request }) => {
@@ -11,7 +11,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('supports mocking a response to a "sendBeacon" request', async ({
   page,

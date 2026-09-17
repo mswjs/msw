@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('/single-cookie', () => {
@@ -27,7 +27,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test.afterEach(() => {
   document.cookie.split(';').forEach((cookie) => {

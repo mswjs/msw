@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const buffer = new TextEncoder().encode('hello world')
 
@@ -28,7 +28,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a range of a mocked buffer response', async ({ fetch }) => {
   const response = await fetch('/resource', {

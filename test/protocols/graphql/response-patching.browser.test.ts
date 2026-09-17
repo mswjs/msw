@@ -2,7 +2,7 @@ import { bypass, HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { createGraphQLClient, gql } from '../../support/graphql'
 import type { ExecutionResult } from 'graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 declare namespace window {
   export const dispatchGraphQLQuery: (uri: string) => Promise<ExecutionResult>
@@ -51,7 +51,7 @@ Object.assign(window, {
   },
 })
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('patches a GraphQL response', async ({ page, testServer }) => {
   const endpointUrl = testServer.http.url('/response-patching/graphql')

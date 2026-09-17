@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { parseCookie } from 'cookie'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 
 const api = graphql.link('*')
@@ -23,7 +23,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('sets cookie on the mocked GraphQL response', async ({ query, page }) => {
   const res = await query('/graphql', {

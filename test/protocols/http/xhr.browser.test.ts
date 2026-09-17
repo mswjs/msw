@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://api.github.com/users/octocat', () => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('mocks a response to an XMLHttpRequest', async ({ page }) => {
   const REQUEST_URL = 'https://api.github.com/users/octocat'

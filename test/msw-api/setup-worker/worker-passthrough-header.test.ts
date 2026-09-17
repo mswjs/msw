@@ -1,5 +1,5 @@
 import { http, passthrough } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/resource', function originalResolver() {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('removes the internal passthrough request header', async ({
   fetch,

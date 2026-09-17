@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const api = graphql.link('*')
 
@@ -37,7 +37,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('accepts a file from a GraphQL mutation', async ({ query }) => {
   const UPLOAD_MUTATION = `

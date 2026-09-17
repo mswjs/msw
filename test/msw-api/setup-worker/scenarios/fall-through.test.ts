@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*', () => console.log('[get] first')),
@@ -10,7 +10,7 @@ const handlers = [
   http.post('*/blog/article', () => console.log('[post] second')),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('falls through all relevant request handlers until response is returned', async ({
   spyOnConsole,

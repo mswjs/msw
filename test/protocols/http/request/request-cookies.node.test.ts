@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
-const test = defineNetwork({
+const test = defineTestNetwork({
   handlers: [
     http.post('http://localhost/session', () => {
       return new HttpResponse(null, {

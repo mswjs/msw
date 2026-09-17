@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.post('*/user', () => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('sends a mocked response to a matching method and url', async ({
   fetch,

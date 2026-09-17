@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 /**
  * @see https://github.com/mswjs/msw/issues/2129
  */
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/v1/issues', () => {
@@ -13,7 +13,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('handles a stream response without throwing a timeout error', async ({
   fetch,

@@ -1,5 +1,5 @@
 import { http } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/user', () => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('propagates the exception originating from a handled request', async ({
   spyOnConsole,

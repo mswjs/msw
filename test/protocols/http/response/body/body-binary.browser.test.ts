@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const imageUrl = new URL('../../../../fixtures/image.jpg', import.meta.url)
 
@@ -15,7 +15,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a given binary body', async ({ fetch }) => {
   const res = await fetch('/images/abc-123')

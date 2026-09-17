@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 
 interface GetUserDetailQuery {
@@ -53,7 +53,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('prints a log for a GraphQL query', async ({
   spyOnConsole,

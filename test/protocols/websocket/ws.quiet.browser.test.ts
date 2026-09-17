@@ -1,9 +1,9 @@
 import { ws } from 'msw/ws'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const api = ws.link('wss://localhost/*')
 const handlers = [api.addEventListener('connection', () => {})]
-const test = defineNetwork({ handlers, workerOptions: { quiet: true } })
+const test = defineTestNetwork({ handlers, workerOptions: { quiet: true } })
 
 test('does not log anything if "quiet" was set to "true"', async ({
   spyOnConsole,

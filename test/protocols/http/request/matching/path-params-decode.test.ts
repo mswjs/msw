@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://test.mswjs.io/reflect-url/:url', ({ params }) => {
@@ -8,7 +8,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('decodes url componets', async ({ fetch }) => {
   const url = 'http://example.com:5001/example'

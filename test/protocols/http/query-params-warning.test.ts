@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
-const test = defineNetwork()
+const test = defineTestNetwork()
 
 test('warns when a request handler URL contains query parameters', async ({
   fetch,

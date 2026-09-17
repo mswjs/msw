@@ -50,7 +50,7 @@ const testServerTest = base.extend('testServer', { scope: 'worker' }, () => {
   return createTestServer()
 })
 
-export function defineNetwork(definition: NetworkDefinition = {}) {
+export function defineTestNetwork(definition: NetworkDefinition = {}) {
   const test = testServerTest.extend(
     'network',
     { scope: 'file', auto: true },
@@ -68,7 +68,7 @@ export function defineNetwork(definition: NetworkDefinition = {}) {
      * @note Read the definition from the network, not from this closure.
      * The module-level `test` below registers this hook too, and hooks
      * run for every test in the file, including those created by another
-     * `defineNetwork()` call with a different definition.
+     * `defineTestNetwork()` call with a different definition.
      */
     const networkDefinition = getNetworkDefinition(network)
 
@@ -84,6 +84,6 @@ export function defineNetwork(definition: NetworkDefinition = {}) {
   return test
 }
 
-export const test = defineNetwork()
+export const test = defineTestNetwork()
 
 export { expect }

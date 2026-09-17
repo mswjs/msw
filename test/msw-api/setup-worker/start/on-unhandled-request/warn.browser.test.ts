@@ -1,5 +1,5 @@
 import { http } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.post('*/explicit-return', () => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
   http.post('*/implicit-return', () => {}),
 ]
-const test = defineNetwork({
+const test = defineTestNetwork({
   handlers,
   workerOptions: { onUnhandledFrame: 'warn' },
 })

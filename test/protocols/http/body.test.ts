@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const forwardRequestBody: Parameters<typeof http.get>[1] = async ({
   request,
@@ -41,7 +41,7 @@ const handlers = [
   http.post('*/upload', forwardMultipartRequestBody),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('handles a GET request without a body', async ({ fetch }) => {
   const res = await fetch('/resource')

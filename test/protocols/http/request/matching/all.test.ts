@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 function forEachMethod<ResponseType>(
   callback: (method: string) => Promise<ResponseType>,
@@ -20,7 +20,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('respects custom path when matching requests', async ({ fetch }) => {
   // Root request.

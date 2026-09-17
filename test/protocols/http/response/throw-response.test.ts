@@ -1,5 +1,5 @@
 import { HttpResponse, http } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/throw/plain', () => {
@@ -28,7 +28,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('supports throwing a plain Response in a response resolver', async ({
   fetch,

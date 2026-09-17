@@ -1,5 +1,5 @@
 import type {} from '@vitest/browser-playwright'
-import { defineNetwork as defineBaseNetwork, expect } from './vitest'
+import { defineTestNetwork as defineBaseTestNetwork, expect } from './vitest'
 
 type ConsoleMessageType =
   | 'debug'
@@ -209,10 +209,10 @@ async function evaluate<Result, Argument = never>(
   }
 }
 
-export function defineNetwork(
+export function defineTestNetwork(
   definition: import('./network').NetworkDefinition = {},
 ) {
-  const test = defineBaseNetwork(definition)
+  const test = defineBaseTestNetwork(definition)
     .extend('page', async ({ network, testServer }, { onCleanup }) => {
       const capturedResponses: Array<CapturedResponse> = []
       const cleanupCallbacks: Array<() => void> = []
@@ -545,6 +545,6 @@ export function defineNetwork(
   return test
 }
 
-const test = defineNetwork()
+const test = defineTestNetwork()
 
 export { expect, test }

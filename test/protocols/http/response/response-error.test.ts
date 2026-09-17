@@ -1,5 +1,5 @@
 import { http } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/resource', () => {
@@ -7,7 +7,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a network error using "Response.error" shorthand', async ({
   page,

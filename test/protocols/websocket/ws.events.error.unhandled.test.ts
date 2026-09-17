@@ -1,9 +1,9 @@
 import type { WebSocketNetworkFrameEventMap } from 'msw/experimental'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 type WebSocketErrorEvent = WebSocketNetworkFrameEventMap['websocket:error']
 
-const test = defineNetwork({
+const test = defineTestNetwork({
   serverOptions: { onUnhandledFrame: 'error' },
   workerOptions: { onUnhandledFrame: 'error' },
 })

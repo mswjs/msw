@@ -1,5 +1,5 @@
 import { sse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   sse('http://localhost/stream', ({ client }) => {
@@ -8,7 +8,7 @@ const handlers = [
     })
   }),
 ]
-const test = defineNetwork({ handlers, workerOptions: { quiet: true } })
+const test = defineTestNetwork({ handlers, workerOptions: { quiet: true } })
 
 test('does not log anything if the "quiet" option is set to true', async ({
   spyOnConsole,

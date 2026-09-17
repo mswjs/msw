@@ -1,6 +1,6 @@
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
-const test = defineNetwork({ workerOptions: { quiet: true } })
+const test = defineTestNetwork({ workerOptions: { quiet: true } })
 
 test('does not print the console stop message in quiet mode', async ({
   network,

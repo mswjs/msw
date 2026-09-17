@@ -2,7 +2,7 @@ import { HttpResponse, http } from 'msw'
 /**
  * @see https://github.com/mswjs/msw/issues/1972
  */
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const data = 'hello world'
 const buffer = new TextEncoder().encode(data)
@@ -33,7 +33,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('forwards the 206 response to a bypassed "Range" request', async ({
   fetch,

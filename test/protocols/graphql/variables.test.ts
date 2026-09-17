@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { gql } from '../../support/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const api = graphql.link('*')
 
@@ -83,7 +83,7 @@ const handlers = [
   ),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('can access variables from a GraphQL query', async ({ query }) => {
   const res = await query('/graphql', {

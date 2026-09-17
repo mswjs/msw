@@ -1,9 +1,9 @@
 import { ws } from 'msw/ws'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const api = ws.link('wss://example.com')
 const handlers = [api.addEventListener('connection', () => {})]
-const test = defineNetwork({ enabled: false, handlers })
+const test = defineTestNetwork({ enabled: false, handlers })
 
 test('does not apply the interceptor until "worker.start()" is called', async ({
   network,

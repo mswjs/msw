@@ -1,6 +1,6 @@
 import type { DelayMode } from 'msw'
 import { http, delay, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 declare global {
   namespace PlaywrightTest {
@@ -47,7 +47,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('uses explicit server response delay', async ({ fetch }) => {
   const startedAt = performance.now()

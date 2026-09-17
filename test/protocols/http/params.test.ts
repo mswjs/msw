@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 type RequestParams = {
   username: string
@@ -20,7 +20,7 @@ const handlers = [
   ),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('parses request URL parameters', async ({ fetch }) => {
   const res = await fetch(

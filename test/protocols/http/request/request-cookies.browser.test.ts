@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 function bakeCookies(cookies: Array<string>): void {
   document.cookie.split(';').forEach((cookie) => {
@@ -31,7 +31,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test.afterEach(async () => {
   await fetch('/set-cookies', {

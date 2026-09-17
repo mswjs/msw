@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import * as JSONbig from 'json-bigint'
 import * as JSONBig from 'json-bigint'
-import { defineNetwork, expect } from '../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/user', () => {
@@ -19,7 +19,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('uses a custom transformer to parse BigInt in response body', async ({
   fetch,

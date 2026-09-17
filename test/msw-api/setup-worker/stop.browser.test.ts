@@ -1,12 +1,12 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/resource', () => {
     return HttpResponse.json({ mocked: true })
   }),
 ]
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('disables mocking when the worker is stopped', async ({
   network,

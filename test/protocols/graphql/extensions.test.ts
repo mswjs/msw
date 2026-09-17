@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 
 const api = graphql.link('*')
@@ -34,7 +34,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('mocks a GraphQL response with both data and extensions', async ({
   query,

@@ -1,9 +1,9 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 
-const test = defineNetwork()
+const test = defineTestNetwork()
 
 test('does not warn on anonymous GraphQL operation when no GraphQL handlers are present', async ({
   query,

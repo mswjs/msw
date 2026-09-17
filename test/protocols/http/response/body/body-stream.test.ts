@@ -1,5 +1,5 @@
 import { http, HttpResponse, delay } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const encoder = new TextEncoder()
 const chunks = ['hello', 'streaming', 'world']
@@ -26,7 +26,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a mocked ReadableStream response', async ({ page }) => {
   const chunks = await page.evaluate(() => {

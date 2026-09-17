@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../../../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://api.github.com/made-up', () => {
@@ -33,7 +33,7 @@ const handlers = [
   ),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('matches an exact string with the same request URL with a trailing slash', async ({
   fetch,

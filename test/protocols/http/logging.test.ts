@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
 
 const handlers = [
@@ -13,7 +13,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('prints the intercepted request info into browser console', async ({
   spyOnConsole,

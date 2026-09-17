@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://test.mswjs.io/api/books', ({ request }) => {
@@ -16,7 +16,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('retrieves a single request URL query parameter', async ({ fetch }) => {
   const res = await fetch('https://test.mswjs.io/api/books?id=abc-123')

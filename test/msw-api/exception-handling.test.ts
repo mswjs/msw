@@ -1,5 +1,5 @@
 import { http } from 'msw'
-import { defineNetwork, expect } from '../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../setup/vitest-helpers'
 
 const handlers = [
   http.get('https://api.github.com/users/:username', () => {
@@ -9,7 +9,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('activates the worker without errors', async ({ spyOnConsole }) => {
   const consoleSpy = spyOnConsole()

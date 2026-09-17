@@ -1,7 +1,7 @@
 import { http } from 'msw'
 import { graphql } from 'msw/graphql'
 import type { Network } from '../../setup/network'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const resolver = () => void 0
 const api = graphql.link('*')
@@ -15,7 +15,7 @@ const handlers = [
   github.operation(resolver),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 function getHandlerHeader(
   handler: ReturnType<Network['listHandlers']>[number],

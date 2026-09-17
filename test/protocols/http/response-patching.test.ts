@@ -1,6 +1,6 @@
 import { http, HttpResponse, bypass } from 'msw'
 import { matchRequestUrl } from 'msw'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
 const handlers = [
   http.get('*/user', async ({ request }) => {
@@ -102,7 +102,7 @@ const handlers = [
   }),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('responds with a combination of the mocked and original responses', async ({
   fetch,

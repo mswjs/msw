@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { defineNetwork, expect } from '../../setup/vitest-helpers'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 
 const github = graphql.link('https://api.github.com/graphql')
@@ -75,7 +75,7 @@ const handlers = [
   ),
 ]
 
-const test = defineNetwork({ handlers })
+const test = defineTestNetwork({ handlers })
 
 test('mocks a GraphQL query to the GitHub GraphQL API', async ({ query }) => {
   const res = await query('https://api.github.com/graphql', {

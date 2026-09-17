@@ -1,23 +1,65 @@
 // @vitest-environment node
 import { setupServer } from 'msw/node'
-import { HttpResponse, http } from 'msw'
+import { delay, HttpResponse, http } from 'msw'
 
-const server = setupServer(
-  http.get('https://test.mswjs.io/pull', () => {
-    return HttpResponse.json({ status: 'pulled' })
-  }),
-)
+const SYSTEM_TIME = new Date('2024-01-01T00:00:00.000Z')
 
-beforeAll(() => server.listen())
-afterAll(() => server.close())
+const server = setupServer()
 
-test('tolerates fake timers', async () => {
+/**
+ * @note Measure real elapsed time via `process.hrtime`, which fake timers
+ * never mock. The tests must not advance the fake clock manually.
+ */
+function measureRealTime(): () => number {
+  const start = process.hrtime.bigint()
+  return () => Number(process.hrtime.bigint() - start) / 1_000_000
+}
+
+beforeAll(() => {
+  server.listen()
+})
+
+beforeEach(() => {
   vi.useFakeTimers()
+  vi.setSystemTime(SYSTEM_TIME)
+})
 
-  const res = await fetch('https://test.mswjs.io/pull')
-  const body = await res.json()
-
+afterEach(() => {
   vi.useRealTimers()
+  server.resetHandlers()
+})
 
-  expect(body).toEqual({ status: 'pulled' })
+afterAll(() => {
+  server.close()
+})
+
+test('supports fake timers without any delay in the handlers', async () => {
+  server.use(
+    http.get('https://test.mswjs.io/pull', () => {
+      return HttpResponse.json({ status: 'pulled' })
+    }),
+  )
+
+  const response = await fetch('https://test.mswjs.io/pull')
+  await expect(response.json()).resolves.toEqual({ status: 'pulled' })
+})
+
+test('delays the response with fake timers enabled without advancing the time', async () => {
+  server.use(
+    http.get('https://test.mswjs.io/delayed', async () => {
+      await delay(500)
+      return HttpResponse.text('john')
+    }),
+  )
+
+  const getElapsedTime = measureRealTime()
+
+  const response = await fetch('https://test.mswjs.io/delayed')
+  const responseTime = getElapsedTime()
+
+  expect(responseTime).toBeGreaterThanOrEqual(500)
+  await expect(response.text()).resolves.toBe('john')
+
+  // No need to advance the timers to get a delayed mock response.
+  expect(Date.now()).toBe(SYSTEM_TIME.getTime())
 })

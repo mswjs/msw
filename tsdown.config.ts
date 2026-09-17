@@ -6,20 +6,12 @@ import {
   getWorkerChecksum,
   copyWorkerPlugin,
 } from './config/plugins/rolldown/copyWorkerPlugin.ts'
-import { resolveCoreImportsPlugin } from './config/plugins/rolldown/resolveCoreImportsPlugin.ts'
-import { cleanStrayDeclarationsPlugin } from './config/plugins/rolldown/clean-stray-declarations-plugin.ts'
 
 const packageJson = JSON.parse(
   fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
 ) as { dependencies: Record<string, string> }
 
 const ecosystemDependencies = /^@mswjs\/(.+)$/
-const mswCore = /#core(\/.+)?$/
-const mswHttp = /#http(\/.+)?$/
-const mswGraphql = /#graphql(\/.+)?$/
-const mswWs = /#ws(\/.+)?$/
-const mswSse = /#sse(\/.+)?$/
-const mswUtils = /#utils(\/.+)?$/
 const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
 
 const commonConfig = {
@@ -30,263 +22,52 @@ const commonConfig = {
   clean: false,
 } satisfies UserConfig
 
-const coreConfig: UserConfig = {
-  ...commonConfig,
-  name: 'core',
-  platform: 'neutral',
-  entry: glob.sync('./src/core/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
-  deps: {
-    neverBundle: [
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/core',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
+/**
+ * Every module under "src/utils" is a public entry
+ * (exposed via the "./utils/*" export in package.json).
+ */
+const utilsEntries = Object.fromEntries(
+  glob
+    .sync('./src/utils/*.ts', { ignore: '**/*.test.ts', posix: true })
+    .map((modulePath) => {
+      return [`utils/${path.basename(modulePath, '.ts')}`, modulePath]
+    }),
+)
 
-const graphqlConfig: UserConfig = {
+const esmConfig: UserConfig = {
   ...commonConfig,
-  name: 'graphql',
+  name: 'esm',
   platform: 'neutral',
-  entry: glob.sync('./src/graphql/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
+  entry: {
+    'core/index': './src/core/index.ts',
+    'core/experimental/index': './src/core/experimental/index.ts',
+    'http/index': './src/http/index.ts',
+    'graphql/index': './src/graphql/index.ts',
+    'ws/index': './src/ws/index.ts',
+    'sse/index': './src/sse/index.ts',
+    ...utilsEntries,
+    'node/index': './src/node/index.ts',
+    'browser/index': './src/browser/index.ts',
+  },
   deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
+    neverBundle: ['util', 'events', /^node:/, ecosystemDependencies],
     onlyBundle: false,
   },
   format: ['esm'],
-  outDir: './lib/graphql',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const httpConfig: UserConfig = {
-  ...commonConfig,
-  name: 'http',
-  platform: 'neutral',
-  entry: glob.sync('./src/http/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/http',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const wsConfig: UserConfig = {
-  ...commonConfig,
-  name: 'ws',
-  platform: 'neutral',
-  entry: glob.sync('./src/ws/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/ws',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const sseConfig: UserConfig = {
-  ...commonConfig,
-  name: 'sse',
-  platform: 'neutral',
-  entry: glob.sync('./src/sse/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/sse',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const utilsConfig: UserConfig = {
-  ...commonConfig,
-  name: 'utils',
-  platform: 'neutral',
-  entry: glob.sync('./src/utils/**/*.ts', {
-    ignore: '**/*.test.ts',
-    posix: true,
-    dotRelative: true,
-  }),
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/utils',
-  unbundle: true,
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const nodeConfig: UserConfig = {
-  ...commonConfig,
-  name: 'node',
-  platform: 'node',
-  entry: ['./src/node/index.ts'],
-  inputOptions: {
-    transform: {
-      inject: {
-        setTimeout: ['./config/polyfills-node.ts', 'setTimeout'],
-      },
-    },
-  },
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/node',
+  outDir: './lib',
   unbundle: false,
   outputOptions: {
-    codeSplitting: false,
+    entryFileNames: '[name].js',
+    chunkFileNames: '_chunks/[name].js',
+    codeSplitting: true,
   },
   sourcemap: true,
   dts: true,
-  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.node.build.json'),
-  plugins: [resolveCoreImportsPlugin(), cleanStrayDeclarationsPlugin()],
-}
-
-const browserConfig: UserConfig = {
-  ...commonConfig,
-  name: 'browser',
-  platform: 'browser',
-  entry: ['./src/browser/index.ts'],
-  deps: {
-    neverBundle: [
-      mswCore,
-      mswHttp,
-      mswGraphql,
-      mswWs,
-      mswSse,
-      mswUtils,
-      ecosystemDependencies,
-    ],
-    alwaysBundle: Object.keys(packageJson.dependencies).filter(
-      (packageName) => {
-        return !ecosystemDependencies.test(packageName)
-      },
-    ),
-    onlyBundle: false,
-  },
-  format: ['esm'],
-  outDir: './lib/browser',
-  unbundle: false,
-  outputOptions: {
-    codeSplitting: false,
-  },
-  sourcemap: true,
-  dts: true,
-  tsconfig: path.resolve(
-    import.meta.dirname,
-    'src/browser/tsconfig.browser.build.json',
-  ),
+  tsconfig: path.resolve(import.meta.dirname, 'src/tsconfig.core.build.json'),
   define: {
     SERVICE_WORKER_CHECKSUM: JSON.stringify(SERVICE_WORKER_CHECKSUM),
   },
-  plugins: [
-    resolveCoreImportsPlugin(),
-    copyWorkerPlugin(SERVICE_WORKER_CHECKSUM),
-    cleanStrayDeclarationsPlugin(),
-  ],
+  plugins: [copyWorkerPlugin(SERVICE_WORKER_CHECKSUM)],
 }
 
 const viteConfig: UserConfig = {
@@ -304,7 +85,6 @@ const viteConfig: UserConfig = {
   sourcemap: true,
   dts: true,
   tsconfig: path.resolve(import.meta.dirname, 'src/vite/tsconfig.build.json'),
-  plugins: [cleanStrayDeclarationsPlugin()],
 }
 
 const iifeConfig: UserConfig = {
@@ -342,15 +122,4 @@ const iifeConfig: UserConfig = {
   },
 }
 
-export default defineConfig([
-  coreConfig,
-  httpConfig,
-  graphqlConfig,
-  wsConfig,
-  sseConfig,
-  utilsConfig,
-  nodeConfig,
-  browserConfig,
-  viteConfig,
-  iifeConfig,
-])
+export default defineConfig([esmConfig, viteConfig, iifeConfig])

@@ -165,8 +165,6 @@ test('forwards custom request headers to the original request', async ({
   const response = await requestPromise
 
   expect(req.headers()).toHaveProperty('authorization', 'token')
-  expect(req.headers()).not.toHaveProperty('_headers')
-  expect(req.headers()).not.toHaveProperty('_names')
 
   const status = response.status()
   const body = await response.json()

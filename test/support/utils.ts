@@ -3,12 +3,6 @@ import os from 'node:os'
 import path from 'node:path'
 import type { ClientRequest, IncomingMessage } from 'http'
 
-export function sleep(duration: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, duration)
-  })
-}
-
 export function fromTemp(...segments: string[]) {
   const temporaryDirectory = fs.realpathSync(os.tmpdir())
 

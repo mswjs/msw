@@ -159,7 +159,6 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'node',
-          globalSetup: './test/e2e/vitest.global.setup.ts',
           include: ['test/e2e/**/*.test.ts'],
           sequence: {
             groupOrder: 6,

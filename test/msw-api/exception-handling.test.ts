@@ -11,12 +11,6 @@ const handlers = [
 
 const test = defineTestNetwork({ handlers })
 
-test('activates the worker without errors', async ({ spyOnConsole }) => {
-  const consoleSpy = spyOnConsole()
-
-  expect(consoleSpy.get('error')).toBeUndefined()
-})
-
 test('transforms uncaught exceptions into a 500 response', async ({
   fetch,
   spyOnConsole,

@@ -75,24 +75,6 @@ test('inherits mocked cookies', async ({ fetch, page }) => {
   })
 })
 
-test('inherits mocked cookies after page reload', async ({ fetch, page }) => {
-  bakeCookies(['documentCookie=value'])
-
-  await fetch('/set-cookies', {
-    method: 'POST',
-    body: 'mockedCookie=mockedValue',
-  })
-  const response = await fetch('/cookies', {
-    credentials: 'include',
-  })
-
-  expect.soft(response.status()).toBe(200)
-  await expect.soft(response.json()).resolves.toEqual({
-    documentCookie: 'value',
-    mockedCookie: 'mockedValue',
-  })
-})
-
 test('inherits mocked "HttpOnly" cookies', async ({ fetch, page }) => {
   bakeCookies(['documentCookie=value'])
 

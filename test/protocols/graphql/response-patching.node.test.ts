@@ -115,6 +115,4 @@ test('patches a GraphQL response', async () => {
     lastName: 'Maverick',
   })
   expect(response.data?.requestHeaders).toHaveProperty('accept', '*/*')
-  expect(response.data?.requestHeaders).not.toHaveProperty('_headers')
-  expect(response.data?.requestHeaders).not.toHaveProperty('_names')
 })

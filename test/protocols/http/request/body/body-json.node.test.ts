@@ -18,26 +18,26 @@ afterAll(() => {
 })
 
 test('reads request body using json() method', async () => {
-  const res = await fetch('http://localhost/json', {
+  const response = await fetch('http://localhost/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
-  const json = await res.json()
+  const json = await response.json()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
 test('reads array buffer request body using json() method', async () => {
-  const res = await fetch('http://localhost/json', {
+  const response = await fetch('http://localhost/json', {
     method: 'POST',
     body: encodeBuffer(JSON.stringify({ firstName: 'John' })),
   })
-  const json = await res.json()
+  const json = await response.json()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })

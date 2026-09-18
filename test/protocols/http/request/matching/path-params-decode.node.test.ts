@@ -22,12 +22,12 @@ afterAll(() => {
 test('decodes url componets', async () => {
   const url = 'http://example.com:5001/example'
 
-  const res = await fetch(
+  const response = await fetch(
     `https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`,
   )
 
-  expect(res.status).toBe(200)
-  expect(await res.json()).toEqual({
+  expect(response.status).toBe(200)
+  expect(await response.json()).toEqual({
     url,
   })
 })

@@ -52,10 +52,10 @@ test('activates the worker without errors given the latest integrity', async ({
 
   expect(consoleSpy.get('error')).toBeUndefined()
 
-  const res = await fetch('https://example.com/users/octocat')
-  const body = await res.json()
+  const response = await fetch('https://example.com/users/octocat')
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     mocked: true,
   })
@@ -83,15 +83,15 @@ test('errors when activating the worker with an outdated integrity', async ({
     skipActivation: true,
     beforeNavigation(compilation) {
       compilation.use((router) => {
-        router.use('/', (_, res, next) => {
+        router.use('/', (_, response, next) => {
           // Appended router are relative to the compilation path.
           // Allow the nested worker script to control the root scope.
-          res.setHeader('Service-Worker-Allowed', '/')
+          response.setHeader('Service-Worker-Allowed', '/')
           next()
         })
 
-        router.get('/mockServiceWorker-outdated.js', (_, res) => {
-          return res
+        router.get('/mockServiceWorker-outdated.js', (_, response) => {
+          return response
             .set('content-type', 'application/javascript')
             .send(fs.readFileSync(TEMP_SERVICE_WORKER_PATH, 'utf8'))
         })
@@ -115,10 +115,10 @@ You can also automate this process and make the worker script update automatical
     )
 
   // Still keeps the mocking enabled.
-  const res = await fetch('https://example.com/users/octocat')
-  const body = await res.json()
+  const response = await fetch('https://example.com/users/octocat')
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     mocked: true,
   })

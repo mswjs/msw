@@ -4,11 +4,11 @@ import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {
-  app.get('/', (req, res) => {
-    res.send('root')
+  app.get('/', (req, response) => {
+    response.send('root')
   })
-  app.get('/user', (req, res) => {
-    res.json({ firstName: 'Miranda' })
+  app.get('/user', (req, response) => {
+    response.json({ firstName: 'Miranda' })
   })
 })
 
@@ -35,11 +35,11 @@ afterAll(async () => {
 })
 
 test('bypasses unhandled requests', async () => {
-  const res = await fetch(httpServer.http.url('/'))
+  const response = await fetch(httpServer.http.url('/'))
 
   // Request should be performed as-is
-  expect(res.status).toBe(200)
-  expect(await res.text()).toEqual('root')
+  expect(response.status).toBe(200)
+  expect(await response.text()).toEqual('root')
 
   // No warnings/errors should be printed
   expect(console.error).not.toBeCalled()

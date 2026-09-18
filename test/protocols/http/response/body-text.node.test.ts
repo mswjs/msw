@@ -17,11 +17,11 @@ afterAll(() => {
 })
 
 test('responds with a text response body', async () => {
-  const res = await fetch('http://localhost/text')
-  const text = await res.text()
+  const response = await fetch('http://localhost/text')
+  const text = await response.text()
 
-  expect(res.status).toBe(200)
-  expect(res.headers.get('content-type')).toBe('text/plain')
+  expect(response.status).toBe(200)
+  expect(response.headers.get('content-type')).toBe('text/plain')
   expect(text).toBe('hello world')
 })
 

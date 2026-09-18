@@ -29,8 +29,8 @@ afterAll(() => {
 })
 
 test('falls through all relevant request handlers until response is returned', async () => {
-  const res = await fetch('https://test.mswjs.io/user')
-  const body = await res.json()
+  const response = await fetch('https://test.mswjs.io/user')
+  const body = await response.json()
 
   expect(body).toEqual({
     firstName: 'John',
@@ -41,10 +41,10 @@ test('falls through all relevant request handlers until response is returned', a
 })
 
 test('falls through all relevant handlers even if none return response', async () => {
-  const res = await fetch('https://test.mswjs.io/blog/article', {
+  const response = await fetch('https://test.mswjs.io/blog/article', {
     method: 'POST',
   })
-  const { status } = res
+  const { status } = response
 
   expect(status).toBe(404)
   expect(log).toHaveBeenNthCalledWith(1, '[post] first')

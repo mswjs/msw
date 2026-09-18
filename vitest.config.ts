@@ -124,6 +124,11 @@ export default defineConfig({
           setupFiles: ['./test/setup/vitest-browser.ts'],
           browser: {
             enabled: true,
+            // Serve the test page on the same host as the test server (see "vitest.setup.ts")
+            // so that cookies set on the document are sent to the test server.
+            api: {
+              host: '127.0.0.1',
+            },
             provider: playwright(),
             instances: [{ name: 'browser', browser: 'chromium' }],
             headless: true,
@@ -154,7 +159,6 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'node',
-          globalSetup: './test/e2e/vitest.global.setup.ts',
           include: ['test/e2e/**/*.test.ts'],
           sequence: {
             groupOrder: 6,

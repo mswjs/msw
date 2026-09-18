@@ -51,15 +51,15 @@ const test = defineTestNetwork({ handlers })
 
 test('uses explicit server response delay', async ({ fetch }) => {
   const startedAt = performance.now()
-  const res = await fetch('/delay?duration=1200')
+  const response = await fetch('/delay?duration=1200')
   const responseStart = performance.now() - startedAt
 
   expect(responseStart).toRoughlyEqual(1200, 250)
 
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({ mocked: true })
 })
@@ -68,15 +68,15 @@ test('uses realistic server response delay when no delay value is provided', asy
   fetch,
 }) => {
   const startedAt = performance.now()
-  const res = await fetch('/delay')
+  const response = await fetch('/delay')
   const responseStart = performance.now() - startedAt
 
   expect(responseStart).toRoughlyEqual(250, 300)
 
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({
     mocked: true,
@@ -87,15 +87,15 @@ test('uses realistic server response delay when "real" delay mode is provided', 
   fetch,
 }) => {
   const startedAt = performance.now()
-  const res = await fetch('/delay?mode=real')
+  const response = await fetch('/delay?mode=real')
   const responseStart = performance.now() - startedAt
 
   expect(responseStart).toRoughlyEqual(250, 300)
 
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(status).toBe(200)
   expect(body).toEqual({
     mocked: true,

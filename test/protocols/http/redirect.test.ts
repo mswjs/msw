@@ -25,23 +25,23 @@ test('supports redirect in a mocked response', async ({
   makeUrl,
   page,
 }) => {
-  const [res, redirectRes] = await Promise.all([
+  const [response, redirectResponse] = await Promise.all([
     await fetch('/login'),
     await page.waitForResponse(makeUrl('/user')),
   ])
-  const headers = await res.allHeaders()
+  const headers = await response.allHeaders()
 
   // Assert the original response returns redirect.
   expect(headers).toHaveProperty('location', '/user')
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(res.status()).toBe(307)
+  expect(response.fromServiceWorker()).toBe(true)
+  expect(response.status()).toBe(307)
 
-  const redirectStatus = redirectRes.status()
-  const redirectBody = await redirectRes.json()
+  const redirectStatus = redirectResponse.status()
+  const redirectBody = await redirectResponse.json()
 
   // Assert redirect gets requested and mocked.
   expect(redirectStatus).toBe(200)
-  expect(redirectRes.fromServiceWorker()).toBe(true)
+  expect(redirectResponse.fromServiceWorker()).toBe(true)
   expect(redirectBody).toEqual({
     firstName: 'John',
     lastName: 'Maverick',

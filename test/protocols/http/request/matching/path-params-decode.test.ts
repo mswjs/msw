@@ -12,13 +12,13 @@ const test = defineTestNetwork({ handlers })
 
 test('decodes url componets', async ({ fetch }) => {
   const url = 'http://example.com:5001/example'
-  const res = await fetch(
+  const response = await fetch(
     `https://test.mswjs.io/reflect-url/${encodeURIComponent(url)}`,
   )
 
-  expect(res.status()).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
-  expect(await res.json()).toEqual({
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
+  expect(await response.json()).toEqual({
     url,
   })
 })

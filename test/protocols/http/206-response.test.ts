@@ -1,11 +1,10 @@
-import { HttpResponse, http } from 'msw'
 /**
  * @see https://github.com/mswjs/msw/issues/1972
  */
+import { HttpResponse, http } from 'msw'
 import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
-const data = 'hello world'
-const buffer = new TextEncoder().encode(data)
+const buffer = new TextEncoder().encode('hello world')
 const totalSize = buffer.byteLength
 
 const handlers = [

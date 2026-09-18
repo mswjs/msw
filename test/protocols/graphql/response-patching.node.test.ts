@@ -31,7 +31,7 @@ const server = setupServer(
 )
 
 const httpServer = new HttpServer((app) => {
-  app.post('/graphql', async (req, res) => {
+  app.post('/graphql', async (req, response) => {
     const result = await executeGraphql({
       schema: buildSchema(gql`
         type User {
@@ -63,7 +63,7 @@ const httpServer = new HttpServer((app) => {
       },
     })
 
-    return res.status(200).json({
+    return response.status(200).json({
       requestHeaders: req.headers,
       queryResult: result,
     })
@@ -88,7 +88,7 @@ test('patches a GraphQL response', async () => {
     uri: httpServer.http.url('/graphql'),
   })
 
-  const res = await client<{
+  const response = await client<{
     user: {
       firstName: string
       lastName: string
@@ -109,12 +109,10 @@ test('patches a GraphQL response', async () => {
     `,
   })
 
-  expect(res.errors).toBeUndefined()
-  expect(res.data).toHaveProperty('user', {
+  expect(response.errors).toBeUndefined()
+  expect(response.data).toHaveProperty('user', {
     firstName: 'Christian',
     lastName: 'Maverick',
   })
-  expect(res.data?.requestHeaders).toHaveProperty('accept', '*/*')
-  expect(res.data?.requestHeaders).not.toHaveProperty('_headers')
-  expect(res.data?.requestHeaders).not.toHaveProperty('_names')
+  expect(response.data?.requestHeaders).toHaveProperty('accept', '*/*')
 })

@@ -35,20 +35,20 @@ afterAll(() => {
 })
 
 test('returns a mocked response to a GET request using fetch', async () => {
-  const res = await fetch('http://test.mswjs.io')
+  const response = await fetch('http://test.mswjs.io')
 
-  expect(res.status).toEqual(401)
-  expect(res.headers.get('content-type')).toEqual('application/json')
-  expect(res.headers.get('x-header')).toEqual('yes')
+  expect(response.status).toEqual(401)
+  expect(response.headers.get('content-type')).toEqual('application/json')
+  expect(response.headers.get('x-header')).toEqual('yes')
 
-  expect(await res.json()).toEqual({
+  expect(await response.json()).toEqual({
     firstName: 'John',
     age: 32,
   })
 })
 
 test('returns a mocked response to a POST request using fetch', async () => {
-  const res = await fetch('https://test.mswjs.io', {
+  const response = await fetch('https://test.mswjs.io', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,10 +58,10 @@ test('returns a mocked response to a POST request using fetch', async () => {
     }),
   })
 
-  expect(res.status).toEqual(403)
-  expect(res.headers.get('content-type')).toEqual('application/json')
-  expect(res.headers.get('x-header')).toEqual('yes')
-  expect(await res.json()).toEqual({
+  expect(response.status).toEqual(403)
+  expect(response.headers.get('content-type')).toEqual('application/json')
+  expect(response.headers.get('x-header')).toEqual('yes')
+  expect(await response.json()).toEqual({
     payload: 'info',
   })
 })

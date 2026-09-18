@@ -39,13 +39,13 @@ test('supports FormData request body', async () => {
   formData.append('username', 'john.maverick')
   formData.append('password', 'secret123')
 
-  const res = await fetch('http://localhost/resource', {
+  const response = await fetch('http://localhost/resource', {
     method: 'POST',
     body: formData,
   })
-  const json = await res.json()
+  const json = await response.json()
 
-  expect.soft(res.status).toBe(200)
+  expect.soft(response.status).toBe(200)
   expect(json).toEqual([
     ['username', 'john.maverick'],
     ['password', 'secret123'],

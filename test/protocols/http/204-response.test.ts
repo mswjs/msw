@@ -25,10 +25,10 @@ test('handles a 204 status response without Response instance exceptions', async
     pageError = error
   })
 
-  const res = await fetch(testServer.http.url('/empty-posts'))
+  const response = await fetch(testServer.http.url('/empty-posts'))
 
   // There must be no such exception:
   // Failed to construct 'Response': Response with null body status cannot have body
   expect(pageError).toBeUndefined()
-  expect(res.status()).toBe(204)
+  expect(response.status()).toBe(204)
 })

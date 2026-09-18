@@ -18,10 +18,10 @@ test('mocks a response to an XMLHttpRequest', async ({ page }) => {
     req.send()
   }, REQUEST_URL)
 
-  const res = await page.waitForResponse(REQUEST_URL)
-  const body = await res.json()
+  const response = await page.waitForResponse(REQUEST_URL)
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(body).toEqual({
     mocked: true,
   })

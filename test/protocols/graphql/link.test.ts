@@ -78,7 +78,7 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('mocks a GraphQL query to the GitHub GraphQL API', async ({ query }) => {
-  const res = await query('https://api.github.com/graphql', {
+  const response = await query('https://api.github.com/graphql', {
     query: gql`
       query GetUser($username: String!) {
         user(username: $username) {
@@ -92,10 +92,10 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async ({ query }) => {
     },
   })
 
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {
@@ -110,7 +110,7 @@ test('mocks a GraphQL query to the GitHub GraphQL API', async ({ query }) => {
 test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
   query,
 }) => {
-  const res = await query('https://api.stripe.com/graphql', {
+  const response = await query('https://api.stripe.com/graphql', {
     query: gql`
       mutation Payment($amount: Int!) {
         bankAccount {
@@ -123,10 +123,10 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
     },
   })
 
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {
@@ -140,7 +140,7 @@ test('mocks a GraphQL mutation to the Stripe GraphQL API', async ({
 test('falls through to the matching GraphQL operation to an unknown endpoint', async ({
   query,
 }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query GetUser($username: String!) {
         user(username: $username) {
@@ -154,8 +154,8 @@ test('falls through to the matching GraphQL operation to an unknown endpoint', a
     },
   })
 
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
   expect(headers).toHaveProperty('x-request-handler', 'fallback')
   expect(body).toEqual({
@@ -172,7 +172,7 @@ test('bypasses a GraphQL operation to an unknown endpoint', async ({
   query,
   testServer,
 }) => {
-  const res = await query(testServer.http.url('/link-bypass/graphql'), {
+  const response = await query(testServer.http.url('/link-bypass/graphql'), {
     query: gql`
       mutation Payment($amount: Int!) {
         bankAccount {
@@ -185,5 +185,5 @@ test('bypasses a GraphQL operation to an unknown endpoint', async ({
     },
   })
 
-  expect(res.status()).toBe(500)
+  expect(response.status()).toBe(500)
 })

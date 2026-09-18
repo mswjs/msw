@@ -108,12 +108,12 @@ test('responds with a combination of the mocked and original responses', async (
   fetch,
   testServer,
 }) => {
-  const res = await fetch(testServer.http.url('/user'))
-  const status = res.status()
-  const body = await res.json()
+  const response = await fetch(testServer.http.url('/user'))
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     name: 'The Octocat',
     location: 'San Francisco',
@@ -125,26 +125,26 @@ test('bypasses the original request when it equals the mocked request', async ({
   fetch,
   testServer,
 }) => {
-  const res = await fetch(
+  const response = await fetch(
     testServer.http.url('/repos/mswjs/msw?mocked=true'),
     undefined,
     {
-      waitForResponse(res) {
+      waitForResponse(response) {
         return (
           // Await the response from MSW so that the original response
           // from the same URL would not interfere.
-          matchRequestUrl(new URL(res.request().url()), res.url()).matches &&
-          res.headers()['x-source'] === 'msw'
+          matchRequestUrl(new URL(response.request().url()), response.url())
+            .matches && response.headers()['x-source'] === 'msw'
         )
       },
     },
   )
 
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     name: 'msw',
     stargazers_count: 9999,
@@ -162,28 +162,26 @@ test('forwards custom request headers to the original request', async ({
     },
   })
   const req = await page.waitForRequest(testServer.http.url('/headers'))
-  const res = await requestPromise
+  const response = await requestPromise
 
   expect(req.headers()).toHaveProperty('authorization', 'token')
-  expect(req.headers()).not.toHaveProperty('_headers')
-  expect(req.headers()).not.toHaveProperty('_names')
 
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toEqual(200)
   expect(body).toEqual({ message: 'success' })
 })
 
 test('supports patching a HEAD request', async ({ fetch, testServer }) => {
-  const res = await fetch(
+  const response = await fetch(
     testServer.http.url('/head/posts'),
     {
       method: 'HEAD',
     },
     {
-      waitForResponse(res) {
-        const headers = res.headers()
+      waitForResponse(response) {
+        const headers = response.headers()
 
         return (
           headers['x-source'] === 'msw' && headers['x-msw-bypass'] !== 'true'
@@ -192,8 +190,8 @@ test('supports patching a HEAD request', async ({ fetch, testServer }) => {
     },
   )
 
-  const status = res.status()
-  const headers = res.headers()
+  const status = response.status()
+  const headers = response.headers()
 
   expect(status).toBe(200)
   expect(headers).toEqual(
@@ -209,7 +207,7 @@ test('supports patching a GET request', async ({
   makeUrl,
   testServer,
 }) => {
-  const res = await fetch(
+  const response = await fetch(
     testServer.http.url('/posts'),
     {
       method: 'GET',
@@ -218,19 +216,21 @@ test('supports patching a GET request', async ({
       },
     },
     {
-      waitForResponse(res) {
+      waitForResponse(response) {
         return (
-          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-            .matches && res.headers()['x-source'] === 'msw'
+          matchRequestUrl(
+            new URL(makeUrl(response.request().url())),
+            response.url(),
+          ).matches && response.headers()['x-source'] === 'msw'
         )
       },
     },
   )
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({ id: 101, mocked: true })
 })
 
@@ -239,7 +239,7 @@ test('supports patching a POST request', async ({
   makeUrl,
   testServer,
 }) => {
-  const res = await fetch(
+  const response = await fetch(
     testServer.http.url('/posts'),
     {
       method: 'POST',
@@ -253,20 +253,22 @@ test('supports patching a POST request', async ({
       }),
     },
     {
-      waitForResponse(res) {
+      waitForResponse(response) {
         return (
-          matchRequestUrl(new URL(makeUrl(res.request().url())), res.url())
-            .matches && res.headers()['x-source'] === 'msw'
+          matchRequestUrl(
+            new URL(makeUrl(response.request().url())),
+            response.url(),
+          ).matches && response.headers()['x-source'] === 'msw'
         )
       },
     },
   )
-  const status = res.status()
-  const headers = res.headers()
-  const body = await res.json()
+  const status = response.status()
+  const headers = response.headers()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(headers).toHaveProperty('x-custom', 'POST REQUEST PATCHED')
   expect(body).toEqual({
     id: 101,

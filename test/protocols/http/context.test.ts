@@ -22,13 +22,13 @@ const test = defineTestNetwork({ handlers })
 test('composes various context utilities into a valid mocked response', async ({
   fetch,
 }) => {
-  const res = await fetch('https://test.mswjs.io/')
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const response = await fetch('https://test.mswjs.io/')
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
-  expect(res.status()).toEqual(201)
-  expect(res.statusText()).toEqual('Yahoo!')
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.status()).toEqual(201)
+  expect(response.statusText()).toEqual('Yahoo!')
+  expect(response.fromServiceWorker()).toBe(true)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(headers).toHaveProperty('accept', 'foo/bar')
   expect(headers).toHaveProperty('custom-header', 'arbitrary-value')

@@ -74,15 +74,15 @@ afterAll(() => {
 })
 
 test('returns the mocked response for a GraphQL query', async () => {
-  const res = await apolloClient({
+  const response = await apolloClient({
     query: GET_USER_DETAIL,
     variables: {
       userId: 'abc-123',
     },
   })
 
-  expect(res.errors).toBeUndefined()
-  expect(res.data).toEqual({
+  expect(response.errors).toBeUndefined()
+  expect(response.data).toEqual({
     user: {
       firstName: 'John',
       age: 32,
@@ -92,15 +92,15 @@ test('returns the mocked response for a GraphQL query', async () => {
 })
 
 test('returns the mocked response for a GraphQL mutation', async () => {
-  const res = await apolloClient({
+  const response = await apolloClient({
     query: LOGIN,
     variables: {
       username: 'john',
     },
   })
 
-  expect(res.data).toBeUndefined()
-  expect(res.errors).toEqual([
+  expect(response.data).toBeUndefined()
+  expect(response.errors).toEqual([
     {
       message: `User "john" is not found`,
       locations: [

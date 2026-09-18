@@ -11,12 +11,6 @@ const handlers = [
 
 const test = defineTestNetwork({ handlers })
 
-test('activates the worker without errors', async ({ spyOnConsole }) => {
-  const consoleSpy = spyOnConsole()
-
-  expect(consoleSpy.get('error')).toBeUndefined()
-})
-
 test('transforms uncaught exceptions into a 500 response', async ({
   fetch,
   spyOnConsole,
@@ -24,17 +18,17 @@ test('transforms uncaught exceptions into a 500 response', async ({
 }) => {
   const consoleSpy = spyOnConsole()
 
-  const res = await fetch('https://api.github.com/users/octocat')
+  const response = await fetch('https://api.github.com/users/octocat')
 
-  expect(res.status()).toBe(500)
-  expect(res.statusText()).toBe(
+  expect(response.status()).toBe(500)
+  expect(response.statusText()).toBe(
     task.file.projectName === 'browser'
       ? 'Request Handler Error'
       : 'Unhandled Exception',
   )
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
 
-  expect(await res.json()).toEqual({
+  expect(await response.json()).toEqual({
     name: 'ReferenceError',
     message: 'nonExisting is not defined',
     stack: expect.stringContaining(

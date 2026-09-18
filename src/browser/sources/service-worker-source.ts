@@ -465,7 +465,13 @@ class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
   }
 
   public passthrough(): void {
-    this.#event.postMessage('PASSTHROUGH')
+    // Forward the request headers so that any modifications made
+    // in the request handlers are applied to the passthrough request.
+    this.#event.postMessage('PASSTHROUGH', {
+      request: {
+        headers: Array.from(this.data.request.headers),
+      },
+    })
   }
 
   public respondWith(response?: Response): void {

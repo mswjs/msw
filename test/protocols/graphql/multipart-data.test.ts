@@ -58,7 +58,7 @@ test('accepts a file from a GraphQL mutation', async ({ query }) => {
     }
   `
 
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: UPLOAD_MUTATION,
     variables: {
       file1: null,
@@ -75,9 +75,9 @@ test('accepts a file from a GraphQL mutation', async ({ query }) => {
     },
   })
 
-  const body = await res.json()
+  const body = await response.json()
 
-  expect(res.status()).toEqual(200)
+  expect(response.status()).toEqual(200)
   expect(body).toEqual({
     data: {
       multipart: {

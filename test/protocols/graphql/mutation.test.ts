@@ -31,7 +31,7 @@ test('sends a mocked response to a GraphQL mutation', async ({
 }) => {
   const endpointUrl = testServer.http.url('/mutation/graphql')
 
-  const res = await query(endpointUrl, {
+  const response = await query(endpointUrl, {
     query: gql`
       mutation Logout {
         logout {
@@ -40,10 +40,10 @@ test('sends a mocked response to a GraphQL mutation', async ({
       }
     `,
   })
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(body).toEqual({
     data: {
@@ -62,7 +62,7 @@ test('prints a warning when intercepted an anonymous GraphQL mutation', async ({
   const consoleSpy = spyOnConsole()
   const endpointUrl = testServer.http.url('/mutation/graphql')
 
-  const res = await query(endpointUrl, {
+  const response = await query(endpointUrl, {
     query: gql`
       mutation {
         logout {
@@ -85,5 +85,5 @@ Consider naming this operation or using the "operation()" request handler of "gr
   )
 
   // The actual GraphQL server is hit.
-  expect(res.status()).toBe(405)
+  expect(response.status()).toBe(405)
 })

@@ -19,26 +19,29 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('retrieves a single request URL query parameter', async ({ fetch }) => {
-  const res = await fetch('https://test.mswjs.io/api/books?id=abc-123')
-  const status = res.status()
-  const body = await res.json()
+  const response = await fetch('https://test.mswjs.io/api/books?id=abc-123')
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     bookId: 'abc-123',
   })
 })
 
 test('retrieves multiple request URL query parameters', async ({ fetch }) => {
-  const res = await fetch('https://test.mswjs.io/products?id=1&id=2&id=3', {
-    method: 'POST',
-  })
-  const status = res.status()
-  const body = await res.json()
+  const response = await fetch(
+    'https://test.mswjs.io/products?id=1&id=2&id=3',
+    {
+      method: 'POST',
+    },
+  )
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     productIds: ['1', '2', '3'],
   })

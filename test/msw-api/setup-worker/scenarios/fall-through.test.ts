@@ -18,8 +18,8 @@ test('falls through all relevant request handlers until response is returned', a
 }) => {
   const consoleSpy = spyOnConsole()
 
-  const res = await fetch('/user')
-  const body = await res.json()
+  const response = await fetch('/user')
+  const body = await response.json()
 
   // One of the handlers returns a mocked response.
   expect(body).toEqual({ firstName: 'John' })
@@ -39,10 +39,10 @@ test('falls through all relevant handler even if none returns response', async (
 }) => {
   const consoleSpy = spyOnConsole()
 
-  const res = await fetch('/blog/article', {
+  const response = await fetch('/blog/article', {
     method: 'POST',
   })
-  const status = res.status()
+  const status = response.status()
 
   // Neither of request handlers returned a mocked response.
   expect(status).toBe(404)

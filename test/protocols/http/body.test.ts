@@ -44,8 +44,8 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('handles a GET request without a body', async ({ fetch }) => {
-  const res = await fetch('/resource')
-  const body = await res.json()
+  const response = await fetch('/resource')
+  const body = await response.json()
 
   expect(body).toEqual({ value: '' })
 })
@@ -53,21 +53,21 @@ test('handles a GET request without a body', async ({ fetch }) => {
 test('handles a POST request with an explicit empty body', async ({
   fetch,
 }) => {
-  const res = await fetch('/resource', {
+  const response = await fetch('/resource', {
     method: 'POST',
     body: '',
   })
-  const json = await res.json()
+  const json = await response.json()
 
   expect(json).toEqual({ value: '' })
 })
 
 test('handles a POST request with a textual body', async ({ fetch }) => {
-  const res = await fetch('/resource', {
+  const response = await fetch('/resource', {
     method: 'POST',
     body: 'text-body',
   })
-  const json = await res.json()
+  const json = await response.json()
 
   expect(json).toEqual({ value: 'text-body' })
 })
@@ -75,7 +75,7 @@ test('handles a POST request with a textual body', async ({ fetch }) => {
 test('handles a POST request with a JSON body and "Content-Type: application/json" header', async ({
   fetch,
 }) => {
-  const res = await fetch('/resource', {
+  const response = await fetch('/resource', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ test('handles a POST request with a JSON body and "Content-Type: application/jso
       firstName: 'John',
     }),
   })
-  const json = await res.json()
+  const json = await response.json()
 
   expect(json).toEqual({
     value: {

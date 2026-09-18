@@ -4,11 +4,11 @@ import { HttpResponse, http, bypass } from 'msw'
 import { setupServer } from 'msw/node'
 
 const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => {
-    res.status(200).json({ id: 101 }).end()
+  app.get('/user', (req, response) => {
+    response.status(200).json({ id: 101 }).end()
   })
-  app.post('/user', (req, res) => {
-    res.status(200).json({ id: 202 }).end()
+  app.post('/user', (req, response) => {
+    response.status(200).json({ id: 202 }).end()
   })
 })
 
@@ -39,10 +39,10 @@ const server = setupServer(
                 method: 'POST',
               }),
             ),
-          ).then((res) => res.json())
+          ).then((response) => response.json())
       : () =>
-          fetch('https://httpbin.org/post', { method: 'POST' }).then((res) =>
-            res.json(),
+          fetch('https://httpbin.org/post', { method: 'POST' }).then(
+            (response) => response.json(),
           )
 
     const originalResponse = await performRequest()
@@ -72,9 +72,9 @@ afterAll(async () => {
 })
 
 test('returns a combination of mocked and original responses', async () => {
-  const res = await fetch('https://test.mswjs.io/user')
-  const { status } = res
-  const body = await res.json()
+  const response = await fetch('https://test.mswjs.io/user')
+  const { status } = response
+  const body = await response.json()
 
   expect(status).toBe(200)
   expect(body).toEqual<ResponseBody>({
@@ -84,20 +84,22 @@ test('returns a combination of mocked and original responses', async () => {
 })
 
 test('bypasses a mocked request when using "bypass()"', async () => {
-  const res = await fetch('https://test.mswjs.io/complex-request?bypass=true')
+  const response = await fetch(
+    'https://test.mswjs.io/complex-request?bypass=true',
+  )
 
-  expect(res.status).toBe(200)
-  expect(await res.json()).toEqual<ResponseBody>({
+  expect(response.status).toBe(200)
+  expect(await response.json()).toEqual<ResponseBody>({
     id: 202,
     mocked: true,
   })
 })
 
 test('falls into the mocked request when using "fetch" directly', async () => {
-  const res = await fetch('https://test.mswjs.io/complex-request')
+  const response = await fetch('https://test.mswjs.io/complex-request')
 
-  expect(res.status).toBe(200)
-  expect(await res.json()).toEqual<ResponseBody>({
+  expect(response.status).toBe(200)
+  expect(await response.json()).toEqual<ResponseBody>({
     id: 303,
     mocked: true,
   })

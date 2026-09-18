@@ -86,7 +86,13 @@ class CookieStore {
       }
     }
 
-    localStorage.setItem(this.#storageKey, JSON.stringify(data))
+    try {
+      localStorage.setItem(this.#storageKey, JSON.stringify(data))
+    } catch {
+      // Persisting cookies is best-effort. If the storage quota is exceeded,
+      // keep the cookies in memory so the request handling continues.
+      return
+    }
   }
 }
 

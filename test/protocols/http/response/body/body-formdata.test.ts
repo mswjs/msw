@@ -14,16 +14,16 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('responds to a request with FormData', async ({ fetch }) => {
-  const res = await fetch('/user')
+  const response = await fetch('/user')
 
-  const headers = await res.allHeaders()
+  const headers = await response.allHeaders()
   expect(headers).toHaveProperty(
     'content-type',
     expect.stringContaining('multipart/form-data'),
   )
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
 
-  const text = await res.text()
+  const text = await response.text()
   expect(text).toContain('Content-Disposition: form-data; name="name"')
   expect(text).toContain('Alice')
   expect(text).toContain('Content-Disposition: form-data; name="age"')

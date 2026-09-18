@@ -22,51 +22,51 @@ afterAll(() => {
 })
 
 test('reads text request body as array buffer', async () => {
-  const res = await fetch('http://localhost/arrayBuffer', {
+  const response = await fetch('http://localhost/arrayBuffer', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: 'foo bar',
   })
-  const body = await res.arrayBuffer()
+  const body = await response.arrayBuffer()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(body).toEqual(encodeBuffer('foo bar'))
 })
 
 test('reads array buffer request body as array buffer', async () => {
-  const res = await fetch('http://localhost/arrayBuffer', {
+  const response = await fetch('http://localhost/arrayBuffer', {
     method: 'POST',
     body: encodeBuffer('foo bar'),
   })
-  const body = await res.arrayBuffer()
+  const body = await response.arrayBuffer()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(body).toEqual(encodeBuffer('foo bar'))
 })
 
 test('reads null request body as empty array buffer', async () => {
-  const res = await fetch('http://localhost/arrayBuffer', {
+  const response = await fetch('http://localhost/arrayBuffer', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: undefined,
   })
-  const body = await res.arrayBuffer()
+  const body = await response.arrayBuffer()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(body).toEqual(encodeBuffer(''))
 })
 
 test('reads undefined request body as empty array buffer', async () => {
-  const res = await fetch('http://localhost/arrayBuffer', {
+  const response = await fetch('http://localhost/arrayBuffer', {
     method: 'POST',
     body: undefined,
   })
-  const body = await res.arrayBuffer()
+  const body = await response.arrayBuffer()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(body).toEqual(encodeBuffer(''))
 })

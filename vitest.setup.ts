@@ -56,10 +56,35 @@ function createSharedTestServer(): Promise<TestHttpServer> {
           return
         }
 
-        context.res.headers.set('access-control-allow-origin', '*')
-        context.res.headers.set('access-control-allow-headers', '*')
-        context.res.headers.set('access-control-allow-methods', '*')
-        context.res.headers.set('access-control-expose-headers', '*')
+        // Reflect the request origin, headers, and method instead of using
+        // a wildcard so that credentialed requests (e.g. "credentials: include")
+        // pass the CORS check. Wildcards are treated literally for those.
+        const requestOrigin = context.req.header('origin')
+        const requestedHeaders = context.req.header(
+          'access-control-request-headers',
+        )
+        const requestedMethod = context.req.header(
+          'access-control-request-method',
+        )
+        const responseHeaderNames = Array.from(context.res.headers.keys())
+
+        context.res.headers.set(
+          'access-control-allow-origin',
+          requestOrigin ?? '*',
+        )
+        context.res.headers.set('access-control-allow-credentials', 'true')
+        context.res.headers.set(
+          'access-control-allow-headers',
+          requestedHeaders ?? '*',
+        )
+        context.res.headers.set(
+          'access-control-allow-methods',
+          requestedMethod ?? '*',
+        )
+        context.res.headers.set(
+          'access-control-expose-headers',
+          responseHeaderNames.join(', '),
+        )
       })
 
       router.post('/analytics-bypass', () => {

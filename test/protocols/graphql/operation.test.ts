@@ -32,16 +32,16 @@ test('intercepts and mocks a GraphQL query', async ({
     }
   `
 
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: GET_USER_QUERY,
     variables: {
       id: 'abc-123',
     },
   })
-  const body = await res.json()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: GET_USER_QUERY,
@@ -80,7 +80,7 @@ test('intercepts and mocks an anonymous GraphQL query', async ({
     }
   `
 
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: ANONYMOUS_QUERY,
     variables: {
       id: 'abc-123',
@@ -89,10 +89,10 @@ test('intercepts and mocks an anonymous GraphQL query', async ({
 
   expect(consoleSpy.get('warning')).toBeUndefined()
 
-  expect(res.status()).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
 
-  const body = await res.json()
+  const body = await response.json()
   expect(body).toEqual({
     data: {
       query: ANONYMOUS_QUERY,
@@ -123,17 +123,17 @@ test('intercepts and mocks a GraphQL mutation', async ({ query }) => {
     }
   `
 
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: LOGIN_MUTATION,
     variables: {
       username: 'john',
       password: 'super-secret',
     },
   })
-  const body = await res.json()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     data: {
       query: LOGIN_MUTATION,
@@ -184,13 +184,13 @@ test('bypasses seemingly compatible REST requests', async ({
   query,
   testServer,
 }) => {
-  const res = await query(testServer.http.url('/search'), {
+  const response = await query(testServer.http.url('/search'), {
     query: 'favorite books',
   })
-  const body = await res.json()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.status()).toBe(200)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     results: [1, 2, 3],
   })

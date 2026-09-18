@@ -86,7 +86,7 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('can access variables from a GraphQL query', async ({ query }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query GetGithubUser($username: String!) {
         user(login: $username) {
@@ -99,8 +99,8 @@ test('can access variables from a GraphQL query', async ({ query }) => {
       username: 'octocat',
     },
   })
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
   expect(body).toEqual({
@@ -114,7 +114,7 @@ test('can access variables from a GraphQL query', async ({ query }) => {
 })
 
 test('can access variables from a GraphQL mutation', async ({ query }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       mutation DeletePost($postId: String!) {
         deletePost(id: $postId) {
@@ -126,8 +126,8 @@ test('can access variables from a GraphQL mutation', async ({ query }) => {
       postId: 'abc-123',
     },
   })
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
   expect(body).toEqual({
@@ -142,7 +142,7 @@ test('can access variables from a GraphQL mutation', async ({ query }) => {
 test('returns an empty object when accessing variables from a GraphQL operation without them', async ({
   query,
 }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query GetActiveUser {
         user {
@@ -151,8 +151,8 @@ test('returns an empty object when accessing variables from a GraphQL operation 
       }
     `,
   })
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
   expect(body).toEqual({

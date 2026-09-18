@@ -26,7 +26,7 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('sets cookie on the mocked GraphQL response', async ({ query, page }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query GetUser {
         firstName
@@ -34,10 +34,10 @@ test('sets cookie on the mocked GraphQL response', async ({ query, page }) => {
     `,
   })
 
-  const headers = await res.allHeaders()
-  const body = await res.json()
+  const headers = await response.allHeaders()
+  const body = await response.json()
 
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(headers).not.toHaveProperty('set-cookie')
   expect(body).toEqual({
     data: {

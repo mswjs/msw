@@ -56,15 +56,15 @@ const test = defineTestNetwork({ handlers })
 test('patches a GraphQL response', async ({ page, testServer }) => {
   const endpointUrl = testServer.http.url('/response-patching/graphql')
 
-  const res = await page.evaluate(
+  const response = await page.evaluate(
     ([url]) => {
       return window.dispatchGraphQLQuery(url)
     },
     [endpointUrl.href],
   )
 
-  expect(res.errors).toBeUndefined()
-  expect(res.data).toHaveProperty('user', {
+  expect(response.errors).toBeUndefined()
+  expect(response.data).toHaveProperty('user', {
     firstName: 'Christian',
     lastName: 'Maverick',
   })

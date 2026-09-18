@@ -64,15 +64,15 @@ function createFetchWithoutNetwork(page: Page) {
     return page.evaluate(
       ([input, init]) => {
         return fetch(input, init)
-          .then((res) => {
+          .then((response) => {
             const headers: Record<string, string> = {}
-            res.headers.forEach((value, key) => {
+            response.headers.forEach((value, key) => {
               headers[key] = value
             })
 
-            return res.json().then((body) => ({
-              status: res.status,
-              statusText: res.statusText,
+            return response.json().then((body) => ({
+              status: response.status,
+              statusText: response.statusText,
               headers,
               body,
             }))
@@ -102,8 +102,8 @@ test.beforeEach(async ({ viteServer }, testInfo) => {
 
 test.beforeEach(async ({ createServer }) => {
   server = await createServer((app) => {
-    app.get('/user', (_, res) => {
-      res.json({ name: 'Actual User' })
+    app.get('/user', (_, response) => {
+      response.json({ name: 'Actual User' })
     })
   })
 })

@@ -62,10 +62,10 @@ test('supports a generator function as the response resolver', async ({
   fetch,
 }) => {
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
-    const res = await fetch('/polling/3')
-    const body = await res.json()
-    expect(res.fromServiceWorker()).toBe(true)
-    expect(res.status()).toBe(200)
+    const response = await fetch('/polling/3')
+    const body = await response.json()
+    expect(response.fromServiceWorker()).toBe(true)
+    expect(response.status()).toBe(200)
     expect(body).toEqual(expectedBody)
   }
 
@@ -81,10 +81,10 @@ test('supports one-time handlers with the generator as the response resolver', a
   fetch,
 }) => {
   const assertRequest = async (expectedBody: ExpectedResponseBody) => {
-    const res = await fetch('/polling/once/3')
-    const body = await res.json()
-    expect(res.fromServiceWorker()).toBe(true)
-    expect(res.status()).toBe(200)
+    const response = await fetch('/polling/once/3')
+    const body = await response.json()
+    expect(response.fromServiceWorker()).toBe(true)
+    expect(response.status()).toBe(200)
     expect(body).toEqual(expectedBody)
   }
 

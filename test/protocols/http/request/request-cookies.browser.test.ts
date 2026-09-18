@@ -215,7 +215,9 @@ test('deletes a cookie when sending "max-age=0" in a mocked response', async ({
   })
 
   // Must forward the mocked cookied to the matching request.
-  await expect(fetch('/cookies').then((res) => res.json())).resolves.toEqual({
+  await expect(
+    fetch('/cookies').then((response) => response.json()),
+  ).resolves.toEqual({
     mockedCookie: 'mockedValue',
   })
 

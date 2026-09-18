@@ -13,18 +13,18 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('responds with a JSON response body', async ({ fetch }) => {
-  const res = await fetch('/json')
-  const headers = await res.allHeaders()
-  const json = await res.json()
+  const response = await fetch('/json')
+  const headers = await response.allHeaders()
+  const json = await response.json()
 
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(json).toEqual({ firstName: 'John' })
 })
 
 test('responds with a single number JSON response body', async ({ fetch }) => {
-  const res = await fetch('/number')
-  const headers = await res.allHeaders()
-  const json = await res.json()
+  const response = await fetch('/number')
+  const headers = await response.allHeaders()
+  const json = await response.json()
 
   expect(headers).toHaveProperty('content-type', 'application/json')
   expect(json).toEqual(123)

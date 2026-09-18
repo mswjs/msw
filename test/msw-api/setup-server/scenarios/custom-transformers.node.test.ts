@@ -27,8 +27,8 @@ afterAll(() => {
 })
 
 test('uses custom response transformer to stringify response body', async () => {
-  const res = await fetch('http://test.mswjs.io/me')
-  const body = await res.text()
+  const response = await fetch('http://test.mswjs.io/me')
+  const body = await response.text()
 
   expect(body).toEqual(
     JSONbig.stringify({

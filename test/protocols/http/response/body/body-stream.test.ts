@@ -30,14 +30,14 @@ const test = defineTestNetwork({ handlers })
 
 test('responds with a mocked ReadableStream response', async ({ page }) => {
   const chunks = await page.evaluate(() => {
-    return fetch('/stream').then(async (res) => {
-      if (res.body === null) {
+    return fetch('/stream').then(async (response) => {
+      if (response.body === null) {
         return []
       }
 
       const decoder = new TextDecoder()
       const chunks: Array<{ text: string; timestamp: number }> = []
-      const reader = res.body.getReader()
+      const reader = response.body.getReader()
 
       while (true) {
         const { value, done } = await reader.read()

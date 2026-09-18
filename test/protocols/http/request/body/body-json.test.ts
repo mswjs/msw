@@ -30,7 +30,7 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('reads request body as json', async ({ fetch, page }) => {
-  const res = await fetch('/json', {
+  const response = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,37 +38,37 @@ test('reads request body as json', async ({ fetch, page }) => {
     body: JSON.stringify({ firstName: 'John' }),
   })
 
-  const json = await res.json()
+  const json = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
 test('reads a single number as json request body', async ({ fetch }) => {
-  const res = await fetch('/json', {
+  const response = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(123),
   })
-  const json = await res.json()
+  const json = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(json).toEqual(123)
 })
 
 test('reads request body using json() method', async ({ fetch }) => {
-  const res = await fetch('/json', {
+  const response = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
-  const json = await res.json()
+  const json = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })
 
@@ -90,9 +90,9 @@ test('reads array buffer request body using json() method', async ({
       ),
     })
   })
-  const res = await page.waitForResponse(makeUrl('/json'))
-  const json = await res.json()
+  const response = await page.waitForResponse(makeUrl('/json'))
+  const json = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(json).toEqual({ firstName: 'John' })
 })

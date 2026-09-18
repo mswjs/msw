@@ -24,8 +24,8 @@ const test = defineTestNetwork({ handlers })
 test('uses a custom transformer to parse BigInt in response body', async ({
   fetch,
 }) => {
-  const res = await fetch('/user')
-  const body = await res.text()
+  const response = await fetch('/user')
+  const body = await response.text()
 
   expect(body).toEqual(
     JSONBig.stringify({

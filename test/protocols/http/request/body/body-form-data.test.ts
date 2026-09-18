@@ -35,9 +35,9 @@ test('handles FormData as a request body', async ({ fetch }) => {
   body.set('file', new File(['hello world'], 'file.txt'))
   body.set('ids', new File([JSON.stringify([1, 2, 3])], 'ids.json'))
 
-  const res = await fetch('/formData', { method: 'POST', body })
-  const status = res.status()
-  const json = await res.json()
+  const response = await fetch('/formData', { method: 'POST', body })
+  const status = response.status()
+  const json = await response.json()
 
   expect(status).toBe(200)
   expect(json).toEqual({

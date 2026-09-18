@@ -9,11 +9,11 @@ test('handles a CORS request with an "opaque" response', async ({
   const errors: Array<Error> = []
   page.on('pageerror', (error) => errors.push(error))
 
-  const res = await globalThis.fetch(testServer.http.url('/cors'), {
+  const response = await globalThis.fetch(testServer.http.url('/cors'), {
     mode: 'no-cors',
   })
 
-  expect(res.status).toBe(0)
-  expect(res.type).toBe('opaque')
+  expect(response.status).toBe(0)
+  expect(response.type).toBe('opaque')
   expect(errors).toEqual([])
 })

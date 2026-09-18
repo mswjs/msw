@@ -26,7 +26,7 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('mocks a GraphQL error response', async ({ query }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query Login {
         user {
@@ -35,9 +35,9 @@ test('mocks a GraphQL error response', async ({ query }) => {
       }
     `,
   })
-  const body = await res.json()
+  const body = await response.json()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(body).toEqual({
     errors: [
       {

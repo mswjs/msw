@@ -20,9 +20,9 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const headers = await res.allHeaders()
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const headers = await response.allHeaders()
+  const json = await response.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'Express')
   expect(json).toEqual({
@@ -49,9 +49,9 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const headers = await res.allHeaders()
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const headers = await response.allHeaders()
+  const json = await response.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'Express')
   expect(json).toEqual({
@@ -73,9 +73,9 @@ test('performs a request as-is if nothing was returned from the resolver', async
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const headers = await res.allHeaders()
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const headers = await response.allHeaders()
+  const json = await response.json()
 
   expect(headers).toHaveProperty('x-powered-by', 'Express')
   expect(json).toEqual({
@@ -103,8 +103,8 @@ for (const code of [204, 205, 304]) {
       }),
     )
 
-    const res = await fetch(endpointUrl, { method: 'POST' })
-    expect(res.status()).toBe(code)
+    const response = await fetch(endpointUrl, { method: 'POST' })
+    expect(response.status()).toBe(code)
     expect(errors).toEqual([])
   })
 
@@ -127,8 +127,8 @@ for (const code of [204, 205, 304]) {
       }),
     )
 
-    const res = await fetch(endpointUrl, { method: 'POST' })
-    expect(res.status()).toBe(code)
+    const response = await fetch(endpointUrl, { method: 'POST' })
+    expect(response.status()).toBe(code)
     expect(errors).toEqual([])
   })
 }

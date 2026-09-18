@@ -16,9 +16,9 @@ beforeAll(() => server.listen())
 afterAll(() => server.close())
 
 test('tolerates relative request handlers on the server', async () => {
-  const res = await fetch('https://api.backend.com/path')
-  const body = await res.json()
+  const response = await fetch('https://api.backend.com/path')
+  const body = await response.json()
 
-  expect(res.status).toBe(200)
+  expect(response.status).toBe(200)
   expect(body).toEqual({ success: true })
 })

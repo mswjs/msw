@@ -20,11 +20,11 @@ afterAll(() => {
 })
 
 test('responds with an HTML response body', async () => {
-  const res = await fetch('http://localhost/html')
-  const text = await res.text()
+  const response = await fetch('http://localhost/html')
+  const text = await response.text()
 
-  expect(res.status).toBe(200)
-  expect(res.headers.get('content-type')).toBe('text/html')
+  expect(response.status).toBe(200)
+  expect(response.headers.get('content-type')).toBe('text/html')
   expect(text).toEqual(`
 <p class="user" id="abc-123">
   Jane Doe

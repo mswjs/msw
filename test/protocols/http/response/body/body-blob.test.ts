@@ -14,12 +14,12 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('responds to a request with a Blob', async ({ fetch }) => {
-  const res = await fetch('/greeting')
+  const response = await fetch('/greeting')
 
-  const headers = await res.allHeaders()
+  const headers = await response.allHeaders()
   expect(headers).toHaveProperty('content-type', 'text/plain')
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
 
-  const text = await res.text()
+  const text = await response.text()
   expect(text).toBe('hello world')
 })

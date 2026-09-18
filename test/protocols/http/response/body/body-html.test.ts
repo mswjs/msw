@@ -13,10 +13,10 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('responds with an HTML response body', async ({ fetch }) => {
-  const res = await fetch('/user')
-  const status = res.status()
-  const headers = await res.allHeaders()
-  const text = await res.text()
+  const response = await fetch('/user')
+  const status = response.status()
+  const headers = await response.allHeaders()
+  const text = await response.text()
 
   expect(status).toBe(200)
   expect(headers['content-type']).toBe('text/html')

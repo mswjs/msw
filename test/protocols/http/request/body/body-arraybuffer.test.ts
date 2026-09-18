@@ -30,16 +30,16 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('reads request body as array buffer', async ({ fetch }) => {
-  const res = await fetch('/json', {
+  const response = await fetch('/json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ firstName: 'John' }),
   })
-  const body = await res.body()
+  const body = await response.body()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(body).toEqual(
     new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
   )
@@ -56,10 +56,10 @@ test('reads buffer request body as array buffer', async ({
       body: new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
     })
   })
-  const res = await page.waitForResponse(makeUrl('/json'))
-  const body = await res.body()
+  const response = await page.waitForResponse(makeUrl('/json'))
+  const body = await response.body()
 
-  expect(res.status()).toBe(200)
+  expect(response.status()).toBe(200)
   expect(body).toEqual(
     new TextEncoder().encode(JSON.stringify({ firstName: 'John' })),
   )
@@ -70,10 +70,10 @@ test('reads null request body as empty array buffer', async ({ page }) => {
     return fetch('/arrayBuffer', {
       method: 'POST',
       body: null,
-    }).then((res) =>
-      res
+    }).then((response) =>
+      response
         .arrayBuffer()
-        .then((body) => [new TextDecoder().decode(body), res.status]),
+        .then((body) => [new TextDecoder().decode(body), response.status]),
     )
   })
 
@@ -86,10 +86,10 @@ test('reads undefined request body as empty array buffer', async ({ page }) => {
     return fetch('/arrayBuffer', {
       method: 'POST',
       body: undefined,
-    }).then((res) =>
-      res
+    }).then((response) =>
+      response
         .arrayBuffer()
-        .then((body) => [new TextDecoder().decode(body), res.status]),
+        .then((body) => [new TextDecoder().decode(body), response.status]),
     )
   })
 

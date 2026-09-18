@@ -39,7 +39,7 @@ const test = defineTestNetwork({ handlers })
 test('mocks a GraphQL response with both data and extensions', async ({
   query,
 }) => {
-  const res = await query('/graphql', {
+  const response = await query('/graphql', {
     query: gql`
       query Login {
         user {
@@ -50,8 +50,8 @@ test('mocks a GraphQL response with both data and extensions', async ({
       }
     `,
   })
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
   expect(body).toEqual({

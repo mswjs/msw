@@ -10,9 +10,9 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('responds with a text response body', async ({ fetch }) => {
-  const res = await fetch('/text')
-  const headers = await res.allHeaders()
-  const text = await res.text()
+  const response = await fetch('/text')
+  const headers = await response.allHeaders()
+  const text = await response.text()
 
   expect(headers).toHaveProperty('content-type', 'text/plain')
   expect(text).toBe('hello world')

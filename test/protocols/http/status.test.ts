@@ -20,9 +20,9 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('sets given status code on the mocked response', async ({ fetch }) => {
-  const res = await fetch('/posts')
-  const status = res.status()
-  const statusText = res.statusText()
+  const response = await fetch('/posts')
+  const status = response.status()
+  const statusText = response.statusText()
 
   expect(status).toBe(403)
   expect(statusText).toBe('Forbidden')
@@ -31,9 +31,9 @@ test('sets given status code on the mocked response', async ({ fetch }) => {
 test('supports custom status text on the mocked response', async ({
   fetch,
 }) => {
-  const res = await fetch('/user')
-  const status = res.status()
-  const statusText = res.statusText()
+  const response = await fetch('/user')
+  const status = response.status()
+  const statusText = response.statusText()
 
   expect(status).toBe(401)
   expect(statusText).toBe('Custom text')

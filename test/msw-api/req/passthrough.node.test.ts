@@ -4,11 +4,11 @@ import { setupServer } from 'msw/node'
 import { HttpServer } from '@open-draft/test-server/http'
 
 const httpServer = new HttpServer((app) => {
-  app.post<never, ResponseBody>('/user', (req, res) => {
-    res.json({ name: 'John' })
+  app.post<never, ResponseBody>('/user', (req, response) => {
+    response.json({ name: 'John' })
   })
-  app.post('/code/:code', (req, res) => {
-    res.status(parseInt(req.params.code)).send()
+  app.post('/code/:code', (req, response) => {
+    response.status(parseInt(req.params.code)).send()
   })
 })
 
@@ -45,8 +45,8 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const json = await response.json()
 
   expect(json).toEqual<ResponseBody>({
     name: 'John',
@@ -65,8 +65,8 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const json = await response.json()
 
   expect(json).toEqual<ResponseBody>({
     name: 'John',
@@ -82,8 +82,8 @@ test('performs a request as-is if nothing was returned from the resolver', async
     }),
   )
 
-  const res = await fetch(endpointUrl, { method: 'POST' })
-  const json = await res.json()
+  const response = await fetch(endpointUrl, { method: 'POST' })
+  const json = await response.json()
 
   expect(json).toEqual<ResponseBody>({
     name: 'John',
@@ -99,9 +99,9 @@ for (const code of [204, 205, 304]) {
       }),
     )
 
-    const res = await fetch(endpointUrl, { method: 'POST' })
+    const response = await fetch(endpointUrl, { method: 'POST' })
 
-    expect(res.status).toEqual(code)
+    expect(response.status).toEqual(code)
   })
 
   test(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
@@ -112,8 +112,8 @@ for (const code of [204, 205, 304]) {
       }),
     )
 
-    const res = await fetch(endpointUrl, { method: 'POST' })
+    const response = await fetch(endpointUrl, { method: 'POST' })
 
-    expect(res.status).toEqual(code)
+    expect(response.status).toEqual(code)
   })
 }

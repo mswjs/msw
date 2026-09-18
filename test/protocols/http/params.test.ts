@@ -23,14 +23,14 @@ const handlers = [
 const test = defineTestNetwork({ handlers })
 
 test('parses request URL parameters', async ({ fetch }) => {
-  const res = await fetch(
+  const response = await fetch(
     'https://api.github.com/users/octocat/messages/abc-123',
   )
-  const status = res.status()
-  const body = await res.json()
+  const status = response.status()
+  const body = await response.json()
 
   expect(status).toBe(200)
-  expect(res.fromServiceWorker()).toBe(true)
+  expect(response.fromServiceWorker()).toBe(true)
   expect(body).toEqual({
     username: 'octocat',
     messageId: 'abc-123',

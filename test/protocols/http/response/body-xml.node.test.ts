@@ -22,11 +22,11 @@ afterAll(() => {
 })
 
 test('responds with an XML response body', async () => {
-  const res = await fetch('http://localhost/xml')
-  const text = await res.text()
+  const response = await fetch('http://localhost/xml')
+  const text = await response.text()
 
-  expect(res.status).toBe(200)
-  expect(res.headers.get('content-type')).toBe('text/xml')
+  expect(response.status).toBe(200)
+  expect(response.headers.get('content-type')).toBe('text/xml')
   expect(text).toEqual(`
 <user>
   <id>abc-123</id>

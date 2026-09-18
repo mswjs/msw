@@ -20,11 +20,11 @@ afterAll(() => {
 
 async function makeRequest(url: string) {
   const requestStart = performance.now()
-  const res = await fetch(url)
+  const response = await fetch(url)
   const requestEnd = performance.now()
   const responseTime = requestEnd - requestStart
 
-  return { res, responseTime }
+  return { response, responseTime }
 }
 
 test('uses explicit server response time', async () => {
@@ -35,10 +35,10 @@ test('uses explicit server response time', async () => {
     }),
   )
 
-  const { res, responseTime } = await makeRequest('http://localhost/user')
+  const { response, responseTime } = await makeRequest('http://localhost/user')
 
   expect(responseTime).toBeGreaterThanOrEqual(500)
-  await expect(res.text()).resolves.toBe('john')
+  await expect(response.text()).resolves.toBe('john')
 })
 
 test('uses realistic server response time when no duration is provided', async () => {
@@ -49,11 +49,11 @@ test('uses realistic server response time when no duration is provided', async (
     }),
   )
 
-  const { res, responseTime } = await makeRequest('http://localhost/user')
+  const { response, responseTime } = await makeRequest('http://localhost/user')
 
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
-  await expect(res.text()).resolves.toBe('john')
+  await expect(response.text()).resolves.toBe('john')
 })
 
 test('uses realistic server response time when "real" mode is provided', async () => {
@@ -64,11 +64,11 @@ test('uses realistic server response time when "real" mode is provided', async (
     }),
   )
 
-  const { res, responseTime } = await makeRequest('http://localhost/user')
+  const { response, responseTime } = await makeRequest('http://localhost/user')
 
   // Realistic server response time in Node.js is set to 5ms.
   expect(responseTime).toBeGreaterThan(5)
-  await expect(res.text()).resolves.toBe('john')
+  await expect(response.text()).resolves.toBe('john')
 })
 
 test('does not keep the process alive when using "infinite" delay', () => {

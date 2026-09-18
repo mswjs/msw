@@ -17,6 +17,7 @@ import {
   type PathParams,
   matchRequestUrl,
 } from '#core/utils/matching/matchRequestUrl'
+import { isAbsoluteUrl } from '#core/utils/url/isAbsoluteUrl'
 import { Handler } from '#core/handlers/Handler'
 import { getCallFrame } from '#core/utils/internal/getCallFrame'
 import { attachWebSocketLogger } from './utils/attach-websocket-logger'
@@ -98,11 +99,15 @@ export class WebSocketHandler extends Handler {
     const clientUrl = new URL(args.url)
 
     // Resolve the WebSocket handler path:
-    // - Plain string URLs resolved as per the specification (via Interceptors).
+    // - Relative string URLs are resolved against the base URL (via Interceptors).
+    // - Absolute string URLs are preserved. Parsing them as a URL would
+    //   percent-encode wildcards in the host (e.g. "ws://*" becomes "ws://%2A").
     // - String URLs starting with a wildcard are preserved (prepending a scheme there will break them).
     // - RegExp paths are preserved.
     const resolvedHandlerUrl =
-      this.url instanceof RegExp || this.url.startsWith('*')
+      this.url instanceof RegExp ||
+      isAbsoluteUrl(this.url) ||
+      this.url.startsWith('*')
         ? this.url
         : this.#resolveWebSocketUrl(this.url, args.resolutionContext?.baseUrl)
 

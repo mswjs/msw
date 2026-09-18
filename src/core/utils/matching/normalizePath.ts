@@ -1,5 +1,5 @@
 import type { Path } from './matchRequestUrl'
-import { cleanUrl } from '../url/cleanUrl'
+import { getCleanUrlString } from '#utils/get-clean-url-string'
 import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
 
 /**
@@ -10,7 +10,10 @@ import { getAbsoluteUrl } from '../url/getAbsoluteUrl'
  * - Preserves relative URLs in Node.js, unless specified otherwise.
  * - Preserves optional path parameters.
  */
-export function normalizePath(path: Path, baseUrl?: string): Path {
+export function normalizePath<ThisPath extends Path>(
+  path: ThisPath,
+  baseUrl?: string,
+): ThisPath {
   // RegExp paths do not need normalization.
   if (path instanceof RegExp) {
     return path
@@ -18,5 +21,5 @@ export function normalizePath(path: Path, baseUrl?: string): Path {
 
   const maybeAbsoluteUrl = getAbsoluteUrl(path, baseUrl)
 
-  return cleanUrl(maybeAbsoluteUrl)
+  return getCleanUrlString(maybeAbsoluteUrl) as ThisPath
 }

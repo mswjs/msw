@@ -1,68 +1,18 @@
 import type { Emitter, DefaultEventMap } from 'rettime'
-import type { UnhandledRequestStrategy } from './utils/request/onUnhandledRequest'
+import type { UnhandledFrameHandle } from './experimental/on-unhandled-frame'
 
 export interface SharedOptions {
   /**
-   * Specifies how to react to a request that has no corresponding
-   * request handler. Warns on unhandled requests by default.
+   * Specifies how to react to a network frame (e.g. a request or
+   * a WebSocket connection) that has no corresponding handler.
+   * Warns on unhandled frames by default.
    *
-   * @example worker.start({ onUnhandledRequest: 'bypass' })
-   * @example worker.start({ onUnhandledRequest: 'warn' })
-   * @example server.listen({ onUnhandledRequest: 'error' })
+   * @example worker.start({ onUnhandledFrame: 'bypass' })
+   * @example worker.start({ onUnhandledFrame: 'warn' })
+   * @example server.listen({ onUnhandledFrame: 'error' })
+   * @example server.listen({ onUnhandledFrame({ frame, defaults }) { defaults.warn() } })
    */
-  onUnhandledRequest?: UnhandledRequestStrategy
-}
-
-/**
- * @deprecated
- * Please use `HttpNetworkFrameEventMap` or `WebSocketNetworkFrameEventMap` instead.
- */
-export type LifeCycleEventsMap = {
-  'request:start': [
-    args: {
-      request: Request
-      requestId: string
-    },
-  ]
-  'request:match': [
-    args: {
-      request: Request
-      requestId: string
-    },
-  ]
-  'request:unhandled': [
-    args: {
-      request: Request
-      requestId: string
-    },
-  ]
-  'request:end': [
-    args: {
-      request: Request
-      requestId: string
-    },
-  ]
-  'response:mocked': [
-    args: {
-      response: Response
-      request: Request
-      requestId: string
-    },
-  ]
-  'response:bypass': [
-    args: {
-      response: Response
-      request: Request
-      requestId: string
-    },
-  ]
-  unhandledException: [
-    args: {
-      error: Error
-      request: Request
-      requestId: string
-    },
-  ]
+  onUnhandledFrame?: UnhandledFrameHandle
 }
 
 export type LifeCycleEventEmitter<EventMap extends DefaultEventMap> = Pick<

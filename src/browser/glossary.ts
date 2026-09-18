@@ -1,8 +1,8 @@
 import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
-import type { RequiredDeep } from '#core/typeUtils'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
+import type { NetworkReadyState } from '#core/experimental/define-network'
 
 export interface StringifiedResponse extends ResponseInit {
   body: string | ArrayBuffer | ReadableStream<Uint8Array> | null
@@ -39,45 +39,33 @@ export interface StartOptions extends SharedOptions {
   quiet?: boolean
 
   /**
-   * Defers any network requests until the Service Worker
-   * instance is activated.
-   * @default true
-   * @deprecated
-   * Please use a proper browser integration instead.
-   * @see https://mswjs.io/docs/integrations/browser
-   */
-  waitUntilReady?: boolean
-
-  /**
    * A custom lookup function to find a Mock Service Worker in the list
    * of all registered Service Workers on the page.
    */
   findWorker?: FindWorker
 }
 
-export type StartReturnType = Promise<ServiceWorkerRegistration | undefined>
-
-export type StartHandler = (
-  options: RequiredDeep<StartOptions>,
-  initialOptions: StartOptions,
-) => StartReturnType
-
-export type StopHandler = () => void
-
 export interface SetupWorker {
+  /**
+   * The current ready state of the underlying network.
+   */
+  readonly readyState: NetworkReadyState
+
   /**
    * Registers and activates the mock Service Worker.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/start `worker.start()` API reference}
    */
-  start: (options?: StartOptions) => StartReturnType
+  start: (
+    options?: StartOptions,
+  ) => Promise<ServiceWorkerRegistration | undefined>
 
   /**
    * Stops requests interception for the current client.
    *
    * @see {@link https://mswjs.io/docs/api/setup-worker/stop `worker.stop()` API reference}
    */
-  stop: StopHandler
+  stop: () => Promise<void> | void
 
   /**
    * Prepends given request handlers to the list of existing handlers.

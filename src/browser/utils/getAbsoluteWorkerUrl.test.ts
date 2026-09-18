@@ -9,11 +9,11 @@ afterAll(() => {
   })
 })
 
-it('returns absolute worker url relatively to the root', () => {
+test('returns absolute worker url relatively to the root', () => {
   expect(getAbsoluteWorkerUrl('./worker.js')).toBe('http://localhost/worker.js')
 })
 
-it('returns an absolute worker url relatively to the current path', () => {
+test('returns an absolute worker url relatively to the current path', () => {
   Object.defineProperty(window, 'location', {
     value: {
       href: 'http://localhost/path/to/page',

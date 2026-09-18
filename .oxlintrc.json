@@ -7,7 +7,7 @@
   "env": {
     "builtin": true
   },
-  "ignorePatterns": ["/lib", "/node", "/native", "/config"],
+  "ignorePatterns": ["/lib", "/config"],
   "rules": {
     "constructor-super": "error",
     "for-direction": "error",
@@ -139,6 +139,36 @@
       "files": ["**/*.test-d.ts"],
       "rules": {
         "no-unused-expressions": "off"
+      }
+    },
+    {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^#(core|http|graphql|ws|sse)(/index)?$",
+                "message": "Import from a concrete module (e.g. \"#http/http-response\"), not from a package barrel. Barrel imports pull the whole package into the module graph of every consumer."
+              },
+              {
+                "regex": "^(\\.\\./)+(core|http|graphql|ws|sse)(/index)?$",
+                "message": "Import from a concrete module (e.g. \"#http/http-response\"), not from a package barrel. Barrel imports pull the whole package into the module graph of every consumer."
+              },
+              {
+                "regex": "^\\./index$",
+                "message": "Import from a concrete module (e.g. \"#http/http-response\"), not from a package barrel. Barrel imports pull the whole package into the module graph of every consumer."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/**/*.test.ts", "src/iife/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
       }
     }
   ]

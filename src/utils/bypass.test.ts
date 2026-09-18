@@ -1,0 +1,97 @@
+/**
+ * @vitest-environment jsdom
+ */
+import { bypass } from './bypass'
+
+test('returns bypassed request given a request url string', async () => {
+  const request = bypass('https://api.example.com/resource')
+
+  // Relative URLs are rebased against the current location.
+  expect(request.method).toBe('GET')
+  expect(request.url).toBe('https://api.example.com/resource')
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
+})
+
+test('returns bypassed request given a request url', async () => {
+  const request = bypass(new URL('/resource', 'https://api.example.com'))
+
+  expect(request.url).toBe('https://api.example.com/resource')
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
+})
+
+test('returns bypassed request given request instance', async () => {
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    headers: {
+      accept: '*/*',
+      'X-My-Header': 'value',
+    },
+    body: 'hello world',
+  })
+  const request = bypass(original)
+
+  expect(request.method).toBe('POST')
+  expect(request.url).toBe('http://localhost/resource')
+
+  const bypassedRequestBody = await request.text()
+  expect(original.bodyUsed).toBe(false)
+
+  expect(bypassedRequestBody).toEqual(await original.text())
+  expect(Array.from(request.headers)).toEqual([
+    ['accept', '*/*, msw/passthrough'],
+    ['content-type', 'text/plain;charset=UTF-8'],
+    ['x-my-header', 'value'],
+  ])
+})
+
+test('allows modifying the bypassed request instance', async () => {
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    body: 'hello world',
+  })
+  const request = bypass(original, {
+    method: 'PUT',
+    headers: { 'x-modified-header': 'yes' },
+  })
+
+  expect(request.method).toBe('PUT')
+  expect(Array.from(request.headers)).toEqual([
+    ['accept', 'msw/passthrough'],
+    ['x-modified-header', 'yes'],
+  ])
+  expect(original.bodyUsed).toBe(false)
+  expect(request.bodyUsed).toBe(false)
+
+  expect(await request.text()).toBe('hello world')
+  expect(original.bodyUsed).toBe(false)
+})
+
+test('removes the "content-length" request header', async () => {
+  // Intercepted requests parsed from the wire include the received
+  // "content-length" header. Deriving a request with a different body
+  // makes that header stale, and the request client would reject the
+  // bypassed request due to the content length mismatch.
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    headers: { 'content-length': '42' },
+    body: 'a-body-that-is-42-characters-long-in-total',
+  })
+  const request = bypass(new Request(original, { body: 'short' }))
+
+  expect(request.headers.get('content-length')).toBeNull()
+  await expect(request.text()).resolves.toBe('short')
+  expect(original.bodyUsed).toBe(false)
+})
+
+test('supports bypassing "keepalive: true" requests', async () => {
+  const original = new Request('http://localhost/resource', {
+    method: 'POST',
+    keepalive: true,
+  })
+  const request = bypass(original)
+
+  expect(request.method).toBe('POST')
+  expect(request.url).toBe('http://localhost/resource')
+  expect(request.body).toBeNull()
+  expect(Array.from(request.headers)).toEqual([['accept', 'msw/passthrough']])
+})

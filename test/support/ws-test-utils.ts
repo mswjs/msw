@@ -1,4 +1,4 @@
-import type { WebSocketConnectionData } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketConnectionEventData } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketClientConnection,
   WebSocketServerConnection,
@@ -18,7 +18,8 @@ export class TestWebSocketTransport
 
 export function createTestWebSocketConnection(
   url: string | URL,
-): WebSocketConnectionData {
+  options?: { protocols?: string | Array<string> },
+): WebSocketConnectionEventData {
   const socket = new WebSocket(url)
   const transport = new TestWebSocketTransport()
 
@@ -30,7 +31,7 @@ export function createTestWebSocketConnection(
       () => socket,
     ),
     info: {
-      protocols: [],
+      protocols: options?.protocols ?? [],
     },
   }
 }

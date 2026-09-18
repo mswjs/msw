@@ -1,15 +1,15 @@
 import { cookieStore } from '../cookieStore'
-import { getRawSetCookie } from '../HttpResponse/decorators'
+import { getRawSetCookie } from '../response-decorators'
 
 export async function storeResponseCookies(
   request: Request,
   response: Response,
 ): Promise<void> {
-  // Grab the raw "Set-Cookie" response header provided
-  // in the HeadersInit for this mocked response.
-  const responseCookies = getRawSetCookie(response)
+  if (cookieStore === null) {
+    return
+  }
 
-  if (responseCookies) {
-    await cookieStore.setCookie(responseCookies, request.url)
+  for (const responseCookie of getRawSetCookie(response)) {
+    await cookieStore.setCookie(responseCookie, request.url)
   }
 }

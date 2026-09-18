@@ -1,0 +1,5 @@
+allowBuilds:
+  esbuild: true
+  simple-git-hooks: true
+minimumReleaseAgeExclude:
+  - '@mswjs/*'

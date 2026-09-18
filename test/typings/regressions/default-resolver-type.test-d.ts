@@ -4,7 +4,7 @@
 import type { HttpResponseResolver } from 'msw'
 import { http, HttpResponse } from 'msw'
 
-it('supports a union of the matching explicit and implicit response resolvers', () => {
+test('supports a union of the matching explicit and implicit response resolvers', () => {
   function handle(resolver?: HttpResponseResolver<never, never, string>) {
     const defaultResolver = () => HttpResponse.html('<div>test</div>')
     http.get('/path', resolver || defaultResolver)

@@ -1,25 +1,25 @@
-import { it, expectTypeOf } from 'vitest'
+import { test, expectTypeOf } from 'vitest'
 import { http, HttpResponse, passthrough } from 'msw'
 
-it('supports a single path parameter', () => {
+test('supports a single path parameter', () => {
   http.get<{ id: string }>('/user/:id', ({ params }) => {
     expectTypeOf(params).toEqualTypeOf<{ id: string }>()
   })
 })
 
-it('supports a repeating path parameter', () => {
+test('supports a repeating path parameter', () => {
   http.get<{ id?: string }>('/user/id*', ({ params }) => {
     expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
   })
 })
 
-it('supports an optional path parameter', () => {
+test('supports an optional path parameter', () => {
   http.get<{ id?: string }>('/user/:id?', ({ params }) => {
     expectTypeOf(params).toEqualTypeOf<{ id?: string }>()
   })
 })
 
-it('supports optional repeating path parameter', () => {
+test('supports optional repeating path parameter', () => {
   /**
    * @note This is the newest "path-to-regexp" syntax.
    * MSW doesn't support this quite yet.
@@ -29,21 +29,21 @@ it('supports optional repeating path parameter', () => {
   })
 })
 
-it('supports multiple path parameters', () => {
+test('supports multiple path parameters', () => {
   type Params = { a: string; b: string[] }
   http.get<Params>('/user/:a/:b/:b', ({ params }) => {
     expectTypeOf(params).toEqualTypeOf<Params>()
   })
 })
 
-it('supports path parameters declared via type', () => {
+test('supports path parameters declared via type', () => {
   type Params = { id: string }
   http.get<Params>('/user/:id', ({ params }) => {
     expectTypeOf(params).toEqualTypeOf<Params>()
   })
 })
 
-it('supports path parameters declared via interface', () => {
+test('supports path parameters declared via interface', () => {
   interface PostPathParameters {
     id: string
   }
@@ -52,7 +52,7 @@ it('supports path parameters declared via interface', () => {
   })
 })
 
-it('supports json as a request body type argument', () => {
+test('supports json as a request body type argument', () => {
   http.post<never, { id: string }>('/user', async ({ request }) => {
     const data = await request.json()
 
@@ -64,14 +64,14 @@ it('supports json as a request body type argument', () => {
   })
 })
 
-it('supports null as the request body type argument', () => {
+test('supports null as the request body type argument', () => {
   http.get<never, null>('/user', async ({ request }) => {
     const data = await request.json()
     expectTypeOf(data).toEqualTypeOf<null>()
   })
 })
 
-it('returns the same request type when cloning', () => {
+test('returns the same request type when cloning', () => {
   http.post<never, { id: string }>('/user', async ({ request }) => {
     const data = await request.clone().json()
 
@@ -85,73 +85,73 @@ it('returns the same request type when cloning', () => {
   })
 })
 
-it('returns plain Response without explicit response body type argument', () => {
+test('returns plain Response without explicit response body type argument', () => {
   http.get('/user', () => {
     return new Response('hello')
   })
 })
 
-it('supports a text response without explicit response body type argument', () => {
+test('supports a text response without explicit response body type argument', () => {
   http.get('/resource', () => {
     return HttpResponse.text('hello world')
   })
 })
 
-it('supports a json response without explicit response body type argument', () => {
+test('supports a json response without explicit response body type argument', () => {
   http.get('/resource', () => {
     return HttpResponse.json({ id: 1 })
   })
 })
 
-it('supports an xml response without explicit response body type argument', () => {
+test('supports an xml response without explicit response body type argument', () => {
   http.get('/resource', () => {
     return HttpResponse.xml('<hello>world</hello>')
   })
 })
 
-it('supports a form data response without explicit response body type argument', () => {
+test('supports a form data response without explicit response body type argument', () => {
   http.get('/resource', () => {
     return HttpResponse.formData(new FormData())
   })
 })
 
-it('supports a stream response without explicit response body type argument', () => {
+test('supports a stream response without explicit response body type argument', () => {
   http.get('/resource', () => {
     return new HttpResponse(new ReadableStream())
   })
 })
 
-it('returns HttpResponse with URLSearchParams as response body', () => {
+test('returns HttpResponse with URLSearchParams as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new URLSearchParams())
   })
 })
 
-it('returns HttpResponse with FormData as response body', () => {
+test('returns HttpResponse with FormData as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new FormData())
   })
 })
 
-it('returns HttpResponse with ReadableStream as response body', () => {
+test('returns HttpResponse with ReadableStream as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new ReadableStream())
   })
 })
 
-it('returns HttpResponse with Blob as response body', () => {
+test('returns HttpResponse with Blob as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new Blob(['hello']))
   })
 })
 
-it('returns HttpResponse with ArrayBuffer as response body', () => {
+test('returns HttpResponse with ArrayBuffer as response body', () => {
   http.get('/', () => {
     return new HttpResponse(new ArrayBuffer(5))
   })
 })
 
-it('supports HttpResponse.arrayBuffer shorthand method', () => {
+test('supports HttpResponse.arrayBuffer shorthand method', () => {
   http.get('/', () => {
     return HttpResponse.arrayBuffer(new ArrayBuffer(5))
   })
@@ -167,7 +167,7 @@ it('supports HttpResponse.arrayBuffer shorthand method', () => {
   })
 })
 
-it('supports null as a response body type argument', () => {
+test('supports null as a response body type argument', () => {
   http.get<never, never, null>('/', () => {
     return new HttpResponse()
   })
@@ -185,7 +185,7 @@ it('supports null as a response body type argument', () => {
   })
 })
 
-it('supports string as a response body type argument', () => {
+test('supports string as a response body type argument', () => {
   http.get<never, never, string>('/', ({ request }) => {
     if (request.headers.has('x-foo')) {
       return HttpResponse.text('conditional')
@@ -195,7 +195,7 @@ it('supports string as a response body type argument', () => {
   })
 })
 
-it('supports exact string as a response body type argument', () => {
+test('supports exact string as a response body type argument', () => {
   http.get<never, never, 'hello'>('/', () => {
     return HttpResponse.text('hello')
   })
@@ -206,13 +206,13 @@ it('supports exact string as a response body type argument', () => {
   })
 })
 
-it('supports object as a response body type argument', () => {
+test('supports object as a response body type argument', () => {
   http.get<never, never, { id: number }>('/user', () => {
     return HttpResponse.json({ id: 1 })
   })
 })
 
-it('supports narrow object as a response body type argument', () => {
+test('supports narrow object as a response body type argument', () => {
   http.get<never, never, { id: 123 }>('/user', () => {
     return HttpResponse.json({ id: 123 })
   })
@@ -225,7 +225,7 @@ it('supports narrow object as a response body type argument', () => {
   })
 })
 
-it('supports object with extra keys as a response body type argument', () => {
+test('supports object with extra keys as a response body type argument', () => {
   type ResponseBody = {
     [key: string]: number | string
     id: 123
@@ -256,7 +256,27 @@ it('supports object with extra keys as a response body type argument', () => {
   })
 })
 
-it('supports response body type argument declared via type', () => {
+test('forbids a plain fetch response for a non-object response body type', () => {
+  http.get<never, never, string>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response('hello'),
+  )
+
+  http.get<never, never, 'hello'>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response('hello'),
+  )
+
+  http.get<never, never, null>(
+    '/user',
+    // @ts-expect-error Plain Response is not assignable to a strict body type.
+    () => new Response(null),
+  )
+})
+
+test('supports response body type argument declared via type', () => {
   type ResponseBodyType = { id: number }
   http.get<never, never, ResponseBodyType>('/user', () => {
     const data: ResponseBodyType = { id: 1 }
@@ -264,7 +284,7 @@ it('supports response body type argument declared via type', () => {
   })
 })
 
-it('supports response body type argument declared via interface', () => {
+test('supports response body type argument declared via interface', () => {
   interface ResponseBodyInterface {
     id: number
   }
@@ -274,7 +294,7 @@ it('supports response body type argument declared via interface', () => {
   })
 })
 
-it('throws when returning a json response not matching the response body type argument', () => {
+test('throws when returning a json response not matching the response body type argument', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error String not assignable to number
@@ -282,7 +302,7 @@ it('throws when returning a json response not matching the response body type ar
   )
 })
 
-it('throws when returning an empty json response not matching the response body type argument', () => {
+test('throws when returning an empty json response not matching the response body type argument', () => {
   http.get<never, never, { id: number }>(
     '/user',
     // @ts-expect-error Missing property "id"
@@ -290,19 +310,19 @@ it('throws when returning an empty json response not matching the response body 
   )
 })
 
-it('accepts narrower type for response body', () => {
+test('accepts narrower type for response body', () => {
   http.get<never, never, string | string[]>('/user', () =>
     HttpResponse.json(['value']),
   )
 })
 
-it('accepts more specific type for response body', () => {
+test('accepts more specific type for response body', () => {
   http.get<never, never, { label: boolean }>('/user', () =>
     HttpResponse.json({ label: true }),
   )
 })
 
-it("accepts passthrough in HttpResponse's body", () => {
+test("accepts passthrough in HttpResponse's body", () => {
   // Passthrough responses.
   http.all('/', () => passthrough())
   http.get('/', () => passthrough())
@@ -315,7 +335,7 @@ it("accepts passthrough in HttpResponse's body", () => {
   })
 })
 
-it('infers a narrower json response type', () => {
+test('infers a narrower json response type', () => {
   type ResponseBody = {
     a: number
   }
@@ -326,7 +346,7 @@ it('infers a narrower json response type', () => {
   })
 })
 
-it('errors when returning non-Response data from resolver', () => {
+test('errors when returning non-Response data from resolver', () => {
   http.get(
     '/resource',
     // @ts-expect-error
@@ -344,7 +364,7 @@ it('errors when returning non-Response data from resolver', () => {
   )
 })
 
-it('treats non-typed HttpResponse body type as matching', () => {
+test('treats non-typed HttpResponse body type as matching', () => {
   http.get<never, never, { id: string }>('/resource', () => {
     /**
      * @note When constructing a Response/HttpResponse instance,
@@ -356,7 +376,7 @@ it('treats non-typed HttpResponse body type as matching', () => {
   })
 })
 
-it('supports returning Response.error()', () => {
+test('supports returning Response.error()', () => {
   http.get('/resource', () => Response.error())
   http.get('/resource', async () => Response.error())
   http.get('/resource', function* () {
@@ -370,7 +390,7 @@ it('supports returning Response.error()', () => {
   })
 })
 
-it('supports a "finalize" function', () => {
+test('supports a "finalize" function', () => {
   http.get('/resource', ({ finalize }) => {
     expectTypeOf(finalize).toEqualTypeOf<
       (callback: () => Promise<void> | void) => void

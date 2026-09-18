@@ -1,7 +1,12 @@
 import type { Interceptor, RequestController } from '@mswjs/interceptors'
-import { BatchInterceptor, type HttpRequestEventMap } from '@mswjs/interceptors'
+import {
+  BatchInterceptor,
+  type HttpRequestEventMap,
+  type HttpRequestEvent,
+  type HttpResponseEvent,
+} from '@mswjs/interceptors'
 import type {
-  WebSocketConnectionData,
+  WebSocketConnectionEventData,
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
@@ -20,7 +25,7 @@ export interface InterceptorSourceOptions {
 export class InterceptorSource extends NetworkSource {
   #interceptor: BatchInterceptor<
     InterceptorSourceOptions['interceptors'],
-    HttpRequestEventMap | WebSocketEventMap
+    HttpRequestEventMap & WebSocketEventMap
   >
 
   #frames: Map<string, HttpNetworkFrame>
@@ -38,13 +43,10 @@ export class InterceptorSource extends NetworkSource {
   public enable(): void {
     this.#interceptor.apply()
 
-    /**
-     * @todo @fixme BatchInterceptor infers event types but not listener types.
-     */
     this.#interceptor
-      .on('request', this.#handleRequest.bind(this) as any)
-      .on('response', this.#handleResponse.bind(this) as any)
-      .on('connection', this.#handleWebSocketConnection.bind(this) as any)
+      .on('request', this.#handleRequest.bind(this))
+      .on('response', this.#handleResponse.bind(this))
+      .on('connection', this.#handleWebSocketConnection.bind(this))
   }
 
   public disable(): void {
@@ -58,11 +60,8 @@ export class InterceptorSource extends NetworkSource {
     this.#frames.clear()
   }
 
-  async #handleRequest({
-    requestId,
-    request,
-    controller,
-  }: HttpRequestEventMap['request'][0]): Promise<void> {
+  async #handleRequest(event: HttpRequestEvent): Promise<void> {
+    const { requestId, request, controller } = event
     const httpFrame = new InterceptorHttpNetworkFrame({
       id: requestId,
       request,
@@ -77,8 +76,8 @@ export class InterceptorSource extends NetworkSource {
     requestId,
     request,
     response,
-    isMockedResponse,
-  }: HttpRequestEventMap['response'][0]): Promise<void> {
+    responseType,
+  }: HttpResponseEvent): Promise<void> {
     const httpFrame = this.#frames.get(requestId)
     this.#frames.delete(requestId)
 
@@ -90,7 +89,7 @@ export class InterceptorSource extends NetworkSource {
       try {
         httpFrame.events.emit(
           new ResponseEvent(
-            isMockedResponse ? 'response:mocked' : 'response:bypass',
+            responseType === 'mock' ? 'response:mocked' : 'response:bypass',
             {
               requestId,
               request,
@@ -111,7 +110,7 @@ export class InterceptorSource extends NetworkSource {
   }
 
   async #handleWebSocketConnection(
-    connection: WebSocketEventMap['connection'][0],
+    connection: WebSocketEventMap['connection'],
   ): Promise<void> {
     await this.queue(
       new InterceptorWebSocketNetworkFrame({
@@ -161,7 +160,7 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
 }
 
 class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
-  constructor(args: { connection: WebSocketConnectionData }) {
+  constructor(args: { connection: WebSocketConnectionEventData }) {
     super({ connection: args.connection })
 
     /**

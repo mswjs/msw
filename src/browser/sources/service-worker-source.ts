@@ -1,6 +1,5 @@
 import { invariant } from 'outvariant'
 import type { Emitter } from 'rettime'
-import { DeferredPromise } from '@open-draft/deferred-promise'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/experimental/sources/network-source'
 import { RequestHandler } from '#core/handlers/RequestHandler'
@@ -8,7 +7,7 @@ import {
   HttpNetworkFrame,
   ResponseEvent,
 } from '#core/experimental/frames/http-frame'
-import { HttpResponse } from '#core/HttpResponse'
+import { HttpResponse } from '#http/http-response'
 import { toResponseInit } from '#core/utils/toResponseInit'
 import { devUtils } from '#core/utils/internal/devUtils'
 import {
@@ -75,11 +74,12 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   #listenerController?: AbortController
   #clientPromise?: Promise<WorkerChannelClient>
   #keepAliveInterval?: number
-  #stoppedAt?: number
 
-  public workerPromise: DeferredPromise<
+  public workerPromise: Promise<[ServiceWorker, ServiceWorkerRegistration]>
+  #workerResolvers: PromiseWithResolvers<
     [ServiceWorker, ServiceWorkerRegistration]
   >
+  #workerState: 'pending' | 'fulfilled' | 'rejected'
 
   constructor(options: ServiceWorkerSourceOptions) {
     super()
@@ -91,31 +91,15 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     this.#options = options
     this.#frames = new Map()
-    this.workerPromise = new DeferredPromise()
+    this.#workerResolvers = Promise.withResolvers()
+    this.workerPromise = this.#workerResolvers.promise
+    this.#workerState = 'pending'
     this.#channel = new WorkerChannel({
       getWorker: () => this.workerPromise.then(([worker]) => worker),
     })
   }
 
   public async enable(): Promise<ServiceWorkerRegistration> {
-    /**
-     * @note The source is considered already running if the worker has been
-     * resolved AND `stop()` has not been called since. `workerPromise` is NOT
-     * reset on `disable()` so that the channel's `getWorker()` can keep
-     * resolving to the registered SW for post-stop passthrough replies.
-     */
-    if (
-      this.workerPromise.state === 'fulfilled' &&
-      typeof this.#stoppedAt == 'undefined'
-    ) {
-      devUtils.warn(
-        'Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.',
-      )
-
-      return this.workerPromise.then(([, registration]) => registration)
-    }
-
-    this.#stoppedAt = undefined
     this.#channel.removeAllListeners()
     this.#frames.clear()
 
@@ -124,8 +108,8 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
     if (worker.state !== 'activated') {
       const controller = new AbortController()
-      const activationPromise = new DeferredPromise<void>()
-      activationPromise.then(() => controller.abort())
+      const activationPromise = Promise.withResolvers<void>()
+      activationPromise.promise.then(() => controller.abort())
 
       worker.addEventListener(
         'statechange',
@@ -139,18 +123,19 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
         },
       )
 
-      await activationPromise
+      await activationPromise.promise
     }
 
     this.#channel.postMessage('MOCK_ACTIVATE')
 
-    const clientConfirmationPromise = new DeferredPromise<WorkerChannelClient>()
-    this.#clientPromise = clientConfirmationPromise
+    const clientConfirmationPromise =
+      Promise.withResolvers<WorkerChannelClient>()
+    this.#clientPromise = clientConfirmationPromise.promise
 
     this.#channel.once('MOCKING_ENABLED', (event) => {
       clientConfirmationPromise.resolve(event.data.client)
     })
-    await clientConfirmationPromise
+    await clientConfirmationPromise.promise
 
     if (!this.#options.quiet) {
       this.#printStartMessage()
@@ -159,7 +144,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     return registration
   }
 
-  public disable(): void {
+  public async disable(): Promise<void> {
     /**
      * @note Do NOT call `super.disable()` because it removes any "frame" listeners
      * from this network source, effectively turning it off. The Service Worker source
@@ -167,25 +152,14 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
      * after it's been disabled.
      */
 
-    if (typeof this.#stoppedAt !== 'undefined') {
-      devUtils.warn(
-        `Found a redundant "worker.stop()" call. Notice that stopping the worker after it has already been stopped has no effect. Consider removing this "worker.stop()" call.`,
-      )
-
-      return
-    }
-
-    this.#stoppedAt = Date.now()
-
     this.#listenerController?.abort()
     this.#listenerController = undefined
 
-    /**
-     * @note Tell the Service Worker to drop this client from its active set
-     * so it stops forwarding REQUEST events here. `stoppedAt` still guards
-     * any requests the SW already forwarded before this message arrived.
-     */
-    this.#channel.postMessage('CLIENT_CLOSED')
+    const closedPromise = Promise.withResolvers<void>()
+    this.#channel.once('CLIENT_CLOSED', () => closedPromise.resolve())
+
+    this.#channel.postMessage('CLIENT_CLOSE')
+    await closedPromise.promise
 
     /**
      * @note Do NOT reset `workerPromise` here. The channel must continue to
@@ -215,7 +189,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     this.#listenerController?.abort()
     this.#listenerController = undefined
 
-    if (this.workerPromise.state === 'fulfilled') {
+    if (this.#workerState === 'fulfilled') {
       const [, registration] = await this.workerPromise
       await registration.unregister()
     }
@@ -261,27 +235,32 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       throw new Error(missingWorkerMessage)
     }
 
-    if (this.workerPromise.state === 'pending') {
-      this.workerPromise.resolve([worker, registration])
+    if (this.#workerState === 'pending') {
+      this.#workerResolvers.resolve([worker, registration])
+      this.#workerState = 'fulfilled'
     } else {
       /**
        * @note Re-enable after `stop()`: the previous `workerPromise` is already
        * fulfilled and cannot be resolved again. Swap in a pre-resolved one so
        * `getWorker()` sees the new worker instance immediately.
        */
-      this.workerPromise = new DeferredPromise((resolve) => {
-        resolve([worker, registration])
-      })
+      this.#workerResolvers = Promise.withResolvers()
+      this.#workerResolvers.resolve([worker, registration])
+      this.workerPromise = this.#workerResolvers.promise
     }
 
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
 
     window.addEventListener(
-      'beforeunload',
-      () => {
+      'pagehide',
+      (event) => {
+        if (event.persisted) {
+          return
+        }
+
         if (worker.state !== 'redundant') {
-          this.#channel.postMessage('CLIENT_CLOSED')
+          this.#channel.postMessage('CLIENT_CLOSE')
         }
 
         clearInterval(this.#keepAliveInterval)
@@ -312,10 +291,6 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
   }
 
   async #handleRequest(event: WorkerChannelRequestEvent): Promise<void> {
-    if (this.#stoppedAt && event.data.interceptedAt > this.#stoppedAt) {
-      return event.postMessage('PASSTHROUGH')
-    }
-
     const request = deserializeRequest(event.data)
     RequestHandler.cache.set(request, request.clone())
 
@@ -402,7 +377,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
   }
 
   async #checkWorkerIntegrity(): Promise<void> {
-    const integrityCheckPromise = new DeferredPromise<void>()
+    const integrityCheckPromise = Promise.withResolvers<void>()
 
     this.#channel.postMessage('INTEGRITY_CHECK_REQUEST')
     this.#channel.once('INTEGRITY_CHECK_RESPONSE', (event) => {
@@ -429,11 +404,11 @@ You can also automate this process and make the worker script update automatical
       integrityCheckPromise.resolve()
     })
 
-    return integrityCheckPromise
+    return integrityCheckPromise.promise
   }
 
   async #printStartMessage() {
-    if (this.workerPromise.state === 'rejected') {
+    if (this.#workerState === 'rejected') {
       return
     }
 
@@ -490,7 +465,13 @@ class ServiceWorkerHttpNetworkFrame extends HttpNetworkFrame {
   }
 
   public passthrough(): void {
-    this.#event.postMessage('PASSTHROUGH')
+    // Forward the request headers so that any modifications made
+    // in the request handlers are applied to the passthrough request.
+    this.#event.postMessage('PASSTHROUGH', {
+      request: {
+        headers: Array.from(this.data.request.headers),
+      },
+    })
   }
 
   public respondWith(response?: Response): void {

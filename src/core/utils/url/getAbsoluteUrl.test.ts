@@ -9,11 +9,11 @@ afterAll(() => {
   })
 })
 
-it('resolves a relative URL against the current location (default)', () => {
+test('resolves a relative URL against the current location (default)', () => {
   expect(getAbsoluteUrl('/reviews')).toBe('http://localhost/reviews')
 })
 
-it('supports relative URLs starting with search parameters', () => {
+test('supports relative URLs starting with search parameters', () => {
   Object.defineProperty(window, 'location', {
     value: {
       href: 'http://localhost/nested',
@@ -25,23 +25,23 @@ it('supports relative URLs starting with search parameters', () => {
   )
 })
 
-it('resolves a relative URL against a custom base URL', () => {
+test('resolves a relative URL against a custom base URL', () => {
   expect(getAbsoluteUrl('/user', 'https://api.github.com')).toBe(
     'https://api.github.com/user',
   )
 })
 
-it('returns a given absolute URL as-is', () => {
+test('returns a given absolute URL as-is', () => {
   expect(getAbsoluteUrl('https://api.mswjs.io/users')).toBe(
     'https://api.mswjs.io/users',
   )
 })
 
-it('returns an absolute URL given a relative path without a leading slash', () => {
+test('returns an absolute URL given a relative path without a leading slash', () => {
   expect(getAbsoluteUrl('users')).toBe('http://localhost/users')
 })
 
-it('returns a path with a pattern as-is', () => {
+test('returns a path with a pattern as-is', () => {
   expect(getAbsoluteUrl(':api/user')).toBe('http://localhost/:api/user')
   expect(getAbsoluteUrl('*/resource/*')).toBe('*/resource/*')
 })

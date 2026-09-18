@@ -7,7 +7,7 @@ import {
 } from './request-utils'
 
 describe(shouldBypassRequest, () => {
-  it('returns true for a request with bypass header', () => {
+  test('returns true for a request with bypass header', () => {
     expect(
       shouldBypassRequest(
         new Request('http://example.com', {
@@ -19,13 +19,13 @@ describe(shouldBypassRequest, () => {
     ).toBe(true)
   })
 
-  it('returns false for a regular request', () => {
+  test('returns false for a regular request', () => {
     expect(shouldBypassRequest(new Request('http://example.com'))).toBe(false)
   })
 })
 
 describe(isPassthroughResponse, () => {
-  it('returns true for a passthrough response', () => {
+  test('returns true for a passthrough response', () => {
     expect(
       isPassthroughResponse(
         new Response(null, {
@@ -38,7 +38,7 @@ describe(isPassthroughResponse, () => {
     ).toBe(true)
   })
 
-  it('returns false for a regular response', () => {
+  test('returns false for a regular response', () => {
     expect(isPassthroughResponse(new Response(null))).toBe(false)
     expect(isPassthroughResponse(new Response(null, { status: 302 }))).toBe(
       false,
@@ -47,7 +47,7 @@ describe(isPassthroughResponse, () => {
 })
 
 describe(deleteRequestPassthroughHeader, () => {
-  it('removes the bypass header from the request', () => {
+  test('removes the bypass header from the request', () => {
     const request = new Request('http://example.com', {
       headers: {
         accept: 'msw/passthrough',
@@ -57,7 +57,7 @@ describe(deleteRequestPassthroughHeader, () => {
     expect(request.headers.get('accept')).toBeNull()
   })
 
-  it('does not remove other headers', () => {
+  test('does not remove other headers', () => {
     const request = new Request('http://example.com', {
       headers: {
         accept: 'msw/passthrough',

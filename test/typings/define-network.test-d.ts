@@ -2,7 +2,7 @@ import type { DefaultEventMap, Emitter, TypedEvent } from 'rettime'
 import type { NetworkFrame } from 'msw/experimental'
 import { defineNetwork, NetworkSource } from 'msw/experimental'
 
-it('uses an empty event map when no sources were provided', () => {
+test('uses an empty event map when no sources were provided', () => {
   expectTypeOf(
     defineNetwork({
       sources: [],
@@ -10,7 +10,7 @@ it('uses an empty event map when no sources were provided', () => {
   ).toExtend<Emitter<DefaultEventMap>>
 })
 
-it('infers event map type from a single source', () => {
+test('infers event map type from a single source', () => {
   type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
 
   class HttpSource extends NetworkSource<HttpFrame> {
@@ -25,7 +25,7 @@ it('infers event map type from a single source', () => {
   })
 })
 
-it('combines event maps from different sources', () => {
+test('combines event maps from different sources', () => {
   type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
   class HttpSource extends NetworkSource<HttpFrame> {
     public async enable() {}
@@ -44,7 +44,7 @@ it('combines event maps from different sources', () => {
   })
 })
 
-it('infers return type of "enable" based on the sources return type', () => {
+test('infers return type of "enable" based on the sources return type', () => {
   type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
   class AsyncHttpSource extends NetworkSource<HttpFrame> {
     public async enable() {}
@@ -69,7 +69,7 @@ it('infers return type of "enable" based on the sources return type', () => {
   }
 })
 
-it('infers return type of "disable" based on the sources return type', () => {
+test('infers return type of "disable" based on the sources return type', () => {
   type HttpFrame = NetworkFrame<'http', void, { hello: TypedEvent<'world'> }>
 
   class AsyncHttpSource extends NetworkSource<HttpFrame> {

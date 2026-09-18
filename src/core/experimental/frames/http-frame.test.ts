@@ -1,11 +1,13 @@
-import { http } from '../../http'
-import { graphql } from '../../graphql'
-import { ws } from '../../ws'
-import { bypass } from '../../bypass'
+import { http } from '#http/http'
+import { graphql } from '../../../graphql'
+import { ws } from '../../../ws'
+import { bypass } from '#utils/bypass'
 import type { HttpNetworkFrameEventMap } from './http-frame'
 import { HttpNetworkFrame } from './http-frame'
 import { InMemoryHandlersController } from '../../experimental/handlers-controller'
 import { getSiblingHandlers } from '../../utils/internal/attachSiblingHandlers'
+
+const gql = graphql.link('*')
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -31,7 +33,7 @@ function spyOnNetworkFrame(frame: HttpNetworkFrame) {
   }
 }
 
-it('filters only request type handlers', async () => {
+test('filters only request type handlers', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -43,7 +45,7 @@ it('filters only request type handlers', async () => {
   })
 
   const httpHandlers = [http.post('http://localhost/api/user', () => {})]
-  const graphqlHandlers = [graphql.query('GetUser', () => {})]
+  const graphqlHandlers = [gql.query('GetUser', () => {})]
   const webSocketHandlers = [
     ws.link('ws://localhost').addEventListener('connection', () => {}),
   ]
@@ -65,7 +67,7 @@ it('filters only request type handlers', async () => {
   expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])
 })
 
-it('resolves a matching request', async () => {
+test('resolves a matching request', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -116,7 +118,7 @@ it('resolves a matching request', async () => {
   ])
 })
 
-it('resolves a non-matching request', async () => {
+test('resolves a non-matching request', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -167,7 +169,7 @@ it('resolves a non-matching request', async () => {
   ])
 })
 
-it('resolves a matched passthrough', async () => {
+test('resolves a matched passthrough', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -214,7 +216,7 @@ it('resolves a matched passthrough', async () => {
   ])
 })
 
-it('resolves a bypassed request', async () => {
+test('resolves a bypassed request', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -256,7 +258,7 @@ it('resolves a bypassed request', async () => {
   ])
 })
 
-it('errors the request on unhandled exception', async () => {
+test('errors the request on unhandled exception', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()
@@ -309,7 +311,7 @@ it('errors the request on unhandled exception', async () => {
     )
 })
 
-it('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
+test('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
   class HttpFrame extends HttpNetworkFrame {
     respondWith = vi.fn()
     passthrough = vi.fn()

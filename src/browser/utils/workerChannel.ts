@@ -13,6 +13,7 @@ export type WorkerChannelEventMap = {
       frameType: string
     }
   }>
+  CLIENT_CLOSED: TypedEvent<never>
   INTEGRITY_CHECK_RESPONSE: WorkerEvent<{
     packageVersion: string
     checksum: string
@@ -23,26 +24,24 @@ export type WorkerChannelEventMap = {
 /**
  * Request representation received from the worker message event.
  */
-export interface IncomingWorkerRequest
-  extends Omit<
-    Request,
-    | 'text'
-    | 'body'
-    | 'json'
-    | 'blob'
-    | 'arrayBuffer'
-    | 'formData'
-    | 'clone'
-    | 'signal'
-    | 'isHistoryNavigation'
-    | 'isReloadNavigation'
-  > {
+export interface IncomingWorkerRequest extends Omit<
+  Request,
+  | 'text'
+  | 'body'
+  | 'json'
+  | 'blob'
+  | 'arrayBuffer'
+  | 'formData'
+  | 'clone'
+  | 'signal'
+  | 'isHistoryNavigation'
+  | 'isReloadNavigation'
+> {
   /**
    * Unique ID of the request generated once the request is
    * intercepted by the "fetch" event in the Service Worker.
    */
   id: string
-  interceptedAt: number
   body?: ArrayBuffer | null
 }
 
@@ -55,17 +54,30 @@ type IncomingWorkerResponse = {
   >
 }
 
-export type WorkerEventResponse = {
+/**
+ * Request modifications to apply to the passthrough request in the worker.
+ */
+export interface PassthroughPayload {
+  request: {
+    /**
+     * Request headers as a list of entries to support
+     * multiple headers with the same name.
+     */
+    headers: Array<[string, string]>
+  }
+}
+
+type WorkerEventResponse = {
   MOCK_RESPONSE: [
     data: StringifiedResponse,
     transfer?: [ReadableStream<Uint8Array>],
   ]
-  PASSTHROUGH: []
+  PASSTHROUGH: [data: PassthroughPayload]
 }
 
 const SUPPORTS_SERVICE_WORKER = supportsServiceWorker()
 
-export class WorkerEvent<
+class WorkerEvent<
   DataType,
   ReturnType = any,
   EventType extends string = string,
@@ -115,7 +127,7 @@ type OutgoingWorkerEvents =
   | 'MOCK_ACTIVATE'
   | 'INTEGRITY_CHECK_REQUEST'
   | 'KEEPALIVE_REQUEST'
-  | 'CLIENT_CLOSED'
+  | 'CLIENT_CLOSE'
 
 export interface WorkerChannelOptions {
   getWorker: () => Promise<ServiceWorker>

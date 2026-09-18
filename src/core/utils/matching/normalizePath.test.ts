@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { normalizePath } from './normalizePath'
 
 test('returns RegExp as-is', () => {

@@ -1,10 +1,8 @@
-/**
- * @vitest-environment node
- */
+// @vitest-environment node
 import { encodeBuffer } from '@mswjs/interceptors'
 import { serializeResponse } from './serializeResponse'
 
-it('serializes response without body', async () => {
+test('serializes response without body', async () => {
   const result = await serializeResponse(new Response(null))
 
   expect(result.status).toBe(200)
@@ -13,7 +11,7 @@ it('serializes response without body', async () => {
   expect(result.body).toBe('')
 })
 
-it('serializes a plain text response', async () => {
+test('serializes a plain text response', async () => {
   const result = await serializeResponse(
     new Response('hello world', {
       status: 201,
@@ -32,7 +30,7 @@ it('serializes a plain text response', async () => {
   expect(result.body).toBe('hello world')
 })
 
-it('serializes a JSON response', async () => {
+test('serializes a JSON response', async () => {
   const response = new Response(JSON.stringify({ users: ['John'] }), {
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +44,7 @@ it('serializes a JSON response', async () => {
   expect(result.body).toBe(JSON.stringify({ users: ['John'] }))
 })
 
-it('serializes a ArrayBuffer response', async () => {
+test('serializes a ArrayBuffer response', async () => {
   const data = encodeBuffer('hello world')
   const response = new Response(data)
   const result = await serializeResponse(response)
@@ -54,14 +52,14 @@ it('serializes a ArrayBuffer response', async () => {
   expect(result.body).toBe('hello world')
 })
 
-it('serializes a Blob response', async () => {
+test('serializes a Blob response', async () => {
   const response = new Response(new Blob(['hello world']))
   const result = await serializeResponse(response)
 
   expect(result.body).toBe('hello world')
 })
 
-it('serializes a FormData response', async () => {
+test('serializes a FormData response', async () => {
   const data = new FormData()
   data.set('firstName', 'Alice')
   data.set('age', '32')

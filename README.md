@@ -173,11 +173,6 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
       </a>
     </td>
     <td>
-      <a href="https://www.codacy.com/" target="_blank">
-        <img src="media/sponsors/codacy.svg" alt="Codacy" height="64" />
-      </a>
-    </td>
-    <td>
       <a href="https://workleap.com/" target="_blank">
         <img src="media/sponsors/workleap.svg" alt="Workleap" height="64" width="174" />
       </a>
@@ -192,6 +187,11 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
     <td align="center">
       <a href="https://stackblitz.com/" target="_blank">
         <img src="media/sponsors/stackblitz.svg" alt="StackBlitz" height="64" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://coderabbit.link/mswjs" target="_blank">
+        <img src="media/sponsors/coderabbit.svg" alt="CodeRabbit" height="64" />
       </a>
     </td>
   </tr>
@@ -277,3 +277,11 @@ We've been extremely humbled to receive awards and mentions from the community f
     </td>
   </tr>
 </table>
+
+## Special thanks
+
+Thank you to [Blacksmith](https://www.blacksmith.sh/) for a x10 faster remote builds.
+
+<a href="https://www.blacksmith.sh/" target="_blank">
+  <img src="media/blacksmith-powered-wob.png" alt="CI powered by Blacksmith" width="300" />
+</a>

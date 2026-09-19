@@ -1,5 +1,5 @@
 import statuses from '../../../shims/statuses'
-import type { HttpResponseInit } from '../../HttpResponse'
+import type { HttpResponse, HttpResponseInit } from '../../HttpResponse'
 
 const { message } = statuses
 
@@ -27,7 +27,7 @@ export function normalizeResponseInit(
 }
 
 export function decorateResponse(
-  response: Response,
+  response: HttpResponse<any>,
   init: HttpResponseDecoratedInit,
 ): Response {
   // Allow mocking the response type.
@@ -58,4 +58,25 @@ export function decorateResponse(
 
 export function getRawSetCookie(response: Response): string | undefined {
   return Reflect.get(response, kSetCookie)
+}
+
+/**
+ * Copy the given response own properties, like internal symbols,
+ * onto another response. Used for faithful internal copying of responses.
+ */
+export function copyResponseOwnProperties(
+  source: Response,
+  target: Response,
+): void {
+  for (const propertyName of Reflect.ownKeys(source)) {
+    const descriptor = Object.getOwnPropertyDescriptor(source, propertyName)
+    const existingDescriptor = Object.getOwnPropertyDescriptor(
+      target,
+      propertyName,
+    )
+
+    if (descriptor && existingDescriptor == null) {
+      Object.defineProperty(target, propertyName, descriptor)
+    }
+  }
 }

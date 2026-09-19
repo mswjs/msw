@@ -15,6 +15,7 @@ import {
 import type { GraphQLRequestBody } from './GraphQLHandler'
 import { devUtils } from '../utils/internal/devUtils'
 import { getRawSetCookie } from '../utils/HttpResponse/decorators'
+import { observeResponseBodyStream } from '../utils/internal/observe-response-body-stream'
 
 export type DefaultRequestMultipartBody = Record<
   string,
@@ -31,12 +32,7 @@ export type DefaultBodyType =
   | undefined
 
 export type JsonBodyType =
-  | Record<string, any>
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
+  Record<string, any> | string | number | boolean | null | undefined
 
 export interface RequestHandlerDefaultInfo {
   header: string
@@ -94,6 +90,10 @@ export type ResponseResolverInfo<
   /**
    * Schedule a callback to run after this response resolver completes.
    * Handy for cleaning up the side effects introduced in the resolver.
+   *
+   * For responses with a `ReadableStream` body (including `sse()` handlers),
+   * the callback runs once the response stream settles: it is read to
+   * completion, errored, or canceled, or the request is aborted.
    * @example
    * sse('/', ({ client, finalize }) => {
    *   const interval = setInterval(() => client.send({ data: 'ping' }))
@@ -355,20 +355,54 @@ export abstract class RequestHandler<
 
     const listenerController = new AbortController()
 
-    args.request.signal.addEventListener(
-      'abort',
-      () => this.runScheduledCleanups(args.requestId),
-      {
-        once: true,
-        signal: listenerController.signal,
-      },
-    )
+    /**
+     * @note Initialize the `finalize` machinery lazily, on the first
+     * access of the `finalize` property by the resolver. If the resolver
+     * never accesses it, the handler behaves as if `finalize` never
+     * existed: no abort listeners, no scheduled cleanups, and no response
+     * body stream observation (see `this.complete()`).
+     */
+    let finalizeFunction: ResponseResolverFinalizeFunction | undefined
+
+    const getFinalize = (): ResponseResolverFinalizeFunction => {
+      if (finalizeFunction == null) {
+        // Run any scheduled cleanups if the request gets aborted
+        // while the resolver is still executing.
+        if (!args.request.signal.aborted) {
+          args.request.signal.addEventListener(
+            'abort',
+            () => this.runScheduledCleanups(args.requestId),
+            {
+              once: true,
+              signal: listenerController.signal,
+            },
+          )
+        }
+
+        finalizeFunction = (callback) => {
+          this.scheduleCleanup(args.requestId, callback)
+
+          /**
+           * @note Run the cleanup immediately if the request has already
+           * been aborted. The "abort" listener above never fires for an
+           * already-aborted signal (and fires at most once), while
+           * long-lived resolvers (streams, generators) may never settle
+           * to run the cleanups on completion.
+           */
+          if (args.request.signal.aborted) {
+            void this.runScheduledCleanups(args.requestId)
+          }
+        }
+      }
+
+      return finalizeFunction
+    }
 
     const mockedResponsePromise = (
       executeResolver({
         ...resolverExtras,
-        finalize: (callback) => {
-          this.scheduleCleanup(args.requestId, callback)
+        get finalize(): ResponseResolverFinalizeFunction {
+          return getFinalize()
         },
         requestId: args.requestId,
         request: args.request,
@@ -423,9 +457,13 @@ export abstract class RequestHandler<
         }
 
         if (!isIterable(result)) {
-          // Otherwise, run the cleanup immediately if it's a plain response resolver.
-          await this.runScheduledCleanups(info.requestId)
-          return result
+          // Otherwise, run the cleanups if it's a plain response resolver
+          // (deferred until the response stream settles for streamed responses).
+          return this.complete({
+            request: info.request,
+            requestId: info.requestId,
+            response: result,
+          })
         }
 
         /**
@@ -465,11 +503,13 @@ export abstract class RequestHandler<
         // only after it's been completely exhausted.
         this.isUsed = true
 
-        await this.runScheduledCleanups(info.requestId)
-
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
-        return this.resolverIteratorResult?.clone()
+        return this.complete({
+          request: info.request,
+          requestId: info.requestId,
+          response: this.resolverIteratorResult?.clone(),
+        })
       }
 
       return nextResponse
@@ -532,28 +572,98 @@ export abstract class RequestHandler<
     }
   }
 
-  private async runScheduledCleanups(requestId: string): Promise<void> {
+  /**
+   * Remove and return the cleanups scheduled for the given request
+   * (or the pending iterator cleanups for generator resolvers).
+   */
+  private takeScheduledCleanups(
+    requestId: string,
+  ): Array<() => MaybePromise<void>> | undefined {
     if (
       this.resolverIterator &&
       this.resolverIteratorCleanups != null &&
       this.resolverIteratorCleanups.length > 0
     ) {
-      try {
-        await this.exhaustCleanups(this.resolverIteratorCleanups)
-      } finally {
-        this.resolverIteratorCleanups = undefined
-      }
-      return
+      const cleanups = this.resolverIteratorCleanups
+      this.resolverIteratorCleanups = undefined
+      return cleanups
     }
 
     const cleanups = this.scheduledCleanups.get(requestId)
 
-    if (!cleanups || cleanups.length == 0) {
-      return
+    if (!cleanups || cleanups.length === 0) {
+      return undefined
     }
 
-    await this.exhaustCleanups(cleanups)
     this.scheduledCleanups.delete(requestId)
+    return cleanups
+  }
+
+  private async runScheduledCleanups(requestId: string): Promise<void> {
+    const cleanups = this.takeScheduledCleanups(requestId)
+
+    if (cleanups) {
+      await this.exhaustCleanups(cleanups)
+    }
+  }
+
+  /**
+   * Conclude the response resolution for the given request.
+   * Runs the scheduled cleanups immediately for responses without a
+   * `ReadableStream` body. For streamed responses, returns an observed
+   * copy of the response and defers the cleanups until its body settles
+   * (is read to completion, errored, or canceled) or the request is
+   * aborted, whichever comes first.
+   */
+  private async complete(args: {
+    request: StrictRequest<any>
+    requestId: string
+    response: Response | undefined | void
+  }): Promise<Response | undefined | void> {
+    const cleanups = this.takeScheduledCleanups(args.requestId)
+
+    if (!cleanups) {
+      return args.response
+    }
+
+    const observedResponse = args.response
+      ? observeResponseBodyStream(args.response)
+      : null
+
+    if (!observedResponse) {
+      await this.exhaustCleanups(cleanups)
+      return args.response
+    }
+
+    const listenerController = new AbortController()
+
+    const runCleanupsOnce = (): void => {
+      if (listenerController.signal.aborted) {
+        return
+      }
+
+      listenerController.abort()
+      void this.exhaustCleanups(cleanups)
+    }
+
+    void observedResponse.settled.then(runCleanupsOnce)
+
+    /**
+     * @note Also run the cleanups when the request is aborted.
+     * Stream cancellation does not always propagate to the observed
+     * response (e.g. if an unconsumed clone of the response exists),
+     * while the request abort reliably means the response is unused.
+     */
+    if (args.request.signal.aborted) {
+      runCleanupsOnce()
+    } else {
+      args.request.signal.addEventListener('abort', runCleanupsOnce, {
+        once: true,
+        signal: listenerController.signal,
+      })
+    }
+
+    return observedResponse.response
   }
 }
 

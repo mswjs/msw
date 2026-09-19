@@ -15,7 +15,9 @@ export default <Environment>{
      */
     const { teardown } = await builtinEnvironments.node.setup(global, options)
 
-    Reflect.set(globalThis, 'WebSocket', WebSocket)
+    if (Reflect.get(globalThis, 'WebSocket') == null) {
+      Reflect.set(globalThis, 'WebSocket', WebSocket)
+    }
 
     return {
       teardown,

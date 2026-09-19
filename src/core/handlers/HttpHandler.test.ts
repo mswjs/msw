@@ -252,3 +252,92 @@ describe('run', () => {
     await expect(run()).resolves.toBe('complete')
   })
 })
+
+describe('finalize', () => {
+  it('returns the exact response instance if the resolver never accesses finalize', async () => {
+    const response = new HttpResponse(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('hello'))
+          controller.close()
+        },
+      }),
+    )
+    const handler = new HttpHandler('GET', '/resource', () => {
+      return response
+    })
+
+    const result = await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    expect(result?.response).toBe(response)
+  })
+
+  it('returns the exact response instance if finalize is accessed but never called', async () => {
+    const response = new HttpResponse(
+      new ReadableStream({
+        start(controller) {
+          controller.close()
+        },
+      }),
+    )
+    const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
+      expect(finalize).toBeInstanceOf(Function)
+      return response
+    })
+
+    const result = await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    expect(result?.response).toBe(response)
+  })
+
+  it('defers the cleanup until the response stream settles', async () => {
+    const cleanup = vi.fn()
+    const response = new HttpResponse(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('hello'))
+          controller.close()
+        },
+      }),
+    )
+    const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
+      finalize(cleanup)
+      return response
+    })
+
+    const result = await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    // The observed response is a copy of the original response.
+    expect(result?.response).not.toBe(response)
+    expect(cleanup).not.toHaveBeenCalled()
+
+    await expect(result?.response?.text()).resolves.toBe('hello')
+    await vi.waitFor(() => {
+      expect(cleanup).toHaveBeenCalledOnce()
+    })
+  })
+
+  it('runs the cleanup immediately for responses without a body', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
+      finalize(cleanup)
+      return new HttpResponse(null)
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+})

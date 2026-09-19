@@ -132,8 +132,7 @@ test('broadcasts messages across runtimes', async ({
       const { setupWorker, ws } = window.msw
       const api = ws.link('wss://example.com')
 
-      // @ts-expect-error
-      window.api = api
+      window.link = api
 
       const worker = setupWorker(
         api.addEventListener('connection', ({ client }) => {
@@ -147,15 +146,22 @@ test('broadcasts messages across runtimes', async ({
       window.worker = worker
     })
 
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       window.messages = []
       const ws = new WebSocket('wss://example.com')
       window.ws = ws
       ws.onmessage = (event) => {
         window.messages.push(event.data)
       }
+      await new Promise((done) => (ws.onopen = done))
     })
   }
+
+  // Wait for both runtimes to synchronize the clients before broadcasting.
+  // Client synchronization is asynchronous (IndexedDB + BroadcastChannel):
+  // broadcasting earlier misses the clients this runtime doesn't know about yet.
+  await pageOne.waitForFunction(() => window.link.clients.size === 2)
+  await pageTwo.waitForFunction(() => window.link.clients.size === 2)
 
   await pageOne.evaluate(() => {
     window.ws.send('hi from one')

@@ -5,6 +5,7 @@ declare namespace window {
   export const msw: {
     worker: SetupWorkerApi
   }
+  export let requestStartPromise: Promise<void>
 }
 
 test.beforeEach(() => {
@@ -17,9 +18,25 @@ test('handles an in-flight request performed before the worker was stopped', asy
 }) => {
   await loadExample(new URL('./in-flight-request.mocks.ts', import.meta.url))
 
+  await page.evaluate(() => {
+    window.requestStartPromise = new Promise<void>((resolve) => {
+      window.msw.worker.events.on('request:start', () => {
+        resolve()
+      })
+    })
+  })
+
   const dataPromise = page.evaluate(async () => {
     const response = await fetch('/resource')
     return response.text()
+  })
+
+  // Wait for the worker to start handling the request.
+  // Stopping the worker earlier races with the fetch event:
+  // if "CLIENT_CLOSED" reaches the Service Worker first,
+  // the request is bypassed and hits the actual server.
+  await page.evaluate(() => {
+    return window.requestStartPromise
   })
 
   await page.evaluate(() => {

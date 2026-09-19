@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "2.14.6",
+  "version": "2.15.0",
   "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
   "type": "commonjs",
   "main": "./lib/core/index.js",
@@ -272,7 +272,7 @@
     "@fastify/websocket": "^11.2.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@open-draft/test-server": "^0.4.2",
-    "@ossjs/release": "^0.10.1",
+    "@ossjs/release": "^0.11.1",
     "@playwright/test": "^1.59.1",
     "@types/express": "^5.0.6",
     "@types/json-bigint": "^1.0.4",
@@ -305,10 +305,9 @@
     "simple-git-hooks": "^2.13.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "undici": "^8.1.0",
+    "undici": "^7.28.0",
     "url-loader": "^4.1.1",
     "vitest": "^4.1.4",
-    "vitest-environment-miniflare": "^2.14.4",
     "webpack": "^5.106.2",
     "webpack-http-server": "^0.5.0"
   },

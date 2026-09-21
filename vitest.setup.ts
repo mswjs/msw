@@ -3,47 +3,16 @@ import {
   type TestHttpServer,
 } from '@epic-web/test-server/http'
 import type { TestProject } from 'vitest/node'
-import { WebSocketServer } from 'ws'
+import {
+  createWebSocketServer,
+  getWebSocketServerUrl,
+  closeWebSocketServer,
+} from './test/setup/websocket-server'
 
 let testServer: TestHttpServer
 let sseUpstreamRequestCount = 0
 
-const webSocketServer = new WebSocketServer({
-  host: '127.0.0.1',
-  port: 0,
-})
-
-webSocketServer.on('connection', (client, request) => {
-  const url = new URL(request.url ?? '/', 'ws://localhost')
-
-  if (url.searchParams.has('greet')) {
-    client.send('hello from server')
-  }
-
-  if (url.searchParams.has('greet-binary')) {
-    client.send(new TextEncoder().encode('hello'))
-  }
-
-  if (url.searchParams.has('echo')) {
-    client.on('message', (data, isBinary) => {
-      client.send(data, { binary: isBinary })
-    })
-  }
-
-  if (url.searchParams.has('conversation')) {
-    client.send('hello from server')
-    client.on('message', (data) => {
-      if (data.toString() === 'how are you, server?') {
-        client.send('thanks, not bad')
-      }
-    })
-  }
-
-  if (url.searchParams.has('close')) {
-    const [code, reason] = (url.searchParams.get('close') ?? '').split(',')
-    client.close(Number(code) || undefined, reason)
-  }
-})
+const webSocketServer = createWebSocketServer()
 
 function createSharedTestServer(): Promise<TestHttpServer> {
   return createTestHttpServer({
@@ -419,36 +388,15 @@ function createSharedTestServer(): Promise<TestHttpServer> {
 
 export async function setup(project: TestProject): Promise<void> {
   testServer = await createSharedTestServer()
-  const webSocketAddress = webSocketServer.address()
-
-  if (webSocketAddress == null) {
-    throw new Error('Failed to resolve the WebSocket test server address')
-  }
 
   project.provide('testServer', {
     http: testServer.http.url().href,
     https: testServer.https.url().href,
-    ws:
-      typeof webSocketAddress === 'string'
-        ? webSocketAddress
-        : `ws://${webSocketAddress.address}:${webSocketAddress.port}/`,
+    ws: getWebSocketServerUrl(webSocketServer),
   })
 }
 
 export async function teardown(): Promise<void> {
   await testServer.close()
-  await new Promise<void>((resolve, reject) => {
-    for (const client of webSocketServer.clients) {
-      client.close()
-    }
-
-    webSocketServer.close((error) => {
-      if (error) {
-        reject(error)
-        return
-      }
-
-      resolve()
-    })
-  })
+  await closeWebSocketServer(webSocketServer)
 }

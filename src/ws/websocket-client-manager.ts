@@ -1,6 +1,6 @@
 import type {
   WebSocketData,
-  WebSocketClientConnectionProtocol,
+  WebSocketClientHandle,
   WebSocketClientEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import type { WebSocketClientStore } from './websocket-client-store'
@@ -30,8 +30,8 @@ export type WebSocketBroadcastChannelMessage =
  */
 export class WebSocketClientManager {
   private store: WebSocketClientStore
-  private runtimeClients: Map<string, WebSocketClientConnectionProtocol>
-  private allClients: Set<WebSocketClientConnectionProtocol>
+  private runtimeClients: Map<string, WebSocketClientHandle>
+  private allClients: Set<WebSocketClientHandle>
 
   constructor(private channel: BroadcastChannel) {
     // Store the clients in the IndexedDB in the browser,
@@ -93,7 +93,7 @@ export class WebSocketClientManager {
   /**
    * All active WebSocket client connections.
    */
-  get clients(): Set<WebSocketClientConnectionProtocol> {
+  get clients(): Set<WebSocketClientHandle> {
     return this.allClients
   }
 
@@ -105,9 +105,7 @@ export class WebSocketClientManager {
     this.channel.postMessage({ type: 'db:update' })
   }
 
-  private async addClient(
-    client: WebSocketClientConnectionProtocol,
-  ): Promise<void> {
+  private async addClient(client: WebSocketClientHandle): Promise<void> {
     await this.store.add(client)
     // Sync the in-memory clients in this runtime with the
     // updated database. This pulls in all the stored clients.
@@ -121,9 +119,7 @@ export class WebSocketClientManager {
    * connection object because `addConnection()` is called only
    * for the opened connections in the same runtime.
    */
-  public async addConnection(
-    client: WebSocketClientConnectionProtocol,
-  ): Promise<void> {
+  public async addConnection(client: WebSocketClientHandle): Promise<void> {
     // Store this client in the map of clients created in this runtime.
     // This way, the manager can distinguish between this runtime clients
     // and extraneous runtime clients when synchronizing clients storage.
@@ -183,7 +179,7 @@ export class WebSocketClientManager {
  * on the given `BroadcastChannel` to communicate instructions
  * with the client connections from other runtimes.
  */
-class WebSocketRemoteClientConnection implements WebSocketClientConnectionProtocol {
+class WebSocketRemoteClientConnection implements WebSocketClientHandle {
   constructor(
     public readonly id: string,
     public readonly url: URL,

@@ -1094,7 +1094,7 @@ test('performs non-GraphQL WebSocket connections as-is despite a wildcard link',
     )
 
     // A plain WebSocket connection does not request the
-    // "graphql-transport-ws" subprotocol, so even a wildcard GraphQL
+    // "graphql-transport-ws" protocol, so even a wildcard GraphQL
     // link must not claim it. The connection is performed as-is.
     const socket = new WebSocket(webSocketServer.url)
     const incomingMessage = await new Promise<string>((resolve, reject) => {

@@ -1,4 +1,4 @@
-import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
 import type { WebSocketClientStore } from './websocket-client-store'
 import type { SerializedWebSocketClient } from './websocket-client-store'
 
@@ -12,7 +12,7 @@ export class WebSocketIndexedDBClientStore implements WebSocketClientStore {
     this.db = this.createDatabase()
   }
 
-  public async add(client: WebSocketClientConnectionProtocol): Promise<void> {
+  public async add(client: WebSocketClientHandle): Promise<void> {
     const promise = Promise.withResolvers<void>()
     const store = await this.getStore()
 

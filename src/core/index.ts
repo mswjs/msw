@@ -18,8 +18,6 @@ export {
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
 } from '#ws/websocket-handler'
-export { WebSocketProtocol } from '@mswjs/interceptors/WebSocket'
-
 /* Server-Sent Events */
 export {
   sse,

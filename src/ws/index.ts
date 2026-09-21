@@ -2,6 +2,7 @@ export {
   ws,
   type WebSocketLink,
   type WebSocketLinkOptions,
+  type WebSocketLinkExtension,
   type WebSocketData,
   type WebSocketEventListener,
 } from './ws'
@@ -14,4 +15,9 @@ export {
   type WebSocketHandlerConnection,
 } from './websocket-handler'
 
-export { WebSocketProtocol } from '@mswjs/interceptors/WebSocket'
+export {
+  WebSocketExtension,
+  type WebSocketExtensionContext,
+  type WebSocketExtensionMessageContext,
+  type WebSocketExtensionResult,
+} from '@mswjs/interceptors/WebSocket'

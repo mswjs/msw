@@ -7,3 +7,12 @@ export type MaybePromise<T> = T | Promise<T>
  * the whole object literal instead of the offending property.
  */
 export type TransparentNoInfer<T> = [T][T extends any ? 0 : never]
+
+/**
+ * Turns a union of types into an intersection of its members.
+ */
+export type UnionToIntersection<Union> = (
+  Union extends unknown ? (member: Union) => void : never
+) extends (member: infer Intersection) => void
+  ? Intersection
+  : never

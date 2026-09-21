@@ -13,12 +13,7 @@ import {
 } from './handlers-controller'
 import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
 import { Disposable } from '../utils/internal/Disposable'
-
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I,
-) => void
-  ? I
-  : never
+import type { UnionToIntersection } from '../typeUtils'
 
 type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
   UnionToIntersection<ExtractSourceEvents<Sources[number]>> extends infer R

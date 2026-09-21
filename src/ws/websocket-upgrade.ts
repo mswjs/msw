@@ -34,7 +34,7 @@ export async function webSocketUpgrade({
   const digest = await crypto.subtle.digest('SHA-1', keyBytes)
   const acceptValue = btoa(String.fromCharCode(...new Uint8Array(digest)))
 
-  // Forward the subprotocols requested by the client to the intercepted
+  // Forward the protocols requested by the client to the intercepted
   // connection so WebSocket handlers can match on them.
   const requestedProtocols = request.headers
     .get('sec-websocket-protocol')
@@ -49,8 +49,8 @@ export async function webSocketUpgrade({
     'sec-websocket-accept': acceptValue,
   })
 
-  // Confirm the first requested subprotocol as the accepted one.
-  // Clients that requested subprotocols are entitled to fail the
+  // Confirm the first requested protocol as the accepted one.
+  // Clients that requested protocols are entitled to fail the
   // connection if the server confirms none (RFC 6455, section 4.1).
   if (requestedProtocols && requestedProtocols.length > 0) {
     headers.set('sec-websocket-protocol', requestedProtocols[0])

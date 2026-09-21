@@ -1,10 +1,11 @@
 import { Emitter, TypedEvent } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
+  WebSocketProtocol,
   WebSocketConnectionInfo,
   WebSocketConnectionEventData,
-  WebSocketClientConnectionProtocol,
-  WebSocketServerConnectionProtocol,
+  WebSocketClientHandle,
+  WebSocketServerHandle,
 } from '@mswjs/interceptors/WebSocket'
 /**
  * @note A type-only import to prevent a runtime module cycle
@@ -26,13 +27,20 @@ type WebSocketHandlerParsedResult = {
   match: Match
 }
 
+export interface WebSocketHandlerOptions {
+  /**
+   * A WebSocket connection protocol to encode/decode the traffic.
+   */
+  protocol?: WebSocketProtocol
+}
+
 export type WebSocketHandlerEventMap = {
   connection: WebSocketConnectionEvent
 }
 
 export interface WebSocketHandlerConnection {
-  client: WebSocketClientConnectionProtocol
-  server: WebSocketServerConnectionProtocol
+  client: WebSocketClientHandle
+  server: WebSocketServerHandle
   info: WebSocketConnectionInfo
   params: PathParams
 }
@@ -41,8 +49,8 @@ export class WebSocketConnectionEvent
   extends TypedEvent<void, void, 'connection'>
   implements WebSocketHandlerConnection
 {
-  public readonly client: WebSocketClientConnectionProtocol
-  public readonly server: WebSocketServerConnectionProtocol
+  public readonly client: WebSocketClientHandle
+  public readonly server: WebSocketServerHandle
   public readonly info: WebSocketConnectionInfo
   public readonly params: PathParams
 
@@ -82,11 +90,16 @@ export class WebSocketHandler extends Handler {
   public readonly kind = 'websocket'
 
   protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
+  protected readonly protocol?: WebSocketProtocol
 
-  constructor(protected readonly url: Path) {
+  constructor(
+    protected readonly url: Path,
+    options?: WebSocketHandlerOptions,
+  ) {
     super()
 
     this.id = createRequestId()
+    this.protocol = options?.protocol
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
@@ -152,6 +165,10 @@ export class WebSocketHandler extends Handler {
     if (parsedResult == null) {
       return null
     }
+
+    // Every consumer of the connection objects (listeners, `link.broadcast()`,
+    // the logger) speaks the protocol's message domain from here on.
+    this.protocol?.apply(connection)
 
     const resolvedConnection: WebSocketHandlerConnection = {
       ...connection,

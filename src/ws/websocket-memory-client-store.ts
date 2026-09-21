@@ -1,4 +1,4 @@
-import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
 import type { WebSocketClientStore } from './websocket-client-store'
 import type { SerializedWebSocketClient } from './websocket-client-store'
 
@@ -9,7 +9,7 @@ export class WebSocketMemoryClientStore implements WebSocketClientStore {
     this.store = new Map()
   }
 
-  public async add(client: WebSocketClientConnectionProtocol): Promise<void> {
+  public async add(client: WebSocketClientHandle): Promise<void> {
     this.store.set(client.id, { id: client.id, url: client.url.href })
   }
 

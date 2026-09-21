@@ -1,4 +1,4 @@
-import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
 
 export interface SerializedWebSocketClient {
   id: string
@@ -6,7 +6,7 @@ export interface SerializedWebSocketClient {
 }
 
 export abstract class WebSocketClientStore {
-  public abstract add(client: WebSocketClientConnectionProtocol): Promise<void>
+  public abstract add(client: WebSocketClientHandle): Promise<void>
 
   public abstract getAll(): Promise<Array<SerializedWebSocketClient>>
 

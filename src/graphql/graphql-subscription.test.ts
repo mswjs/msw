@@ -74,7 +74,7 @@ describe('predicate', () => {
   })
 })
 
-describe('subprotocol discrimination', () => {
+describe('protocol discrimination', () => {
   class TestWebSocketFrame extends WebSocketNetworkFrame {
     public passthrough = vi.fn()
     public errorWith = vi.fn()
@@ -88,7 +88,7 @@ describe('subprotocol discrimination', () => {
       .filter((handler) => handler instanceof WebSocketHandler)
   }
 
-  test('does not claim connections that lack the "graphql-transport-ws" subprotocol', async () => {
+  test('does not claim connections that lack the "graphql-transport-ws" protocol', async () => {
     const api = graphql.link('*')
     const controller = new InMemoryHandlersController([
       api.subscription('OnCommentAdded', vi.fn()),
@@ -116,7 +116,7 @@ describe('subprotocol discrimination', () => {
       .toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ frame }))
   })
 
-  test('claims connections that request the "graphql-transport-ws" subprotocol', async () => {
+  test('claims connections that request the "graphql-transport-ws" protocol', async () => {
     const api = graphql.link('*')
     const controller = new InMemoryHandlersController([
       api.subscription('OnCommentAdded', vi.fn()),
@@ -140,7 +140,7 @@ describe('subprotocol discrimination', () => {
     expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   })
 
-  test('ignores upgrade requests that lack the "graphql-transport-ws" subprotocol', async () => {
+  test('ignores upgrade requests that lack the "graphql-transport-ws" protocol', async () => {
     const handler = subscription('OnCommentAdded', () => {})
     const [, upgradeHandler] = getSiblingHandlers(handler)
 
@@ -162,7 +162,7 @@ describe('subprotocol discrimination', () => {
     ).resolves.toBeNull()
   })
 
-  test('confirms the subprotocol for matching upgrade requests', async () => {
+  test('confirms the protocol for matching upgrade requests', async () => {
     const handler = subscription('OnCommentAdded', () => {})
     const [, upgradeHandler] = getSiblingHandlers(handler)
 

@@ -7,15 +7,18 @@ export { HttpHandler, HttpMethods } from '#http/http-handler'
 export {
   ws,
   type WebSocketLink,
+  type WebSocketLinkOptions,
   type WebSocketData,
   type WebSocketEventListener,
 } from '#ws/ws'
 export {
   WebSocketHandler,
   WebSocketConnectionEvent,
+  type WebSocketHandlerOptions,
   type WebSocketHandlerEventMap,
   type WebSocketHandlerConnection,
 } from '#ws/websocket-handler'
+export { WebSocketProtocol } from '@mswjs/interceptors/WebSocket'
 
 /* Server-Sent Events */
 export {

@@ -2,7 +2,8 @@ import { invariant } from 'outvariant'
 import type { EventMap } from 'rettime'
 import type {
   WebSocketData,
-  WebSocketClientConnectionProtocol,
+  WebSocketProtocol,
+  WebSocketClientHandle,
 } from '@mswjs/interceptors/WebSocket'
 import {
   WebSocketHandler,
@@ -34,6 +35,22 @@ export type WebSocketEventListener<
   EventType extends keyof WebSocketHandlerEventMap,
 > = EventMap.Listener<WebSocketHandlerEventMap, EventType>
 
+export interface WebSocketLinkOptions {
+  /**
+   * A protocol applied to every connection intercepted by this link.
+   * Encoding and decoding happen behind the scenes: `client.send()`,
+   * `server.send()`, `broadcast()`, and the `message` events
+   * all operate on decoded messages.
+   *
+   * @example
+   * const io = ws.link('wss://chat.example.com', { protocol: socketIo })
+   * io.addEventListener('connection', ({ client }) => {
+   *   client.send('["greeting","hello"]')
+   * })
+   */
+  protocol?: WebSocketProtocol
+}
+
 export type WebSocketLink = {
   /**
    * A set of all WebSocket clients connected
@@ -41,7 +58,7 @@ export type WebSocketLink = {
    *
    * @see {@link https://mswjs.io/docs/api/ws#clients `clients` API reference}
    */
-  clients: Set<WebSocketClientConnectionProtocol>
+  clients: Set<WebSocketClientHandle>
 
   /**
    * Adds an event listener to this WebSocket link.
@@ -83,9 +100,7 @@ export type WebSocketLink = {
    * @see {@link https://mswjs.io/docs/api/ws#broadcastexceptclients-data `broadcast()` API reference}
    */
   broadcastExcept: (
-    clients:
-      | WebSocketClientConnectionProtocol
-      | Array<WebSocketClientConnectionProtocol>,
+    clients: WebSocketClientHandle | Array<WebSocketClientHandle>,
     data: WebSocketData,
   ) => void
 }
@@ -99,7 +114,10 @@ export type WebSocketLink = {
  *   client.send('hello from server!')
  * })
  */
-function createWebSocketLinkHandler(url: Path): WebSocketLink {
+function createWebSocketLinkHandler(
+  url: Path,
+  options?: WebSocketLinkOptions,
+): WebSocketLink {
   invariant(url, 'Expected a WebSocket server URL but got undefined')
 
   invariant(
@@ -121,7 +139,9 @@ function createWebSocketLinkHandler(url: Path): WebSocketLink {
       return clientManager.clients
     },
     addEventListener(event, listener) {
-      const webSocketHandler = new WebSocketHandler(url)
+      const webSocketHandler = new WebSocketHandler(url, {
+        protocol: options?.protocol,
+      })
 
       // Add the connection event listener for when the
       // handler matches and emits a connection event.

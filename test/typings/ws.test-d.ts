@@ -5,7 +5,7 @@ import type {
   WebSocketHandlerConnection,
 } from 'msw/ws'
 import { ws } from 'msw/ws'
-import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
 
 test('supports URL as the link argument', () => {
   expectTypeOf(ws.link('ws://localhost')).toEqualTypeOf<WebSocketLink>()
@@ -21,9 +21,7 @@ test('exposes root-level link APIs', () => {
   expectTypeOf(link.addEventListener).toBeFunction()
   expectTypeOf(link.broadcast).toBeFunction()
   expectTypeOf(link.broadcastExcept).toBeFunction()
-  expectTypeOf(link.clients).toEqualTypeOf<
-    Set<WebSocketClientConnectionProtocol>
-  >()
+  expectTypeOf(link.clients).toEqualTypeOf<Set<WebSocketClientHandle>>()
 })
 
 test('supports "connection" event listener', () => {

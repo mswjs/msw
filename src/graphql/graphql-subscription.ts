@@ -3,10 +3,10 @@ import { Emitter, TypedEvent } from 'rettime'
 import { parse, OperationTypeNode, type GraphQLError } from 'graphql'
 import { resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
-  WebSocketClientConnectionProtocol,
+  WebSocketClientHandle,
   WebSocketConnectionEventData,
   WebSocketData,
-  WebSocketServerConnectionProtocol,
+  WebSocketServerHandle,
 } from '@mswjs/interceptors/WebSocket'
 import { http } from '#http/http'
 import { webSocketUpgrade } from '#ws/websocket-upgrade'
@@ -45,7 +45,7 @@ import {
 } from './parse-graphql-request'
 
 /**
- * Messages of the `graphql-transport-ws` subprotocol.
+ * Messages of the `graphql-transport-ws` protocol.
  * @see https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverWebSocket.md
  */
 interface GraphQLWebSocketInitMessage {
@@ -224,8 +224,8 @@ interface GraphQLSubscriptionSubscriberEntry {
 type GraphQLSubscriptionCleanup = () => MaybePromise<void>
 
 interface GraphQLSubscriptionConnection {
-  client: WebSocketClientConnectionProtocol
-  server: WebSocketServerConnectionProtocol
+  client: WebSocketClientHandle
+  server: WebSocketServerHandle
   subscribers: Map<WebSocketHandler, GraphQLSubscriptionSubscriberEntry>
   /**
    * The active subscriptions of this connection, mapped to the cleanups
@@ -305,12 +305,12 @@ function ensureUpstreamSession(
 const connections = new Map<string, GraphQLSubscriptionConnection>()
 
 /**
- * The WebSocket subprotocol implemented by the subscription transport.
+ * The WebSocket protocol implemented by the subscription transport.
  * @see https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverWebSocket.md
  */
 const GRAPHQL_WEBSOCKET_SUBPROTOCOL = 'graphql-transport-ws'
 
-function includesGraphQLSubprotocol(
+function includesGraphQLProtocol(
   protocols: string | Array<string> | null | undefined,
 ): boolean {
   if (protocols == null) {
@@ -330,7 +330,7 @@ function includesGraphQLSubprotocol(
 
 /**
  * A WebSocket handler that only matches connections that requested the
- * `graphql-transport-ws` subprotocol. Connections without it (e.g.
+ * `graphql-transport-ws` protocol. Connections without it (e.g.
  * arbitrary non-GraphQL WebSockets whose URL matched a permissive
  * endpoint like a wildcard link) are left unhandled so they follow the
  * regular unhandled connection flow (warnings, passthrough).
@@ -340,7 +340,7 @@ abstract class GraphQLWebSocketHandler extends WebSocketHandler {
     connection: WebSocketConnectionEventData,
     resolutionContext?: WebSocketResolutionContext,
   ): Promise<WebSocketHandlerConnection | null> {
-    if (!includesGraphQLSubprotocol(connection.info.protocols)) {
+    if (!includesGraphQLProtocol(connection.info.protocols)) {
       return null
     }
 
@@ -1154,14 +1154,14 @@ export type GraphQLPassthroughSubscriptionEventMap = {
  * You interface with this object from the client's perspective.
  */
 export class GraphQLPassthroughSubscription {
-  readonly #server: WebSocketServerConnectionProtocol
+  readonly #server: WebSocketServerHandle
   readonly #message: GraphQLWebSocketSubscribeMessage
   readonly #emitter: Emitter<GraphQLPassthroughSubscriptionEventMap>
   readonly #abortController: AbortController
   readonly #onTerminate: () => void
 
   constructor(args: {
-    server: WebSocketServerConnectionProtocol
+    server: WebSocketServerHandle
     message: GraphQLWebSocketSubscribeMessage
     upstreamSession: Promise<void>
     onTerminate: () => void
@@ -1467,9 +1467,7 @@ export function createGraphQLSubscriptionHandler(
   const upgradeHandler = http.get(({ request }) => {
     return (
       request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
-      includesGraphQLSubprotocol(
-        request.headers.get('sec-websocket-protocol'),
-      ) &&
+      includesGraphQLProtocol(request.headers.get('sec-websocket-protocol')) &&
       matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), webSocketUrl)
         .matches
     )

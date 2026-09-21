@@ -1,6 +1,9 @@
 import { invariant } from 'outvariant'
 import type { RequestHandler } from '../handlers/RequestHandler'
-import type { WebSocketHandler } from '#ws/websocket-handler'
+import type {
+  WebSocketHandler,
+  AnyWebSocketExtension,
+} from '#ws/websocket-handler'
 import { devUtils } from '../utils/internal/devUtils'
 import type { MaybePromise } from '../typeUtils'
 import {
@@ -8,7 +11,8 @@ import {
   isSiblingHandler,
 } from '../utils/internal/attachSiblingHandlers'
 
-export type AnyHandler = RequestHandler | WebSocketHandler
+export type AnyHandler =
+  RequestHandler | WebSocketHandler<AnyWebSocketExtension>
 export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
 
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {

@@ -5,6 +5,7 @@ import {
   kConnect,
   kAutoConnect,
   type WebSocketHandler,
+  type AnyWebSocketExtension,
 } from '#ws/websocket-handler'
 import {
   NetworkFrame,
@@ -95,7 +96,7 @@ export abstract class WebSocketNetworkFrame extends NetworkFrame<
   }
 
   public async resolve(
-    handlers: Array<WebSocketHandler>,
+    handlers: Array<WebSocketHandler<AnyWebSocketExtension>>,
     onUnhandledFrame: UnhandledFrameHandle,
     resolutionContext?: NetworkFrameResolutionContext,
   ): Promise<boolean | null> {

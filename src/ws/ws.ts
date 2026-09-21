@@ -42,9 +42,25 @@ export type WebSocketEventListener<
 
 type WebSocketExtensions = ReadonlyArray<AnyWebSocketExtension>
 
-type MergeUnion<Union, Fallback> = [Union] extends [never]
+/**
+ * The messages and the API of each extension, boxed one extension at a
+ * time. Intersecting the boxes intersects the values of different
+ * extensions only, so a value that is itself a union (e.g. a message
+ * union) stays intact.
+ */
+type BoxedExtension<Extension> = Extension extends unknown
+  ? {
+      message: WebSocketExtensionMessage<Extension>
+      api: WebSocketExtensionApi<Extension>
+    }
+  : never
+
+type MergedExtension<
+  Extension,
+  Fallback extends { message: unknown; api: unknown },
+> = [Extension] extends [never]
   ? Fallback
-  : UnionToIntersection<Union>
+  : UnionToIntersection<BoxedExtension<Extension>>
 
 /**
  * The extensions of a link merged into a single extension:
@@ -53,10 +69,12 @@ type MergeUnion<Union, Fallback> = [Union] extends [never]
  * without extensions speaks raw WebSocket data.
  */
 export type WebSocketLinkExtension<Extensions extends WebSocketExtensions> =
-  WebSocketExtension<
-    MergeUnion<WebSocketExtensionMessage<Extensions[number]>, WebSocketData>,
-    MergeUnion<WebSocketExtensionApi<Extensions[number]>, {}>
-  >
+  MergedExtension<
+    Extensions[number],
+    { message: WebSocketData; api: {} }
+  > extends infer Merged extends { message: unknown; api: unknown }
+    ? WebSocketExtension<Merged['message'], Merged['api']>
+    : never
 
 export interface WebSocketLinkOptions<
   Extensions extends WebSocketExtensions = [],

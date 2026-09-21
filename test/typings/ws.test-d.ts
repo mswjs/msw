@@ -4,7 +4,7 @@ import type {
   WebSocketLink,
   WebSocketHandlerConnection,
 } from 'msw/ws'
-import { ws } from 'msw/ws'
+import { ws, WebSocketExtension } from 'msw/ws'
 import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
 
 test('supports URL as the link argument', () => {
@@ -152,5 +152,31 @@ test('errors on arbitrary event names passed to the server', () => {
       'abc',
       () => {},
     )
+  })
+})
+
+test('keeps a union message type of an extension intact', () => {
+  type Message = { event: string } | { type: 'ack'; id: number }
+
+  class Acknowledging extends WebSocketExtension<Message, { rooms: string }> {
+    public encode(message: Message): string {
+      return JSON.stringify(message)
+    }
+
+    public decode(data: WebSocketData): Message | undefined {
+      return typeof data === 'string' ? JSON.parse(data) : undefined
+    }
+  }
+
+  const api = ws.link('ws://localhost', { extensions: [new Acknowledging()] })
+
+  api.broadcast({ type: 'ack', id: 1 })
+  api.addEventListener('connection', ({ client, rooms }) => {
+    expectTypeOf(rooms).toEqualTypeOf<string>()
+    client.send({ event: 'hello' })
+    client.send({ type: 'ack', id: 1 })
+    client.addEventListener('message', (event) => {
+      expectTypeOf(event.data).toEqualTypeOf<Message>()
+    })
   })
 })

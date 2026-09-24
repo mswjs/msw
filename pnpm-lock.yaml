@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       '@mswjs/interceptors':
-        specifier: ^0.45.0
-        version: 0.45.0
+        specifier: ^0.45.1
+        version: 0.45.1
       cookie:
         specifier: ^2.0.1
         version: 2.0.1
@@ -706,8 +706,8 @@ packages:
   '@msw/url@0.1.2':
     resolution: {integrity: sha512-DdeBLQxQ+ZrtmwEmaj7GQ7lbzPCgbbbyAqOz/I4ulo68hwBpfdNvQJ5bmihJUkAAKOeCmqCIG3OFZGosqFN4mA==}
 
-  '@mswjs/interceptors@0.45.0':
-    resolution: {integrity: sha512-9lorWiv40Dwj2bwy4MKrKXm9KickEPlWoXAdkE/sQIOJ4fj+/v8PtBR5lATxYIqN/e4Ep5ydtVWFAMb1cY6UuQ==}
+  '@mswjs/interceptors@0.45.1':
+    resolution: {integrity: sha512-BK/eSU3e9bYb7sbcEB+dl390LmKWM6Q9n3d9HEu9ypyd6vVkzdfx4a0C+cUP4p6Bz4wAxTz7ddFt3NXazMCWxA==}
     engines: {node: '>=22'}
 
   '@napi-rs/wasm-runtime@1.1.6':
@@ -5691,7 +5691,7 @@ snapshots:
 
   '@msw/url@0.1.2': {}
 
-  '@mswjs/interceptors@0.45.0':
+  '@mswjs/interceptors@0.45.1':
     dependencies:
       '@open-draft/until': 3.0.1
       '@types/debug': 4.1.13

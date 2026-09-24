@@ -7,12 +7,12 @@ import type { WebSocketClientStore } from './websocket-client-store'
 import { WebSocketMemoryClientStore } from './websocket-memory-client-store'
 import { WebSocketIndexedDBClientStore } from './websocket-indexeddb-client-store'
 
-export type WebSocketBroadcastChannelMessage =
+export type WebSocketBroadcastChannelMessage<Message = WebSocketData> =
   | {
       type: 'extraneous:send'
       payload: {
         clientId: string
-        data: WebSocketData
+        data: Message
       }
     }
   | {
@@ -28,10 +28,10 @@ export type WebSocketBroadcastChannelMessage =
  * A manager responsible for accumulating WebSocket client
  * connections across different browser runtimes.
  */
-export class WebSocketClientManager {
+export class WebSocketClientManager<Message = WebSocketData> {
   private store: WebSocketClientStore
-  private runtimeClients: Map<string, WebSocketClientHandle>
-  private allClients: Set<WebSocketClientHandle>
+  private runtimeClients: Map<string, WebSocketClientHandle<Message>>
+  private allClients: Set<WebSocketClientHandle<Message>>
 
   constructor(private channel: BroadcastChannel) {
     // Store the clients in the IndexedDB in the browser,
@@ -74,7 +74,7 @@ export class WebSocketClientManager {
           return runtimeClient
         }
 
-        return new WebSocketRemoteClientConnection(
+        return new WebSocketRemoteClientConnection<Message>(
           client.id,
           new URL(client.url),
           this.channel,
@@ -93,7 +93,7 @@ export class WebSocketClientManager {
   /**
    * All active WebSocket client connections.
    */
-  get clients(): Set<WebSocketClientHandle> {
+  get clients(): Set<WebSocketClientHandle<Message>> {
     return this.allClients
   }
 
@@ -132,7 +132,7 @@ export class WebSocketClientManager {
     // that attempt to control this runtime (via a remote connection wrapper).
     // E.g. another runtime calling `client.send()` for the client in this runtime.
     const handleExtraneousMessage = (
-      message: MessageEvent<WebSocketBroadcastChannelMessage>,
+      message: MessageEvent<WebSocketBroadcastChannelMessage<Message>>,
     ) => {
       const { type, payload } = message.data
 
@@ -179,21 +179,23 @@ export class WebSocketClientManager {
  * on the given `BroadcastChannel` to communicate instructions
  * with the client connections from other runtimes.
  */
-class WebSocketRemoteClientConnection implements WebSocketClientHandle {
+class WebSocketRemoteClientConnection<
+  Message = WebSocketData,
+> implements WebSocketClientHandle<Message> {
   constructor(
     public readonly id: string,
     public readonly url: URL,
     private channel: BroadcastChannel,
   ) {}
 
-  send(data: WebSocketData): void {
+  send(data: Message): void {
     this.channel.postMessage({
       type: 'extraneous:send',
       payload: {
         clientId: this.id,
         data,
       },
-    } as WebSocketBroadcastChannelMessage)
+    } as WebSocketBroadcastChannelMessage<Message>)
   }
 
   close(code?: number | undefined, reason?: string | undefined): void {
@@ -204,14 +206,14 @@ class WebSocketRemoteClientConnection implements WebSocketClientHandle {
         code,
         reason,
       },
-    } as WebSocketBroadcastChannelMessage)
+    } as WebSocketBroadcastChannelMessage<Message>)
   }
 
-  addEventListener<EventType extends keyof WebSocketClientEventMap>(
+  addEventListener<EventType extends keyof WebSocketClientEventMap<Message>>(
     _type: EventType,
     _listener: (
       this: WebSocket,
-      event: WebSocketClientEventMap[EventType],
+      event: WebSocketClientEventMap<Message>[EventType],
     ) => void,
     _options?: AddEventListenerOptions | boolean,
   ): void {
@@ -220,11 +222,11 @@ class WebSocketRemoteClientConnection implements WebSocketClientHandle {
     )
   }
 
-  removeEventListener<EventType extends keyof WebSocketClientEventMap>(
+  removeEventListener<EventType extends keyof WebSocketClientEventMap<Message>>(
     _event: EventType,
     _listener: (
       this: WebSocket,
-      event: WebSocketClientEventMap[EventType],
+      event: WebSocketClientEventMap<Message>[EventType],
     ) => void,
     _options?: EventListenerOptions | boolean,
   ): void {

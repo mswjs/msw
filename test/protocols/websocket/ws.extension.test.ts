@@ -1,8 +1,13 @@
-import { ws, WebSocketProtocol, type WebSocketData } from 'msw/ws'
+import {
+  ws,
+  WebSocketExtension,
+  type WebSocketData,
+  type WebSocketExtensionContext,
+} from 'msw/ws'
 import { test, expect } from '../../setup/vitest-helpers'
 
 // Data on the wire is uppercase, data in the handler is lowercase.
-class Uppercase extends WebSocketProtocol<string> {
+class Uppercase extends WebSocketExtension<string> {
   public encode(data: string): string {
     return data.toUpperCase()
   }
@@ -13,14 +18,14 @@ class Uppercase extends WebSocketProtocol<string> {
 }
 
 class UppercaseWithHandshake extends Uppercase {
-  public *handshake(): Generator<string> {
+  public *connect(): Generator<string> {
     yield 'HELLO'
     yield 'WORLD'
   }
 }
 
 // Every word of a message is sent as a separate frame.
-class Words extends WebSocketProtocol<string> {
+class Words extends WebSocketExtension<string> {
   public *encode(data: string): Generator<string, string> {
     const [first, second] = data.split(' ')
     yield first
@@ -44,7 +49,7 @@ test('decodes the client frame for the handler and forwards it to the original s
   testServer,
 }) => {
   const serverUrl = testServer.ws.url('/?echo').href
-  const api = ws.link(serverUrl, { protocol: new Uppercase() })
+  const api = ws.link(serverUrl, { extensions: [new Uppercase()] })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onServerData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
@@ -80,7 +85,7 @@ test('encodes the handler message sent to the original server', async ({
   testServer,
 }) => {
   const serverUrl = testServer.ws.url('/?echo').href
-  const api = ws.link(serverUrl, { protocol: new Uppercase() })
+  const api = ws.link(serverUrl, { extensions: [new Uppercase()] })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onServerData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
@@ -117,7 +122,7 @@ test('encodes the handler message sent to the WebSocket instance on a passthroug
   testServer,
 }) => {
   const serverUrl = testServer.ws.url('/?echo').href
-  const api = ws.link(serverUrl, { protocol: new Uppercase() })
+  const api = ws.link(serverUrl, { extensions: [new Uppercase()] })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onServerData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
@@ -158,7 +163,7 @@ test('encodes the handler message sent to the WebSocket instance on a passthroug
 test('decodes the client frame for the handler and encodes the reply on a mocked connection', async ({
   network,
 }) => {
-  const api = ws.link('ws://localhost/ws', { protocol: new Uppercase() })
+  const api = ws.link('ws://localhost/ws', { extensions: [new Uppercase()] })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
 
@@ -187,7 +192,7 @@ test('decodes the client frame for the handler and encodes the reply on a mocked
 test('encodes a single handler message into multiple frames', async ({
   network,
 }) => {
-  const api = ws.link('ws://localhost/ws', { protocol: new Words() })
+  const api = ws.link('ws://localhost/ws', { extensions: [new Words()] })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
 
@@ -213,11 +218,11 @@ test('encodes a single handler message into multiple frames', async ({
   ).not.toHaveBeenCalled()
 })
 
-test('sends the protocol handshake once the mocked connection opens', async ({
+test('sends the extension handshake once the mocked connection opens', async ({
   network,
 }) => {
   const api = ws.link('ws://localhost/ws', {
-    protocol: new UppercaseWithHandshake(),
+    extensions: [new UppercaseWithHandshake()],
   })
   const onClientData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
@@ -249,12 +254,12 @@ test('sends the protocol handshake once the mocked connection opens', async ({
   ).not.toHaveBeenCalled()
 })
 
-test('does not send the protocol handshake on a passthrough connection', async ({
+test('does not send the extension handshake on a passthrough connection', async ({
   network,
   testServer,
 }) => {
   const serverUrl = testServer.ws.url('/?greet').href
-  const api = ws.link(serverUrl, { protocol: new UppercaseWithHandshake() })
+  const api = ws.link(serverUrl, { extensions: [new UppercaseWithHandshake()] })
   const onServerData = vi.fn<(data: unknown) => void>()
   const onSocketData = vi.fn<(data: unknown) => void>()
 
@@ -275,4 +280,62 @@ test('does not send the protocol handshake on a passthrough connection', async (
   await expect
     .poll(() => onSocketData, { message: 'forwards the server greeting' })
     .toHaveBeenCalledExactlyOnceWith('hello from server')
+})
+
+// Adds a greeting to every connection.
+class Greeting extends Uppercase {
+  public extend({ client }: WebSocketExtensionContext<string>): {
+    greeting: string
+  } {
+    return { greeting: `welcome to ${client.url.pathname}` }
+  }
+}
+
+test('exposes the extension API on the connection event', async ({
+  network,
+}) => {
+  const api = ws.link('ws://localhost/ws', { extensions: [new Greeting()] })
+  const onConnection = vi.fn<(greeting: string) => void>()
+
+  network.use(
+    api.addEventListener('connection', ({ greeting }) => {
+      onConnection(greeting)
+    }),
+  )
+
+  const socket = new WebSocket('ws://localhost/ws')
+  onTestFinished(() => socket.close())
+
+  await expect
+    .poll(() => onConnection)
+    .toHaveBeenCalledExactlyOnceWith('welcome to /ws')
+})
+
+// Adds a farewell to every connection.
+class Farewell extends Uppercase {
+  public extend(): { farewell: string } {
+    return { farewell: 'see you' }
+  }
+}
+
+test('merges the APIs of every extension, applied left to right', async ({
+  network,
+}) => {
+  const api = ws.link('ws://localhost/ws', {
+    extensions: [new Greeting(), new Farewell()],
+  })
+  const onConnection = vi.fn<(greeting: string, farewell: string) => void>()
+
+  network.use(
+    api.addEventListener('connection', ({ greeting, farewell }) => {
+      onConnection(greeting, farewell)
+    }),
+  )
+
+  const socket = new WebSocket('ws://localhost/ws')
+  onTestFinished(() => socket.close())
+
+  await expect
+    .poll(() => onConnection)
+    .toHaveBeenCalledExactlyOnceWith('welcome to /ws', 'see you')
 })

@@ -1,11 +1,14 @@
 import { Emitter, TypedEvent } from 'rettime'
 import { createRequestId, resolveWebSocketUrl } from '@mswjs/interceptors'
 import type {
-  WebSocketProtocol,
+  WebSocketData,
+  WebSocketExtension,
+  WebSocketExtensionMessage,
+  WebSocketExtensionApi,
   WebSocketConnectionInfo,
   WebSocketConnectionEventData,
-  WebSocketClientHandle,
-  WebSocketServerHandle,
+  WebSocketClientConnection,
+  WebSocketServerConnection,
 } from '@mswjs/interceptors/WebSocket'
 /**
  * @note A type-only import to prevent a runtime module cycle
@@ -29,32 +32,48 @@ type WebSocketHandlerParsedResult = {
 
 export interface WebSocketHandlerOptions {
   /**
-   * A WebSocket connection protocol to encode/decode the traffic.
+   * WebSocket extensions applied to every connection matched by this handler,
+   * left to right. The last one applied encodes and decodes the traffic,
+   * and every one of them extends the connection event with its own API.
    */
-  protocol?: WebSocketProtocol
+  extensions?: ReadonlyArray<AnyWebSocketExtension>
 }
 
-export type WebSocketHandlerEventMap = {
-  connection: WebSocketConnectionEvent
+export type AnyWebSocketExtension = WebSocketExtension<unknown, unknown>
+
+/**
+ * The connection event of a handler with the given extension:
+ * the connection speaks the extension's messages and the event
+ * carries the extension's own API (e.g. rooms).
+ */
+export type WebSocketHandlerConnectionEvent<
+  Extension extends AnyWebSocketExtension = WebSocketExtension,
+> = WebSocketConnectionEvent<WebSocketExtensionMessage<Extension>> &
+  WebSocketExtensionApi<Extension>
+
+export type WebSocketHandlerEventMap<
+  Extension extends AnyWebSocketExtension = WebSocketExtension,
+> = {
+  connection: WebSocketHandlerConnectionEvent<Extension>
 }
 
-export interface WebSocketHandlerConnection {
-  client: WebSocketClientHandle
-  server: WebSocketServerHandle
+export interface WebSocketHandlerConnection<Message = WebSocketData> {
+  client: WebSocketClientConnection<Message>
+  server: WebSocketServerConnection<Message>
   info: WebSocketConnectionInfo
   params: PathParams
 }
 
-export class WebSocketConnectionEvent
+export class WebSocketConnectionEvent<Message = WebSocketData>
   extends TypedEvent<void, void, 'connection'>
-  implements WebSocketHandlerConnection
+  implements WebSocketHandlerConnection<Message>
 {
-  public readonly client: WebSocketClientHandle
-  public readonly server: WebSocketServerHandle
+  public readonly client: WebSocketClientConnection<Message>
+  public readonly server: WebSocketServerConnection<Message>
   public readonly info: WebSocketConnectionInfo
   public readonly params: PathParams
 
-  constructor(connection: WebSocketHandlerConnection) {
+  constructor(connection: WebSocketHandlerConnection<Message>) {
     super('connection')
     this.client = connection.client
     this.server = connection.server
@@ -62,6 +81,15 @@ export class WebSocketConnectionEvent
     this.params = connection.params
   }
 }
+
+/**
+ * The connection resolved by a handler: the matched connection
+ * extended with the handler extension's own API.
+ */
+export type WebSocketHandlerResolvedConnection<
+  Extension extends AnyWebSocketExtension = WebSocketExtension,
+> = WebSocketHandlerConnection<WebSocketExtensionMessage<Extension>> &
+  WebSocketExtensionApi<Extension>
 
 export interface WebSocketResolutionContext {
   baseUrl?: string
@@ -83,14 +111,16 @@ export const kAutoConnect = Symbol('kAutoConnect')
 const kStopPropagationPatched = Symbol('kStopPropagationPatched')
 const KOnStopPropagation = Symbol('KOnStopPropagation')
 
-export class WebSocketHandler extends Handler {
+export class WebSocketHandler<
+  Extension extends AnyWebSocketExtension = WebSocketExtension,
+> extends Handler {
   public id: string
   public callFrame?: string
 
   public readonly kind = 'websocket'
 
-  protected [kEmitter]: Emitter<WebSocketHandlerEventMap>
-  protected readonly protocol?: WebSocketProtocol
+  protected [kEmitter]: Emitter<WebSocketHandlerEventMap<Extension>>
+  protected readonly extensions: ReadonlyArray<AnyWebSocketExtension>
 
   constructor(
     protected readonly url: Path,
@@ -99,7 +129,7 @@ export class WebSocketHandler extends Handler {
     super()
 
     this.id = createRequestId()
-    this.protocol = options?.protocol
+    this.extensions = options?.extensions ?? []
 
     this[kEmitter] = new Emitter()
     this.callFrame = getCallFrame(new Error())
@@ -159,7 +189,7 @@ export class WebSocketHandler extends Handler {
   public async run(
     connection: WebSocketConnectionEventData,
     resolutionContext?: WebSocketResolutionContext,
-  ): Promise<WebSocketHandlerConnection | null> {
+  ): Promise<WebSocketHandlerResolvedConnection<Extension> | null> {
     const parsedResult = this.#match(connection.client.url, resolutionContext)
 
     if (parsedResult == null) {
@@ -167,13 +197,27 @@ export class WebSocketHandler extends Handler {
     }
 
     // Every consumer of the connection objects (listeners, `link.broadcast()`,
-    // the logger) speaks the protocol's message domain from here on.
-    this.protocol?.apply(connection)
-
-    const resolvedConnection: WebSocketHandlerConnection = {
-      ...connection,
-      params: parsedResult.match.params || {},
+    // the logger) speaks the extensions' message domain from here on.
+    for (const extension of this.extensions) {
+      extension.apply(connection)
     }
+
+    /**
+     * @note Expose the extensions' own APIs (e.g. rooms) on the connection
+     * event, merged left to right. The link infers the merged type from the
+     * extensions it was given; `Object.assign` with a spread of sources is
+     * untyped, which is what allows the merged value to take that type.
+     */
+    const resolvedConnection: WebSocketHandlerResolvedConnection<Extension> =
+      Object.assign(
+        {
+          client: connection.client,
+          server: connection.server,
+          info: connection.info,
+          params: parsedResult.match.params || {},
+        },
+        ...this.extensions.map((extension) => extension.extend?.(connection)),
+      )
 
     if (resolutionContext?.[kAutoConnect] ?? true) {
       if (this[kConnect](resolvedConnection)) {
@@ -211,7 +255,9 @@ export class WebSocketHandler extends Handler {
     return null
   }
 
-  protected [kConnect](connection: WebSocketHandlerConnection): boolean {
+  protected [kConnect](
+    connection: WebSocketHandlerResolvedConnection<Extension>,
+  ): boolean {
     // Support `event.stopPropagation()` for various client/server events.
     connection.client.addEventListener(
       'message',
@@ -243,7 +289,10 @@ export class WebSocketHandler extends Handler {
      * @fixme Await these events (e.g. via `.emitAsPromise()`) to have
      * exceptions from asynchronous listeners propagate properly.
      */
-    return this[kEmitter].emit(new WebSocketConnectionEvent(connection))
+    return this[kEmitter].emit(
+      // Carry the extension's own API (e.g. rooms) over to the event.
+      Object.assign(new WebSocketConnectionEvent(connection), connection),
+    )
   }
 
   public log(connection: WebSocketConnectionEventData): () => void {

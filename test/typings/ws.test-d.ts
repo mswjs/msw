@@ -36,7 +36,7 @@ test('supports "connection" event listener', () => {
      * implements `WebSocketHandlerConnection`, exposing the connection
      * properties directly on the event.
      */
-    expectTypeOf(connection).toMatchTypeOf<WebSocketHandlerConnection>()
+    expectTypeOf(connection).toExtend<WebSocketHandlerConnection>()
   })
 })
 
@@ -83,7 +83,7 @@ test('supports "close" event listener on the client', () => {
 
   link.addEventListener('connection', ({ client }) => {
     client.addEventListener('close', (event) => {
-      expectTypeOf(event).toMatchTypeOf<CloseEvent>()
+      expectTypeOf(event).toExtend<CloseEvent>()
     })
   })
 })
@@ -131,7 +131,7 @@ test('supports "open" event listener on the server', () => {
 
   link.addEventListener('connection', ({ server }) => {
     server.addEventListener('open', (event) => {
-      expectTypeOf(event).toMatchTypeOf<Event>()
+      expectTypeOf(event).toExtend<Event>()
     })
   })
 })
@@ -141,7 +141,7 @@ test('supports "close" event listener on the server', () => {
 
   link.addEventListener('connection', ({ server }) => {
     server.addEventListener('close', (event) => {
-      expectTypeOf(event).toMatchTypeOf<CloseEvent>()
+      expectTypeOf(event).toExtend<CloseEvent>()
     })
   })
 })

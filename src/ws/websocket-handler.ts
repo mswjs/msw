@@ -7,8 +7,8 @@ import type {
   WebSocketExtensionApi,
   WebSocketConnectionInfo,
   WebSocketConnectionEventData,
-  WebSocketClientConnection,
-  WebSocketServerConnection,
+  WebSocketClientHandle,
+  WebSocketServerHandle,
 } from '@mswjs/interceptors/WebSocket'
 /**
  * @note A type-only import to prevent a runtime module cycle
@@ -57,9 +57,16 @@ export type WebSocketHandlerEventMap<
   connection: WebSocketHandlerConnectionEvent<Extension>
 }
 
+/**
+ * The connection matched by a handler.
+ *
+ * @note Typed against the connection handles, not the connection classes,
+ * so a handler accepts connections living anywhere (e.g. in another
+ * runtime, or a custom implementation of the handles).
+ */
 export interface WebSocketHandlerConnection<Message = WebSocketData> {
-  client: WebSocketClientConnection<Message>
-  server: WebSocketServerConnection<Message>
+  client: WebSocketClientHandle<Message>
+  server: WebSocketServerHandle<Message>
   info: WebSocketConnectionInfo
   params: PathParams
 }
@@ -68,8 +75,8 @@ export class WebSocketConnectionEvent<Message = WebSocketData>
   extends TypedEvent<void, void, 'connection'>
   implements WebSocketHandlerConnection<Message>
 {
-  public readonly client: WebSocketClientConnection<Message>
-  public readonly server: WebSocketServerConnection<Message>
+  public readonly client: WebSocketClientHandle<Message>
+  public readonly server: WebSocketServerHandle<Message>
   public readonly info: WebSocketConnectionInfo
   public readonly params: PathParams
 

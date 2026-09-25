@@ -1,7 +1,10 @@
-import type {
+import {
   WebSocketClientConnection,
-  WebSocketConnectionEventData,
-  WebSocketData,
+  WebSocketServerConnection,
+  type WebSocketClientHandle,
+  type WebSocketServerHandle,
+  type WebSocketConnectionEventData,
+  type WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
 import { devUtils } from '#core/utils/internal/dev-utils'
 import { getTimestamp } from '#core/utils/logging/get-timestamp'
@@ -42,7 +45,7 @@ export function attachWebSocketLogger(
   )
 
   // Log client errors (connection closures due to errors).
-  client.socket.addEventListener(
+  getClientSocket(client)?.addEventListener(
     'error',
     (event) => {
       logClientError(event)
@@ -59,12 +62,12 @@ export function attachWebSocketLogger(
         currentTarget: {
           enumerable: true,
           writable: false,
-          value: client.socket,
+          value: getClientSocket(client),
         },
         target: {
           enumerable: true,
           writable: false,
-          value: client.socket,
+          value: getClientSocket(client),
         },
       })
 
@@ -100,12 +103,12 @@ export function attachWebSocketLogger(
         currentTarget: {
           enumerable: true,
           writable: false,
-          value: server.socket,
+          value: getServerSocket(server),
         },
         target: {
           enumerable: true,
           writable: false,
-          value: server.socket,
+          value: getServerSocket(server),
         },
       })
 
@@ -136,7 +139,7 @@ export function attachWebSocketLogger(
  * that intercepted this connection. This helps you see
  * what handlers observe this connection.
  */
-function logConnectionOpen(client: WebSocketClientConnection) {
+function logConnectionOpen(client: WebSocketClientHandle) {
   const publicUrl = toPublicUrl(client.url)
 
   console.groupCollapsed(
@@ -145,8 +148,33 @@ function logConnectionOpen(client: WebSocketClientConnection) {
     'color:inherit',
   )
   // eslint-disable-next-line no-console
-  console.log('Client:', client.socket)
+  console.log('Client:', getClientSocket(client) ?? client)
   console.groupEnd()
+}
+
+/**
+ * Return the underlying `WebSocket` of the given client, if any.
+ * Only in-process client connections are backed by a socket;
+ * a handle to a connection elsewhere (e.g. another runtime) is not.
+ */
+function getClientSocket(client: WebSocketClientHandle): WebSocket | undefined {
+  if (client instanceof WebSocketClientConnection) {
+    return client.socket
+  }
+
+  return undefined
+}
+
+/**
+ * Return the underlying `WebSocket` of the given server, if any.
+ * Only in-process server connections are backed by a socket.
+ */
+function getServerSocket(server: WebSocketServerHandle): WebSocket | undefined {
+  if (server instanceof WebSocketServerConnection) {
+    return server.socket
+  }
+
+  return undefined
 }
 
 function logConnectionClose(event: CloseEvent) {

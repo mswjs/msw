@@ -4,8 +4,11 @@ import type {
   WebSocketLink,
   WebSocketHandlerConnection,
 } from 'msw/ws'
-import { ws, WebSocketExtension } from 'msw/ws'
-import type { WebSocketClientHandle } from '@mswjs/interceptors/WebSocket'
+import { ws, WebSocketExtension, WebSocketHandler } from 'msw/ws'
+import type {
+  WebSocketClientHandle,
+  WebSocketServerHandle,
+} from '@mswjs/interceptors/WebSocket'
 
 test('supports URL as the link argument', () => {
   expectTypeOf(ws.link('ws://localhost')).toEqualTypeOf<WebSocketLink>()
@@ -179,4 +182,68 @@ test('keeps a union message type of an extension intact', () => {
       expectTypeOf(event.data).toEqualTypeOf<Message>()
     })
   })
+})
+
+/**
+ * Custom connections.
+ */
+
+test('accepts custom connection handles as the handler connection', () => {
+  /**
+   * @note A connection handle can live anywhere (e.g. another runtime),
+   * so a custom implementation of the handles must satisfy the handler.
+   */
+  class CustomClientConnection implements WebSocketClientHandle {
+    public id = 'custom-client'
+    public url = new URL('ws://localhost')
+    public send: WebSocketClientHandle['send'] = () => {}
+    public close: WebSocketClientHandle['close'] = () => {}
+    public addEventListener: WebSocketClientHandle['addEventListener'] =
+      () => {}
+    public removeEventListener: WebSocketClientHandle['removeEventListener'] =
+      () => {}
+  }
+
+  class CustomServerConnection implements WebSocketServerHandle {
+    public connect: WebSocketServerHandle['connect'] = () => {}
+    public send: WebSocketServerHandle['send'] = () => {}
+    public close: WebSocketServerHandle['close'] = () => {}
+    public addEventListener: WebSocketServerHandle['addEventListener'] =
+      () => {}
+    public removeEventListener: WebSocketServerHandle['removeEventListener'] =
+      () => {}
+  }
+
+  expectTypeOf<CustomClientConnection>().toExtend<
+    WebSocketHandlerConnection['client']
+  >()
+  expectTypeOf<CustomServerConnection>().toExtend<
+    WebSocketHandlerConnection['server']
+  >()
+
+  const handler = new WebSocketHandler('ws://localhost')
+
+  handler.run({
+    client: new CustomClientConnection(),
+    server: new CustomServerConnection(),
+    info: {
+      protocols: undefined,
+    },
+  })
+
+  const connection: WebSocketHandlerConnection = {
+    client: new CustomClientConnection(),
+    server: new CustomServerConnection(),
+    info: {
+      protocols: undefined,
+    },
+    params: {},
+  }
+
+  expectTypeOf(connection.client.send)
+    .parameter(0)
+    .toEqualTypeOf<WebSocketData>()
+  expectTypeOf(connection.server.send)
+    .parameter(0)
+    .toEqualTypeOf<WebSocketData>()
 })

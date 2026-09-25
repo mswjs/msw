@@ -6,7 +6,8 @@ import {
   type HttpResponseEvent,
 } from '@mswjs/interceptors'
 import type {
-  WebSocketConnectionEventData,
+  WebSocketClientConnection,
+  WebSocketInterceptedConnection,
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
@@ -169,8 +170,16 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
 }
 
 class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
-  constructor(args: { connection: WebSocketConnectionEventData }) {
+  /**
+   * The in-process client connection, whose socket
+   * the frame dispatches errors on.
+   */
+  readonly #client: WebSocketClientConnection
+
+  constructor(args: { connection: WebSocketInterceptedConnection }) {
     super({ connection: args.connection })
+
+    this.#client = args.connection.client
 
     /**
      * @note Provide a similar frame listener cleanup as for HTTP.
@@ -189,8 +198,6 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
 
   public errorWith(reason?: unknown): void {
     if (reason instanceof Error) {
-      const { client } = this.data.connection
-
       /**
        * Use `client.errorWith(reason)` in the future.
        * @see https://github.com/mswjs/interceptors/issues/747
@@ -203,7 +210,7 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
         value: reason,
       })
 
-      client.socket.dispatchEvent(errorEvent)
+      this.#client.socket.dispatchEvent(errorEvent)
     }
   }
 

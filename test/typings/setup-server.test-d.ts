@@ -1,11 +1,14 @@
-import { http, HttpResponse, graphql } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 
-it('does not produce a type error when called without arguments', () => {
+const api = graphql.link('https://api.example.com/graphql')
+
+test('does not produce a type error when called without arguments', () => {
   setupServer()
 })
 
-it('accepts a single HTTP request handler', () => {
+test('accepts a single HTTP request handler', () => {
   setupServer(
     http.get('/user', () => {
       return HttpResponse.json({ name: 'John Doe' })
@@ -18,20 +21,20 @@ it('accepts a single HTTP request handler', () => {
   )
 })
 
-it('accepts a single GraphQL request handler', () => {
+test('accepts a single GraphQL request handler', () => {
   setupServer(
-    graphql.query('GetUser', () => {
+    api.query('GetUser', () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )
   setupServer(
-    graphql.query('GetUser', async () => {
+    api.query('GetUser', async () => {
       return HttpResponse.json({ data: { name: 'John Doe' } })
     }),
   )
 })
 
-it('supports a list of request handlers defined elsewhere', () => {
+test('supports a list of request handlers defined elsewhere', () => {
   const handlers = [
     http.get('/user', () => {
       return HttpResponse.json({ name: 'John Doe' })

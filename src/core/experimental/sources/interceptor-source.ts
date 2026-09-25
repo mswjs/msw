@@ -1,11 +1,17 @@
 import type { Interceptor, RequestController } from '@mswjs/interceptors'
-import { BatchInterceptor, type HttpRequestEventMap } from '@mswjs/interceptors'
+import {
+  BatchInterceptor,
+  type HttpRequestEventMap,
+  type HttpRequestEvent,
+  type HttpResponseEvent,
+} from '@mswjs/interceptors'
 import type {
-  WebSocketConnectionData,
+  WebSocketClientConnection,
+  WebSocketInterceptedConnection,
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
-import { InternalError } from '../../utils/internal/devUtils'
+import { InternalError } from '../../utils/internal/dev-utils'
 import { HttpNetworkFrame, ResponseEvent } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
 import { deleteRequestPassthroughHeader } from '../request-utils'
@@ -20,10 +26,19 @@ export interface InterceptorSourceOptions {
 export class InterceptorSource extends NetworkSource {
   #interceptor: BatchInterceptor<
     InterceptorSourceOptions['interceptors'],
-    HttpRequestEventMap | WebSocketEventMap
+    HttpRequestEventMap & WebSocketEventMap
   >
 
-  #frames: Map<string, HttpNetworkFrame>
+  /**
+   * @note Frames are keyed by the request instance, not the request ID.
+   * The interceptor emits the same request instance on the "request"
+   * and "response" events, so the frame can be looked up by identity.
+   * A weak reference lets the frame be garbage collected alongside
+   * its request once the request settles without producing a response
+   * (e.g. a passthrough request failing with a network error).
+   * @see https://github.com/mswjs/msw/issues/2792
+   */
+  #frames: WeakMap<Request, HttpNetworkFrame>
 
   constructor(options: InterceptorSourceOptions) {
     super()
@@ -32,19 +47,16 @@ export class InterceptorSource extends NetworkSource {
       name: 'interceptor-source',
       interceptors: options.interceptors,
     })
-    this.#frames = new Map()
+    this.#frames = new WeakMap()
   }
 
   public enable(): void {
     this.#interceptor.apply()
 
-    /**
-     * @todo @fixme BatchInterceptor infers event types but not listener types.
-     */
     this.#interceptor
-      .on('request', this.#handleRequest.bind(this) as any)
-      .on('response', this.#handleResponse.bind(this) as any)
-      .on('connection', this.#handleWebSocketConnection.bind(this) as any)
+      .on('request', this.#handleRequest.bind(this))
+      .on('response', this.#handleResponse.bind(this))
+      .on('connection', this.#handleWebSocketConnection.bind(this))
   }
 
   public disable(): void {
@@ -55,21 +67,18 @@ export class InterceptorSource extends NetworkSource {
      * @todo We can also abort any pending frames here, given we implement
      * the `NetworkFrame.abort()` method.
      */
-    this.#frames.clear()
+    this.#frames = new WeakMap()
   }
 
-  async #handleRequest({
-    requestId,
-    request,
-    controller,
-  }: HttpRequestEventMap['request'][0]): Promise<void> {
+  async #handleRequest(event: HttpRequestEvent): Promise<void> {
+    const { requestId, request, controller } = event
     const httpFrame = new InterceptorHttpNetworkFrame({
       id: requestId,
       request,
       controller,
     })
 
-    this.#frames.set(requestId, httpFrame)
+    this.#frames.set(request, httpFrame)
     await this.queue(httpFrame)
   }
 
@@ -77,10 +86,10 @@ export class InterceptorSource extends NetworkSource {
     requestId,
     request,
     response,
-    isMockedResponse,
-  }: HttpRequestEventMap['response'][0]): Promise<void> {
-    const httpFrame = this.#frames.get(requestId)
-    this.#frames.delete(requestId)
+    responseType,
+  }: HttpResponseEvent): Promise<void> {
+    const httpFrame = this.#frames.get(request)
+    this.#frames.delete(request)
 
     if (httpFrame == null) {
       return
@@ -90,7 +99,7 @@ export class InterceptorSource extends NetworkSource {
       try {
         httpFrame.events.emit(
           new ResponseEvent(
-            isMockedResponse ? 'response:mocked' : 'response:bypass',
+            responseType === 'mock' ? 'response:mocked' : 'response:bypass',
             {
               requestId,
               request,
@@ -111,7 +120,7 @@ export class InterceptorSource extends NetworkSource {
   }
 
   async #handleWebSocketConnection(
-    connection: WebSocketEventMap['connection'][0],
+    connection: WebSocketEventMap['connection'],
   ): Promise<void> {
     await this.queue(
       new InterceptorWebSocketNetworkFrame({
@@ -161,8 +170,16 @@ class InterceptorHttpNetworkFrame extends HttpNetworkFrame {
 }
 
 class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
-  constructor(args: { connection: WebSocketConnectionData }) {
+  /**
+   * The in-process client connection, whose socket
+   * the frame dispatches errors on.
+   */
+  readonly #client: WebSocketClientConnection
+
+  constructor(args: { connection: WebSocketInterceptedConnection }) {
     super({ connection: args.connection })
+
+    this.#client = args.connection.client
 
     /**
      * @note Provide a similar frame listener cleanup as for HTTP.
@@ -181,8 +198,6 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
 
   public errorWith(reason?: unknown): void {
     if (reason instanceof Error) {
-      const { client } = this.data.connection
-
       /**
        * Use `client.errorWith(reason)` in the future.
        * @see https://github.com/mswjs/interceptors/issues/747
@@ -195,7 +210,7 @@ class InterceptorWebSocketNetworkFrame extends WebSocketNetworkFrame {
         value: reason,
       })
 
-      client.socket.dispatchEvent(errorEvent)
+      this.#client.socket.dispatchEvent(errorEvent)
     }
   }
 

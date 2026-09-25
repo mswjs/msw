@@ -2,7 +2,7 @@ import { http, type HttpResponseResolver } from 'msw'
 
 const resolver: HttpResponseResolver<any, any, any> = () => void 0
 
-it('supports custom predicate', () => {
+test('supports custom predicate', () => {
   http.get(({ request, cookies }) => {
     expectTypeOf(request).toEqualTypeOf<Request>()
     expectTypeOf(cookies).toEqualTypeOf<Record<string, string>>()
@@ -22,7 +22,7 @@ it('supports custom predicate', () => {
   http.get(() => null, resolver)
 })
 
-it('supports returning path parameters from the custom predicate', () => {
+test('supports returning path parameters from the custom predicate', () => {
   // Implicit path parameters type.
   http.get(
     () => ({
@@ -46,7 +46,7 @@ it('supports returning path parameters from the custom predicate', () => {
   )
 })
 
-it('supports returning extended match result from a custom predicate', () => {
+test('supports returning extended match result from a custom predicate', () => {
   http.get(() => ({ matches: true, params: {} }), resolver)
   http.get(() => ({ matches: false, params: {} }), resolver)
 

@@ -48,7 +48,7 @@ class TestWebSocketFrame extends WebSocketNetworkFrame {
   errorWith = () => {}
 }
 
-it('does not print any warnings or errors using the "bypass" strategy', async () => {
+test('does not print any warnings or errors using the "bypass" strategy', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestHttpFrame(new Request('http://localhost/test')),
@@ -59,7 +59,7 @@ it('does not print any warnings or errors using the "bypass" strategy', async ()
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('prints a warning for the HTTP frame using the "warn" strategy', async () => {
+test('prints a warning for the HTTP frame using the "warn" strategy', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestHttpFrame(new Request('http://localhost/test')),
@@ -79,14 +79,14 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`,
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('rejects and prints an error for the HTTP frame using the "error" strategy', async () => {
+test('rejects and prints an error for the HTTP frame using the "error" strategy', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestHttpFrame(new Request('http://localhost/test')),
       'error',
     ),
   ).rejects.toThrow(
-    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.`,
   )
 
   expect.soft(console.error).toHaveBeenCalledOnce()
@@ -101,7 +101,7 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`,
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('invokes the custom callback for the HTTP frame', async () => {
+test('invokes the custom callback for the HTTP frame', async () => {
   const callback = vi.fn()
   const frame = new TestHttpFrame(new Request('http://localhost/test'))
 
@@ -119,7 +119,7 @@ it('invokes the custom callback for the HTTP frame', async () => {
   })
 })
 
-it('does not print anything for common asset HTTP requests', async () => {
+test('does not print anything for common asset HTTP requests', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestHttpFrame(new Request('http://localhost/image.png')),
@@ -141,7 +141,7 @@ it('does not print anything for common asset HTTP requests', async () => {
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('delegates common asset HTTP requests handling to the custom callback', async () => {
+test('delegates common asset HTTP requests handling to the custom callback', async () => {
   const callback = vi.fn()
   const frame = new TestHttpFrame(new Request('http://localhost/image.png'))
 
@@ -159,7 +159,7 @@ it('delegates common asset HTTP requests handling to the custom callback', async
   })
 })
 
-it('supports printing the default warning in the custom callback for the HTTP frame', async () => {
+test('supports printing the default warning in the custom callback for the HTTP frame', async () => {
   const callback = vi.fn<UnhandledFrameCallback>(({ defaults }) => {
     defaults.warn()
   })
@@ -189,7 +189,7 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`,
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('supports printing the default error in the custom callback for the HTTP frame', async () => {
+test('supports printing the default error in the custom callback for the HTTP frame', async () => {
   const callback = vi.fn<UnhandledFrameCallback>(({ defaults }) => {
     defaults.error()
   })
@@ -219,7 +219,7 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`,
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('throws if given an unknown strategy for the HTTP frame', async () => {
+test('throws if given an unknown strategy for the HTTP frame', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestHttpFrame(new Request('http://localhost/test')),
@@ -227,11 +227,11 @@ it('throws if given an unknown strategy for the HTTP frame', async () => {
       'intentionally-invalid',
     ),
   ).rejects.toThrow(
-    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.`,
+    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledFrame" option.`,
   )
 })
 
-it('prints a warning for the WebSocket frame using the "warn" strategy', async () => {
+test('prints a warning for the WebSocket frame using the "warn" strategy', async () => {
   await expect(
     executeUnhandledFrameHandle(new TestWebSocketFrame(), 'warn'),
   ).resolves.toBeUndefined()
@@ -248,11 +248,11 @@ Read more: https://mswjs.io/docs/websocket`,
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('rejects and prints an error for the WebSocket frame using the "error" strategy', async () => {
+test('rejects and prints an error for the WebSocket frame using the "error" strategy', async () => {
   await expect(
     executeUnhandledFrameHandle(new TestWebSocketFrame(), 'error'),
   ).rejects.toThrow(
-    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.`,
+    `[MSW] Cannot bypass a request when using the "error" strategy for the "onUnhandledFrame" option.`,
   )
 
   expect.soft(console.error).toHaveBeenCalledOnce()
@@ -267,7 +267,7 @@ Read more: https://mswjs.io/docs/websocket`,
   expect(console.warn).not.toHaveBeenCalled()
 })
 
-it('invokes the custom callback for the WebSocket frame', async () => {
+test('invokes the custom callback for the WebSocket frame', async () => {
   const callback = vi.fn()
   const frame = new TestWebSocketFrame()
 
@@ -285,7 +285,7 @@ it('invokes the custom callback for the WebSocket frame', async () => {
   })
 })
 
-it('throws if given an unknown strategy for the WebSocket frame', async () => {
+test('throws if given an unknown strategy for the WebSocket frame', async () => {
   await expect(
     executeUnhandledFrameHandle(
       new TestWebSocketFrame(),
@@ -293,11 +293,11 @@ it('throws if given an unknown strategy for the WebSocket frame', async () => {
       'intentionally-invalid',
     ),
   ).rejects.toThrow(
-    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.`,
+    `[MSW] Failed to react to an unhandled network frame: unknown strategy "intentionally-invalid". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledFrame" option.`,
   )
 })
 
-it('supports printing the default warning in the custom callback for the HTTP frame', async () => {
+test('supports printing the default warning in the custom callback for the HTTP frame', async () => {
   const callback = vi.fn<UnhandledFrameCallback>(({ defaults }) => {
     defaults.warn()
   })
@@ -327,7 +327,7 @@ Read more: https://mswjs.io/docs/websocket`,
   expect(console.error).not.toHaveBeenCalled()
 })
 
-it('supports printing the default error in the custom callback for the HTTP frame', async () => {
+test('supports printing the default error in the custom callback for the HTTP frame', async () => {
   const callback = vi.fn<UnhandledFrameCallback>(({ defaults }) => {
     defaults.error()
   })

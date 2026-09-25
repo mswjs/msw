@@ -1,4 +1,4 @@
-import { it } from 'vitest'
+import { test } from 'vitest'
 import { sse } from 'msw'
 
 /**
@@ -7,14 +7,14 @@ import { sse } from 'msw'
  */
 Object.defineProperty(global, 'EventSource', { value: () => {} })
 
-it('supports sending anything without an explicit event map type', () => {
+test('supports sending anything without an explicit event map type', () => {
   sse('/stream', ({ client }) => {
     client.send({ data: 123 })
     client.send({ data: 'hello' })
   })
 })
 
-it('supports an optional "id" property', () => {
+test('supports an optional "id" property', () => {
   sse('/stream', ({ client }) => {
     client.send({ id: '1', data: 'hello' })
   })
@@ -30,7 +30,7 @@ it('supports an optional "id" property', () => {
   })
 })
 
-it('supports custom event map type', () => {
+test('supports custom event map type', () => {
   sse<{ myevent: string }>('/stream', ({ client }) => {
     client.send({
       event: 'myevent',
@@ -54,7 +54,7 @@ it('supports custom event map type', () => {
   })
 })
 
-it('supports event map type argument for unnamed events', () => {
+test('supports event map type argument for unnamed events', () => {
   sse<{ message: number; custom: string; other: boolean }>(
     '/stream',
     ({ client }) => {
@@ -111,7 +111,7 @@ it('supports event map type argument for unnamed events', () => {
   )
 })
 
-it('supports optional mnessage data', () => {
+test('supports optional mnessage data', () => {
   sse<{ message?: string }>('/stream', ({ client }) => {
     // No data is fine because data is optional.
     client.send({})
@@ -142,7 +142,7 @@ it('supports optional mnessage data', () => {
   })
 })
 
-it('supports optional event data', () => {
+test('supports optional event data', () => {
   sse<{ maybe?: string }>('/stream', ({ client }) => {
     // No data is fine because data is optional.
     client.send({ event: 'maybe' })
@@ -160,7 +160,7 @@ it('supports optional event data', () => {
   })
 })
 
-it('supports sending custom retry duration', () => {
+test('supports sending custom retry duration', () => {
   sse<{ custom: 'goodbye' }>('/stream', ({ client }) => {
     /**
      * @note TS 5.0 reports errors at different locations
@@ -181,7 +181,7 @@ it('supports sending custom retry duration', () => {
   })
 })
 
-it('supports a "finalize" function', () => {
+test('supports a "finalize" function', () => {
   sse('/ping', ({ finalize }) => {
     expectTypeOf(finalize).toEqualTypeOf<
       (callback: () => Promise<void> | void) => void

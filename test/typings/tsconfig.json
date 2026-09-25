@@ -1,14 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    // Use non-strict TypeScript configuration because Vitest only ever
-    // generates a single "tsconfig.json" during the typecheck run
-    // but we are running against different versions of TypeScript.
-    // Keeping strict mode will error with "Unknown compiler option" errors.
-    "strict": false,
-    "strictNullChecks": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
+    "strict": true,
     "rootDir": "../..",
     "lib": ["dom", "es2015", "DOM.Iterable"]
   },

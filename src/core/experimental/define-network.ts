@@ -4,21 +4,16 @@ import {
   NetworkSource,
   type ExtractSourceEvents,
 } from './sources/network-source'
-import { type NetworkFrameResolutionContext } from './frames/network-frame'
-import { type UnhandledFrameHandle } from './on-unhandled-frame'
+import type { NetworkFrameResolutionContext } from './frames/network-frame'
+import type { UnhandledFrameHandle } from './on-unhandled-frame'
 import {
   HandlersController,
   InMemoryHandlersController,
   type AnyHandler,
 } from './handlers-controller'
-import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
-import { Disposable } from '../utils/internal/Disposable'
-
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I,
-) => void
-  ? I
-  : never
+import { toReadonlyArray } from '../utils/internal/to-readonly-array'
+import { Disposable } from '../utils/internal/disposable'
+import type { UnionToIntersection } from '../type-utils'
 
 type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
   UnionToIntersection<ExtractSourceEvents<Sources[number]>> extends infer R
@@ -69,7 +64,7 @@ export interface NetworkApi<
   events: Emitter<MergeEventMaps<Sources>>
 }
 
-export interface NetworkHandlersApi {
+interface NetworkHandlersApi {
   use: (...handlers: Array<AnyHandler>) => void
   resetHandlers: (...handlers: Array<AnyHandler>) => void
   restoreHandlers: () => void
@@ -222,10 +217,34 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       )
 
       readyState = NetworkReadyState.DISABLED
+
+      // Let the handlers release the resources they hold before
+      // tearing down the network itself. Handlers may still need the
+      // network while disposing of themselves (e.g. to close the
+      // connections they own).
+      const handlersDisposal = handlersController.dispose()
       disposable.dispose()
 
-      return colorlessPromiseAll(
+      /**
+       * @note Tear down the sources synchronously, never behind the
+       * handlers disposal. `disable()` is not always awaited (e.g.
+       * `server.close()` is synchronous), and a deferred teardown would
+       * race any `enable()` that follows, disabling the sources that the
+       * new session has just enabled.
+       */
+      const sourcesDisposal = colorlessPromiseAll(
         resolvedOptions.sources.map((source) => source.disable()),
+      )
+
+      /**
+       * @note Await both disposals so neither rejection goes unobserved.
+       * Chaining them would leave the source disposal floating whenever
+       * the handlers disposal rejects.
+       */
+      return (
+        handlersDisposal instanceof Promise
+          ? Promise.all([handlersDisposal, sourcesDisposal]).then(() => {})
+          : sourcesDisposal
       ) as MaybePromise<ReturnType<Sources[number]['disable']>>
     },
     use(...handlers) {
@@ -238,7 +257,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
       handlersController.restore()
     },
     listHandlers() {
-      return toReadonlyArray(handlersController.currentHandlers())
+      return toReadonlyArray(handlersController.listHandlers())
     },
   }
 }

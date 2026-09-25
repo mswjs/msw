@@ -1,24 +1,24 @@
 import { observeResponseBodyStream } from './observe-response-body-stream'
 
-it('returns null for a response without a body', () => {
+test('returns null for a response without a body', () => {
   expect(observeResponseBodyStream(new Response(null))).toBeNull()
 })
 
-it('returns null for a response whose body is already used', async () => {
+test('returns null for a response whose body is already used', async () => {
   const response = new Response('hello')
   await response.text()
 
   expect(observeResponseBodyStream(response)).toBeNull()
 })
 
-it('returns null for a response whose body is locked', () => {
+test('returns null for a response whose body is locked', () => {
   const response = new Response('hello')
   response.body?.getReader()
 
   expect(observeResponseBodyStream(response)).toBeNull()
 })
 
-it('resolves "settled" when the response body is read to completion', async () => {
+test('resolves "settled" when the response body is read to completion', async () => {
   const observed = observeResponseBodyStream(new Response('hello'))
   expect(observed).not.toBeNull()
 
@@ -26,7 +26,7 @@ it('resolves "settled" when the response body is read to completion', async () =
   await expect(observed?.settled).resolves.toBeUndefined()
 })
 
-it('resolves "settled" when the response body errors', async () => {
+test('resolves "settled" when the response body errors', async () => {
   const stream = new ReadableStream({
     start(controller) {
       controller.error(new Error('stream error'))
@@ -39,7 +39,7 @@ it('resolves "settled" when the response body errors', async () => {
   await expect(observed?.settled).resolves.toBeUndefined()
 })
 
-it('resolves "settled" when the response body is canceled', async () => {
+test('resolves "settled" when the response body is canceled', async () => {
   const stream = new ReadableStream({
     pull(controller) {
       controller.enqueue(new TextEncoder().encode('ping'))
@@ -55,7 +55,7 @@ it('resolves "settled" when the response body is canceled', async () => {
   await expect(observed?.settled).resolves.toBeUndefined()
 })
 
-it('resolves "settled" when the response body is consumed via piping', async () => {
+test('resolves "settled" when the response body is consumed via piping', async () => {
   const observed = observeResponseBodyStream(new Response('hello'))
   expect(observed).not.toBeNull()
 

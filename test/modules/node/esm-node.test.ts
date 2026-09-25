@@ -1,6 +1,43 @@
 import url from 'node:url'
 import { createTeardown } from 'fs-teardown'
 import { installLibrary } from '../module-utils'
+import packageJson from '../../../package.json' with { type: 'json' }
+
+const exportsMap: Record<
+  string,
+  string | { default?: string | null } | undefined
+> = packageJson.exports
+
+/**
+ * Resolve the relative file path of the given export entry
+ * from the package.json exports map (the source of truth).
+ */
+function getExportPath(exportName: string): string {
+  const entry = exportsMap[exportName]
+  const target = typeof entry === 'string' ? entry : entry?.default
+
+  if (!target) {
+    throw new Error(`Export "${exportName}" has no default target`)
+  }
+
+  return target.replace(/^\.\//, '')
+}
+
+function expectResolvedExport(
+  stdout: string,
+  specifier: string,
+  exportName: string,
+): void {
+  const escape = (value: string) =>
+    value.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+
+  expect(stdout).toMatch(
+    new RegExp(
+      `^${escape(specifier)}: (.+?)/node_modules/msw/${escape(getExportPath(exportName))}$`,
+      'm',
+    ),
+  )
+}
 
 const fsMock = createTeardown({
   rootDir: url.fileURLToPath(new URL('node-esm-tests', import.meta.url)),
@@ -22,12 +59,11 @@ test.afterAll(async ({}, { result }) => {
   await fsMock.cleanup()
 })
 
-it('runs in a ESM Node.js project', async () => {
+test('runs in a ESM Node.js project', async () => {
   await fsMock.create({
     'resolve.mjs': `
 console.log('msw:', await import.meta.resolve('msw'))
 console.log('msw/node:', await import.meta.resolve('msw/node'))
-console.log('msw/native:', await import.meta.resolve('msw/native'))
 `,
     'runtime.mjs': `
 import { http } from 'msw'
@@ -48,19 +84,8 @@ console.log(typeof server.listen)
     'node --experimental-import-meta-resolve ./resolve.mjs',
   )
   expect(resolveStdio.stderr).toBe('')
-  /**
-   * @todo Take these expected export paths from package.json.
-   * That should be the source of truth.
-   */
-  expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.mjs/m,
-  )
+  expectResolvedExport(resolveStdio.stdout, 'msw', '.')
+  expectResolvedExport(resolveStdio.stdout, 'msw/node', './node')
 
   /**
    * @todo Also test the "msw/browser" import that throws,
@@ -73,12 +98,11 @@ console.log(typeof server.listen)
   expect(runtimeStdio.stdout).toMatch(/function/m)
 })
 
-it('runs in a CJS Node.js project', async () => {
+test('runs in a CJS Node.js project', async () => {
   await fsMock.create({
     'resolve.cjs': `
 console.log('msw:', require.resolve('msw'))
 console.log('msw/node:', require.resolve('msw/node'))
-console.log('msw/native:', require.resolve('msw/native'))
 `,
     'runtime.cjs': `
 const { http } = require('msw')
@@ -94,28 +118,14 @@ console.log(typeof server.listen)
   expect(resolveStdio.stderr).toBe('')
 
   /**
-   * @todo Take these expected export paths from package.json.
-   * That should be the source of truth.
-   */
-
-  /**
    * @note Although the test requires the package in CJS,
-   * the "module-sync" condition allows loading the ESM build.
-   * This is supported in Node.js v20+.
+   * Node.js v22+ supports requiring ESM modules synchronously
+   * (the "require(esm)" feature).
    */
-  expect(resolveStdio.stdout).toMatch(
-    /^msw: (.+?)\/node_modules\/msw\/lib\/core\/index\.mjs/m,
-  )
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/node: (.+?)\/node_modules\/msw\/lib\/node\/index\.mjs/m,
-  )
+  expectResolvedExport(resolveStdio.stdout, 'msw', '.')
+  expectResolvedExport(resolveStdio.stdout, 'msw/node', './node')
 
-  // Must load regular CJS build for React Native.
-  expect(resolveStdio.stdout).toMatch(
-    /^msw\/native: (.+?)\/node_modules\/msw\/lib\/native\/index\.js/m,
-  )
-
-  const runtimeStdio = await fsMock.exec('node ./runtime.mjs')
+  const runtimeStdio = await fsMock.exec('node ./runtime.cjs')
   expect(runtimeStdio.stderr).toBe('')
   expect(runtimeStdio.stdout).toMatch(/function/m)
 })

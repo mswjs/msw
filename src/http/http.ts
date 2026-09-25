@@ -2,14 +2,14 @@ import type {
   DefaultBodyType,
   RequestHandlerOptions,
   ResponseResolver,
-} from '#core/handlers/RequestHandler'
+} from '#core/handlers/request-handler'
 import {
   HttpMethods,
   HttpHandler,
   type HttpRequestResolverExtras,
   type HttpRequestPredicate,
 } from './http-handler'
-import type { PathParams } from '#core/utils/matching/matchRequestUrl'
+import type { PathParams } from '#core/utils/matching/match-request-url'
 
 export type HttpRequestHandler = <
   Params extends PathParams<keyof Params> = PathParams,

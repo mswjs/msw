@@ -3,10 +3,10 @@ import { setTimeout } from 'node:timers/promises'
 import { http, passthrough, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { graphql } from 'msw/graphql'
-import { createClient } from '../support/graphqlClient'
+import { createClient } from '../support/graphql-client'
 import { createSchema } from 'graphql-yoga'
 import { gql } from '../support/graphql'
-import { createTestGraphQLServer } from '../support/graphqlServer'
+import { createTestGraphQLServer } from '../support/graphql-server'
 
 const server = setupServer()
 

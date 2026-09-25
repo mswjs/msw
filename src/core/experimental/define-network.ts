@@ -11,9 +11,9 @@ import {
   InMemoryHandlersController,
   type AnyHandler,
 } from './handlers-controller'
-import { toReadonlyArray } from '../utils/internal/toReadonlyArray'
-import { Disposable } from '../utils/internal/Disposable'
-import type { UnionToIntersection } from '../typeUtils'
+import { toReadonlyArray } from '../utils/internal/to-readonly-array'
+import { Disposable } from '../utils/internal/disposable'
+import type { UnionToIntersection } from '../type-utils'
 
 type MergeEventMaps<Sources extends Array<NetworkSource<any>>> =
   UnionToIntersection<ExtractSourceEvents<Sources[number]>> extends infer R

@@ -1,15 +1,15 @@
 import { invariant } from 'outvariant'
-import type { RequestHandler } from '../handlers/RequestHandler'
+import type { RequestHandler } from '../handlers/request-handler'
 import type {
   WebSocketHandler,
   AnyWebSocketExtension,
 } from '#ws/websocket-handler'
-import { devUtils } from '../utils/internal/devUtils'
-import type { MaybePromise } from '../typeUtils'
+import { devUtils } from '../utils/internal/dev-utils'
+import type { MaybePromise } from '../type-utils'
 import {
   getSiblingHandlers,
   isSiblingHandler,
-} from '../utils/internal/attachSiblingHandlers'
+} from '../utils/internal/attach-sibling-handlers'
 
 export type AnyHandler =
   RequestHandler | WebSocketHandler<AnyWebSocketExtension>

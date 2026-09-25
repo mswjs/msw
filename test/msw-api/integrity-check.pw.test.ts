@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { inlineSource, test, expect } from '../setup/playwright'
-import copyServiceWorker from '../../config/copyServiceWorker'
+import copyServiceWorker from '../../config/copy-service-worker'
 import packageJson from '../../package.json' with { type: 'json' }
 // @ts-expect-error Importing a Javascript module.
 import { SERVICE_WORKER_SOURCE_PATH } from '../../config/constants.js'

@@ -5,7 +5,7 @@ import * as glob from 'glob'
 import {
   getWorkerChecksum,
   copyWorkerPlugin,
-} from './config/plugins/rolldown/copyWorkerPlugin.ts'
+} from './config/plugins/rolldown/copy-worker-plugin.ts'
 
 const packageJson = JSON.parse(
   fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'),

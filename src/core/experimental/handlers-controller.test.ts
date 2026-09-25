@@ -4,7 +4,7 @@ import { ws } from '../../ws'
 import {
   attachSiblingHandlers,
   getSiblingHandlers,
-} from '../utils/internal/attachSiblingHandlers'
+} from '../utils/internal/attach-sibling-handlers'
 import {
   groupHandlersByKind,
   InMemoryHandlersController,

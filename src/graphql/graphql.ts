@@ -1,7 +1,7 @@
 import type {
   ResponseResolver,
   RequestHandlerOptions,
-} from '#core/handlers/RequestHandler'
+} from '#core/handlers/request-handler'
 import {
   GraphQLHandler,
   type GraphQLVariables,
@@ -12,9 +12,9 @@ import {
   type GraphQLPredicate,
 } from './graphql-handler'
 import { createRequestId } from '@mswjs/interceptors'
-import { getAllRequestCookies } from '#core/utils/request/getRequestCookies'
-import type { Path } from '#core/utils/matching/matchRequestUrl'
-import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
+import { getAllRequestCookies } from '#core/utils/request/get-request-cookies'
+import type { Path } from '#core/utils/matching/match-request-url'
+import { attachSiblingHandlers } from '#core/utils/internal/attach-sibling-handlers'
 import {
   createGraphQLSubscriptionHandler,
   type GraphQLSubscriptionHandlerFactory,

@@ -1,6 +1,6 @@
 import { until } from 'until-async'
-import { devUtils } from '#core/utils/internal/devUtils'
-import { getAbsoluteWorkerUrl } from './getAbsoluteWorkerUrl'
+import { devUtils } from '#core/utils/internal/dev-utils'
+import { getAbsoluteWorkerUrl } from './get-absolute-worker-url'
 import { getWorkerByRegistration } from './get-worker-by-registration'
 import type { ServiceWorkerInstanceTuple, FindWorker } from '../glossary'
 

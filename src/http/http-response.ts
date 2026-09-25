@@ -2,8 +2,8 @@ import { FetchResponse } from '@mswjs/interceptors'
 import type {
   DefaultBodyType,
   JsonBodyType,
-} from '#core/handlers/RequestHandler'
-import type { TransparentNoInfer } from '#core/typeUtils'
+} from '#core/handlers/request-handler'
+import type { TransparentNoInfer } from '#core/type-utils'
 import {
   decorateResponse,
   normalizeResponseInit,

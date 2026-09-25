@@ -2,23 +2,23 @@ import { invariant } from 'outvariant'
 import type { Emitter } from 'rettime'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/experimental/sources/network-source'
-import { RequestHandler } from '#core/handlers/RequestHandler'
+import { RequestHandler } from '#core/handlers/request-handler'
 import {
   HttpNetworkFrame,
   ResponseEvent,
 } from '#core/experimental/frames/http-frame'
 import { HttpResponse } from '#http/http-response'
-import { toResponseInit } from '#core/utils/toResponseInit'
-import { devUtils } from '#core/utils/internal/devUtils'
+import { toResponseInit } from '#core/utils/to-response-init'
+import { devUtils } from '#core/utils/internal/dev-utils'
 import {
   supportsReadableStreamTransfer,
   supportsServiceWorker,
 } from '../utils/supports'
 import { getWorkerInstance } from '../utils/get-worker-instance'
-import type { WorkerChannelEventMap } from '../utils/workerChannel'
-import { WorkerChannel } from '../utils/workerChannel'
+import type { WorkerChannelEventMap } from '../utils/worker-channel'
+import { WorkerChannel } from '../utils/worker-channel'
 import type { FindWorker } from '../glossary'
-import { deserializeRequest } from '../utils/deserializeRequest'
+import { deserializeRequest } from '../utils/deserialize-request'
 import { validateWorkerScope } from '../utils/validate-worker-scope'
 import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'
 

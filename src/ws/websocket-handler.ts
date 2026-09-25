@@ -20,10 +20,10 @@ import {
   type Path,
   type PathParams,
   matchRequestUrl,
-} from '#core/utils/matching/matchRequestUrl'
-import { isAbsoluteUrl } from '#core/utils/url/isAbsoluteUrl'
-import { Handler } from '#core/handlers/Handler'
-import { getCallFrame } from '#core/utils/internal/getCallFrame'
+} from '#core/utils/matching/match-request-url'
+import { isAbsoluteUrl } from '#core/utils/url/is-absolute-url'
+import { Handler } from '#core/handlers/handler'
+import { getCallFrame } from '#core/utils/internal/get-call-frame'
 import { attachWebSocketLogger } from './utils/attach-websocket-logger'
 
 type WebSocketHandlerParsedResult = {

@@ -13,14 +13,14 @@ import {
   type AnyWebSocketExtension,
   type WebSocketHandlerEventMap,
 } from './websocket-handler'
-import { hasRefCounted } from '#core/utils/internal/hasRefCounted'
-import type { UnionToIntersection } from '#core/typeUtils'
+import { hasRefCounted } from '#core/utils/internal/has-ref-counted'
+import type { UnionToIntersection } from '#core/type-utils'
 import {
   type Path,
   type PathParams,
   isPath,
-} from '#core/utils/matching/matchRequestUrl'
-import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
+} from '#core/utils/matching/match-request-url'
+import { attachSiblingHandlers } from '#core/utils/internal/attach-sibling-handlers'
 import {
   createWebSocketUpgradeHandler,
   webSocketUpgrade,

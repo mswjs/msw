@@ -3,7 +3,7 @@ import {
   NetworkReadyState,
   type NetworkApi,
 } from '#core/experimental/define-network'
-import { devUtils } from '#core/utils/internal/devUtils'
+import { devUtils } from '#core/utils/internal/dev-utils'
 import type { SetupServerCommon } from './glossary'
 
 /**

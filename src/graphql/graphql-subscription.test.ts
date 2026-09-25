@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { invariant } from 'outvariant'
 import { OperationTypeNode, parse } from 'graphql'
-import { getSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
+import { getSiblingHandlers } from '#core/utils/internal/attach-sibling-handlers'
 import { HttpHandler } from '#http/http-handler'
 import { WebSocketHandler } from '#ws/websocket-handler'
 import { WebSocketNetworkFrame } from '#core/experimental/frames/websocket-frame'

@@ -1,6 +1,6 @@
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
-import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
+import { StatusCodeColor } from '../../../src/core/utils/logging/get-status-code-color'
 import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 import { gql } from '../../support/graphql'
 

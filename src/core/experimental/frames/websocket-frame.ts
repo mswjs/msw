@@ -15,7 +15,7 @@ import {
   executeUnhandledFrameHandle,
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
-import { devUtils } from '../../utils/internal/devUtils'
+import { devUtils } from '../../utils/internal/dev-utils'
 import type { HandlersController } from '../handlers-controller'
 import type { AnyHandler } from '../handlers-controller'
 

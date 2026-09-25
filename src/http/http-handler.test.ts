@@ -3,7 +3,7 @@ import { createRequestId } from '@mswjs/interceptors'
 import type { HttpRequestResolverExtras } from './http-handler'
 import { HttpHandler } from './http-handler'
 import { HttpResponse } from './index'
-import type { ResponseResolver } from '#core/handlers/RequestHandler'
+import type { ResponseResolver } from '#core/handlers/request-handler'
 
 const resolver: ResponseResolver<
   HttpRequestResolverExtras<{ userId: string }>

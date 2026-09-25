@@ -21,14 +21,14 @@ import {
   matchRequestUrl,
   type Path,
   type PathParams,
-} from '#core/utils/matching/matchRequestUrl'
-import type { ResponseResolverFinalizeFunction } from '#core/handlers/RequestHandler'
-import type { MaybePromise } from '#core/typeUtils'
-import { attachSiblingHandlers } from '#core/utils/internal/attachSiblingHandlers'
-import { jsonParse } from '#core/utils/internal/jsonParse'
-import { devUtils } from '#core/utils/internal/devUtils'
-import { getTimestamp } from '#core/utils/logging/getTimestamp'
-import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+} from '#core/utils/matching/match-request-url'
+import type { ResponseResolverFinalizeFunction } from '#core/handlers/request-handler'
+import type { MaybePromise } from '#core/type-utils'
+import { attachSiblingHandlers } from '#core/utils/internal/attach-sibling-handlers'
+import { jsonParse } from '#core/utils/internal/json-parse'
+import { devUtils } from '#core/utils/internal/dev-utils'
+import { getTimestamp } from '#core/utils/logging/get-timestamp'
+import { toPublicUrl } from '#core/utils/request/to-public-url'
 import { colors } from '#core/utils/logging/colors'
 import {
   GraphQLHandler,

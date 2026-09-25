@@ -3,9 +3,9 @@ import type {
   WebSocketConnectionEventData,
   WebSocketData,
 } from '@mswjs/interceptors/WebSocket'
-import { devUtils } from '#core/utils/internal/devUtils'
-import { getTimestamp } from '#core/utils/logging/getTimestamp'
-import { toPublicUrl } from '#core/utils/request/toPublicUrl'
+import { devUtils } from '#core/utils/internal/dev-utils'
+import { getTimestamp } from '#core/utils/logging/get-timestamp'
+import { toPublicUrl } from '#core/utils/request/to-public-url'
 import { getMessageLength } from './get-message-length'
 import { getPublicData } from './get-public-data'
 import { colors } from '#core/utils/logging/colors'

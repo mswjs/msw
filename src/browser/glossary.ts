@@ -1,4 +1,4 @@
-import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
+import type { LifeCycleEventEmitter, SharedOptions } from '#core/shared-options'
 import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-frame'
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'

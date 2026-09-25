@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
-import { StatusCodeColor } from '../../../src/core/utils/logging/getStatusCodeColor'
+import { StatusCodeColor } from '../../../src/core/utils/logging/get-status-code-color'
 
 const handlers = [
   http.get('https://example.com/users/:username', ({ params }) => {

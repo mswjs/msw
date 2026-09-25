@@ -3,7 +3,7 @@ import type { HttpNetworkFrameEventMap } from '#core/experimental/frames/http-fr
 import type { WebSocketNetworkFrameEventMap } from '#core/experimental/frames/websocket-frame'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
 import type { NetworkReadyState } from '#core/experimental/define-network'
-import type { LifeCycleEventEmitter, SharedOptions } from '#core/sharedOptions'
+import type { LifeCycleEventEmitter, SharedOptions } from '#core/shared-options'
 
 export interface SetupServerCommon {
   /**

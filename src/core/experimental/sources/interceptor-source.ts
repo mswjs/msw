@@ -10,7 +10,7 @@ import type {
   WebSocketEventMap,
 } from '@mswjs/interceptors/WebSocket'
 import { NetworkSource } from './network-source'
-import { InternalError } from '../../utils/internal/devUtils'
+import { InternalError } from '../../utils/internal/dev-utils'
 import { HttpNetworkFrame, ResponseEvent } from '../frames/http-frame'
 import { WebSocketNetworkFrame } from '../frames/websocket-frame'
 import { deleteRequestPassthroughHeader } from '../request-utils'

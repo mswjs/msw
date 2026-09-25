@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createClient } from '../../support/graphqlClient'
+import { createClient } from '../../support/graphql-client'
 import { setupServer } from 'msw/node'
 import { graphql } from 'msw/graphql'
 

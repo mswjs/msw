@@ -7,10 +7,10 @@ import {
   type GraphQLSubscriptionResolver,
 } from 'msw/graphql'
 import { createPubSub, createSchema } from 'graphql-yoga'
-import { createClient } from '../../support/graphqlClient'
+import { createClient } from '../../support/graphql-client'
 import { gql } from '../../support/graphql'
-import { createTestGraphQLServer } from '../../support/graphqlServer'
-import { WebSocketServer } from '../../support/WebSocketServer'
+import { createTestGraphQLServer } from '../../support/graphql-server'
+import { WebSocketServer } from '../../support/websocket-server'
 
 const server = setupServer()
 

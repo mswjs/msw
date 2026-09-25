@@ -1,5 +1,5 @@
 /* HTTP handlers */
-export { RequestHandler } from './handlers/RequestHandler'
+export { RequestHandler } from './handlers/request-handler'
 export { http } from '#http/http'
 export { HttpHandler, HttpMethods } from '#http/http-handler'
 
@@ -28,8 +28,8 @@ export {
 } from '#sse/sse'
 
 /* Utils */
-export { matchRequestUrl } from './utils/matching/matchRequestUrl'
-export { getResponse } from './getResponse'
+export { matchRequestUrl } from './utils/matching/match-request-url'
+export { getResponse } from './get-response'
 export { getCleanUrlString } from '#utils/get-clean-url-string'
 
 /**
@@ -38,7 +38,7 @@ export { getCleanUrlString } from '#utils/get-clean-url-string'
 
 export type { AnyHandler } from './experimental/handlers-controller'
 
-export type { SharedOptions } from './sharedOptions'
+export type { SharedOptions } from './shared-options'
 
 export type {
   ResponseResolver,
@@ -49,7 +49,7 @@ export type {
   DefaultRequestMultipartBody,
   JsonBodyType,
   ResponseResolverInfo,
-} from './handlers/RequestHandler'
+} from './handlers/request-handler'
 
 export type {
   RequestQuery,
@@ -61,8 +61,12 @@ export type {
 } from '#http/http-handler'
 export type { HttpRequestHandler, HttpResponseResolver } from '#http/http'
 
-export type { Path, PathParams, Match } from './utils/matching/matchRequestUrl'
-export type { ResponseResolutionContext } from './utils/executeHandlers'
+export type {
+  Path,
+  PathParams,
+  Match,
+} from './utils/matching/match-request-url'
+export type { ResponseResolutionContext } from './utils/execute-handlers'
 
 export {
   HttpResponse,

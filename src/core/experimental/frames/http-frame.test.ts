@@ -5,7 +5,7 @@ import { bypass } from '#utils/bypass'
 import type { HttpNetworkFrameEventMap } from './http-frame'
 import { HttpNetworkFrame } from './http-frame'
 import { InMemoryHandlersController } from '../../experimental/handlers-controller'
-import { getSiblingHandlers } from '../../utils/internal/attachSiblingHandlers'
+import { getSiblingHandlers } from '../../utils/internal/attach-sibling-handlers'
 
 const gql = graphql.link('*')
 

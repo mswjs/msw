@@ -18,7 +18,7 @@ import {
   type CompilationOptions,
   type ViteHttpServer,
 } from './vite-http-server'
-import { WebSocketServer } from '../support/WebSocketServer'
+import { WebSocketServer } from '../support/websocket-server'
 
 export interface TestFixtures {
   /**

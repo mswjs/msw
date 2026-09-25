@@ -5,18 +5,18 @@ import {
   NetworkFrame,
   type NetworkFrameResolutionContext,
 } from './network-frame'
-import { toPublicUrl } from '../../utils/request/toPublicUrl'
-import { executeHandlers } from '../../utils/executeHandlers'
-import { storeResponseCookies } from '../../utils/request/storeResponseCookies'
+import { toPublicUrl } from '../../utils/request/to-public-url'
+import { executeHandlers } from '../../utils/execute-handlers'
+import { storeResponseCookies } from '../../utils/request/store-response-cookies'
 import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
-import { devUtils } from '../../utils/internal/devUtils'
+import { devUtils } from '../../utils/internal/dev-utils'
 import {
   executeUnhandledFrameHandle,
   type UnhandledFrameHandle,
 } from '../on-unhandled-frame'
 import type { HandlersController } from '../handlers-controller'
 import type { AnyHandler } from '../handlers-controller'
-import type { RequestHandler } from '../../handlers/RequestHandler'
+import type { RequestHandler } from '../../handlers/request-handler'
 
 interface HttpNetworkFrameOptions {
   id?: string

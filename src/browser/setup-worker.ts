@@ -7,7 +7,7 @@ import {
 } from '#core/experimental/define-network'
 import type { AnyHandler } from '#core/experimental/handlers-controller'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { devUtils } from '#core/utils/internal/devUtils'
+import { devUtils } from '#core/utils/internal/dev-utils'
 import { supportsServiceWorker } from './utils/supports'
 import { ServiceWorkerSource } from './sources/service-worker-source'
 import { FallbackHttpSource } from './sources/fallback-http-source'

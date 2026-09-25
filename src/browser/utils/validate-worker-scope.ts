@@ -1,4 +1,4 @@
-import { devUtils } from '#core/utils/internal/devUtils'
+import { devUtils } from '#core/utils/internal/dev-utils'
 
 /**
  * Print a warning if the given Service Worker registration has a scope

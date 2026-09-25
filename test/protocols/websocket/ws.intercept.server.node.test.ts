@@ -1,6 +1,6 @@
 import { ws } from 'msw/ws'
 import { setupServer } from 'msw/node'
-import { WebSocketServer } from '../../support/WebSocketServer'
+import { WebSocketServer } from '../../support/websocket-server'
 
 const server = setupServer()
 const originalServer = new WebSocketServer()

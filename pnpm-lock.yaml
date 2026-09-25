@@ -30,8 +30,8 @@ importers:
         specifier: ^1.4.3
         version: 1.4.3
       rettime:
-        specifier: ^0.11.11
-        version: 0.11.11
+        specifier: ^0.11.12
+        version: 0.11.12
       tough-cookie:
         specifier: ^6.0.2
         version: 6.0.2
@@ -4263,6 +4263,9 @@ packages:
 
   rettime@0.11.11:
     resolution: {integrity: sha512-ILJRqVWBCTlg9r42fFgwVZx1gnFAcQF8mRoMkbgQfIrjEDf9nbBFDFx00oloOa+Q869FUtaYDXZvEfnecQSCoQ==}
+
+  rettime@0.11.12:
+    resolution: {integrity: sha512-5ExtR1ppiDBQkVoPw5NAqdbfH4Iq2VOmQKHMtUoaFxA9bo2krzFYBtyq6K40xxbYp+2w/YOr6D+1ToF6tTN53A==}
 
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
@@ -9214,6 +9217,8 @@ snapshots:
   ret@0.5.0: {}
 
   rettime@0.11.11: {}
+
+  rettime@0.11.12: {}
 
   reusify@1.1.0: {}
 

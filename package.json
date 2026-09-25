@@ -145,7 +145,7 @@
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",
     "outvariant": "^1.4.3",
-    "rettime": "^0.11.11",
+    "rettime": "^0.11.12",
     "tough-cookie": "^6.0.2",
     "type-fest": "^5.5.0",
     "until-async": "^3.0.2",

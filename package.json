@@ -84,7 +84,7 @@
     "test:unit": "vitest --project=unit",
     "test:node": "vitest --project=node",
     "test:browser": "vitest --project=browser",
-    "test:memory": "vitest --project=memory",
+    "test:memory": "vitest --project=memory --project=memory-browser",
     "test:playwright": "playwright test -c ./test/playwright.config.ts",
     "test:modules:node": "vitest run --config=./test/modules/node/vitest.config.ts",
     "test:modules:browser": "playwright test -c ./test/modules/browser/playwright.config.ts",
@@ -140,7 +140,7 @@
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
     "@msw/url": "^0.1.2",
-    "@mswjs/interceptors": "^0.45.1",
+    "@mswjs/interceptors": "^0.45.2",
     "cookie": "^2.0.1",
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",

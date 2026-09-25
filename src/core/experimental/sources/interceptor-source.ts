@@ -28,7 +28,16 @@ export class InterceptorSource extends NetworkSource {
     HttpRequestEventMap & WebSocketEventMap
   >
 
-  #frames: Map<string, HttpNetworkFrame>
+  /**
+   * @note Frames are keyed by the request instance, not the request ID.
+   * The interceptor emits the same request instance on the "request"
+   * and "response" events, so the frame can be looked up by identity.
+   * A weak reference lets the frame be garbage collected alongside
+   * its request once the request settles without producing a response
+   * (e.g. a passthrough request failing with a network error).
+   * @see https://github.com/mswjs/msw/issues/2792
+   */
+  #frames: WeakMap<Request, HttpNetworkFrame>
 
   constructor(options: InterceptorSourceOptions) {
     super()
@@ -37,7 +46,7 @@ export class InterceptorSource extends NetworkSource {
       name: 'interceptor-source',
       interceptors: options.interceptors,
     })
-    this.#frames = new Map()
+    this.#frames = new WeakMap()
   }
 
   public enable(): void {
@@ -57,7 +66,7 @@ export class InterceptorSource extends NetworkSource {
      * @todo We can also abort any pending frames here, given we implement
      * the `NetworkFrame.abort()` method.
      */
-    this.#frames.clear()
+    this.#frames = new WeakMap()
   }
 
   async #handleRequest(event: HttpRequestEvent): Promise<void> {
@@ -68,7 +77,7 @@ export class InterceptorSource extends NetworkSource {
       controller,
     })
 
-    this.#frames.set(requestId, httpFrame)
+    this.#frames.set(request, httpFrame)
     await this.queue(httpFrame)
   }
 
@@ -78,8 +87,8 @@ export class InterceptorSource extends NetworkSource {
     response,
     responseType,
   }: HttpResponseEvent): Promise<void> {
-    const httpFrame = this.#frames.get(requestId)
-    this.#frames.delete(requestId)
+    const httpFrame = this.#frames.get(request)
+    this.#frames.delete(request)
 
     if (httpFrame == null) {
       return

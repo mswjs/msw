@@ -43,6 +43,12 @@ type WorkerChannelResponseEvent = Emitter.Event<
   WorkerChannelEventMap
 >
 
+type WorkerChannelRequestErrorEvent = Emitter.Event<
+  WorkerChannel,
+  'REQUEST_ERROR',
+  WorkerChannelEventMap
+>
+
 type WorkerChannelClient =
   WorkerChannelEventMap['MOCKING_ENABLED']['data']['client']
 
@@ -69,6 +75,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
   }
 
   #options: ServiceWorkerSourceOptions
+  /**
+   * @note We cannot use `WeakMap` here as request/response
+   * identity cannot be preserved through the client-worker channel.
+   */
   #frames: Map<string, ServiceWorkerHttpNetworkFrame>
   #channel: WorkerChannel
   #listenerController?: AbortController
@@ -251,6 +261,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
 
     this.#channel.on('REQUEST', this.#handleRequest.bind(this))
     this.#channel.on('RESPONSE', this.#handleResponse.bind(this))
+    this.#channel.on('REQUEST_ERROR', this.#handleRequestError.bind(this))
 
     window.addEventListener(
       'pagehide',
@@ -370,6 +381,21 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
     } finally {
       frame.events.removeAllListeners()
     }
+  }
+
+  /**
+   * @note A request can settle without ever producing a response
+   * (e.g. a passthrough request failing with a network error).
+   * The worker never sends the "RESPONSE" message for such requests,
+   * so the frame must be released here to prevent it from being retained.
+   * No "response:*" event is emitted, consistent with the Node.js source.
+   * @see https://github.com/mswjs/msw/issues/2792
+   */
+  #handleRequestError(event: WorkerChannelRequestErrorEvent): void {
+    const { request } = event.data
+    const frame = this.#frames.get(request.id)
+    this.#frames.delete(request.id)
+    frame?.events.removeAllListeners()
   }
 
   #defaultFindWorker: FindWorker = (workerUrl, mockServiceWorkerUrl) => {

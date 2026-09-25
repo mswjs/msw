@@ -5,6 +5,7 @@ import typescriptPackageJson from 'typescript/package.json' with { type: 'json' 
 import { defineConfig, defaultExclude } from 'vitest/config'
 import { msw } from './lib/vite/index.js'
 import { mswExports, fromRoot } from './test/support/alias.js'
+import { browserCommands } from './test/setup/browser-commands'
 
 const exclude = [
   ...defaultExclude,
@@ -99,10 +100,39 @@ export default defineConfig({
             groupOrder: 2,
           },
           include: ['test/**/*.memory.test.ts'],
-          exclude: exclude,
+          exclude: [...exclude, '**/*.browser.memory.test.ts'],
           alias: mswExports,
           pool: 'forks',
           execArgv: ['--expose-gc'],
+          testTimeout: 120_000,
+        },
+      },
+      /**
+       * Browser memory tests measure the worker-based network for memory leaks.
+       * They inspect the page's heap via a browser command (see "test/setup/browser-commands.ts").
+       */
+      {
+        extends: true,
+        test: {
+          sequence: {
+            groupOrder: 3,
+          },
+          globalSetup: './vitest.setup.ts',
+          include: ['test/**/*.browser.memory.test.ts'],
+          exclude,
+          alias: mswExports,
+          setupFiles: ['./test/setup/vitest-browser.ts'],
+          browser: {
+            enabled: true,
+            api: {
+              host: '127.0.0.1',
+            },
+            provider: playwright(),
+            instances: [{ name: 'memory-browser', browser: 'chromium' }],
+            headless: true,
+            screenshotFailures: false,
+            commands: browserCommands,
+          },
           testTimeout: 120_000,
         },
       },

@@ -163,7 +163,28 @@ async function handleRequest(event, requestId) {
       .catch(() => {})
   }
 
-  const response = await responsePromise
+  let response
+
+  try {
+    response = await responsePromise
+  } catch (error) {
+    // The request has settled without a response (e.g. a passthrough
+    // request failed with a network error). Notify the client so it
+    // can release the resources associated with this request.
+    if (client && activeClientIds.has(client.id)) {
+      sendToClient(client, {
+        type: 'REQUEST_ERROR',
+        payload: {
+          request: {
+            id: requestId,
+          },
+          error: serializeError(error),
+        },
+      })
+    }
+
+    throw error
+  }
 
   // Send back the response clone for the "response:*" life-cycle events.
   // Ensure MSW is active and ready to handle the message, otherwise
@@ -336,6 +357,24 @@ async function getResponse(event, client, requestId) {
   }
 
   return passthrough()
+}
+
+/**
+ * @param {unknown} error
+ * @returns {{ name: string, message: string }}
+ */
+function serializeError(error) {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    }
+  }
+
+  return {
+    name: 'Error',
+    message: String(error),
+  }
 }
 
 /**

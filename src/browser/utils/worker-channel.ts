@@ -7,6 +7,7 @@ import { supportsServiceWorker } from '../utils/supports'
 export type WorkerChannelEventMap = {
   REQUEST: WorkerEvent<IncomingWorkerRequest>
   RESPONSE: WorkerEvent<IncomingWorkerResponse>
+  REQUEST_ERROR: WorkerEvent<IncomingWorkerRequestError>
   MOCKING_ENABLED: WorkerEvent<{
     client: {
       id: string
@@ -52,6 +53,15 @@ type IncomingWorkerResponse = {
     Response,
     'type' | 'ok' | 'status' | 'statusText' | 'body' | 'headers' | 'redirected'
   >
+}
+
+/**
+ * Notification that a request has settled without producing a response
+ * (e.g. a passthrough request failed with a network error).
+ */
+type IncomingWorkerRequestError = {
+  request: Pick<IncomingWorkerRequest, 'id'>
+  error: Pick<Error, 'name' | 'message'>
 }
 
 /**

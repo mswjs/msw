@@ -9,6 +9,8 @@
   "compilerOptions": {
     // Expose browser-specific libraries only for the
     // source code under the "src/browser" directory.
-    "lib": ["DOM", "WebWorker", "DOM.Iterable"]
+    // Setting "lib" replaces the default library set implied by
+    // the "target", so "ESNext" must be listed explicitly.
+    "lib": ["ESNext", "DOM", "WebWorker", "DOM.Iterable"]
   }
 }

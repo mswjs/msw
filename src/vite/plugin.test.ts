@@ -183,7 +183,7 @@ console.log('Application ready')
   expect(stdout.trim()).toBe('Application ready')
 })
 
-test('does not serve the worker when the dev server runs in production', async () => {
+test('serves the worker when the dev server runs in production', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   const server = await createServer({
     configFile: false,
@@ -202,7 +202,7 @@ test('does not serve the worker when the dev server runs in production', async (
     new URL('/mockServiceWorker.js', server.resolvedUrls?.local[0]),
   )
 
-  expect(response.status).toBe(404)
+  expect(response.status).toBe(200)
 })
 
 test('restores cached server mocking after hot updates and replaces it on full reloads', async () => {
@@ -803,7 +803,7 @@ await network.enable()
   expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
 })
 
-test('does not write the worker script during production builds', async () => {
+test('does not emit the worker script for builds without the network', async () => {
   vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
@@ -816,16 +816,49 @@ test('does not write the worker script during production builds', async () => {
     plugins: [msw()],
   })
 
-  expect(fs.existsSync(fsMock.resolve('public/mockServiceWorker.js'))).toBe(
-    false,
-  )
+  expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
   expect(fs.existsSync(fsMock.resolve('dist/mockServiceWorker.js'))).toBe(false)
 })
 
-test('writes the worker to the configured public directory', async () => {
+test('emits the worker script for production builds that import the network', async () => {
+  vi.stubEnv('NODE_ENV', 'production')
+  await fsMock.create({
+    'index.html': '<script type="module" src="/entry.js"></script>',
+    'entry.js': `
+import { network } from 'virtual:msw'
+await network.enable()
+`,
+  })
+
+  await build({
+    configFile: false,
+    root: fsMock.resolve('.'),
+    logLevel: 'silent',
+    plugins: [msw()],
+    resolve: {
+      alias: {
+        'msw/experimental': fromRoot('lib/core/experimental/index.js'),
+        ...mswExports,
+      },
+    },
+  })
+
+  expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
+  expect(
+    fs.readFileSync(fsMock.resolve('dist/mockServiceWorker.js'), 'utf8'),
+  ).toBe(
+    fs.readFileSync(
+      new URL('../mockServiceWorker.js', import.meta.url),
+      'utf8',
+    ),
+  )
+})
+
+test('emits the worker to the client output instead of the public directory', async () => {
   vi.stubEnv('NODE_ENV', 'development')
   await fsMock.create({
-    'index.html': '<html><body>Example app</body></html>',
+    'index.html': '<script type="module" src="/entry.js"></script>',
+    'entry.js': "import 'virtual:msw'",
     'static/example.txt': 'Public asset',
   })
 
@@ -836,6 +869,12 @@ test('writes the worker to the configured public directory', async () => {
     publicDir: 'static',
     logLevel: 'silent',
     plugins: [msw()],
+    resolve: {
+      alias: {
+        'msw/experimental': fromRoot('lib/core/experimental/index.js'),
+        ...mswExports,
+      },
+    },
     build: {
       outDir: 'build/client',
       assetsDir: 'bundled',
@@ -843,21 +882,25 @@ test('writes the worker to the configured public directory', async () => {
     },
   })
 
+  expect(fs.existsSync(fsMock.resolve('static/mockServiceWorker.js'))).toBe(
+    false,
+  )
+  expect(fs.existsSync(fsMock.resolve('static/app'))).toBe(false)
   expect(
-    fs.readFileSync(fsMock.resolve('static/mockServiceWorker.js'), 'utf8'),
+    fs.readFileSync(
+      fsMock.resolve('build/client/mockServiceWorker.js'),
+      'utf8',
+    ),
   ).toBe(
     fs.readFileSync(
       new URL('../mockServiceWorker.js', import.meta.url),
       'utf8',
     ),
   )
-  expect(fs.existsSync(fsMock.resolve('static/app'))).toBe(false)
-  expect(
-    fs.existsSync(fsMock.resolve('build/client/mockServiceWorker.js')),
-  ).toBe(false)
 })
 
-test('skips writing the worker when the public directory is disabled', async () => {
+test('emits the worker in worker-only mode without the virtual modules', async () => {
+  vi.stubEnv('NODE_ENV', 'production')
   await fsMock.create({
     'index.html': '<html><body>Example app</body></html>',
   })
@@ -867,9 +910,9 @@ test('skips writing the worker when the public directory is disabled', async () 
     root: fsMock.resolve('.'),
     publicDir: false,
     logLevel: 'silent',
-    plugins: [msw()],
+    plugins: [msw({ mode: 'worker-only' })],
   })
 
   expect(fs.existsSync(fsMock.resolve('public'))).toBe(false)
-  expect(fs.existsSync(fsMock.resolve('dist/mockServiceWorker.js'))).toBe(false)
+  expect(fs.existsSync(fsMock.resolve('dist/mockServiceWorker.js'))).toBe(true)
 })

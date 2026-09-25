@@ -1,5 +1,4 @@
 import * as fs from 'node:fs'
-import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 
@@ -8,7 +7,6 @@ const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 const VIRTUAL_MODULE_ID = 'virtual:msw'
 const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
 const RUNTIME_PATH = fileURLToPath(new URL('./runtime.js', import.meta.url))
-const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
 
 export interface MswPluginOptions {
   /**
@@ -41,16 +39,17 @@ export interface MswPluginOptions {
  * }
  *
  * @remarks
- * Guard mocking setup with `import.meta.env.DEV` to exclude it from production builds.
- * No worker script is served or written in production.
+ * The worker script is served during development and emitted next to any
+ * client bundle that imports `virtual:msw`. Guard mocking setup with
+ * `import.meta.env.DEV` to exclude both from production builds.
  *
  * For application TypeScript projects that do not include the Vite config,
  * add `/// <reference types="msw/vite/client" />` to an included declaration file.
  */
 export function msw(options: MswPluginOptions = {}): Plugin {
   const mode = options.mode ?? 'auto'
-  let isProduction = false
   let workerUrl = `/${WORKER_FILENAME}`
+  const environmentsUsingNetwork = new Set<string>()
 
   return {
     name: 'msw',
@@ -64,63 +63,55 @@ export function msw(options: MswPluginOptions = {}): Plugin {
       }
 
       if (id === VIRTUAL_MODULE_ID) {
-        if (!isProduction) {
-          return this.resolve(RUNTIME_PATH)
-        }
-
-        return RESOLVED_VIRTUAL_MODULE_ID
+        return this.resolve(RUNTIME_PATH)
       }
     },
     load(id) {
-      if (mode === 'worker-only') {
+      if (mode === 'worker-only' || id !== `\0${VIRTUAL_OPTIONS_ID}`) {
         return
       }
 
-      if (id === RESOLVED_VIRTUAL_MODULE_ID && isProduction) {
-        return {
-          code: 'export const network = undefined',
-          moduleSideEffects: false,
-        }
-      }
-
-      if (id !== `\0${VIRTUAL_OPTIONS_ID}`) {
-        return
-      }
-
-      const isServer = this.environment.config.consumer === 'server'
-
-      if (isServer) {
+      if (this.environment.config.consumer === 'server') {
         return `export { defaultNetworkOptions } from 'msw/node'`
       }
+
+      environmentsUsingNetwork.add(this.environment.name)
 
       return `
 import { createDefaultNetworkOptions } from 'msw/browser'
 export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
 `
     },
-    async configResolved(config) {
-      isProduction = config.isProduction
+    configResolved(config) {
       // Keep relative build bases relative and service workers on the app's origin.
       const base =
         config.base === './'
           ? config.base
           : new URL(config.base, 'http://localhost').pathname
       workerUrl = `${base}${WORKER_FILENAME}`
-
-      if (isProduction || config.command !== 'build' || !config.publicDir) {
+    },
+    generateBundle() {
+      if (this.environment.config.consumer !== 'client') {
         return
       }
 
-      const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
-      const workerPath = path.join(config.publicDir, WORKER_FILENAME)
-      await fs.promises.mkdir(path.dirname(workerPath), { recursive: true })
-      await fs.promises.writeFile(workerPath, workerScript)
+      // In "auto" mode, the worker is only useful to bundles that contain the
+      // network. A user guard (e.g. `import.meta.env.DEV`) that drops the
+      // `virtual:msw` import drops the worker too.
+      if (
+        mode === 'auto' &&
+        !environmentsUsingNetwork.has(this.environment.name)
+      ) {
+        return
+      }
+
+      this.emitFile({
+        type: 'asset',
+        fileName: WORKER_FILENAME,
+        source: fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8'),
+      })
     },
     configureServer(server) {
-      if (isProduction) {
-        return
-      }
-
       const workerScript = fs.readFileSync(WORKER_SCRIPT_PATH, 'utf8')
       server.middlewares.use((request, response, next) => {
         const requestUrl = new URL(request.url ?? '/', 'http://localhost')

@@ -1,4 +1,5 @@
 import { invariant } from 'outvariant'
+import type { HandlerKind } from '../handlers/handler'
 import type { RequestHandler } from '../handlers/request-handler'
 import type {
   WebSocketHandler,
@@ -13,7 +14,40 @@ import {
 
 export type AnyHandler =
   RequestHandler | WebSocketHandler<AnyWebSocketExtension>
-export type HandlersMap = Partial<Record<AnyHandler['kind'], Array<AnyHandler>>>
+type HandlerOfKind<Kind extends HandlerKind> = Extract<
+  AnyHandler,
+  { kind: Kind }
+>
+type HandlersMapOfKind<Kind extends HandlerKind> = {
+  [K in Kind]?: Array<HandlerOfKind<K>>
+}
+export type HandlersMap = HandlersMapOfKind<HandlerKind>
+
+function addHandlerToGroup<Kind extends HandlerKind>(
+  groups: HandlersMapOfKind<Kind>,
+  kind: Kind,
+  handler: HandlerOfKind<Kind>,
+): void {
+  const bucket = (groups[kind] ||= [])
+  bucket.push(handler)
+}
+
+function prependHandlersToGroup<Kind extends HandlerKind>(
+  groups: HandlersMapOfKind<Kind>,
+  kind: Kind,
+  overridesForKind: Array<HandlerOfKind<Kind>>,
+): void {
+  const existingForKind = groups[kind]
+
+  groups[kind] = existingForKind
+    ? [
+        ...overridesForKind,
+        ...existingForKind.filter((existingHandler) => {
+          return !overridesForKind.includes(existingHandler)
+        }),
+      ]
+    : overridesForKind
+}
 
 export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
   const groups: HandlersMap = {}
@@ -25,8 +59,7 @@ export function groupHandlersByKind(handlers: Array<AnyHandler>): HandlersMap {
     }
 
     visitedHandlers.add(handler)
-    const bucket = (groups[handler.kind] ||= [])
-    bucket.push(handler)
+    addHandlerToGroup(groups, handler.kind, handler)
 
     // Recurse so siblings of siblings (user-composed handler
     // graphs) are grouped as well, not silently dropped.
@@ -87,7 +120,12 @@ export abstract class HandlersController {
     })
   }
 
-  public getHandlersByKind(kind: AnyHandler['kind']): Array<AnyHandler> {
+  /**
+   * Return the list of handlers of the given kind.
+   */
+  public getHandlersByKind<Kind extends HandlerKind>(
+    kind: Kind,
+  ): Array<HandlerOfKind<Kind>> {
     return this.getState().handlers[kind] || []
   }
 
@@ -111,17 +149,12 @@ export abstract class HandlersController {
     // Drop existing references that reappear in the overrides (e.g. a
     // shared upgrade sibling from the same link) so a handler is never
     // registered twice.
-    for (const kind in overrides) {
-      const overridesForKind = overrides[kind as AnyHandler['kind']]!
-      const existingForKind = handlers[kind as AnyHandler['kind']]
-      handlers[kind as AnyHandler['kind']] = existingForKind
-        ? [
-            ...overridesForKind,
-            ...existingForKind.filter((existingHandler) => {
-              return !overridesForKind.includes(existingHandler)
-            }),
-          ]
-        : overridesForKind
+    if (overrides.request) {
+      prependHandlersToGroup(handlers, 'request', overrides.request)
+    }
+
+    if (overrides.websocket) {
+      prependHandlersToGroup(handlers, 'websocket', overrides.websocket)
     }
 
     this.setState({ handlers })

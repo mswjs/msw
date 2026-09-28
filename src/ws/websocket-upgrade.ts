@@ -68,11 +68,16 @@ export async function webSocketUpgrade({
  *
  * @internal
  */
-export function createWebSocketUpgradeHandler(url: Path) {
+export function createWebSocketUpgradeHandler(
+  url: Path,
+  resolver: (
+    info: WebSocketUpgradeRequestInfo,
+  ) => Promise<Response | undefined> | Response | undefined,
+) {
   return http.get(({ request }) => {
     return (
       request.headers.get('upgrade')?.toLowerCase() === 'websocket' &&
       matchRequestUrl(new URL(resolveWebSocketUrl(request.url)), url).matches
     )
-  }, webSocketUpgrade)
+  }, resolver)
 }

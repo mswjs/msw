@@ -184,7 +184,12 @@ function createWebSocketLinkHandler<
   // WebSocketHandler returned by this link. `groupHandlersByKind` dedupes
   // by reference, so it lands in the `request` bucket exactly once regardless
   // of which subset of WS handlers the user ends up registering.
-  const upgradeHandler = createWebSocketUpgradeHandler(url)
+  const upgradeHandler = createWebSocketUpgradeHandler(url, (info) => {
+    // Read `ws.onUpgrade` at request time so that overriding it
+    // (e.g. in runtimes with a custom upgrade flow) takes effect
+    // regardless of when the link was created.
+    return ws.onUpgrade(info)
+  })
 
   return {
     get clients() {

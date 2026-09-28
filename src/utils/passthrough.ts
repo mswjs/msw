@@ -1,5 +1,11 @@
 import type { HttpResponse } from '#http/http-response'
 
+export const REQUEST_INTENTION_HEADER_NAME = 'x-msw-intention'
+
+export enum RequestIntention {
+  passthrough = 'passthrough',
+}
+
 /**
  * Performs the intercepted request as-is.
  *
@@ -19,7 +25,22 @@ export function passthrough(): HttpResponse<any> {
     status: 302,
     statusText: 'Passthrough',
     headers: {
-      'x-msw-intention': 'passthrough',
+      [REQUEST_INTENTION_HEADER_NAME]: RequestIntention.passthrough,
     },
   }) as HttpResponse<any>
+}
+
+/**
+ * Returns `true` if the given response was created by `passthrough()`.
+ *
+ * @example
+ * const response = passthrough()
+ * isPassthroughResponse(response) // true
+ */
+export function isPassthroughResponse(response: Response): boolean {
+  return (
+    response.status === 302 &&
+    response.headers.get(REQUEST_INTENTION_HEADER_NAME) ===
+      RequestIntention.passthrough
+  )
 }

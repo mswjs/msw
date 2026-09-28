@@ -79,5 +79,5 @@ export {
 } from '#http/http-response'
 export { delay, type DelayMode } from '#utils/delay'
 export { bypass } from '#utils/bypass'
-export { passthrough } from '#utils/passthrough'
+export { passthrough, isPassthroughResponse } from '#utils/passthrough'
 export { isCommonAssetRequest } from '#utils/is-common-asset-request'

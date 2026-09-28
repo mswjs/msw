@@ -29,8 +29,12 @@ export {
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/match-request-url'
-export { getResponse } from './get-response'
+export { getResponse } from '#utils/get-response'
 export { getCleanUrlString } from '#utils/get-clean-url-string'
+export type {
+  UnhandledFrameHandle,
+  UnhandledFrameStrategy,
+} from './experimental/on-unhandled-frame'
 
 /**
  * Type definitions.
@@ -75,5 +79,5 @@ export {
 } from '#http/http-response'
 export { delay, type DelayMode } from '#utils/delay'
 export { bypass } from '#utils/bypass'
-export { passthrough } from '#utils/passthrough'
+export { passthrough, isPassthroughResponse } from '#utils/passthrough'
 export { isCommonAssetRequest } from '#utils/is-common-asset-request'

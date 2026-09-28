@@ -8,7 +8,8 @@ import {
 import { toPublicUrl } from '../../utils/request/to-public-url'
 import { executeHandlers } from '../../utils/execute-handlers'
 import { storeResponseCookies } from '../../utils/request/store-response-cookies'
-import { isPassthroughResponse, shouldBypassRequest } from '../request-utils'
+import { shouldBypassRequest } from '../request-utils'
+import { isPassthroughResponse } from '#utils/passthrough'
 import { devUtils } from '../../utils/internal/dev-utils'
 import {
   executeUnhandledFrameHandle,

@@ -3,6 +3,7 @@ import type http from 'node:http'
 import https from 'node:https'
 import { ws } from 'msw/ws'
 import { setupServer } from 'msw/node'
+import { waitForClientRequest } from '../../support/utils'
 
 const server = setupServer()
 
@@ -48,7 +49,9 @@ test('rejects a WebSocket upgrade via an HTTP request like Node.js', async () =>
   expect(connectionListener).not.toHaveBeenCalled()
 })
 
-test('resolves upgrade requests with a custom "ws.onUpgrade"', async () => {
+test('resolves upgrade requests with a custom "ws.onUpgrade"', async ({
+  onTestFinished,
+}) => {
   const originalOnUpgrade = ws.onUpgrade
 
   // Create the link before overriding `ws.onUpgrade`
@@ -60,56 +63,40 @@ test('resolves upgrade requests with a custom "ws.onUpgrade"', async () => {
     return Response.json({ upgraded: true })
   })
   ws.onUpgrade = onUpgrade
-
-  try {
-    /**
-     * @note Perform the upgrade request via `node:https`.
-     * Undici (`fetch`) rejects requests with the `upgrade` header
-     * before they can be intercepted.
-     */
-    const response = await new Promise<http.IncomingMessage>(
-      (resolve, reject) => {
-        https
-          .request('https://localhost/ws', {
-            headers: {
-              upgrade: 'websocket',
-              connection: 'upgrade',
-              'sec-websocket-key': 'abc-123',
-            },
-          })
-          .once('response', resolve)
-          .once('upgrade', () => {
-            reject(
-              new Error(
-                'Must not receive an upgrade response from the default "ws.onUpgrade"',
-              ),
-            )
-          })
-          .once('error', reject)
-          .end()
-      },
-    )
-    const responseBody = await new Promise<string>((resolve) => {
-      let body = ''
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-      response.on('end', () => {
-        resolve(body)
-      })
-    })
-
-    expect.soft(onUpgrade).toHaveBeenCalledOnce()
-    expect.soft(onUpgrade).toHaveBeenCalledWith(
-      expect.objectContaining({
-        requestId: expect.any(String),
-        request: expect.any(Request),
-        params: {},
-      }),
-    )
-    expect.soft(response.statusCode).toBe(200)
-    expect(JSON.parse(responseBody)).toEqual({ upgraded: true })
-  } finally {
+  onTestFinished(() => {
     ws.onUpgrade = originalOnUpgrade
-  }
+  })
+
+  /**
+   * @note Perform the upgrade request via `node:https`.
+   * Undici (`fetch`) rejects requests with the `upgrade` header
+   * before they can be intercepted.
+   */
+  const request = https.request('https://localhost/ws', {
+    headers: {
+      upgrade: 'websocket',
+      connection: 'upgrade',
+      'sec-websocket-key': 'abc-123',
+    },
+  })
+  request.once('upgrade', () => {
+    request.destroy(
+      new Error(
+        'Must not receive an upgrade response from the default "ws.onUpgrade"',
+      ),
+    )
+  })
+  request.end()
+
+  const { response, responseText } = await waitForClientRequest(request)
+
+  expect.soft(onUpgrade).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      requestId: expect.any(String),
+      request: expect.any(Request),
+      params: {},
+    }),
+  )
+  expect.soft(response.statusCode).toBe(200)
+  expect(JSON.parse(responseText)).toEqual({ upgraded: true })
 })

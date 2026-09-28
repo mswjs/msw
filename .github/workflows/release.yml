@@ -48,7 +48,9 @@ jobs:
 
   release:
     needs: [build]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # npm accepts provenance attestations only from GitHub-hosted runners,
+    # so the publish job must not run on Blacksmith.
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write

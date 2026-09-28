@@ -31,6 +31,10 @@ export {
 export { matchRequestUrl } from './utils/matching/match-request-url'
 export { getResponse } from './get-response'
 export { getCleanUrlString } from '#utils/get-clean-url-string'
+export type {
+  UnhandledFrameHandle,
+  UnhandledFrameStrategy,
+} from './experimental/on-unhandled-frame'
 
 /**
  * Type definitions.

@@ -7,7 +7,7 @@ import type { AnyNetworkFrame } from './frames/network-frame'
 export type UnhandledFrameHandle =
   UnhandledFrameStrategy | UnhandledFrameCallback
 
-type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
+export type UnhandledFrameStrategy = 'bypass' | 'warn' | 'error'
 
 export type UnhandledFrameCallback = (args: {
   frame: AnyNetworkFrame

@@ -29,7 +29,7 @@ export {
 
 /* Utils */
 export { matchRequestUrl } from './utils/matching/match-request-url'
-export { getResponse } from './get-response'
+export { getResponse } from '#utils/get-response'
 export { getCleanUrlString } from '#utils/get-clean-url-string'
 export type {
   UnhandledFrameHandle,

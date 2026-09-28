@@ -1,9 +1,9 @@
 import { createRequestId } from '@mswjs/interceptors'
-import type { RequestHandler } from './handlers/request-handler'
+import type { RequestHandler } from '#core/handlers/request-handler'
 import {
   executeHandlers,
   type ResponseResolutionContext,
-} from './utils/execute-handlers'
+} from '#core/utils/execute-handlers'
 
 /**
  * Finds a response for the given request instance

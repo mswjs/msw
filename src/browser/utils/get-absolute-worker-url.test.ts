@@ -1,0 +1,29 @@
+// @vitest-environment jsdom
+import { getAbsoluteWorkerUrl } from './get-absolute-worker-url'
+
+const rawLocation = window.location
+
+afterAll(() => {
+  Object.defineProperty(window, 'location', {
+    value: rawLocation,
+  })
+})
+
+test('returns absolute worker url relatively to the root', () => {
+  expect(getAbsoluteWorkerUrl('./worker.js')).toBe('http://localhost/worker.js')
+})
+
+test('returns an absolute worker url relatively to the current path', () => {
+  Object.defineProperty(window, 'location', {
+    value: {
+      href: 'http://localhost/path/to/page',
+    },
+  })
+
+  expect(getAbsoluteWorkerUrl('./worker.js')).toBe(
+    'http://localhost/path/to/worker.js',
+  )
+
+  // Leading slash must still resolve to the root.
+  expect(getAbsoluteWorkerUrl('/worker.js')).toBe('http://localhost/worker.js')
+})

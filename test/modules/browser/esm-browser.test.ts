@@ -1,8 +1,6 @@
 import url from 'node:url'
 import { invariant } from 'outvariant'
 import { createTeardown } from 'fs-teardown'
-import * as express from 'express'
-import { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { test, expect } from '@playwright/test'
 import { spyOnConsole } from 'page-with'
 import { startDevServer } from '@web/dev-server'
@@ -31,10 +29,6 @@ function getDevServerUrl(): string {
   return new URL(`http://localhost:${address.port}`).href
 }
 
-const httpServer = new HttpServer((app) => {
-  app.use(express.static(fsMock.resolve('.')))
-})
-
 test.beforeAll(async () => {
   devServer = await startDevServer({
     config: {
@@ -47,14 +41,12 @@ test.beforeAll(async () => {
     logStartMessage: false,
   })
 
-  await httpServer.listen()
   await fsMock.prepare()
   await installLibrary(fsMock.resolve('.'))
 })
 
 test.afterAll(async () => {
   await devServer?.stop()
-  await httpServer.close()
   await fsMock.cleanup()
 })
 

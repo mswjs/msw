@@ -1,5 +1,5 @@
 name: 'Bug report (Node.js)'
-description: I experience unexpected behavior using the library in Node.js (Vitest/React Native/Express/etc.).
+description: I experience unexpected behavior using the library in Node.js (Vitest/Express/etc.).
 labels: ['bug', 'scope:node', 'needs:triage']
 body:
   - type: markdown
@@ -23,7 +23,7 @@ body:
       options:
         - label: I'm using the [latest](https://github.com/mswjs/msw/releases/latest) `msw` version
           required: true
-        - label: I'm using Node.js version 20 or higher
+        - label: I'm using Node.js version 22 or higher
           required: true
 
   - type: input

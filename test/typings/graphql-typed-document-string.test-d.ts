@@ -1,12 +1,15 @@
-import { graphql, HttpResponse } from 'msw'
-import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core'
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
+import { DocumentTypeDecoration } from '@graphql-typed-document-node/core'
 
 declare function createTypedDocumentString<TResult = any, TVariables = any>(
   query: string,
 ): DocumentTypeDecoration<TResult, TVariables>
 
-it('infers the result type', () => {
-  graphql.query(
+const api = graphql.link('https://api.example.com/graphql')
+
+test('infers the result type', () => {
+  api.query(
     createTypedDocumentString<{ user: { id: string; name: string } }>(''),
     () => {
       if (Math.random()) {
@@ -28,8 +31,8 @@ it('infers the result type', () => {
   )
 })
 
-it('infers the variables type', () => {
-  graphql.query(
+test('infers the variables type', () => {
+  api.query(
     createTypedDocumentString<null, { id: string }>(''),
     ({ variables }) => {
       expectTypeOf(variables).toEqualTypeOf<{ id: string }>()

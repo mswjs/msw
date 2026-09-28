@@ -1,7 +1,7 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
-import { devUtils } from '#core/utils/internal/devUtils'
+import { devUtils } from '#core/utils/internal/dev-utils'
 
 interface FallbackHttpSourceOptions {
   quiet?: boolean

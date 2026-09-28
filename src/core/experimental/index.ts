@@ -1,5 +1,6 @@
 export {
   defineNetwork,
+  NetworkReadyState,
   type DefineNetworkOptions,
   type NetworkApi,
 } from './define-network'

@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  simple-git-hooks: true
+minimumReleaseAgeExclude:
+  - '@mswjs/*'
+  - rettime@0.11.12

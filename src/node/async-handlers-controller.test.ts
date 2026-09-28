@@ -1,7 +1,7 @@
-import { http } from '../core/http'
+import { http } from '#http/http'
 import { AsyncHandlersController } from './async-handlers-controller'
 
-it('respects initial handlers in the boundary', () => {
+test('respects initial handlers in the boundary', () => {
   {
     const controller = new AsyncHandlersController([])
     controller.boundary(() => {
@@ -18,7 +18,7 @@ it('respects initial handlers in the boundary', () => {
   }
 })
 
-it('provides boundary-specific overrides', () => {
+test('provides boundary-specific overrides', () => {
   const initialHandlers = [http.get('/one', () => {})]
   const controller = new AsyncHandlersController(initialHandlers)
 
@@ -34,7 +34,7 @@ it('provides boundary-specific overrides', () => {
   expect(controller.currentHandlers()).toEqual(initialHandlers)
 })
 
-it('resets the handlers in the boundary', () => {
+test('resets the handlers in the boundary', () => {
   const initialHandlers = [http.get('/one', () => {})]
   const controller = new AsyncHandlersController(initialHandlers)
 

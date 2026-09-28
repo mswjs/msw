@@ -1,0 +1,73 @@
+import { HttpResponse } from 'msw'
+import { graphql } from 'msw/graphql'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
+import { gql } from '../../support/graphql'
+
+const api = graphql.link('*')
+
+interface LoginQuery {
+  user: {
+    id: number
+    name: string
+    password: string
+  }
+}
+
+const handlers = [
+  api.query<LoginQuery>('Login', () => {
+    return HttpResponse.json({
+      data: {
+        user: {
+          id: 1,
+          name: 'Joe Bloggs',
+          password: 'HelloWorld!',
+        },
+      },
+      extensions: {
+        message: 'This is a mocked extension',
+        tracking: {
+          version: '0.1.2',
+          page: '/test/',
+        },
+      },
+    })
+  }),
+]
+
+const test = defineTestNetwork({ handlers })
+
+test('mocks a GraphQL response with both data and extensions', async ({
+  query,
+}) => {
+  const response = await query('/graphql', {
+    query: gql`
+      query Login {
+        user {
+          id
+          name
+          password
+        }
+      }
+    `,
+  })
+  const status = response.status()
+  const body = await response.json()
+
+  expect(status).toBe(200)
+  expect(body).toEqual({
+    data: {
+      user: {
+        id: 1,
+        name: 'Joe Bloggs',
+        password: 'HelloWorld!',
+      },
+    },
+    extensions: {
+      message: 'This is a mocked extension',
+      tracking: {
+        version: '0.1.2',
+        page: '/test/',
+      },
+    },
+  })
+})

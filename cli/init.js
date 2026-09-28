@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import colors from 'picocolors'
+import { styleText } from 'node:util'
 import confirm from '@inquirer/confirm'
 import { invariant } from './invariant.js'
 import { SERVICE_WORKER_BUILD_PATH } from '../config/constants.js'
@@ -35,7 +35,8 @@ export async function init(args) {
     else if (args.save == null) {
       // eslint-disable-next-line no-console
       console.log(`\
-      ${colors.cyan(
+      ${styleText(
+        'cyan',
         'INFO',
       )} In order to ease the future updates to the worker script,
       we recommend saving the path to the worker directory in your package.json.`)
@@ -144,21 +145,23 @@ async function copyWorkerScript(destination, cwd) {
 function printSuccessMessage(paths) {
   // eslint-disable-next-line no-console
   console.log(`
-${colors.green('Worker script successfully copied!')}
-${paths.map((path) => colors.gray(`  - ${path}\n`))}
+${styleText('green', 'Worker script successfully copied!')}
+${paths.map((path) => styleText('gray', `  - ${path}\n`))}
 Continue by describing the network in your application:
 
 
-${colors.red(colors.bold('https://mswjs.io/docs/quick-start'))}
+${styleText(['red', 'bold'], 'https://mswjs.io/docs/quick-start')}
 `)
 }
 
 function printFailureMessage(pathsWithErrors) {
   // eslint-disable-next-line no-console
   console.error(`\
-${colors.red('Copying the worker script failed at following paths:')}
+${styleText('red', 'Copying the worker script failed at following paths:')}
 ${pathsWithErrors
-  .map(([path, error]) => colors.gray(`  - ${path}`) + '\n' + `  ${error}`)
+  .map(
+    ([path, error]) => styleText('gray', `  - ${path}`) + '\n' + `  ${error}`,
+  )
   .join('\n\n')}
   `)
 }
@@ -172,7 +175,7 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
 
   // eslint-disable-next-line no-console
   console.log(
-    colors.gray('Updating "msw.workerDirectory" at "%s"...'),
+    styleText('gray', 'Updating "msw.workerDirectory" at "%s"...'),
     packageJsonPath,
   )
 
@@ -205,7 +208,7 @@ function saveWorkerDirectory(packageJsonPath, publicDir) {
 function promptWorkerDirectoryUpdate(message, packageJsonPath, publicDir) {
   return confirm({
     theme: {
-      prefix: colors.yellowBright('?'),
+      prefix: styleText('yellowBright', '?'),
     },
     message,
   }).then((answer) => {

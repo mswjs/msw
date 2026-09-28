@@ -1,11 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "src/{core,browser,node,native}/index.ts!",
+    "src/{core,browser,node,http,graphql,ws,sse}/index.ts!",
+    "src/core/experimental/index.ts!",
+    "src/utils/*.ts!",
+    "src/vite/{index,runtime}.ts!",
     "src/mockServiceWorker.js!",
-    "cli/index.js!",
     "config/**/*.{js,ts}!",
     "test/**/*ts"
   ],
-  "project": ["src/**/*.ts!", "cli/**/*.js!", "config/**/*.{js,ts}!"]
+  "project": ["src/**/*.ts!", "cli/**/*.js!", "config/**/*.{js,ts}!"],
+  "ignoreDependencies": ["msw"]
 }

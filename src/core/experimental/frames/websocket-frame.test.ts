@@ -1,10 +1,13 @@
-import { http } from '../../http'
-import { graphql } from '../../graphql'
-import { ws } from '../../ws'
+import { CloseEvent } from '@mswjs/interceptors/WebSocket'
+import { http } from '#http/http'
+import { graphql } from '../../../graphql'
+import { ws } from '../../../ws'
 import type { WebSocketNetworkFrameEventMap } from './websocket-frame'
 import { WebSocketNetworkFrame } from './websocket-frame'
 import { createTestWebSocketConnection } from '../../../../test/support/ws-test-utils'
 import { InMemoryHandlersController } from '#core/experimental/handlers-controller'
+
+const gql = graphql.link('*')
 
 beforeAll(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -30,7 +33,7 @@ function spyOnWebSocketFrame(frame: WebSocketNetworkFrame) {
   }
 }
 
-it('filters only websocket type handlers', async () => {
+test('filters only websocket type handlers', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -40,7 +43,7 @@ it('filters only websocket type handlers', async () => {
   const frame = new WebSocketFrame({ connection })
 
   const httpHandlers = [http.post('http://localhost/api/user', () => {})]
-  const graphqlHandlers = [graphql.query('GetUser', () => {})]
+  const graphqlHandlers = [gql.query('GetUser', () => {})]
   const webSocketHandlers = [
     ws.link('ws://localhost').addEventListener('connection', () => {}),
   ]
@@ -55,7 +58,7 @@ it('filters only websocket type handlers', async () => {
   expect(frame.getHandlers(new InMemoryHandlersController([]))).toEqual([])
 })
 
-it('resolves a matching connection', async () => {
+test('resolves a matching connection', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -84,14 +87,14 @@ it('resolves a matching connection', async () => {
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
   ])
 })
 
-it('resolves a connection when there are no handlers', async () => {
+test('resolves a connection when there are no handlers', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -119,14 +122,14 @@ it('resolves a connection when there are no handlers', async () => {
   )
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
   ])
 })
 
-it('resolves a non-matching connection', async () => {
+test('resolves a non-matching connection', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -157,14 +160,14 @@ it('resolves a non-matching connection', async () => {
   )
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
   ])
 })
 
-it('returns null and prints the error on unhandled exception', async () => {
+test('returns null and prints the error on unhandled exception', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -197,7 +200,7 @@ it('returns null and prints the error on unhandled exception', async () => {
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -219,7 +222,7 @@ it('returns null and prints the error on unhandled exception', async () => {
     )
 })
 
-it('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
+test('does not print an unhandled exception if the "unhandledException" listener is present', async () => {
   class WebSocketFrame extends WebSocketNetworkFrame {
     passthrough = vi.fn()
     errorWith = vi.fn()
@@ -255,7 +258,7 @@ it('does not print an unhandled exception if the "unhandledException" listener i
   expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
   expect.soft(events).toEqual([
     expect.objectContaining({
-      type: 'connection',
+      type: 'websocket:connection',
       url: connection.client.url,
       protocols: connection.info.protocols,
     }),
@@ -275,4 +278,115 @@ it('does not print an unhandled exception if the "unhandledException" listener i
     }),
   )
   expect.soft(console.error).not.toHaveBeenCalled()
+})
+
+test('emits "websocket:error" when the client connection errors', async () => {
+  class WebSocketFrame extends WebSocketNetworkFrame {
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const connection = createTestWebSocketConnection('ws://localhost/api')
+  const frame = new WebSocketFrame({ connection })
+  const { events } = spyOnWebSocketFrame(frame)
+
+  const api = ws.link('ws://localhost/api')
+  await frame.resolve([api.addEventListener('connection', () => {})], vi.fn(), {
+    quiet: true,
+  })
+
+  connection.client.socket.dispatchEvent(new Event('error'))
+
+  expect(events).toEqual([
+    expect.objectContaining({
+      type: 'websocket:connection',
+    }),
+    expect.objectContaining({
+      type: 'websocket:error',
+      url: connection.client.url,
+      protocols: connection.info.protocols,
+      error: undefined,
+    }),
+  ])
+})
+
+test('exposes the "error" property of the error event on "websocket:error"', async () => {
+  class WebSocketFrame extends WebSocketNetworkFrame {
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const connection = createTestWebSocketConnection('ws://localhost/api')
+  const frame = new WebSocketFrame({ connection })
+  const { events } = spyOnWebSocketFrame(frame)
+
+  const api = ws.link('ws://localhost/api')
+  await frame.resolve([api.addEventListener('connection', () => {})], vi.fn(), {
+    quiet: true,
+  })
+
+  const error = new Error('Connection failed')
+  connection.client.socket.dispatchEvent(
+    Object.assign(new Event('error'), { error }),
+  )
+
+  expect(events[1]).toEqual(
+    expect.objectContaining({
+      type: 'websocket:error',
+      error,
+    }),
+  )
+})
+
+test('exposes the "cause" property of the error event on "websocket:error"', async () => {
+  class WebSocketFrame extends WebSocketNetworkFrame {
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const connection = createTestWebSocketConnection('ws://localhost/api')
+  const frame = new WebSocketFrame({ connection })
+  const { events } = spyOnWebSocketFrame(frame)
+
+  const api = ws.link('ws://localhost/api')
+  await frame.resolve([api.addEventListener('connection', () => {})], vi.fn(), {
+    quiet: true,
+  })
+
+  const cause = new Error('Connection failed')
+  connection.client.socket.dispatchEvent(
+    Object.assign(new Event('error'), { cause }),
+  )
+
+  expect(events[1]).toEqual(
+    expect.objectContaining({
+      type: 'websocket:error',
+      error: cause,
+    }),
+  )
+})
+
+test('stops emitting "websocket:error" once the client connection closes', async () => {
+  class WebSocketFrame extends WebSocketNetworkFrame {
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const connection = createTestWebSocketConnection('ws://localhost/api')
+  const frame = new WebSocketFrame({ connection })
+  const { events } = spyOnWebSocketFrame(frame)
+
+  const api = ws.link('ws://localhost/api')
+  await frame.resolve([api.addEventListener('connection', () => {})], vi.fn(), {
+    quiet: true,
+  })
+
+  connection.client.socket.dispatchEvent(new CloseEvent('close'))
+  connection.client.socket.dispatchEvent(new Event('error'))
+
+  expect(events).toEqual([
+    expect.objectContaining({
+      type: 'websocket:connection',
+    }),
+  ])
 })

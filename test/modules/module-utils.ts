@@ -35,9 +35,23 @@ async function getLibraryTarball(): Promise<string> {
 export async function installLibrary(projectPath: string) {
   const TARBALL_PATH = await getLibraryTarball()
 
-  const output = spawnSync('pnpm', ['install', TARBALL_PATH], {
-    cwd: projectPath,
-  })
+  const output = spawnSync(
+    'pnpm',
+    [
+      'install',
+      /**
+       * @note The project is not a workspace member, so it does not
+       * inherit the "minimumReleaseAgeExclude" list from the root
+       * "pnpm-workspace.yaml". Disable the release age policy so that
+       * freshly published ecosystem dependencies can be installed.
+       */
+      '--config.minimum-release-age=0',
+      TARBALL_PATH,
+    ],
+    {
+      cwd: projectPath,
+    },
+  )
 
   if (output.error) {
     console.error(output.error)
@@ -46,8 +60,10 @@ export async function installLibrary(projectPath: string) {
     )
   }
 
-  /**
-   * @todo Assert that pnpm printed success:
-   * + msw 0.0.0-fetch.rc-11
-   */
+  invariant(
+    output.status === 0,
+    'Failed to install the library (pnpm exited with code %d):\n%s',
+    output.status,
+    output.stderr.toString(),
+  )
 }

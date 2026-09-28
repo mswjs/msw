@@ -1,6 +1,10 @@
 {
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
-    "composite": false
+    "composite": false,
+    // The single ESM build emits the declarations for "src/node" too.
+    // Explicitly include the Node.js types so imports like "node:async_hooks"
+    // resolve during the declaration emit instead of degrading to "any".
+    "types": ["node"]
   }
 }

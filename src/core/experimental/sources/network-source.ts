@@ -1,7 +1,7 @@
 import { Emitter, TypedEvent, type TypedListenerOptions } from 'rettime'
-import {
-  type AnyNetworkFrame,
-  type ExtractFrameEvents,
+import type {
+  AnyNetworkFrame,
+  ExtractFrameEvents,
 } from '../frames/network-frame'
 
 class NetworkFrameEvent<

@@ -1,40 +1,46 @@
-import { it, expectTypeOf } from 'vitest'
+import { test, expectTypeOf } from 'vitest'
 import type {
   WebSocketData,
   WebSocketLink,
   WebSocketHandlerConnection,
-} from 'msw'
-import { ws } from 'msw'
-import type { WebSocketClientConnectionProtocol } from '@mswjs/interceptors/WebSocket'
+} from 'msw/ws'
+import { ws, WebSocketExtension, WebSocketHandler } from 'msw/ws'
+import type {
+  WebSocketClientHandle,
+  WebSocketServerHandle,
+} from '@mswjs/interceptors/WebSocket'
 
-it('supports URL as the link argument', () => {
+test('supports URL as the link argument', () => {
   expectTypeOf(ws.link('ws://localhost')).toEqualTypeOf<WebSocketLink>()
 })
 
-it('supports RegExp as the link argument', () => {
+test('supports RegExp as the link argument', () => {
   expectTypeOf(ws.link(/\/ws$/)).toEqualTypeOf<WebSocketLink>()
 })
 
-it('exposes root-level link APIs', () => {
+test('exposes root-level link APIs', () => {
   const link = ws.link('ws://localhost')
 
   expectTypeOf(link.addEventListener).toBeFunction()
   expectTypeOf(link.broadcast).toBeFunction()
   expectTypeOf(link.broadcastExcept).toBeFunction()
-  expectTypeOf(link.clients).toEqualTypeOf<
-    Set<WebSocketClientConnectionProtocol>
-  >()
+  expectTypeOf(link.clients).toEqualTypeOf<Set<WebSocketClientHandle>>()
 })
 
-it('supports "connection" event listener', () => {
+test('supports "connection" event listener', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', (connection) => {
-    expectTypeOf(connection).toEqualTypeOf<WebSocketHandlerConnection>()
+    /**
+     * @note The listener receives a `WebSocketConnectionEvent` that
+     * implements `WebSocketHandlerConnection`, exposing the connection
+     * properties directly on the event.
+     */
+    expectTypeOf(connection).toExtend<WebSocketHandlerConnection>()
   })
 })
 
-it('errors on arbitrary event names passed to the link', () => {
+test('errors on arbitrary event names passed to the link', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener(
@@ -48,7 +54,7 @@ it('errors on arbitrary event names passed to the link', () => {
  * Client API.
  */
 
-it('exposes root-level "client" APIs', () => {
+test('exposes root-level "client" APIs', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -62,7 +68,7 @@ it('exposes root-level "client" APIs', () => {
   })
 })
 
-it('supports "message" event listener on the client', () => {
+test('supports "message" event listener on the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -72,17 +78,17 @@ it('supports "message" event listener on the client', () => {
   })
 })
 
-it('supports "close" event listener on the client', () => {
+test('supports "close" event listener on the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
     client.addEventListener('close', (event) => {
-      expectTypeOf(event).toMatchTypeOf<CloseEvent>()
+      expectTypeOf(event).toExtend<CloseEvent>()
     })
   })
 })
 
-it('errors on arbitrary event names passed to the client', () => {
+test('errors on arbitrary event names passed to the client', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ client }) => {
@@ -98,7 +104,7 @@ it('errors on arbitrary event names passed to the client', () => {
  * Server API.
  */
 
-it('exposes root-level "server" APIs', () => {
+test('exposes root-level "server" APIs', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -110,7 +116,7 @@ it('exposes root-level "server" APIs', () => {
   })
 })
 
-it('supports "message" event listener on the server', () => {
+test('supports "message" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -120,27 +126,27 @@ it('supports "message" event listener on the server', () => {
   })
 })
 
-it('supports "open" event listener on the server', () => {
+test('supports "open" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
     server.addEventListener('open', (event) => {
-      expectTypeOf(event).toMatchTypeOf<Event>()
+      expectTypeOf(event).toExtend<Event>()
     })
   })
 })
 
-it('supports "close" event listener on the server', () => {
+test('supports "close" event listener on the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
     server.addEventListener('close', (event) => {
-      expectTypeOf(event).toMatchTypeOf<CloseEvent>()
+      expectTypeOf(event).toExtend<CloseEvent>()
     })
   })
 })
 
-it('errors on arbitrary event names passed to the server', () => {
+test('errors on arbitrary event names passed to the server', () => {
   const link = ws.link('ws://localhost')
 
   link.addEventListener('connection', ({ server }) => {
@@ -150,4 +156,94 @@ it('errors on arbitrary event names passed to the server', () => {
       () => {},
     )
   })
+})
+
+test('keeps a union message type of an extension intact', () => {
+  type Message = { event: string } | { type: 'ack'; id: number }
+
+  class Acknowledging extends WebSocketExtension<Message, { rooms: string }> {
+    public encode(message: Message): string {
+      return JSON.stringify(message)
+    }
+
+    public decode(data: WebSocketData): Message | undefined {
+      return typeof data === 'string' ? JSON.parse(data) : undefined
+    }
+  }
+
+  const api = ws.link('ws://localhost', { extensions: [new Acknowledging()] })
+
+  api.broadcast({ type: 'ack', id: 1 })
+  api.addEventListener('connection', ({ client, rooms }) => {
+    expectTypeOf(rooms).toEqualTypeOf<string>()
+    client.send({ event: 'hello' })
+    client.send({ type: 'ack', id: 1 })
+    client.addEventListener('message', (event) => {
+      expectTypeOf(event.data).toEqualTypeOf<Message>()
+    })
+  })
+})
+
+/**
+ * Custom connections.
+ */
+
+test('accepts custom connection handles as the handler connection', () => {
+  /**
+   * @note A connection handle can live anywhere (e.g. another runtime),
+   * so a custom implementation of the handles must satisfy the handler.
+   */
+  class CustomClientConnection implements WebSocketClientHandle {
+    public id = 'custom-client'
+    public url = new URL('ws://localhost')
+    public send: WebSocketClientHandle['send'] = () => {}
+    public close: WebSocketClientHandle['close'] = () => {}
+    public addEventListener: WebSocketClientHandle['addEventListener'] =
+      () => {}
+    public removeEventListener: WebSocketClientHandle['removeEventListener'] =
+      () => {}
+  }
+
+  class CustomServerConnection implements WebSocketServerHandle {
+    public connect: WebSocketServerHandle['connect'] = () => {}
+    public send: WebSocketServerHandle['send'] = () => {}
+    public close: WebSocketServerHandle['close'] = () => {}
+    public addEventListener: WebSocketServerHandle['addEventListener'] =
+      () => {}
+    public removeEventListener: WebSocketServerHandle['removeEventListener'] =
+      () => {}
+  }
+
+  expectTypeOf<CustomClientConnection>().toExtend<
+    WebSocketHandlerConnection['client']
+  >()
+  expectTypeOf<CustomServerConnection>().toExtend<
+    WebSocketHandlerConnection['server']
+  >()
+
+  const handler = new WebSocketHandler('ws://localhost')
+
+  handler.run({
+    client: new CustomClientConnection(),
+    server: new CustomServerConnection(),
+    info: {
+      protocols: undefined,
+    },
+  })
+
+  const connection: WebSocketHandlerConnection = {
+    client: new CustomClientConnection(),
+    server: new CustomServerConnection(),
+    info: {
+      protocols: undefined,
+    },
+    params: {},
+  }
+
+  expectTypeOf(connection.client.send)
+    .parameter(0)
+    .toEqualTypeOf<WebSocketData>()
+  expectTypeOf(connection.server.send)
+    .parameter(0)
+    .toEqualTypeOf<WebSocketData>()
 })

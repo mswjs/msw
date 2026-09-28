@@ -1,28 +1,11 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
-import { type SetupServer, setupServer } from 'msw/node'
-import type { RequestHandler as ExpressRequestHandler } from 'express'
-import { HttpServer } from '@open-draft/test-server/http'
+import { setupServer } from 'msw/node'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
-const httpServer = new HttpServer((app) => {
-  const handler: ExpressRequestHandler = (req, res) => {
-    res.status(500).send('')
-  }
-  app.get('/book/:bookId', handler)
-  app.post('/login', handler)
-})
+const server = setupServer()
 
-let server: SetupServer
-
-beforeAll(async () => {
-  await httpServer.listen()
-
-  server = setupServer(
-    http.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
-      return HttpResponse.json({ title: 'Original title' })
-    }),
-  )
-
+beforeAll(() => {
   server.listen()
 })
 
@@ -30,14 +13,30 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('returns a mocked response from a runtime request handler upon match', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      const handler = () => {
+        return new Response('', { status: 500 })
+      }
+      router.get('/book/:bookId', handler)
+      router.post('/login', handler)
+    },
+  })
   server.use(
-    http.post(httpServer.http.url('/login'), () => {
+    http.get<{ bookId: string }>(
+      httpServer.http.url('/book/:bookId').href,
+      () => {
+        return HttpResponse.json({ title: 'Original title' })
+      },
+    ),
+  )
+  server.use(
+    http.post(httpServer.http.url('/login').href, () => {
       return HttpResponse.json({ accepted: true })
     }),
   )
@@ -57,10 +56,28 @@ test('returns a mocked response from a runtime request handler upon match', asyn
 })
 
 test('returns a mocked response from a persistent request handler override', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/book/:bookId', () => {
+        return new Response('', { status: 500 })
+      })
+    },
+  })
   server.use(
-    http.get<{ bookId: string }>(httpServer.http.url('/book/:bookId'), () => {
-      return HttpResponse.json({ title: 'Permanent override' })
-    }),
+    http.get<{ bookId: string }>(
+      httpServer.http.url('/book/:bookId').href,
+      () => {
+        return HttpResponse.json({ title: 'Original title' })
+      },
+    ),
+  )
+  server.use(
+    http.get<{ bookId: string }>(
+      httpServer.http.url('/book/:bookId').href,
+      () => {
+        return HttpResponse.json({ title: 'Permanent override' })
+      },
+    ),
   )
 
   const bookResponse = await fetch(httpServer.http.url('/book/abc-123'))
@@ -76,9 +93,24 @@ test('returns a mocked response from a persistent request handler override', asy
 })
 
 test('returns a mocked response from a one-time request handler override only upon first request match', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/book/:bookId', () => {
+        return new Response('', { status: 500 })
+      })
+    },
+  })
   server.use(
     http.get<{ bookId: string }>(
-      httpServer.http.url('/book/:bookId'),
+      httpServer.http.url('/book/:bookId').href,
+      () => {
+        return HttpResponse.json({ title: 'Original title' })
+      },
+    ),
+  )
+  server.use(
+    http.get<{ bookId: string }>(
+      httpServer.http.url('/book/:bookId').href,
       () => {
         return HttpResponse.json({ title: 'One-time override' })
       },
@@ -97,9 +129,24 @@ test('returns a mocked response from a one-time request handler override only up
 })
 
 test('returns a mocked response from a one-time request handler override only upon first request match with parallel requests', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/book/:bookId', () => {
+        return new Response('', { status: 500 })
+      })
+    },
+  })
   server.use(
     http.get<{ bookId: string }>(
-      httpServer.http.url('/book/:bookId'),
+      httpServer.http.url('/book/:bookId').href,
+      () => {
+        return HttpResponse.json({ title: 'Original title' })
+      },
+    ),
+  )
+  server.use(
+    http.get<{ bookId: string }>(
+      httpServer.http.url('/book/:bookId').href,
       ({ params }) => {
         return HttpResponse.json({
           title: 'One-time override',

@@ -1,26 +1,41 @@
 // @vitest-environment node
 import https from 'https'
-import { HttpServer, httpsAgent } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { waitForClientRequest } from '../../../support/utils'
 
-const httpServer = new HttpServer((app) => {
-  app.get('/resource', (_, res) => {
-    return res.status(500).send('original-response')
-  })
-})
+/**
+ * Custom HTTPS agent that allows requests to the test server
+ * that uses a self-signed certificate.
+ */
+const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const server = setupServer()
 
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
 })
 
-beforeEach(() => {
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
+})
+
+test('returns a mocked response to an "https.get" request', async () => {
+  await using httpServer = await createTestHttpServer({
+    protocols: ['http', 'https'],
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return new Response('original-response', { status: 500 })
+      })
+    },
+  })
   server.use(
-    http.get(httpServer.https.url('/resource'), () => {
+    http.get(httpServer.https.url('/resource').href, () => {
       return HttpResponse.json(
         {
           firstName: 'John',
@@ -34,18 +49,7 @@ beforeEach(() => {
       )
     }),
   )
-})
 
-afterEach(() => {
-  server.resetHandlers()
-})
-
-afterAll(async () => {
-  server.close()
-  await httpServer.close()
-})
-
-test('returns a mocked response to an "https.get" request', async () => {
   const request = https.get(httpServer.https.url('/resource'), {
     agent: httpsAgent,
   })
@@ -62,6 +66,30 @@ test('returns a mocked response to an "https.get" request', async () => {
 })
 
 test('returns a mocked response to an "https.request" request', async () => {
+  await using httpServer = await createTestHttpServer({
+    protocols: ['http', 'https'],
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return new Response('original-response', { status: 500 })
+      })
+    },
+  })
+  server.use(
+    http.get(httpServer.https.url('/resource').href, () => {
+      return HttpResponse.json(
+        {
+          firstName: 'John',
+        },
+        {
+          status: 401,
+          headers: {
+            'X-Header': 'yes',
+          },
+        },
+      )
+    }),
+  )
+
   const request = https.request(httpServer.https.url('/resource'), {
     agent: httpsAgent,
   })

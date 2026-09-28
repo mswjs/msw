@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { http } from 'msw'
 import { setupServer } from 'msw/node'
 import { stringToHeaders } from 'headers-polyfill'

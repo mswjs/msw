@@ -1,5 +1,5 @@
+// @vitest-environment node
 /**
- * @vitest-environment node
  * Example of mocking batched GraphQL queries via Apollo.
  * @see https://github.com/mswjs/msw/issues/510
  * @see https://www.apollographql.com/docs/router/executing-operations/query-batching
@@ -7,17 +7,7 @@
 import { http, bypass, HttpResponse, getResponse, RequestHandler } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
-
-const httpServer = new HttpServer((app) => {
-  app.post('/graphql', (req, res) => {
-    res.json({
-      data: {
-        server: { url: httpServer.http.address.href },
-      },
-    })
-  })
-})
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
 /**
  * A higher-order request handler function that resolves any
@@ -78,9 +68,30 @@ const graphqlHandlers = [
 
 const server = setupServer(...graphqlHandlers)
 
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
+})
+
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
+})
+
+test('sends a mocked response to a batched GraphQL query', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/graphql', () => {
+        return Response.json({
+          data: {
+            server: { url: httpServer.http.url().href },
+          },
+        })
+      })
+    },
+  })
 
   /**
    * @note This handler doesn't have to be a runtime handler.
@@ -89,16 +100,9 @@ beforeAll(async () => {
    * of your request handlers.
    */
   server.use(
-    batchedGraphQLQuery(httpServer.http.url('/graphql'), graphqlHandlers),
+    batchedGraphQLQuery(httpServer.http.url('/graphql').href, graphqlHandlers),
   )
-})
 
-afterAll(async () => {
-  server.close()
-  await httpServer.close()
-})
-
-test('sends a mocked response to a batched GraphQL query', async () => {
   const response = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {
@@ -126,7 +130,7 @@ test('sends a mocked response to a batched GraphQL query', async () => {
     ]),
   })
 
-  expect(await response.json()).toEqual([
+  await expect(response.json()).resolves.toEqual([
     {
       data: { user: { id: 1 } },
     },
@@ -137,6 +141,22 @@ test('sends a mocked response to a batched GraphQL query', async () => {
 })
 
 test('combines mocked and original responses in a single batched query', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/graphql', () => {
+        return Response.json({
+          data: {
+            server: { url: httpServer.http.url().href },
+          },
+        })
+      })
+    },
+  })
+
+  server.use(
+    batchedGraphQLQuery(httpServer.http.url('/graphql').href, graphqlHandlers),
+  )
+
   const response = await fetch(httpServer.http.url('/graphql'), {
     method: 'POST',
     headers: {
@@ -164,12 +184,12 @@ test('combines mocked and original responses in a single batched query', async (
     ]),
   })
 
-  expect(await response.json()).toEqual([
+  await expect(response.json()).resolves.toEqual([
     {
       data: { user: { id: 1 } },
     },
     {
-      data: { server: { url: httpServer.http.address.href } },
+      data: { server: { url: httpServer.http.url().href } },
     },
   ])
 })

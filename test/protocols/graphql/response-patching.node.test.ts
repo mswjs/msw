@@ -3,7 +3,7 @@ import { bypass, HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { graphql as executeGraphql, buildSchema } from 'graphql'
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { createGraphQLClient, gql } from '../../support/graphql'
 
 // The test server URL is only known once it starts listening,
@@ -30,62 +30,62 @@ const server = setupServer(
   }),
 )
 
-const httpServer = new HttpServer((app) => {
-  app.post('/graphql', async (req, response) => {
-    const result = await executeGraphql({
-      schema: buildSchema(gql`
-        type User {
-          firstName: String!
-          lastName: String!
-        }
-
-        # Describing an additional type to return
-        # the request headers back to the request handler.
-        # Apollo will strip off any extra data that
-        # doesn't match the query.
-        type RequestHeader {
-          name: String!
-          value: String!
-        }
-
-        type Query {
-          user: User!
-          requestHeaders: [RequestHeader!]
-        }
-      `),
-      operationName: 'GetUser',
-      source: req.body.query,
-      rootValue: {
-        user: {
-          firstName: 'John',
-          lastName: 'Maverick',
-        },
-      },
-    })
-
-    return response.status(200).json({
-      requestHeaders: req.headers,
-      queryResult: result,
-    })
-  })
-})
-
-beforeAll(async () => {
+beforeAll(() => {
   server.listen()
-
-  // This test server acts as a production server MSW will be hitting
-  // when performing a request patching with `ctx.fetch()`.
-  await httpServer.listen()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('patches a GraphQL response', async () => {
+  // This test server acts as a production server MSW will be hitting
+  // when performing a request patching with `ctx.fetch()`.
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/graphql', async (context) => {
+        const body = await context.req.json()
+        const result = await executeGraphql({
+          schema: buildSchema(gql`
+            type User {
+              firstName: String!
+              lastName: String!
+            }
+
+            # Describing an additional type to return
+            # the request headers back to the request handler.
+            # Apollo will strip off any extra data that
+            # doesn't match the query.
+            type RequestHeader {
+              name: String!
+              value: String!
+            }
+
+            type Query {
+              user: User!
+              requestHeaders: [RequestHeader!]
+            }
+          `),
+          operationName: 'GetUser',
+          source: body.query,
+          rootValue: {
+            user: {
+              firstName: 'John',
+              lastName: 'Maverick',
+            },
+          },
+        })
+
+        return Response.json({
+          requestHeaders: context.req.header(),
+          queryResult: result,
+        })
+      })
+    },
+  })
+
   const client = createGraphQLClient({
-    uri: httpServer.http.url('/graphql'),
+    uri: httpServer.http.url('/graphql').href,
   })
 
   const response = await client<{

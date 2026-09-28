@@ -1,9 +1,8 @@
 import fs from 'node:fs'
 import url from 'node:url'
-import crypto from 'crypto'
-import minify from 'babel-minify'
+import crypto from 'node:crypto'
 import { invariant } from 'outvariant'
-import type { TsdownPlugin } from 'tsdown'
+import { Rolldown, type TsdownPlugin } from 'tsdown'
 import copyServiceWorker from '../../copy-service-worker.ts'
 
 const SERVICE_WORKER_ENTRY_PATH = url.fileURLToPath(
@@ -14,15 +13,38 @@ const SERVICE_WORKER_OUTPUT_PATH = url.fileURLToPath(
   new URL('../../../lib/mockServiceWorker.js', import.meta.url),
 )
 
-function getChecksum(contents: string): string {
-  const { code } = minify(contents, {}, { comments: false })
+/**
+ * Compute the integrity checksum of the worker script.
+ * The script is normalized before hashing so that cosmetic changes
+ * (comments, including legal ones, and whitespace) do not invalidate
+ * the checksum. Compression and mangling are disabled to keep the
+ * checksum stable across minifier updates.
+ */
+export async function getWorkerChecksum(): Promise<string> {
+  const bundle = await Rolldown.rolldown({
+    input: SERVICE_WORKER_ENTRY_PATH,
+    platform: 'browser',
+    treeshake: false,
+    logLevel: 'silent',
+  })
+  const { output } = await bundle.generate({
+    format: 'iife',
+    comments: false,
+    minify: {
+      compress: false,
+      mangle: false,
+      codegen: {
+        removeWhitespace: true,
+      },
+    },
+  })
+  await bundle.close()
 
-  return crypto.createHash('md5').update(code, 'utf8').digest('hex')
-}
+  const [chunk] = output
 
-export function getWorkerChecksum(): string {
-  const workerContents = fs.readFileSync(SERVICE_WORKER_ENTRY_PATH, 'utf8')
-  return getChecksum(workerContents)
+  invariant(chunk, 'Failed to normalize the worker script: empty output')
+
+  return crypto.createHash('md5').update(chunk.code, 'utf8').digest('hex')
 }
 
 export function copyWorkerPlugin(checksum: string): TsdownPlugin {

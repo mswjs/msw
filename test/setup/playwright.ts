@@ -7,9 +7,10 @@ import {
 } from '@playwright/test'
 import { spyOnConsole, type ConsoleMessages } from 'page-with'
 import {
-  HttpServer,
-  type HttpServerMiddleware,
-} from '@open-draft/test-server/lib/http.js'
+  createTestHttpServer,
+  type TestHttpServer,
+  type TestHttpServerOptions,
+} from '@epic-web/test-server/http'
 import { WorkerConsole } from './worker-console'
 import {
   createViteHttpServer,
@@ -24,7 +25,9 @@ export interface TestFixtures {
   /**
    * Create a test server instance.
    */
-  createServer(...middleware: Array<HttpServerMiddleware>): Promise<HttpServer>
+  createServer(
+    defineRoutes?: TestHttpServerOptions['defineRoutes'],
+  ): Promise<TestHttpServer>
   loadExample(
     entry: CompilationEntry | Array<CompilationEntry>,
     options?: CompilationOptions & {
@@ -116,11 +119,13 @@ interface WorkerFixtures {
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   async createServer({}, use) {
-    let server: HttpServer | undefined
+    let server: TestHttpServer | undefined
 
-    await use(async (...middleware) => {
-      server = new HttpServer(...middleware)
-      await server.listen()
+    await use(async (defineRoutes) => {
+      server = await createTestHttpServer({
+        protocols: ['http', 'https'],
+        defineRoutes,
+      })
       return server
     })
 

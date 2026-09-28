@@ -1,33 +1,32 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
-
-const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => {
-    res.status(500).end()
-  })
-})
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
 const server = setupServer()
 
-beforeAll(async () => {
-  await httpServer.listen()
-
-  server.use(
-    http.get(httpServer.http.url('/user'), () => {
-      return HttpResponse.json({ firstName: 'John' })
-    }),
-  )
+beforeAll(() => {
   server.listen()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('removes a listener by the event name', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return new Response(null, { status: 500 })
+      })
+    },
+  })
+  server.use(
+    http.get(httpServer.http.url('/user').href, () => {
+      return HttpResponse.json({ firstName: 'John' })
+    }),
+  )
+
   const listeners = {
     requestStart: vi.fn(),
     requestEnd: vi.fn(),

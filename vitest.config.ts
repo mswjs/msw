@@ -122,11 +122,11 @@ export default defineConfig({
           exclude,
           alias: mswExports,
           setupFiles: ['./test/setup/vitest-browser.ts'],
+          api: {
+            host: '127.0.0.1',
+          },
           browser: {
             enabled: true,
-            api: {
-              host: '127.0.0.1',
-            },
             provider: playwright(),
             instances: [{ name: 'memory-browser', browser: 'chromium' }],
             headless: true,
@@ -152,13 +152,13 @@ export default defineConfig({
           ],
           alias: mswExports,
           setupFiles: ['./test/setup/vitest-browser.ts'],
+          // Serve the test page on the same host as the test server (see "vitest.setup.ts")
+          // so that cookies set on the document are sent to the test server.
+          api: {
+            host: '127.0.0.1',
+          },
           browser: {
             enabled: true,
-            // Serve the test page on the same host as the test server (see "vitest.setup.ts")
-            // so that cookies set on the document are sent to the test server.
-            api: {
-              host: '127.0.0.1',
-            },
             provider: playwright(),
             instances: [{ name: 'browser', browser: 'chromium' }],
             headless: true,

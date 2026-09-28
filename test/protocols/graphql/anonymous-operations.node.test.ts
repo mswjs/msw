@@ -1,19 +1,9 @@
 // @vitest-environment node
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { HttpResponse } from 'msw'
 import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
 import { createGraphQLClient } from '../../support/graphql'
-
-const httpServer = new HttpServer((app) => {
-  app.post('/graphql', (req, res) => {
-    res.json({
-      data: {
-        user: { id: 'abc-123' },
-      },
-    })
-  })
-})
 
 // The test server URL is only known once it starts listening,
 // so use a wildcard link to match any GraphQL endpoint.
@@ -21,9 +11,8 @@ const api = graphql.link('*')
 
 const server = setupServer(api.query('GetUser', () => {}))
 
-beforeAll(async () => {
+beforeAll(() => {
   server.listen()
-  await httpServer.listen()
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
@@ -32,14 +21,25 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-afterAll(async () => {
+afterAll(() => {
   vi.restoreAllMocks()
   server.close()
-  await httpServer.close()
 })
 
 test('warns on unhandled anonymous GraphQL operations', async () => {
-  const endpointUrl = httpServer.http.url('/graphql')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/graphql', () => {
+        return Response.json({
+          data: {
+            user: { id: 'abc-123' },
+          },
+        })
+      })
+    },
+  })
+
+  const endpointUrl = httpServer.http.url('/graphql').href
   const client = createGraphQLClient({ uri: endpointUrl })
 
   const result = await client({
@@ -64,6 +64,18 @@ Consider naming this operation or using the "operation()" request handler of "gr
 })
 
 test('does not print a warning when using anonymous operation with the "operation()" link handler', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/graphql', () => {
+        return Response.json({
+          data: {
+            user: { id: 'abc-123' },
+          },
+        })
+      })
+    },
+  })
+
   server.use(
     api.operation(async () => {
       return HttpResponse.json({
@@ -74,7 +86,7 @@ test('does not print a warning when using anonymous operation with the "operatio
     }),
   )
 
-  const endpointUrl = httpServer.http.url('/graphql')
+  const endpointUrl = httpServer.http.url('/graphql').href
   const client = createGraphQLClient({ uri: endpointUrl })
 
   const result = await client({

@@ -4,32 +4,31 @@
 // @vitest-environment node
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
 const server = setupServer()
 
-const httpServer = new HttpServer((app) => {
-  app.get('/resource', (_req, res) => {
-    res.send('original')
-  })
-})
-
-beforeAll(async () => {
+beforeAll(() => {
   server.listen()
-  await httpServer.listen()
 })
 
 afterEach(() => {
   server.resetHandlers()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('intercepts a request once `server.listen()` is called after `server.close()`', async () => {
-  const requestUrl = httpServer.http.url('/resource')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return new Response('original')
+      })
+    },
+  })
+  const requestUrl = httpServer.http.url('/resource').href
 
   server.use(
     http.get(requestUrl, () => {

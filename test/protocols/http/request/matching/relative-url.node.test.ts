@@ -1,6 +1,4 @@
-/**
- * @vitest-environment jsdom
- */
+// @vitest-environment jsdom
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
@@ -24,7 +22,7 @@ afterAll(() => {
 test('responds to a relative URL in jsdom', async () => {
   const response = await fetch('/api/movies')
 
-  expect(response.status).toBe(200)
+  expect.soft(response.status).toBe(200)
   expect(await response.json()).toEqual([
     { title: 'The Lord of the Rings' },
     { title: 'The Matrix' },

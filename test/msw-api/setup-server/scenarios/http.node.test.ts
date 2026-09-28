@@ -1,26 +1,34 @@
 // @vitest-environment node
 import nodeHttp from 'http'
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { waitForClientRequest } from '../../../support/utils'
 
-const httpServer = new HttpServer((app) => {
-  app.get('/resource', (_, res) => {
-    return res.status(500).send('original-response')
-  })
-})
-
 const server = setupServer()
 
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
 })
 
-beforeEach(() => {
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
+})
+
+test('returns a mocked response to an "http.get" request', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return new Response('original-response', { status: 500 })
+      })
+    },
+  })
   server.use(
-    http.get(httpServer.http.url('/resource'), () => {
+    http.get(httpServer.http.url('/resource').href, () => {
       return HttpResponse.json(
         { firstName: 'John' },
         {
@@ -32,19 +40,8 @@ beforeEach(() => {
       )
     }),
   )
-})
 
-afterEach(() => {
-  server.resetHandlers()
-})
-
-afterAll(async () => {
-  server.close()
-  await httpServer.close()
-})
-
-test('returns a mocked response to an "http.get" request', async () => {
-  const request = nodeHttp.get(httpServer.http.url('/resource'))
+  const request = nodeHttp.get(httpServer.http.url('/resource').href)
   const { response, responseText } = await waitForClientRequest(request)
 
   expect(response.statusCode).toBe(401)
@@ -58,7 +55,28 @@ test('returns a mocked response to an "http.get" request', async () => {
 })
 
 test('returns a mocked response to an "http.request" request', async () => {
-  const request = nodeHttp.request(httpServer.http.url('/resource'))
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/resource', () => {
+        return new Response('original-response', { status: 500 })
+      })
+    },
+  })
+  server.use(
+    http.get(httpServer.http.url('/resource').href, () => {
+      return HttpResponse.json(
+        { firstName: 'John' },
+        {
+          status: 401,
+          headers: {
+            'x-header': 'yes',
+          },
+        },
+      )
+    }),
+  )
+
+  const request = nodeHttp.request(httpServer.http.url('/resource').href)
   request.end()
   const { response, responseText } = await waitForClientRequest(request)
 

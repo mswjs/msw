@@ -1,13 +1,7 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
 import { type SetupServer, setupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
-
-const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => res.status(500).end())
-  app.post('/no-response', (req, res) => res.send('original-response'))
-  app.get('/unknown-route', (req, res) => res.send('majestic-unknown'))
-})
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
 const server = setupServer()
 
@@ -39,30 +33,33 @@ beforeAll(async () => {
   // warnings when hitting intentionally empty resolver.
   vi.spyOn(global.console, 'warn').mockImplementation(() => void 0)
 
-  await httpServer.listen()
-
-  server.use(
-    http.get(httpServer.http.url('/user'), () => {
-      return HttpResponse.text('response-body')
-    }),
-    http.post(httpServer.http.url('/no-response'), () => {
-      return
-    }),
-    http.get(httpServer.http.url('/unhandled-exception'), () => {
-      throw new Error('Unhandled resolver error')
-    }),
-  )
   server.listen()
 })
 
-afterAll(async () => {
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('emits events for a handled request and mocked response', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return new Response(null, { status: 500 })
+      })
+    },
+  })
+  const url = httpServer.http.url('/user').href
+  server.use(
+    http.get(url, () => {
+      return HttpResponse.text('response-body')
+    }),
+  )
+
   const listener = spyOnEvents(server)
-  const url = httpServer.http.url('/user')
   await fetch(url)
 
   expect(listener).toHaveBeenNthCalledWith(
@@ -110,7 +107,7 @@ test('emits events for a handled request and mocked response', async () => {
         url,
       }),
       requestId,
-      response: expect.any(Response),
+      response: expect.objectContaining({ status: 200 }),
     }),
   )
 
@@ -123,8 +120,21 @@ test('emits events for a handled request and mocked response', async () => {
 })
 
 test('emits events for a handled request with no response', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/no-response', () => {
+        return new Response('original-response')
+      })
+    },
+  })
+  const url = httpServer.http.url('/no-response').href
+  server.use(
+    http.post(url, () => {
+      return
+    }),
+  )
+
   const listener = spyOnEvents(server)
-  const url = httpServer.http.url('/no-response')
   await fetch(url, { method: 'POST' })
 
   expect(listener).toHaveBeenNthCalledWith(
@@ -172,7 +182,7 @@ test('emits events for a handled request with no response', async () => {
         url,
       }),
       requestId,
-      response: expect.any(Response),
+      response: expect.objectContaining({ status: 200 }),
     }),
   )
 
@@ -185,15 +195,26 @@ test('emits events for a handled request with no response', async () => {
 })
 
 test('emits events for an unhandled request', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/unknown-route', () => {
+        return new Response('majestic-unknown')
+      })
+    },
+  })
+  const url = httpServer.http.url('/unknown-route').href
+
   const listener = spyOnEvents(server)
-  const url = httpServer.http.url('/unknown-route')
   await fetch(url)
 
   expect(listener).toHaveBeenNthCalledWith(
     1,
     'request:start',
     expect.objectContaining({
-      request: expect.any(Request),
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId: expect.any(String),
     }),
   )
@@ -232,7 +253,7 @@ test('emits events for an unhandled request', async () => {
         url,
       }),
       requestId,
-      response: expect.any(Response),
+      response: expect.objectContaining({ status: 200 }),
     }),
   )
 
@@ -245,15 +266,25 @@ test('emits events for an unhandled request', async () => {
 })
 
 test('emits unhandled exceptions in the request handler', async () => {
+  await using httpServer = await createTestHttpServer()
+  const url = httpServer.http.url('/unhandled-exception').href
+  server.use(
+    http.get(url, () => {
+      throw new Error('Unhandled resolver error')
+    }),
+  )
+
   const listener = spyOnEvents(server)
-  const url = httpServer.http.url('/unhandled-exception')
   await fetch(url).catch(() => undefined)
 
   expect(listener).toHaveBeenNthCalledWith(
     1,
     'request:start',
     expect.objectContaining({
-      request: expect.any(Request),
+      request: expect.objectContaining({
+        method: 'GET',
+        url,
+      }),
       requestId: expect.any(String),
     }),
   )
@@ -287,7 +318,7 @@ test('emits unhandled exceptions in the request handler', async () => {
         url,
       }),
       requestId,
-      response: expect.any(Response),
+      response: expect.objectContaining({ status: 500 }),
     }),
   )
 
@@ -299,6 +330,14 @@ test('emits unhandled exceptions in the request handler', async () => {
 })
 
 test('stops emitting events once the server is stopped', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return new Response(null, { status: 500 })
+      })
+    },
+  })
+
   const listener = spyOnEvents(server)
   server.close()
 

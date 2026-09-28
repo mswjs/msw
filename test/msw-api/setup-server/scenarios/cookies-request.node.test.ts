@@ -2,29 +2,35 @@
 import https from 'https'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { httpsAgent, HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { waitForClientRequest } from '../../../support/utils'
 
-const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => {
-    res.json({ works: false })
-  })
-})
+/**
+ * Custom HTTPS agent that allows requests to the test server
+ * that uses a self-signed certificate.
+ */
+const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const server = setupServer()
 
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('exposes request cookies', async () => {
-  const endpointUrl = httpServer.https.url('/user')
+  await using httpServer = await createTestHttpServer({
+    protocols: ['http', 'https'],
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return Response.json({ works: false })
+      })
+    },
+  })
+  const endpointUrl = httpServer.https.url('/user').href
 
   server.use(
     http.get(endpointUrl, ({ cookies }) => {

@@ -1,64 +1,16 @@
 // @vitest-environment node
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { HttpResponse, http, bypass } from 'msw'
 import { setupServer } from 'msw/node'
-
-const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, response) => {
-    response.status(200).json({ id: 101 }).end()
-  })
-  app.post('/user', (req, response) => {
-    response.status(200).json({ id: 202 }).end()
-  })
-})
 
 interface ResponseBody {
   id: number
   mocked: boolean
 }
 
-const server = setupServer(
-  http.get('https://test.mswjs.io/user', async () => {
-    const originalResponse = await fetch(bypass(httpServer.http.url('/user')))
-    const body = await originalResponse.json()
+const server = setupServer()
 
-    return HttpResponse.json({
-      id: body.id,
-      mocked: true,
-    })
-  }),
-  http.get('https://test.mswjs.io/complex-request', async ({ request }) => {
-    const url = new URL(request.url)
-
-    const shouldBypass = url.searchParams.get('bypass') === 'true'
-    const performRequest = shouldBypass
-      ? () =>
-          fetch(
-            bypass(
-              new Request(httpServer.http.url('/user'), {
-                method: 'POST',
-              }),
-            ),
-          ).then((response) => response.json())
-      : () =>
-          fetch('https://httpbin.org/post', { method: 'POST' }).then(
-            (response) => response.json(),
-          )
-
-    const originalResponse = await performRequest()
-
-    return HttpResponse.json({
-      id: originalResponse.id,
-      mocked: true,
-    })
-  }),
-  http.post('https://httpbin.org/post', () => {
-    return HttpResponse.json({ id: 303 })
-  }),
-)
-
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
 })
 
@@ -66,12 +18,32 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('returns a combination of mocked and original responses', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return Response.json({ id: 101 })
+      })
+    },
+  })
+  server.use(
+    http.get('https://test.mswjs.io/user', async () => {
+      const originalResponse = await fetch(
+        bypass(httpServer.http.url('/user').href),
+      )
+      const body = await originalResponse.json()
+
+      return HttpResponse.json({
+        id: body.id,
+        mocked: true,
+      })
+    }),
+  )
+
   const response = await fetch('https://test.mswjs.io/user')
   const { status } = response
   const body = await response.json()
@@ -84,9 +56,34 @@ test('returns a combination of mocked and original responses', async () => {
 })
 
 test('bypasses a mocked request when using "bypass()"', async () => {
-  const response = await fetch(
-    'https://test.mswjs.io/complex-request?bypass=true',
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/user', () => {
+        return Response.json({ id: 202 })
+      })
+    },
+  })
+  server.use(
+    http.get('https://test.mswjs.io/complex-request', async () => {
+      const originalResponse = await fetch(
+        bypass(
+          new Request(httpServer.http.url('/user').href, {
+            method: 'POST',
+          }),
+        ),
+      ).then((response) => response.json())
+
+      return HttpResponse.json({
+        id: originalResponse.id,
+        mocked: true,
+      })
+    }),
+    http.post('https://httpbin.org/post', () => {
+      return HttpResponse.json({ id: 303 })
+    }),
   )
+
+  const response = await fetch('https://test.mswjs.io/complex-request')
 
   expect(response.status).toBe(200)
   expect(await response.json()).toEqual<ResponseBody>({
@@ -96,6 +93,22 @@ test('bypasses a mocked request when using "bypass()"', async () => {
 })
 
 test('falls into the mocked request when using "fetch" directly', async () => {
+  server.use(
+    http.get('https://test.mswjs.io/complex-request', async () => {
+      const originalResponse = await fetch('https://httpbin.org/post', {
+        method: 'POST',
+      }).then((response) => response.json())
+
+      return HttpResponse.json({
+        id: originalResponse.id,
+        mocked: true,
+      })
+    }),
+    http.post('https://httpbin.org/post', () => {
+      return HttpResponse.json({ id: 303 })
+    }),
+  )
+
   const response = await fetch('https://test.mswjs.io/complex-request')
 
   expect(response.status).toBe(200)

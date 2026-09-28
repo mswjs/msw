@@ -3,7 +3,6 @@ import type { setupWorker } from 'msw/browser'
 import type { HttpNetworkFrame } from 'msw/experimental'
 import { createTeardown } from 'fs-teardown'
 import type { Page } from '@playwright/test'
-import type { HttpServer } from '@open-draft/test-server/lib/http.js'
 import { fromTemp } from '../../../support/utils'
 import { inlineModule, test, expect } from '../../../setup/playwright'
 
@@ -32,8 +31,6 @@ declare namespace window {
 const fsMock = createTeardown({
   rootDir: fromTemp('fallback-mode', process.pid.toString()),
 })
-
-let server: HttpServer
 
 async function gotoStaticPage(page: Page, workerIndex: number): Promise<void> {
   await page.goto(
@@ -100,14 +97,6 @@ test.beforeEach(async ({ viteServer }, testInfo) => {
   })
 })
 
-test.beforeEach(async ({ createServer }) => {
-  server = await createServer((app) => {
-    app.get('/user', (_, response) => {
-      response.json({ name: 'Actual User' })
-    })
-  })
-})
-
 test.afterAll(async () => {
   await fsMock.cleanup()
 })
@@ -133,9 +122,20 @@ test('prints a fallback start message in the console', async ({
 })
 
 test('responds with a mocked response to a handled request', async ({
+  createServer,
   spyOnConsole,
   page,
 }, testInfo) => {
+  const server = await createServer((router) => {
+    router.get('/user', () => {
+      // The static page is served from a "file://" origin,
+      // so the browser requires CORS headers to read this response.
+      return Response.json(
+        { name: 'Actual User' },
+        { headers: { 'access-control-allow-origin': '*' } },
+      )
+    })
+  })
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
@@ -151,7 +151,7 @@ test('responds with a mocked response to a handled request', async ({
     await worker.start()
   })
 
-  const response = await fetch(server.https.url('/user'))
+  const response = await fetch(server.https.url('/user').href)
 
   if (!response) {
     throw new Error('Expected a mocked response')
@@ -177,9 +177,20 @@ test('responds with a mocked response to a handled request', async ({
 })
 
 test('warns on the unhandled request by default', async ({
+  createServer,
   spyOnConsole,
   page,
 }, testInfo) => {
+  const server = await createServer((router) => {
+    router.get('/user', () => {
+      // The static page is served from a "file://" origin,
+      // so the browser requires CORS headers to read this response.
+      return Response.json(
+        { name: 'Actual User' },
+        { headers: { 'access-control-allow-origin': '*' } },
+      )
+    })
+  })
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
@@ -190,7 +201,7 @@ test('warns on the unhandled request by default', async ({
     await worker.start()
   })
 
-  await fetch(server.http.url('/unknown-resource'))
+  await fetch(server.http.url('/unknown-resource').href)
 
   expect(consoleSpy.get('warning')).toEqual(
     expect.arrayContaining([
@@ -238,9 +249,20 @@ test('invokes the custom callback on an unhandled "file://" request', async ({
 })
 
 test('stops the fallback interceptor when called "worker.stop()"', async ({
+  createServer,
   spyOnConsole,
   page,
 }, testInfo) => {
+  const server = await createServer((router) => {
+    router.get('/user', () => {
+      // The static page is served from a "file://" origin,
+      // so the browser requires CORS headers to read this response.
+      return Response.json(
+        { name: 'Actual User' },
+        { headers: { 'access-control-allow-origin': '*' } },
+      )
+    })
+  })
   const fetch = createFetchWithoutNetwork(page)
   const consoleSpy = spyOnConsole()
   await gotoStaticPage(page, testInfo.workerIndex)
@@ -255,7 +277,7 @@ test('stops the fallback interceptor when called "worker.stop()"', async ({
 
   expect(consoleSpy.get('log')).toContain('[MSW] Mocking disabled.')
 
-  const response = await fetch(server.http.url('/user'))
+  const response = await fetch(server.http.url('/user').href)
 
   if (!response) {
     throw new Error('Expected an original response')

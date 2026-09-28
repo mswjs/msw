@@ -1,5 +1,5 @@
+// @vitest-environment node
 /**
- * @vitest-environment node
  * @see https://github.com/mswjs/msw/issues/2129
  */
 import { http, HttpResponse } from 'msw'

@@ -1,39 +1,11 @@
 // @vitest-environment node
-import { HttpServer } from '@open-draft/test-server/http'
+import { createTestHttpServer } from '@epic-web/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
-const httpServer = new HttpServer((app) => {
-  app.get('/user', (req, res) => {
-    res.status(200).json({ original: true })
-  })
-  app.post('/explicit-return', (req, res) => {
-    res.status(500).end()
-  })
-  app.post('/implicit-return', (req, res) => {
-    res.status(500).end()
-  })
-})
 const server = setupServer()
 
-beforeAll(async () => {
-  await httpServer.listen()
-
-  server.use(
-    http.get(httpServer.http.url('/user'), () => {
-      return HttpResponse.json({ mocked: true })
-    }),
-    http.post(httpServer.http.url('/explicit-return'), () => {
-      // Short-circuiting in a handler makes it perform the request as-is,
-      // but still treats this request as handled.
-      return
-    }),
-    http.post(httpServer.http.url('/implicit-return'), () => {
-      // The handler that has no return value so it falls through any
-      // other matching handlers (whicbh are none). In the end,
-      // the request is performed as-is and is still considered handled.
-    }),
-  )
+beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
 })
 
@@ -43,17 +15,30 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  server.resetHandlers()
   vi.clearAllMocks()
 })
 
-afterAll(async () => {
+afterAll(() => {
   vi.restoreAllMocks()
   server.close()
-  await httpServer.close()
 })
 
 test('errors on unhandled request when using the "error" strategy', async () => {
-  const endpointUrl = httpServer.http.url('/')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.get('/user', () => {
+        return Response.json({ original: true })
+      })
+    },
+  })
+  server.use(
+    http.get(httpServer.http.url('/user').href, () => {
+      return HttpResponse.json({ mocked: true })
+    }),
+  )
+
+  const endpointUrl = httpServer.http.url('/').href
   const makeRequest = () => {
     return fetch(endpointUrl)
       .then(() => {
@@ -87,6 +72,21 @@ Read more: https://mswjs.io/docs/http/intercepting-requests`)
 })
 
 test('does not error on request which handler explicitly returns no mocked response', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/explicit-return', () => {
+        return new Response(null, { status: 500 })
+      })
+    },
+  })
+  server.use(
+    http.post(httpServer.http.url('/explicit-return').href, () => {
+      // Short-circuiting in a handler makes it perform the request as-is,
+      // but still treats this request as handled.
+      return
+    }),
+  )
+
   const makeRequest = () => {
     return fetch(httpServer.http.url('/explicit-return'), {
       method: 'POST',
@@ -98,6 +98,21 @@ test('does not error on request which handler explicitly returns no mocked respo
 })
 
 test('does not error on request which handler implicitly returns no mocked response', async () => {
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/implicit-return', () => {
+        return new Response(null, { status: 500 })
+      })
+    },
+  })
+  server.use(
+    http.post(httpServer.http.url('/implicit-return').href, () => {
+      // The handler that has no return value so it falls through any
+      // other matching handlers (whicbh are none). In the end,
+      // the request is performed as-is and is still considered handled.
+    }),
+  )
+
   const makeRequest = () => {
     return fetch(httpServer.http.url('/implicit-return'), {
       method: 'POST',

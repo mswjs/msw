@@ -1,16 +1,7 @@
 // @vitest-environment node
 import { HttpResponse, passthrough, http } from 'msw'
 import { setupServer } from 'msw/node'
-import { HttpServer } from '@open-draft/test-server/http'
-
-const httpServer = new HttpServer((app) => {
-  app.post<never, ResponseBody>('/user', (req, response) => {
-    response.json({ name: 'John' })
-  })
-  app.post('/code/:code', (req, response) => {
-    response.status(parseInt(req.params.code)).send()
-  })
-})
+import { createTestHttpServer } from '@epic-web/test-server/http'
 
 const server = setupServer()
 
@@ -18,8 +9,7 @@ interface ResponseBody {
   name: string
 }
 
-beforeAll(async () => {
-  await httpServer.listen()
+beforeAll(() => {
   server.listen()
 })
 
@@ -32,13 +22,19 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-afterAll(async () => {
+afterAll(() => {
   server.close()
-  await httpServer.close()
 })
 
 test('performs request as-is when returning "req.passthrough" call in the resolver', async () => {
-  const endpointUrl = httpServer.http.url('/user')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/user', () => {
+        return Response.json({ name: 'John' } satisfies ResponseBody)
+      })
+    },
+  })
+  const endpointUrl = httpServer.http.url('/user').href
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
       return passthrough()
@@ -55,7 +51,14 @@ test('performs request as-is when returning "req.passthrough" call in the resolv
 })
 
 test('does not allow fall-through when returning "req.passthrough" call in the resolver', async () => {
-  const endpointUrl = httpServer.http.url('/user')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/user', () => {
+        return Response.json({ name: 'John' } satisfies ResponseBody)
+      })
+    },
+  })
+  const endpointUrl = httpServer.http.url('/user').href
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
       return passthrough()
@@ -75,7 +78,14 @@ test('does not allow fall-through when returning "req.passthrough" call in the r
 })
 
 test('performs a request as-is if nothing was returned from the resolver', async () => {
-  const endpointUrl = httpServer.http.url('/user')
+  await using httpServer = await createTestHttpServer({
+    defineRoutes(router) {
+      router.post('/user', () => {
+        return Response.json({ name: 'John' } satisfies ResponseBody)
+      })
+    },
+  })
+  const endpointUrl = httpServer.http.url('/user').href
   server.use(
     http.post<ResponseBody>(endpointUrl, () => {
       return
@@ -92,7 +102,16 @@ test('performs a request as-is if nothing was returned from the resolver', async
 
 for (const code of [204, 205, 304]) {
   test(`performs a ${code} request as-is if nothing was returned from the resolver`, async () => {
-    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    await using httpServer = await createTestHttpServer({
+      defineRoutes(router) {
+        router.post('/code/:code', (context) => {
+          return new Response(null, {
+            status: parseInt(context.req.param('code')),
+          })
+        })
+      },
+    })
+    const endpointUrl = httpServer.http.url(`/code/${code}`).href
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {
         return
@@ -105,7 +124,16 @@ for (const code of [204, 205, 304]) {
   })
 
   test(`performs a ${code} request as-is if passthrough was returned from the resolver`, async () => {
-    const endpointUrl = httpServer.http.url(`/code/${code}`)
+    await using httpServer = await createTestHttpServer({
+      defineRoutes(router) {
+        router.post('/code/:code', (context) => {
+          return new Response(null, {
+            status: parseInt(context.req.param('code')),
+          })
+        })
+      },
+    })
+    const endpointUrl = httpServer.http.url(`/code/${code}`).href
     server.use(
       http.post<ResponseBody>(endpointUrl, () => {
         return passthrough()

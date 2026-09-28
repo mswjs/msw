@@ -12,7 +12,7 @@ const packageJson = JSON.parse(
 ) as { dependencies: Record<string, string> }
 
 const ecosystemDependencies = /^@mswjs\/(.+)$/
-const SERVICE_WORKER_CHECKSUM = getWorkerChecksum()
+const SERVICE_WORKER_CHECKSUM = await getWorkerChecksum()
 
 const commonConfig = {
   target: 'esnext',

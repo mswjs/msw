@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.src.json",
-  "include": ["../../global.d.ts", "./global.browser.d.ts", "./**/*.ts"],
+  "include": ["./global.browser.d.ts", "./**/*.ts"],
   "references": [
     {
       "path": "../tsconfig.core.json"

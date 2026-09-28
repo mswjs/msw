@@ -1,5 +1,5 @@
 import { HttpResponse, http, passthrough } from 'msw'
-import { expect, test } from '../../setup/vitest-helpers'
+import { expect, test } from '../setup/vitest-helpers'
 
 interface ResponseBody {
   name: string

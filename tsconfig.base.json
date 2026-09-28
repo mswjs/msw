@@ -8,6 +8,5 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["./global.d.ts"],
   "exclude": ["node_modules", "lib"]
 }

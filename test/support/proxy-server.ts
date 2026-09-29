@@ -27,6 +27,14 @@ export async function createProxyServer(): Promise<
       },
     )
 
+    // Tear down the tunnel as a whole when either end fails.
+    clientSocket.on('error', () => {
+      targetSocket.destroy()
+    })
+    targetSocket.on('error', () => {
+      clientSocket.destroy()
+    })
+
     proxySockets.add(clientSocket)
     proxySockets.add(targetSocket)
   })

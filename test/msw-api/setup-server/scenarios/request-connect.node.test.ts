@@ -43,12 +43,13 @@ test('passes through an unhandled CONNECT request under the "error" strategy', a
     }),
   )
 
-  const { response } = await proxiedGet({
+  const { response, responseText } = await proxiedGet({
     proxyUrl: proxyServer.url,
     targetUrl,
   })
 
   expect(response.statusCode).toBe(200)
+  expect(responseText).toBe('mocked')
   expect(console.error).not.toHaveBeenCalled()
 })
 
@@ -69,12 +70,13 @@ test('passes through an unhandled CONNECT request under the "warn" strategy', as
     }),
   )
 
-  const { response } = await proxiedGet({
+  const { response, responseText } = await proxiedGet({
     proxyUrl: proxyServer.url,
     targetUrl,
   })
 
   expect(response.statusCode).toBe(200)
+  expect(responseText).toBe('mocked')
   expect(console.warn).not.toHaveBeenCalled()
   expect(console.error).not.toHaveBeenCalled()
 })
@@ -97,12 +99,13 @@ test('does not call the custom "onUnhandledFrame" callback for a CONNECT request
     }),
   )
 
-  const { response } = await proxiedGet({
+  const { response, responseText } = await proxiedGet({
     proxyUrl: proxyServer.url,
     targetUrl,
   })
 
   expect(response.statusCode).toBe(200)
+  expect(responseText).toBe('mocked')
   expect(onUnhandledFrame).not.toHaveBeenCalled()
 })
 
@@ -171,12 +174,13 @@ test('emits life-cycle events for a CONNECT request without marking it unhandled
   trackConnectEvent('request:end')
   server.events.on('unhandledException', unhandledExceptionListener)
 
-  const { response } = await proxiedGet({
+  const { response, responseText } = await proxiedGet({
     proxyUrl: proxyServer.url,
     targetUrl,
   })
 
   expect(response.statusCode).toBe(200)
+  expect(responseText).toBe('mocked')
   expect(connectEvents).toEqual([
     ['request:start', targetUrl.host],
     ['request:end', targetUrl.host],

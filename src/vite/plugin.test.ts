@@ -454,6 +454,9 @@ document.querySelector('output').textContent = String(network.readyState)
 let completedUpdates = 0
 
 if (import.meta.hot) {
+  import.meta.hot.on('vite:beforeUpdate', () => {
+    document.body.dataset.disabledBeforeUpdate = String(network.readyState === 0)
+  })
   import.meta.hot.on('vite:afterUpdate', () => {
     document.body.dataset.completedUpdates = String(++completedUpdates)
   })
@@ -519,18 +522,33 @@ document.querySelector('button').onclick = async () => {
   await page.getByRole('button', { name: 'Enable' }).click()
 
   await expect.poll(() => page.locator('output').textContent()).toBe('mocked')
+  await page.evaluate(() => {
+    delete document.body.dataset.disabledBeforeUpdate
+  })
   server.environments.client.hot.send({ type: 'update', updates: [] })
 
   await expect
     .poll(() => page.locator('body').getAttribute('data-completed-updates'))
     .toBe('2')
   await expect(
-    page.evaluate(async () => {
-      const response = await fetch('/resource')
+    page.locator('body').getAttribute('data-disabled-before-update'),
+  ).resolves.toBe('true')
+  /**
+   * @note The runtime re-enables the network after the update asynchronously:
+   * the worker has to be re-activated before it can respond with mocks.
+   * Until then, requests reach the dev server. Poll for the mocked response.
+   */
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const response = await fetch('/resource')
 
-      return response.text()
-    }),
-  ).resolves.toBe('mocked')
+          return response.text()
+        }),
+      { timeout: 10_000 },
+    )
+    .toBe('mocked')
   await expect(
     page.evaluate(async () => {
       const registrations = await navigator.serviceWorker.getRegistrations()

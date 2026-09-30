@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { createRequestId } from '@mswjs/interceptors'
+import { createRequestId, FetchRequest } from '@mswjs/interceptors'
 import type { HttpRequestResolverExtras } from './http-handler'
 import { HttpHandler } from './http-handler'
 import { HttpResponse } from './index'
@@ -70,6 +70,24 @@ describe('parse', () => {
 })
 
 describe('predicate', () => {
+  /**
+   * @todo Decide whether `http.all()` matches CONNECT requests
+   * once `http.connect()` is supported.
+   */
+  test('returns false given a CONNECT request', async () => {
+    const handler = new HttpHandler(/.+/, '*', resolver)
+    const request = new FetchRequest('http://localhost/127.0.0.1:443', {
+      method: 'CONNECT',
+    })
+
+    await expect(
+      handler.predicate({
+        request,
+        parsedResult: await handler.parse({ request }),
+      }),
+    ).resolves.toBe(false)
+  })
+
   test('returns true given a matching request', async () => {
     const handler = new HttpHandler('POST', '/login', resolver)
     const request = new Request(new URL('/login', location.href), {

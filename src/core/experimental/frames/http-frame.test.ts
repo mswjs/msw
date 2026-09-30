@@ -1,3 +1,4 @@
+import { FetchRequest } from '@mswjs/interceptors'
 import { http } from '#http/http'
 import { graphql } from '../../../graphql'
 import { ws } from '../../../ws'
@@ -158,6 +159,54 @@ test('resolves a non-matching request', async () => {
     }),
     expect.objectContaining({
       type: 'request:unhandled',
+      requestId: frame.data.id,
+      request: frame.data.request,
+    }),
+    expect.objectContaining({
+      type: 'request:end',
+      requestId: frame.data.id,
+      request: frame.data.request,
+    }),
+  ])
+})
+
+/**
+ * @todo Revisit the `http.all()` handler below once `http.connect()`
+ * is supported: a matching CONNECT handler must take precedence.
+ */
+test('passes through an unhandled CONNECT request without applying the unhandled frame strategy', async () => {
+  class HttpFrame extends HttpNetworkFrame {
+    respondWith = vi.fn()
+    passthrough = vi.fn()
+    errorWith = vi.fn()
+  }
+
+  const frame = new HttpFrame({
+    request: new FetchRequest('http://localhost/127.0.0.1:443', {
+      method: 'CONNECT',
+    }),
+  })
+  const { events } = spyOnNetworkFrame(frame)
+  const unhandledFrameCallback = vi.fn()
+
+  const matches = await frame.resolve(
+    [
+      http.all('*', () => {
+        return new Response(null, { status: 204 })
+      }),
+    ],
+    unhandledFrameCallback,
+    { quiet: true },
+  )
+
+  expect.soft(matches).toBe(null)
+  expect.soft(frame.passthrough).toHaveBeenCalledOnce()
+  expect.soft(frame.respondWith).not.toHaveBeenCalled()
+  expect.soft(frame.errorWith).not.toHaveBeenCalled()
+  expect.soft(unhandledFrameCallback).not.toHaveBeenCalled()
+  expect.soft(events).toEqual([
+    expect.objectContaining({
+      type: 'request:start',
       requestId: frame.data.id,
       request: frame.data.request,
     }),

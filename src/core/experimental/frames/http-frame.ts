@@ -6,6 +6,7 @@ import {
   type NetworkFrameResolutionContext,
 } from './network-frame'
 import { toPublicUrl } from '../../utils/request/to-public-url'
+import { isStringEqual } from '../../utils/internal/is-string-equal'
 import { executeHandlers } from '../../utils/execute-handlers'
 import { storeResponseCookies } from '../../utils/request/store-response-cookies'
 import { shouldBypassRequest } from '../request-utils'
@@ -191,6 +192,24 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
 
     // No matching handlers.
     if (lookupResult == null) {
+      /**
+       * @note Unhandled CONNECT requests establish a tunnel through a proxy.
+       * They are transport, not the request the developer cares about, so
+       * they pass through silently regardless of the unhandled frame strategy.
+       * The request sent through the tunnel gets its own resolution.
+       */
+      if (isStringEqual(request.method, 'CONNECT')) {
+        this.events.emit(
+          new RequestEvent('request:end', {
+            requestId,
+            request,
+          }),
+        )
+
+        this.passthrough()
+        return null
+      }
+
       this.events.emit(
         new RequestEvent('request:unhandled', {
           requestId,

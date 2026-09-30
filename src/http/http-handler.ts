@@ -122,6 +122,19 @@ export class HttpHandler extends RequestHandler<
     request: Request
     resolutionContext?: ResponseResolutionContext
   }) {
+    /**
+     * @note CONNECT requests target an authority ("host:port"), not a URL.
+     * HTTP handlers never match them.
+     * @todo Match the authority against the handler path once
+     * `http.connect()` is supported instead of bailing out.
+     */
+    if (isStringEqual(args.request.method, 'CONNECT')) {
+      return {
+        match: { matches: false, params: {} },
+        cookies: {},
+      }
+    }
+
     const url = new URL(args.request.url)
     const cookies = getAllRequestCookies(args.request)
 

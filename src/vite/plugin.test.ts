@@ -522,6 +522,9 @@ document.querySelector('button').onclick = async () => {
   await page.getByRole('button', { name: 'Enable' }).click()
 
   await expect.poll(() => page.locator('output').textContent()).toBe('mocked')
+  await page.evaluate(() => {
+    delete document.body.dataset.disabledBeforeUpdate
+  })
   server.environments.client.hot.send({ type: 'update', updates: [] })
 
   await expect

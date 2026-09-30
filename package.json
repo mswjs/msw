@@ -1,7 +1,7 @@
 {
   "name": "msw",
   "version": "3.0.0",
-  "description": "Seamless REST/GraphQL API mocking library for browser and Node.js.",
+  "description": "The industry standard for API mocking in JavaScript.",
   "type": "module",
   "main": "./lib/core/index.js",
   "types": "./lib/core/index.d.ts",

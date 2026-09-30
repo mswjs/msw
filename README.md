@@ -1,11 +1,9 @@
-<br />
-
 <p align="center">
   <img src="media/msw-logo.svg" width="100" alt="The Mock Service Worker logo" />
 </p>
 
 <h1 align="center">Mock Service Worker</h1>
-<p align="center">Industry standard API mocking for JavaScript.</p>
+<p align="center">The industry standard for API mocking in JavaScript.</p>
 
 <p align="center">
    <a href="https://kettanaito.com/discord" target="_blank">Join our Discord server</a>

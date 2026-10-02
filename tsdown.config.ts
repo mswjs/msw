@@ -76,7 +76,7 @@ const viteConfig: UserConfig = {
   platform: 'node',
   entry: ['./src/vite/index.ts', './src/vite/runtime.ts'],
   deps: {
-    neverBundle: ['vite', 'msw/experimental', 'virtual:msw/options'],
+    neverBundle: ['vite', 'msw/experimental'],
     onlyBundle: false,
   },
   format: ['esm'],

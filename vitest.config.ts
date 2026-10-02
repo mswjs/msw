@@ -42,6 +42,13 @@ export default defineConfig({
   test: {
     fileParallelism: true,
     globals: true,
+    server: {
+      deps: {
+        // Load the built plugin natively, the same way Vitest
+        // loads it from "node_modules" when "msw" is installed.
+        external: [/\/lib\/vite\//],
+      },
+    },
     onConsoleLog(_log, _logType, entity) {
       return entity?.project.name !== 'browser'
     },

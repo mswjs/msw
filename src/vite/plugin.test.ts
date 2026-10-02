@@ -784,7 +784,7 @@ test('serves only the worker in worker-only mode with an absolute base URL', asy
     server.environments.client.pluginContainer.resolveId('virtual:msw'),
   ).resolves.toBeNull()
   await expect(
-    server.environments.ssr.pluginContainer.resolveId('virtual:msw/options'),
+    server.environments.ssr.pluginContainer.resolveId('virtual:msw'),
   ).resolves.toBeNull()
 })
 

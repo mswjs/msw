@@ -5,7 +5,6 @@ import type { Plugin } from 'vite'
 const WORKER_FILENAME = 'mockServiceWorker.js'
 const WORKER_SCRIPT_PATH = new URL('../mockServiceWorker.js', import.meta.url)
 const VIRTUAL_MODULE_ID = 'virtual:msw'
-const VIRTUAL_OPTIONS_ID = 'virtual:msw/options'
 const RUNTIME_PATH = fileURLToPath(new URL('./runtime.js', import.meta.url))
 
 export interface MswPluginOptions {
@@ -53,33 +52,37 @@ export function msw(options: MswPluginOptions = {}): Plugin {
 
   return {
     name: 'msw',
-    async resolveId(id) {
+    resolveId(id) {
       if (mode === 'worker-only') {
         return
       }
 
-      if (id === VIRTUAL_OPTIONS_ID) {
-        return `\0${VIRTUAL_OPTIONS_ID}`
-      }
-
       if (id === VIRTUAL_MODULE_ID) {
-        return this.resolve(RUNTIME_PATH)
+        return `\0${VIRTUAL_MODULE_ID}`
       }
     },
     load(id) {
-      if (mode === 'worker-only' || id !== `\0${VIRTUAL_OPTIONS_ID}`) {
+      if (mode === 'worker-only' || id !== `\0${VIRTUAL_MODULE_ID}`) {
         return
       }
 
+      // Tools like Vitest import the runtime natively when it's installed
+      // in "node_modules". Provide it with the environment's options from here
+      // so it never has to import a virtual module that only Vite can resolve.
       if (this.environment.config.consumer === 'server') {
-        return `export { defaultNetworkOptions } from 'msw/node'`
+        return `
+import { defaultNetworkOptions } from 'msw/node'
+import { createNetwork } from ${JSON.stringify(RUNTIME_PATH)}
+export const network = await createNetwork(defaultNetworkOptions)
+`
       }
 
       environmentsUsingNetwork.add(this.environment.name)
 
       return `
 import { createDefaultNetworkOptions } from 'msw/browser'
-export const defaultNetworkOptions = createDefaultNetworkOptions(${JSON.stringify(workerUrl)})
+import { createNetwork } from ${JSON.stringify(RUNTIME_PATH)}
+export const network = await createNetwork(createDefaultNetworkOptions(${JSON.stringify(workerUrl)}))
 `
     },
     configResolved(config) {

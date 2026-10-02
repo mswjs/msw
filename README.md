@@ -67,7 +67,7 @@ In-browser usage is what sets Mock Service Worker apart from other tools. Utiliz
 
 ```js
 // 1. Import the library.
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw/http'
 import { setupWorker } from 'msw/browser'
 
 // 2. Describe network behavior with request handlers.
@@ -115,7 +115,7 @@ Here's an example of using Mock Service Worker while developing your Express ser
 
 ```js
 import express from 'express'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw/http'
 import { setupServer } from 'msw/node'
 
 const app = express()

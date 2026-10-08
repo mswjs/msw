@@ -10,7 +10,6 @@
 </p>
 
 <br />
-<br />
 
 ## Features
 
@@ -146,6 +145,35 @@ app.get(
 
 > This example showcases [`server.boundary()`](https://mswjs.io/docs/api/setup-server/boundary) to scope request interception to a particular closure, which is extremely handy!
 
+## Partners
+
+Active development and maintenance of MSW is made possible with the help from our incredible partners:
+
+<table>
+  <tr>
+    <td>
+      <a href="https://www.beehiiv.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/beehiiv.svg" alt="Beehiiv" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://www.chromatic.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/chromatic.svg" alt="Chromatic" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://coderabbit.link/mswjs" target="_blank">
+        <img src="media/partners/coderabbit.svg" alt="CodeRabbit" height="64" />
+      </a>
+    </td>
+    <td>
+      <a href="https://workleap.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/workleap.svg" alt="Workleap" height="64" width="174" />
+      </a>
+    </td>
+  </tr>
+</table>
+
 ## Sponsors
 
 Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon, Netflix, and countless others. Despite that, it remains a hobby project maintained in a spare time and has no opportunity to financially support even a single full-time contributor.
@@ -170,26 +198,9 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         </picture>
       </a>
     </td>
-    <td>
-      <a href="https://workleap.com/" target="_blank">
-        <img src="media/sponsors/workleap.svg" alt="Workleap" height="64" width="174" />
-      </a>
-    </td>
-    <td>
-      <a href="https://www.chromatic.com/?ref=mswjs" target="_blank">
-        <img src="media/sponsors/chromatic.svg" alt="Chromatic" height="64" />
-      </a>
-    </td>
-  </tr>
-  <tr>
     <td align="center">
       <a href="https://stackblitz.com/" target="_blank">
         <img src="media/sponsors/stackblitz.svg" alt="StackBlitz" height="64" />
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://coderabbit.link/mswjs" target="_blank">
-        <img src="media/sponsors/coderabbit.svg" alt="CodeRabbit" height="64" />
       </a>
     </td>
   </tr>

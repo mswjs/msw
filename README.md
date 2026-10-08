@@ -10,7 +10,6 @@
 </p>
 
 <br />
-<br />
 
 ## Features
 
@@ -146,6 +145,35 @@ app.get(
 
 > This example showcases [`server.boundary()`](https://mswjs.io/docs/api/setup-server/boundary) to scope request interception to a particular closure, which is extremely handy!
 
+## Partners
+
+Active development and maintenance of MSW is made possible with the help from our incredible partners:
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://www.beehiiv.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/beehiiv.svg" alt="Beehiiv" width="150" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://www.chromatic.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/chromatic.svg" alt="Chromatic" height="64" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://coderabbit.link/mswjs" target="_blank">
+        <img src="media/partners/coderabbit.svg" alt="CodeRabbit" width="150" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://workleap.com/?ref=mswjs" target="_blank">
+        <img src="media/partners/workleap.svg" alt="Workleap" width="150" />
+      </a>
+    </td>
+  </tr>
+</table>
+
 ## Sponsors
 
 Mock Service Worker is trusted by hundreds of thousands of engineers around the globe. It's used by companies like Google, Microsoft, Spotify, Amazon, Netflix, and countless others. Despite that, it remains a hobby project maintained in a spare time and has no opportunity to financially support even a single full-time contributor.
@@ -162,7 +190,7 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 <table>
   <tr>
-    <td>
+    <td align="center">
       <a href="https://www.github.com/" target="_blank">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="media/sponsors/github-light.svg" />
@@ -170,26 +198,9 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
         </picture>
       </a>
     </td>
-    <td>
-      <a href="https://workleap.com/" target="_blank">
-        <img src="media/sponsors/workleap.svg" alt="Workleap" height="64" width="174" />
-      </a>
-    </td>
-    <td>
-      <a href="https://www.chromatic.com/?ref=mswjs" target="_blank">
-        <img src="media/sponsors/chromatic.svg" alt="Chromatic" height="64" />
-      </a>
-    </td>
-  </tr>
-  <tr>
     <td align="center">
       <a href="https://stackblitz.com/" target="_blank">
         <img src="media/sponsors/stackblitz.svg" alt="StackBlitz" height="64" />
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://coderabbit.link/mswjs" target="_blank">
-        <img src="media/sponsors/coderabbit.svg" alt="CodeRabbit" height="64" />
       </a>
     </td>
   </tr>
@@ -205,19 +216,34 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 <table>
   <tr>
-    <td>
+    <td align="center">
       <a href="https://www.replay.io/" target="_blank">
         <img src="media/sponsors/replay.svg" alt="Replay" height="64" />
       </a>
     </td>
-    <td>
+    <td align="center">
       <a href="https://codemod.com/" target="_blank">
         <img src="media/sponsors/codemod.svg" alt="Codemod" height="64" width="128" />
       </a>
     </td>
-    <td>
+    <td align="center">
       <a href="https://github.com/ryanmagoon" target="_blank">
         <img src="https://github.com/ryanmagoon.png" alt="Ryan Magoon" height="64" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://kraken.tech/" target="_blank">
+        <img src="media/sponsors/kraken-tech.svg" alt="Kraken Tech" width="150" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://currents.dev/" target="_blank">
+        <img src="media/sponsors/currents.svg" alt="Currents" width="150" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/ryota-murakami" target="_blank">
+        <img src="https://github.com/ryota-murakami.png" alt="Ryota Murakami" height="64" />
       </a>
     </td>
   </tr>
@@ -233,19 +259,9 @@ Mock Service Worker is trusted by hundreds of thousands of engineers around the 
 
 <table>
   <tr>
-    <td>
+    <td align="center">
       <a href="https://materialize.com/" target="_blank">
         <img src="media/sponsors/materialize.svg" alt="Materialize" height="64" />
-      </a>
-    </td>
-    <td>
-      <a href="https://trigger.dev/" target="_blank">
-        <img src="media/sponsors/trigger-dev.png" alt="Trigger.dev" height="64" />
-      </a>
-    </td>
-    <td>
-      <a href="https://vital.io/" target="_blank">
-        <img src="media/sponsors/vital.svg" alt="Vital" width="64" />
       </a>
     </td>
   </tr>
@@ -260,7 +276,7 @@ We've been extremely humbled to receive awards and mentions from the community f
     <td width="124">
       <img src="https://raw.githubusercontent.com/mswjs/msw/main/media/tech-radar.png" width="124" alt="Technology Radar">
     </td>
-    <td>
+    <td align="center">
       <h4>Solution Worth Pursuing</h4>
       <p><em><a href="https://www.thoughtworks.com/radar/languages-and-frameworks/mock-service-worker">Technology Radar</a> (2020–2021)</em></p>
     </td>
@@ -269,7 +285,7 @@ We've been extremely humbled to receive awards and mentions from the community f
     <td width="124">
       <img src="https://raw.githubusercontent.com/mswjs/msw/main/media/os-awards.png" width="124" alt="Open Source Awards 2020">
     </td>
-    <td>
+    <td align="center">
       <h4>The Most Exciting Use of Technology</h4>
       <p><em><a href="https://osawards.com/javascript/2020">Open Source Awards</a> (2020)</em></p>
     </td>

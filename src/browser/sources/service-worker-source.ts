@@ -2,6 +2,7 @@ import { invariant } from 'outvariant'
 import type { Emitter } from 'rettime'
 import { FetchResponse } from '@mswjs/interceptors'
 import { NetworkSource } from '#core/experimental/sources/network-source'
+import type { NetworkFrameResolutionContext } from '#core/experimental/frames/network-frame'
 import { RequestHandler } from '#core/handlers/request-handler'
 import {
   HttpNetworkFrame,
@@ -23,7 +24,6 @@ import { validateWorkerScope } from '../utils/validate-worker-scope'
 import { shouldInvalidateWorker } from '../utils/should-invalidate-worker'
 
 export interface ServiceWorkerSourceOptions {
-  quiet?: boolean
   serviceWorker: {
     url: string
     options?: RegistrationOptions
@@ -76,6 +76,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
 
   #options: ServiceWorkerSourceOptions
   /**
+   * The resolved context of the network this source was last enabled with.
+   */
+  #context?: NetworkFrameResolutionContext
+  /**
    * @note We cannot use `WeakMap` here as request/response
    * identity cannot be preserved through the client-worker channel.
    */
@@ -109,7 +113,10 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     })
   }
 
-  public async enable(): Promise<ServiceWorkerRegistration> {
+  public async enable(
+    context?: NetworkFrameResolutionContext,
+  ): Promise<ServiceWorkerRegistration> {
+    this.#context = context
     this.#channel.removeAllListeners()
     this.#frames.clear()
 
@@ -147,7 +154,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
     })
     await clientConfirmationPromise.promise
 
-    if (!this.#options.quiet) {
+    if (!this.#context?.quiet) {
       this.#printStartMessage()
     }
 
@@ -178,7 +185,7 @@ export class ServiceWorkerSource extends NetworkSource<ServiceWorkerHttpNetworkF
      * `#handleRequest`. `#startWorker` swaps in a fresh deferred on re-enable.
      */
 
-    if (!this.#options.quiet) {
+    if (!this.#context?.quiet) {
       this.#printStopMessage()
     }
   }
@@ -294,7 +301,7 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
       this.#channel.postMessage('KEEPALIVE_REQUEST')
     }, 5000)
 
-    if (!this.#options.quiet) {
+    if (!this.#context?.quiet) {
       validateWorkerScope(registration)
     }
 

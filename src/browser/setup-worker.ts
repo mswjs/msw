@@ -56,11 +56,8 @@ export function setupWorker(...handlers: Array<AnyHandler>): SetupWorker {
               options: options?.serviceWorker?.options,
             },
             findWorker: options?.findWorker,
-            quiet: options?.quiet,
           })
-        : new FallbackHttpSource({
-            quiet: options?.quiet,
-          })
+        : new FallbackHttpSource()
 
       network.configure({
         sources: [

@@ -203,7 +203,7 @@ export function defineNetwork<Sources extends Array<NetworkSource<any>>>(
           )
         })
 
-        return source.enable()
+        return source.enable(resolvedOptions.context)
       })
 
       return colorlessPromiseAll(result) as MaybePromise<

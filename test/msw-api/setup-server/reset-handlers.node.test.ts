@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { HttpResponse, http } from 'msw'
+import { graphql } from 'msw/graphql'
 import { setupServer } from 'msw/node'
+import { createClient } from '../../support/graphql-client'
+import { gql } from '../../support/graphql'
+
+const api = graphql.link('http://localhost/graphql')
 
 const server = setupServer(
   http.get('http://localhost/books', () => {
@@ -100,4 +105,47 @@ test('replaces all handlers with the explicit next runtime handlers upon reset',
     expect.soft(response.status).toBe(200)
     await expect.soft(response.json()).resolves.toEqual([1, 2, 3])
   }
+})
+
+test('keeps initial GraphQL subscription handlers for connections opened before reset', async () => {
+  // The previous test replaced the initial handlers,
+  // so establish the subscription handler as the initial one here.
+  server.resetHandlers(
+    api.subscription('OnTick', ({ subscription }) => {
+      subscription.publish({ data: { tick: 1 } })
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost/graphql',
+    lazy: false,
+  })
+  const connected = Promise.withResolvers<void>()
+  client.on('connected', () => connected.resolve())
+  await connected.promise
+
+  server.resetHandlers()
+
+  const subscription = client.iterate({
+    query: gql`
+      subscription OnTick {
+        tick
+      }
+    `,
+  })
+  const pendingNext = subscription.next()
+
+  // An unhandled subscription sends nothing to the client,
+  // so wait for it to be either handled or reported as unhandled.
+  let settled = false
+  pendingNext.then(() => (settled = true))
+  await expect
+    .poll(() => settled || vi.mocked(console.warn).mock.calls.length > 0)
+    .toBe(true)
+
+  expect(console.warn).not.toHaveBeenCalled()
+  await expect(pendingNext).resolves.toEqual({
+    done: false,
+    value: { data: { tick: 1 } },
+  })
 })

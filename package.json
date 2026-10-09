@@ -116,7 +116,6 @@
   "funding": "https://github.com/sponsors/mswjs",
   "files": [
     "config/constants.js",
-    "config/scripts/postinstall.js",
     "cli",
     "lib",
     "src",

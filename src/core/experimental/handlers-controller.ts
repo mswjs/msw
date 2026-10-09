@@ -168,11 +168,38 @@ export abstract class HandlersController {
       ),
     )
 
-    for (const handler of this.currentHandlers()) {
+    const { initialHandlers } = this.getState()
+    const nextInitialHandlers =
+      nextHandlers.length > 0
+        ? groupHandlersByKind(nextHandlers)
+        : initialHandlers
+    const currentHandlers = new Set(this.currentHandlers())
+    const nextHandlersSet = new Set(
+      Object.values(nextInitialHandlers).flat().filter(Boolean),
+    )
+
+    for (const handler of currentHandlers.intersection(nextHandlersSet)) {
       handler.reset()
     }
 
-    const { initialHandlers } = this.getState()
+    // The handlers that leave the network with this reset release
+    // whatever they hold (e.g. live connection bindings).
+    // Resetting is synchronous, so their disposal is not awaited.
+    for (const handler of currentHandlers.difference(nextHandlersSet)) {
+      try {
+        const disposal = handler.dispose()
+
+        if (disposal instanceof Promise) {
+          disposal.catch((error) => {
+            this.#printDisposalError(handler, error)
+          })
+        }
+      } catch (error) {
+        // A failing disposal must not prevent the remaining handlers
+        // from being disposed of, nor the removed handlers from being cleared.
+        this.#printDisposalError(handler, error)
+      }
+    }
 
     if (nextHandlers.length === 0) {
       this.setState({
@@ -182,11 +209,9 @@ export abstract class HandlersController {
       return
     }
 
-    const normalizedNextHandlers = groupHandlersByKind(nextHandlers)
-
     this.setState({
-      initialHandlers: normalizedNextHandlers,
-      handlers: { ...normalizedNextHandlers },
+      initialHandlers: nextInitialHandlers,
+      handlers: { ...nextInitialHandlers },
     })
   }
 
@@ -216,6 +241,14 @@ export abstract class HandlersController {
 
   #validateHandlers(handlers: Array<AnyHandler>): boolean {
     return handlers.every((handler) => !Array.isArray(handler))
+  }
+
+  #printDisposalError(handler: AnyHandler, error: unknown): void {
+    devUtils.error(
+      'Failed to dispose of "%s" handler removed during reset. Please see the original error below.\n%s',
+      handler.kind,
+      error,
+    )
   }
 }
 

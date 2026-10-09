@@ -345,6 +345,30 @@ describe(InMemoryHandlersController.prototype.reset, () => {
         `[MSW] Failed to dispose of "request" handler removed during reset. Please see the original error below.\nError: Handler disposal error`,
       )
   })
+
+  test('removes the remaining handlers when a disposal throws', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const throwingHandler = http.get('/throwing', () => {})
+    throwingHandler.dispose = () => {
+      throw new Error('Handler disposal error')
+    }
+    const runtimeHandler = http.get('/runtime', () => {})
+    runtimeHandler.dispose = vi.fn()
+
+    const controller = new InMemoryHandlersController([])
+    controller.use([throwingHandler, runtimeHandler])
+    controller.reset([])
+
+    expect
+      .soft(console.error)
+      .toHaveBeenCalledWith(
+        `[MSW] Failed to dispose of "request" handler removed during reset. Please see the original error below.\nError: Handler disposal error`,
+      )
+    expect.soft(runtimeHandler.dispose).toHaveBeenCalledOnce()
+    expect(controller.currentHandlers()).toEqual([])
+  })
 })
 
 describe(InMemoryHandlersController.prototype.listHandlers, () => {

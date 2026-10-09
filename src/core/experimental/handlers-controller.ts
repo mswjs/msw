@@ -186,16 +186,18 @@ export abstract class HandlersController {
     // whatever they hold (e.g. live connection bindings).
     // Resetting is synchronous, so their disposal is not awaited.
     for (const handler of currentHandlers.difference(nextHandlersSet)) {
-      const disposal = handler.dispose()
+      try {
+        const disposal = handler.dispose()
 
-      if (disposal instanceof Promise) {
-        disposal.catch((error) => {
-          devUtils.error(
-            'Failed to dispose of "%s" handler removed during reset. Please see the original error below.\n%s',
-            handler.kind,
-            error,
-          )
-        })
+        if (disposal instanceof Promise) {
+          disposal.catch((error) => {
+            this.#printDisposalError(handler, error)
+          })
+        }
+      } catch (error) {
+        // A failing disposal must not prevent the remaining handlers
+        // from being disposed of, nor the removed handlers from being cleared.
+        this.#printDisposalError(handler, error)
       }
     }
 
@@ -239,6 +241,14 @@ export abstract class HandlersController {
 
   #validateHandlers(handlers: Array<AnyHandler>): boolean {
     return handlers.every((handler) => !Array.isArray(handler))
+  }
+
+  #printDisposalError(handler: AnyHandler, error: unknown): void {
+    devUtils.error(
+      'Failed to dispose of "%s" handler removed during reset. Please see the original error below.\n%s',
+      handler.kind,
+      error,
+    )
   }
 }
 

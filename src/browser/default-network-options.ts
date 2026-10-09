@@ -17,7 +17,7 @@ export function createDefaultNetworkOptions(
     sources: [
       supportsServiceWorker()
         ? new ServiceWorkerSource({ serviceWorker: { url: workerUrl } })
-        : new FallbackHttpSource({}),
+        : new FallbackHttpSource(),
       new InterceptorSource({
         interceptors: [
           new WebSocketInterceptor() as InterceptorSourceOptions['interceptors'][number],

@@ -104,19 +104,3 @@ test('returns false when findWorker is the same reference', () => {
     ),
   ).toBe(false)
 })
-
-test('returns false regardless of the "quiet" option', () => {
-  expect(
-    shouldInvalidateWorker(
-      createOptions({ quiet: true }),
-      createOptions({ quiet: true }),
-    ),
-  ).toBe(false)
-
-  expect(
-    shouldInvalidateWorker(
-      createOptions({ quiet: false }),
-      createOptions({ quiet: true }),
-    ),
-  ).toBe(false)
-})

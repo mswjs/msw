@@ -2,6 +2,7 @@ import { Emitter, TypedEvent, type TypedListenerOptions } from 'rettime'
 import type {
   AnyNetworkFrame,
   ExtractFrameEvents,
+  NetworkFrameResolutionContext,
 } from '../frames/network-frame'
 
 class NetworkFrameEvent<
@@ -33,7 +34,13 @@ export abstract class NetworkSource<
     this.emitter = new Emitter()
   }
 
-  public abstract enable(): unknown | Promise<unknown>
+  /**
+   * Enable this network source.
+   * @param context The resolved context of the network this source belongs to.
+   */
+  public abstract enable(
+    context?: NetworkFrameResolutionContext,
+  ): unknown | Promise<unknown>
 
   public async queue(frame: Frame): Promise<void> {
     await this.emitter.emitAsPromise(

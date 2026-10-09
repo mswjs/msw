@@ -1,23 +1,26 @@
 import { FetchInterceptor } from '@mswjs/interceptors/fetch'
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest'
 import { InterceptorSource } from '#core/experimental/sources/interceptor-source'
+import type { NetworkFrameResolutionContext } from '#core/experimental/frames/network-frame'
 import { devUtils } from '#core/utils/internal/dev-utils'
 
-interface FallbackHttpSourceOptions {
-  quiet?: boolean
-}
-
 export class FallbackHttpSource extends InterceptorSource {
-  constructor(private readonly options: FallbackHttpSourceOptions) {
+  /**
+   * The resolved context of the network this source was last enabled with.
+   */
+  #context?: NetworkFrameResolutionContext
+
+  constructor() {
     super({
       interceptors: [new XMLHttpRequestInterceptor(), new FetchInterceptor()],
     })
   }
 
-  public enable(): void {
+  public enable(context?: NetworkFrameResolutionContext): void {
+    this.#context = context
     super.enable()
 
-    if (!this.options.quiet) {
+    if (!this.#context?.quiet) {
       this.#printStartMessage()
     }
   }
@@ -25,7 +28,7 @@ export class FallbackHttpSource extends InterceptorSource {
   public disable(): void {
     super.disable()
 
-    if (!this.options.quiet) {
+    if (!this.#context?.quiet) {
       this.#printStopMessage()
     }
   }

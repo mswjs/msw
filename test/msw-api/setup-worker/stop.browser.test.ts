@@ -30,7 +30,7 @@ test('disables mocking when the worker is stopped', async ({
     location: 'San Francisco',
   })
 
-  await network.start({ quiet: true })
+  await network.start()
 })
 
 test('throws on multiple worker.stop() calls', async ({

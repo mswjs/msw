@@ -32,8 +32,9 @@ export abstract class Handler {
   /**
    * Release the resources held by this handler.
    *
-   * @note This method is invoked automatically when the network is
-   * disabled (e.g. `server.close()`). Override it in the handlers that
+   * @note This method is invoked automatically when the handler leaves
+   * the network: when the network is disabled (e.g. `server.close()`)
+   * or when a reset removes it (e.g. `server.resetHandlers()`). Override it in the handlers that
    * hold onto anything beyond a single frame, like timers, connections,
    * or event listeners. Returning a promise makes the network await
    * this handler's disposal before it tears itself down.

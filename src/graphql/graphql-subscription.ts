@@ -585,24 +585,32 @@ export class GraphQLSubscriptionTransportHandler extends GraphQLWebSocketHandler
   }
 
   /**
-   * Drop this transport's subscribers and active subscriptions from the
-   * sessions it participates in. The sessions themselves are left intact:
-   * they are shared with the other transports of the same connection and
-   * own the protocol listeners for as long as the client stays connected.
+   * Remove the given handler from the subscribers of every session
+   * this transport participates in. The handler no longer matches
+   * subscriptions on the connections opened while it was registered.
+   */
+  public unsubscribe(handler: WebSocketHandler): void {
+    for (const connection of connections.values()) {
+      connection.subscribers.delete(handler)
+    }
+  }
+
+  /**
+   * End the active subscriptions of the sessions this transport
+   * participates in. The sessions and their subscribers are left intact:
+   * the handlers that survive the reset keep serving the connections
+   * opened before it, while the removed handlers unsubscribe themselves
+   * on disposal. The sessions own the protocol listeners for as long as
+   * the client stays connected.
    *
    * @note This method is invoked automatically when the handlers
    * controller resets the handlers (e.g. `server.resetHandlers()`).
    */
   public reset(): void {
     for (const connection of connections.values()) {
-      let ownsConnection = false
-
-      for (const [handler, entry] of connection.subscribers) {
-        if (entry.transport === this) {
-          connection.subscribers.delete(handler)
-          ownsConnection = true
-        }
-      }
+      const ownsConnection = Array.from(connection.subscribers.values()).some(
+        (entry) => entry.transport === this,
+      )
 
       // Resetting the handlers detaches the resolvers from their
       // subscriptions, so run their cleanups instead of dropping them.
@@ -933,6 +941,16 @@ export class GraphQLSubscriptionHandler<
 
   public reset(): void {
     this.isUsed = false
+  }
+
+  /**
+   * Stop serving the connections this handler was bound to.
+   * @note This method is invoked automatically when the handler
+   * is removed from the network, either by resetting the handlers
+   * (e.g. `server.resetHandlers()`) or by disabling the network.
+   */
+  public dispose(): void {
+    this.#transport.unsubscribe(this)
   }
 
   /**

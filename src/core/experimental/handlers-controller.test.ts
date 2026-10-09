@@ -308,6 +308,43 @@ describe(InMemoryHandlersController.prototype.reset, () => {
     expect(controller.getHandlersByKind('websocket')).toEqual([wsOne, wsTwo])
     expect(controller.getHandlersByKind('request')).toEqual([upgradeHandler])
   })
+
+  test('resets the kept handlers and disposes of the removed ones', () => {
+    const initialHandler = http.get('/initial', () => {})
+    initialHandler.reset = vi.fn()
+    initialHandler.dispose = vi.fn()
+    const runtimeHandler = http.get('/runtime', () => {})
+    runtimeHandler.reset = vi.fn()
+    runtimeHandler.dispose = vi.fn()
+
+    const controller = new InMemoryHandlersController([initialHandler])
+    controller.use([runtimeHandler])
+    controller.reset([])
+
+    expect.soft(initialHandler.reset).toHaveBeenCalledOnce()
+    expect.soft(initialHandler.dispose).not.toHaveBeenCalled()
+    expect.soft(runtimeHandler.reset).not.toHaveBeenCalled()
+    expect(runtimeHandler.dispose).toHaveBeenCalledOnce()
+  })
+
+  test('reports a rejected disposal of a removed handler', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const runtimeHandler = http.get('/runtime', () => {})
+    runtimeHandler.dispose = () =>
+      Promise.reject(new Error('Handler disposal error'))
+
+    const controller = new InMemoryHandlersController([])
+    controller.use([runtimeHandler])
+    controller.reset([])
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        `[MSW] Failed to dispose of "request" handler removed during reset. Please see the original error below.\nError: Handler disposal error`,
+      )
+  })
 })
 
 describe(InMemoryHandlersController.prototype.listHandlers, () => {

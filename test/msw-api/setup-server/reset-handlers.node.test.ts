@@ -149,3 +149,42 @@ test('keeps initial GraphQL subscription handlers for connections opened before 
     value: { data: { tick: 1 } },
   })
 })
+
+test('removes runtime GraphQL subscription handlers from connections opened before reset', async () => {
+  server.resetHandlers(
+    api.subscription('OnTick', ({ subscription }) => {
+      subscription.publish({ data: { tick: 'initial' } })
+    }),
+  )
+  server.use(
+    api.subscription('OnTick', ({ subscription }) => {
+      subscription.publish({ data: { tick: 'runtime' } })
+    }),
+  )
+
+  await using client = createClient({
+    url: 'ws://localhost/graphql',
+    lazy: false,
+  })
+  const connected = Promise.withResolvers<void>()
+  client.on('connected', () => connected.resolve())
+  await connected.promise
+
+  const query = gql`
+    subscription OnTick {
+      tick
+    }
+  `
+
+  await expect(client.iterate({ query }).next()).resolves.toEqual({
+    done: false,
+    value: { data: { tick: 'runtime' } },
+  })
+
+  server.resetHandlers()
+
+  await expect(client.iterate({ query }).next()).resolves.toEqual({
+    done: false,
+    value: { data: { tick: 'initial' } },
+  })
+})

@@ -168,11 +168,36 @@ export abstract class HandlersController {
       ),
     )
 
-    for (const handler of this.currentHandlers()) {
+    const { initialHandlers } = this.getState()
+    const nextInitialHandlers =
+      nextHandlers.length > 0
+        ? groupHandlersByKind(nextHandlers)
+        : initialHandlers
+    const currentHandlers = new Set(this.currentHandlers())
+    const nextHandlersSet = new Set(
+      Object.values(nextInitialHandlers).flat().filter(Boolean),
+    )
+
+    for (const handler of currentHandlers.intersection(nextHandlersSet)) {
       handler.reset()
     }
 
-    const { initialHandlers } = this.getState()
+    // The handlers that leave the network with this reset release
+    // whatever they hold (e.g. live connection bindings).
+    // Resetting is synchronous, so their disposal is not awaited.
+    for (const handler of currentHandlers.difference(nextHandlersSet)) {
+      const disposal = handler.dispose()
+
+      if (disposal instanceof Promise) {
+        disposal.catch((error) => {
+          devUtils.error(
+            'Failed to dispose of "%s" handler removed during reset. Please see the original error below.\n%s',
+            handler.kind,
+            error,
+          )
+        })
+      }
+    }
 
     if (nextHandlers.length === 0) {
       this.setState({
@@ -182,11 +207,9 @@ export abstract class HandlersController {
       return
     }
 
-    const normalizedNextHandlers = groupHandlersByKind(nextHandlers)
-
     this.setState({
-      initialHandlers: normalizedNextHandlers,
-      handlers: { ...normalizedNextHandlers },
+      initialHandlers: nextInitialHandlers,
+      handlers: { ...nextInitialHandlers },
     })
   }
 

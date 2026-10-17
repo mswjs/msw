@@ -12,6 +12,9 @@ permissions:
 jobs:
   compare:
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      latest_version: ${{ steps.get-versions.outputs.latest_version }}
+      rc_version: ${{ steps.get-versions.outputs.rc_version }}
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -61,10 +64,6 @@ jobs:
 
       - name: Install TypeScript RC
         run: pnpm add typescript@rc
-
-      - name: Write tsconfig
-        run: |
-          cp test/typings/tsconfig.5.2.json test/typings/tsconfig.${needs.compare.outputs.rc_version}.json
 
       - name: Typings tests
         run: |

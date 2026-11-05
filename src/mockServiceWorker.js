@@ -10,7 +10,9 @@
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
-const ACTIVE_CLIENTS_CACHE_NAME = 'msw:active-clients'
+// Cache Storage is shared by the whole origin. Scope the cache name
+// to this registration so multiple workers do not overwrite each other.
+const ACTIVE_CLIENTS_CACHE_NAME = `msw:active-clients:${self.registration.scope}`
 const ACTIVE_CLIENTS_CACHE_KEY = '/__msw__/active-clients'
 
 const activeClientIds = new Set()

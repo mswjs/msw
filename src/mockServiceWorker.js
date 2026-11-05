@@ -27,6 +27,7 @@ const pendingRequests = new Map()
  */
 let hasRestoredActiveClientIds = false
 let isStoredActiveClientIdsOutdated = false
+let activeClientIdsStorePromise = Promise.resolve()
 const activeClientIdsRestorePromise = restoreActiveClientIds()
   .catch((error) => {
     console.error('[MSW] Failed to restore the active clients:', error)
@@ -226,8 +227,16 @@ async function readStoredActiveClientIds() {
 /**
  * Storing is best-effort: a failure must never prevent the client
  * from being activated or closed, in-memory state is still correct.
+ * Stores are serialized so each write persists the latest state
+ * and an earlier success cannot clear the flag of a later failure.
  */
-async function storeActiveClientIds() {
+function storeActiveClientIds() {
+  activeClientIdsStorePromise =
+    activeClientIdsStorePromise.then(writeActiveClientIds)
+  return activeClientIdsStorePromise
+}
+
+async function writeActiveClientIds() {
   try {
     const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
     await cache.put(

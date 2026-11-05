@@ -10,12 +10,33 @@
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
+// Cache Storage is shared by the whole origin. Scope the cache name
+// to this registration so multiple workers do not overwrite each other.
+const ACTIVE_CLIENTS_CACHE_NAME = `msw:active-clients:${self.registration.scope}`
+const ACTIVE_CLIENTS_CACHE_KEY = '/__msw__/active-clients'
 
 const activeClientIds = new Set()
 /**
  * @type {Map<string, Set<Promise<Response>>>}
  */
 const pendingRequests = new Map()
+
+/**
+ * The browser may terminate this worker at any point (idle timeout,
+ * hidden page throttling, event timeout) and evaluate it again on the
+ * next event, losing all in-memory state. Restore the active client IDs
+ * from the storage so the worker keeps handling requests after that.
+ */
+let hasRestoredActiveClientIds = false
+let isStoredActiveClientIdsOutdated = false
+let activeClientIdsStorePromise = Promise.resolve()
+const activeClientIdsRestorePromise = restoreActiveClientIds()
+  .catch((error) => {
+    console.error('[MSW] Failed to restore the active clients:', error)
+  })
+  .finally(() => {
+    hasRestoredActiveClientIds = true
+  })
 
 addEventListener('install', function () {
   self.skipWaiting()
@@ -34,12 +55,17 @@ addEventListener('message', function (event) {
 
   event.waitUntil(
     (async () => {
+      // Never mutate the active clients before they are restored,
+      // otherwise storing them would persist an incomplete set.
+      await activeClientIdsRestorePromise
+
       if (event.data === 'CLIENT_CLOSE') {
         const allClients = await self.clients.matchAll({
           type: 'window',
         })
 
         activeClientIds.delete(clientId)
+        await storeActiveClientIds()
 
         // Await any pending requests from the closing client.
         // This makes sure that those requests are handled and not passthrough.
@@ -55,13 +81,14 @@ addEventListener('message', function (event) {
 
         // Unregister itself when there are no more clients
         if (remainingClients.length === 0) {
+          await clearStoredActiveClientIds()
           await self.registration.unregister()
         }
 
         const client = await self.clients.get(clientId)
 
         if (client != null) {
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'CLIENT_CLOSED',
           })
         }
@@ -83,14 +110,20 @@ addEventListener('message', function (event) {
 
       switch (event.data) {
         case 'KEEPALIVE_REQUEST': {
-          await sendToClient(client, {
+          // Retry a failed store on the next keepalive so the storage
+          // catches up with the in-memory state before the worker restarts.
+          if (isStoredActiveClientIdsOutdated) {
+            await storeActiveClientIds()
+          }
+
+          notifyClient(client, {
             type: 'KEEPALIVE_RESPONSE',
           })
           break
         }
 
         case 'INTEGRITY_CHECK_REQUEST': {
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'INTEGRITY_CHECK_RESPONSE',
             payload: {
               packageVersion: PACKAGE_VERSION,
@@ -102,8 +135,9 @@ addEventListener('message', function (event) {
 
         case 'MOCK_ACTIVATE': {
           activeClientIds.add(clientId)
+          await storeActiveClientIds()
 
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'MOCKING_ENABLED',
             payload: {
               client: {
@@ -129,6 +163,22 @@ addEventListener('fetch', function (event) {
     return
   }
 
+  // This request may be the one waking the worker up after the browser
+  // has terminated it. Wait for the active clients to be restored
+  // before deciding whether to handle the request.
+  if (!hasRestoredActiveClientIds) {
+    event.respondWith(
+      activeClientIdsRestorePromise.then(() => {
+        if (activeClientIds.size === 0) {
+          return fetch(event.request)
+        }
+
+        return handleRequest(event)
+      }),
+    )
+    return
+  }
+
   // Bypass all requests when there are no active clients.
   // Prevents the self-unregistered worked from handling requests
   // after it's been terminated (still remains active until the next reload).
@@ -136,15 +186,85 @@ addEventListener('fetch', function (event) {
     return
   }
 
-  const requestId = crypto.randomUUID()
-  event.respondWith(handleRequest(event, requestId))
+  event.respondWith(handleRequest(event))
 })
 
 /**
- * @param {FetchEvent} event
- * @param {string} requestId
+ * Populate the active client IDs from the storage,
+ * ignoring the clients that no longer exist.
  */
-async function handleRequest(event, requestId) {
+async function restoreActiveClientIds() {
+  const storedClientIds = await readStoredActiveClientIds()
+
+  if (storedClientIds.length === 0) {
+    return
+  }
+
+  const windowClients = await self.clients.matchAll({
+    type: 'window',
+  })
+  const windowClientIds = new Set(windowClients.map((client) => client.id))
+
+  for (const clientId of storedClientIds) {
+    if (windowClientIds.has(clientId)) {
+      activeClientIds.add(clientId)
+    }
+  }
+}
+
+/**
+ * @returns {Promise<Array<string>>}
+ */
+async function readStoredActiveClientIds() {
+  const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
+  const response = await cache.match(ACTIVE_CLIENTS_CACHE_KEY)
+
+  if (!response) {
+    return []
+  }
+
+  return response.json()
+}
+
+/**
+ * Storing is best-effort: a failure must never prevent the client
+ * from being activated or closed, in-memory state is still correct.
+ * Stores are serialized so each write persists the latest state
+ * and an earlier success cannot clear the flag of a later failure.
+ */
+function storeActiveClientIds() {
+  activeClientIdsStorePromise =
+    activeClientIdsStorePromise.then(writeActiveClientIds)
+  return activeClientIdsStorePromise
+}
+
+async function writeActiveClientIds() {
+  try {
+    const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
+    await cache.put(
+      ACTIVE_CLIENTS_CACHE_KEY,
+      new Response(JSON.stringify(Array.from(activeClientIds))),
+    )
+    isStoredActiveClientIdsOutdated = false
+  } catch (error) {
+    isStoredActiveClientIdsOutdated = true
+    console.error('[MSW] Failed to store the active clients:', error)
+  }
+}
+
+async function clearStoredActiveClientIds() {
+  try {
+    await caches.delete(ACTIVE_CLIENTS_CACHE_NAME)
+  } catch (error) {
+    console.error('[MSW] Failed to clear the stored active clients:', error)
+  }
+}
+
+/**
+ * @param {FetchEvent} event
+ */
+async function handleRequest(event) {
+  const requestId = crypto.randomUUID()
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
 
@@ -172,7 +292,7 @@ async function handleRequest(event, requestId) {
     // request failed with a network error). Notify the client so it
     // can release the resources associated with this request.
     if (client && activeClientIds.has(client.id)) {
-      sendToClient(client, {
+      notifyClient(client, {
         type: 'REQUEST_ERROR',
         payload: {
           request: {
@@ -205,7 +325,7 @@ async function handleRequest(event, requestId) {
     // Clone the response so both the client and the library could consume it.
     const responseClone = isEventStreamResponse ? null : response.clone()
 
-    sendToClient(
+    notifyClient(
       client,
       {
         type: 'RESPONSE',
@@ -400,6 +520,26 @@ function sendToClient(client, message, transferrables = []) {
       ...transferrables.filter(Boolean),
     ])
   })
+}
+
+/**
+ * Post a one-way message to the client.
+ * Unlike `sendToClient`, this does not open a MessageChannel or wait
+ * for a reply. The client never acknowledges these messages, so awaiting
+ * them keeps the extended event pending until the browser terminates
+ * the worker on its event timeout (5 minutes in Chromium), wiping its state.
+ * @param {Client} client
+ * @param {any} message
+ * @param {Array<Transferable>} transferrables
+ */
+function notifyClient(client, message, transferrables = []) {
+  try {
+    client.postMessage(message, transferrables.filter(Boolean))
+  } catch (error) {
+    // A one-way message must never fail its caller (e.g. a transferable
+    // that has already been detached must not reject a resolved request).
+    console.error('[MSW] Failed to notify the client:', error)
+  }
 }
 
 /**

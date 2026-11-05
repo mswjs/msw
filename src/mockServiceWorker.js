@@ -216,16 +216,28 @@ async function readStoredActiveClientIds() {
   return response.json()
 }
 
+/**
+ * Storing is best-effort: a failure must never prevent the client
+ * from being activated or closed, in-memory state is still correct.
+ */
 async function storeActiveClientIds() {
-  const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
-  await cache.put(
-    ACTIVE_CLIENTS_CACHE_KEY,
-    new Response(JSON.stringify(Array.from(activeClientIds))),
-  )
+  try {
+    const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
+    await cache.put(
+      ACTIVE_CLIENTS_CACHE_KEY,
+      new Response(JSON.stringify(Array.from(activeClientIds))),
+    )
+  } catch (error) {
+    console.error('[MSW] Failed to store the active clients:', error)
+  }
 }
 
 async function clearStoredActiveClientIds() {
-  await caches.delete(ACTIVE_CLIENTS_CACHE_NAME)
+  try {
+    await caches.delete(ACTIVE_CLIENTS_CACHE_NAME)
+  } catch (error) {
+    console.error('[MSW] Failed to clear the stored active clients:', error)
+  }
 }
 
 /**

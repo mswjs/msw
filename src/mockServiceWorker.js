@@ -501,7 +501,13 @@ function sendToClient(client, message, transferrables = []) {
  * @param {Array<Transferable>} transferrables
  */
 function notifyClient(client, message, transferrables = []) {
-  client.postMessage(message, transferrables.filter(Boolean))
+  try {
+    client.postMessage(message, transferrables.filter(Boolean))
+  } catch (error) {
+    // A one-way message must never fail its caller (e.g. a transferable
+    // that has already been detached must not reject a resolved request).
+    console.error('[MSW] Failed to notify the client:', error)
+  }
 }
 
 /**

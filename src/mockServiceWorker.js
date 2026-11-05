@@ -10,12 +10,29 @@
 const PACKAGE_VERSION = '<PACKAGE_VERSION>'
 const INTEGRITY_CHECKSUM = '<INTEGRITY_CHECKSUM>'
 const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
+const ACTIVE_CLIENTS_CACHE_NAME = 'msw:active-clients'
+const ACTIVE_CLIENTS_CACHE_KEY = '/__msw__/active-clients'
 
 const activeClientIds = new Set()
 /**
  * @type {Map<string, Set<Promise<Response>>>}
  */
 const pendingRequests = new Map()
+
+/**
+ * The browser may terminate this worker at any point (idle timeout,
+ * hidden page throttling, event timeout) and evaluate it again on the
+ * next event, losing all in-memory state. Restore the active client IDs
+ * from the storage so the worker keeps handling requests after that.
+ */
+let hasRestoredActiveClientIds = false
+const activeClientIdsRestorePromise = restoreActiveClientIds()
+  .catch((error) => {
+    console.error('[MSW] Failed to restore the active clients:', error)
+  })
+  .finally(() => {
+    hasRestoredActiveClientIds = true
+  })
 
 addEventListener('install', function () {
   self.skipWaiting()
@@ -34,12 +51,17 @@ addEventListener('message', function (event) {
 
   event.waitUntil(
     (async () => {
+      // Never mutate the active clients before they are restored,
+      // otherwise storing them would persist an incomplete set.
+      await activeClientIdsRestorePromise
+
       if (event.data === 'CLIENT_CLOSE') {
         const allClients = await self.clients.matchAll({
           type: 'window',
         })
 
         activeClientIds.delete(clientId)
+        await storeActiveClientIds()
 
         // Await any pending requests from the closing client.
         // This makes sure that those requests are handled and not passthrough.
@@ -55,6 +77,7 @@ addEventListener('message', function (event) {
 
         // Unregister itself when there are no more clients
         if (remainingClients.length === 0) {
+          await clearStoredActiveClientIds()
           await self.registration.unregister()
         }
 
@@ -102,6 +125,7 @@ addEventListener('message', function (event) {
 
         case 'MOCK_ACTIVATE': {
           activeClientIds.add(clientId)
+          await storeActiveClientIds()
 
           notifyClient(client, {
             type: 'MOCKING_ENABLED',
@@ -129,6 +153,22 @@ addEventListener('fetch', function (event) {
     return
   }
 
+  // This request may be the one waking the worker up after the browser
+  // has terminated it. Wait for the active clients to be restored
+  // before deciding whether to handle the request.
+  if (!hasRestoredActiveClientIds) {
+    event.respondWith(
+      activeClientIdsRestorePromise.then(() => {
+        if (activeClientIds.size === 0) {
+          return fetch(event.request)
+        }
+
+        return handleRequest(event)
+      }),
+    )
+    return
+  }
+
   // Bypass all requests when there are no active clients.
   // Prevents the self-unregistered worked from handling requests
   // after it's been terminated (still remains active until the next reload).
@@ -136,15 +176,63 @@ addEventListener('fetch', function (event) {
     return
   }
 
-  const requestId = crypto.randomUUID()
-  event.respondWith(handleRequest(event, requestId))
+  event.respondWith(handleRequest(event))
 })
 
 /**
- * @param {FetchEvent} event
- * @param {string} requestId
+ * Populate the active client IDs from the storage,
+ * ignoring the clients that no longer exist.
  */
-async function handleRequest(event, requestId) {
+async function restoreActiveClientIds() {
+  const storedClientIds = await readStoredActiveClientIds()
+
+  if (storedClientIds.length === 0) {
+    return
+  }
+
+  const windowClients = await self.clients.matchAll({
+    type: 'window',
+  })
+  const windowClientIds = new Set(windowClients.map((client) => client.id))
+
+  for (const clientId of storedClientIds) {
+    if (windowClientIds.has(clientId)) {
+      activeClientIds.add(clientId)
+    }
+  }
+}
+
+/**
+ * @returns {Promise<Array<string>>}
+ */
+async function readStoredActiveClientIds() {
+  const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
+  const response = await cache.match(ACTIVE_CLIENTS_CACHE_KEY)
+
+  if (!response) {
+    return []
+  }
+
+  return response.json()
+}
+
+async function storeActiveClientIds() {
+  const cache = await caches.open(ACTIVE_CLIENTS_CACHE_NAME)
+  await cache.put(
+    ACTIVE_CLIENTS_CACHE_KEY,
+    new Response(JSON.stringify(Array.from(activeClientIds))),
+  )
+}
+
+async function clearStoredActiveClientIds() {
+  await caches.delete(ACTIVE_CLIENTS_CACHE_NAME)
+}
+
+/**
+ * @param {FetchEvent} event
+ */
+async function handleRequest(event) {
+  const requestId = crypto.randomUUID()
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
 

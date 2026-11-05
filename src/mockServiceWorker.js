@@ -26,6 +26,7 @@ const pendingRequests = new Map()
  * from the storage so the worker keeps handling requests after that.
  */
 let hasRestoredActiveClientIds = false
+let isStoredActiveClientIdsOutdated = false
 const activeClientIdsRestorePromise = restoreActiveClientIds()
   .catch((error) => {
     console.error('[MSW] Failed to restore the active clients:', error)
@@ -106,6 +107,12 @@ addEventListener('message', function (event) {
 
       switch (event.data) {
         case 'KEEPALIVE_REQUEST': {
+          // Retry a failed store on the next keepalive so the storage
+          // catches up with the in-memory state before the worker restarts.
+          if (isStoredActiveClientIdsOutdated) {
+            await storeActiveClientIds()
+          }
+
           notifyClient(client, {
             type: 'KEEPALIVE_RESPONSE',
           })
@@ -227,7 +234,9 @@ async function storeActiveClientIds() {
       ACTIVE_CLIENTS_CACHE_KEY,
       new Response(JSON.stringify(Array.from(activeClientIds))),
     )
+    isStoredActiveClientIdsOutdated = false
   } catch (error) {
+    isStoredActiveClientIdsOutdated = true
     console.error('[MSW] Failed to store the active clients:', error)
   }
 }

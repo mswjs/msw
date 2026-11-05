@@ -61,7 +61,7 @@ addEventListener('message', function (event) {
         const client = await self.clients.get(clientId)
 
         if (client != null) {
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'CLIENT_CLOSED',
           })
         }
@@ -83,14 +83,14 @@ addEventListener('message', function (event) {
 
       switch (event.data) {
         case 'KEEPALIVE_REQUEST': {
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'KEEPALIVE_RESPONSE',
           })
           break
         }
 
         case 'INTEGRITY_CHECK_REQUEST': {
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'INTEGRITY_CHECK_RESPONSE',
             payload: {
               packageVersion: PACKAGE_VERSION,
@@ -103,7 +103,7 @@ addEventListener('message', function (event) {
         case 'MOCK_ACTIVATE': {
           activeClientIds.add(clientId)
 
-          await sendToClient(client, {
+          notifyClient(client, {
             type: 'MOCKING_ENABLED',
             payload: {
               client: {
@@ -172,7 +172,7 @@ async function handleRequest(event, requestId) {
     // request failed with a network error). Notify the client so it
     // can release the resources associated with this request.
     if (client && activeClientIds.has(client.id)) {
-      sendToClient(client, {
+      notifyClient(client, {
         type: 'REQUEST_ERROR',
         payload: {
           request: {
@@ -205,7 +205,7 @@ async function handleRequest(event, requestId) {
     // Clone the response so both the client and the library could consume it.
     const responseClone = isEventStreamResponse ? null : response.clone()
 
-    sendToClient(
+    notifyClient(
       client,
       {
         type: 'RESPONSE',
@@ -400,6 +400,20 @@ function sendToClient(client, message, transferrables = []) {
       ...transferrables.filter(Boolean),
     ])
   })
+}
+
+/**
+ * Post a one-way message to the client.
+ * Unlike `sendToClient`, this does not open a MessageChannel or wait
+ * for a reply. The client never acknowledges these messages, so awaiting
+ * them keeps the extended event pending until the browser terminates
+ * the worker on its event timeout (5 minutes in Chromium), wiping its state.
+ * @param {Client} client
+ * @param {any} message
+ * @param {Array<Transferable>} transferrables
+ */
+function notifyClient(client, message, transferrables = []) {
+  client.postMessage(message, transferrables.filter(Boolean))
 }
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "msw",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "The industry standard for API mocking in JavaScript.",
   "type": "module",
   "main": "./lib/core/index.js",

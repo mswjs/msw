@@ -81,15 +81,12 @@ test('resolves a matching request', async () => {
   const { events } = spyOnNetworkFrame(frame)
   const unhandledFrameCallback = vi.fn()
 
-  const matches = await frame.resolve(
-    [
-      http.get('http://localhost/api', () => {
-        return new Response(null, { status: 204 })
-      }),
-    ],
-    unhandledFrameCallback,
-    { quiet: true },
-  )
+  const handler = http.get('http://localhost/api', () => {
+    return new Response(null, { status: 204 })
+  })
+  const matches = await frame.resolve([handler], unhandledFrameCallback, {
+    quiet: true,
+  })
 
   expect.soft(matches).toBe(true)
   expect.soft(frame.respondWith).toHaveBeenCalledExactlyOnceWith(
@@ -110,6 +107,7 @@ test('resolves a matching request', async () => {
       type: 'request:match',
       requestId: frame.data.id,
       request: frame.data.request,
+      handler,
     }),
     expect.objectContaining({
       type: 'request:end',
@@ -231,15 +229,12 @@ test('resolves a matched passthrough', async () => {
   const { events } = spyOnNetworkFrame(frame)
   const unhandledFrameCallback = vi.fn()
 
-  const matches = await frame.resolve(
-    [
-      http.get('http://localhost/api', () => {
-        // Intentionally do nothing to passthrough.
-      }),
-    ],
-    unhandledFrameCallback,
-    { quiet: true },
-  )
+  const handler = http.get('http://localhost/api', () => {
+    // Intentionally do nothing to passthrough.
+  })
+  const matches = await frame.resolve([handler], unhandledFrameCallback, {
+    quiet: true,
+  })
 
   expect.soft(matches).toBeNull()
   expect.soft(frame.passthrough).toHaveBeenCalledOnce()
@@ -256,6 +251,7 @@ test('resolves a matched passthrough', async () => {
       type: 'request:match',
       requestId: frame.data.id,
       request: frame.data.request,
+      handler,
     }),
     expect.objectContaining({
       type: 'request:end',

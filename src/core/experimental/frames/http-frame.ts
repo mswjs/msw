@@ -43,6 +43,31 @@ class RequestEvent<
   }
 }
 
+class RequestMatchEvent<
+  DataType extends {
+    requestId: string
+    request: Request
+    handler: RequestHandler
+  } = {
+    requestId: string
+    request: Request
+    handler: RequestHandler
+  },
+  ReturnType = void,
+  EventType extends string = string,
+> extends TypedEvent<DataType, ReturnType, EventType> {
+  public readonly requestId: string
+  public readonly request: Request
+  public readonly handler: RequestHandler
+
+  constructor(type: EventType, data: DataType) {
+    super(...([type, {}] as any))
+    this.requestId = data.requestId
+    this.request = data.request
+    this.handler = data.handler
+  }
+}
+
 export class ResponseEvent<
   DataType extends {
     requestId: string
@@ -95,7 +120,7 @@ class UnhandledExceptionEvent<
 
 export type HttpNetworkFrameEventMap = {
   'request:start': RequestEvent
-  'request:match': RequestEvent
+  'request:match': RequestMatchEvent
   'request:unhandled': RequestEvent
   'request:end': RequestEvent
   'response:mocked': ResponseEvent
@@ -239,9 +264,10 @@ export abstract class HttpNetworkFrame extends NetworkFrame<
     const { response, handler, parsedResult } = lookupResult
 
     this.events.emit(
-      new RequestEvent('request:match', {
+      new RequestMatchEvent('request:match', {
         requestId,
         request,
+        handler,
       }),
     )
 

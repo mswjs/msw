@@ -53,11 +53,11 @@ test('emits events for a handled request and mocked response', async () => {
     },
   })
   const url = httpServer.http.url('/user').href
-  server.use(
-    http.get(url, () => {
-      return HttpResponse.text('response-body')
-    }),
-  )
+  const handler = http.get(url, () => {
+    return HttpResponse.text('response-body')
+  })
+
+  server.use(handler)
 
   const listener = spyOnEvents(server)
   await fetch(url)
@@ -85,6 +85,7 @@ test('emits events for a handled request and mocked response', async () => {
         url,
       }),
       requestId,
+      handler,
     }),
   )
   expect(listener).toHaveBeenNthCalledWith(
@@ -128,11 +129,11 @@ test('emits events for a handled request with no response', async () => {
     },
   })
   const url = httpServer.http.url('/no-response').href
-  server.use(
-    http.post(url, () => {
-      return
-    }),
-  )
+  const handler = http.post(url, () => {
+    return
+  })
+
+  server.use(handler)
 
   const listener = spyOnEvents(server)
   await fetch(url, { method: 'POST' })
@@ -160,6 +161,7 @@ test('emits events for a handled request with no response', async () => {
         url,
       }),
       requestId,
+      handler,
     }),
   )
   expect(listener).toHaveBeenNthCalledWith(

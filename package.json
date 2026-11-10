@@ -139,7 +139,7 @@
   "dependencies": {
     "@inquirer/confirm": "^6.0.11",
     "@msw/url": "^0.1.2",
-    "@mswjs/interceptors": "^0.45.6",
+    "@mswjs/interceptors": "^0.45.11",
     "cookie": "^2.0.1",
     "headers-polyfill": "^5.0.1",
     "is-node-process": "^1.2.0",

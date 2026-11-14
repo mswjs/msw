@@ -33,7 +33,7 @@ Please use the GitHub UI to [fork this repository](https://github.com/mswjs/msw)
 ```bash
 $ cd msw
 $ pnpm install
-$ pnpm start
+$ pnpm dev
 ```
 
 > Please use [PNPM][pnpm-url] version 8.15 while working on this project.
@@ -76,26 +76,28 @@ $ pnpm build
 
 ## Tests
 
-### Testing levels
+All tests are run with [Vitest](https://vitest.dev/). Build the library and install the browser once, then run the tests:
 
-There are two levels of tests on the project:
+```bash
+$ pnpm build
+$ pnpm exec playwright install chromium
+$ pnpm test
+```
 
-- [Unit tests](#unit-tests), cover small independent functions.
-- [Integration tests](#integration-tests), test in-browser usage scenarios.
+> The tests run against the built library. Keep the build running (`pnpm dev`) while working on the tests.
+
+Provide a file path to run a single test:
+
+```bash
+$ pnpm test src/utils/multiply.test.ts
+$ pnpm test test/protocols/http/example.test.ts
+```
 
 **Always begin your implementation from tests**. When tackling an issue, a test for it must be missing, or is incomplete. When working on a feature, starting with a test allows you to model the feature's usage before diving into implementation.
 
 ### Unit tests
 
-#### Writing a unit test
-
-Unit tests are placed next to the tested code. For example, if you're testing a newly added `multiply` function, create a `multiply.test.ts` file next to where the function is located:
-
-```bash
-$ touch src/utils/multiply.test.ts
-```
-
-Proceed by writing a unit test that resembles the usage of the function. Make sure to cover all the scenarios
+Unit tests cover small independent functions and are placed next to the tested code.
 
 ```ts
 // src/utils/multiply.test.ts
@@ -108,49 +110,30 @@ test('multiplies two given numbers', () => {
 
 > Please [avoid nesting](https://kentcdodds.com/blog/avoid-nesting-when-youre-testing/) while you're testing.
 
-#### Running a single unit test
-
-Once your test is written, run it in isolation.
-
-```bash
-$ pnpm test:unit src/utils/multiply.test.ts
-```
-
-At this point, the actual implementation is not ready yet, so you can expect your test to fail. **That's perfect**. Add the necessary modules and logic, and gradually see your test cases pass.
-
-#### Running all unit tests
-
-```bash
-$ pnpm test:unit
-```
-
 ### Integration tests
 
-We follow an example-driven testing paradigm, meaning that each integration test represents a _usage example_. Mock Service Worker can be used in different environments (browser, Node.js), making such usage examples different.
+Integration tests live under `./test`. We follow an example-driven testing paradigm, meaning that each integration test represents a _usage example_.
 
-> **Make sure that you [build the library](#build) before running the integration tests**. It's a good idea to keep the build running (`pnpm start`) while working on the tests. Keeping both compiler and test runner in watch mode boosts your productivity.
+The same test runs in both Node.js and the browser ([Vitest Browser Mode](https://vitest.dev/guide/browser/)). The file name decides where the test runs:
 
-#### Browser integration tests
+| File name           | Environment                                                    |
+| ------------------- | -------------------------------------------------------------- |
+| `*.test.ts`         | Node.js and browser.                                           |
+| `*.node.test.ts`    | Node.js only.                                                  |
+| `*.browser.test.ts` | Browser only.                                                  |
+| `*.pw.test.ts`      | Playwright (full-page lifecycle, multi-tab). Run separately\*. |
 
-You can find all the browser integration tests under `./test/browser`. Those tests are run with Playwright and usually consist of two parts:
+> \*Playwright tests are the only exception to `pnpm test`. Run them with `pnpm test:playwright`.
 
-- `[test-name].mocks.ts`, the usage example of MSW;
-- `[test-name].test.ts`, the test suite that loads the usage example, does actions and performs assertions.
+Define the initial request handlers with `defineTestNetwork()`. It returns the `test` function that sets up `setupServer()` or `setupWorker()` depending on the environment, and exposes it as the `network` fixture.
 
-It's also a great idea to get familiar with our Playwright configuration and extensions:
-
-- [**Playwright configuration file**](./test/browser/playwright.config.ts)
-- [Playwright extensions](./test/browser/playwright.extend.ts)
-
-Let's write an example integration test that asserts the interception of a GET request. First, start with the `*.mocks.ts` file:
-
-```js
-// test/browser/example.mocks.ts
+```ts
+// test/protocols/http/example.test.ts
 import { http, HttpResponse } from 'msw'
-import { setupWorker } from 'msw/browser'
+import { defineTestNetwork, expect } from '../../setup/vitest-helpers'
 
-const worker = setupWorker(
-  http.get('/books', () => {
+const handlers = [
+  http.get('https://example.com/books', () => {
     return HttpResponse.json([
       {
         id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
@@ -159,29 +142,14 @@ const worker = setupWorker(
       },
     ])
   }),
-)
+]
 
-worker.start()
-```
+const test = defineTestNetwork({ handlers })
 
-> Notice how there's nothing test-specific in the example? The `example.mocks.ts` file is a copy-paste example of intercepting the `GET /books` request. This allows to share these mocks with the users as a legitimate example, because it is!
+test('returns a mocked response', async ({ fetch }) => {
+  const response = await fetch('https://example.com/books')
 
-Once the `*.mocks.ts` file is written, proceed by creating a test file:
-
-```ts
-// test/browser/example.test.ts
-import * as path from 'path'
-import { test, expect } from './playwright.extend'
-
-test('returns a mocked response', async ({ loadExample, fetch }) => {
-  // Compile the given usage example on runtime.
-  await loadExample(new URL('./example.mocks.ts', import.meta.url))
-
-  // Perform the "GET /books" request in the browser.
-  const res = await fetch('/books')
-
-  // Assert the returned response body.
-  expect(await res.json()).toEqual([
+  await expect(response.json()).resolves.toEqual([
     {
       id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
       title: 'The Lord of the Rings',
@@ -189,84 +157,7 @@ test('returns a mocked response', async ({ loadExample, fetch }) => {
     },
   ])
 })
-```
-
-##### Running all browser tests
-
-Make sure Playwright chromium has been installed before running browser tests.
-
-```sh
-pnpm test:browser
-```
-
-#### Running a single browser test
-
-```sh
-pnpm test:browser ./test/browser/example.test.ts
-```
-
-#### Node.js integration test
-
-Integration tests showcase a usage example in Node.js and are often placed next to the in-browser tests. Node.js integration tests reside in the `./test/node` directory.
-
-Similar to the browser tests, these are going to contain a usage example and the assertions over it. However, for Node.js tests there is no need to create a separate `*.mocks.ts` file. Instead, keep the usage example in the test file directly.
-
-Let's replicate the same `GET /books` integration test in Node.js.
-
-```ts
-// test/node/example.test.ts
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
-
-const server = setupServer(
-  http.get('/books', () => {
-    return HttpResponse.json([
-      {
-        id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-        title: 'The Lord of the Rings',
-        publishedAt: -486867600,
-      },
-    ])
-  }),
-)
-
-beforeAll(() => server.listen())
-
-afterAll(() => server.close())
-
-test('returns a mocked response', async () => {
-  const res = await fetch('/books')
-
-  expect(await res.json()).toEqual([
-    {
-      id: 'ea42ffcb-e729-4dd5-bfac-7a5b645cb1da',
-      title: 'The Lord of the Rings',
-      publishedAt: -486867600,
-    },
-  ])
-})
-```
-
-##### Running all Node.js tests
-
-```sh
-pnpm test:node
-```
-
-##### Running a single Node.js test
-
-```sh
-pnpm test:node ./test/node/example.test.ts
-```
-
-## Build
-
-Build the library with the following command:
-
-```bash
-$ pnpm build
 ```
 
 [pnpm-url]: https://pnpm.io/
-[page-with-url]: https://github.com/kettanaito/page-with
 [pnpm-install-guide-url]: https://pnpm.io/8.x/installation#installing-a-specific-version

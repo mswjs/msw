@@ -88,3 +88,52 @@ test('parses matching RegExp groups into index-based parameters', () => {
     },
   })
 })
+
+test('returns true when matching optional path parameters in the middle of the path', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/abc-123/settings'),
+      'https://test.mswjs.io/user/:userId?/settings',
+    ),
+  ).toEqual({
+    matches: true,
+    params: {
+      userId: 'abc-123',
+    },
+  })
+
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/settings'),
+      'https://test.mswjs.io/user/:userId?/settings',
+    ),
+  ).toEqual({
+    matches: true,
+    params: {},
+  })
+
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/user/abc-123'),
+      'https://test.mswjs.io/user/:userId?/settings',
+    ),
+  ).toEqual({
+    matches: false,
+    params: {},
+  })
+})
+
+test('returns true when matching optional path parameters separated by a dot', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/files/report.pdf'),
+      'https://test.mswjs.io/files/:name?.:ext?',
+    ),
+  ).toEqual({
+    matches: true,
+    params: {
+      name: 'report',
+      ext: 'pdf',
+    },
+  })
+})

@@ -46,6 +46,22 @@ test('removes query parameters and hashes after optional path parameters', () =>
   expect(getCleanUrlString('/user/:id?tab=1')).toEqual('/user/:id')
 })
 
+test('preserves optional path parameters separated by a dot', () => {
+  expect(getCleanUrlString('/files/:name?.:ext?')).toEqual(
+    '/files/:name?.:ext?',
+  )
+  expect(getCleanUrlString('/files/:name?.:ext?#hash')).toEqual(
+    '/files/:name?.:ext?',
+  )
+  expect(getCleanUrlString('/files/:name?.:ext?tab=1')).toEqual(
+    '/files/:name?.:ext',
+  )
+})
+
+test('removes a query string that starts with a dot after a path parameter', () => {
+  expect(getCleanUrlString('/user/:id?.json')).toEqual('/user/:id')
+})
+
 test('preserves pipe characters in the path', () => {
   expect(getCleanUrlString('/user/a|b/settings')).toEqual('/user/a|b/settings')
   expect(getCleanUrlString('/user/a|b?id=123')).toEqual('/user/a|b')

@@ -122,3 +122,18 @@ test('returns true when matching optional path parameters in the middle of the p
     params: {},
   })
 })
+
+test('returns true when matching optional path parameters separated by a dot', () => {
+  expect(
+    matchRequestUrl(
+      new URL('https://test.mswjs.io/files/report.pdf'),
+      'https://test.mswjs.io/files/:name?.:ext?',
+    ),
+  ).toEqual({
+    matches: true,
+    params: {
+      name: 'report',
+      ext: 'pdf',
+    },
+  })
+})

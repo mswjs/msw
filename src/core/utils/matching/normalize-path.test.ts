@@ -52,3 +52,9 @@ test('preserves optional path parameters', () => {
     'http://localhost/user/:userId?',
   )
 })
+
+test('preserves optional path parameters in the middle of the path', () => {
+  expect(normalizePath('/user/:userId?/settings')).toEqual(
+    'http://localhost/user/:userId?/settings',
+  )
+})

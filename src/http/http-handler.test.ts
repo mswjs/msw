@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setTimeout } from 'node:timers/promises'
 import { createRequestId, FetchRequest } from '@mswjs/interceptors'
 import type { HttpRequestResolverExtras } from './http-handler'
 import { HttpHandler } from './http-handler'
@@ -517,7 +518,7 @@ describe('finalize', () => {
     expect(cleanup).toHaveBeenNthCalledWith(2, 'finalize')
   })
 
-  test('runs the cleanup once when reset while the resolver is pending', async () => {
+  test('keeps the cleanup pending until the resolver completes when reset', async () => {
     const cleanup = vi.fn()
     const resolverStarted = Promise.withResolvers<void>()
     const continueResolver = Promise.withResolvers<void>()
@@ -542,7 +543,9 @@ describe('finalize', () => {
 
     handler.reset()
 
-    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+    // Give a premature cleanup a chance to run.
+    await setTimeout(50)
+    expect(cleanup).not.toHaveBeenCalled()
 
     continueResolver.resolve()
     await resultPromise

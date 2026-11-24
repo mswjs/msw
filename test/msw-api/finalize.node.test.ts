@@ -371,7 +371,7 @@ test('does not run again when the handlers are reset after the generator resolve
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
-test('runs once when the handlers are reset while the resolver is pending', async () => {
+test('runs once the resolver completes when the handlers are reset while it is pending', async () => {
   const cleanup = vi.fn()
   const handlerStarted = Promise.withResolvers<void>()
   const continueHandler = Promise.withResolvers<void>()
@@ -392,13 +392,15 @@ test('runs once when the handlers are reset while the resolver is pending', asyn
 
   server.resetHandlers()
 
-  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  // Give a premature cleanup a chance to run.
+  await setTimeout(50)
+  expect(cleanup).not.toHaveBeenCalled()
 
   continueHandler.resolve()
 
   const response = await responsePromise
   await expect(response.text()).resolves.toBe('hello')
-  expect(cleanup).toHaveBeenCalledOnce()
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
 })
 
 test('runs when the server is closed with a mid-flight generator resolver', async () => {

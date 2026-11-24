@@ -195,8 +195,9 @@ export abstract class RequestHandler<
   /**
    * Reset the runtime state accumulated during response resolution,
    * such as generator iterator progress. Called when the handlers are
-   * reset so this handler starts from a clean state. Runs the pending
-   * cleanups since the resolutions they belong to are abandoned.
+   * reset so this handler starts from a clean state. Runs the cleanups
+   * of the abandoned generator. The cleanups of the resolvers that are
+   * still running stay scheduled until those resolvers complete.
    */
   public reset(): void {
     const iterator = this.resolverIterator
@@ -208,10 +209,8 @@ export abstract class RequestHandler<
         await iterator?.return?.()
       },
       ...(this.resolverIteratorCleanups || []),
-      ...Array.from(this.scheduledCleanups.values()).flat(),
     ]
 
-    this.scheduledCleanups.clear()
     this.resolverIterator = undefined
     this.resolverIteratorCleanups = undefined
 

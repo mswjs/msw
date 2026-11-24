@@ -269,6 +269,93 @@ describe('run', () => {
     await expect(run()).resolves.toBe('complete')
     await expect(run()).resolves.toBe('complete')
   })
+
+  test('keeps the response of the current generator when a detached one yields', async () => {
+    const generatorStarted = Promise.withResolvers<void>()
+    const continueGenerator = Promise.withResolvers<void>()
+    let generatorCount = 0
+
+    const handler = new HttpHandler('GET', '/users', async function* () {
+      generatorCount += 1
+      const generatorId = generatorCount
+
+      if (generatorId === 1) {
+        generatorStarted.resolve()
+        await continueGenerator.promise
+      }
+
+      yield HttpResponse.text(`pending ${generatorId}`)
+    })
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/users', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    const detachedRun = run()
+    await generatorStarted.promise
+
+    // Resetting the handler detaches the generator that is still running.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending 2')
+
+    continueGenerator.resolve()
+    await expect(detachedRun).resolves.toBe('pending 1')
+
+    // Must respond with the latest response of the current generator.
+    await expect(run()).resolves.toBe('pending 2')
+    await expect(run()).resolves.toBe('pending 2')
+  })
+
+  test('keeps the current generator running when a detached one completes', async () => {
+    const generatorStarted = Promise.withResolvers<void>()
+    const continueGenerator = Promise.withResolvers<void>()
+    let generatorCount = 0
+
+    const handler = new HttpHandler(
+      'GET',
+      '/users',
+      async function* () {
+        generatorCount += 1
+        const generatorId = generatorCount
+
+        if (generatorId === 1) {
+          generatorStarted.resolve()
+          await continueGenerator.promise
+          return HttpResponse.text('complete 1')
+        }
+
+        yield HttpResponse.text(`pending ${generatorId}`)
+        return HttpResponse.text(`complete ${generatorId}`)
+      },
+      { once: true },
+    )
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/users', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    const detachedRun = run()
+    await generatorStarted.promise
+
+    // Resetting the handler detaches the generator that is still running.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending 2')
+
+    continueGenerator.resolve()
+    await expect(detachedRun).resolves.toBe('complete 1')
+
+    // Must not consider the handler used until the current generator completes.
+    await expect(run()).resolves.toBe('complete 2')
+    await expect(run()).resolves.toBeUndefined()
+  })
 })
 
 describe('finalize', () => {

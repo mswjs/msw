@@ -161,7 +161,7 @@ export abstract class RequestHandler<
         MaybeAsyncResponseResolverReturnType<any>,
         MaybeAsyncResponseResolverReturnType<any>
       >
-  private resolverIteratorResult?: Response | HttpResponse<any>
+  private resolverIteratorResults: WeakMap<object, Response>
   private resolverIteratorCleanups?: Array<() => MaybePromise<void>>
   private options?: HandlerOptions
   private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
@@ -180,6 +180,7 @@ export abstract class RequestHandler<
     this.resolver = args.resolver
     this.options = args.options
     this.scheduledCleanups = new Map()
+    this.resolverIteratorResults = new WeakMap()
 
     const callFrame = getCallFrame(new Error())
 
@@ -212,7 +213,6 @@ export abstract class RequestHandler<
 
     this.scheduledCleanups.clear()
     this.resolverIterator = undefined
-    this.resolverIteratorResult = undefined
     this.resolverIteratorCleanups = undefined
 
     void this.exhaustCleanups(cleanups)
@@ -508,24 +508,36 @@ export abstract class RequestHandler<
       // Opt-out from marking this handler as used.
       this.isUsed = false
 
-      const { done, value } = await this.resolverIterator.next()
+      const iterator = this.resolverIterator
+      const { done, value } = await iterator.next()
       const nextResponse = await value
 
       if (nextResponse) {
-        this.resolverIteratorResult = nextResponse.clone()
+        this.resolverIteratorResults.set(iterator, nextResponse.clone())
       }
 
       if (done) {
+        // Clone the previously stored response so it can be read
+        // when receiving it repeatedly from the "done" generator.
+        const response = this.resolverIteratorResults.get(iterator)?.clone()
+
+        /**
+         * @note This generator was abandoned by a reset while it was
+         * running. Respond with its own result but leave the state of
+         * the handler to the generator that may have replaced it.
+         */
+        if (iterator !== this.resolverIterator) {
+          return response
+        }
+
         // A one-time generator resolver stops affecting the network
         // only after it's been completely exhausted.
         this.isUsed = true
 
-        // Clone the previously stored response so it can be read
-        // when receiving it repeatedly from the "done" generator.
         return this.complete({
           request: info.request,
           requestId: info.requestId,
-          response: this.resolverIteratorResult?.clone(),
+          response,
         })
       }
 

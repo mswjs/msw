@@ -358,6 +358,110 @@ describe('finalize', () => {
 
     expect(cleanup).toHaveBeenCalledOnce()
   })
+
+  test('runs the cleanup when a mid-flight generator resolver is reset', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup when a mid-flight generator resolver is disposed of', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup after the generator itself is cleaned up on reset', async () => {
+    const cleanup = vi.fn<(source: string) => void>()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(() => cleanup('finalize'))
+
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup('generator')
+      }
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+    expect(cleanup).toHaveBeenNthCalledWith(1, 'generator')
+    expect(cleanup).toHaveBeenNthCalledWith(2, 'finalize')
+  })
+
+  test('runs the cleanup once when reset while the resolver is pending', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return new HttpResponse(null)
+      },
+    )
+
+    const resultPromise = handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    await resolverStarted.promise
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+
+    continueResolver.resolve()
+    await resultPromise
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
 })
 
 describe('dispose', () => {

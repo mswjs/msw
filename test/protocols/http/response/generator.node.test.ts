@@ -305,3 +305,79 @@ test('does not call generator cleanup when resetting an exhausted generator', as
     expect(cleanup).toHaveBeenCalledOnce()
   })()
 })
+
+test('calls generator cleanup when a reset removes a mid-flight generator', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      try {
+        yield HttpResponse.json('Yield')
+        return HttpResponse.json('Stable')
+      } finally {
+        cleanup()
+      }
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  expect(cleanup).toHaveBeenCalledOnce()
+})
+
+test('resets the generator state of a handler removed by a reset and used again', async () => {
+  const handler = http.get('http://localhost/resource', function* () {
+    yield HttpResponse.json('Yield')
+    return HttpResponse.json('Stable')
+  })
+
+  server.use(handler)
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+  server.resetHandlers()
+  server.use(handler)
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
+test('reports a failing generator cleanup when resetting a mid-flight generator', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  const cleanup = vi.fn(() => {
+    throw new Error('Reason')
+  })
+
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      try {
+        yield HttpResponse.json('Yield')
+        return HttpResponse.json('Stable')
+      } finally {
+        cleanup()
+      }
+    }),
+  )
+
+  await server.boundary(async () => {
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
+    server.resetHandlers()
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[MSW] Failed to execute cleanup for request handler "GET http://localhost/resource"',
+        ),
+      )
+
+    // Must keep the handler functional after the failed cleanup.
+    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  })()
+})

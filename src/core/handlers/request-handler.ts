@@ -193,9 +193,8 @@ export abstract class RequestHandler<
 
   /**
    * Reset the runtime state accumulated during response resolution,
-   * such as generator iterator progress. Called when this handler is
-   * removed from the active handlers list so re-adding it later starts
-   * from a clean state.
+   * such as generator iterator progress. Called when the handlers are
+   * reset so this handler starts from a clean state.
    */
   public reset(): void {
     this.scheduledCleanups.clear()
@@ -205,8 +204,15 @@ export abstract class RequestHandler<
     this.resolverIteratorResult = undefined
     this.resolverIteratorCleanups = undefined
 
-    if (typeof iterator?.return === 'function') {
-      void Promise.resolve(iterator.return())
+    if (iterator) {
+      // Returning an abandoned generator runs its "finally" blocks.
+      // Treat that as any other cleanup so its failure is reported
+      // instead of interrupting the reset.
+      void this.exhaustCleanups([
+        async () => {
+          await iterator.return?.()
+        },
+      ])
     }
   }
 
@@ -220,6 +226,15 @@ export abstract class RequestHandler<
       this.reset()
       this.isUsed = false
     }
+  }
+
+  /**
+   * Release the resolution state held by this handler when it leaves
+   * the network. Runs the cleanup of a mid-flight generator and lets
+   * this handler start from a clean state if it is used again.
+   */
+  public dispose(): void {
+    this.reset()
   }
 
   /**

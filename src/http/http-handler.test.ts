@@ -359,3 +359,149 @@ describe('finalize', () => {
     expect(cleanup).toHaveBeenCalledOnce()
   })
 })
+
+describe('dispose', () => {
+  async function run(handler: HttpHandler) {
+    const result = await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    return result?.response?.text()
+  }
+
+  test('restarts the generator resolver after the disposal', async () => {
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+
+    handler.dispose()
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+  })
+
+  test('runs the generator cleanup when disposed of mid-flight', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the async generator cleanup when disposed of mid-flight', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', async function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    await vi.waitFor(() => {
+      expect(cleanup).toHaveBeenCalledOnce()
+    })
+  })
+
+  test('does not run the generator cleanup again when disposed of after the generator completes', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+    expect(cleanup).toHaveBeenCalledOnce()
+
+    handler.dispose()
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('reports a failing generator cleanup without throwing', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const cleanup = vi.fn(() => {
+      throw new Error('Cleanup error')
+    })
+
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+
+    expect(() => handler.dispose()).not.toThrow()
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[MSW] Failed to execute cleanup for request handler "GET /resource"',
+        ),
+      )
+  })
+
+  test('reports a failing async generator cleanup', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const cleanup = vi.fn(() => {
+      throw new Error('Cleanup error')
+    })
+
+    const handler = new HttpHandler('GET', '/resource', async function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+
+    handler.dispose()
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[MSW] Failed to execute cleanup for request handler "GET /resource"',
+        ),
+      )
+  })
+})

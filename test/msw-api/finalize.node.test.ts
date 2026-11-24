@@ -341,6 +341,29 @@ test('runs when the initial handlers are reset with a mid-flight generator resol
   })()
 })
 
+test('runs if scheduled while a mid-flight generator resolver is cleaned up on reset', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      try {
+        yield new Response('yield')
+        return new Response('final')
+      } finally {
+        finalize(cleanup)
+      }
+    }),
+  )
+
+  const response = await fetch('http://localhost/resource')
+  await expect(response.text()).resolves.toBe('yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
 test('does not run again when the handlers are reset after the generator resolver is exhausted', async () => {
   const cleanup = vi.fn()
 

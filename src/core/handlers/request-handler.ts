@@ -150,19 +150,25 @@ export abstract class RequestHandler<
   public readonly kind = 'request'
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverIterator?:
-    | Iterator<
-        MaybeAsyncResponseResolverReturnType<any>,
-        MaybeAsyncResponseResolverReturnType<any>,
-        MaybeAsyncResponseResolverReturnType<any>
-      >
-    | AsyncIterator<
-        MaybeAsyncResponseResolverReturnType<any>,
-        MaybeAsyncResponseResolverReturnType<any>,
-        MaybeAsyncResponseResolverReturnType<any>
-      >
-  private resolverIteratorResults: WeakMap<object, Response>
-  private resolverIteratorCleanups?: Array<() => MaybePromise<void>>
+  private resolverGenerator?: {
+    iterator:
+      | Iterator<
+          MaybeAsyncResponseResolverReturnType<any>,
+          MaybeAsyncResponseResolverReturnType<any>,
+          MaybeAsyncResponseResolverReturnType<any>
+        >
+      | AsyncIterator<
+          MaybeAsyncResponseResolverReturnType<any>,
+          MaybeAsyncResponseResolverReturnType<any>,
+          MaybeAsyncResponseResolverReturnType<any>
+        >
+    /**
+     * ID of the request that created this generator. The cleanups
+     * the generator schedules are stored under this ID.
+     */
+    requestId: string
+    result?: Response
+  }
   private options?: HandlerOptions
   private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
 
@@ -180,7 +186,6 @@ export abstract class RequestHandler<
     this.resolver = args.resolver
     this.options = args.options
     this.scheduledCleanups = new Map()
-    this.resolverIteratorResults = new WeakMap()
 
     const callFrame = getCallFrame(new Error())
 
@@ -200,21 +205,24 @@ export abstract class RequestHandler<
    * still running stay scheduled until those resolvers complete.
    */
   public reset(): void {
-    const iterator = this.resolverIterator
-    const cleanups = [
+    const generator = this.resolverGenerator
+    this.resolverGenerator = undefined
+
+    if (!generator) {
+      return
+    }
+
+    void this.exhaustCleanups([
       // Returning an abandoned generator runs its "finally" blocks.
       // Treat that as any other cleanup so its failure is reported
       // instead of interrupting the reset.
       async () => {
-        await iterator?.return?.()
+        await generator.iterator.return?.()
       },
-      ...(this.resolverIteratorCleanups || []),
-    ]
-
-    this.resolverIterator = undefined
-    this.resolverIteratorCleanups = undefined
-
-    void this.exhaustCleanups(cleanups)
+      // Run the cleanups of the generator once it has returned so
+      // the ones it scheduled while returning are included.
+      () => this.runScheduledCleanups(generator.requestId),
+    ])
   }
 
   /**
@@ -459,7 +467,7 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      if (!this.resolverIterator) {
+      if (!this.resolverGenerator) {
         let result
 
         try {
@@ -483,49 +491,47 @@ export abstract class RequestHandler<
         }
 
         /**
-         * @note Carry over any previously registered cleanups onto the iterator cleanups.
-         * This is only relevant if "finalize()" is called in a regular resolver that
-         * returns an iterator.
+         * @note The cleanups of the generator stay scheduled under the
+         * ID of the request that created it until the generator completes.
+         * That includes the cleanups registered by a regular resolver
+         * that returns an iterator.
          * @example
          * http.get('/', async ({ finalize }) => {
          *   finalize(cleanup)
          *   return (async function*() {})()
          * })
          */
-        const existingCleanups = this.scheduledCleanups.get(info.requestId)
-        if (existingCleanups != null && existingCleanups.length > 0) {
-          this.resolverIteratorCleanups = existingCleanups
-          this.scheduledCleanups.delete(info.requestId)
+        this.resolverGenerator = {
+          iterator:
+            Symbol.iterator in result
+              ? result[Symbol.iterator]()
+              : result[Symbol.asyncIterator](),
+          requestId: info.requestId,
         }
-
-        this.resolverIterator =
-          Symbol.iterator in result
-            ? result[Symbol.iterator]()
-            : result[Symbol.asyncIterator]()
       }
 
       // Opt-out from marking this handler as used.
       this.isUsed = false
 
-      const iterator = this.resolverIterator
-      const { done, value } = await iterator.next()
+      const generator = this.resolverGenerator
+      const { done, value } = await generator.iterator.next()
       const nextResponse = await value
 
       if (nextResponse) {
-        this.resolverIteratorResults.set(iterator, nextResponse.clone())
+        generator.result = nextResponse.clone()
       }
 
       if (done) {
         // Clone the previously stored response so it can be read
         // when receiving it repeatedly from the "done" generator.
-        const response = this.resolverIteratorResults.get(iterator)?.clone()
+        const response = generator.result?.clone()
 
         /**
          * @note This generator was abandoned by a reset while it was
          * running. Respond with its own result but leave the state of
          * the handler to the generator that may have replaced it.
          */
-        if (iterator !== this.resolverIterator) {
+        if (generator !== this.resolverGenerator) {
           return response
         }
 
@@ -535,7 +541,7 @@ export abstract class RequestHandler<
 
         return this.complete({
           request: info.request,
-          requestId: info.requestId,
+          requestId: generator.requestId,
           response,
         })
       }
@@ -563,11 +569,6 @@ export abstract class RequestHandler<
     requestId: string,
     callback: () => MaybePromise<void>,
   ): void {
-    if (this.resolverIterator) {
-      ;(this.resolverIteratorCleanups ||= []).unshift(callback)
-      return
-    }
-
     const cleanups = this.scheduledCleanups.get(requestId) || []
     cleanups.unshift(callback)
     this.scheduledCleanups.set(requestId, cleanups)
@@ -601,22 +602,11 @@ export abstract class RequestHandler<
   }
 
   /**
-   * Remove and return the cleanups scheduled for the given request
-   * (or the pending iterator cleanups for generator resolvers).
+   * Remove and return the cleanups scheduled for the given request.
    */
   private takeScheduledCleanups(
     requestId: string,
   ): Array<() => MaybePromise<void>> | undefined {
-    if (
-      this.resolverIterator &&
-      this.resolverIteratorCleanups != null &&
-      this.resolverIteratorCleanups.length > 0
-    ) {
-      const cleanups = this.resolverIteratorCleanups
-      this.resolverIteratorCleanups = undefined
-      return cleanups
-    }
-
     const cleanups = this.scheduledCleanups.get(requestId)
 
     if (!cleanups || cleanups.length === 0) {

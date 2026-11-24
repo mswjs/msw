@@ -518,6 +518,65 @@ describe('finalize', () => {
     expect(cleanup).toHaveBeenNthCalledWith(2, 'finalize')
   })
 
+  test('runs the cleanup scheduled while the generator is cleaned up on reset', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        finalize(cleanup)
+      }
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup scheduled while the async generator is cleaned up on reset', async () => {
+    const cleanup = vi.fn()
+    const continueCleanup = Promise.withResolvers<void>()
+    const handler = new HttpHandler('GET', '/resource', async function* ({
+      finalize,
+    }) {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        await continueCleanup.promise
+        finalize(cleanup)
+      }
+    })
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    await expect(run()).resolves.toBe('pending')
+
+    // Start a new generator while the abandoned one is still cleaning up.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    continueCleanup.resolve()
+
+    // Must not wait for the new generator to complete.
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
   test('keeps the cleanup pending until the resolver completes when reset', async () => {
     const cleanup = vi.fn()
     const resolverStarted = Promise.withResolvers<void>()

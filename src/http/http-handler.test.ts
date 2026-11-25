@@ -302,6 +302,33 @@ describe('run', () => {
     await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
   })
 
+  test('advances a generator shared by concurrent requests', async () => {
+    const cleanup = vi.fn()
+    const sharedGenerator = (function* () {
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })()
+    const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
+      finalize(cleanup)
+      return sharedGenerator
+    })
+
+    const [firstResult, secondResult] = await Promise.all([
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+    ])
+
+    await expect(firstResult?.response?.text()).resolves.toBe('pending')
+    await expect(secondResult?.response?.text()).resolves.toBe('complete')
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+  })
+
   test('keeps the response of the current generator when a detached one yields', async () => {
     const generatorStarted = Promise.withResolvers<void>()
     const continueGenerator = Promise.withResolvers<void>()
@@ -704,6 +731,38 @@ describe('dispose', () => {
 
     await expect(run(handler)).resolves.toBe('pending')
     await expect(run(handler)).resolves.toBe('complete')
+  })
+
+  test('does not keep the generator created by a resolver pending during the disposal', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return (function* () {
+          yield HttpResponse.text('pending')
+          return HttpResponse.text('complete')
+        })()
+      },
+    )
+
+    const pendingRun = run(handler)
+    await resolverStarted.promise
+
+    const disposal = handler.dispose()
+    continueResolver.resolve()
+
+    await expect(pendingRun).resolves.toBe('pending')
+    await disposal
+    expect(cleanup).toHaveBeenCalledOnce()
+
+    await expect(run(handler)).resolves.toBe('pending')
   })
 
   test('runs the generator cleanup when disposed of mid-flight', async () => {

@@ -343,6 +343,59 @@ test('awaits the running cleanup of a generator closed by a reset', async () => 
   expect(disableListener).toHaveBeenCalledOnce()
 })
 
+test('stops awaiting a pending resolver once its request is aborted', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const resolverStarted = Promise.withResolvers<void>()
+  const neverSettled = Promise.withResolvers<void>()
+  const cleanupListener = vi.fn()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    async ({ finalize }) => {
+      finalize(cleanupListener)
+      resolverStarted.resolve()
+      await neverSettled.promise
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const requestController = new AbortController()
+  void handler.run({
+    request: new Request('http://localhost/resource', {
+      signal: requestController.signal,
+    }),
+    requestId: 'request-1',
+  })
+  await resolverStarted.promise
+
+  const disableListener = vi.fn()
+  const disablePromise = Promise.resolve(network.disable()).then(
+    disableListener,
+  )
+
+  await setTimeout(50)
+  expect(
+    disableListener,
+    'Disables while the resolver is pending',
+  ).not.toHaveBeenCalled()
+
+  requestController.abort()
+  await disablePromise
+
+  expect(cleanupListener).toHaveBeenCalledOnce()
+})
+
 test('does not await a pending resolver of an aborted request', async () => {
   class SyncNetworkSource extends NetworkSource {
     enable = () => {}

@@ -179,10 +179,15 @@ export abstract class RequestHandler<
   private options?: HandlerOptions
   private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
   /**
-   * Resolutions that are still running, by request ID.
-   * Each settles once its resolver completes and its cleanups run.
+   * Resolutions that are still running, by request ID. Each settles
+   * once the cleanups of its request have run: when its resolver
+   * completes or its request is aborted, whichever comes first.
    */
-  private pendingResolutions: Map<string, Promise<unknown>>
+  private pendingResolutions: Map<string, Promise<void>>
+  /**
+   * Number of times this handler has been disposed of.
+   */
+  private disposalCount: number
   /**
    * Cleanups that have started and are still running.
    */
@@ -204,6 +209,7 @@ export abstract class RequestHandler<
     this.scheduledCleanups = new Map()
     this.pendingResolutions = new Map()
     this.runningCleanups = new Set()
+    this.disposalCount = 0
 
     const callFrame = getCallFrame(new Error())
 
@@ -246,13 +252,12 @@ export abstract class RequestHandler<
    * the network awaits them before tearing itself down.
    */
   public dispose(): MaybePromise<void> {
+    this.disposalCount++
     void this.closeGenerator()
 
     // The cleanups that have already started, including
     // the ones of the generator closed above or by a reset.
-    const pendingCleanups: Array<Promise<unknown>> = Array.from(
-      this.runningCleanups,
-    )
+    const pendingCleanups = Array.from(this.runningCleanups)
 
     // The cleanups of the resolvers that are still running
     // run once those resolvers complete.
@@ -402,6 +407,7 @@ export abstract class RequestHandler<
     })
 
     const listenerController = new AbortController()
+    const resolution = Promise.withResolvers<void>()
 
     /**
      * @note Initialize the `finalize` machinery lazily, on the first
@@ -419,7 +425,10 @@ export abstract class RequestHandler<
         if (!args.request.signal.aborted) {
           args.request.signal.addEventListener(
             'abort',
-            () => this.runScheduledCleanups(args.requestId),
+            async () => {
+              await this.runScheduledCleanups(args.requestId)
+              resolution.resolve()
+            },
             {
               once: true,
               signal: listenerController.signal,
@@ -468,9 +477,10 @@ export abstract class RequestHandler<
       .finally(() => {
         listenerController.abort()
         this.pendingResolutions.delete(args.requestId)
+        resolution.resolve()
       })
 
-    this.pendingResolutions.set(args.requestId, mockedResponsePromise)
+    this.pendingResolutions.set(args.requestId, resolution.promise)
 
     const mockedResponse = await mockedResponsePromise
 
@@ -494,7 +504,11 @@ export abstract class RequestHandler<
     resolver: ResponseResolver<ResolverExtras>,
   ): ResponseResolver<ResolverExtras> {
     return async (info): Promise<ResponseResolverReturnType<any>> => {
-      if (!this.resolverGenerator) {
+      let generator = this.resolverGenerator
+      let isDisposed = false
+
+      if (!generator) {
+        const { disposalCount } = this
         let result
 
         try {
@@ -528,7 +542,7 @@ export abstract class RequestHandler<
          *   return (async function*() {})()
          * })
          */
-        const generator: ResolverGenerator = {
+        const createdGenerator: ResolverGenerator = {
           iterator:
             Symbol.iterator in result
               ? result[Symbol.iterator]()
@@ -537,22 +551,41 @@ export abstract class RequestHandler<
           steps: new Set(),
         }
 
-        /**
-         * @note A concurrent request may have created the generator
-         * while this resolver was pending. Keep that generator so the
-         * requests advance it one after another, and close this one.
-         */
         if (this.resolverGenerator) {
-          void this.returnGenerator(generator)
+          /**
+           * @note A concurrent request may have created the generator
+           * while this resolver was pending. Keep that generator so the
+           * requests advance it one after another, and close this one.
+           * A resolver may also return the same iterator to every
+           * request. Keep that one open and only run the cleanups
+           * this request has scheduled.
+           */
+          generator = this.resolverGenerator
+
+          if (createdGenerator.iterator === generator.iterator) {
+            void this.runScheduledCleanups(info.requestId)
+          } else {
+            void this.returnGenerator(createdGenerator)
+          }
         } else {
-          this.resolverGenerator = generator
+          /**
+           * @note This handler may have been disposed of while this
+           * resolver was pending. Respond with the generator but do
+           * not keep it so this handler starts from a clean state
+           * if it is used again.
+           */
+          generator = createdGenerator
+          isDisposed = disposalCount !== this.disposalCount
+
+          if (!isDisposed) {
+            this.resolverGenerator = generator
+          }
         }
       }
 
       // Opt-out from marking this handler as used.
       this.isUsed = false
 
-      const generator = this.resolverGenerator
       const step = (async () => {
         const { done, value } = await generator.iterator.next()
         return { done, nextResponse: await value }
@@ -566,6 +599,10 @@ export abstract class RequestHandler<
 
       if (nextResponse) {
         generator.result = nextResponse.clone()
+      }
+
+      if (isDisposed) {
+        await this.returnGenerator(generator)
       }
 
       if (done) {

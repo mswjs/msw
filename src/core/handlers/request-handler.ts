@@ -153,6 +153,11 @@ interface ResolverGenerator {
    * the generator schedules are stored under this ID.
    */
   requestId: string
+  /**
+   * Steps of this generator that are still in flight,
+   * including the values they yield.
+   */
+  steps: Set<Promise<unknown>>
   result?: Response
 }
 
@@ -524,6 +529,7 @@ export abstract class RequestHandler<
               ? result[Symbol.iterator]()
               : result[Symbol.asyncIterator](),
           requestId: info.requestId,
+          steps: new Set(),
         }
 
         /**
@@ -542,8 +548,16 @@ export abstract class RequestHandler<
       this.isUsed = false
 
       const generator = this.resolverGenerator
-      const { done, value } = await generator.iterator.next()
-      const nextResponse = await value
+      const step = (async () => {
+        const { done, value } = await generator.iterator.next()
+        return { done, nextResponse: await value }
+      })()
+
+      generator.steps.add(step)
+
+      const { done, nextResponse } = await step.finally(() => {
+        generator.steps.delete(step)
+      })
 
       if (nextResponse) {
         generator.result = nextResponse.clone()
@@ -622,8 +636,13 @@ export abstract class RequestHandler<
         await generator.iterator.return?.()
       },
       // Run the cleanups of the generator once it has returned so
-      // the ones it scheduled while returning are included.
-      () => this.runScheduledCleanups(generator.requestId),
+      // the ones it scheduled while returning are included. Wait for
+      // its steps in flight first since they may still rely on what
+      // the cleanups release.
+      async () => {
+        await Promise.allSettled(generator.steps)
+        await this.runScheduledCleanups(generator.requestId)
+      },
     ])
   }
 

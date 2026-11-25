@@ -644,6 +644,43 @@ describe('finalize', () => {
   })
 })
 
+describe('reset', () => {
+  test('keeps the cleanup pending until the generator step in flight completes', async () => {
+    const cleanup = vi.fn()
+    const stepStarted = Promise.withResolvers<void>()
+    const pendingResponse = Promise.withResolvers<Response>()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+      stepStarted.resolve()
+      yield pendingResponse.promise
+
+      return HttpResponse.text('complete')
+    })
+
+    const resultPromise = handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    await stepStarted.promise
+
+    handler.reset()
+
+    await setTimeout(50)
+    expect(
+      cleanup,
+      'Runs the cleanup while the generator step is in flight',
+    ).not.toHaveBeenCalled()
+
+    pendingResponse.resolve(HttpResponse.text('pending'))
+
+    const result = await resultPromise
+    await expect(result?.response?.text()).resolves.toBe('pending')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+})
+
 describe('dispose', () => {
   async function run(handler: HttpHandler) {
     const result = await handler.run({

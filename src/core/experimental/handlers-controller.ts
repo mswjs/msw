@@ -182,10 +182,14 @@ export abstract class HandlersController {
       handler.reset()
     }
 
-    // The handlers that leave the network with this reset release
-    // whatever they hold (e.g. live connection bindings).
-    // Resetting is synchronous, so their disposal is not awaited.
-    for (const handler of currentHandlers.difference(nextHandlersSet)) {
+    // The runtime handlers that leave the network with this reset
+    // release whatever they hold (e.g. live connection bindings).
+    // The initial handlers were given to this scope (e.g. by the outer
+    // boundary), so releasing what they hold is not up to this reset.
+    // Resetting is synchronous, so the disposal is not awaited.
+    for (const handler of currentHandlers
+      .difference(nextHandlersSet)
+      .difference(new Set(Object.values(initialHandlers).flat()))) {
       try {
         const disposal = handler.dispose()
 

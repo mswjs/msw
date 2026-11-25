@@ -328,6 +328,27 @@ test('calls generator cleanup when a reset removes a mid-flight generator', asyn
   expect(cleanup).toHaveBeenCalledOnce()
 })
 
+test('keeps the generator state of an outer handler removed by a reset in a boundary', async () => {
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      yield HttpResponse.json('Yield')
+      return HttpResponse.json('Stable')
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
+  await server.boundary(async () => {
+    server.resetHandlers(
+      http.get('http://localhost/other', () => HttpResponse.json('Other')),
+    )
+
+    await expect(fetchJson('http://localhost/other')).resolves.toBe('Other')
+  })()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
 test('resets the generator state of a handler removed by a reset and used again', async () => {
   const handler = http.get('http://localhost/resource', function* () {
     yield HttpResponse.json('Yield')

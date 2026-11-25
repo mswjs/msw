@@ -341,6 +341,40 @@ test('runs when the initial handlers are reset with a mid-flight generator resol
   })()
 })
 
+test('does not run when a reset in a boundary removes a mid-flight generator resolver of the outer scope', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+  }
+
+  await server.boundary(async () => {
+    server.resetHandlers(
+      http.get('http://localhost/other', () => new Response('other')),
+    )
+
+    const response = await fetch('http://localhost/other')
+    await expect(response.text()).resolves.toBe('other')
+    expect(cleanup).not.toHaveBeenCalled()
+  })()
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  }
+})
+
 test('runs if scheduled while a mid-flight generator resolver is cleaned up on reset', async () => {
   const cleanup = vi.fn()
 

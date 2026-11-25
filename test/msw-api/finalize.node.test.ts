@@ -306,6 +306,42 @@ test('runs when the handlers are reset with a mid-flight generator resolver', as
 test('runs when the initial handlers are reset with a mid-flight generator resolver', async () => {
   const cleanup = vi.fn()
 
+  server.resetHandlers(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+    expect(cleanup).not.toHaveBeenCalled()
+  }
+
+  server.resetHandlers()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+
+  // Must schedule the cleanup anew for the restarted generator.
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+    expect(cleanup).toHaveBeenCalledOnce()
+  }
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    expect(cleanup).toHaveBeenCalledTimes(2)
+  }
+})
+
+test('does not run when the handlers are reset in a boundary with a mid-flight generator resolver of the outer scope', async () => {
+  const cleanup = vi.fn()
+
   server.use(
     http.get('http://localhost/resource', function* ({ finalize }) {
       finalize(cleanup)
@@ -315,30 +351,20 @@ test('runs when the initial handlers are reset with a mid-flight generator resol
     }),
   )
 
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+  }
+
   await server.boundary(async () => {
-    {
-      const response = await fetch('http://localhost/resource')
-      await expect(response.text()).resolves.toBe('yield')
-      expect(cleanup).not.toHaveBeenCalled()
-    }
-
     server.resetHandlers()
-
-    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
-
-    // Must schedule the cleanup anew for the restarted generator.
-    {
-      const response = await fetch('http://localhost/resource')
-      await expect(response.text()).resolves.toBe('yield')
-      expect(cleanup).toHaveBeenCalledOnce()
-    }
-
-    {
-      const response = await fetch('http://localhost/resource')
-      await expect(response.text()).resolves.toBe('final')
-      expect(cleanup).toHaveBeenCalledTimes(2)
-    }
   })()
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  }
 })
 
 test('does not run when a reset in a boundary removes a mid-flight generator resolver of the outer scope', async () => {

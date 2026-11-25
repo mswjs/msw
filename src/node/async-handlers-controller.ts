@@ -48,6 +48,19 @@ export class AsyncHandlersController extends HandlersController {
     }
   }
 
+  protected ownHandlers(): Set<AnyHandler> {
+    const context = this.#asyncContext.getStore()
+
+    if (!context) {
+      return super.ownHandlers()
+    }
+
+    // The initial handlers of a boundary belong to the outer scope.
+    return super
+      .ownHandlers()
+      .difference(new Set(Object.values(context.initialHandlers).flat()))
+  }
+
   public boundary<Args extends Array<any>, R>(callback: (...args: Args) => R) {
     return (...args: Args) => {
       const initialHandlers = { ...this.getState().handlers }

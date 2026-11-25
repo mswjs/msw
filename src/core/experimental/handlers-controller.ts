@@ -109,6 +109,14 @@ export abstract class HandlersController {
   }
 
   /**
+   * Return the list of handlers that belong to the current scope.
+   * Resetting the handlers affects only these.
+   */
+  protected ownHandlers(): Set<AnyHandler> {
+    return new Set(this.currentHandlers())
+  }
+
+  /**
    * Return the list of explicitly registered handlers.
    * Unlike `currentHandlers()`, this excludes sibling handlers,
    * which are an implementation detail (e.g. the WebSocket upgrade
@@ -173,23 +181,19 @@ export abstract class HandlersController {
       nextHandlers.length > 0
         ? groupHandlersByKind(nextHandlers)
         : initialHandlers
-    const currentHandlers = new Set(this.currentHandlers())
+    const ownHandlers = this.ownHandlers()
     const nextHandlersSet = new Set(
       Object.values(nextInitialHandlers).flat().filter(Boolean),
     )
 
-    for (const handler of currentHandlers.intersection(nextHandlersSet)) {
+    for (const handler of ownHandlers.intersection(nextHandlersSet)) {
       handler.reset()
     }
 
-    // The runtime handlers that leave the network with this reset
-    // release whatever they hold (e.g. live connection bindings).
-    // The initial handlers were given to this scope (e.g. by the outer
-    // boundary), so releasing what they hold is not up to this reset.
-    // Resetting is synchronous, so the disposal is not awaited.
-    for (const handler of currentHandlers
-      .difference(nextHandlersSet)
-      .difference(new Set(Object.values(initialHandlers).flat()))) {
+    // The handlers that leave the network with this reset release
+    // whatever they hold (e.g. live connection bindings).
+    // Resetting is synchronous, so their disposal is not awaited.
+    for (const handler of ownHandlers.difference(nextHandlersSet)) {
       try {
         const disposal = handler.dispose()
 

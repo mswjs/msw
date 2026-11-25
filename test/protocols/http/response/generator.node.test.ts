@@ -105,6 +105,23 @@ test('supports generator function as one-time response resolver', async () => {
 })
 
 test('resets the generator state after the handlers are reset', async () => {
+  server.resetHandlers(
+    http.get('http://localhost/resource', function* () {
+      yield HttpResponse.json('Yield')
+      return HttpResponse.json('Stable')
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+  server.resetHandlers()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
+test('keeps the generator state of an outer handler after the handlers are reset in a boundary', async () => {
   server.use(
     http.get('http://localhost/resource', function* () {
       yield HttpResponse.json('Yield')
@@ -112,15 +129,13 @@ test('resets the generator state after the handlers are reset', async () => {
     }),
   )
 
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
   await server.boundary(async () => {
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
-
     server.resetHandlers()
-
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
   })()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
 })
 
 test('resets the generator state of one-time handlers after the handlers are restored', async () => {
@@ -257,7 +272,7 @@ test('forwards generator cleanup errors', async () => {
 test('calls generator cleanup when resetting a mid-flight generator', async () => {
   const cleanup = vi.fn()
 
-  server.use(
+  server.resetHandlers(
     http.get('http://localhost/resource', function* () {
       try {
         yield HttpResponse.json('Yield')
@@ -268,14 +283,12 @@ test('calls generator cleanup when resetting a mid-flight generator', async () =
     }),
   )
 
-  await server.boundary(async () => {
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    expect(cleanup).not.toHaveBeenCalled()
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  expect(cleanup).not.toHaveBeenCalled()
 
-    server.resetHandlers()
+  server.resetHandlers()
 
-    expect(cleanup).toHaveBeenCalledOnce()
-  })()
+  expect(cleanup).toHaveBeenCalledOnce()
 })
 
 test('does not call generator cleanup when resetting an exhausted generator', async () => {
@@ -374,7 +387,7 @@ test('reports a failing generator cleanup when resetting a mid-flight generator'
     throw new Error('Reason')
   })
 
-  server.use(
+  server.resetHandlers(
     http.get('http://localhost/resource', function* () {
       try {
         yield HttpResponse.json('Yield')
@@ -385,20 +398,18 @@ test('reports a failing generator cleanup when resetting a mid-flight generator'
     }),
   )
 
-  await server.boundary(async () => {
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
 
-    server.resetHandlers()
+  server.resetHandlers()
 
-    await expect
-      .poll(() => console.error)
-      .toHaveBeenCalledWith(
-        expect.stringContaining(
-          '[MSW] Failed to execute cleanup for request handler "GET http://localhost/resource"',
-        ),
-      )
+  await expect
+    .poll(() => console.error)
+    .toHaveBeenCalledWith(
+      expect.stringContaining(
+        '[MSW] Failed to execute cleanup for request handler "GET http://localhost/resource"',
+      ),
+    )
 
-    // Must keep the handler functional after the failed cleanup.
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-  })()
+  // Must keep the handler functional after the failed cleanup.
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
 })

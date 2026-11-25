@@ -175,6 +175,107 @@ test('awaits the pending generator cleanup', async () => {
   expect(disableListener).toHaveBeenCalledOnce()
 })
 
+test('awaits the cleanup of a pending resolver', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const resolverStarted = Promise.withResolvers<void>()
+  const continueResolver = Promise.withResolvers<void>()
+  const cleanupListener = vi.fn()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    async ({ finalize }) => {
+      finalize(cleanupListener)
+      resolverStarted.resolve()
+      await continueResolver.promise
+
+      return new Response(null, { status: 204 })
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const resultPromise = handler.run({
+    request: new Request('http://localhost/resource'),
+    requestId: 'request-1',
+  })
+  await resolverStarted.promise
+
+  const disableListener = vi.fn()
+  const disablePromise = Promise.resolve(network.disable()).then(
+    disableListener,
+  )
+
+  await setTimeout(50)
+  expect(
+    cleanupListener,
+    'Runs the cleanup while the resolver is pending',
+  ).not.toHaveBeenCalled()
+  expect(
+    disableListener,
+    'Disables while the resolver cleanup is pending',
+  ).not.toHaveBeenCalled()
+
+  continueResolver.resolve()
+  await disablePromise
+
+  expect(cleanupListener).toHaveBeenCalledOnce()
+
+  const result = await resultPromise
+  expect(result?.response?.status).toBe(204)
+})
+
+test('does not await a pending resolver of an aborted request', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const resolverStarted = Promise.withResolvers<void>()
+  const neverSettled = Promise.withResolvers<void>()
+  const cleanupListener = vi.fn()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    async ({ finalize }) => {
+      finalize(cleanupListener)
+      resolverStarted.resolve()
+      await neverSettled.promise
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const requestController = new AbortController()
+  void handler.run({
+    request: new Request('http://localhost/resource', {
+      signal: requestController.signal,
+    }),
+    requestId: 'request-1',
+  })
+  await resolverStarted.promise
+
+  requestController.abort()
+  await expect.poll(() => cleanupListener).toHaveBeenCalledOnce()
+
+  expect(network.disable()).toBeUndefined()
+})
+
 test('observes both the handler and the source disposal rejections', async () => {
   const unhandledRejectionListener = vi.fn()
   process.on('unhandledRejection', unhandledRejectionListener)

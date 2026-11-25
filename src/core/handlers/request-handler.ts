@@ -171,6 +171,11 @@ export abstract class RequestHandler<
   }
   private options?: HandlerOptions
   private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
+  /**
+   * Resolutions that are still running, by request ID.
+   * Each settles once its resolver completes and its cleanups run.
+   */
+  private pendingResolutions: Map<string, Promise<unknown>>
 
   public info: HandlerInfo & RequestHandlerInternalInfo
 
@@ -186,6 +191,7 @@ export abstract class RequestHandler<
     this.resolver = args.resolver
     this.options = args.options
     this.scheduledCleanups = new Map()
+    this.pendingResolutions = new Map()
 
     const callFrame = getCallFrame(new Error())
 
@@ -224,11 +230,32 @@ export abstract class RequestHandler<
    * Release the resolution state held by this handler when it leaves
    * the network. Runs the cleanup of a mid-flight generator and lets
    * this handler start from a clean state if it is used again.
-   * Returns a promise if there is a generator to clean up so
-   * the network awaits its cleanup before tearing itself down.
+   * Returns a promise if there are cleanups left to run so
+   * the network awaits them before tearing itself down.
    */
   public dispose(): MaybePromise<void> {
-    return this.closeGenerator()
+    const pendingCleanups: Array<Promise<unknown>> = []
+
+    // The cleanups of the resolvers that are still running
+    // run once those resolvers complete.
+    for (const requestId of this.scheduledCleanups.keys()) {
+      const resolution = this.pendingResolutions.get(requestId)
+
+      if (resolution) {
+        pendingCleanups.push(resolution)
+      }
+    }
+
+    const generatorClosure = this.closeGenerator()
+
+    if (generatorClosure instanceof Promise) {
+      pendingCleanups.push(generatorClosure)
+    }
+
+    // Stay synchronous unless there are cleanups to await.
+    if (pendingCleanups.length > 0) {
+      return Promise.allSettled(pendingCleanups).then(() => {})
+    }
   }
 
   /**
@@ -428,7 +455,10 @@ export abstract class RequestHandler<
       })
       .finally(() => {
         listenerController.abort()
+        this.pendingResolutions.delete(args.requestId)
       })
+
+    this.pendingResolutions.set(args.requestId, mockedResponsePromise)
 
     const mockedResponse = await mockedResponsePromise
 

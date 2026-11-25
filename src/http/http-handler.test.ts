@@ -765,6 +765,64 @@ describe('dispose', () => {
     await expect(run(handler)).resolves.toBe('pending')
   })
 
+  test('responds with its own generator to a resolver pending during the disposal', async () => {
+    const pendingResolvers: Array<PromiseWithResolvers<void>> = []
+    const handler = new HttpHandler('GET', '/resource', async () => {
+      const pendingResolver = Promise.withResolvers<void>()
+      pendingResolvers.push(pendingResolver)
+      await pendingResolver.promise
+
+      return (function* () {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      })()
+    })
+
+    const disposedRun = run(handler)
+    await expect.poll(() => pendingResolvers.length).toBe(1)
+
+    handler.dispose()
+
+    const nextRun = run(handler)
+    await expect.poll(() => pendingResolvers.length).toBe(2)
+    pendingResolvers[1].resolve()
+    await expect(nextRun).resolves.toBe('pending')
+
+    pendingResolvers[0].resolve()
+    await expect(disposedRun).resolves.toBe('pending')
+
+    await expect(run(handler)).resolves.toBe('complete')
+  })
+
+  test('runs the cleanup of a failed generator created by a resolver pending during the disposal', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return (function* () {
+          yield Promise.reject(new Error('Step error'))
+        })()
+      },
+    )
+
+    const pendingRun = run(handler)
+    await resolverStarted.promise
+
+    const disposal = handler.dispose()
+    continueResolver.resolve()
+
+    await expect(pendingRun).rejects.toThrow('Step error')
+    await disposal
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
   test('runs the generator cleanup when disposed of mid-flight', async () => {
     const cleanup = vi.fn()
     const handler = new HttpHandler('GET', '/resource', function* () {

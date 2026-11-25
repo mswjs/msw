@@ -408,6 +408,7 @@ export abstract class RequestHandler<
 
     const listenerController = new AbortController()
     const resolution = Promise.withResolvers<void>()
+    let abortCleanups: Promise<void> | undefined
 
     /**
      * @note Initialize the `finalize` machinery lazily, on the first
@@ -425,9 +426,9 @@ export abstract class RequestHandler<
         if (!args.request.signal.aborted) {
           args.request.signal.addEventListener(
             'abort',
-            async () => {
-              await this.runScheduledCleanups(args.requestId)
-              resolution.resolve()
+            () => {
+              abortCleanups = this.runScheduledCleanups(args.requestId)
+              void abortCleanups.then(() => resolution.resolve())
             },
             {
               once: true,
@@ -477,8 +478,15 @@ export abstract class RequestHandler<
       .finally(() => {
         listenerController.abort()
         this.pendingResolutions.delete(args.requestId)
-        resolution.resolve()
       })
+
+    // The request abort may have started the cleanups that are still
+    // running by the time the resolver completes. Wait for those too.
+    // If the resolver never completes, they conclude the resolution.
+    void mockedResponsePromise
+      .catch(() => {})
+      .then(() => abortCleanups)
+      .then(() => resolution.resolve())
 
     this.pendingResolutions.set(args.requestId, resolution.promise)
 
@@ -551,35 +559,37 @@ export abstract class RequestHandler<
           steps: new Set(),
         }
 
-        if (this.resolverGenerator) {
+        const activeGenerator = this.resolverGenerator
+
+        if (createdGenerator.iterator === activeGenerator?.iterator) {
+          /**
+           * @note A resolver may return the same iterator to every
+           * request. Keep that one open and only run the cleanups
+           * this request has scheduled.
+           */
+          generator = activeGenerator
+          void this.runScheduledCleanups(info.requestId)
+        } else if (disposalCount !== this.disposalCount) {
+          /**
+           * @note This handler was disposed of while this resolver
+           * was pending. Respond with the generator but do not keep
+           * it so this handler starts from a clean state if it is
+           * used again, and leave the generator that may have been
+           * created since to the requests that follow the disposal.
+           */
+          generator = createdGenerator
+          isDisposed = true
+        } else if (activeGenerator) {
           /**
            * @note A concurrent request may have created the generator
            * while this resolver was pending. Keep that generator so the
            * requests advance it one after another, and close this one.
-           * A resolver may also return the same iterator to every
-           * request. Keep that one open and only run the cleanups
-           * this request has scheduled.
            */
-          generator = this.resolverGenerator
-
-          if (createdGenerator.iterator === generator.iterator) {
-            void this.runScheduledCleanups(info.requestId)
-          } else {
-            void this.returnGenerator(createdGenerator)
-          }
+          generator = activeGenerator
+          void this.returnGenerator(createdGenerator)
         } else {
-          /**
-           * @note This handler may have been disposed of while this
-           * resolver was pending. Respond with the generator but do
-           * not keep it so this handler starts from a clean state
-           * if it is used again.
-           */
           generator = createdGenerator
-          isDisposed = disposalCount !== this.disposalCount
-
-          if (!isDisposed) {
-            this.resolverGenerator = generator
-          }
+          this.resolverGenerator = generator
         }
       }
 
@@ -593,16 +603,18 @@ export abstract class RequestHandler<
 
       generator.steps.add(step)
 
-      const { done, nextResponse } = await step.finally(() => {
+      const { done, nextResponse } = await step.finally(async () => {
         generator.steps.delete(step)
+
+        // Close the generator this handler does not keep
+        // whether its step has succeeded or not.
+        if (isDisposed) {
+          await this.returnGenerator(generator)
+        }
       })
 
       if (nextResponse) {
         generator.result = nextResponse.clone()
-      }
-
-      if (isDisposed) {
-        await this.returnGenerator(generator)
       }
 
       if (done) {

@@ -396,6 +396,71 @@ test('stops awaiting a pending resolver once its request is aborted', async () =
   expect(cleanupListener).toHaveBeenCalledOnce()
 })
 
+test('awaits the cleanup started by a request abort after the resolver completes', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const resolverStarted = Promise.withResolvers<void>()
+  const continueResolver = Promise.withResolvers<void>()
+  const cleanupStarted = Promise.withResolvers<void>()
+  const cleanupGate = Promise.withResolvers<void>()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    async ({ finalize }) => {
+      finalize(async () => {
+        cleanupStarted.resolve()
+        await cleanupGate.promise
+      })
+      resolverStarted.resolve()
+      await continueResolver.promise
+
+      return new Response(null, { status: 204 })
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const requestController = new AbortController()
+  const resultPromise = handler.run({
+    request: new Request('http://localhost/resource', {
+      signal: requestController.signal,
+    }),
+    requestId: 'request-1',
+  })
+  await resolverStarted.promise
+
+  const disableListener = vi.fn()
+  const disablePromise = Promise.resolve(network.disable()).then(
+    disableListener,
+  )
+
+  requestController.abort()
+  await cleanupStarted.promise
+
+  continueResolver.resolve()
+  await resultPromise
+
+  await setTimeout(50)
+  expect(
+    disableListener,
+    'Disables while the cleanup started by the abort is running',
+  ).not.toHaveBeenCalled()
+
+  cleanupGate.resolve()
+  await disablePromise
+
+  expect(disableListener).toHaveBeenCalledOnce()
+})
+
 test('does not await a pending resolver of an aborted request', async () => {
   class SyncNetworkSource extends NetworkSource {
     enable = () => {}

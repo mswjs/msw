@@ -136,6 +136,26 @@ export interface RequestHandlerExecutionResult<
   response?: Response
 }
 
+interface ResolverGenerator {
+  iterator:
+    | Iterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+    | AsyncIterator<
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>,
+        MaybeAsyncResponseResolverReturnType<any>
+      >
+  /**
+   * ID of the request that created this generator. The cleanups
+   * the generator schedules are stored under this ID.
+   */
+  requestId: string
+  result?: Response
+}
+
 export abstract class RequestHandler<
   HandlerInfo extends RequestHandlerDefaultInfo = RequestHandlerDefaultInfo,
   ParsedResult extends Record<string, any> | undefined = any,
@@ -150,25 +170,7 @@ export abstract class RequestHandler<
   public readonly kind = 'request'
 
   protected resolver: ResponseResolver<ResolverExtras, any, any>
-  private resolverGenerator?: {
-    iterator:
-      | Iterator<
-          MaybeAsyncResponseResolverReturnType<any>,
-          MaybeAsyncResponseResolverReturnType<any>,
-          MaybeAsyncResponseResolverReturnType<any>
-        >
-      | AsyncIterator<
-          MaybeAsyncResponseResolverReturnType<any>,
-          MaybeAsyncResponseResolverReturnType<any>,
-          MaybeAsyncResponseResolverReturnType<any>
-        >
-    /**
-     * ID of the request that created this generator. The cleanups
-     * the generator schedules are stored under this ID.
-     */
-    requestId: string
-    result?: Response
-  }
+  private resolverGenerator?: ResolverGenerator
   private options?: HandlerOptions
   private scheduledCleanups: Map<string, Array<() => MaybePromise<void>>>
   /**
@@ -516,12 +518,23 @@ export abstract class RequestHandler<
          *   return (async function*() {})()
          * })
          */
-        this.resolverGenerator = {
+        const generator: ResolverGenerator = {
           iterator:
             Symbol.iterator in result
               ? result[Symbol.iterator]()
               : result[Symbol.asyncIterator](),
           requestId: info.requestId,
+        }
+
+        /**
+         * @note A concurrent request may have created the generator
+         * while this resolver was pending. Keep that generator so the
+         * requests advance it one after another, and close this one.
+         */
+        if (this.resolverGenerator) {
+          void this.returnGenerator(generator)
+        } else {
+          this.resolverGenerator = generator
         }
       }
 
@@ -594,6 +607,13 @@ export abstract class RequestHandler<
       return
     }
 
+    return this.returnGenerator(generator)
+  }
+
+  /**
+   * Return the given generator and run its cleanups.
+   */
+  private returnGenerator(generator: ResolverGenerator): Promise<void> {
     return this.exhaustCleanups([
       // Returning an abandoned generator runs its "finally" blocks.
       // Treat that as any other cleanup so its failure is reported

@@ -271,6 +271,37 @@ describe('run', () => {
     await expect(run()).resolves.toBe('complete')
   })
 
+  test('advances a single generator for concurrent requests', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+
+        return (function* () {
+          yield HttpResponse.text('pending')
+          return HttpResponse.text('complete')
+        })()
+      },
+    )
+
+    const [firstResult, secondResult] = await Promise.all([
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+    ])
+
+    await expect(firstResult?.response?.text()).resolves.toBe('pending')
+    await expect(secondResult?.response?.text()).resolves.toBe('complete')
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+  })
+
   test('keeps the response of the current generator when a detached one yields', async () => {
     const generatorStarted = Promise.withResolvers<void>()
     const continueGenerator = Promise.withResolvers<void>()

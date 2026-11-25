@@ -105,6 +105,23 @@ test('supports generator function as one-time response resolver', async () => {
 })
 
 test('resets the generator state after the handlers are reset', async () => {
+  server.resetHandlers(
+    http.get('http://localhost/resource', function* () {
+      yield HttpResponse.json('Yield')
+      return HttpResponse.json('Stable')
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+  server.resetHandlers()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
+test('keeps the generator state of an outer handler after the handlers are reset in a boundary', async () => {
   server.use(
     http.get('http://localhost/resource', function* () {
       yield HttpResponse.json('Yield')
@@ -112,15 +129,13 @@ test('resets the generator state after the handlers are reset', async () => {
     }),
   )
 
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
   await server.boundary(async () => {
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
-
     server.resetHandlers()
-
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
   })()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
 })
 
 test('resets the generator state of one-time handlers after the handlers are restored', async () => {
@@ -257,7 +272,7 @@ test('forwards generator cleanup errors', async () => {
 test('calls generator cleanup when resetting a mid-flight generator', async () => {
   const cleanup = vi.fn()
 
-  server.use(
+  server.resetHandlers(
     http.get('http://localhost/resource', function* () {
       try {
         yield HttpResponse.json('Yield')
@@ -268,14 +283,12 @@ test('calls generator cleanup when resetting a mid-flight generator', async () =
     }),
   )
 
-  await server.boundary(async () => {
-    await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
-    expect(cleanup).not.toHaveBeenCalled()
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  expect(cleanup).not.toHaveBeenCalled()
 
-    server.resetHandlers()
+  server.resetHandlers()
 
-    expect(cleanup).toHaveBeenCalledOnce()
-  })()
+  expect(cleanup).toHaveBeenCalledOnce()
 })
 
 test('does not call generator cleanup when resetting an exhausted generator', async () => {
@@ -304,4 +317,99 @@ test('does not call generator cleanup when resetting an exhausted generator', as
     await new Promise((resolve) => setImmediate(resolve))
     expect(cleanup).toHaveBeenCalledOnce()
   })()
+})
+
+test('calls generator cleanup when a reset removes a mid-flight generator', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      try {
+        yield HttpResponse.json('Yield')
+        return HttpResponse.json('Stable')
+      } finally {
+        cleanup()
+      }
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  expect(cleanup).toHaveBeenCalledOnce()
+})
+
+test('keeps the generator state of an outer handler removed by a reset in a boundary', async () => {
+  server.use(
+    http.get('http://localhost/resource', function* () {
+      yield HttpResponse.json('Yield')
+      return HttpResponse.json('Stable')
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
+  await server.boundary(async () => {
+    server.resetHandlers(
+      http.get('http://localhost/other', () => HttpResponse.json('Other')),
+    )
+
+    await expect(fetchJson('http://localhost/other')).resolves.toBe('Other')
+  })()
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
+test('resets the generator state of a handler removed by a reset and used again', async () => {
+  const handler = http.get('http://localhost/resource', function* () {
+    yield HttpResponse.json('Yield')
+    return HttpResponse.json('Stable')
+  })
+
+  server.use(handler)
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+
+  server.resetHandlers()
+  server.use(handler)
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Stable')
+})
+
+test('reports a failing generator cleanup when resetting a mid-flight generator', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  const cleanup = vi.fn(() => {
+    throw new Error('Reason')
+  })
+
+  server.resetHandlers(
+    http.get('http://localhost/resource', function* () {
+      try {
+        yield HttpResponse.json('Yield')
+        return HttpResponse.json('Stable')
+      } finally {
+        cleanup()
+      }
+    }),
+  )
+
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
+
+  server.resetHandlers()
+
+  await expect
+    .poll(() => console.error)
+    .toHaveBeenCalledWith(
+      expect.stringContaining(
+        '[MSW] Failed to execute cleanup for request handler "GET http://localhost/resource"',
+      ),
+    )
+
+  // Must keep the handler functional after the failed cleanup.
+  await expect(fetchJson('http://localhost/resource')).resolves.toBe('Yield')
 })

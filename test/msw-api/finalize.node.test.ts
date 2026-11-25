@@ -282,6 +282,235 @@ test('runs once the returned iterator is exhausted', async () => {
   }
 })
 
+test('runs when the handlers are reset with a mid-flight generator resolver', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  const response = await fetch('http://localhost/resource')
+  await expect(response.text()).resolves.toBe('yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
+test('runs when the initial handlers are reset with a mid-flight generator resolver', async () => {
+  const cleanup = vi.fn()
+
+  server.resetHandlers(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+    expect(cleanup).not.toHaveBeenCalled()
+  }
+
+  server.resetHandlers()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+
+  // Must schedule the cleanup anew for the restarted generator.
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+    expect(cleanup).toHaveBeenCalledOnce()
+  }
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    expect(cleanup).toHaveBeenCalledTimes(2)
+  }
+})
+
+test('does not run when the handlers are reset in a boundary with a mid-flight generator resolver of the outer scope', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+  }
+
+  await server.boundary(async () => {
+    server.resetHandlers()
+  })()
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  }
+})
+
+test('does not run when a reset in a boundary removes a mid-flight generator resolver of the outer scope', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+  }
+
+  await server.boundary(async () => {
+    server.resetHandlers(
+      http.get('http://localhost/other', () => new Response('other')),
+    )
+
+    const response = await fetch('http://localhost/other')
+    await expect(response.text()).resolves.toBe('other')
+    expect(cleanup).not.toHaveBeenCalled()
+  })()
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  }
+})
+
+test('runs if scheduled while a mid-flight generator resolver is cleaned up on reset', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      try {
+        yield new Response('yield')
+        return new Response('final')
+      } finally {
+        finalize(cleanup)
+      }
+    }),
+  )
+
+  const response = await fetch('http://localhost/resource')
+  await expect(response.text()).resolves.toBe('yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
+test('does not run again when the handlers are reset after the generator resolver is exhausted', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('yield')
+  }
+
+  {
+    const response = await fetch('http://localhost/resource')
+    await expect(response.text()).resolves.toBe('final')
+    expect(cleanup).toHaveBeenCalledOnce()
+  }
+
+  server.resetHandlers()
+
+  // Give a redundant cleanup a chance to run.
+  await setTimeout(50)
+  expect(cleanup).toHaveBeenCalledOnce()
+})
+
+test('runs once the resolver completes when the handlers are reset while it is pending', async () => {
+  const cleanup = vi.fn()
+  const handlerStarted = Promise.withResolvers<void>()
+  const continueHandler = Promise.withResolvers<void>()
+
+  server.use(
+    http.get('http://localhost/resource', async ({ finalize }) => {
+      finalize(cleanup)
+      handlerStarted.resolve()
+      await continueHandler.promise
+
+      return new Response('hello')
+    }),
+  )
+
+  const responsePromise = fetch('http://localhost/resource')
+  await handlerStarted.promise
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.resetHandlers()
+
+  // Give a premature cleanup a chance to run.
+  await setTimeout(50)
+  expect(cleanup).not.toHaveBeenCalled()
+
+  continueHandler.resolve()
+
+  const response = await responsePromise
+  await expect(response.text()).resolves.toBe('hello')
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
+test('runs when the server is closed with a mid-flight generator resolver', async () => {
+  const cleanup = vi.fn()
+
+  server.use(
+    http.get('http://localhost/resource', function* ({ finalize }) {
+      finalize(cleanup)
+
+      yield new Response('yield')
+      return new Response('final')
+    }),
+  )
+
+  const response = await fetch('http://localhost/resource')
+  await expect(response.text()).resolves.toBe('yield')
+  expect(cleanup).not.toHaveBeenCalled()
+
+  server.close()
+
+  // Restore the network before asserting so a failure here
+  // cannot leave the network closed for the rest of the suite.
+  server.listen()
+
+  await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+})
+
 test('runs after a GraphQL query handler returns a response', async () => {
   const cleanup = vi.fn()
 

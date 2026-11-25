@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setTimeout } from 'node:timers/promises'
 import { createRequestId, FetchRequest } from '@mswjs/interceptors'
 import type { HttpRequestResolverExtras } from './http-handler'
 import { HttpHandler } from './http-handler'
@@ -269,6 +270,151 @@ describe('run', () => {
     await expect(run()).resolves.toBe('complete')
     await expect(run()).resolves.toBe('complete')
   })
+
+  test('advances a single generator for concurrent requests', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+
+        return (function* () {
+          yield HttpResponse.text('pending')
+          return HttpResponse.text('complete')
+        })()
+      },
+    )
+
+    const [firstResult, secondResult] = await Promise.all([
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+    ])
+
+    await expect(firstResult?.response?.text()).resolves.toBe('pending')
+    await expect(secondResult?.response?.text()).resolves.toBe('complete')
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+  })
+
+  test('advances a generator shared by concurrent requests', async () => {
+    const cleanup = vi.fn()
+    const sharedGenerator = (function* () {
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })()
+    const handler = new HttpHandler('GET', '/resource', ({ finalize }) => {
+      finalize(cleanup)
+      return sharedGenerator
+    })
+
+    const [firstResult, secondResult] = await Promise.all([
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+      handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      }),
+    ])
+
+    await expect(firstResult?.response?.text()).resolves.toBe('pending')
+    await expect(secondResult?.response?.text()).resolves.toBe('complete')
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+  })
+
+  test('keeps the response of the current generator when a detached one yields', async () => {
+    const generatorStarted = Promise.withResolvers<void>()
+    const continueGenerator = Promise.withResolvers<void>()
+    let generatorCount = 0
+
+    const handler = new HttpHandler('GET', '/users', async function* () {
+      generatorCount += 1
+      const generatorId = generatorCount
+
+      if (generatorId === 1) {
+        generatorStarted.resolve()
+        await continueGenerator.promise
+      }
+
+      yield HttpResponse.text(`pending ${generatorId}`)
+    })
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/users', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    const detachedRun = run()
+    await generatorStarted.promise
+
+    // Resetting the handler detaches the generator that is still running.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending 2')
+
+    continueGenerator.resolve()
+    await expect(detachedRun).resolves.toBe('pending 1')
+
+    // Must respond with the latest response of the current generator.
+    await expect(run()).resolves.toBe('pending 2')
+    await expect(run()).resolves.toBe('pending 2')
+  })
+
+  test('keeps the current generator running when a detached one completes', async () => {
+    const generatorStarted = Promise.withResolvers<void>()
+    const continueGenerator = Promise.withResolvers<void>()
+    let generatorCount = 0
+
+    const handler = new HttpHandler(
+      'GET',
+      '/users',
+      async function* () {
+        generatorCount += 1
+        const generatorId = generatorCount
+
+        if (generatorId === 1) {
+          generatorStarted.resolve()
+          await continueGenerator.promise
+          return HttpResponse.text('complete 1')
+        }
+
+        yield HttpResponse.text(`pending ${generatorId}`)
+        return HttpResponse.text(`complete ${generatorId}`)
+      },
+      { once: true },
+    )
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/users', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    const detachedRun = run()
+    await generatorStarted.promise
+
+    // Resetting the handler detaches the generator that is still running.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending 2')
+
+    continueGenerator.resolve()
+    await expect(detachedRun).resolves.toBe('complete 1')
+
+    // Must not consider the handler used until the current generator completes.
+    await expect(run()).resolves.toBe('complete 2')
+    await expect(run()).resolves.toBeUndefined()
+  })
 })
 
 describe('finalize', () => {
@@ -357,5 +503,443 @@ describe('finalize', () => {
     })
 
     expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup when a mid-flight generator resolver is reset', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup when a mid-flight generator resolver is disposed of', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup after the generator itself is cleaned up on reset', async () => {
+    const cleanup = vi.fn<(source: string) => void>()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(() => cleanup('finalize'))
+
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup('generator')
+      }
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledTimes(2)
+    expect(cleanup).toHaveBeenNthCalledWith(1, 'generator')
+    expect(cleanup).toHaveBeenNthCalledWith(2, 'finalize')
+  })
+
+  test('runs the cleanup scheduled while the generator is cleaned up on reset', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        finalize(cleanup)
+      }
+    })
+
+    await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    handler.reset()
+
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the cleanup scheduled while the async generator is cleaned up on reset', async () => {
+    const cleanup = vi.fn()
+    const continueCleanup = Promise.withResolvers<void>()
+    const handler = new HttpHandler('GET', '/resource', async function* ({
+      finalize,
+    }) {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        await continueCleanup.promise
+        finalize(cleanup)
+      }
+    })
+
+    const run = async () => {
+      const result = await handler.run({
+        request: new Request(new URL('/resource', location.href)),
+        requestId: createRequestId(),
+      })
+      return result?.response?.text()
+    }
+
+    await expect(run()).resolves.toBe('pending')
+
+    // Start a new generator while the abandoned one is still cleaning up.
+    handler.reset()
+    await expect(run()).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    continueCleanup.resolve()
+
+    // Must not wait for the new generator to complete.
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('keeps the cleanup pending until the resolver completes when reset', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return new HttpResponse(null)
+      },
+    )
+
+    const resultPromise = handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    await resolverStarted.promise
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.reset()
+
+    // Give a premature cleanup a chance to run.
+    await setTimeout(50)
+    expect(cleanup).not.toHaveBeenCalled()
+
+    continueResolver.resolve()
+    await resultPromise
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+})
+
+describe('reset', () => {
+  test('keeps the cleanup pending until the generator step in flight completes', async () => {
+    const cleanup = vi.fn()
+    const stepStarted = Promise.withResolvers<void>()
+    const pendingResponse = Promise.withResolvers<Response>()
+    const handler = new HttpHandler('GET', '/resource', function* ({
+      finalize,
+    }) {
+      finalize(cleanup)
+      stepStarted.resolve()
+      yield pendingResponse.promise
+
+      return HttpResponse.text('complete')
+    })
+
+    const resultPromise = handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+    await stepStarted.promise
+
+    handler.reset()
+
+    await setTimeout(50)
+    expect(
+      cleanup,
+      'Runs the cleanup while the generator step is in flight',
+    ).not.toHaveBeenCalled()
+
+    pendingResponse.resolve(HttpResponse.text('pending'))
+
+    const result = await resultPromise
+    await expect(result?.response?.text()).resolves.toBe('pending')
+    await expect.poll(() => cleanup).toHaveBeenCalledOnce()
+  })
+})
+
+describe('dispose', () => {
+  async function run(handler: HttpHandler) {
+    const result = await handler.run({
+      request: new Request(new URL('/resource', location.href)),
+      requestId: createRequestId(),
+    })
+
+    return result?.response?.text()
+  }
+
+  test('restarts the generator resolver after the disposal', async () => {
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      yield HttpResponse.text('pending')
+      return HttpResponse.text('complete')
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+
+    handler.dispose()
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+  })
+
+  test('does not keep the generator created by a resolver pending during the disposal', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return (function* () {
+          yield HttpResponse.text('pending')
+          return HttpResponse.text('complete')
+        })()
+      },
+    )
+
+    const pendingRun = run(handler)
+    await resolverStarted.promise
+
+    const disposal = handler.dispose()
+    continueResolver.resolve()
+
+    await expect(pendingRun).resolves.toBe('pending')
+    await disposal
+    expect(cleanup).toHaveBeenCalledOnce()
+
+    await expect(run(handler)).resolves.toBe('pending')
+  })
+
+  test('responds with its own generator to a resolver pending during the disposal', async () => {
+    const pendingResolvers: Array<PromiseWithResolvers<void>> = []
+    const handler = new HttpHandler('GET', '/resource', async () => {
+      const pendingResolver = Promise.withResolvers<void>()
+      pendingResolvers.push(pendingResolver)
+      await pendingResolver.promise
+
+      return (function* () {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      })()
+    })
+
+    const disposedRun = run(handler)
+    await expect.poll(() => pendingResolvers.length).toBe(1)
+
+    handler.dispose()
+
+    const nextRun = run(handler)
+    await expect.poll(() => pendingResolvers.length).toBe(2)
+    pendingResolvers[1].resolve()
+    await expect(nextRun).resolves.toBe('pending')
+
+    pendingResolvers[0].resolve()
+    await expect(disposedRun).resolves.toBe('pending')
+
+    await expect(run(handler)).resolves.toBe('complete')
+  })
+
+  test('runs the cleanup of a failed generator created by a resolver pending during the disposal', async () => {
+    const cleanup = vi.fn()
+    const resolverStarted = Promise.withResolvers<void>()
+    const continueResolver = Promise.withResolvers<void>()
+    const handler = new HttpHandler(
+      'GET',
+      '/resource',
+      async ({ finalize }) => {
+        finalize(cleanup)
+        resolverStarted.resolve()
+        await continueResolver.promise
+
+        return (function* () {
+          yield Promise.reject(new Error('Step error'))
+        })()
+      },
+    )
+
+    const pendingRun = run(handler)
+    await resolverStarted.promise
+
+    const disposal = handler.dispose()
+    continueResolver.resolve()
+
+    await expect(pendingRun).rejects.toThrow('Step error')
+    await disposal
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the generator cleanup when disposed of mid-flight', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('runs the async generator cleanup when disposed of mid-flight', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', async function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    expect(cleanup).not.toHaveBeenCalled()
+
+    handler.dispose()
+
+    await vi.waitFor(() => {
+      expect(cleanup).toHaveBeenCalledOnce()
+    })
+  })
+
+  test('does not run the generator cleanup again when disposed of after the generator completes', async () => {
+    const cleanup = vi.fn()
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+    await expect(run(handler)).resolves.toBe('complete')
+    expect(cleanup).toHaveBeenCalledOnce()
+
+    handler.dispose()
+
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  test('reports a failing generator cleanup without throwing', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const cleanup = vi.fn(() => {
+      throw new Error('Cleanup error')
+    })
+
+    const handler = new HttpHandler('GET', '/resource', function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+
+    expect(() => handler.dispose()).not.toThrow()
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[MSW] Failed to execute cleanup for request handler "GET /resource"',
+        ),
+      )
+  })
+
+  test('reports a failing async generator cleanup', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    onTestFinished(() => vi.restoreAllMocks())
+
+    const cleanup = vi.fn(() => {
+      throw new Error('Cleanup error')
+    })
+
+    const handler = new HttpHandler('GET', '/resource', async function* () {
+      try {
+        yield HttpResponse.text('pending')
+        return HttpResponse.text('complete')
+      } finally {
+        cleanup()
+      }
+    })
+
+    await expect(run(handler)).resolves.toBe('pending')
+
+    handler.dispose()
+
+    await expect
+      .poll(() => console.error)
+      .toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[MSW] Failed to execute cleanup for request handler "GET /resource"',
+        ),
+      )
   })
 })

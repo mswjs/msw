@@ -205,24 +205,7 @@ export abstract class RequestHandler<
    * still running stay scheduled until those resolvers complete.
    */
   public reset(): void {
-    const generator = this.resolverGenerator
-    this.resolverGenerator = undefined
-
-    if (!generator) {
-      return
-    }
-
-    void this.exhaustCleanups([
-      // Returning an abandoned generator runs its "finally" blocks.
-      // Treat that as any other cleanup so its failure is reported
-      // instead of interrupting the reset.
-      async () => {
-        await generator.iterator.return?.()
-      },
-      // Run the cleanups of the generator once it has returned so
-      // the ones it scheduled while returning are included.
-      () => this.runScheduledCleanups(generator.requestId),
-    ])
+    void this.closeGenerator()
   }
 
   /**
@@ -241,9 +224,11 @@ export abstract class RequestHandler<
    * Release the resolution state held by this handler when it leaves
    * the network. Runs the cleanup of a mid-flight generator and lets
    * this handler start from a clean state if it is used again.
+   * Returns a promise if there is a generator to clean up so
+   * the network awaits its cleanup before tearing itself down.
    */
-  public dispose(): void {
-    this.reset()
+  public dispose(): MaybePromise<void> {
+    return this.closeGenerator()
   }
 
   /**
@@ -563,6 +548,33 @@ export abstract class RequestHandler<
       response: args.response,
       parsedResult: args.parsedResult,
     }
+  }
+
+  /**
+   * Close the mid-flight generator, if any, and run its cleanups.
+   * Returns a promise that resolves once the generator has returned
+   * and its cleanups have run. Stays synchronous if there is no
+   * generator to close.
+   */
+  private closeGenerator(): MaybePromise<void> {
+    const generator = this.resolverGenerator
+    this.resolverGenerator = undefined
+
+    if (!generator) {
+      return
+    }
+
+    return this.exhaustCleanups([
+      // Returning an abandoned generator runs its "finally" blocks.
+      // Treat that as any other cleanup so its failure is reported
+      // instead of interrupting the reset.
+      async () => {
+        await generator.iterator.return?.()
+      },
+      // Run the cleanups of the generator once it has returned so
+      // the ones it scheduled while returning are included.
+      () => this.runScheduledCleanups(generator.requestId),
+    ])
   }
 
   private scheduleCleanup(

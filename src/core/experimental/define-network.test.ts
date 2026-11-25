@@ -234,6 +234,115 @@ test('awaits the cleanup of a pending resolver', async () => {
   expect(result?.response?.status).toBe(204)
 })
 
+test('awaits the running cleanup of a completed resolver', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const cleanupStarted = Promise.withResolvers<void>()
+  const cleanupGate = Promise.withResolvers<void>()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    ({ finalize }) => {
+      finalize(async () => {
+        cleanupStarted.resolve()
+        await cleanupGate.promise
+      })
+
+      return new Response(null, { status: 204 })
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const resultPromise = handler.run({
+    request: new Request('http://localhost/resource'),
+    requestId: 'request-1',
+  })
+  await cleanupStarted.promise
+
+  const disableListener = vi.fn()
+  const disablePromise = Promise.resolve(network.disable()).then(
+    disableListener,
+  )
+
+  await setTimeout(50)
+  expect(
+    disableListener,
+    'Disables while the resolver cleanup is running',
+  ).not.toHaveBeenCalled()
+
+  cleanupGate.resolve()
+  await disablePromise
+
+  const result = await resultPromise
+  expect(result?.response?.status).toBe(204)
+})
+
+test('awaits the running cleanup of a generator closed by a reset', async () => {
+  class SyncNetworkSource extends NetworkSource {
+    enable = () => {}
+    disable = () => {}
+  }
+
+  const cleanupStarted = Promise.withResolvers<void>()
+  const cleanupGate = Promise.withResolvers<void>()
+
+  const handler = new HttpHandler(
+    HttpMethods.GET,
+    'http://localhost/resource',
+    function* ({ finalize }) {
+      finalize(async () => {
+        cleanupStarted.resolve()
+        await cleanupGate.promise
+      })
+
+      yield new Response('first')
+      return new Response('second')
+    },
+  )
+
+  const network = defineNetwork({
+    sources: [new SyncNetworkSource()],
+    handlers: [handler],
+  })
+
+  network.enable()
+
+  const result = await handler.run({
+    request: new Request('http://localhost/resource'),
+    requestId: 'request-1',
+  })
+  await expect(result?.response?.text()).resolves.toBe('first')
+
+  network.resetHandlers()
+  await cleanupStarted.promise
+
+  const disableListener = vi.fn()
+  const disablePromise = Promise.resolve(network.disable()).then(
+    disableListener,
+  )
+
+  await setTimeout(50)
+  expect(
+    disableListener,
+    'Disables while the generator cleanup is running',
+  ).not.toHaveBeenCalled()
+
+  cleanupGate.resolve()
+  await disablePromise
+
+  expect(disableListener).toHaveBeenCalledOnce()
+})
+
 test('does not await a pending resolver of an aborted request', async () => {
   class SyncNetworkSource extends NetworkSource {
     enable = () => {}

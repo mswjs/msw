@@ -183,6 +183,10 @@ export abstract class RequestHandler<
    * Each settles once its resolver completes and its cleanups run.
    */
   private pendingResolutions: Map<string, Promise<unknown>>
+  /**
+   * Cleanups that have started and are still running.
+   */
+  private runningCleanups: Set<Promise<void>>
 
   public info: HandlerInfo & RequestHandlerInternalInfo
 
@@ -199,6 +203,7 @@ export abstract class RequestHandler<
     this.options = args.options
     this.scheduledCleanups = new Map()
     this.pendingResolutions = new Map()
+    this.runningCleanups = new Set()
 
     const callFrame = getCallFrame(new Error())
 
@@ -241,7 +246,13 @@ export abstract class RequestHandler<
    * the network awaits them before tearing itself down.
    */
   public dispose(): MaybePromise<void> {
-    const pendingCleanups: Array<Promise<unknown>> = []
+    void this.closeGenerator()
+
+    // The cleanups that have already started, including
+    // the ones of the generator closed above or by a reset.
+    const pendingCleanups: Array<Promise<unknown>> = Array.from(
+      this.runningCleanups,
+    )
 
     // The cleanups of the resolvers that are still running
     // run once those resolvers complete.
@@ -251,12 +262,6 @@ export abstract class RequestHandler<
       if (resolution) {
         pendingCleanups.push(resolution)
       }
-    }
-
-    const generatorClosure = this.closeGenerator()
-
-    if (generatorClosure instanceof Promise) {
-      pendingCleanups.push(generatorClosure)
     }
 
     // Stay synchronous unless there are cleanups to await.
@@ -655,31 +660,41 @@ export abstract class RequestHandler<
     this.scheduledCleanups.set(requestId, cleanups)
   }
 
-  private async exhaustCleanups(
+  private exhaustCleanups(
     cleanups: Array<() => MaybePromise<void>>,
   ): Promise<void> {
-    const errors: Array<Error> = []
+    const execution = (async () => {
+      const errors: Array<Error> = []
 
-    for (const cleanup of cleanups) {
-      try {
-        await cleanup()
-      } catch (error) {
-        if (error instanceof Error) {
-          errors.push(error)
+      for (const cleanup of cleanups) {
+        try {
+          await cleanup()
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.push(error)
+          }
         }
       }
-    }
 
-    if (errors.length > 0) {
-      devUtils.error(
-        'Failed to execute cleanup for request handler "%s"',
-        this.info.header,
-        new AggregateError(
-          errors,
-          `Failed to execute cleanup for request handler "${this.info.header}"`,
-        ),
-      )
-    }
+      if (errors.length > 0) {
+        devUtils.error(
+          'Failed to execute cleanup for request handler "%s"',
+          this.info.header,
+          new AggregateError(
+            errors,
+            `Failed to execute cleanup for request handler "${this.info.header}"`,
+          ),
+        )
+      }
+    })()
+
+    // Keep track of the running cleanups so disposing of
+    // this handler awaits them no matter what started them.
+    this.runningCleanups.add(execution)
+
+    return execution.finally(() => {
+      this.runningCleanups.delete(execution)
+    })
   }
 
   /**
